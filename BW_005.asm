@@ -21268,7 +21268,7 @@ CopyProtection:
 	bra	adrCd00D1FC	;600000BE
 ;	move.l	#$8488ffc4,$24.w
 ;	moveq	#0,d0
-	rts
+;	rts
 
 
 ;fiX Label expected
