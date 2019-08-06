@@ -16688,15 +16688,15 @@ adrCd00A804:
 	add.b	d6,d3	;D606
 	add.b	d6,d3	;D606
 adrCd00A808:
-	move.b	d6,-$001C(a3)	;1746FFE4
-	lea	adrEA00A88E.l,a0	;41F90000A88E
-	and.w	#$000F,d3	;0243000F
-	mulu	#$000A,d3	;C6FC000A
-	lea	$02(a0,d3.w),a0	;41F03002
-	lea	adrEA018804.l,a1	;43F900018804
-	tst.w	-$0002(a0)	;4A68FFFE
-	beq.s	adrCd00A830	;6706
-	lea	adrEA018944.l,a1	;43F900018944
+	move.b	d6,-$001C(a3)			;1746FFE4
+	lea	adrEA00A88E.l,a0		;41F90000A88E
+	and.w	#$000F,d3			;0243000F
+	mulu	#$000A,d3			;C6FC000A
+	lea	$02(a0,d3.w),a0			;41F03002
+	lea	adrEA018804.l,a1		;43F900018804
+	tst.w	-$0002(a0)			;4A68FFFE
+	beq.s	adrCd00A830			;6706
+	lea	adrEA018944.l,a1		;43F900018944
 adrCd00A830:
 	move.l	a0,-(sp)	;2F08
 	move.l	a1,-(sp)	;2F09
