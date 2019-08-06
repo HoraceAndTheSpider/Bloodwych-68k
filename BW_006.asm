@@ -330,13 +330,13 @@ MenuKeyboard:
 	clr.b	adrEA0005C9.w	;423805C9	;Short Absolute converted to symbol!
 MenuKeyboardLoop:
 	move.b	adrEA0005C9.w,d0	;103805C9	;Short Absolute converted to symbol!
-	sub.b	#$50,d0	;04000050
-	beq	Ply1_Start	;67000088
+	sub.b	#$50,d0				;04000050
+	beq	Ply1_Start		;67000088
+	subq.b	#$01,d0			;5300
+	beq	Ply2_Start		;6700008C
 	subq.b	#$01,d0	;5300
-	beq	Ply2_Start	;6700008C
-	subq.b	#$01,d0	;5300
-	beq	QkPly1_Start	;6700008E
-	subq.b	#$01,d0	;5300
+	beq	QkPly1_Start		;6700008E
+	subq.b	#$01,d0			;5300
 	beq	QkPly2_Start	;670000CE
 	cmp.b	#$06,d0	;0C000006
 	beq.s	LoadGameFromMenu	;670C
@@ -10451,18 +10451,22 @@ adrJT007018:
 	dc.w	adrJA007734-adrJB007016	;071E
 	dc.w	adrJA00776C-adrJB007016	;0756
 	dc.w	adrJA00777E-adrJB007016	;0768
+
 	dc.w	adrJA005CF8-adrJB007016	;ECE2
 	dc.w	adrJA007796-adrJB007016	;0780
 	dc.w	adrJA0077D6-adrJB007016	;07C0
 	dc.w	adrJA007768-adrJB007016	;0752
+
 	dc.w	adrJA007386-adrJB007016	;0370
 	dc.w	adrJA007356-adrJB007016	;0340
 	dc.w	adrJA007686-adrJB007016	;0670
 	dc.w	adrJA0076B4-adrJB007016	;069E
+
 	dc.w	adrJA005CFC-adrJB007016	;ECE6
 	dc.w	adrJA007728-adrJB007016	;0712
 	dc.w	adrJA00763C-adrJB007016	;0626
 	dc.w	adrJA00778A-adrJB007016	;0774
+
 	dc.w	adrJA007758-adrJB007016	;0742
 	dc.w	adrJA007630-adrJB007016	;061A
 	dc.w	adrJA00751A-adrJB007016	;0504
@@ -11017,7 +11021,7 @@ adrJA007502:
 
 adrJA00751A:
 	move.l	a5,-(sp)	;2F0D
-	bsr.s	GameEnd	;6164
+	bsr.s	GameEndSequence	;6164
 	clr.w	adrB_008C1E.l	;427900008C1E
 	bsr	adrCd008CCA	;610017A4
 	bsr	adrCd008D88	;6100185E
@@ -11045,7 +11049,7 @@ adrCd007576:
 	move.l	(sp)+,a5	;2A5F
 	rts	;4E75
 
-GameEnd:
+GameEndSequence:
 	lea	Player1_Data.l,a5	;4BF90000EE7C
 	tst.w	MultiPlayer.l	;4A790000EE30
 	bne.s	.GameEnd_repeat	;6608
@@ -12912,132 +12916,133 @@ adrB_0088A2:
 	dc.b	$00	;00
 
 adrL_0088A4:
-	move.w	#$0001,_custom+dmacon.l	;33FC000100DFF096
-	move.w	#$0080,_custom+intena.l	;33FC008000DFF09A
-	move.w	#$0080,_custom+intreq.l	;33FC008000DFF09C
-	rte	;4E73
-
+	move.w	#$0001,_custom+dmacon.l		;33FC000100DFF096
+	move.w	#$0080,_custom+intena.l		;33FC008000DFF09A
+	move.w	#$0080,_custom+intreq.l		;33FC008000DFF09C
+	rte					;4E73
+	
 PlaySound:
-	move.w	d1,-(sp)	;3F01
-	move.w	#$0001,_custom+dmacon.l	;33FC000100DFF096
-	move.w	#$0080,_custom+intena.l	;33FC008000DFF09A
-	asl.w	#$02,d0	;E540
-	lea	AudioSample_1a.l,a0	;41F900054422
-	add.w	adrW_008938(pc,d0.w),a0	;D0FB005E
-	move.w	adrW_00893A(pc,d0.w),d0	;303B005C
-	lea	$0030(a0),a0	;41E80030
-	move.w	-$0002(a0),d1	;3228FFFE
-	lsr.w	#$01,d1	;E249
-	asl.w	#$02,d0	;E540
-	move.l	a0,_custom+aud.l	;23C800DFF0A0
+	move.w	d1,-(sp)			;3F01
+	move.w	#$0001,_custom+dmacon.l		;33FC000100DFF096
+	move.w	#$0080,_custom+intena.l		;33FC008000DFF09A
+	asl.w	#$02,d0				;E540
+	lea	AudioSample_1.l,a0		;41F900054422
+	add.w	adrW_008938(pc,d0.w),a0		;D0FB005E
+	move.w	adrW_00893A(pc,d0.w),d0		;303B005C
+	lea	$0030(a0),a0			;41E80030
+	move.w	-$0002(a0),d1			;3228FFFE
+	lsr.w	#$01,d1				;E249
+	asl.w	#$02,d0				;E540
+	move.l	a0,_custom+aud.l		;23C800DFF0A0
 	move.w	d1,_custom+aud0+ac_len.l	;33C100DFF0A4
 	move.w	#$0040,_custom+aud0+ac_vol.l	;33FC004000DFF0A8
 	move.w	d0,_custom+aud0+ac_per.l	;33C000DFF0A6
 	move.w	(a0),_custom+aud0+ac_dat.l	;33D000DFF0AA
-	move.w	#$0078,d1	;323C0078
+	move.w	#$0078,d1			;323C0078
 adrLp008910:
-	dbra	d1,adrLp008910	;51C9FFFE
-	move.w	#$8001,_custom+dmacon.l	;33FC800100DFF096
-	move.w	#$0078,d1	;323C0078
+	dbra	d1,adrLp008910			;51C9FFFE
+	move.w	#$8001,_custom+dmacon.l		;33FC800100DFF096
+	move.w	#$0078,d1			;323C0078
 adrLp008920:
-	dbra	d1,adrLp008920	;51C9FFFE
-	move.w	#$0080,_custom+intreq.l	;33FC008000DFF09C
-	move.w	#$8080,_custom+intena.l	;33FC808000DFF09A
-	move.w	(sp)+,d1	;321F
-	rts	;4E75
+	dbra	d1,adrLp008920			;51C9FFFE
+	move.w	#$0080,_custom+intreq.l		;33FC008000DFF09C
+	move.w	#$8080,_custom+intena.l		;33FC808000DFF09A
+	move.w	(sp)+,d1			;321F
+	rts					;4E75
 
 adrW_008938:
-	dc.w	AudioSample_1a-AudioSample_1a	;0000
+	dc.w	AudioSample_1-AudioSample_1	;0000
 adrW_00893A:
-	dc.w	AudioSample_1b-AudioSample_1a	;0028
-	dc.w	AudioSample_1a-AudioSample_1a	;0000
-	dc.w	AudioSample_2b-AudioSample_1a	;009B
-	dc.w	AudioSample_2a-AudioSample_1a	;0084
-	dc.w	AudioSample_1d-AudioSample_1a	;005D
-	dc.w	AudioSample_3a-AudioSample_1a	;0646
-	dc.w	AudioSample_1b-AudioSample_1a	;0028
-	dc.w	AudioSample_4a-AudioSample_1a	;1ECE
-	dc.w	AudioSample_1c-AudioSample_1a	;0049
-	dc.w	AudioSample_5a-AudioSample_1a	;3684
-	dc.w	AudioSample_1c-AudioSample_1a	;0049
+	dc.w	$0028				;0028
+	dc.w	AudioSample_1-AudioSample_1	;0000
+	dc.w	$009B				;009B
+	dc.w	AudioSample_2-AudioSample_1	;0084
+	dc.w	$005D				;005D
+	dc.w	AudioSample_3-AudioSample_1	;0646
+	dc.w	$0028				;0028
+	dc.w	AudioSample_4-AudioSample_1	;1ECE
+	dc.w	$0049				;0049
+	dc.w	AudioSample_5-AudioSample_1	;3684
+	dc.w	$0049				;0049
+
 adrW_008950:
-	dc.w	AudioSample_1a-AudioSample_1a	;0000
+	dc.w	AudioSample_1-AudioSample_1	;0000
 
 adrCd008952:
 	move.w	_custom+joy0dat.l,d0	;303900DFF00A
 	move.w	adrW_008950.l,d1	;323900008950
 	move.w	d0,adrW_008950.l	;33C000008950
-	bsr	adrCd008A0A	;610000A4
-	ror.w	#$08,d0	;E058
-	ror.w	#$08,d1	;E059
-	bsr	adrCd008A0A	;6100009C
+	bsr	adrCd008A0A		;610000A4
+	ror.w	#$08,d0			;E058
+	ror.w	#$08,d1			;E059
+	bsr	adrCd008A0A		;6100009C
 	lea	Player1_Data.l,a5	;4BF90000EE7C
-	move.w	$0004(a5),d1	;322D0004
-	moveq	#$00,d2	;7400
-	move.b	d0,d2	;1400
-	ext.w	d2	;4882
-	add.w	d2,d1	;D242
-	bpl.s	adrCd008986	;6A02
-	moveq	#$00,d1	;7200
+	move.w	$0004(a5),d1		;322D0004
+	moveq	#$00,d2			;7400
+	move.b	d0,d2			;1400
+	ext.w	d2			;4882
+	add.w	d2,d1			;D242
+	bpl.s	adrCd008986		;6A02
+	moveq	#$00,d1			;7200
 adrCd008986:
-	cmp.b	$003B(a5),d1	;B22D003B
-	bcc.s	adrCd008990	;6404
-	move.b	$003B(a5),d1	;122D003B
+	cmp.b	$003B(a5),d1		;B22D003B
+	bcc.s	adrCd008990		;6404
+	move.b	$003B(a5),d1		;122D003B
 adrCd008990:
-	cmp.b	$003A(a5),d1	;B22D003A
-	bcs.s	adrCd00899A	;6504
-	move.b	$003A(a5),d1	;122D003A
+	cmp.b	$003A(a5),d1		;B22D003A
+	bcs.s	adrCd00899A		;6504
+	move.b	$003A(a5),d1		;122D003A
 adrCd00899A:
-	move.w	d1,$0004(a5)	;3B410004
-	lsr.w	#$08,d0	;E048
-	ext.w	d0	;4880
-	move.w	$0002(a5),d1	;322D0002
-	add.w	d0,d1	;D240
-	bpl.s	adrCd0089AE	;6A04
-	add.w	#$0140,d1	;06410140
+	move.w	d1,$0004(a5)		;3B410004
+	lsr.w	#$08,d0			;E048
+	ext.w	d0			;4880
+	move.w	$0002(a5),d1		;322D0002
+	add.w	d0,d1			;D240
+	bpl.s	adrCd0089AE		;6A04
+	add.w	#$0140,d1		;06410140
 adrCd0089AE:
-	cmp.w	#$0140,d1	;0C410140
-	bcs.s	adrCd0089B8	;6504
-	sub.w	#$0140,d1	;04410140
+	cmp.w	#$0140,d1		;0C410140
+	bcs.s	adrCd0089B8		;6504
+	sub.w	#$0140,d1		;04410140
 adrCd0089B8:
-	move.w	d1,$0002(a5)	;3B410002
-	move.l	$0002(a5),d1	;222D0002
+	move.w	d1,$0002(a5)		;3B410002
+	move.l	$0002(a5),d1		;222D0002
 	lea	adrEA008E84.l,a0	;41F900008E84
-	bsr	adrCd008A50	;61000088
+	bsr	adrCd008A50		;61000088
 	lea	adrEA008F14.l,a0	;41F900008F14
-	move.l	#$FF81FFC9,d1	;223CFF81FFC9
-	bsr	adrCd008A50	;61000078
-	move.b	_ciaa.l,d1	;123900BFE001
-	not.b	d1	;4601
-	and.w	#$0040,d1	;02410040
-	rol.b	#$01,d1	;E319
+	move.l	#$FF81FFC9,d1		;223CFF81FFC9
+	bsr	adrCd008A50		;61000078
+	move.b	_ciaa.l,d1		;123900BFE001
+	not.b	d1			;4601
+	and.w	#$0040,d1		;02410040
+	rol.b	#$01,d1			;E319
 	lea	adrEA008AFC.l,a0	;41F900008AFC
-	tst.b	d1	;4A01
-	bpl.s	adrCd0089F6	;6A04
-	tst.b	(a0)	;4A10
-	bmi.s	adrCd008A08	;6B12
+	tst.b	d1			;4A01
+	bpl.s	adrCd0089F6		;6A04
+	tst.b	(a0)			;4A10
+	bmi.s	adrCd008A08		;6B12
 adrCd0089F6:
-	move.b	d1,(a0)	;1081
-	tst.b	d1	;4A01
-	bpl.s	adrCd008A08	;6A0C
-	tst.b	$0001(a5)	;4A2D0001
-	bmi.s	adrCd008A08	;6B06
-	bset	#$07,$0001(a5)	;08ED00070001
+	move.b	d1,(a0)			;1081
+	tst.b	d1			;4A01
+	bpl.s	adrCd008A08		;6A0C
+	tst.b	$0001(a5)		;4A2D0001
+	bmi.s	adrCd008A08		;6B06
+	bset	#$07,$0001(a5)		;08ED00070001
 adrCd008A08:
-	rts	;4E75
+	rts				;4E75
 
 adrCd008A0A:
-	sub.b	d1,d0	;9001
-	bcc.s	adrCd008A14	;6406
-	tst.b	d0	;4A00
-	bmi.s	adrCd008A1A	;6B08
-	bra.s	adrCd008A18	;6004
+	sub.b	d1,d0			;9001
+	bcc.s	adrCd008A14		;6406
+	tst.b	d0			;4A00
+	bmi.s	adrCd008A1A		;6B08
+	bra.s	adrCd008A18		;6004
 
 adrCd008A14:
-	tst.b	d0	;4A00
-	bpl.s	adrCd008A1A	;6A02
+	tst.b	d0			;4A00
+	bpl.s	adrCd008A1A		;6A02
 adrCd008A18:
-	neg.b	d0	;4400
+	neg.b	d0			;4400
 adrCd008A1A:
 	rts	;4E75
 
@@ -21264,7 +21269,7 @@ CopyProtection:
 	bra	adrCd00D1FC	;600000BE
 ;	move.l	#$8488ffc4,$24.w
 ;	moveq	#0,d0
-	rts
+;	rts
 
 
 ;fiX Label expected
@@ -26800,7 +26805,6 @@ ObjectData_1:
 	dc.w	$8C00	;8C00
 	dc.w	$3001	;3001
 	dc.w	$4B8C	;4B8C
-adrL_01000A:
 	dc.w	$0002	;0002
 	dc.w	$02CC	;02CC
 	dc.w	$4601	;4601
@@ -26828,7 +26832,6 @@ adrL_01000A:
 	dc.w	$2801	;2801
 	dc.w	$5201	;5201
 	dc.w	$0A01	;0A01
-adrL_010040:
 	dc.w	$03AC	;03AC
 	dc.w	$0002	;0002
 	dc.w	$0145	;0145
@@ -125373,7 +125376,6 @@ GFX_Bodies:
 	dc.w	$F1FF	;F1FF
 	dc.w	$F1FF	;F1FF
 	dc.w	$F1FF	;F1FF
-adrL_04080C:
 	dc.w	$F5FF	;F5FF
 	dc.w	$F1FF	;F1FF
 	dc.w	$FFFF	;FFFF
@@ -165868,7 +165870,7 @@ adrEA053D8A:
 	dc.w	$0054	;0054
 	dc.w	$002A	;002A
 	dc.w	$0000	;0000
-AudioSample_1a:
+AudioSample_1:
 	dc.b	'FORM'	;464F524D
 	dc.b	$00	;00
 	dc.b	$00	;00
@@ -165991,7 +165993,7 @@ AudioSample_1d:
 	dc.b	$F7	;F7
 	dc.b	$FD	;FD
 	dc.b	$FF	;FF
-AudioSample_2a:
+AudioSample_2:
 	dc.b	'FORM'	;464F524D
 	dc.b	$00	;00
 	dc.b	$00	;00
@@ -167454,7 +167456,7 @@ AudioSample_2b:
 	dc.b	$0B	;0B
 	dc.b	$0A	;0A
 	dc.b	$09	;09
-AudioSample_3a:
+AudioSample_3:
 	dc.b	'FORM'	;464F524D
 	dc.b	$00	;00
 	dc.b	$00	;00
@@ -173722,7 +173724,7 @@ AudioSample_3a:
 	dc.b	$D5	;D5
 	dc.b	$DF	;DF
 	dc.b	$E9	;E9
-AudioSample_4a:
+AudioSample_4:
 	dc.b	'FORM'	;464F524D
 	dc.b	$00	;00
 	dc.b	$00	;00
@@ -179780,7 +179782,7 @@ AudioSample_4a:
 	dc.b	$13	;13
 	dc.b	$25	;25
 	dc.b	$37	;37
-AudioSample_5a:
+AudioSample_5:
 	dc.b	'FORM'	;464F524D
 	dc.b	$00	;00
 	dc.b	$00	;00
@@ -186232,5 +186234,5 @@ adrEA058C10:
 	dc.b	$00	;00
 	dc.b	$00	;00
 	dc.b	$00	;00
-
+GameEnd:
 	end
