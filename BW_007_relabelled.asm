@@ -1,44 +1,45 @@
 
-dsksync:	equ	$0000007E
-copjmp1:	equ	$00000088
-aud:	equ	$000000A0
-ac_vol:	equ	$00000008
-adkcon:	equ	$0000009E
-_custom:	equ	$00DFF000
-ddfstop:	equ	$00000094
-bplcon2:	equ	$00000104
-diwstrt:	equ	$0000008E
-ac_per:	equ	$00000006
-intreq:	equ	$0000009C
-bplcon0:	equ	$00000100
-bplcon1:	equ	$00000102
-aud0:	equ	$000000A0
-diwstop:	equ	$00000090
-cli_SIZEOF:	equ	$00000040
-ddfstrt:	equ	$00000092
-SYSBASESIZE:	equ	$00000278
+dsksync:		equ	$0000007E
+copjmp1:		equ	$00000088
+aud:			equ	$000000A0
+ac_vol:			equ	$00000008
+adkcon:			equ	$0000009E
+_custom:		equ	$00DFF000
+ddfstop:		equ	$00000094
+bplcon2:		equ	$00000104
+diwstrt:		equ	$0000008E
+ac_per:			equ	$00000006
+intreq:			equ	$0000009C
+bplcon0:		equ	$00000100
+bplcon1:		equ	$00000102
+aud0:			equ	$000000A0
+diwstop:		equ	$00000090
+cli_SIZEOF:		equ	$00000040
+ddfstrt:		equ	$00000092
+SYSBASESIZE:		equ	$00000278
 tv_TrapInstrVects:	equ	$00000080
-ciaprb:	equ	$00000100
-intena:	equ	$0000009A
-intreqr:	equ	$0000001E
-joy0dat:	equ	$0000000A
-ac_dat:	equ	$0000000A
-joy1dat:	equ	$0000000C
-bpl2mod:	equ	$0000010A
-color:	equ	$00000180
-bltddat:	equ	$00000000
-bpl1mod:	equ	$00000108
-ciaicr:	equ	$00000D00
-dskpt:	equ	$00000020
-cop1lc:	equ	$00000080
-_ciaa:	equ	$00BFE001
-_ciab:	equ	$00BFD000
-dmacon:	equ	$00000096
-wd_SIZEOF:	equ	$00000088
-dsklen:	equ	$00000024
-ac_len:	equ	$00000004
-ciacra:	equ	$00000E00
+ciaprb:			equ	$00000100
+intena:			equ	$0000009A
+intreqr:		equ	$0000001E
+joy0dat:		equ	$0000000A
+ac_dat:			equ	$0000000A
+joy1dat:		equ	$0000000C
+bpl2mod:		equ	$0000010A
+color:			equ	$00000180
+bltddat:		equ	$00000000
+bpl1mod:		equ	$00000108
+ciaicr:			equ	$00000D00
+dskpt:			equ	$00000020
+cop1lc:			equ	$00000080
+_ciaa:			equ	$00BFE001
+_ciab:			equ	$00BFD000
+dmacon:			equ	$00000096
+wd_SIZEOF:		equ	$00000088
+dsklen:			equ	$00000024
+ac_len:			equ	$00000004
+ciacra:			equ	$00000E00
 ****************************************************************************
+
 ; Fixed for Devpac:
 ;	SECTION	BW_002rs000000,CODE,CHIP
 	SECTION	BW_002rs000000,CODE_C
@@ -330,27 +331,27 @@ MenuKeyboard:
 	clr.b	KeyboardKeyCode.w	;423805C9	;Short Absolute converted to symbol!
 MenuKeyboardLoop:
 	move.b	KeyboardKeyCode.w,d0	;103805C9	;Short Absolute converted to symbol!
-	sub.b	#$50,d0				;04000050
-	beq	Ply1_Start		;67000088
-	subq.b	#$01,d0			;5300
-	beq	Ply2_Start		;6700008C
-	subq.b	#$01,d0	;5300
-	beq	QkPly1_Start		;6700008E
-	subq.b	#$01,d0			;5300
-	beq	QkPly2_Start	;670000CE
-	cmp.b	#$06,d0	;0C000006
-	beq.s	LoadGameFromMenu	;670C
-	subq.b	#$05,d0	;5B00
-	bne.s	MenuKeyboardLoop	;66D8
-	move.w	#$FFFF,MultiPlayer.l	;33FCFFFF0000EE30
+	sub.b	#$50,d0					;04000050
+	beq	Ply1_Start				;67000088
+	subq.b	#$01,d0					;5300
+	beq	Ply2_Start				;6700008C
+	subq.b	#$01,d0					;5300
+	beq	QkPly1_Start				;6700008E
+	subq.b	#$01,d0					;5300
+	beq	QkPly2_Start				;670000CE
+	cmpi.b	#$06,d0					;0C000006
+	beq.s	LoadGameFromMenu			;670C
+	subq.b	#$05,d0					;5B00
+	bne.s	MenuKeyboardLoop			;66D8
+	move.w	#$FFFF,MultiPlayer.l			;33FCFFFF0000EE30
 LoadGameFromMenu:
-	move.l	#$00067D00,screen_ptr.l	;23FC00067D0000008D36
-	move.l	#$00060000,framebuffer_ptr.l	;23FC0006000000008D3A
-	jsr	adrCd008DA8.l	;4EB900008DA8
-	move.l	screen_ptr.l,a0	;207900008D36
-	add.w	#$0E10,a0	;D0FC0E10
-	lea	InsertLoadDiskMsg.l,a6	;4DF9000044E5
-	jsr	Print_fflim_text.l	;4EB90000D0C6
+	move.l	#$00067D00,screen_ptr.l			;23FC00067D0000008D36
+	move.l	#$00060000,framebuffer_ptr.l		;23FC0006000000008D3A
+	jsr	adrCd008DA8.l				;4EB900008DA8
+	move.l	screen_ptr.l,a0				;207900008D36
+	add.w	#$0E10,a0				;D0FC0E10
+	lea	InsertLoadDiskMsg.l,a6	;		4DF9000044E5
+	jsr	Print_fflim_text.l				;4EB90000D0C6
 	jsr	adrCd008CCA.l	;4EB900008CCA
 	clr.b	KeyboardKeyCode.w	;423805C9	;Short Absolute converted to symbol!
 	bsr	LoadSaveGame_Loop	;61003C0A
@@ -439,7 +440,7 @@ adrCd000904:
 	move.b	$0003(a4),d1	;122C0003
 	lsr.b	#$01,d1	;E209
 	add.b	d1,d0	;D001
-	cmp.b	#$64,d0	;0C000064
+	cmpi.b	#$64,d0	;0C000064
 	bcs.s	adrCd00091E	;6502
 	moveq	#$63,d0	;7063
 adrCd00091E:
@@ -588,24 +589,24 @@ adrLp000A08:
 	bset	#$07,$01(a6,d0.w)	;08F600070001
 .MarkedOnMap:
 	moveq	#$00,d0	;7000
-	move.b	(a3)+,d0	;101B
-	move.b	d0,$0006(a4)	;19400006
-	move.b	d0,$0007(a4)	;19400007
-	moveq	#$0E,d1	;720E
-	sub.b	d0,d1	;9200
-	bcs.s	.SkipSomething1_TEMP	;6506
-	cmp.b	#$08,d1	;0C010008
-	bcc.s	.SkipSomething2_TEMP	;6402
+	move.b	(a3)+,d0			;101B
+	move.b	d0,$0006(a4)			;19400006
+	move.b	d0,$0007(a4)			;19400007
+	moveq	#$0E,d1				;720E
+	sub.b	d0,d1				;9200
+	bcs.s	.SkipSomething1_TEMP			;6506
+	cmpi.b	#$08,d1				;0C010008
+	bcc.s	.SkipSomething2_TEMP		;6402
 .SkipSomething1_TEMP:
 	moveq	#$08,d1	;7208
 .SkipSomething2_TEMP:
 	asl.b	#$04,d1	;E901
 	move.b	d1,$0003(a4)	;19410003
 	move.w	#$0190,d1	;323C0190
-	cmp.b	#$19,d0	;0C000019
+	cmpi.b	#$19,d0	;0C000019
 	bcc.s	.SkipSomething3_TEMP	;640E
 	move.w	#$00FA,d1	;323C00FA
-	cmp.b	#$10,d0	;0C000010
+	cmpi.b	#$10,d0	;0C000010
 	bcc.s	.SkipSomething3_TEMP	;6404
 	move.b	adrB_000B22(pc,d0.w),d1	;123B005E
 .SkipSomething3_TEMP:
@@ -624,7 +625,7 @@ adrLp000A08:
 .SkipSomething4_TEMP:
 	moveq	#$00,d0	;7000
 	move.b	(a3)+,d0	;101B
-	cmp.b	#$FF,d0	;0C0000FF
+	cmpi.b	#$FF,d0	;0C0000FF
 	beq.s	.SkipSomething5_TEMP	;6720
 	lea	adrEA017390.l,a0	;41F900017390
 	move.b	d4,$00(a0,d0.w)	;11840000
@@ -1018,7 +1019,7 @@ adrLp000F4C:
 	bne.s	adrCd000F80	;6618
 	btst	#$06,$18(a5,d7.w)	;083500067018
 	bne.s	adrCd000F80	;6610
-	cmp.b	#$0B,d1	;0C01000B
+	cmpi.b	#$0B,d1	;0C01000B
 	beq.s	adrCd000F80	;670A
 	subq.b	#$01,$0010(a4)	;532C0010
 	bcc.s	adrCd000F80	;6404
@@ -1246,7 +1247,7 @@ adrCd0011BA:
 	bcc.s	adrCd001208	;6438
 	tst.b	d0	;4A00
 	bmi.s	adrCd0011F0	;6B1C
-	cmp.b	#$10,d0	;0C000010
+	cmpi.b	#$10,d0	;0C000010
 	bcs.s	adrCd0011E0	;6506
 	tst.b	$000B(a1)	;4A29000B
 	bmi.s	adrCd001208	;6B28
@@ -1358,7 +1359,7 @@ adrCd001320:
 	add.w	#$0020,a4	;D8FC0020
 	move.w	(sp)+,d7	;3E1F
 	addq.w	#$01,d7	;5247
-	cmp.w	#$0010,d7	;0C470010
+	cmpi.w	#$0010,d7	;0C470010
 	bcs.s	adrCd001308	;65DA
 	lea	UnpackedMonsters.l,a4	;49F900016B7E
 	move.w	-$0002(a4),d7	;3E2CFFFE
@@ -1507,7 +1508,7 @@ adrCd001498:
 	bsr	CoordToMap	;61006FE8
 	move.b	$01(a6,d0.w),d1	;12360001
 	bpl.s	adrCd001496	;6ADA
-	cmp.w	#$0000,d4	;0C440000
+	cmpi.w	#$0000,d4	;0C440000
 	beq.s	adrCd00150C	;674A
 	bsr	adrCd001842	;6100037E
 	bpl	adrCd001BCE	;6A000706
@@ -1523,7 +1524,7 @@ adrCd0014E4:
 adrCd0014E8:
 	move.l	a4,a1	;224C
 	move.l	a1,d0	;2009
-	cmp.w	#$0000,d4	;0C440000
+	cmpi.w	#$0000,d4	;0C440000
 	bne.s	adrCd001500	;660E
 	sub.l	#UnpackedMonsters,d0	;048000016B7E
 	lsr.w	#$04,d0	;E848
@@ -1537,20 +1538,20 @@ adrCd001508:
 	bra	adrCd0020F6	;60000BEC
 
 adrCd00150C:
-	move.b	$000B(a4),d2	;142C000B
-	bmi	adrCd001708	;6B0001F6
-	cmp.b	#$40,d2	;0C020040
-	beq.s	adrCd001526	;670C
-	cmp.b	#$67,d2	;0C020067
-	bcc.s	adrCd001526	;6406
-	tst.b	$000D(a4)	;4A2C000D
-	bmi.s	adrCd00153A	;6B14
+	move.b	$000B(a4),d2					;142C000B
+	bmi	adrCd001708					;6B0001F6
+	cmpi.b	#$40,d2						;0C020040
+	beq.s	adrCd001526					;670C
+	cmpi.b	#$67,d2						;0C020067
+	bcc.s	adrCd001526					;6406
+	tst.b	$000D(a4)					;4A2C000D
+	bmi.s	adrCd00153A					;6B14
 adrCd001526:
-	and.b	#$03,$0002(a4)	;022C00030002
-	move.b	$0002(a4),d6	;1C2C0002
-	asl.b	#$04,d6	;E906
-	or.b	$0002(a4),d6	;8C2C0002
-	move.b	d6,$0002(a4)	;19460002
+	and.b	#$03,$0002(a4)					;022C00030002
+	move.b	$0002(a4),d6					;1C2C0002
+	asl.b	#$04,d6						;E906
+	or.b	$0002(a4),d6					;8C2C0002
+	move.b	d6,$0002(a4)					;19460002
 adrCd00153A:
 	bsr	adrCd001842	;61000306
 	bpl	adrCd001BCE	;6A00068E
@@ -1624,13 +1625,13 @@ adrCd0015E0:
 	and.w	#$000F,d0	;0240000F
 	move.b	$0007(a4),d3	;162C0007
 	and.w	#$007F,d3	;0243007F
-	cmp.b	#$08,d3	;0C030008
+	cmpi.b	#$08,d3	;0C030008
 	bcc.s	adrCd001608	;6412
 	lsr.w	#$01,d0	;E248
-	cmp.b	#$05,d3	;0C030005
+	cmpi.b	#$05,d3	;0C030005
 	bcc.s	adrCd001608	;640A
 	lsr.w	#$01,d0	;E248
-	cmp.b	#$04,d3	;0C030004
+	cmpi.b	#$04,d3	;0C030004
 	bcc.s	adrCd001608	;6402
 	lsr.w	#$01,d0	;E248
 adrCd001608:
@@ -1642,9 +1643,9 @@ adrCd001608:
 	or.b	d0,d3	;8600
 	add.w	d3,d3	;D643
 	add.b	d6,d3	;D606
-	cmp.b	#$81,d4	;0C040081
+	cmpi.b	#$81,d4	;0C040081
 	beq.s	adrCd00162C	;6708
-	cmp.b	#$8E,d4	;0C04008E
+	cmpi.b	#$8E,d4	;0C04008E
 	beq.s	adrCd00162C	;6702
 	lsr.b	#$01,d3	;E20B
 adrCd00162C:
@@ -1706,52 +1707,52 @@ adrCd0016BE:
 	lea	ReserveSpace_2.l,a6	;4DF900058C10
 adrCd0016CE:
 	move.w	d7,d0	;3007
-	mulu	adrW_00EE70.l,d0	;C0F90000EE70
-	swap	d7	;4847
-	add.w	d7,d0	;D047
-	swap	d7	;4847
-	move.b	$00(a6,d0.w),d0	;10360000
-	beq.s	adrJA00175A	;6778
-	cmp.b	#$FF,d0	;0C0000FF
-	beq.s	adrJA00175A	;6772
-	and.w	#$0003,d0	;02400003
-	move.b	$02(a4,d4.w),d6	;1C344002
-	and.w	#$0003,d6	;02460003
-	cmp.w	d0,d6	;BC40
-	beq.s	adrJA00175A	;6762
-	eor.w	d0,d6	;B146
-	subq.w	#$02,d6	;5546
-	beq	adrCd001BB8	;670004BA
-	move.b	$02(a4,d4.w),d6	;1C344002
-	bra	adrCd001BC6	;600004C0
+	mulu	adrW_00EE70.l,d0			;C0F90000EE70
+	swap	d7					;4847
+	add.w	d7,d0					;D047
+	swap	d7					;4847
+	move.b	$00(a6,d0.w),d0				;10360000
+	beq.s	adrJA00175A				;6778
+	cmpi.b	#$FF,d0					;0C0000FF
+	beq.s	adrJA00175A				;6772
+	and.w	#$0003,d0				;02400003
+	move.b	$02(a4,d4.w),d6				;1C344002
+	and.w	#$0003,d6				;02460003
+	cmp.w	d0,d6					;BC40
+	beq.s	adrJA00175A				;6762
+	eor.w	d0,d6					;B146
+	subq.w	#$02,d6					;5546
+	beq	adrCd001BB8				;670004BA
+	move.b	$02(a4,d4.w),d6				;1C344002
+	bra	adrCd001BC6				;600004C0
 
 adrCd001708:
-	sub.b	#$84,d2	;04020084
-	bcs.s	adrJA00175A	;654C
-	beq.s	adrCd001714	;6704
-	subq.b	#$03,d2	;5702
-	bne.s	adrJA00175A	;6646
+	sub.b	#$84,d2					;04020084
+	bcs.s	adrJA00175A				;654C
+	beq.s	adrCd001714				;6704
+	subq.b	#$03,d2					;5702
+	bne.s	adrJA00175A				;6646
 adrCd001714:
-	not.w	d1	;4641
-	and.w	#$0007,d1	;02410007
-	beq.s	adrCd001728	;670C
-	cmp.w	#$0007,d1	;0C410007
-	bne.s	adrJA00175A	;6638
-	tst.b	$00(a6,d0.w)	;4A360000
-	bne.s	adrJA00175A	;6632
+	not.w	d1					;4641
+	and.w	#$0007,d1				;02410007
+	beq.s	adrCd001728				;670C
+	cmpi.w	#$0007,d1				;0C410007
+	bne.s	adrJA00175A				;6638
+	tst.b	$00(a6,d0.w)				;4A360000
+	bne.s	adrJA00175A				;6632
 adrCd001728:
-	or.b	#$07,$01(a6,d0.w)	;003600070001
-	moveq	#$00,d1	;7200
-	move.b	$0006(a4),d1	;122C0006
-	cmp.b	#$84,$000B(a4)	;0C2C0084000B
-	bne.s	adrCd001746	;660A
-	add.b	d1,d1	;D201
-	cmp.b	#$40,d1	;0C010040
-	bcs.s	adrCd001746	;6502
-	moveq	#$3F,d1	;723F
+	or.b	#$07,$01(a6,d0.w)			;003600070001
+	moveq	#$00,d1					;7200
+	move.b	$0006(a4),d1				;122C0006
+	cmp.b	#$84,$000B(a4)				;0C2C0084000B
+	bne.s	adrCd001746				;660A
+	add.b	d1,d1					;D201
+	cmpi.b	#$40,d1					;0C010040
+	bcs.s	adrCd001746				;6502
+	moveq	#$3F,d1					;723F
 adrCd001746:
-	asl.b	#$02,d1	;E501
-	addq.b	#$01,d1	;5201
+	asl.b	#$02,d1					;E501
+	addq.b	#$01,d1					;5201
 	move.b	d1,$00(a6,d0.w)	;1D810000
 	move.w	#$0100,d1	;323C0100
 	move.b	$000C(a4),d1	;122C000C
@@ -1761,7 +1762,7 @@ adrJA00175A:
 	and.w	#$0003,d6	;02460003
 	bsr	adrCd007A44	;610062E0
 	bcs	adrCd001AF0	;65000388
-	cmp.w	#$0000,d4	;0C440000
+	cmpi.w	#$0000,d4	;0C440000
 	bne.s	adrCd001778	;6608
 	cmp.b	#$85,$000B(a4)	;0C2C0085000B
 	beq.s	adrCd0017EE	;6776
@@ -1773,7 +1774,7 @@ adrCd001778:
 	bsr	adrCd001842	;610000BC
 	and.w	#$0030,d0	;02400030
 	bsr	adrCd001BCE	;61000440
-	cmp.b	#$00,d4	;0C040000
+	cmpi.b	#$00,d4	;0C040000
 	bne.s	adrCd00179C	;6606
 	tst.b	$000B(a4)	;4A2C000B
 	bmi.s	adrCd0017EC	;6B50
@@ -1865,49 +1866,49 @@ adrCd00185C:
 	bcc	adrCd001BB8	;6400034E
 	tst.b	d0	;4A00
 	bmi	adrCd001AB6	;6B000246
-	cmp.b	#$10,d0	;0C000010
+	cmpi.b	#$10,d0	;0C000010
 	bcs	adrCd001982	;6500010A
 	move.b	$000B(a4),d2	;142C000B
 	bmi	adrCd001982	;6B000102
-	cmp.b	#$64,d2	;0C020064
+	cmpi.b	#$64,d2	;0C020064
 	bne.s	adrCd001894	;660C
 	move.b	$000C(a4),adrB_00EE3E.l	;13EC000C0000EE3E
 	bra	adrCd001982	;600000F0
 
 adrCd001894:
-	cmp.b	#$64,$000B(a1)	;0C290064000B
-	beq	adrCd001982	;670000E6
-	cmp.b	#$40,d2	;0C020040
-	beq	adrCd001BB8	;67000314
-	cmp.b	#$67,d2	;0C020067
-	bcc	adrCd001BB8	;6400030C
-	move.b	$000B(a1),d2	;1429000B
-	bpl.s	adrCd0018F6	;6A42
-	cmp.b	#$85,d2	;0C020085
-	bne	adrCd001BB8	;660002FE
-	move.l	a4,-(sp)	;2F0C
-	moveq	#$00,d7	;7E00
-	move.b	$0000(a4),d7	;1E2C0000
-	swap	d7	;4847
-	move.b	$0001(a4),d7	;1E2C0001
-	bsr	CoordToMap	;61006BD0
-	bclr	#$07,$01(a6,d0.w)	;08B600070001
-	moveq	#$00,d7	;7E00
-	move.b	$0000(a1),d7	;1E290000
-	move.b	d7,$0000(a4)	;19470000
-	swap	d7	;4847
-	move.b	$0001(a1),d7	;1E290001
-	move.b	d7,$0001(a4)	;19470001
-	bsr	CoordToMap	;61006BB2
-	move.l	a1,a4	;2849
-	bsr	adrCd001D58	;61000468
-	move.l	(sp)+,a4	;285F
-	rts	;4E75
+	cmp.b	#$64,$000B(a1)				;0C290064000B
+	beq	adrCd001982				;670000E6
+	cmpi.b	#$40,d2					;0C020040
+	beq	adrCd001BB8				;67000314
+	cmpi.b	#$67,d2					;0C020067
+	bcc	adrCd001BB8				;6400030C
+	move.b	$000B(a1),d2				;1429000B
+	bpl.s	adrCd0018F6				;6A42
+	cmpi.b	#$85,d2					;0C020085
+	bne	adrCd001BB8				;660002FE
+	move.l	a4,-(sp)				;2F0C
+	moveq	#$00,d7					;7E00
+	move.b	$0000(a4),d7				;1E2C0000
+	swap	d7					;4847
+	move.b	$0001(a4),d7				;1E2C0001
+	bsr	CoordToMap				;61006BD0
+	bclr	#$07,$01(a6,d0.w)			;08B600070001
+	moveq	#$00,d7				;7E00
+	move.b	$0000(a1),d7			;1E290000
+	move.b	d7,$0000(a4)			;19470000
+	swap	d7				;4847
+	move.b	$0001(a1),d7			;1E290001
+	move.b	d7,$0001(a4)			;19470001
+	bsr	CoordToMap		;61006BB2
+	move.l	a1,a4				;2849
+	bsr	adrCd001D58		;61000468
+	move.l	(sp)+,a4		;285F
+	rts				;4E75
 
 adrCd0018F6:
-	cmp.b	#$40,d2	;0C020040
+	cmpi.b	#$40,d2	;0C020040
 	beq	adrCd001BB8	;670002BC
-	cmp.b	#$67,d2	;0C020067
+	cmpi.b	#$67,d2	;0C020067
 	bcc	adrCd001BB8	;640002B4
 	tst.b	$000D(a4)	;4A2C000D
 	bpl	adrCd001BB8	;6A0002AC
@@ -1953,7 +1954,7 @@ adrCd001982:
 adrCd001984:
 	move.b	$000B(a4),d0	;102C000B
 	bpl	adrCd001A4A	;6A0000C0
-	cmp.b	#$10,d1	;0C010010
+	cmpi.b	#$10,d1	;0C010010
 	bcs.s	adrCd00199C	;650A
 	tst.b	$000C(a4)	;4A2C000C
 	bpl	adrCd001A4A	;6A0000B2
@@ -1977,15 +1978,15 @@ adrCd00199C:
 	bra.s	adrCd0019C6	;6004
 
 adrCd0019C2:
-	movem.l	(sp)+,d1/a5	;4CDF2002
+	movem.l	(sp)+,d1/a5			;4CDF2002
 adrCd0019C6:
-	move.w	d1,d0	;3001
-	move.l	a4,a2	;244C
-	bsr	adrCd006660	;61004C94
-	exg	a2,a4	;C54C
-	move.b	$0011(a2),d0	;102A0011
-	and.w	#$0007,d0	;02400007
-	subq.w	#$01,d0	;5340
+	move.w	d1,d0				;3001
+	move.l	a4,a2				;244C
+	bsr	adrCd006660			;61004C94
+	exg	a4,a2				;C54C
+	move.b	$0011(a2),d0			;102A0011
+	and.w	#$0007,d0			;02400007
+	subq.w	#$01,d0				;5340
 	bne.s	adrCd001A4A	;666E
 	move.b	#$01,$0011(a2)	;157C00010011
 	moveq	#$00,d7	;7E00
@@ -2086,7 +2087,7 @@ adrCd001AF0:
 	beq	adrCd001BD4	;670000D8
 	cmp.b	adrB_00EF13.l,d1	;B2390000EF13
 	beq	adrCd001BD4	;670000CE
-	cmp.w	#$0000,d4	;0C440000
+	cmpi.w	#$0000,d4	;0C440000
 	beq.s	adrCd001B74	;6766
 	tst.w	adrW_0013C4.w	;4A7813C4	;Short Absolute converted to symbol!
 	beq	adrCd001BB8	;670000A4
@@ -2201,7 +2202,7 @@ adrCd001C48:
 adrCd001C4E:
 	move.b	$0002(a4),d6	;1C2C0002
 	and.w	#$0003,d6	;02460003
-	cmp.w	#$0002,d6	;0C460002
+	cmpi.w	#$0002,d6	;0C460002
 	bcs.s	adrCd001C60	;6504
 	eor.w	#$0001,d6	;0A460001
 adrCd001C60:
@@ -2211,7 +2212,7 @@ adrCd001C60:
 	movem.w	d0/d1/d6,-(sp)	;48A7C200
 	bsr	adrCd0027E0	;61000B70
 	movem.w	(sp)+,d0/d1/d6	;4C9F0043
-	cmp.w	#$0005,d1	;0C410005
+	cmpi.w	#$0005,d1	;0C410005
 	beq.s	adrCd001CD2	;6756
 	moveq	#$01,d5	;7A01
 	swap	d5	;4845
@@ -2313,10 +2314,10 @@ adrCd001D7A:
 	move.b	$000C(a4),adrB_00EE3E.l	;13EC000C0000EE3E
 	bmi.s	adrCd001DAA	;6B1E
 	movem.l	d0/a0,-(sp)	;48E78080
-	cmp.b	#$83,d7	;0C070083
+	cmpi.b	#$83,d7	;0C070083
 	beq.s	adrCd001D9E	;6708
 	moveq	#$04,d0	;7004
-	cmp.b	#$8B,d7	;0C07008B
+	cmpi.b	#$8B,d7	;0C07008B
 	bcs.s	adrCd001DA0	;6502
 adrCd001D9E:
 	moveq	#$05,d0	;7005
@@ -2367,9 +2368,9 @@ adrCd001E08:
 	move.b	d7,d5	;1A07
 	swap	d7	;4847
 	lsr.b	#$02,d5	;E40D
-	cmp.b	#$03,d5	;0C050003
+	cmpi.b	#$03,d5	;0C050003
 	beq.s	adrCd001E28	;670E
-	cmp.b	#$0B,d5	;0C05000B
+	cmpi.b	#$0B,d5	;0C05000B
 	bcc.s	adrCd001E28	;6408
 	moveq	#$04,d0	;7004
 	jsr	PlaySound.l	;4EB9000088BE
@@ -2394,7 +2395,7 @@ adrLp001E50:
 	dbra	d7,adrLp001E50	;51CFFFF8
 	move.w	(sp)+,d0	;301F
 	move.w	d5,-(sp)	;3F05
-	cmp.w	#$0100,d5	;0C450100
+	cmpi.w	#$0100,d5	;0C450100
 	bcs.s	adrCd001E68	;6504
 	move.w	#$00FD,d5	;3A3C00FD
 adrCd001E68:
@@ -2410,26 +2411,26 @@ adrLp001E70:
 	rts	;4E75
 
 adrCd001E84:
-	swap	d7	;4847
-	lsr.b	#$02,d7	;E40F
-	cmp.b	#$03,d7	;0C070003
-	beq	adrCd001FD2	;67000144
-	cmp.b	#$0B,d7	;0C07000B
-	beq	adrCd002086	;670001F0
-	cmp.b	#$0C,d7	;0C07000C
-	beq	adrCd001F78	;670000DA
-	cmp.b	#$0F,d7	;0C07000F
-	beq	adrCd001F4A	;670000A4
-	cmp.b	#$0E,d7	;0C07000E
-	beq.s	adrCd001EB0	;6702
-	rts	;4E75
+	swap	d7						;4847
+	lsr.b	#$02,d7						;E40F
+	cmpi.b	#$03,d7						;0C070003
+	beq	adrCd001FD2					;67000144
+	cmpi.b	#$0B,d7						;0C07000B
+	beq	adrCd002086					;670001F0
+	cmpi.b	#$0C,d7						;0C07000C
+	beq	adrCd001F78					;670000DA
+	cmpi.b	#$0F,d7						;0C07000F
+	beq	adrCd001F4A					;670000A4
+	cmpi.b	#$0E,d7						;0C07000E
+	beq.s	adrCd001EB0					;6702
+	rts							;4E75
 
 adrCd001EB0:
 	bsr	adrCd0098A4	;610079F2
 	bcc.s	adrCd001EDA	;6424
 	tst.b	d0	;4A00
 	bmi.s	adrCd001F0C	;6B52
-	cmp.b	#$10,d0	;0C000010
+	cmpi.b	#$10,d0	;0C000010
 	bcs.s	adrCd001EDC	;651C
 	move.b	$0007(a1),d5	;1A290007
 	and.b	#$7F,d5	;0205007F
@@ -2454,7 +2455,7 @@ adrCd001EF4:
 	move.b	d1,$0009(a1)	;13410009
 	move.b	$0015(a1),d1	;12290015
 	add.b	d5,d1	;D205
-	cmp.b	#$64,d1	;0C010064
+	cmpi.b	#$64,d1	;0C010064
 	bcs.s	adrCd001F06	;6502
 	moveq	#$64,d1	;7264
 adrCd001F06:
@@ -2475,9 +2476,9 @@ adrLp001F16:
 	move.w	d1,d0	;3001
 	bsr	adrCd006660	;61004734
 	move.w	d1,d0	;3001
-	exg	a4,a1	;C949
+	exg	a1,a4	;C949
 	bsr.s	adrCd001EDC	;61A8
-	exg	a4,a1	;C949
+	exg	a1,a4	;C949
 adrCd001F36:
 	dbra	d7,adrLp001F16	;51CFFFDE
 	move.l	a5,-(sp)	;2F0D
@@ -2494,7 +2495,7 @@ adrCd001F50:
 	moveq	#$19,d4	;7819
 	tst.b	d0	;4A00
 	bmi.s	adrCd001F76	;6B20
-	cmp.b	#$10,d0	;0C000010
+	cmpi.b	#$10,d0	;0C000010
 	bcs.s	adrCd001F5E	;6502
 	moveq	#$03,d4	;7803
 adrCd001F5E:
@@ -2512,7 +2513,7 @@ adrCd001F78:
 	moveq	#$16,d4	;7816
 	tst.b	d0	;4A00
 	bmi.s	adrCd001FA2	;6B1E
-	cmp.b	#$10,d0	;0C000010
+	cmpi.b	#$10,d0	;0C000010
 	bcs.s	adrCd001F8C	;6502
 	moveq	#$00,d4	;7800
 adrCd001F8C:
@@ -2538,9 +2539,9 @@ adrLp001FAC:
 	move.w	d1,d0	;3001
 	bsr	adrCd006660	;6100469E
 	move.w	d1,d0	;3001
-	exg	a4,a1	;C949
+	exg	a1,a4	;C949
 	bsr.s	adrCd001F8C	;61C2
-	exg	a4,a1	;C949
+	exg	a1,a4	;C949
 adrCd001FCC:
 	dbra	d7,adrLp001FAC	;51CFFFDE
 	rts	;4E75
@@ -2556,7 +2557,7 @@ adrCd001FD2:
 	move.w	(sp),d0	;3017
 	tst.b	d0	;4A00
 	bmi.s	adrCd002010	;6B20
-	cmp.b	#$10,d0	;0C000010
+	cmpi.b	#$10,d0	;0C000010
 	bcs.s	adrCd002014	;651E
 	addq.w	#$02,sp	;544F
 	move.b	$0006(a1),d7	;1E290006
@@ -2581,7 +2582,7 @@ adrCd00201C:
 adrCd002024:
 	tst.b	d0	;4A00
 	bmi.s	adrCd00204A	;6B22
-	cmp.b	#$10,d0	;0C000010
+	cmpi.b	#$10,d0	;0C000010
 	bcs.s	adrCd002040	;6512
 	clr.w	d5	;4245
 	cmp.b	#$15,$0006(a1)	;0C2900150006
@@ -2627,7 +2628,7 @@ adrCd00208C:
 	tst.b	d0	;4A00
 	bmi.s	adrCd0020D6	;6B46
 	moveq	#$18,d4	;7818
-	cmp.b	#$10,d0	;0C000010
+	cmpi.b	#$10,d0	;0C000010
 	bcs.s	adrCd0020A0	;6508
 	tst.b	$000B(a1)	;4A29000B
 	bmi.s	adrCd0020D4	;6B36
@@ -2659,7 +2660,7 @@ adrCd0020D6:
 	bsr	adrCd00665C	;61004584
 	moveq	#$05,d0	;7005
 	jsr	PlaySound.l	;4EB9000088BE
-	exg	a1,a4	;C34C
+	exg	a4,a1	;C34C
 	move.w	$0006(a4),d0	;302C0006
 	move.w	$0020(a4),d7	;3E2C0020
 	bsr.s	adrCd0020B8	;61CA
@@ -2674,7 +2675,7 @@ adrCd0020F6:
 adrCd0020F8:
 	tst.b	d0	;4A00
 	bmi.s	adrCd00212E	;6B32
-	cmp.b	#$10,d0	;0C000010
+	cmpi.b	#$10,d0	;0C000010
 	bcs.s	adrCd002128	;6526
 	move.b	$0006(a1),d2	;14290006
 	and.w	#$007F,d2	;0242007F
@@ -2734,9 +2735,9 @@ adrLp002176:
 	move.b	$18(a1,d7.w),d0	;10317018
 	bsr	adrCd006660	;610044E4
 	move.b	$00(a0,d7.w),d5	;1A307000
-	exg	a4,a1	;C949
+	exg	a1,a4	;C949
 	bsr.s	adrCd002128	;61A2
-	exg	a4,a1	;C949
+	exg	a1,a4	;C949
 	move.b	d5,$00(a0,d7.w)	;11857000
 	dbra	d7,adrLp002176	;51CFFFE8
 	move.l	(sp)+,a4	;285F
@@ -2749,7 +2750,7 @@ adrCd002194:
 	sub.b	#$64,d0	;04000064
 	beq.s	adrCd002192	;67F2
 	move.b	adrB_00EE3E.l,d0	;10390000EE3E
-	cmp.b	#$10,d0	;0C000010
+	cmpi.b	#$10,d0	;0C000010
 	bcc.s	adrCd002192	;64E6
 	bsr	adrCd006660	;610044B2
 	cmp.b	#$EC,$001C(a4)	;0C2C00EC001C
@@ -2779,7 +2780,7 @@ adrCd0021EC:
 	move.b	adrB_00EE3E.l,d0	;10390000EE3E
 	and.w	#$000F,d0	;0240000F
 	bsr	adrCd004066	;61001E6C
-	exg	a2,a5	;C54D
+	exg	a5,a2	;C54D
 	tst.w	d1	;4A41
 	bmi.s	adrCd002192	;6B90
 	move.w	$0008(a1),d1	;32290008
@@ -2795,7 +2796,7 @@ adrLp002214:
 	move.b	$18(a2,d7.w),d0	;10327018
 	bsr	adrCd006660	;6100443C
 	move.b	$001C(a4),d0	;102C001C
-	cmp.b	#$EC,d0	;0C0000EC
+	cmpi.b	#$EC,d0	;0C0000EC
 	bcc.s	adrCd002252	;6422
 	moveq	#$00,d2	;7400
 	move.b	d1,d2	;1401
@@ -2831,7 +2832,7 @@ adrCd002258:
 	lsr.b	#$05,d3	;EA0B
 	and.w	#$0003,d3	;02430003
 	beq.s	adrCd00228A	;6706
-	cmp.w	#$0003,d3	;0C430003
+	cmpi.w	#$0003,d3	;0C430003
 	bcs.s	adrCd002290	;6506
 adrCd00228A:
 	btst	#$00,d2	;08020000
@@ -2845,7 +2846,7 @@ adrCd002298:
 	swap	d5	;4845
 	clr.w	d5	;4245
 	swap	d5	;4845
-	cmp.w	#$0010,d0	;0C400010
+	cmpi.w	#$0010,d0	;0C400010
 	bcs.s	adrCd0022CA	;6526
 	move.w	d0,d1	;3200
 	sub.w	#$0010,d0	;04400010
@@ -2898,7 +2899,7 @@ adrCd00230C:
 adrCd002316:
 	tst.b	d0	;4A00
 	bmi	adrCd00248C	;6B000172
-	cmp.w	#$0010,d0	;0C400010
+	cmpi.w	#$0010,d0	;0C400010
 	bcs	adrCd002414	;650000F2
 adrCd002324:
 	tst.w	adrW_00230A.w	;4A78230A	;Short Absolute converted to symbol!
@@ -2957,30 +2958,30 @@ adrCd002396:
 	move.l	(sp)+,d2	;241F
 	tst.b	d2	;4A02
 	bmi.s	adrCd002394	;6BDE
-	moveq	#$01,d5	;7A01
-	swap	d5	;4845
-	cmp.b	#$64,d2	;0C020064
-	beq.s	adrCd002394	;67D4
-	move.w	#$0056,d5	;3A3C0056
-	cmp.b	#$6B,d2	;0C02006B
-	beq.s	adrCd0023F6	;672C
-	cmp.b	#$40,d2	;0C020040
-	bne.s	adrCd0023D6	;6606
-	swap	d2	;4842
-	move.w	d2,d5	;3A02
-	bra.s	adrCd0023F6	;6020
+	moveq	#$01,d5				;7A01
+	swap	d5				;4845
+	cmpi.b	#$64,d2				;0C020064
+	beq.s	adrCd002394			;67D4
+	move.w	#$0056,d5			;3A3C0056
+	cmpi.b	#$6B,d2				;0C02006B
+	beq.s	adrCd0023F6			;672C
+	cmpi.b	#$40,d2				;0C020040
+	bne.s	adrCd0023D6			;6606
+	swap	d2				;4842
+	move.w	d2,d5				;3A02
+	bra.s	adrCd0023F6			;6020
 
 adrCd0023D6:
-	bsr	RandomGen_BytewithOffset	;610031D4
-	and.w	#$000F,d0	;0240000F
-	move.b	adrB_002404(pc,d0.w),d5	;1A3B0024
-	beq.s	adrCd002394	;67B0
-	cmp.w	#$0005,d5	;0C450005
-	bcc.s	adrCd0023F6	;640C
-	bsr	RandomGen_BytewithOffset	;610031C0
-	and.w	#$0007,d0	;02400007
-	swap	d0	;4840
-	add.l	d0,d5	;DA80
+	bsr	RandomGen_BytewithOffset			;610031D4
+	and.w	#$000F,d0			;0240000F
+	move.b	adrB_002404(pc,d0.w),d5		;1A3B0024
+	beq.s	adrCd002394			;67B0
+	cmpi.w	#$0005,d5			;0C450005
+	bcc.s	adrCd0023F6			;640C
+	bsr	RandomGen_BytewithOffset			;610031C0
+	and.w	#$0007,d0			;02400007
+	swap	d0				;4840
+	add.l	d0,d5				;DA80
 adrCd0023F6:
 	move.w	d4,d0	;3004
 	move.l	adrL_00EE78.l,a6	;2C790000EE78
@@ -3132,7 +3133,7 @@ adrCd002564:
 
 adrCd002576:
 	addq.w	#$01,d1	;5241
-	cmp.w	#$0004,d1	;0C410004
+	cmpi.w	#$0004,d1	;0C410004
 	bcs.s	adrCd002538	;65BA
 	and.b	#$01,(a5)	;02150001
 	moveq	#$03,d1	;7203
@@ -3331,7 +3332,7 @@ adrLp00278C:
 	lea	$00(a4,d0.w),a3	;47F40000
 	move.b	$000B(a3),d0	;102B000B
 	bmi.s	adrCd0027A0	;6B06
-	cmp.b	#$64,d0	;0C000064
+	cmpi.b	#$64,d0	;0C000064
 	bne.s	adrCd0027C6	;6626
 adrCd0027A0:
 	moveq	#$00,d0	;7000
@@ -3493,7 +3494,7 @@ adrLp00292A:
 	beq.s	adrCd002960	;6724
 	tst.b	$0050(a5)	;4A2D0050
 	beq.s	adrCd00296C	;672A
-	cmp.b	#$20,d0	;0C000020
+	cmpi.b	#$20,d0	;0C000020
 	bne.s	adrCd00296C	;6624
 	move.w	d3,d0	;3003
 	move.w	d7,-(sp)	;3F07
@@ -3585,12 +3586,12 @@ adrCd002A14:
 	movem.w	(sp)+,d2/d3/d7	;4C9F008C
 	tst.b	d0	;4A00
 	bmi.s	adrCd002A28	;6B0C
-	cmp.b	#$10,d0	;0C000010
+	cmpi.b	#$10,d0	;0C000010
 	bcs.s	adrCd002A28	;6506
 	tst.b	$000B(a1)	;4A29000B
 	bmi.s	adrCd002A06	;6BDE
 adrCd002A28:
-	cmp.w	#$0002,d2	;0C420002
+	cmpi.w	#$0002,d2	;0C420002
 	bcc	adrCd002B26	;640000F8
 	movem.l	a4/a5,-(sp)	;48E7000C
 	bsr	adrCd002ABA	;61000084
@@ -3656,7 +3657,7 @@ adrCd002ABA:
 
 adrCd002ADC:
 	move.b	$0002(a1),d2	;14290002
-	cmp.b	#$10,d0	;0C000010
+	cmpi.b	#$10,d0	;0C000010
 	bcc.s	adrCd002AEA	;6404
 	move.b	$0018(a1),d2	;14290018
 adrCd002AEA:
@@ -3732,18 +3733,18 @@ adrCd002B86:
 
 adrCd002B90:
 	move.b	$00(a0,d3.w),d2	;14303000
-	cmp.b	#$05,d2	;0C020005
+	cmpi.b	#$05,d2	;0C020005
 	bcc.s	adrCd002BA4	;640A
-	cmp.b	#$03,d2	;0C020003
+	cmpi.b	#$03,d2	;0C020003
 	bcs.s	adrCd002BA2	;6502
 	move.w	d3,d4	;3803
 adrCd002BA2:
 	rts	;4E75
 
 adrCd002BA4:
-	cmp.b	#$5C,d2	;0C02005C
+	cmpi.b	#$5C,d2	;0C02005C
 	bcs.s	adrCd002BA2	;65F8
-	cmp.b	#$5F,d2	;0C02005F
+	cmpi.b	#$5F,d2	;0C02005F
 	bcc.s	adrCd002BA2	;64F2
 	move.w	d3,d5	;3A03
 	rts	;4E75
@@ -3776,7 +3777,7 @@ adrCd002BD8:
 	move.b	d0,$0003(a4)	;19400003
 	moveq	#$00,d0	;7000
 	move.b	$0000(a4),d0	;102C0000
-	cmp.b	#$09,d0	;0C000009
+	cmpi.b	#$09,d0	;0C000009
 	bne.s	adrCd002C40	;6638
 	movem.l	d0/a4/a5,-(sp)	;48E7800C
 	bsr	adrCd0033BE	;610007B0
@@ -3815,7 +3816,7 @@ adrCd002C40:
 	move.b	$0001(a4),$0000(a4)	;196C00010000
 	or.b	#$40,$0052(a5)	;002D00400052
 	move.b	$0035(a5),d0	;102D0035
-	cmp.b	#$10,d0	;0C000010
+	cmpi.b	#$10,d0	;0C000010
 	bcs.s	adrCd002C98	;6512
 	bsr	adrCd006660	;610039D8
 	and.b	#$F0,$0019(a4)	;022C00F00019
@@ -3862,7 +3863,7 @@ adrJT002CAE:
 adrJA002CE4:
 	tst.b	$0007(a4)	;4A2C0007
 	bmi	adrJA002DA6	;6B0000BC
-	cmp.b	#$10,d0	;0C000010
+	cmpi.b	#$10,d0	;0C000010
 	bcs.s	adrCd002D04	;6512
 	cmp.b	#$07,$0006(a4)	;0C2C00070006
 	bcs	adrJA002DA6	;650000AC
@@ -3940,7 +3941,7 @@ adrJA002DAC:
 
 adrJA002DBE:
 	moveq	#$0C,d1	;720C
-	cmp.b	#$10,d0	;0C000010
+	cmpi.b	#$10,d0	;0C000010
 	bcs.s	adrCd002DA8	;65E2
 	cmp.b	#$05,$0006(a4)	;0C2C00050006
 	bcs.s	adrJA002DA6	;65D8
@@ -3955,7 +3956,7 @@ NotNamed:
 	bra	adrCd002D34	;6000FF48
 
 adrJA002DEE:
-	cmp.b	#$10,d0	;0C000010
+	cmpi.b	#$10,d0	;0C000010
 	bcc.s	adrJA002DA6	;64B2
 	moveq	#$0D,d1	;720D
 	bra.s	adrCd002DA8	;60B0
@@ -3974,17 +3975,17 @@ adrCd002E06:
 	bra.s	adrJA002DA6	;6094
 
 adrJA002E12:
-	cmp.b	#$10,d0	;0C000010
-	bcs.s	adrJA002DA6	;658E
-	move.w	$002E(a5),d1	;322D002E
-	cmp.b	$000A(a4),d1	;B22C000A
-	bne	adrCd002FD8	;660001B6
-	tst.w	d1	;4A41
-	beq.s	adrCd002E52	;672A
-	cmp.b	#$5F,d1	;0C01005F
-	beq.s	adrCd002E36	;6708
-	cmp.b	#$40,d1	;0C010040
-	bcc	ItemNotToTrade	;6400023A
+	cmpi.b	#$10,d0						;0C000010
+	bcs.s	adrJA002DA6					;658E
+	move.w	$002E(a5),d1					;322D002E
+	cmp.b	$000A(a4),d1					;B22C000A
+	bne	adrCd002FD8					;660001B6
+	tst.w	d1						;4A41
+	beq.s	adrCd002E52					;672A
+	cmpi.b	#$5F,d1						;0C01005F
+	beq.s	adrCd002E36					;6708
+	cmpi.b	#$40,d1						;0C010040
+	bcc	ItemNotToTrade					;6400023A
 adrCd002E36:
 	moveq	#$00,d2	;7400
 	move.b	$0008(a4),d2	;142C0008
@@ -4004,18 +4005,18 @@ adrCd002E52:
 	bra	adrJA002DA6	;6000FF4C
 
 adrJB002E5C:
-	cmp.b	#$5F,d1	;0C01005F
-	beq.s	adrCd002E76	;6714
-	sub.w	#$0014,d1	;04410014
-	bcs.s	adrCd002E76	;650E
-	lea	adrEA0031E6.l,a0	;41F9000031E6
-	tst.b	$00(a0,d1.w)	;4A301000
-	bmi	ItemNotToTrade	;6B0001FA
+	cmpi.b	#$5F,d1						;0C01005F
+	beq.s	adrCd002E76					;6714
+	sub.w	#$0014,d1					;04410014
+	bcs.s	adrCd002E76					;650E
+	lea	adrEA0031E6.l,a0				;41F9000031E6
+	tst.b	$00(a0,d1.w)					;4A301000
+	bmi	ItemNotToTrade					;6B0001FA
 adrCd002E76:
-	clr.l	$002C(a5)	;42AD002C
+	clr.l	$002C(a5)					;42AD002C
 adrCd002E7A:
-	bsr	adrCd0035FA	;6100077E
-	bra	adrCd006C34	;60003DB4
+	bsr	adrCd0035FA					;6100077E
+	bra	adrCd006C34					;60003DB4
 
 adrJA002E82:
 	move.w	$002C(a5),d4	;382D002C
@@ -4027,7 +4028,7 @@ adrJA002E82:
 	moveq	#$01,d2	;7401
 	sub.b	#$14,d3	;04030014
 	bcs.s	adrCd002EB4	;6514
-	cmp.b	#$5F,d0	;0C00005F
+	cmpi.b	#$5F,d0	;0C00005F
 	bne.s	adrCd002EAA	;6604
 	moveq	#$5A,d2	;745A
 	bra.s	adrCd002EB4	;600A
@@ -4057,14 +4058,14 @@ adrCd002EDE:
 	bra	adrCd002DA8	;6000FEC6
 
 adrJA002EE4:
-	lea	adrEA0031E6.l,a1	;43F9000031E6
-	moveq	#$02,d2	;7402
-	sub.w	#$0014,d1	;04410014
-	bcs.s	adrCd002F04	;6512
-	cmp.b	#$4B,d1	;0C01004B
-	bne.s	adrCd002EFC	;6604
-	moveq	#$5A,d2	;745A
-	bra.s	adrCd002F04	;6008
+	lea	adrEA0031E6.l,a1		;43F9000031E6
+	moveq	#$02,d2				;7402
+	sub.w	#$0014,d1			;04410014
+	bcs.s	adrCd002F04			;6512
+	cmpi.b	#$4B,d1				;0C01004B
+	bne.s	adrCd002EFC			;6604
+	moveq	#$5A,d2				;745A
+	bra.s	adrCd002F04			;6008
 
 adrCd002EFC:
 	move.b	$00(a1,d1.w),d2	;14311000
@@ -4083,7 +4084,7 @@ adrCd002F16:
 	bra.s	adrCd002ED2	;60AE
 
 adrJA002F24:
-	cmp.b	#$10,d0	;0C000010
+	cmpi.b	#$10,d0	;0C000010
 	bcs	adrJA002DA6	;6500FE7C
 adrCd002F2C:
 	bsr	adrCd003232	;61000304
@@ -4098,7 +4099,7 @@ adrCd002F4C:
 	bra	adrCd0038D2	;60000984
 
 adrJA002F50:
-	cmp.b	#$10,d0	;0C000010
+	cmpi.b	#$10,d0	;0C000010
 	bcs	adrJA002DA6	;6500FE50
 	move.w	$002E(a5),d1	;322D002E
 	cmp.b	$000A(a4),d1	;B22C000A
@@ -4106,13 +4107,13 @@ adrJA002F50:
 	tst.w	d1	;4A41
 	beq.s	adrCd002F2C	;67C4
 	lea	adrEA0031E6.l,a1	;43F9000031E6
-	cmp.b	#$5F,d1	;0C01005F
+	cmpi.b	#$5F,d1	;0C01005F
 	bne.s	adrCd002F78	;6604
 	moveq	#$5A,d2	;745A
 	bra.s	adrCd002F90	;6018
 
 adrCd002F78:
-	cmp.b	#$40,d1	;0C010040
+	cmpi.b	#$40,d1	;0C010040
 	bcc	ItemNotToTrade	;640000F0
 	moveq	#$02,d2	;7402
 	sub.w	#$0014,d1	;04410014
@@ -4141,7 +4142,7 @@ adrCd002FBC:
 	bra	adrJA002DA6	;6000FDE4
 
 adrJA002FC4:
-	cmp.b	#$10,d0	;0C000010
+	cmpi.b	#$10,d0	;0C000010
 	bcs	adrJA002DA6	;6500FDDC
 	move.w	$002E(a5),d0	;302D002E
 	beq.s	adrCd002FBC	;67EA
@@ -4156,13 +4157,13 @@ adrCd002FE2:
 	jmp	WriteMessage.l	;4EF90000D03A
 
 adrCd002FEE:
-	cmp.b	#$5F,d0	;0C00005F
+	cmpi.b	#$5F,d0	;0C00005F
 	bne.s	adrCd002FF8	;6604
 	moveq	#$5A,d0	;705A
 	bra.s	adrCd003016	;601E
 
 adrCd002FF8:
-	cmp.b	#$40,d0	;0C000040
+	cmpi.b	#$40,d0	;0C000040
 	bcc.s	ItemNotToTrade	;6470
 	sub.b	#$14,d0	;04000014
 	bcc.s	adrCd00300A	;6406
@@ -4392,7 +4393,7 @@ adrCd003242:
 	lea	adrEA0031D9.w,a6	;4DF831D9	;Short Absolute converted to symbol!
 	moveq	#$06,d2	;7406
 	ror.w	#$08,d1	;E059
-	cmp.b	#$30,d1	;0C010030
+	cmpi.b	#$30,d1	;0C010030
 	beq.s	adrCd00326A	;670C
 	move.b	d1,$00(a6,d2.w)	;1D812000
 	move.b	#$FA,$01(a6,d2.w)	;1DBC00FA2001
@@ -4420,10 +4421,10 @@ adrCd00327C:
 adrCd0032A8:
 	and.w	#$001F,d0	;0240001F
 	move.b	$0006(a1),d1	;12290006
-	cmp.b	#$08,d1	;0C010008
+	cmpi.b	#$08,d1	;0C010008
 	bcc.s	adrCd0032C0	;640A
 	lsr.w	#$01,d0	;E248
-	cmp.b	#$04,d1	;0C010004
+	cmpi.b	#$04,d1	;0C010004
 	bcc.s	adrCd0032C0	;6402
 	lsr.w	#$01,d0	;E248
 adrCd0032C0:
@@ -4563,7 +4564,7 @@ adrCd003402:
 	move.w	$0020(a5),d1	;322D0020
 	eor.w	#$0002,d1	;0A410002
 	moveq	#$18,d4	;7818
-	cmp.w	#$0010,d0	;0C400010
+	cmpi.w	#$0010,d0	;0C400010
 	bcs.s	adrCd003444	;650C
 	tst.b	$000B(a1)	;4A29000B
 	bmi.s	adrCd0033F2	;6BB4
@@ -4713,7 +4714,7 @@ adrJA003596:
 	cmp.b	$000A(a4),d0	;B02C000A
 	bne.s	adrCd0035FA	;6648
 	move.b	$0035(a5),d0	;102D0035
-	cmp.b	#$10,d0	;0C000010
+	cmpi.b	#$10,d0	;0C000010
 	bcs.s	adrCd0035FE	;6542
 	bsr	adrCd003232	;6100FC74
 	move.b	$002F(a5),$0C(a0,d1.w)	;11AD002F100C
@@ -4745,7 +4746,7 @@ adrJA003604:
 	beq.s	adrCd003626	;6718
 	add.b	#$12,d1	;06010012
 	move.b	d1,$0001(a4)	;19410001
-	cmp.b	#$15,d1	;0C010015
+	cmpi.b	#$15,d1	;0C010015
 	bne.s	adrCd003626	;660A
 	subq.b	#$04,$0006(a4)	;592C0006
 	bpl.s	adrCd003626	;6A04
@@ -4773,7 +4774,7 @@ adrJA00364A:
 	bpl.s	adrCd00366C	;6A04
 	clr.b	$0006(a4)	;422C0006
 adrCd00366C:
-	cmp.b	#$0A,d0	;0C00000A
+	cmpi.b	#$0A,d0	;0C00000A
 	bcs.s	adrCd0036A2	;6530
 adrCd003672:
 	move.b	$0002(a4),d0	;102C0002
@@ -4895,7 +4896,7 @@ adrJA00382C:
 	bra.s	adrCd003894	;6056
 
 adrCd00383E:
-	cmp.w	#$0001,d0	;0C400001
+	cmpi.w	#$0001,d0	;0C400001
 	bne.s	adrCd00385C	;6618
 	move.w	$002C(a5),d0	;302D002C
 	cmp.b	#$02,$0008(a4)	;0C2C00020008
@@ -5040,7 +5041,7 @@ adrCd0039BA:
 	add.w	d0,d1	;D240
 	move.b	d1,$0001(a6)	;1D410001
 	moveq	#$02,d2	;7402
-	cmp.w	#$0007,d0	;0C400007
+	cmpi.w	#$0007,d0	;0C400007
 	beq.s	adrCd0039DA	;670E
 	move.b	#$FA,$0002(a6)	;1D7C00FA0002
 	move.b	#$53,$0003(a6)	;1D7C00530003
@@ -5048,7 +5049,7 @@ adrCd0039BA:
 adrCd0039DA:
 	ror.w	#$01,d7	;E25F
 	bpl.s	adrCd0039F4	;6A16
-	cmp.w	#$0005,d0	;0C400005
+	cmpi.w	#$0005,d0	;0C400005
 	bcc.s	adrCd0039EC	;6408
 	move.b	#$8C,$00(a6,d2.w)	;1DBC008C2000
 	addq.w	#$01,d2	;5242
@@ -5472,9 +5473,9 @@ adrCd003EC0:
 	move.l	$001C(a1),d1	;2229001C
 	move.l	$001C(a5),d0	;202D001C
 	bsr	adrCd0013A8	;6100D4B2
-	cmp.w	#$0005,d2	;0C420005
+	cmpi.w	#$0005,d2	;0C420005
 	bcs.s	adrCd003F0C	;650E
-	cmp.w	#$0009,d2	;0C420009
+	cmpi.w	#$0009,d2	;0C420009
 	bcs.s	adrCd003F08	;6504
 	move.b	#$8E,(a6)+	;1CFC008E
 adrCd003F08:
@@ -5540,7 +5541,7 @@ adrCd003F9C:
 	bsr	adrCd004004	;6100005C
 	lea	adrEA0041C6.l,a6	;4DF9000041C6
 	move.w	(sp)+,d1	;321F
-	cmp.w	#$0015,d1	;0C410015
+	cmpi.w	#$0015,d1	;0C410015
 	beq.s	adrCd003FCE	;6716
 	bsr	adrCd004054	;6100009A
 	move.b	$004F(a5),d0	;102D004F
@@ -5573,7 +5574,7 @@ adrCd00401A:
 adrCd004020:
 	move.b	$19(a5,d1.w),$18(a5,d1.w)	;1BB510191018
 	addq.w	#$01,d1	;5241
-	cmp.w	#$0003,d1	;0C410003
+	cmpi.w	#$0003,d1	;0C410003
 	bcs.s	adrCd004020	;65F2
 	move.b	#$FF,$001B(a5)	;1B7C00FF001B
 	cmp.b	#$03,$0015(a5)	;0C2D00030015
@@ -5597,7 +5598,7 @@ adrCd004056:
 	tst.b	$18(a5,d1.w)	;4A351018
 	bmi.s	adrCd004064	;6B08
 	addq.w	#$01,d1	;5241
-	cmp.w	#$0003,d1	;0C410003
+	cmpi.w	#$0003,d1	;0C410003
 	bcs.s	adrCd004056	;65F2
 adrCd004064:
 	rts	;4E75
@@ -5838,7 +5839,7 @@ adrCd00420A:
 Click_CommsAndOptions:
 	move.w	$0004(a5),d1	;322D0004
 	sub.w	$0008(a5),d1	;926D0008
-	cmp.w	#$0037,d1	;0C410037
+	cmpi.w	#$0037,d1	;0C410037
 	bcs.s	adrCd004234	;651A
 	move.w	$0002(a5),d1	;322D0002
 	lsr.w	#$05,d1	;EA49
@@ -5934,11 +5935,11 @@ Click_LoadSaveGame:
 	bsr	adrCd008CCA	;6100494E
 .PickLoadSaveGame_Loop:
 	move.b	KeyboardKeyCode.w,d0	;103805C9	;Short Absolute converted to symbol!
-	cmp.b	#$50,d0	;0C000050
+	cmpi.b	#$50,d0	;0C000050
 	beq.s	LoadGame	;671C
-	cmp.b	#$51,d0	;0C000051
+	cmpi.b	#$51,d0	;0C000051
 	beq	SaveGame	;6700002C
-	cmp.b	#$59,d0	;0C000059
+	cmpi.b	#$59,d0	;0C000059
 	bne.s	.PickLoadSaveGame_Loop	;66E8
 adrCd004396:
 	move.l	(sp)+,adrEA00EE36.l	;23DF0000EE36
@@ -5986,28 +5987,28 @@ adrCd0043E2:
 	bsr	adrCd008CCA	;610048C6
 LoadSaveGame_Loop:
 	move.b	KeyboardKeyCode.w,d0	;103805C9	;Short Absolute converted to symbol!
-	cmp.b	#$44,d0	;0C000044
-	beq.s	LoadSaveGame_Action	;6712
-	cmp.b	#$43,d0	;0C000043
-	beq.s	LoadSaveGame_Action	;670C
-	cmp.b	#$59,d0	;0C000059
-	bne.s	LoadSaveGame_Loop	;66EA
-	sub.b	#$FF,d0	;040000FF
-	rts	;4E75
+	cmpi.b	#$44,d0			;0C000044
+	beq.s	LoadSaveGame_Action		;6712
+	cmpi.b	#$43,d0			;0C000043
+	beq.s	LoadSaveGame_Action		;670C
+	cmpi.b	#$59,d0			;0C000059
+	bne.s	LoadSaveGame_Loop		;66EA
+	sub.b	#$FF,d0			;040000FF
+	rts				;4E75
 
 LoadSaveGame_Action:
-	moveq	#$3C,d0	;703C
-	tst.w	MultiPlayer.l	;4A790000EE30
-	beq.s	adrCd00442E	;6702
-	moveq	#$46,d0	;7046
+	moveq	#$3C,d0			;703C
+	tst.w	MultiPlayer.l		;4A790000EE30
+	beq.s	adrCd00442E		;6702
+	moveq	#$46,d0			;7046
 adrCd00442E:
 	move.w	d0,adrW_00447E.l	;33C00000447E
-	rts	;4E75
+	rts				;4E75
 
 adrCd004436:
-	jsr	adrCd008878.l	;4EB900008878
-	moveq	#-$01,d0	;70FF
-	rts	;4E75
+	jsr	adrCd008878.l		;4EB900008878
+	moveq	#-$01,d0		;70FF
+	rts				;4E75
 
 adrCd004440:
 	jsr	CopyProtection.l	;4EB90000D138
@@ -6240,18 +6241,18 @@ adrCd004748:
 	beq	adrCd004AFE	;670003AE
 	move.l	$0002(a5),d1	;222D0002
 	sub.w	$0008(a5),d1	;926D0008
-	cmp.b	#$42,d1	;0C010042
+	cmpi.b	#$42,d1	;0C010042
 	bcs	adrCd004AFE	;6500039E
-	cmp.b	#$54,d1	;0C010054
+	cmpi.b	#$54,d1	;0C010054
 	bcc	adrCd004AFE	;64000396
 	swap	d1	;4841
 	sub.b	#$70,d1	;04010070
 	bcs	adrCd004AFE	;6500038C
-	cmp.b	#$40,d1	;0C010040
+	cmpi.b	#$40,d1	;0C010040
 	bcs.s	adrCd004792	;6518
 	sub.b	#$50,d1	;04010050
 	bcs	adrCd004AFE	;6500037E
-	cmp.b	#$10,d1	;0C010010
+	cmpi.b	#$10,d1	;0C010010
 	bcc	adrCd004AFE	;64000376
 	subq.b	#$01,$004F(a5)	;532D004F
 	bra	adrCd004580	;6000FDF0
@@ -6337,18 +6338,18 @@ adrCd004870:
 	beq.s	adrCd00486E	;67F6
 	move.l	$0002(a5),d1	;222D0002
 	sub.w	$0008(a5),d1	;926D0008
-	cmp.w	#$0018,d1	;0C410018
+	cmpi.w	#$0018,d1	;0C410018
 	bcs.s	adrCd00486E	;65E8
-	cmp.w	#$0027,d1	;0C410027
+	cmpi.w	#$0027,d1	;0C410027
 	bcs.s	adrCd0048AA	;651E
 	sub.b	#$42,d1	;04010042
 	bcs.s	adrCd00486E	;65DC
-	cmp.b	#$10,d1	;0C010010
+	cmpi.b	#$10,d1	;0C010010
 	bcc.s	adrCd00486E	;64D6
 	swap	d1	;4841
 	sub.w	#$00C0,d1	;044100C0
 	bcs.s	adrCd00486E	;65CE
-	cmp.b	#$10,d1	;0C010010
+	cmpi.b	#$10,d1	;0C010010
 	bcc.s	adrCd00486E	;64C8
 	bra	adrCd0046CC	;6000FE24
 
@@ -6356,7 +6357,7 @@ adrCd0048AA:
 	swap	d1	;4841
 	sub.b	#$90,d1	;04010090
 	bcs.s	adrCd00486E	;65BC
-	cmp.b	#$40,d1	;0C010040
+	cmpi.b	#$40,d1	;0C010040
 	bcc.s	adrCd00486E	;64B6
 	swap	d1	;4841
 	sub.w	#$0018,d1	;04410018
@@ -6438,16 +6439,16 @@ adrCd0049D6:
 	sub.w	$0008(a5),d1	;926D0008
 	sub.b	#$42,d1	;04010042
 	bcs.s	adrCd004994	;65A8
-	cmp.b	#$10,d1	;0C010010
+	cmpi.b	#$10,d1	;0C010010
 	bcc.s	adrCd004994	;64A2
 	swap	d1	;4841
 	sub.w	#$0070,d1	;04410070
 	bcs.s	adrCd004994	;659A
-	cmp.w	#$0010,d1	;0C410010
+	cmpi.w	#$0010,d1	;0C410010
 	bcs.s	adrCd004A10	;6510
-	cmp.w	#$0050,d1	;0C410050
+	cmpi.w	#$0050,d1	;0C410050
 	bcs.s	adrCd004994	;658E
-	cmp.w	#$0060,d1	;0C410060
+	cmpi.w	#$0060,d1	;0C410060
 	bcc.s	adrCd004994	;6488
 	bra	adrCd0046CC	;6000FCBE
 
@@ -6569,7 +6570,7 @@ adrCd004B56:
 	and.w	#$0007,d0	;02400007
 	addq.w	#$01,d0	;5240
 	add.b	$0008(a4),d0	;D02C0008
-	cmp.w	#$0064,d0	;0C400064
+	cmpi.w	#$0064,d0	;0C400064
 	bcs.s	adrCd004B70	;6502
 	moveq	#$63,d0	;7063
 adrCd004B70:
@@ -6595,7 +6596,7 @@ adrCd004B92:
 adrCd004BA2:
 	addq.w	#$01,d0	;5240
 	add.b	$01(a4,d6.w),d0	;D0346001
-	cmp.b	#$64,d0	;0C000064
+	cmpi.b	#$64,d0	;0C000064
 	bcs.s	adrCd004BB0	;6502
 	moveq	#$63,d0	;7063
 adrCd004BB0:
@@ -6620,7 +6621,7 @@ adrCd004BCE:
 	add.b	d2,d1	;D202
 	sub.b	#$0F,d1	;0401000F
 	neg.b	d1	;4401
-	cmp.b	#$08,d1	;0C010008
+	cmpi.b	#$08,d1	;0C010008
 	bcc.s	adrCd004BF8	;6402
 	moveq	#$08,d1	;7208
 adrCd004BF8:
@@ -6706,7 +6707,7 @@ adrCd004CB2:
 	bsr	adrCd008498	;610037DA
 	move.w	$00(a6,d0.w),d1	;32360000
 	and.w	#$0007,d1	;02410007
-	cmp.w	#$0006,d1	;0C410006
+	cmpi.w	#$0006,d1	;0C410006
 	bne.s	adrCd004D08	;663A
 	move.b	$00(a6,d0.w),d1	;12360000
 	and.w	#$0003,d1	;02410003
@@ -6730,13 +6731,13 @@ adrCd004D08:
 	bcs.s	adrCd004D1A	;6504
 	bsr	adrCd00332A	;6100E612
 adrCd004D1A:
-	move.b	$0014(a5),d0	;102D0014
-	beq.s	adrCd004D32	;6712
-	cmp.b	#$01,d0	;0C000001
-	beq.s	adrCd004D8C	;6766
-	cmp.b	#$02,d0	;0C000002
-	beq	adrCd00465E	;6700F932
-	bra	adrJA004DEA	;600000BA
+	move.b	$0014(a5),d0		;102D0014
+	beq.s	adrCd004D32		;6712
+	cmpi.b	#$01,d0			;0C000001
+	beq.s	adrCd004D8C		;6766
+	cmpi.b	#$02,d0			;0C000002
+	beq	adrCd00465E		;6700F932
+	bra	adrJA004DEA		;600000BA
 
 adrCd004D32:
 	moveq	#$00,d0	;7000
@@ -6834,16 +6835,16 @@ adrCd004E12:
 	bsr	adrCd00665C	;6100183E
 	tst.b	$0013(a4)	;4A2C0013
 	bmi.s	adrCd004E4C	;6B26
-	cmp.w	#$0048,d1	;0C410048
+	cmpi.w	#$0048,d1	;0C410048
 	bcs.s	adrCd004E4C	;6520
-	cmp.w	#$0058,d1	;0C410058
+	cmpi.w	#$0058,d1	;0C410058
 	bcc.s	adrCd004E4C	;641A
 	swap	d1	;4841
-	cmp.w	#$00E0,d1	;0C4100E0
+	cmpi.w	#$00E0,d1	;0C4100E0
 	bcs.s	adrCd004E4C	;6512
-	cmp.w	#$00F0,d1	;0C4100F0
+	cmpi.w	#$00F0,d1	;0C4100F0
 	bcs.s	adrCd004E46	;6506
-	cmp.w	#$0132,d1	;0C410132
+	cmpi.w	#$0132,d1	;0C410132
 	bcs.s	adrCd004E4E	;6508
 adrCd004E46:
 	move.w	#$0015,$000C(a5)	;3B7C0015000C
@@ -6852,14 +6853,14 @@ adrCd004E4C:
 
 adrCd004E4E:
 	swap	d1	;4841
-	cmp.w	#$0050,d1	;0C410050
+	cmpi.w	#$0050,d1	;0C410050
 	bcs.s	adrCd004E4C	;65F6
 	swap	d1	;4841
-	cmp.w	#$0128,d1	;0C410128
+	cmpi.w	#$0128,d1	;0C410128
 	bcc.s	adrCd004E72	;6414
-	cmp.w	#$011A,d1	;0C41011A
+	cmpi.w	#$011A,d1	;0C41011A
 	bcc.s	adrCd004E4C	;64E8
-	cmp.w	#$0110,d1	;0C410110
+	cmpi.w	#$0110,d1	;0C410110
 	bcs.s	adrCd004E4C	;65E2
 	addq.b	#$01,$0014(a4)	;522C0014
 	bra	adrCd0066F6	;60001886
@@ -6919,7 +6920,7 @@ adrCd004EFA:
 	move.b	$00(a6,d0.w),d1	;12360000
 	addq.b	#$05,d1	;5A01
 	add.b	$0015(a4),d1	;D22C0015
-	cmp.b	#$64,d1	;0C010064
+	cmpi.b	#$64,d1	;0C010064
 	bcs.s	adrCd004F20	;6502
 	moveq	#$64,d1	;7264
 adrCd004F20:
@@ -7047,7 +7048,7 @@ Spells_01_Armour:
 	moveq	#$00,d4	;7800
 	addq.w	#$02,d7	;5447
 adrCd005060:
-	cmp.w	#$0040,d7	;0C470040
+	cmpi.w	#$0040,d7	;0C470040
 	bcs.s	adrCd005068	;6502
 	moveq	#$3F,d7	;7E3F
 adrCd005068:
@@ -7112,9 +7113,9 @@ adrCd0050E8:
 	bcc.s	adrCd005134	;6436
 	move.b	$01(a6,d0.w),d1	;12360001
 	and.w	#$0007,d1	;02410007
-	cmp.w	#$0002,d1	;0C410002
+	cmpi.w	#$0002,d1	;0C410002
 	beq.s	adrCd00511C	;6710
-	cmp.w	#$0005,d1	;0C410005
+	cmpi.w	#$0005,d1	;0C410005
 	bne.s	adrCd005134	;6622
 	move.b	$00(a6,d0.w),d1	;12360000
 	lsr.b	#$04,d1	;E809
@@ -7168,21 +7169,21 @@ Spells_12_Alchemy:
 	add.w	d0,a0	;D0C0
 	moveq	#$00,d0	;7000
 	move.b	(a0),d1	;1210
-	cmp.b	#$1B,d1	;0C01001B
+	cmpi.b	#$1B,d1	;0C01001B
 	bcs.s	adrCd005192	;6506
-	cmp.b	#$3F,d1	;0C01003F
+	cmpi.b	#$3F,d1	;0C01003F
 	bcs.s	adrCd0051A4	;6512
 adrCd005192:
 	move.b	$0001(a0),d1	;12280001
 	moveq	#$01,d0	;7001
-	cmp.b	#$1B,d1	;0C01001B
+	cmpi.b	#$1B,d1	;0C01001B
 	bcs.s	adrCd0051CE	;6530
-	cmp.b	#$3F,d1	;0C01003F
+	cmpi.b	#$3F,d1	;0C01003F
 	bcc.s	adrCd0051CE	;642A
 adrCd0051A4:
 	addq.w	#$05,d7	;5A47
 	add.b	$000C(a0),d7	;DE28000C
-	cmp.b	#$64,d7	;0C070064
+	cmpi.b	#$64,d7						;0C070064
 	bcs.s	adrCd0051B2	;6502
 	moveq	#$63,d7	;7E63
 adrCd0051B2:
@@ -7211,27 +7212,27 @@ Spells_15_Antimage:
 	bra	adrCd005060	;6000FE7E
 
 Spells_16_Recharge:
-	moveq	#$00,d0	;7000
+	moveq	#$00,d0			;7000
 	move.b	adrB_00EE3E.l,d0	;10390000EE3E
-	asl.w	#$04,d0	;E940
+	asl.w	#$04,d0			;E940
 	lea	PocketContents.l,a0	;41F90000ED2A
-	add.w	d0,a0	;D0C0
-	move.b	(a0),d0	;1010
-	cmp.b	#$69,d0	;0C000069
-	bcs.s	adrCd005204	;6506
-	cmp.b	#$6D,d0	;0C00006D
-	bcs.s	adrCd005214	;6510
+	add.w	d0,a0			;D0C0
+	move.b	(a0),d0			;1010
+	cmpi.b	#$69,d0			;0C000069
+	bcs.s	adrCd005204		;6506
+	cmpi.b	#$6D,d0			;0C00006D
+	bcs.s	adrCd005214		;6510
 adrCd005204:
-	move.b	$0001(a0),d0	;10280001
-	cmp.b	#$69,d0	;0C000069
-	bcs.s	adrCd005224	;6516
-	cmp.b	#$6D,d0	;0C00006D
-	bcc.s	adrCd005224	;6410
+	move.b	$0001(a0),d0		;10280001
+	cmpi.b	#$69,d0			;0C000069
+	bcs.s	adrCd005224		;6516
+	cmpi.b	#$6D,d0			;0C00006D
+	bcc.s	adrCd005224		;6410
 adrCd005214:
-	sub.w	#$0069,d0	;04400069
+	sub.w	#$0069,d0		;04400069
 	lea	RingUses.l,a0	;41F90000EE32
-	lsr.w	#$03,d7	;E64F
-	move.b	d7,$00(a0,d0.w)	;11870000
+	lsr.w	#$03,d7			;E64F
+	move.b	d7,$00(a0,d0.w)		;11870000
 adrCd005224:
 	rts	;4E75
 
@@ -7251,7 +7252,7 @@ adrLp005238:
 	bsr	adrCd005556	;6100031C
 	add.w	d0,d5	;DA40
 	dbra	d7,adrLp005238	;51CFFFF8
-	cmp.w	#$0100,d5	;0C450100
+	cmpi.w	#$0100,d5	;0C450100
 	bcs.s	adrCd00524A	;6502
 	moveq	#-$01,d5	;7AFF
 adrCd00524A:
@@ -7383,7 +7384,7 @@ adrCd00535E:
 	lea	UnpackedMonsters.l,a4	;49F900016B7E
 	addq.w	#$01,-$0002(a4)	;526CFFFE
 	move.w	-$0002(a4),d1	;322CFFFE
-	cmp.w	#$007D,d1	;0C41007D
+	cmpi.w	#$007D,d1	;0C41007D
 	bcs.s	adrCd00537C	;650A
 	subq.w	#$01,-$0002(a4)	;536CFFFE
 	bsr	adrCd00277E	;6100D406
@@ -7409,7 +7410,7 @@ adrCd00537C:
 	tst.b	d4	;4A04
 	bmi.s	adrCd0053FE	;6B3E
 	move.b	#$64,$000B(a4)	;197C0064000B
-	cmp.b	#$65,d4	;0C040065
+	cmpi.b	#$65,d4	;0C040065
 	beq.s	adrCd0053D6	;670A
 	moveq	#$06,d4	;7806
 	add.w	d3,d4	;D843
@@ -7417,7 +7418,7 @@ adrCd00537C:
 	move.w	d4,$0008(a4)	;39440008
 adrCd0053D6:
 	lsr.w	#$02,d3	;E44B
-	cmp.b	#$65,d4	;0C040065
+	cmpi.b	#$65,d4	;0C040065
 	bne.s	adrCd0053E2	;6604
 	bset	#$07,d3	;08C30007
 adrCd0053E2:
@@ -7452,7 +7453,7 @@ Spells_27_Wychwind:
 	and.w	#$0003,d6	;02460003
 	swap	d6	;4846
 	move.w	d5,d6	;3C05
-	cmp.w	#$0004,d6	;0C460004
+	cmpi.w	#$0004,d6	;0C460004
 	bcc.s	.wychwind_skip1	;640A
 	add.w	$0020(a5),d6	;DC6D0020
 	and.w	#$0003,d6	;02460003
@@ -7698,17 +7699,17 @@ adrJA005628:
 	bsr	adrCd00587C	;61000246
 	tst.w	$000C(a5)	;4A6D000C
 	bpl.s	adrCd005676	;6A38
-	cmp.w	#$0048,d1	;0C410048
+	cmpi.w	#$0048,d1	;0C410048
 	bcs.s	adrCd005676	;6532
-	cmp.w	#$0058,d1	;0C410058
+	cmpi.w	#$0058,d1	;0C410058
 	bcc.s	adrCd005676	;642C
 	swap	d1	;4841
 	sub.w	#$00E0,d1	;044100E0
 	bcs.s	adrCd005676	;6524
 	lsr.w	#$04,d1	;E849
-	cmp.w	#$0005,d1	;0C410005
+	cmpi.w	#$0005,d1	;0C410005
 	beq	Click_CloseSpellBook	;6700014A
-	cmp.w	#$0004,d1	;0C410004
+	cmpi.w	#$0004,d1	;0C410004
 	beq.s	adrCd005678	;6716
 	move.b	$18(a5,d1.w),d0	;10351018
 	and.w	#$00A0,d0	;024000A0
@@ -7758,12 +7759,12 @@ adrCd0056AC:
 adrLp0056C8:
 	move.w	(a2)+,d1	;321A
 	and.w	#$0007,d1	;02410007
-	cmp.b	#$02,d1	;0C010002
+	cmpi.b	#$02,d1	;0C010002
 	bne.s	adrCd0056DC	;6608
 	btst	#$04,-$0001(a2)	;082A0004FFFF
 	bne.s	adrCd0056EE	;6612
 adrCd0056DC:
-	cmp.b	#$07,d1	;0C010007
+	cmpi.b	#$07,d1	;0C010007
 	bne.s	adrCd0056F0	;660E
 	move.b	-$0002(a2),d1	;122AFFFE
 	and.w	#$0003,d1	;02410003
@@ -7820,7 +7821,7 @@ adrCd00575A:
 	cmp.l	a1,a3	;B7C9
 	beq.s	adrCd005792	;6734
 	move.b	#$FF,(a1)	;12BC00FF
-	exg	a3,a2	;C74A
+	exg	a2,a3	;C74A
 	dbra	d2,adrLp005714	;51CAFFAE
 	rts	;4E75
 
@@ -7979,7 +7980,7 @@ MainWall_Action_01:
 	move.w	$0004(a5),d1	;322D0004
 	sub.w	$0008(a5),d1	;926D0008
 	moveq	#$02,d6	;7C02
-	cmp.w	#$0033,d1	;0C410033
+	cmpi.w	#$0033,d1	;0C410033
 	bcs	adrCd005D4E	;6500044A
 	moveq	#$03,d6	;7C03
 	bra	adrCd005D4E	;60000444
@@ -8460,17 +8461,17 @@ adrCd005D52:
 	move.l	$0002(a5),d1	;222D0002
 	sub.w	$0008(a5),d1	;926D0008
 	moveq	#$02,d6	;7C02
-	cmp.w	#$0051,d1	;0C410051
+	cmpi.w	#$0051,d1	;0C410051
 	bcs.s	adrCd005D64	;6502
 	subq.w	#$02,d6	;5546
 adrCd005D64:
 	swap	d1	;4841
-	cmp.w	#$00A0,d1	;0C4100A0
+	cmpi.w	#$00A0,d1	;0C4100A0
 	bcs.s	adrCd005D6E	;6502
 	addq.w	#$01,d6	;5246
 adrCd005D6E:
 	move.l	$001C(a5),d7	;2E2D001C
-	cmp.w	#$0002,d6	;0C460002
+	cmpi.w	#$0002,d6	;0C460002
 	bcc.s	adrCd005D7E	;6406
 	bsr	CoordToMap	;61002722
 	bra.s	adrCd005D9E	;6020
@@ -8509,7 +8510,7 @@ adrCd005D9E:
 	cmp.w	#$0005,$002E(a5)	;0C6D0005002E
 	bcc.s	adrCd005DEC	;640A
 	move.w	d1,d2	;3401
-	cmp.b	#$64,d2	;0C020064
+	cmpi.b	#$64,d2	;0C020064
 	bcs.s	adrCd005DEC	;6502
 	moveq	#$63,d2	;7463
 adrCd005DEC:
@@ -8925,7 +8926,7 @@ adrCd006190:
 	ror.w	#$08,d1	;E059
 	tst.w	d3	;4A43
 	bne.s	adrCd0061A4	;6606
-	cmp.b	#$30,d1	;0C010030
+	cmpi.b	#$30,d1	;0C010030
 	beq.s	adrCd0061AA	;6706
 adrCd0061A4:
 	move.b	d1,$00(a6,d2.w)	;1D812000
@@ -9011,13 +9012,13 @@ adrCd006264:
 	bcs.s	adrCd006288	;6520
 	beq.s	adrCd006288	;671E
 	move.w	d0,d1	;3200
-	cmp.w	#$0028,d2	;0C420028
+	cmpi.w	#$0028,d2	;0C420028
 	bcc.s	adrCd006284	;6412
 	add.w	d1,d0	;D041
-	cmp.w	#$0019,d2	;0C420019
+	cmpi.w	#$0019,d2	;0C420019
 	bcc.s	adrCd006284	;640A
 	add.w	d1,d0	;D041
-	cmp.w	#$000A,d2	;0C42000A
+	cmpi.w	#$000A,d2	;0C42000A
 	bcc.s	adrCd006284	;6402
 	add.w	d1,d0	;D041
 adrCd006284:
@@ -9033,7 +9034,7 @@ adrCd00628C:
 	moveq	#$00,d5	;7A00
 	moveq	#$00,d6	;7C00
 	moveq	#$00,d7	;7E00
-	cmp.w	#$0010,d0	;0C400010
+	cmpi.w	#$0010,d0	;0C400010
 	bcs.s	adrCd0062C6	;652C
 	sub.w	#$0010,d0	;04400010
 	asl.w	#$04,d0	;E940
@@ -9125,7 +9126,7 @@ adrCd006362:
 	move.b	$0003(a1),d2	;14290003
 	sub.b	#$24,d2	;04020024
 	bcs.s	adrCd006378	;650A
-	cmp.w	#$0007,d2	;0C420007
+	cmpi.w	#$0007,d2	;0C420007
 	bcc.s	adrCd006378	;6404
 	add.b	Monster_Grades?_5FD6(pc,d2.w),d3	;D63B2004
 adrCd006378:
@@ -9142,33 +9143,33 @@ Monster_Grades?_5FD6:
 	dc.b	$00	;00
 
 adrCd006382:
-	moveq	#$00,d0	;7000
-	move.b	(a1),d0	;1011
-	sub.b	#$30,d0	;04000030
-	bcs.s	adrCd006392	;6506
-	cmp.b	#$10,d0	;0C000010
-	bcs.s	adrCd0063A2	;6510
+	moveq	#$00,d0			;7000
+	move.b	(a1),d0			;1011
+	sub.b	#$30,d0			;04000030
+	bcs.s	adrCd006392		;6506
+	cmpi.b	#$10,d0			;0C000010
+	bcs.s	adrCd0063A2		;6510
 adrCd006392:
-	move.b	$0001(a1),d0	;10290001
-	sub.b	#$30,d0	;04000030
-	bcs.s	adrCd0063DA	;653E
-	cmp.b	#$10,d0	;0C000010
-	bcc.s	adrCd0063DA	;6438
+	move.b	$0001(a1),d0		;10290001
+	sub.b	#$30,d0			;04000030
+	bcs.s	adrCd0063DA		;653E
+	cmpi.b	#$10,d0			;0C000010
+	bcc.s	adrCd0063DA		;6438
 adrCd0063A2:
 	lea	adrEA0063DC.l,a0	;41F9000063DC
-	asl.w	#$02,d0	;E540
-	add.w	d0,a0	;D0C0
-	move.b	(a0)+,d4	;1818
-	move.b	(a0)+,d5	;1A18
-	move.b	(a0)+,d6	;1C18
-	move.b	(a0)+,d7	;1E18
-	tst.w	adrW_00628A.w	;4A78628A	;Short Absolute converted to symbol!
-	bne.s	adrCd0063C6	;660C
-	cmp.b	#$08,d0	;0C000008
-	bcs.s	adrCd0063C6	;6506
+	asl.w	#$02,d0			;E540
+	add.w	d0,a0			;D0C0
+	move.b	(a0)+,d4		;1818
+	move.b	(a0)+,d5		;1A18
+	move.b	(a0)+,d6		;1C18
+	move.b	(a0)+,d7		;1E18
+	tst.w	adrW_00628A.w		;4A78628A	;Short Absolute converted to symbol!
+	bne.s	adrCd0063C6		;660C
+	cmpi.b	#$08,d0			;0C000008
+	bcs.s	adrCd0063C6		;6506
 	move.w	#$FFFF,adrW_00628A.w	;31FCFFFF628A	;Short Absolute converted to symbol!
 adrCd0063C6:
-	cmp.b	#$1C,d0	;0C00001C
+	cmpi.b	#$1C,d0	;0C00001C
 	bne.s	adrCd0063DA	;660E
 	cmp.b	#$2B,$0012(a4)	;0C2C002B0012
 	beq.s	adrCd0063DA	;6706
@@ -9295,7 +9296,7 @@ adrJA0064D0:
 	bsr	adrCd008498	;61001FBC
 	move.b	$01(a6,d0.w),d1	;12360001
 	and.w	#$0007,d1	;02410007
-	cmp.b	#$02,d1	;0C010002
+	cmpi.b	#$02,d1	;0C010002
 	bne.s	adrCd0064F2	;6606
 	btst	d2,$00(a6,d0.w)	;05360000
 	bne.s	adrCd006552	;6660
@@ -9309,9 +9310,9 @@ adrCd0064F2:
 	eor.w	#$0004,d2	;0A420004
 	move.b	$01(a6,d0.w),d1	;12360001
 	and.w	#$0007,d1	;02410007
-	cmp.b	#$02,d1	;0C010002
+	cmpi.b	#$02,d1	;0C010002
 	beq.s	adrCd00654A	;6730
-	cmp.b	#$05,d1	;0C010005
+	cmpi.b	#$05,d1	;0C010005
 	bne.s	adrCd006550	;6630
 	tst.b	$01(a6,d0.w)	;4A360001
 	bmi.s	adrCd006550	;6B2A
@@ -9458,7 +9459,7 @@ adrCd0066AA:
 	move.w	d7,d0	;3007
 	bsr	adrCd00CAEA	;6100643C
 	addq.w	#$01,d7	;5247
-	cmp.w	#$006C,d7	;0C47006C
+	cmpi.w	#$006C,d7	;0C47006C
 	bcs.s	adrCd0066AA	;65F2
 adrCd0066B8:
 	moveq	#$4F,d0	;704F
@@ -9501,7 +9502,7 @@ adrCd006720:
 	bpl.s	adrCd006736	;6A02
 	moveq	#$00,d7	;7E00
 adrCd006736:
-	cmp.b	#$13,d7	;0C070013
+	cmpi.b	#$13,d7	;0C070013
 	bcc.s	adrCd00675E	;6422
 	move.b	adrB_006760(pc,d7.w),d0	;103B7022
 	moveq	#$64,d1	;7264
@@ -9752,13 +9753,13 @@ adrCd0068DC:
 	addq.b	#$01,$0014(a4)	;522C0014
 	moveq	#$01,d0	;7001
 adrCd0068F8:
-	cmp.w	#$0064,d0	;0C400064
+	cmpi.w	#$0064,d0	;0C400064
 	bcc.s	adrCd0068CC	;64CE
 	rts	;4E75
 
 adrCd006900:
 	move.w	d0,d6	;3C00
-	cmp.b	#$10,d0	;0C000010
+	cmpi.b	#$10,d0	;0C000010
 	bcs.s	adrCd00690A	;6502
 	not.w	d0	;4640
 adrCd00690A:
@@ -9771,9 +9772,9 @@ adrCd006912:
 Click_Item_17_to_1A_Potions:
 	move.w	$002E(a5),d0	;302D002E
 	beq.s	adrCd006912	;67F8
-	cmp.w	#$001B,d0	;0C40001B
+	cmpi.w	#$001B,d0	;0C40001B
 	bcc.s	adrCd006912	;64F2
-	cmp.w	#$0017,d0	;0C400017
+	cmpi.w	#$0017,d0	;0C400017
 	bcs.s	adrCd00699A	;6574
 	sub.w	#$0017,d0	;04400017
 	move.w	d0,d1	;3200
@@ -9824,9 +9825,9 @@ adrCd006984:
 	rts	;4E75
 
 adrCd00699A:
-	cmp.w	#$0005,d0	;0C400005
+	cmpi.w	#$0005,d0	;0C400005
 	bcs	adrCd006A16	;65000076
-	cmp.w	#$0014,d0	;0C400014
+	cmpi.w	#$0014,d0	;0C400014
 	bcs.s	adrCd0069BA	;6512
 	moveq	#$00,d1	;7200
 	sub.w	#$0014,d0	;04400014
@@ -9838,7 +9839,7 @@ adrLp0069AE:
 
 adrCd0069BA:
 	moveq	#$14,d1	;7214
-	cmp.w	#$000E,d0	;0C40000E
+	cmpi.w	#$000E,d0	;0C40000E
 	bcc.s	adrCd0069C4	;6402
 	moveq	#$20,d1	;7220
 adrCd0069C4:
@@ -9858,7 +9859,7 @@ adrCd0069D4:
 	bsr	adrCd006660	;6100FC7E
 	add.b	$0010(a4),d1	;D22C0010
 	bcs.s	adrCd0069F0	;6506
-	cmp.w	#$00C8,d1	;0C4100C8
+	cmpi.w	#$00C8,d1	;0C4100C8
 	bcs.s	adrCd0069F4	;6504
 adrCd0069F0:
 	move.b	#$C7,d1	;123C00C7
@@ -9908,26 +9909,26 @@ adrJA006A46:
 	move.b	$000F(a5),d0	;102D000F
 	move.w	$002E(a5),d1	;322D002E
 	beq.s	adrCd006A98	;6720
-	cmp.b	#$03,d0	;0C000003
+	cmpi.b	#$03,d0	;0C000003
 	bne.s	adrCd006A98	;661A
-	cmp.w	#$0024,d1	;0C410024
+	cmpi.w	#$0024,d1	;0C410024
 	bcs.s	adrCd006AAE	;652A
-	cmp.w	#$002B,d1	;0C41002B
+	cmpi.w	#$002B,d1	;0C41002B
 	bcc.s	adrCd006AAE	;6424
 	btst	#$00,d2	;08020000
 	beq.s	adrCd006AF2	;6762
-	cmp.w	#$0027,d1	;0C410027
+	cmpi.w	#$0027,d1	;0C410027
 	bcs.s	adrCd006AF2	;655C
 	bra.s	adrCd006AAE	;6016
 
 adrCd006A98:
-	cmp.b	#$02,d0	;0C000002
+	cmpi.b	#$02,d0	;0C000002
 	bne.s	adrCd006AB4	;6616
 	tst.w	d1	;4A41
 	beq.s	adrCd006AF2	;6750
-	cmp.w	#$001B,d1	;0C41001B
+	cmpi.w	#$001B,d1	;0C41001B
 	bcs.s	adrCd006AAE	;6506
-	cmp.w	#$0024,d1	;0C410024
+	cmpi.w	#$0024,d1	;0C410024
 	bcs.s	adrCd006AF2	;6544
 adrCd006AAE:
 	move.w	d7,$000E(a5)	;3B47000E
@@ -9957,7 +9958,7 @@ adrCd006AF2:
 	moveq	#$00,d1	;7200
 	move.b	$00(a6,d0.w),d1	;12360000
 	beq	adrCd006B82	;67000088
-	cmp.w	#$0005,d1	;0C410005
+	cmpi.w	#$0005,d1	;0C410005
 	bcc	adrCd006B82	;64000080
 	move.w	$002E(a5),d3	;362D002E
 	bne.s	adrCd006B1C	;6612
@@ -9967,7 +9968,7 @@ adrCd006AF2:
 	bra	adrCd006BB8	;6000009E
 
 adrCd006B1C:
-	cmp.w	#$0005,d3	;0C430005
+	cmpi.w	#$0005,d3	;0C430005
 	bcs.s	adrCd006B30	;650E
 	move.b	$0B(a6,d1.w),$002D(a5)	;1B76100B002D
 	clr.b	$0B(a6,d1.w)	;4236100B
@@ -9979,7 +9980,7 @@ adrCd006B30:
 	move.b	$0B(a6,d1.w),d2	;1436100B
 	add.b	$002D(a5),d2	;D42D002D
 	move.b	d2,$0B(a6,d1.w)	;1D82100B
-	cmp.b	#$64,d2	;0C020064
+	cmpi.b	#$64,d2	;0C020064
 	bcc.s	adrCd006B4C	;6406
 	clr.l	$002C(a5)	;42AD002C
 	bra.s	adrCd006BB8	;606C
@@ -9991,7 +9992,7 @@ adrCd006B4C:
 adrCd006B54:
 	move.b	$0B(a6,d3.w),d2	;1436300B
 	add.b	$002D(a5),d2	;D42D002D
-	cmp.b	#$64,d2	;0C020064
+	cmpi.b	#$64,d2	;0C020064
 	bcc.s	adrCd006B72	;6410
 	move.b	d2,$0B(a6,d3.w)	;1D82300B
 	move.b	$0B(a6,d1.w),$002D(a5)	;1B76100B002D
@@ -10008,12 +10009,12 @@ adrCd006B78:
 adrCd006B82:
 	move.w	$002E(a5),d3	;362D002E
 	beq.s	adrCd006BB0	;6728
-	cmp.w	#$0005,d3	;0C430005
+	cmpi.w	#$0005,d3	;0C430005
 	bcc.s	adrCd006BB0	;6422
 	move.b	$0B(a6,d3.w),d2	;1436300B
 	add.b	$002D(a5),d2	;D42D002D
 	move.b	d2,$0B(a6,d3.w)	;1D82300B
-	cmp.b	#$64,d2	;0C020064
+	cmpi.b	#$64,d2	;0C020064
 	bcc.s	adrCd006B72	;64D2
 adrCd006BA0:
 	moveq	#$0B,d2	;740B
@@ -10042,7 +10043,7 @@ adrCd006BD8:
 	move.w	d7,$000E(a5)	;3B47000E
 	move.w	$002E(a5),d0	;302D002E
 	beq.s	adrCd006BE8	;6706
-	cmp.w	#$0005,d0	;0C400005
+	cmpi.w	#$0005,d0	;0C400005
 	bcs.s	adrJA006C0A	;6522
 adrCd006BE8:
 	move.w	#$0001,$002C(a5)	;3B7C0001002C
@@ -10078,7 +10079,7 @@ adrCd006C42:
 adrCd006C58:
 	bsr	adrCd008416	;610017BC
 	addq.w	#$01,d7	;5247
-	cmp.w	#$0004,d7	;0C470004
+	cmpi.w	#$0004,d7	;0C470004
 	bcs.s	adrCd006C58	;65F4
 	move.w	$002E(a5),d0	;302D002E
 	move.w	$002C(a5),d1	;322D002C
@@ -10089,9 +10090,9 @@ adrCd006C58:
 	bsr	adrCd006D1E	;610000A2
 	move.w	$002E(a5),d0	;302D002E
 	beq.s	adrCd006C90	;670C
-	cmp.w	#$0005,d0	;0C400005
+	cmpi.w	#$0005,d0	;0C400005
 	bcs.s	adrCd006C90	;6506
-	cmp.w	#$0017,d0	;0C400017
+	cmpi.w	#$0017,d0	;0C400017
 	bcs.s	adrCd006C92	;6502
 adrCd006C90:
 	rts	;4E75
@@ -10124,7 +10125,7 @@ adrCd006CE2:
 	move.w	d0,d1	;3200
 	sub.w	#$0040,d1	;04410040
 	bcs.s	adrCd006D08	;651E
-	cmp.w	#$0010,d1	;0C410010
+	cmpi.w	#$0010,d1	;0C410010
 	bcc.s	adrCd006D08	;6418
 	move.w	d1,d0	;3001
 	bsr	adrCd004078	;6100D384
@@ -10253,7 +10254,7 @@ MoveParty:
 	bne.s	adrCd006E3C	;661E
 	move.w	$00(a6,d0.w),d1	;32360000
 	and.w	#$0007,d1	;02410007
-	cmp.w	#$0004,d1	;0C410004
+	cmpi.w	#$0004,d1	;0C410004
 	bne.s	adrCd006E3C	;6610
 	move.b	$00(a6,d0.w),d1	;12360000
 	lsr.b	#$01,d1	;E209
@@ -10310,7 +10311,7 @@ adrCd006EA8:
 	movem.l	(sp)+,d0/d7/a6	;4CDF4081
 	move.w	$00(a6,d0.w),d1	;32360000
 	and.w	#$0007,d1	;02410007
-	cmp.w	#$0004,d1	;0C410004
+	cmpi.w	#$0004,d1	;0C410004
 	bne	adrCd006F38	;66000076
 	moveq	#$00,d6	;7C00
 	move.b	$00(a6,d0.w),d6	;1C360000
@@ -10358,7 +10359,7 @@ adrCd006F38:
 adrCd006F4A:
 	move.w	$0042(a5),d0	;302D0042
 	bmi.s	adrCd006F58	;6B08
-	cmp.w	#$0008,d0	;0C400008
+	cmpi.w	#$0008,d0	;0C400008
 	bcc	Click_ShowTeamAvatars	;6400C388
 adrCd006F58:
 	rts	;4E75
@@ -10414,11 +10415,11 @@ adrCd006FC0:
 	add.w	d2,a1	;D2C2
 	moveq	#$00,d2	;7400
 	move.b	$00(a1,d1.w),d2	;14311000
-	cmp.b	#$08,d2	;0C020008
+	cmpi.b	#$08,d2	;0C020008
 	beq.s	adrCd006FF2	;670C
-	cmp.b	#$0A,d2	;0C02000A
+	cmpi.b	#$0A,d2	;0C02000A
 	beq.s	adrCd006FF2	;6706
-	cmp.b	#$2A,d2	;0C02002A
+	cmpi.b	#$2A,d2	;0C02002A
 	bne.s	adrCd006FF8	;6606
 adrCd006FF2:
 	move.w	#$0005,adrEA006FA8.w	;31FC00056FA8	;Short Absolute converted to symbol!
@@ -10472,8 +10473,70 @@ Triggers_LookupTable:
 	dc.w	Trigger_28_t38_GameCompletion-Trigger_00_t00_Null	;0504
 	dc.w	adrJA007502-Trigger_00_t00_Null	;04EC
 TriggersData_1:
-	INCBIN bw-data/mod0.triggers
-
+	dc.w	$0000	;0000
+	dc.w	$0000	;0000
+	dc.w	$0200	;0200
+	dc.w	$0000	;0000
+	dc.w	$0400	;0400
+	dc.w	$0000	;0000
+	dc.w	$0600	;0600
+	dc.w	$0E06	;0E06
+	dc.w	$0800	;0800
+	dc.w	$0000	;0000
+	dc.w	$0A00	;0A00
+	dc.w	$0000	;0000
+	dc.w	$0C00	;0C00
+	dc.w	$0000	;0000
+	dc.w	$0E00	;0E00
+	dc.w	$0000	;0000
+	dc.w	$0600	;0600
+	dc.w	$1403	;1403
+	dc.w	$1000	;1000
+	dc.w	$0000	;0000
+	dc.w	$1202	;1202
+	dc.w	$0A01	;0A01
+	dc.w	$1404	;1404
+	dc.w	$0000	;0000
+	dc.w	$1203	;1203
+	dc.w	$0801	;0801
+	dc.w	$1204	;1204
+	dc.w	$0A11	;0A11
+	dc.w	$1408	;1408
+	dc.w	$0000	;0000
+	dc.w	$1205	;1205
+	dc.w	$0811	;0811
+	dc.w	$1206	;1206
+	dc.w	$110A	;110A
+	dc.w	$140C	;140C
+	dc.w	$0000	;0000
+	dc.w	$1207	;1207
+	dc.w	$1108	;1108
+	dc.w	$1208	;1208
+	dc.w	$010A	;010A
+	dc.w	$1410	;1410
+	dc.w	$0000	;0000
+	dc.w	$1209	;1209
+	dc.w	$0108	;0108
+	dc.w	$120A	;120A
+	dc.w	$0103	;0103
+	dc.w	$1414	;1414
+	dc.w	$0000	;0000
+	dc.w	$120B	;120B
+	dc.w	$0101	;0101
+	dc.w	$1600	;1600
+	dc.w	$0002	;0002
+	dc.w	$1600	;1600
+	dc.w	$0202	;0202
+	dc.w	$0000	;0000
+	dc.w	$0000	;0000
+	dc.w	$0000	;0000
+	dc.w	$0000	;0000
+	dc.w	$0000	;0000
+	dc.w	$0000	;0000
+	dc.w	$0000	;0000
+	dc.w	$0000	;0000
+	dc.w	$0000	;0000
+	dc.w	$0000	;0000
 TriggersData_2:
 	dc.w	$0000	;0000
 	dc.w	$0000	;0000
@@ -10929,10 +10992,10 @@ adrCd00748C:
 	move.l	$001C(a5),$0008(sp)	;2F6D001C0008
 	move.l	a6,$000C(sp)	;2F4E000C
 	bset	#$07,$01(a6,d0.w)	;08F600070001
-	exg	a5,a1	;CB49
+	exg	a1,a5	;CB49
 	bsr	adrCd008498	;61000FBC
 	bset	#$07,$01(a6,d0.w)	;08F600070001
-	exg	a5,a1	;CB49
+	exg	a1,a5	;CB49
 	bra	MonsterTransfer	;6000950E
 
 DungeonStartLocs:
@@ -11234,7 +11297,7 @@ adrCd007844:
 	move.b	$00(a1,d3.w),d2	;14313000
 	sub.b	#$40,d2	;04020040
 	bcs.s	adrCd007854	;6506
-	cmp.b	#$10,d2	;0C020010
+	cmpi.b	#$10,d2	;0C020010
 	bcs.s	adrCd00785A	;6506
 adrCd007854:
 	subq.w	#$02,d3	;5543
@@ -11490,7 +11553,7 @@ adrCd007ADE:
 adrCd007AE6:
 	move.b	$01(a6,d0.w),d1	;12360001
 	and.w	#$0007,d1	;02410007
-	cmp.b	#$02,d1	;0C010002
+	cmpi.b	#$02,d1	;0C010002
 	bne.s	adrCd007B04	;6610
 adrCd007AF4:
 	move.w	d6,d1	;3206
@@ -11527,7 +11590,7 @@ adrCd007B34:
 	bsr	BW_blit_horiz_line	;6100604E
 	addq.w	#$01,d5	;5245
 	addq.w	#$01,d3	;5243
-	cmp.w	#$0005,d3	;0C430005
+	cmpi.w	#$0005,d3	;0C430005
 	bcs.s	adrCd007B34	;65F2
 	subq.w	#$02,d3	;5543
 adrCd007B44:
@@ -11574,11 +11637,11 @@ adrCd007BC0:
 	bsr	adrCd00CAEA	;61004F1E
 	addq.w	#$01,d7	;5247
 	add.w	#$027C,a0	;D0FC027C
-	cmp.w	#$0075,d7	;0C470075
+	cmpi.w	#$0075,d7	;0C470075
 	bcs.s	adrCd007BC0	;65E6
 	cmp.w	#$0008,$0042(a5)	;0C6D00080042
 	bne.s	adrCd007BE8	;6606
-	cmp.w	#$0077,d7	;0C470077
+	cmpi.w	#$0077,d7	;0C470077
 	bcs.s	adrCd007BC0	;65D8
 adrCd007BE8:
 	bsr	adrCd007D6C	;61000182
@@ -11766,7 +11829,7 @@ adrCd007CAC:
 	addq.w	#$02,d2	;5442
 adrCd007CCC:
 	addq.w	#$01,d1	;5241
-	cmp.w	#$0004,d1	;0C410004
+	cmpi.w	#$0004,d1	;0C410004
 	bcs.s	adrCd007CAC	;65D8
 	rts	;4E75
 
@@ -11892,7 +11955,7 @@ adrCd007DF2:
 	movem.l	(sp)+,d4/d5/d7	;4CDF00B0
 	addq.w	#$08,d5	;5045
 	addq.w	#$01,d7	;5247
-	cmp.w	#$0004,d7	;0C470004
+	cmpi.w	#$0004,d7	;0C470004
 	bcs.s	adrCd007D8E	;658E
 	move.l	screen_ptr.l,a0	;207900008D36
 	add.w	$000A(a5),a0	;D0ED000A
@@ -11907,7 +11970,7 @@ adrCd007E12:
 	add.w	#$0140,a0	;D0FC0140
 adrL_007E22:	equ	*-2
 	addq.w	#$01,d7	;5247
-	cmp.w	#$0004,d7	;0C470004
+	cmpi.w	#$0004,d7	;0C470004
 	bcs.s	adrCd007E12	;65E6
 	moveq	#$00,d4	;7800
 	moveq	#$39,d5	;7A39
@@ -12072,7 +12135,7 @@ adrCd007FE0:
 	tst.w	d3	;4A43
 	beq.s	adrCd007FF4	;670C
 	bsr	adrCd00CCFE	;61004D14
-	cmp.w	#$0008,d3	;0C430008
+	cmpi.w	#$0008,d3	;0C430008
 	bne.s	adrCd007FF4	;6602
 	subq.w	#$01,d3	;5343
 adrCd007FF4:
@@ -12260,7 +12323,7 @@ adrCd008206:
 adrCd00820A:
 	and.w	#$0007,d2	;02420007
 	move.b	adrB_00821E(pc,d2.w),d0	;103B200E
-	cmp.w	#$0040,d0	;0C400040
+	cmpi.w	#$0040,d0	;0C400040
 	bne.s	adrCd008206	;66EE
 	add.w	$0020(a5),d0	;D06D0020
 	bra.s	adrCd008206	;60E8
@@ -12314,7 +12377,7 @@ adrCd00828A:
 	bsr	BW_blit_horiz_line	;610058F8
 	addq.w	#$01,d5	;5245
 	addq.w	#$01,d3	;5243
-	cmp.w	#$0005,d3	;0C430005
+	cmpi.w	#$0005,d3	;0C430005
 	bcs.s	adrCd00828A	;65F2
 	subq.w	#$04,d3	;5943
 	bsr	BW_blit_horiz_line	;610058E8
@@ -12328,7 +12391,7 @@ adrCd0082BA:
 	addq.w	#$01,d5	;5245
 	bsr	BW_blit_horiz_line	;610058C6
 	addq.w	#$01,d3	;5243
-	cmp.w	#$0005,d3	;0C430005
+	cmpi.w	#$0005,d3	;0C430005
 	bcs.s	adrCd0082BA	;65F2
 	move.w	$0006(a5),d0	;302D0006
 	bsr	adrCd00CF08	;61004C3A
@@ -12362,7 +12425,7 @@ adrCd00833C:
 	bsr	BW_blit_horiz_line	;61005846
 	addq.w	#$01,d5	;5245
 	addq.w	#$01,d3	;5243
-	cmp.w	#$0005,d3	;0C430005
+	cmpi.w	#$0005,d3	;0C430005
 	bcs.s	adrCd00833C	;65F2
 	subq.w	#$04,d3	;5943
 	bsr	BW_blit_horiz_line	;61005836
@@ -12419,7 +12482,7 @@ adrCd0083D0:
 	bsr	adrCd00842C	;6100005A
 adrCd0083D4:
 	addq.w	#$01,d7	;5247
-	cmp.w	#$0004,d7	;0C470004
+	cmpi.w	#$0004,d7	;0C470004
 	bcs.s	adrCd0083B0	;65D4
 	move.w	$0006(a5),d0	;302D0006
 	bsr	adrCd004092	;6100BCB0
@@ -12939,7 +13002,7 @@ adrCd00899A:
 	bpl.s	adrCd0089AE		;6A04
 	add.w	#$0140,d1		;06410140
 adrCd0089AE:
-	cmp.w	#$0140,d1		;0C410140
+	cmpi.w	#$0140,d1		;0C410140
 	bcs.s	adrCd0089B8		;6504
 	sub.w	#$0140,d1		;04410140
 adrCd0089B8:
@@ -13049,7 +13112,7 @@ adrCd008AC6:
 	bcc.s	adrCd008ACC	;6402
 	addq.w	#$02,d1	;5441
 adrCd008ACC:
-	cmp.w	#$0140,d1	;0C410140
+	cmpi.w	#$0140,d1	;0C410140
 	bcs.s	adrCd008AD6	;6504
 	sub.w	#$0140,d1	;04410140
 adrCd008AD6:
@@ -13137,7 +13200,7 @@ adrCd008B9A:
 	bne.s	adrCd008BDC	;663C
 	tst.b	d0	;4A00
 	bpl.s	adrCd008BAC	;6A08
-	cmp.w	#$00F9,d0	;0C4000F9
+	cmpi.w	#$00F9,d0	;0C4000F9
 	beq.s	adrCd008BE0	;6736
 	neg.b	d0	;4400
 adrCd008BAC:
@@ -13630,7 +13693,7 @@ adrCd009000:
 	lsr.w	#$05,d0	;EA48
 	move.w	d0,d2	;3400
 	and.w	#$0003,d2	;02420003
-	cmp.b	#$03,d2	;0C020003
+	cmpi.b	#$03,d2	;0C020003
 	bne.s	adrCd009036	;6612
 	bsr	RandomGen_BytewithOffset	;6100C586
 	move.b	(a4),d2	;1414
@@ -13668,12 +13731,12 @@ adrCd00905C:
 	move.w	$0002(a0),d1	;32280002
 	move.w	d1,d0	;3001
 	and.w	#$0003,d1	;02410003
-	cmp.w	#$0002,d1	;0C410002
+	cmpi.w	#$0002,d1	;0C410002
 	bcc.s	adrCd0090D4	;6448
 	and.w	#$00FC,d0	;024000FC
-	cmp.w	#$002C,d0	;0C40002C
+	cmpi.w	#$002C,d0	;0C40002C
 	bcc.s	adrCd00909C	;6406
-	cmp.w	#$0020,d0	;0C400020
+	cmpi.w	#$0020,d0	;0C400020
 	bcc.s	adrCd0090D4	;6438
 adrCd00909C:
 	lsr.w	#$01,d0	;E248
@@ -13761,45 +13824,45 @@ adrCd009130:
 	swap	d7	;4847
 	add.b	(a0),d7	;DE10
 	cmp.w	d1,d7	;BE41
-	bcc.s	adrCd0091C0	;6478
-	swap	d7	;4847
-	bsr	adrCd0084A2	;6100F356
-	move.w	$00(a6,d0.w),d0	;30360000
-	tst.b	d0	;4A00
-	beq.s	adrCd0091C4	;676E
-	and.b	#$07,d0	;02000007
-	beq.s	adrCd0091BC	;6760
-	cmp.b	#$01,d0	;0C000001
-	beq.s	adrCd0091C0	;675E
-	cmp.b	#$07,d0	;0C000007
-	bne.s	adrCd00917E	;6616
-	lsr.w	#$08,d0	;E048
-	and.w	#$0003,d0	;02400003
-	cmp.b	#$02,d0	;0C000002
-	bcs.s	adrCd0091BC	;6548
-	bne.s	adrCd0091C0	;664A
-	tst.b	-$001F(a3)	;4A2BFFE1
-	beq.s	adrCd0091C0	;6744
-	bra.s	adrCd0091BC	;603E
+	bcc.s	adrCd0091C0		;6478
+	swap	d7			;4847
+	bsr	adrCd0084A2		;6100F356
+	move.w	$00(a6,d0.w),d0		;30360000
+	tst.b	d0			;4A00
+	beq.s	adrCd0091C4		;676E
+	and.b	#$07,d0			;02000007
+	beq.s	adrCd0091BC		;6760
+	cmpi.b	#$01,d0			;0C000001
+	beq.s	adrCd0091C0		;675E
+	cmpi.b	#$07,d0			;0C000007
+	bne.s	adrCd00917E		;6616
+	lsr.w	#$08,d0			;E048
+	and.w	#$0003,d0		;02400003
+	cmpi.b	#$02,d0			;0C000002
+	bcs.s	adrCd0091BC		;6548
+	bne.s	adrCd0091C0		;664A
+	tst.b	-$001F(a3)		;4A2BFFE1
+	beq.s	adrCd0091C0		;6744
+	bra.s	adrCd0091BC		;603E
 
 adrCd00917E:
-	cmp.b	#$02,d0	;0C000002
-	bne.s	adrCd0091BC	;6638
-	move.w	-$000A(a3),d7	;3E2BFFF6
-	cmp.w	#$0012,d6	;0C460012
-	beq.s	adrCd009194	;6706
-	addq.w	#$02,d7	;5447
-	and.w	#$0003,d7	;02470003
+	cmpi.b	#$02,d0			;0C000002
+	bne.s	adrCd0091BC		;6638
+	move.w	-$000A(a3),d7		;3E2BFFF6
+	cmpi.w	#$0012,d6		;0C460012
+	beq.s	adrCd009194		;6706
+	addq.w	#$02,d7			;5447	
+	and.w	#$0003,d7		;02470003
 adrCd009194:
 	add.w	d7,d7	;DE47
 	addq.w	#$08,d7	;5047
 	btst	d7,d0	;0F00
 	beq.s	adrCd0091BC	;6720
-	cmp.w	#$000E,d6	;0C46000E
+	cmpi.w	#$000E,d6	;0C46000E
 	bcc.s	adrCd0091C0	;641E
 	move.w	-$000A(a3),d7	;3E2BFFF6
 	addq.w	#$01,d7	;5247
-	cmp.w	#$0007,d6	;0C460007
+	cmpi.w	#$0007,d6	;0C460007
 	bcs.s	adrCd0091B0	;6502
 	addq.w	#$02,d7	;5447
 adrCd0091B0:
@@ -13815,7 +13878,7 @@ adrCd0091C0:
 adrCd0091C4:
 	addq.w	#$02,a0	;5448
 	addq.w	#$01,d6	;5246
-	cmp.w	#$0013,d6	;0C460013
+	cmpi.w	#$0013,d6	;0C460013
 	bcs	adrCd009130	;6500FF62
 	rol.l	#$03,d5	;E79D
 	swap	d5	;4845
@@ -13847,7 +13910,7 @@ adrCd009202:
 	movem.l	(sp)+,d5-d7	;4CDF00E0
 adrCd009212:
 	addq.w	#$01,d6	;5246
-	cmp.b	#$13,d6	;0C060013
+	cmpi.b	#$13,d6	;0C060013
 	bcs.s	adrCd009202	;65E8
 	unlk	a3	;4E5B
 	rts	;4E75
@@ -13907,7 +13970,7 @@ adrCd009286:
 	move.w	$0002(a0),d1	;32280002
 	move.w	d1,d2	;3401
 	and.w	#$0003,d2	;02420003
-	cmp.w	#$0002,d2	;0C420002
+	cmpi.w	#$0002,d2	;0C420002
 	bne	adrCd0092E8	;66000032
 	lsr.b	#$02,d1	;E409
 	add.w	#$0080,d1	;06410080
@@ -13925,7 +13988,7 @@ adrCd009286:
 
 adrCd0092E8:
 	and.w	#$00FC,d1	;024100FC
-	cmp.w	#$001C,d1	;0C41001C
+	cmpi.w	#$001C,d1	;0C41001C
 	bcc.s	adrCd009358	;6466
 	move.w	d1,-(sp)	;3F01
 	bsr	adrCd00995C	;61000666
@@ -14010,9 +14073,9 @@ adrCd009388:
 	beq.s	adrCd0093BC	;6720
 	subq.b	#$01,d1	;5301
 	beq	adrCd00956A	;670001CA
-	cmp.b	#$03,d1	;0C010003
+	cmpi.b	#$03,d1	;0C010003
 	beq	adrCd0094DC	;67000134
-	cmp.b	#$04,d1	;0C010004
+	cmpi.b	#$04,d1	;0C010004
 	beq	adrCd009496	;670000E6
 	move.b	d1,-$0013(a3)	;1741FFED
 	addq.w	#$02,a6	;544E
@@ -14036,7 +14099,7 @@ adrLp0093C2:
 	bra	adrCd009482	;600000A0
 
 adrCd0093E4:
-	cmp.w	#$0002,d5	;0C450002
+	cmpi.w	#$0002,d5	;0C450002
 	bcc.s	adrCd009412	;6428
 	tst.w	d5	;4A45
 	beq.s	adrCd0093F8	;670A
@@ -14108,9 +14171,9 @@ adrCd009496:
 	move.b	-$0012(a3),d1	;122BFFEE
 	and.w	#$0003,d1	;02410003
 	beq.s	adrCd0094B2	;6712
-	cmp.w	#$0001,d1	;0C410001
+	cmpi.w	#$0001,d1	;0C410001
 	beq.s	adrCd0094BC	;6716
-	cmp.b	#$03,d1	;0C010003
+	cmpi.b	#$03,d1	;0C010003
 	beq.s	adrCd0094B4	;6708
 	tst.b	-$001F(a3)	;4A2BFFE1
 	beq.s	adrCd0094B4	;6702
@@ -14137,7 +14200,7 @@ adrCd0094DC:
 	move.l	#$01050406,adrEA00B4C0.l	;23FC010504060000B4C0
 adrCd0094E6:
 	bsr	adrCd0099DC	;610004F4
-	cmp.w	#$0012,d0	;0C400012
+	cmpi.w	#$0012,d0	;0C400012
 	beq.s	adrCd0094F8	;6708
 	tst.b	d1	;4A01
 	bmi.s	adrCd009568	;6B74
@@ -14160,7 +14223,7 @@ adrCd009522:
 	lea	adrEA031AD8.l,a1	;43F900031AD8
 	and.w	#$0003,d1	;02410003
 	beq.s	adrCd009560	;6726
-	cmp.w	#$0003,d1	;0C410003
+	cmpi.w	#$0003,d1	;0C410003
 	beq.s	adrCd009560	;6720
 	btst	#$00,d1	;08010000
 	bne.s	adrCd00955E	;6618
@@ -14263,7 +14326,7 @@ adrCd00960A:
 adrCd00961A:
 	move.w	d1,d2	;3401
 	and.w	#$0007,d2	;02420007
-	cmp.w	#$0006,d2	;0C420006
+	cmpi.w	#$0006,d2	;0C420006
 	beq.s	adrCd00963A	;6714
 	subq.w	#$01,d2	;5342
 	bne.s	adrCd009648	;661E
@@ -14300,7 +14363,7 @@ adrLp009662:
 adrCd009676:
 	move.w	(sp)+,d1	;321F
 	addq.w	#$01,d1	;5241
-	cmp.w	#$0004,d1	;0C410004
+	cmpi.w	#$0004,d1	;0C410004
 	bcs.s	adrCd00964A	;65CA
 adrCd009680:
 	rts	;4E75
@@ -14406,7 +14469,7 @@ adrCd0096BE:
 	move.b	-$0016(a3),d3	;162BFFEA
 	move.b	$00(a0,d3.w),d4	;18303000
 adrCd009722:
-	cmp.b	#$80,d4	;0C040080
+	cmpi.b	#$80,d4	;0C040080
 	beq	adrCd009680	;6700FF58
 	lea	adrEA00E770.l,a6	;4DF90000E770
 	moveq	#$00,d3	;7600
@@ -14424,12 +14487,12 @@ adrCd009722:
 	lea	adrEA00E88A.l,a0	;41F90000E88A
 	lea	_GFX_ObjectsOnFloor.l,a1	;43F900032F60
 	add.w	$00(a0,d6.w),a1	;D2F06000
-	cmp.b	#$12,d3	;0C030012
+	cmpi.b	#$12,d3	;0C030012
 	bcs.s	adrCd009774	;6504
 	add.w	#$0CB8,a1	;D2FC0CB8
 adrCd009774:
 	moveq	#$00,d7	;7E00
-	cmp.b	#$12,d3	;0C030012
+	cmpi.b	#$12,d3	;0C030012
 	bcs.s	adrCd009780	;6504
 	move.b	adrB_0097B6(pc,d0.w),d7	;1E3B0038
 adrCd009780:
@@ -14810,13 +14873,13 @@ adrCd00995E:
 	move.w	d1,d2	;3401
 	lea	adrEA018A84.l,a0	;41F900018A84
 	move.b	$00(a0,d0.w),d4	;18300000
-	cmp.b	#$FF,d4	;0C0400FF
+	cmpi.b	#$FF,d4	;0C0400FF
 	beq.s	adrCd0099C8	;6734
 	move.b	adrB_00994E(pc,d2.w),d1	;123B20B8
 	move.b	adrB_009956(pc,d1.w),d5	;1A3B10BC
 	move.w	-$0012(a3),d0	;302BFFEE
 	and.w	#$0007,d0	;02400007
-	cmp.w	#$0004,d0	;0C400004
+	cmpi.w	#$0004,d0	;0C400004
 	bne.s	adrCd0099C6	;661C
 	move.b	adrB_0099CC(pc,d2.w),d0	;103B2020
 	move.b	adrB_0099D4(pc,d2.w),d2	;143B2024
@@ -14876,7 +14939,7 @@ adrCd0099F0:
 	bcc.s	adrCd0099EE	;64E0
 	tst.b	d0	;4A00
 	bmi	adrCd009AFA	;6B0000E8
-	cmp.w	#$0010,d0	;0C400010
+	cmpi.w	#$0010,d0	;0C400010
 	bcc.s	adrCd009A2A	;6410
 	move.b	d0,-$0017(a3)	;1740FFE9
 	move.b	$001B(a1),d0	;1029001B
@@ -15068,32 +15131,32 @@ adrB_009BD0:
 	dc.b	$03	;03
 
 Draw_Spell:
-	lea	adrEA009C68.l,a1	;43F900009C68
-	move.b	$00(a1,d1.w),d1	;12311000
-	add.w	d1,d1	;D241
-	lea	_GFX_FireBall.l,a1	;43F900034778
-	lea	adrEA009C6E.l,a2	;45F900009C6E
-	cmp.b	#$86,d0	;0C000086
-	bcs.s	adrCd009C18	;650A
-	add.w	#$0798,a1	;D2FC0798
-	lea	adrEA009C86.l,a2	;45F900009C86
+	lea	adrEA009C68.l,a1		;43F900009C68
+	move.b	$00(a1,d1.w),d1			;12311000
+	add.w	d1,d1				;D241
+	lea	_GFX_FireBall.l,a1		;43F900034778
+	lea	adrEA009C6E.l,a2		;45F900009C6E
+	cmpi.b	#$86,d0				;0C000086
+	bcs.s	adrCd009C18			;650A
+	add.w	#$0798,a1			;D2FC0798
+	lea	adrEA009C86.l,a2		;45F900009C86
 adrCd009C18:
-	add.w	$00(a2,d1.w),a1	;D2F21000
-	add.w	d1,d1	;D241
-	add.b	$08(a2,d1.w),d4	;D8321008
-	add.b	$09(a2,d1.w),d5	;DA321009
-	moveq	#$00,d7	;7E00
-	move.b	$0A(a2,d1.w),d7	;1E32100A
-	swap	d7	;4847
-	move.b	$0B(a2,d1.w),d7	;1E32100B
-	add.w	$0008(a5),d5	;DA6D0008
-	move.b	d4,d6	;1C04
-	add.b	#$60,d4	;06040060
-	ext.w	d6	;4886
-	asr.w	#$04,d6	;E846
-	move.l	a3,-(sp)	;2F0B
-	move.w	#$FFFF,adrW_00B4BE.l	;33FCFFFF0000B4BE
-	lea	SpellStars_Colours.l,a0	;41F900009B70
+	add.w	$00(a2,d1.w),a1			;D2F21000
+	add.w	d1,d1				;D241
+	add.b	$08(a2,d1.w),d4			;D8321008
+	add.b	$09(a2,d1.w),d5			;DA321009
+	moveq	#$00,d7				;7E00
+	move.b	$0A(a2,d1.w),d7			;1E32100A
+	swap	d7				;4847
+	move.b	$0B(a2,d1.w),d7			;1E32100B
+	add.w	$0008(a5),d5			;DA6D0008
+	move.b	d4,d6				;1C04
+	add.b	#$60,d4				;06040060
+	ext.w	d6				;4886
+	asr.w	#$04,d6	;			E846
+	move.l	a3,-(sp)			;2F0B
+	move.w	#$FFFF,adrW_00B4BE.l		;33FCFFFF0000B4BE
+	lea	SpellStars_Colours.l,a0		;41F900009B70
 	asl.b	#$02,d0	;E500
 	move.l	$00(a0,d0.w),adrEA00B4C0.l	;23F000000000B4C0
 	bsr	adrCd00AE5E	;61001202
@@ -15188,7 +15251,7 @@ Draw_Summon:
 	bsr	adrCd00AD34	;61001012
 	movem.w	(sp)+,d0/d1/d4/d5	;4C9F0033
 adrCd009D28:
-	cmp.w	#$0004,d1	;0C410004
+	cmpi.w	#$0004,d1	;0C410004
 	bcc	adrCd009DB6	;64000088
 	lea	adrEA009DDC.l,a2	;45F900009DDC
 	movem.w	d0/d1/d4/d5,-(sp)	;48A7CC00
@@ -15225,7 +15288,7 @@ adrCd009D6A:
 	asl.w	#$02,d2	;E542
 	add.w	d0,d2	;D440
 	add.w	d2,d2	;D442
-	cmp.b	#$02,d3	;0C030002
+	cmpi.b	#$02,d3	;0C030002
 	bne.s	adrCd009DA2	;6604
 	add.w	#$0040,a2	;D4FC0040
 adrCd009DA2:
@@ -15364,7 +15427,7 @@ MonsterColourGrading:
 	bcc.s	.gradelower	;6402
 	moveq	#$00,d2	;7400
 .gradelower:
-	cmp.b	#$08,d2	;0C020008
+	cmpi.b	#$08,d2	;0C020008
 	bcs.s	.gradeupper	;6502
 	moveq	#$07,d2	;7407
 .gradeupper:
@@ -15426,15 +15489,15 @@ MonsterColours_Crabs:
 	dc.w	$090A	;090A
 
 adrCd009F28:
-	cmp.b	#$02,d1	;0C010002
+	cmpi.b	#$02,d1	;0C010002
 	bcc.s	adrCd009F32	;6404
 	bsr	adrCd00A060	;61000130
 adrCd009F32:
-	cmp.b	#$02,d0	;0C000002
+	cmpi.b	#$02,d0	;0C000002
 	beq.s	adrCd009F78	;6740
 	tst.b	d0	;4A00
 	bne	adrCd009FE8	;660000AC
-	cmp.b	#$02,d1	;0C010002
+	cmpi.b	#$02,d1	;0C010002
 	bcs.s	adrCd009F8C	;6548
 	subq.w	#$02,d1	;5541
 	lea	adrEA00A17A.l,a2	;45F90000A17A
@@ -15531,7 +15594,7 @@ adrB_009FE4:
 	dc.b	$F0	;F0
 
 adrCd009FE8:
-	cmp.b	#$02,d1	;0C010002
+	cmpi.b	#$02,d1	;0C010002
 	bcc.s	adrCd00A030	;6442
 	lea	adrEA00A17E.l,a2	;45F90000A17E
 	add.w	d1,d1	;D241
@@ -15611,7 +15674,7 @@ adrCd00A084:
 	rts	;4E75
 
 adrCd00A086:
-	cmp.b	#$02,d0	;0C000002
+	cmpi.b	#$02,d0	;0C000002
 	beq.s	adrCd00A0B4	;6728
 	tst.b	d1	;4A01
 	bne.s	adrCd00A084	;66F4
@@ -15743,7 +15806,7 @@ Draw_Beholder:
 	lea	MonsterColours_Beholder.l,a0	;41F90000A1AC
 	bsr	MonsterColourGrading	;6100FD00
 	bsr	adrCd00A26E	;610000D6
-	cmp.b	#$02,d0	;0C000002
+	cmpi.b	#$02,d0	;0C000002
 	beq.s	adrCd00A1A4	;6704
 	bsr	adrCd00A1BC	;6100001A
 adrCd00A1A4:
@@ -15767,7 +15830,7 @@ adrB_00A1B8:
 	dc.b	$03	;03
 
 adrCd00A1BC:
-	cmp.b	#$04,d1	;0C010004
+	cmpi.b	#$04,d1	;0C010004
 	bcc.s	adrCd00A226	;6464
 	lea	adrEA00A308.l,a2	;45F90000A308
 	moveq	#$00,d7	;7E00
@@ -15876,7 +15939,7 @@ adrCd00A26E:
 	lea	adrEA00A2F4.l,a2	;45F90000A2F4
 	bsr	adrCd00A2E4	;61000060
 	bsr	adrCd00A2B6	;6100002E
-	cmp.b	#$04,d1	;0C010004
+	cmpi.b	#$04,d1	;0C010004
 	bcc.s	adrCd00A2B4	;6424
 	lea	adrEA00A300.l,a2	;45F90000A300
 	bsr	adrCd00A2E4	;6100004C
@@ -15900,7 +15963,7 @@ adrCd00A2B6:
 	bsr	adrCd00AD34	;61000A74
 	move.l	(sp)+,a1	;225F
 	movem.w	(sp)+,d0/d1/d4/d5/d7	;4C9F00B3
-	cmp.b	#$02,d1	;0C010002
+	cmpi.b	#$02,d1	;0C010002
 	bcc.s	adrCd00A2B4	;64E6
 	moveq	#-$01,d6	;7CFF
 	movem.w	d0/d1/d4/d5/d7,-(sp)	;48A7CD00
@@ -16017,9 +16080,9 @@ MonsterColours_Dragons:
 	dc.w	$0506	;0506
 
 adrCd00A3AE:
-	cmp.b	#$02,d0	;0C000002
+	cmpi.b	#$02,d0	;0C000002
 	beq.s	adrCd00A39A	;67E6
-	cmp.b	#$03,d1	;0C010003
+	cmpi.b	#$03,d1	;0C010003
 	bcc.s	adrCd00A39A	;64E0
 	moveq	#$00,d2	;7400
 	moveq	#$00,d6	;7C00
@@ -16277,7 +16340,7 @@ adrCd00A56E:
 	bsr	adrCd00A6CA	;61000142
 adrCd00A58A:
 	movem.l	(sp)+,d0/d1/d4/d5/d7/a0/a1	;4CDF03B3
-	cmp.b	#$02,d1	;0C010002
+	cmpi.b	#$02,d1	;0C010002
 	bcc.s	adrCd00A600	;646C
 	lea	adrEA00B4C0.l,a6	;4DF90000B4C0
 	moveq	#$00,d2	;7400
@@ -16471,7 +16534,7 @@ adrCd00A70A:
 	move.b	-$0017(a3),d2	;142BFFE9
 	sub.b	#$64,d2	;04020064
 	bcs.s	Draw_Character	;6526
-	cmp.b	#$02,d2	;0C020002
+	cmpi.b	#$02,d2	;0C020002
 	beq	Draw_Beholder	;6700FA66
 	bcs	Draw_Summon	;6500F5AA
 	subq.b	#$03,d2	;5702
@@ -16501,13 +16564,13 @@ Draw_Character:
 	add.w	d3,d2	;D443
 	moveq	#$00,d6	;7C00
 	move.b	-$0017(a3),d3	;162BFFE9
-	cmp.b	#$10,d3	;0C030010
+	cmpi.b	#$10,d3	;0C030010
 	bcc	adrCd00A7F2	;64000082
 	move.w	d3,d7	;3E03
 	asl.b	#$04,d7	;E907
 	lea	PocketContents+$2.l,a0	;41F90000ED2C
 	move.b	$00(a0,d7.w),d7	;1E307000
-	cmp.w	#$0024,d7	;0C470024
+	cmpi.w	#$0024,d7	;0C470024
 	bcc.s	adrCd00A7F2	;646C
 	sub.w	#$001B,d7	;0447001B
 	bcs.s	adrCd00A7F2	;6566
@@ -16618,22 +16681,22 @@ adrCd00A7F2:
 	beq.s	adrCd00A808	;6710
 	tst.w	d6	;4A46
 	beq.s	adrCd00A808	;670C
-	cmp.w	#$0003,d3	;0C430003
+	cmpi.w	#$0003,d3	;0C430003
 	bcc.s	adrCd00A804	;6402
 	moveq	#$03,d3	;7603
 adrCd00A804:
 	add.b	d6,d3	;D606
 	add.b	d6,d3	;D606
 adrCd00A808:
-	move.b	d6,-$001C(a3)	;1746FFE4
-	lea	adrEA00A88E.l,a0	;41F90000A88E
-	and.w	#$000F,d3	;0243000F
-	mulu	#$000A,d3	;C6FC000A
-	lea	$02(a0,d3.w),a0	;41F03002
-	lea	adrEA018804.l,a1	;43F900018804
-	tst.w	-$0002(a0)	;4A68FFFE
-	beq.s	adrCd00A830	;6706
-	lea	adrEA018944.l,a1	;43F900018944
+	move.b	d6,-$001C(a3)			;1746FFE4
+	lea	adrEA00A88E.l,a0		;41F90000A88E
+	and.w	#$000F,d3			;0243000F
+	mulu	#$000A,d3			;C6FC000A
+	lea	$02(a0,d3.w),a0			;41F03002
+	lea	adrEA018804.l,a1		;43F900018804
+	tst.w	-$0002(a0)			;4A68FFFE
+	beq.s	adrCd00A830			;6706
+	lea	adrEA018944.l,a1		;43F900018944
 adrCd00A830:
 	move.l	a0,-(sp)	;2F08
 	move.l	a1,-(sp)	;2F09
@@ -16642,13 +16705,13 @@ adrCd00A830:
 	move.w	d4,-(sp)	;3F04
 	move.w	d1,-(sp)	;3F01
 	move.w	d0,-(sp)	;3F00
-	cmp.w	#$0004,d1	;0C410004
+	cmpi.w	#$0004,d1	;0C410004
 	beq	adrCd00AC6E	;6700042A
-	cmp.w	#$0005,d1	;0C410005
+	cmpi.w	#$0005,d1	;0C410005
 	beq	adrCd00AC9C	;67000450
 	tst.b	-$0019(a3)	;4A2BFFE7
 	bmi.s	adrCd00A876	;6B22
-	cmp.w	#$0003,d1	;0C410003
+	cmpi.w	#$0003,d1	;0C410003
 	bcc.s	adrCd00A876	;641C
 	bsr	RandomGen_BytewithOffset	;6100AD50
 	move.b	d0,d1	;1200
@@ -16666,7 +16729,7 @@ adrCd00A878:
 	bsr	adrCd00A998	;6100011C
 	move.w	(sp)+,d0	;301F
 	addq.w	#$01,d0	;5240
-	cmp.w	#$0005,d0	;0C400005
+	cmpi.w	#$0005,d0	;0C400005
 	bcs.s	adrCd00A878	;65F0
 	add.w	#$0012,sp	;DEFC0012
 	rts	;4E75
@@ -16835,12 +16898,12 @@ adrCd00A998:
 	bpl.s	adrCd00A9C2	;6A02
 	subq.w	#$01,d6	;5346
 adrCd00A9C2:
-	cmp.b	#$FF,d2	;0C0200FF
+	cmpi.b	#$FF,d2	;0C0200FF
 	bne.s	adrCd00A9CA	;6602
 	rts	;4E75
 
 adrCd00A9CA:
-	cmp.w	#$0003,d0	;0C400003
+	cmpi.w	#$0003,d0	;0C400003
 	bcs.s	adrCd00A9DC	;650C
 	move.w	d0,d1	;3200
 	subq.w	#$03,d1	;5741
@@ -16858,7 +16921,7 @@ adrCd00A9DC:
 	add.w	d2,d2	;D442
 	moveq	#$00,d1	;7200
 	move.w	$00(a2,d2.w),d1	;32322000
-	cmp.w	#$0002,d0	;0C400002
+	cmpi.w	#$0002,d0	;0C400002
 	bne.s	adrCd00AA14	;6614
 	move.b	-$0018(a3),d0	;102BFFE8
 	mulu	#$0378,d0	;C0FC0378
@@ -16883,7 +16946,7 @@ adrCd00AA24:
 	add.b	$00(a0,d0.w),d4	;D8300000
 	add.b	$01(a0,d0.w),d5	;DA300001
 	lea	adrEA00ABF6.l,a6	;4DF90000ABF6
-	cmp.w	#$0004,d0	;0C400004
+	cmpi.w	#$0004,d0	;0C400004
 	bcs.s	adrCd00AA92	;654C
 	bne.s	adrCd00AA4E	;6606
 	moveq	#$00,d0	;7000
@@ -17283,7 +17346,7 @@ adrCd00ACCC:
 	add.b	$00(a0,d0.w),d4	;D8300000
 	add.b	$01(a0,d0.w),d5	;DA300001
 	moveq	#$00,d6	;7C00
-	cmp.w	#$0006,d0	;0C400006
+	cmpi.w	#$0006,d0	;0C400006
 	bne.s	adrCd00ACE4	;6604
 	subq.w	#$01,d6	;5346
 	subq.w	#$04,d0	;5940
@@ -17423,12 +17486,12 @@ adrCd00ADF6:
 	rts	;4E75
 
 adrCd00AE02:
-	cmp.w	#$0008,d6	;0C460008
+	cmpi.w	#$0008,d6	;0C460008
 	bcc.s	adrCd00AE58	;6450
 	bra.s	adrCd00AE14	;600A
 
 adrCd00AE0A:
-	cmp.w	#$0008,d7	;0C470008
+	cmpi.w	#$0008,d7	;0C470008
 	bcc.s	adrCd00AE58	;6448
 	bsr	adrCd00AFD0	;610001BE
 adrCd00AE14:
@@ -17785,7 +17848,7 @@ adrCd00B13C:
 	move.b	-$0012(a3),d1	;122BFFEE
 	lsr.b	#$02,d1	;E409
 	beq.s	adrCd00B16C	;670E
-	cmp.b	#$05,d1	;0C010005
+	cmpi.b	#$05,d1	;0C010005
 	bcc.s	adrCd00B16C	;6408
 	subq.b	#$01,d1	;5301
 	bsr	adrCd00B1D4	;6100006C
@@ -17802,7 +17865,7 @@ adrCd00B16E:
 	move.b	-$0012(a3),d1	;122BFFEE
 	lsr.b	#$02,d1	;E409
 	beq.s	adrCd00B19A	;670A
-	cmp.b	#$05,d1	;0C010005
+	cmpi.b	#$05,d1	;0C010005
 	bcc.s	adrCd00B1C4	;642E
 	subq.b	#$01,d1	;5301
 	bra.s	adrCd00B1A4	;600A
@@ -18002,7 +18065,7 @@ adrCd00B312:
 	lea	adrEA030650.l,a1	;43F900030650
 adrCd00B340:
 	move.b	-$0016(a3),d6	;1C2BFFEA
-	cmp.b	#$0E,d6	;0C06000E
+	cmpi.b	#$0E,d6	;0C06000E
 	bcc.s	adrCd00B350	;6406
 	bsr	adrCd0095B4	;6100E268
 	bra.s	adrCd00B374	;6024
@@ -18010,7 +18073,7 @@ adrCd00B340:
 adrCd00B350:
 	move.w	d6,d0	;3006
 	subq.w	#$07,d0	;5F40
-	cmp.w	#$000B,d0	;0C40000B
+	cmpi.w	#$000B,d0	;0C40000B
 	bne.s	adrCd00B370	;6616
 	move.w	-$000A(a3),d1	;322BFFF6
 	asl.w	#$02,d1	;E541
@@ -18073,7 +18136,7 @@ adrCd00B410:
 	moveq	#$00,d0	;7000
 	move.b	adrB_00B43C(pc,d6.w),d0	;103B6028
 	bmi.s	adrCd00B42E	;6B16
-	cmp.b	#$0C,d0	;0C00000C
+	cmpi.b	#$0C,d0	;0C00000C
 	bcc	adrCd00B458	;6400003A
 	bsr.s	adrCd00B486	;6164
 	swap	d3	;4843
@@ -19640,7 +19703,7 @@ adrCd00C09C:
 	bsr	BW_blit_horiz_line	;61001AE6
 	addq.w	#$01,d5	;5245
 	addq.w	#$01,d3	;5243
-	cmp.w	#$0005,d3	;0C430005
+	cmpi.w	#$0005,d3	;0C430005
 	bcs.s	adrCd00C09C	;65F2
 	addq.w	#$08,d5	;5045
 	subq.w	#$01,d3	;5343
@@ -19669,7 +19732,7 @@ adrCd00C0D4:
 	movem.l	d3-d5,-(sp)	;48E71C00
 	bsr	BW_draw_frame	;610019E8
 	movem.l	(sp)+,d3-d5	;4CDF0038
-	cmp.w	#$0004,d3	;0C430004
+	cmpi.w	#$0004,d3	;0C430004
 	bne.s	adrCd00C0D4	;66DC
 	rts	;4E75
 
@@ -19728,34 +19791,34 @@ ExitOrLoop:
 	rts	;4E75
 
 adrCd00C1F6:
-	move.w	$0022(a5),$0024(a5)	;3B6D00220024
-	bclr	#$07,$0001(a5)	;08AD00070001
-	beq.s	ExitOrLoop	;67F0
-	move.w	$0014(a5),d0	;302D0014
-	bmi.s	ExitOrLoop	;6BEA
-	cmp.b	#$03,d0	;0C000003
-	beq.s	ExitOrLoop	;67E4
-	bsr	adrCd00C74C	;6100053A
-	bpl.s	ExitOrLoop	;6ADE
-	tst.b	$0007(a5)	;4A2D0007
-	bmi.s	ExitOrLoop	;6BD8
-	bsr	adrCd00C5F4	;610003D6
-	bpl.s	ExitOrLoop	;6AD2
-	bsr	adrCd00C622	;610003FE
-	bpl.s	ExitOrLoop	;6ACC
-	bsr	adrCd00C70C	;610004E2
-	bpl.s	ExitOrLoop	;6AC6
-	bra	adrCd00C650	;60000420
+	move.w	$0022(a5),$0024(a5)		;3B6D00220024
+	bclr	#$07,$0001(a5)			;08AD00070001
+	beq.s	ExitOrLoop			;67F0
+	move.w	$0014(a5),d0			;302D0014
+	bmi.s	ExitOrLoop			;6BEA
+	cmpi.b	#$03,d0				;0C000003
+	beq.s	ExitOrLoop			;67E4
+	bsr	adrCd00C74C			;6100053A
+	bpl.s	ExitOrLoop			;6ADE
+	tst.b	$0007(a5)			;4A2D0007
+	bmi.s	ExitOrLoop			;6BD8
+	bsr	adrCd00C5F4			;610003D6
+	bpl.s	ExitOrLoop			;6AD2
+	bsr	adrCd00C622			;610003FE
+	bpl.s	ExitOrLoop			;6ACC
+	bsr	adrCd00C70C			;610004E2
+	bpl.s	ExitOrLoop			;6AC6
+	bra	adrCd00C650			;60000420
 
 adrCd00C232:
-	move.w	$0014(a5),d0	;302D0014
-	bmi.s	ExitOrLoop	;6BBC
-	cmp.b	#$03,d0	;0C000003
-	bne.s	adrCd00C252	;6614
-	lsr.w	#$08,d0	;E048
-	cmp.w	#$0007,d0	;0C400007
-	bne.s	adrCd00C24E	;6608
-	move.w	#$0002,$0014(a5)	;3B7C00020014
+	move.w	$0014(a5),d0			;302D0014
+	bmi.s	ExitOrLoop			;6BBC
+	cmpi.b	#$03,d0				;0C000003
+	bne.s	adrCd00C252			;6614
+	lsr.w	#$08,d0				;E048
+	cmpi.w	#$0007,d0			;0C400007
+	bne.s	adrCd00C24E			;6608
+	move.w	#$0002,$0014(a5)		;3B7C00020014
 	rts	;4E75
 
 adrCd00C24E:
@@ -19848,7 +19911,7 @@ adrCd00C322:
 adrCd00C338:
 	and.w	#$0003,d1	;02410003
 	move.w	$002A(a5),d0	;302D002A
-	cmp.w	#$0003,d1	;0C410003
+	cmpi.w	#$0003,d1	;0C410003
 	bne.s	adrCd00C39C	;6656
 	addq.w	#$01,d0	;5240
 	bsr	adrCd00C86A	;61000520
@@ -20068,14 +20131,14 @@ adrCd00C5C6:
 adrCd00C5F4:
 	move.l	$0002(a5),d1	;222D0002
 	sub.w	$0008(a5),d1	;926D0008
-	cmp.w	#$0040,d1	;0C410040
+	cmpi.w	#$0040,d1	;0C410040
 	bcs.s	adrCd00C61E	;651C
-	cmp.w	#$0050,d1	;0C410050
+	cmpi.w	#$0050,d1	;0C410050
 	bcc.s	adrCd00C61E	;6416
 	swap	d1	;4841
-	cmp.w	#$00AF,d1	;0C4100AF
+	cmpi.w	#$00AF,d1	;0C4100AF
 	bcs.s	adrCd00C61E	;650E
-	cmp.w	#$00C3,d1	;0C4100C3
+	cmpi.w	#$00C3,d1	;0C4100C3
 	bcc.s	adrCd00C61E	;6408
 	move.w	#$0002,$000C(a5)	;3B7C0002000C
 	clr.w	d2	;4242
@@ -20086,14 +20149,14 @@ adrCd00C61E:
 adrCd00C622:
 	move.l	$0002(a5),d1	;222D0002
 	sub.w	$0008(a5),d1	;926D0008
-	cmp.w	#$0040,d1	;0C410040
+	cmpi.w	#$0040,d1	;0C410040
 	bcs.s	adrCd00C64C	;651C
-	cmp.w	#$0050,d1	;0C410050
+	cmpi.w	#$0050,d1	;0C410050
 	bcc.s	adrCd00C64C	;6416
 	swap	d1	;4841
-	cmp.w	#$00C6,d1	;0C4100C6
+	cmpi.w	#$00C6,d1	;0C4100C6
 	bcs.s	adrCd00C64C	;650E
-	cmp.w	#$00DA,d1	;0C4100DA
+	cmpi.w	#$00DA,d1	;0C4100DA
 	bcc.s	adrCd00C64C	;6408
 	move.w	#$0003,$000C(a5)	;3B7C0003000C
 	clr.w	d2	;4242
@@ -20108,7 +20171,7 @@ adrCd00C650:
 	sub.w	$0008(a5),d1	;926D0008
 	sub.w	#$0018,d1	;04410018
 	bcs.s	adrCd00C69C	;6536
-	cmp.w	#$0020,d1	;0C410020
+	cmpi.w	#$0020,d1	;0C410020
 	bcc.s	adrCd00C64C	;64E0
 	swap	d1	;4841
 	sub.w	#$00E8,d1	;044100E8
@@ -20131,30 +20194,30 @@ adrCd00C684:
 
 adrCd00C69C:
 	add.w	#$0018,d1	;06410018
-	cmp.w	#$0007,d1	;0C410007
+	cmpi.w	#$0007,d1	;0C410007
 	bcs.s	adrCd00C708	;6562
-	cmp.w	#$0010,d1	;0C410010
+	cmpi.w	#$0010,d1	;0C410010
 	bcc.s	adrCd00C708	;645C
 	swap	d1	;4841
-	cmp.w	#$00E8,d1	;0C4100E8
+	cmpi.w	#$00E8,d1	;0C4100E8
 	bcs.s	adrCd00C708	;6554
 	moveq	#$06,d0	;7006
-	cmp.w	#$00F8,d1	;0C4100F8
+	cmpi.w	#$00F8,d1	;0C4100F8
 	bcs.s	adrCd00C6D8	;651C
-	cmp.w	#$0100,d1	;0C410100
+	cmpi.w	#$0100,d1	;0C410100
 	bcs.s	adrCd00C708	;6546
 	moveq	#$07,d0	;7007
-	cmp.w	#$0120,d1	;0C410120
+	cmpi.w	#$0120,d1	;0C410120
 	bcs.s	adrCd00C6D8	;650E
-	cmp.w	#$0128,d1	;0C410128
+	cmpi.w	#$0128,d1	;0C410128
 	bcs.s	adrCd00C708	;6538
 	moveq	#$08,d0	;7008
-	cmp.w	#$0138,d1	;0C410138
+	cmpi.w	#$0138,d1	;0C410138
 	bcc.s	adrCd00C708	;6430
 adrCd00C6D8:
 	move.w	d0,$000C(a5)	;3B40000C
 	moveq	#$03,d2	;7403
-	cmp.w	#$0006,d0	;0C400006
+	cmpi.w	#$0006,d0	;0C400006
 	bne.s	adrCd00C6F2	;660E
 	subq.w	#$02,$002A(a5)	;556D002A
 	and.w	#$0007,$002A(a5)	;026D0007002A
@@ -20178,7 +20241,7 @@ adrCd00C714:
 	sub.w	$0008(a5),d1	;926D0008
 	sub.w	#$0020,d1	;04410020
 	bcs.s	adrCd00C748	;6526
-	cmp.w	#$0020,d1	;0C410020
+	cmpi.w	#$0020,d1	;0C410020
 	bcc.s	adrCd00C748	;6420
 	swap	d1	;4841
 	sub.w	#$00E0,d1	;044100E0
@@ -20214,7 +20277,7 @@ adrCd00C760:
 	cmp.w	d3,d1	;B243
 	bcc.s	adrCd00C7C2	;6458
 	swap	d1	;4841
-	cmp.w	#$009E,d1	;0C41009E
+	cmpi.w	#$009E,d1	;0C41009E
 	bcc.s	adrCd00C7C2	;6450
 	moveq	#$27,d3	;7627
 adrCd00C774:
@@ -20332,7 +20395,7 @@ adrLp00C8B4:
 	bsr	adrCd00D8C0	;61000FFA
 	add.w	#$0164,a0	;D0FC0164
 	subq.w	#$01,d7	;5347
-	cmp.w	#$0004,d7	;0C470004
+	cmpi.w	#$0004,d7	;0C470004
 	bcc.s	adrCd00C8AA	;64D6
 	rts	;4E75
 
@@ -20434,7 +20497,7 @@ adrCd00C9DC:
 	moveq	#$00,d0	;7000
 	move.b	$00(a4,d7.w),d0	;10347000
 	bne.s	adrCd00CA38	;6654
-	cmp.w	#$0002,d7	;0C470002
+	cmpi.w	#$0002,d7	;0C470002
 	bcc.s	adrCd00CA14	;642A
 	swap	d7	;4847
 	move.w	d7,d0	;3007
@@ -20454,10 +20517,10 @@ adrCd00C9DC:
 
 adrCd00CA14:
 	move.w	$0012(a5),d3	;362D0012
-	cmp.w	#$0004,d7	;0C470004
+	cmpi.w	#$0004,d7	;0C470004
 	bcc.s	adrCd00CA32	;6414
 	move.w	d7,d0	;3007
-	cmp.w	#$0003,d7	;0C470003
+	cmpi.w	#$0003,d7	;0C470003
 	bne.s	adrCd00CA2E	;6608
 	btst	#$10,d7	;08070010
 	beq.s	adrCd00CA2E	;6702
@@ -20469,7 +20532,7 @@ adrCd00CA32:
 	bra.s	adrCd00CA4C	;6014
 
 adrCd00CA38:
-	cmp.w	#$0005,d0	;0C400005
+	cmpi.w	#$0005,d0	;0C400005
 	bcc.s	adrCd00CA4A	;640C
 	move.b	$0B(a4,d0.w),d1	;1234000B
 	bne.s	adrCd00CA4A	;6606
@@ -20480,11 +20543,11 @@ adrCd00CA4A:
 	bsr.s	ObjectGraphic	;611A
 adrCd00CA4C:
 	addq.w	#$01,d7	;5247
-	cmp.w	#$0006,d7	;0C470006
+	cmpi.w	#$0006,d7	;0C470006
 	bne.s	adrCd00CA58	;6604
 	add.w	#$0274,a0	;D0FC0274
 adrCd00CA58:
-	cmp.w	#$000C,d7	;0C47000C
+	cmpi.w	#$000C,d7	;0C47000C
 	bcs	adrCd00C9DC	;6500FF7E
 	swap	d7	;4847
 	move.l	(sp)+,a4	;285F
@@ -20493,11 +20556,11 @@ adrCd00CA58:
 ObjectGraphic:
 	tst.w	d0	;4A40
 	beq	adrCd00CAEA	;67000080
-	cmp.w	#$0005,d0	;0C400005
+	cmpi.w	#$0005,d0	;0C400005
 	bcs.s	NumberedObject	;6534
-	cmp.w	#$0069,d0	;0C400069
+	cmpi.w	#$0069,d0	;0C400069
 	bcs.s	.SkipRings	;651A
-	cmp.w	#$006D,d0	;0C40006D
+	cmpi.w	#$006D,d0	;0C40006D
 	bcc.s	.SkipRings	;6414
 	move.w	d0,d3	;3600
 	sub.w	#$0069,d3	;04430069
@@ -20546,7 +20609,7 @@ adrCd00CAEA:
 	lea	_GFX_Pockets.l,a1	;43F90004C702
 	and.w	#$00FF,d0	;024000FF
 adrCd00CAFA:
-	cmp.b	#$14,d0	;0C000014
+	cmpi.b	#$14,d0	;0C000014
 	bcs.s	adrCd00CB0A	;650A
 	add.w	#$0A00,a1	;D2FC0A00
 	sub.w	#$0014,d0	;04400014
@@ -20843,7 +20906,7 @@ ExitAvatarDrawing:
 	rts	;4E75
 
 Draw_Select_Avatars:
-	cmp.w	#$0010,d7	;0C470010
+	cmpi.w	#$0010,d7	;0C470010
 	bcc.s	ExitAvatarDrawing	;64F8
 	bsr.s	adrCd00CD4A	;61AC
 	moveq	#$04,d3	;7604
@@ -20984,7 +21047,7 @@ adrCd00CEEA:
 	move.b	d0,d1	;1200
 adrCd00CEF4:
 	and.b	#$0F,d1	;0201000F
-	cmp.b	#$0A,d1	;0C01000A
+	cmpi.b	#$0A,d1	;0C01000A
 	bcs.s	adrCd00CF02	;6504
 	add.b	#$07,d1	;06010007
 adrCd00CF02:
@@ -21159,19 +21222,19 @@ Print_fflim_text:
 	bra.s	Print_fflim_text	;60F0
 
 Exec_char_extensions:
-	cmp.b	#$F0,d0	;0C0000F0
-	beq	.Call_F0_Function	;6700004E
-	moveq	#$00,d1	;7200
-	move.b	(a6)+,d1	;121E
-	cmp.b	#$FE,d0	;0C0000FE
-	beq.s	.SetTextColour	;6712
-	cmp.b	#$FD,d0	;0C0000FD
-	beq.s	.SetBackgroundTextColour	;6714
-	cmp.b	#$FC,d0	;0C0000FC
-	beq.s	.SetXYPosition	;6716
-	moveq	#$00,d0	;7000
-	subq.w	#$01,d0	;5340
-	rts	;4E75
+	cmpi.b	#$F0,d0				;0C0000F0
+	beq	.Call_F0_Function			;6700004E
+	moveq	#$00,d1				;7200
+	move.b	(a6)+,d1			;121E
+	cmpi.b	#$FE,d0				;0C0000FE
+	beq.s	.SetTextColour			;6712
+	cmpi.b	#$FD,d0				;0C0000FD
+	beq.s	.SetBackgroundTextColour			;6714
+	cmpi.b	#$FC,d0				;0C0000FC
+	beq.s	.SetXYPosition			;6716
+	moveq	#$00,d0				;7000
+	subq.w	#$01,d0				;5340
+	rts					;4E75
 
 .SetTextColour:
 	move.w	d1,adrW_00D92A.l	;33C10000D92A
@@ -21968,12 +22031,12 @@ Print_com_menu_entry:
 	move.w	$0010(a5),adrW_00D92C.l	;33ED00100000D92C
 	move.w	#$000E,adrW_00D92A.l	;33FC000E0000D92A
 .continuedcode_005:
-	move.b	(a6)+,d0	;101E
-	cmp.b	#$FA,d0	;0C0000FA
-	beq.s	.Print_SkipSomething_TEMP	;6706
-	bcc.s	.Print_SkipSomethingElse_TEMP	;640C
-	bsr.s	Print_wordstext	;6168
-	bra.s	.continuedcode_005	;60F2
+	move.b	(a6)+,d0				;101E
+	cmpi.b	#$FA,d0					;0C0000FA
+	beq.s	.Print_SkipSomething_TEMP				;6706
+	bcc.s	.Print_SkipSomethingElse_TEMP				;640C
+	bsr.s	Print_wordstext				;6168
+	bra.s	.continuedcode_005				;60F2
 
 .Print_SkipSomething_TEMP:
 	move.b	(a6)+,d0	;101E
@@ -21981,20 +22044,20 @@ Print_com_menu_entry:
 	bra.s	.continuedcode_005	;60EA
 
 .Print_SkipSomethingElse_TEMP:
-	cmp.b	#$FF,d0	;0C0000FF
-	beq.s	Print_LineEnd	;674C
-	cmp.b	#$FC,d0	;0C0000FC
-	bne.s	.continuedcode_005	;66DE
-	addq.w	#$01,a0	;5248
-	move.b	#$FF,adrB_00EE2D.l	;13FC00FF0000EE2D
-	move.l	#$000D0002,adrW_00D92A.l	;23FC000D00020000D92A
-	cmp.b	$0040(a5),d7	;BE2D0040
-	bne.s	.continuedcode_005	;66C4
-	tst.b	$0041(a5)	;4A2D0041
-	beq.s	.continuedcode_005	;67BE
-	move.w	$0010(a5),adrW_00D92C.l	;33ED00100000D92C
-	move.w	#$000E,adrW_00D92A.l	;33FC000E0000D92A
-	bra.s	.continuedcode_005	;60AC
+	cmpi.b	#$FF,d0					;0C0000FF
+	beq.s	Print_LineEnd				;674C
+	cmpi.b	#$FC,d0					;0C0000FC
+	bne.s	.continuedcode_005				;66DE
+	addq.w	#$01,a0					;5248
+	move.b	#$FF,adrB_00EE2D.l			;13FC00FF0000EE2D
+	move.l	#$000D0002,adrW_00D92A.l		;23FC000D00020000D92A
+	cmp.b	$0040(a5),d7				;BE2D0040
+	bne.s	.continuedcode_005				;66C4
+	tst.b	$0041(a5)				;4A2D0041
+	beq.s	.continuedcode_005				;67BE
+	move.w	$0010(a5),adrW_00D92C.l			;33ED00100000D92C
+	move.w	#$000E,adrW_00D92A.l			;33FC000E0000D92A
+	bra.s	.continuedcode_005				;60AC
 
 adrCd00D7C6:
 	lea	WordsText.l,a3	;47F90000DC64
@@ -22086,10 +22149,10 @@ Print_message:
 	move.b	d2,$0052(a5)	;1B420052
 	bsr	InitialiseText	;6100F822
 Print_NewLine:
-	move.b	(a6)+,d0	;101E
-	cmp.b	#$FA,d0	;0C0000FA
-	bcc.s	adrCd00D894	;6412
-	bsr	Print_wordstext	;6100FF62
+	move.b	(a6)+,d0				;101E
+	cmpi.b	#$FA,d0					;0C0000FA
+	bcc.s	adrCd00D894				;6412
+	bsr	Print_wordstext				;6100FF62
 adrCd00D886:
 	tst.w	d6	;4A46
 	bmi	TerminateText	;6B00F77E
@@ -22099,16 +22162,16 @@ adrCd00D886:
 	bra.s	Print_NewLine	;60E6
 
 adrCd00D894:
-	beq.s	adrCd00D8B8	;6722
-	cmp.b	#$FF,d0	;0C0000FF
-	beq	TerminateText	;6700F76C
-	cmp.b	#$FB,d0	;0C0000FB
-	beq.s	Print_FB_Function	;670E
-	cmp.b	#$FE,d0	;0C0000FE
-	bne.s	Print_NewLine	;66D0
-	move.b	(a6)+,d0	;101E
-	bsr	Print_item_name	;6100FF2E
-	bra.s	adrCd00D886	;60D4
+	beq.s	adrCd00D8B8				;6722
+	cmpi.b	#$FF,d0					;0C0000FF
+	beq	TerminateText				;6700F76C
+	cmpi.b	#$FB,d0					;0C0000FB
+	beq.s	Print_FB_Function				;670E
+	cmpi.b	#$FE,d0					;0C0000FE
+	bne.s	Print_NewLine				;66D0
+	move.b	(a6)+,d0				;101E
+	bsr	Print_item_name				;6100FF2E
+	bra.s	adrCd00D886				;60D4
 
 Print_FB_Function:
 	addq.w	#$01,d6	;5246
@@ -165809,17 +165872,13917 @@ _Temp_GFX_Pockets_14:
 	dc.w	$002A	;002A
 	dc.w	$0000	;0000
 AudioSample_1:
-	INCBIN bw-sfx/sample1.sound
-
+	dc.b	'FORM'	;464F524D
+	dc.b	$00	;00
+	dc.b	$00	;00
+	dc.b	$00	;00
+	dc.b	$7C	;7C
+	dc.b	'8SVXVHDR'	;3853565856484452
+	dc.b	$00	;00
+	dc.b	$00	;00
+	dc.b	$00	;00
+	dc.b	$14	;14
+	dc.b	$00	;00
+	dc.b	$00	;00
+	dc.b	$00	;00
+	dc.b	$54	;54
+	dc.b	$00	;00
+	dc.b	$00	;00
+	dc.b	$00	;00
+	dc.b	$00	;00
+	dc.b	$00	;00
+	dc.b	$00	;00
+	dc.b	$00	;00
+	dc.b	$00	;00
+	dc.b	$20	;20
+	dc.b	$AB	;AB
+	dc.b	$01	;01
+	dc.b	$00	;00
+	dc.b	$00	;00
+	dc.b	$01	;01
+	dc.b	$00	;00
+	dc.b	$00	;00
+AudioSample_1b:
+	dc.b	'BODY'	;424F4459
+	dc.b	$00	;00
+	dc.b	$00	;00
+	dc.b	$00	;00
+	dc.b	$54	;54
+	dc.b	$F5	;F5
+	dc.b	$50	;50
+	dc.b	$D7	;D7
+	dc.b	$20	;20
+	dc.b	$55	;55
+	dc.b	$10	;10
+	dc.b	$4F	;4F
+	dc.b	$DB	;DB
+	dc.b	$3F	;3F
+	dc.b	$D0	;D0
+	dc.b	$4F	;4F
+	dc.b	$F9	;F9
+	dc.b	$FF	;FF
+	dc.b	$A8	;A8
+	dc.b	$0F	;0F
+	dc.b	$10	;10
+	dc.b	$17	;17
+	dc.b	$D6	;D6
+	dc.b	$48	;48
+	dc.b	$04	;04
+	dc.b	$0F	;0F
+	dc.b	$F7	;F7
+	dc.b	$D0	;D0
+	dc.b	$FC	;FC
+	dc.b	$DB	;DB
+AudioSample_1c:
+	dc.b	$DE	;DE
+	dc.b	$C8	;C8
+	dc.b	$DD	;DD
+	dc.b	$C0	;C0
+	dc.b	$CF	;CF
+	dc.b	$C0	;C0
+	dc.b	$38	;38
+	dc.b	$E7	;E7
+	dc.b	$D0	;D0
+	dc.b	$D3	;D3
+	dc.b	$15	;15
+	dc.b	$08	;08
+	dc.b	$D7	;D7
+	dc.b	$01	;01
+	dc.b	$48	;48
+	dc.b	$DF	;DF
+	dc.b	$30	;30
+	dc.b	$47	;47
+	dc.b	$20	;20
+	dc.b	$3F	;3F
+AudioSample_1d:
+	dc.b	$D8	;D8
+	dc.b	$54	;54
+	dc.b	$18	;18
+	dc.b	$37	;37
+	dc.b	$08	;08
+	dc.b	$3F	;3F
+	dc.b	$E8	;E8
+	dc.b	$40	;40
+	dc.b	$2F	;2F
+	dc.b	$08	;08
+	dc.b	$FF	;FF
+	dc.b	$00	;00
+	dc.b	$3B	;3B
+	dc.b	$E8	;E8
+	dc.b	$1F	;1F
+	dc.b	$A3	;A3
+	dc.b	$F7	;F7
+	dc.b	$E0	;E0
+	dc.b	$40	;40
+	dc.b	$4B	;4B
+	dc.b	$00	;00
+	dc.b	$55	;55
+	dc.b	$F7	;F7
+	dc.b	$3F	;3F
+	dc.b	$C2	;C2
+	dc.b	$33	;33
+	dc.b	$0F	;0F
+	dc.b	$C0	;C0
+	dc.b	$40	;40
+	dc.b	$47	;47
+	dc.b	$C8	;C8
+	dc.b	$1F	;1F
+	dc.b	$E4	;E4
+	dc.b	$DF	;DF
+	dc.b	$C8	;C8
+	dc.b	$38	;38
+	dc.b	$F7	;F7
+	dc.b	$FD	;FD
+	dc.b	$FF	;FF
 AudioSample_2:
-	INCBIN bw-sfx/sample2.sound
-
+	dc.b	'FORM'	;464F524D
+	dc.b	$00	;00
+	dc.b	$00	;00
+	dc.b	$05	;05
+	dc.b	$BA	;BA
+	dc.b	'8SVXVHDR'	;3853565856484452
+	dc.b	$00	;00
+	dc.b	$00	;00
+	dc.b	$00	;00
+	dc.b	$14	;14
+	dc.b	$00	;00
+	dc.b	$00	;00
+	dc.b	$05	;05
+AudioSample_2b:
+	dc.b	$92	;92
+	dc.b	$00	;00
+	dc.b	$00	;00
+	dc.b	$00	;00
+	dc.b	$00	;00
+	dc.b	$00	;00
+	dc.b	$00	;00
+	dc.b	$00	;00
+	dc.b	$00	;00
+	dc.b	$20	;20
+	dc.b	$AB	;AB
+	dc.b	$01	;01
+	dc.b	$00	;00
+	dc.b	$00	;00
+	dc.b	$01	;01
+	dc.b	$00	;00
+	dc.b	$00	;00
+	dc.b	'BODY'	;424F4459
+	dc.b	$00	;00
+	dc.b	$00	;00
+	dc.b	$05	;05
+	dc.b	$92	;92
+	dc.b	$09	;09
+	dc.b	$09	;09
+	dc.b	$09	;09
+	dc.b	$09	;09
+	dc.b	$0A	;0A
+	dc.b	$09	;09
+	dc.b	$09	;09
+	dc.b	$09	;09
+	dc.b	$09	;09
+	dc.b	$09	;09
+	dc.b	$08	;08
+	dc.b	$09	;09
+	dc.b	$08	;08
+	dc.b	$08	;08
+	dc.b	$08	;08
+	dc.b	$08	;08
+	dc.b	$07	;07
+	dc.b	$08	;08
+	dc.b	$08	;08
+	dc.b	$07	;07
+	dc.b	$08	;08
+	dc.b	$08	;08
+	dc.b	$08	;08
+	dc.b	$08	;08
+	dc.b	$08	;08
+	dc.b	$08	;08
+	dc.b	$08	;08
+	dc.b	$09	;09
+	dc.b	$09	;09
+	dc.b	$09	;09
+	dc.b	$0A	;0A
+	dc.b	$0B	;0B
+	dc.b	$0A	;0A
+	dc.b	$0A	;0A
+	dc.b	$0B	;0B
+	dc.b	$0A	;0A
+	dc.b	$0A	;0A
+	dc.b	$0B	;0B
+	dc.b	$0B	;0B
+	dc.b	$0A	;0A
+	dc.b	$0B	;0B
+	dc.b	$0B	;0B
+	dc.b	$0A	;0A
+	dc.b	$0A	;0A
+	dc.b	$0B	;0B
+	dc.b	$0A	;0A
+	dc.b	$0A	;0A
+	dc.b	$0A	;0A
+	dc.b	$0A	;0A
+	dc.b	$0A	;0A
+	dc.b	$0A	;0A
+	dc.b	$0A	;0A
+	dc.b	$0B	;0B
+	dc.b	$0C	;0C
+	dc.b	$0C	;0C
+	dc.b	$0C	;0C
+	dc.b	$0C	;0C
+	dc.b	$0C	;0C
+	dc.b	$0C	;0C
+	dc.b	$0B	;0B
+	dc.b	$0C	;0C
+	dc.b	$0B	;0B
+	dc.b	$0B	;0B
+	dc.b	$0B	;0B
+	dc.b	$0B	;0B
+	dc.b	$0A	;0A
+	dc.b	$0A	;0A
+	dc.b	$0A	;0A
+	dc.b	$09	;09
+	dc.b	$0A	;0A
+	dc.b	$0A	;0A
+	dc.b	$0A	;0A
+	dc.b	$0A	;0A
+	dc.b	$0A	;0A
+	dc.b	$0A	;0A
+	dc.b	$0A	;0A
+	dc.b	$0B	;0B
+	dc.b	$0B	;0B
+	dc.b	$0B	;0B
+	dc.b	$0B	;0B
+	dc.b	$0B	;0B
+	dc.b	$0A	;0A
+	dc.b	$0A	;0A
+	dc.b	$0B	;0B
+	dc.b	$0A	;0A
+	dc.b	$0A	;0A
+	dc.b	$0A	;0A
+	dc.b	$0A	;0A
+	dc.b	$0A	;0A
+	dc.b	$0A	;0A
+	dc.b	$0A	;0A
+	dc.b	$09	;09
+	dc.b	$09	;09
+	dc.b	$0A	;0A
+	dc.b	$0A	;0A
+	dc.b	$0A	;0A
+	dc.b	$0A	;0A
+	dc.b	$0A	;0A
+	dc.b	$09	;09
+	dc.b	$0A	;0A
+	dc.b	$0A	;0A
+	dc.b	$09	;09
+	dc.b	$0A	;0A
+	dc.b	$0A	;0A
+	dc.b	$0A	;0A
+	dc.b	$0A	;0A
+	dc.b	$0B	;0B
+	dc.b	$0A	;0A
+	dc.b	$0A	;0A
+	dc.b	$0A	;0A
+	dc.b	$0A	;0A
+	dc.b	$09	;09
+	dc.b	$0A	;0A
+	dc.b	$0A	;0A
+	dc.b	$09	;09
+	dc.b	$09	;09
+	dc.b	$09	;09
+	dc.b	$09	;09
+	dc.b	$09	;09
+	dc.b	$09	;09
+	dc.b	$09	;09
+	dc.b	$09	;09
+	dc.b	$09	;09
+	dc.b	$09	;09
+	dc.b	$09	;09
+	dc.b	$09	;09
+	dc.b	$09	;09
+	dc.b	$08	;08
+	dc.b	$08	;08
+	dc.b	$08	;08
+	dc.b	$08	;08
+	dc.b	$08	;08
+	dc.b	$08	;08
+	dc.b	$08	;08
+	dc.b	$07	;07
+	dc.b	$08	;08
+	dc.b	$08	;08
+	dc.b	$08	;08
+	dc.b	$08	;08
+	dc.b	$08	;08
+	dc.b	$08	;08
+	dc.b	$08	;08
+	dc.b	$09	;09
+	dc.b	$08	;08
+	dc.b	$08	;08
+	dc.b	$08	;08
+	dc.b	$08	;08
+	dc.b	$08	;08
+	dc.b	$08	;08
+	dc.b	$09	;09
+	dc.b	$09	;09
+	dc.b	$09	;09
+	dc.b	$0A	;0A
+	dc.b	$09	;09
+	dc.b	$09	;09
+	dc.b	$09	;09
+	dc.b	$09	;09
+	dc.b	$09	;09
+	dc.b	$0A	;0A
+	dc.b	$0A	;0A
+	dc.b	$09	;09
+	dc.b	$09	;09
+	dc.b	$0A	;0A
+	dc.b	$09	;09
+	dc.b	$09	;09
+	dc.b	$0A	;0A
+	dc.b	$09	;09
+	dc.b	$09	;09
+	dc.b	$09	;09
+	dc.b	$09	;09
+	dc.b	$09	;09
+	dc.b	$09	;09
+	dc.b	$09	;09
+	dc.b	$09	;09
+	dc.b	$09	;09
+	dc.b	$09	;09
+	dc.b	$09	;09
+	dc.b	$09	;09
+	dc.b	$09	;09
+	dc.b	$09	;09
+	dc.b	$09	;09
+	dc.b	$09	;09
+	dc.b	$09	;09
+	dc.b	$08	;08
+	dc.b	$09	;09
+	dc.b	$09	;09
+	dc.b	$09	;09
+	dc.b	$09	;09
+	dc.b	$0A	;0A
+	dc.b	$0A	;0A
+	dc.b	$09	;09
+	dc.b	$0A	;0A
+	dc.b	$0A	;0A
+	dc.b	$09	;09
+	dc.b	$0A	;0A
+	dc.b	$0A	;0A
+	dc.b	$09	;09
+	dc.b	$0A	;0A
+	dc.b	$0A	;0A
+	dc.b	$0A	;0A
+	dc.b	$0A	;0A
+	dc.b	$0B	;0B
+	dc.b	$0B	;0B
+	dc.b	$0A	;0A
+	dc.b	$0B	;0B
+	dc.b	$0B	;0B
+	dc.b	$0B	;0B
+	dc.b	$0B	;0B
+	dc.b	$0B	;0B
+	dc.b	$0A	;0A
+	dc.b	$0A	;0A
+	dc.b	$0A	;0A
+	dc.b	$0A	;0A
+	dc.b	$0A	;0A
+	dc.b	$0A	;0A
+	dc.b	$0A	;0A
+	dc.b	$0A	;0A
+	dc.b	$0A	;0A
+	dc.b	$0A	;0A
+	dc.b	$09	;09
+	dc.b	$0A	;0A
+	dc.b	$0A	;0A
+	dc.b	$09	;09
+	dc.b	$09	;09
+	dc.b	$09	;09
+	dc.b	$09	;09
+	dc.b	$09	;09
+	dc.b	$09	;09
+	dc.b	$09	;09
+	dc.b	$08	;08
+	dc.b	$08	;08
+	dc.b	$08	;08
+	dc.b	$07	;07
+	dc.b	$08	;08
+	dc.b	$08	;08
+	dc.b	$08	;08
+	dc.b	$08	;08
+	dc.b	$09	;09
+	dc.b	$09	;09
+	dc.b	$09	;09
+	dc.b	$0A	;0A
+	dc.b	$0A	;0A
+	dc.b	$0A	;0A
+	dc.b	$0A	;0A
+	dc.b	$0A	;0A
+	dc.b	$0A	;0A
+	dc.b	$0A	;0A
+	dc.b	$0A	;0A
+	dc.b	$0A	;0A
+	dc.b	$0A	;0A
+	dc.b	$0A	;0A
+	dc.b	$0A	;0A
+	dc.b	$0A	;0A
+	dc.b	$0A	;0A
+	dc.b	$0A	;0A
+	dc.b	$0A	;0A
+	dc.b	$0A	;0A
+	dc.b	$0B	;0B
+	dc.b	$0A	;0A
+	dc.b	$0B	;0B
+	dc.b	$0B	;0B
+	dc.b	$0B	;0B
+	dc.b	$0A	;0A
+	dc.b	$0A	;0A
+	dc.b	$0A	;0A
+	dc.b	$09	;09
+	dc.b	$0A	;0A
+	dc.b	$0A	;0A
+	dc.b	$09	;09
+	dc.b	$0A	;0A
+	dc.b	$0A	;0A
+	dc.b	$09	;09
+	dc.b	$09	;09
+	dc.b	$0A	;0A
+	dc.b	$0A	;0A
+	dc.b	$09	;09
+	dc.b	$09	;09
+	dc.b	$09	;09
+	dc.b	$09	;09
+	dc.b	$09	;09
+	dc.b	$09	;09
+	dc.b	$09	;09
+	dc.b	$09	;09
+	dc.b	$09	;09
+	dc.b	$09	;09
+	dc.b	$09	;09
+	dc.b	$09	;09
+	dc.b	$09	;09
+	dc.b	$08	;08
+	dc.b	$08	;08
+	dc.b	$09	;09
+	dc.b	$0B	;0B
+	dc.b	$0C	;0C
+	dc.b	$0C	;0C
+	dc.b	$0C	;0C
+	dc.b	$0C	;0C
+	dc.b	$0C	;0C
+	dc.b	$0B	;0B
+	dc.b	$0B	;0B
+	dc.b	$0C	;0C
+	dc.b	$0B	;0B
+	dc.b	$0B	;0B
+	dc.b	$0B	;0B
+	dc.b	$0A	;0A
+	dc.b	$09	;09
+	dc.b	$09	;09
+	dc.b	$0A	;0A
+	dc.b	$09	;09
+	dc.b	$0A	;0A
+	dc.b	$0A	;0A
+	dc.b	$0A	;0A
+	dc.b	$09	;09
+	dc.b	$0A	;0A
+	dc.b	$0A	;0A
+	dc.b	$09	;09
+	dc.b	$0A	;0A
+	dc.b	$0A	;0A
+	dc.b	$09	;09
+	dc.b	$0A	;0A
+	dc.b	$0A	;0A
+	dc.b	$09	;09
+	dc.b	$09	;09
+	dc.b	$09	;09
+	dc.b	$09	;09
+	dc.b	$09	;09
+	dc.b	$09	;09
+	dc.b	$0A	;0A
+	dc.b	$09	;09
+	dc.b	$09	;09
+	dc.b	$09	;09
+	dc.b	$09	;09
+	dc.b	$09	;09
+	dc.b	$09	;09
+	dc.b	$09	;09
+	dc.b	$09	;09
+	dc.b	$09	;09
+	dc.b	$09	;09
+	dc.b	$08	;08
+	dc.b	$08	;08
+	dc.b	$08	;08
+	dc.b	$08	;08
+	dc.b	$08	;08
+	dc.b	$08	;08
+	dc.b	$08	;08
+	dc.b	$08	;08
+	dc.b	$08	;08
+	dc.b	$08	;08
+	dc.b	$08	;08
+	dc.b	$08	;08
+	dc.b	$09	;09
+	dc.b	$09	;09
+	dc.b	$0A	;0A
+	dc.b	$0A	;0A
+	dc.b	$0A	;0A
+	dc.b	$0A	;0A
+	dc.b	$0B	;0B
+	dc.b	$0A	;0A
+	dc.b	$0A	;0A
+	dc.b	$0A	;0A
+	dc.b	$0A	;0A
+	dc.b	$0A	;0A
+	dc.b	$0B	;0B
+	dc.b	$0B	;0B
+	dc.b	$0B	;0B
+	dc.b	$0B	;0B
+	dc.b	$0B	;0B
+	dc.b	$0B	;0B
+	dc.b	$0A	;0A
+	dc.b	$0A	;0A
+	dc.b	$0A	;0A
+	dc.b	$0A	;0A
+	dc.b	$0B	;0B
+	dc.b	$0B	;0B
+	dc.b	$0A	;0A
+	dc.b	$0A	;0A
+	dc.b	$0A	;0A
+	dc.b	$09	;09
+	dc.b	$0A	;0A
+	dc.b	$0A	;0A
+	dc.b	$0A	;0A
+	dc.b	$09	;09
+	dc.b	$0A	;0A
+	dc.b	$09	;09
+	dc.b	$09	;09
+	dc.b	$09	;09
+	dc.b	$09	;09
+	dc.b	$09	;09
+	dc.b	$09	;09
+	dc.b	$0A	;0A
+	dc.b	$09	;09
+	dc.b	$09	;09
+	dc.b	$09	;09
+	dc.b	$0A	;0A
+	dc.b	$09	;09
+	dc.b	$09	;09
+	dc.b	$0A	;0A
+	dc.b	$09	;09
+	dc.b	$09	;09
+	dc.b	$09	;09
+	dc.b	$09	;09
+	dc.b	$09	;09
+	dc.b	$0A	;0A
+	dc.b	$09	;09
+	dc.b	$0A	;0A
+	dc.b	$0A	;0A
+	dc.b	$0A	;0A
+	dc.b	$0A	;0A
+	dc.b	$0A	;0A
+	dc.b	$0A	;0A
+	dc.b	$09	;09
+	dc.b	$0A	;0A
+	dc.b	$0A	;0A
+	dc.b	$09	;09
+	dc.b	$0A	;0A
+	dc.b	$0A	;0A
+	dc.b	$0A	;0A
+	dc.b	$09	;09
+	dc.b	$0A	;0A
+	dc.b	$0A	;0A
+	dc.b	$0A	;0A
+	dc.b	$0A	;0A
+	dc.b	$0A	;0A
+	dc.b	$0A	;0A
+	dc.b	$0A	;0A
+	dc.b	$0A	;0A
+	dc.b	$0A	;0A
+	dc.b	$0A	;0A
+	dc.b	$0A	;0A
+	dc.b	$0A	;0A
+	dc.b	$0A	;0A
+	dc.b	$0A	;0A
+	dc.b	$0A	;0A
+	dc.b	$09	;09
+	dc.b	$09	;09
+	dc.b	$0A	;0A
+	dc.b	$09	;09
+	dc.b	$09	;09
+	dc.b	$09	;09
+	dc.b	$00	;00
+	dc.b	$DF	;DF
+	dc.b	$00	;00
+	dc.b	$BF	;BF
+	dc.b	$A0	;A0
+	dc.b	$D7	;D7
+	dc.b	$00	;00
+	dc.b	$AF	;AF
+	dc.b	$51	;51
+	dc.b	$80	;80
+	dc.b	$87	;87
+	dc.b	$56	;56
+	dc.b	$80	;80
+	dc.b	$4B	;4B
+	dc.b	$00	;00
+	dc.b	$80	;80
+	dc.b	$30	;30
+	dc.b	$81	;81
+	dc.b	$3C	;3C
+	dc.b	$BF	;BF
+	dc.b	$5F	;5F
+	dc.b	$00	;00
+	dc.b	$80	;80
+	dc.b	$30	;30
+	dc.b	$80	;80
+	dc.b	$2F	;2F
+	dc.b	$00	;00
+	dc.b	$1F	;1F
+	dc.b	$50	;50
+	dc.b	$80	;80
+	dc.b	$3F	;3F
+	dc.b	$80	;80
+	dc.b	$3F	;3F
+	dc.b	$D0	;D0
+	dc.b	$80	;80
+	dc.b	$3E	;3E
+	dc.b	$80	;80
+	dc.b	$47	;47
+	dc.b	$80	;80
+	dc.b	$DF	;DF
+	dc.b	$10	;10
+	dc.b	$80	;80
+	dc.b	$4F	;4F
+	dc.b	$54	;54
+	dc.b	$51	;51
+	dc.b	$80	;80
+	dc.b	$EF	;EF
+	dc.b	$40	;40
+	dc.b	$80	;80
+	dc.b	$4F	;4F
+	dc.b	$80	;80
+	dc.b	$2F	;2F
+	dc.b	$C0	;C0
+	dc.b	$BF	;BF
+	dc.b	$50	;50
+	dc.b	$80	;80
+	dc.b	$47	;47
+	dc.b	$80	;80
+	dc.b	$FF	;FF
+	dc.b	$56	;56
+	dc.b	$80	;80
+	dc.b	$28	;28
+	dc.b	$9F	;9F
+	dc.b	$48	;48
+	dc.b	$90	;90
+	dc.b	$BF	;BF
+	dc.b	$52	;52
+	dc.b	$F7	;F7
+	dc.b	$80	;80
+	dc.b	$47	;47
+	dc.b	$59	;59
+	dc.b	$80	;80
+	dc.b	$2F	;2F
+	dc.b	$5F	;5F
+	dc.b	$00	;00
+	dc.b	$EF	;EF
+	dc.b	$20	;20
+	dc.b	$F0	;F0
+	dc.b	$DF	;DF
+	dc.b	$00	;00
+	dc.b	$30	;30
+	dc.b	$8F	;8F
+	dc.b	$4F	;4F
+	dc.b	$54	;54
+	dc.b	$80	;80
+	dc.b	$1F	;1F
+	dc.b	$5C	;5C
+	dc.b	$80	;80
+	dc.b	$FF	;FF
+	dc.b	$5F	;5F
+	dc.b	$40	;40
+	dc.b	$80	;80
+	dc.b	$EF	;EF
+	dc.b	$52	;52
+	dc.b	$80	;80
+	dc.b	$2F	;2F
+	dc.b	$54	;54
+	dc.b	$CF	;CF
+	dc.b	$20	;20
+	dc.b	$EF	;EF
+	dc.b	$40	;40
+	dc.b	$80	;80
+	dc.b	$2F	;2F
+	dc.b	$30	;30
+	dc.b	$EF	;EF
+	dc.b	$59	;59
+	dc.b	$00	;00
+	dc.b	$1F	;1F
+	dc.b	$80	;80
+	dc.b	$3F	;3F
+	dc.b	$20	;20
+	dc.b	$80	;80
+	dc.b	$47	;47
+	dc.b	$88	;88
+	dc.b	$3B	;3B
+	dc.b	$8F	;8F
+	dc.b	$4F	;4F
+	dc.b	$20	;20
+	dc.b	$80	;80
+	dc.b	$4D	;4D
+	dc.b	$A0	;A0
+	dc.b	$3F	;3F
+	dc.b	$20	;20
+	dc.b	$FF	;FF
+	dc.b	$10	;10
+	dc.b	$9F	;9F
+	dc.b	$54	;54
+	dc.b	$80	;80
+	dc.b	$2F	;2F
+	dc.b	$20	;20
+	dc.b	$CF	;CF
+	dc.b	$40	;40
+	dc.b	$9F	;9F
+	dc.b	$4F	;4F
+	dc.b	$80	;80
+	dc.b	$FF	;FF
+	dc.b	$50	;50
+	dc.b	$80	;80
+	dc.b	$47	;47
+	dc.b	$C0	;C0
+	dc.b	$4F	;4F
+	dc.b	$D0	;D0
+	dc.b	$FF	;FF
+	dc.b	$48	;48
+	dc.b	$97	;97
+	dc.b	$56	;56
+	dc.b	$C0	;C0
+	dc.b	$1F	;1F
+	dc.b	$20	;20
+	dc.b	$1F	;1F
+	dc.b	$08	;08
+	dc.b	$EF	;EF
+	dc.b	$57	;57
+	dc.b	$C0	;C0
+	dc.b	$37	;37
+	dc.b	$10	;10
+	dc.b	$F7	;F7
+	dc.b	$50	;50
+	dc.b	$AF	;AF
+	dc.b	$4F	;4F
+	dc.b	$D2	;D2
+	dc.b	$2F	;2F
+	dc.b	$28	;28
+	dc.b	$9F	;9F
+	dc.b	$53	;53
+	dc.b	$17	;17
+	dc.b	$14	;14
+	dc.b	$E0	;E0
+	dc.b	$1F	;1F
+	dc.b	$00	;00
+	dc.b	$FF	;FF
+	dc.b	$5C	;5C
+	dc.b	$10	;10
+	dc.b	$DF	;DF
+	dc.b	$CD	;CD
+	dc.b	$52	;52
+	dc.b	$F4	;F4
+	dc.b	$0B	;0B
+	dc.b	$55	;55
+	dc.b	$C0	;C0
+	dc.b	$FF	;FF
+	dc.b	$3F	;3F
+	dc.b	$00	;00
+	dc.b	$0F	;0F
+	dc.b	$F7	;F7
+	dc.b	$20	;20
+	dc.b	$97	;97
+	dc.b	$2F	;2F
+	dc.b	$54	;54
+	dc.b	$DF	;DF
+	dc.b	$B8	;B8
+	dc.b	$4B	;4B
+	dc.b	$20	;20
+	dc.b	$A0	;A0
+	dc.b	$4B	;4B
+	dc.b	$10	;10
+	dc.b	$00	;00
+	dc.b	$CF	;CF
+	dc.b	$50	;50
+	dc.b	$10	;10
+	dc.b	$BF	;BF
+	dc.b	$50	;50
+	dc.b	$FF	;FF
+	dc.b	$C0	;C0
+	dc.b	$32	;32
+	dc.b	$3F	;3F
+	dc.b	$C0	;C0
+	dc.b	$37	;37
+	dc.b	$34	;34
+	dc.b	$C0	;C0
+	dc.b	$FF	;FF
+	dc.b	$4C	;4C
+	dc.b	$10	;10
+	dc.b	$CD	;CD
+	dc.b	$1F	;1F
+	dc.b	$54	;54
+	dc.b	$80	;80
+	dc.b	$1F	;1F
+	dc.b	$58	;58
+	dc.b	$C9	;C9
+	dc.b	$00	;00
+	dc.b	$FF	;FF
+	dc.b	$40	;40
+	dc.b	$A5	;A5
+	dc.b	$3F	;3F
+	dc.b	$20	;20
+	dc.b	$DF	;DF
+	dc.b	$08	;08
+	dc.b	$3C	;3C
+	dc.b	$FF	;FF
+	dc.b	$B8	;B8
+	dc.b	$47	;47
+	dc.b	$E8	;E8
+	dc.b	$D7	;D7
+	dc.b	$4B	;4B
+	dc.b	$E0	;E0
+	dc.b	$17	;17
+	dc.b	$FF	;FF
+	dc.b	$56	;56
+	dc.b	$10	;10
+	dc.b	$87	;87
+	dc.b	$4F	;4F
+	dc.b	$00	;00
+	dc.b	$EF	;EF
+	dc.b	$30	;30
+	dc.b	$1F	;1F
+	dc.b	$00	;00
+	dc.b	$DF	;DF
+	dc.b	$57	;57
+	dc.b	$E0	;E0
+	dc.b	$37	;37
+	dc.b	$E0	;E0
+	dc.b	$FD	;FD
+	dc.b	$0F	;0F
+	dc.b	$08	;08
+	dc.b	$4F	;4F
+	dc.b	$B2	;B2
+	dc.b	$17	;17
+	dc.b	$33	;33
+	dc.b	$B3	;B3
+	dc.b	$4F	;4F
+	dc.b	$0C	;0C
+	dc.b	$14	;14
+	dc.b	$E8	;E8
+	dc.b	$F7	;F7
+	dc.b	$50	;50
+	dc.b	$CF	;CF
+	dc.b	$40	;40
+	dc.b	$00	;00
+	dc.b	$FF	;FF
+	dc.b	$F0	;F0
+	dc.b	$1F	;1F
+	dc.b	$24	;24
+	dc.b	$F8	;F8
+	dc.b	$24	;24
+	dc.b	$E0	;E0
+	dc.b	$25	;25
+	dc.b	$17	;17
+	dc.b	$00	;00
+	dc.b	$2B	;2B
+	dc.b	$FB	;FB
+	dc.b	$08	;08
+	dc.b	$0F	;0F
+	dc.b	$E0	;E0
+	dc.b	$4E	;4E
+	dc.b	$EE	;EE
+	dc.b	$10	;10
+	dc.b	$1B	;1B
+	dc.b	$E7	;E7
+	dc.b	$28	;28
+	dc.b	$17	;17
+	dc.b	$08	;08
+	dc.b	$0A	;0A
+	dc.b	$07	;07
+	dc.b	$00	;00
+	dc.b	$17	;17
+	dc.b	$0F	;0F
+	dc.b	$28	;28
+	dc.b	$DF	;DF
+	dc.b	$1D	;1D
+	dc.b	$18	;18
+	dc.b	$FF	;FF
+	dc.b	$F0	;F0
+	dc.b	$37	;37
+	dc.b	$00	;00
+	dc.b	$DB	;DB
+	dc.b	$3F	;3F
+	dc.b	$E8	;E8
+	dc.b	$18	;18
+	dc.b	$FB	;FB
+	dc.b	$28	;28
+	dc.b	$08	;08
+	dc.b	$E7	;E7
+	dc.b	$38	;38
+	dc.b	$EF	;EF
+	dc.b	$EF	;EF
+	dc.b	$4F	;4F
+	dc.b	$E0	;E0
+	dc.b	$F8	;F8
+	dc.b	$FF	;FF
+	dc.b	$26	;26
+	dc.b	$10	;10
+	dc.b	$EF	;EF
+	dc.b	$40	;40
+	dc.b	$D3	;D3
+	dc.b	$FF	;FF
+	dc.b	$18	;18
+	dc.b	$37	;37
+	dc.b	$C8	;C8
+	dc.b	$1F	;1F
+	dc.b	$28	;28
+	dc.b	$C9	;C9
+	dc.b	$3F	;3F
+	dc.b	$17	;17
+	dc.b	$10	;10
+	dc.b	$EF	;EF
+	dc.b	$0F	;0F
+	dc.b	$30	;30
+	dc.b	$DF	;DF
+	dc.b	$23	;23
+	dc.b	$30	;30
+	dc.b	$BF	;BF
+	dc.b	$20	;20
+	dc.b	$27	;27
+	dc.b	$04	;04
+	dc.b	$EC	;EC
+	dc.b	$2F	;2F
+	dc.b	$00	;00
+	dc.b	$E7	;E7
+	dc.b	$1F	;1F
+	dc.b	$12	;12
+	dc.b	$14	;14
+	dc.b	$DD	;DD
+	dc.b	$4A	;4A
+	dc.b	$E0	;E0
+	dc.b	$FF	;FF
+	dc.b	$38	;38
+	dc.b	$00	;00
+	dc.b	$F9	;F9
+	dc.b	$0F	;0F
+	dc.b	$20	;20
+	dc.b	$EC	;EC
+	dc.b	$FF	;FF
+	dc.b	$30	;30
+	dc.b	$F4	;F4
+	dc.b	$EF	;EF
+	dc.b	$30	;30
+	dc.b	$FF	;FF
+	dc.b	$00	;00
+	dc.b	$1F	;1F
+	dc.b	$23	;23
+	dc.b	$D0	;D0
+	dc.b	$1F	;1F
+	dc.b	$08	;08
+	dc.b	$12	;12
+	dc.b	$F7	;F7
+	dc.b	$09	;09
+	dc.b	$28	;28
+	dc.b	$DB	;DB
+	dc.b	$30	;30
+	dc.b	$0F	;0F
+	dc.b	$F0	;F0
+	dc.b	$1E	;1E
+	dc.b	$27	;27
+	dc.b	$E0	;E0
+	dc.b	$17	;17
+	dc.b	$0D	;0D
+	dc.b	$08	;08
+	dc.b	$FF	;FF
+	dc.b	$07	;07
+	dc.b	$20	;20
+	dc.b	$EF	;EF
+	dc.b	$0B	;0B
+	dc.b	$24	;24
+	dc.b	$FF	;FF
+	dc.b	$00	;00
+	dc.b	$1C	;1C
+	dc.b	$E7	;E7
+	dc.b	$18	;18
+	dc.b	$0F	;0F
+	dc.b	$14	;14
+	dc.b	$F8	;F8
+	dc.b	$0F	;0F
+	dc.b	$00	;00
+	dc.b	$FF	;FF
+	dc.b	$18	;18
+	dc.b	$0F	;0F
+	dc.b	$04	;04
+	dc.b	$E9	;E9
+	dc.b	$3D	;3D
+	dc.b	$E4	;E4
+	dc.b	$1F	;1F
+	dc.b	$08	;08
+	dc.b	$00	;00
+	dc.b	$15	;15
+	dc.b	$F7	;F7
+	dc.b	$20	;20
+	dc.b	$0F	;0F
+	dc.b	$03	;03
+	dc.b	$14	;14
+	dc.b	$F7	;F7
+	dc.b	$13	;13
+	dc.b	$18	;18
+	dc.b	$FB	;FB
+	dc.b	$08	;08
+	dc.b	$17	;17
+	dc.b	$09	;09
+	dc.b	$F0	;F0
+	dc.b	$37	;37
+	dc.b	$E8	;E8
+	dc.b	$1F	;1F
+	dc.b	$03	;03
+	dc.b	$00	;00
+	dc.b	$20	;20
+	dc.b	$DB	;DB
+	dc.b	$38	;38
+	dc.b	$F7	;F7
+	dc.b	$02	;02
+	dc.b	$10	;10
+	dc.b	$FF	;FF
+	dc.b	$08	;08
+	dc.b	$13	;13
+	dc.b	$09	;09
+	dc.b	$00	;00
+	dc.b	$FF	;FF
+	dc.b	$1A	;1A
+	dc.b	$F4	;F4
+	dc.b	$0F	;0F
+	dc.b	$12	;12
+	dc.b	$09	;09
+	dc.b	$FA	;FA
+	dc.b	$0D	;0D
+	dc.b	$28	;28
+	dc.b	$E3	;E3
+	dc.b	$23	;23
+	dc.b	$03	;03
+	dc.b	$10	;10
+	dc.b	$F8	;F8
+	dc.b	$0F	;0F
+	dc.b	$10	;10
+	dc.b	$EF	;EF
+	dc.b	$20	;20
+	dc.b	$0F	;0F
+	dc.b	$F2	;F2
+	dc.b	$0C	;0C
+	dc.b	$1F	;1F
+	dc.b	$F0	;F0
+	dc.b	$1D	;1D
+	dc.b	$07	;07
+	dc.b	$00	;00
+	dc.b	$FF	;FF
+	dc.b	$13	;13
+	dc.b	$14	;14
+	dc.b	$FF	;FF
+	dc.b	$FB	;FB
+	dc.b	$26	;26
+	dc.b	$F6	;F6
+	dc.b	$FF	;FF
+	dc.b	$30	;30
+	dc.b	$F1	;F1
+	dc.b	$02	;02
+	dc.b	$0F	;0F
+	dc.b	$0E	;0E
+	dc.b	$00	;00
+	dc.b	$1F	;1F
+	dc.b	$00	;00
+	dc.b	$07	;07
+	dc.b	$FB	;FB
+	dc.b	$1D	;1D
+	dc.b	$0C	;0C
+	dc.b	$ED	;ED
+	dc.b	$22	;22
+	dc.b	$FB	;FB
+	dc.b	$00	;00
+	dc.b	$0F	;0F
+	dc.b	$10	;10
+	dc.b	$F8	;F8
+	dc.b	$0B	;0B
+	dc.b	$11	;11
+	dc.b	$08	;08
+	dc.b	$F7	;F7
+	dc.b	$1F	;1F
+	dc.b	$08	;08
+	dc.b	$FB	;FB
+	dc.b	$0E	;0E
+	dc.b	$0B	;0B
+	dc.b	$00	;00
+	dc.b	$0F	;0F
+	dc.b	$14	;14
+	dc.b	$F8	;F8
+	dc.b	$17	;17
+	dc.b	$FD	;FD
+	dc.b	$1C	;1C
+	dc.b	$F3	;F3
+	dc.b	$17	;17
+	dc.b	$18	;18
+	dc.b	$EF	;EF
+	dc.b	$10	;10
+	dc.b	$0F	;0F
+	dc.b	$00	;00
+	dc.b	$04	;04
+	dc.b	$17	;17
+	dc.b	$F8	;F8
+	dc.b	$15	;15
+	dc.b	$07	;07
+	dc.b	$10	;10
+	dc.b	$FF	;FF
+	dc.b	$07	;07
+	dc.b	$10	;10
+	dc.b	$0B	;0B
+	dc.b	$F4	;F4
+	dc.b	$1F	;1F
+	dc.b	$FA	;FA
+	dc.b	$07	;07
+	dc.b	$14	;14
+	dc.b	$FB	;FB
+	dc.b	$10	;10
+	dc.b	$FF	;FF
+	dc.b	$1A	;1A
+	dc.b	$F8	;F8
+	dc.b	$17	;17
+	dc.b	$00	;00
+	dc.b	$07	;07
+	dc.b	$07	;07
+	dc.b	$09	;09
+	dc.b	$11	;11
+	dc.b	$00	;00
+	dc.b	$0F	;0F
+	dc.b	$02	;02
+	dc.b	$0C	;0C
+	dc.b	$17	;17
+	dc.b	$04	;04
+	dc.b	$FF	;FF
+	dc.b	$06	;06
+	dc.b	$08	;08
+	dc.b	$16	;16
+	dc.b	$F3	;F3
+	dc.b	$21	;21
+	dc.b	$F8	;F8
+	dc.b	$0B	;0B
+	dc.b	$14	;14
+	dc.b	$FF	;FF
+	dc.b	$10	;10
+	dc.b	$FF	;FF
+	dc.b	$0E	;0E
+	dc.b	$FC	;FC
+	dc.b	$17	;17
+	dc.b	$02	;02
+	dc.b	$12	;12
+	dc.b	$03	;03
+	dc.b	$0D	;0D
+	dc.b	$15	;15
+	dc.b	$03	;03
+	dc.b	$12	;12
+	dc.b	$17	;17
+	dc.b	$F5	;F5
+	dc.b	$1B	;1B
+	dc.b	$12	;12
+	dc.b	$00	;00
+	dc.b	$14	;14
+	dc.b	$05	;05
+	dc.b	$18	;18
+	dc.b	$F9	;F9
+	dc.b	$13	;13
+	dc.b	$09	;09
+	dc.b	$0B	;0B
+	dc.b	$09	;09
+	dc.b	$13	;13
+	dc.b	$00	;00
+	dc.b	$0B	;0B
+	dc.b	$14	;14
+	dc.b	$FE	;FE
+	dc.b	$0C	;0C
+	dc.b	$0B	;0B
+	dc.b	$10	;10
+	dc.b	$FB	;FB
+	dc.b	$17	;17
+	dc.b	$08	;08
+	dc.b	$0D	;0D
+	dc.b	$01	;01
+	dc.b	$17	;17
+	dc.b	$04	;04
+	dc.b	$FF	;FF
+	dc.b	$19	;19
+	dc.b	$01	;01
+	dc.b	$04	;04
+	dc.b	$07	;07
+	dc.b	$10	;10
+	dc.b	$09	;09
+	dc.b	$03	;03
+	dc.b	$0D	;0D
+	dc.b	$12	;12
+	dc.b	$F8	;F8
+	dc.b	$1F	;1F
+	dc.b	$F7	;F7
+	dc.b	$07	;07
+	dc.b	$14	;14
+	dc.b	$06	;06
+	dc.b	$08	;08
+	dc.b	$FF	;FF
+	dc.b	$12	;12
+	dc.b	$00	;00
+	dc.b	$0F	;0F
+	dc.b	$04	;04
+	dc.b	$13	;13
+	dc.b	$F8	;F8
+	dc.b	$0C	;0C
+	dc.b	$14	;14
+	dc.b	$FC	;FC
+	dc.b	$0C	;0C
+	dc.b	$14	;14
+	dc.b	$00	;00
+	dc.b	$0F	;0F
+	dc.b	$0C	;0C
+	dc.b	$0A	;0A
+	dc.b	$06	;06
+	dc.b	$FF	;FF
+	dc.b	$10	;10
+	dc.b	$FB	;FB
+	dc.b	$16	;16
+	dc.b	$00	;00
+	dc.b	$0A	;0A
+	dc.b	$02	;02
+	dc.b	$13	;13
+	dc.b	$08	;08
+	dc.b	$FF	;FF
+	dc.b	$10	;10
+	dc.b	$05	;05
+	dc.b	$08	;08
+	dc.b	$FF	;FF
+	dc.b	$12	;12
+	dc.b	$00	;00
+	dc.b	$07	;07
+	dc.b	$10	;10
+	dc.b	$04	;04
+	dc.b	$02	;02
+	dc.b	$15	;15
+	dc.b	$02	;02
+	dc.b	$0C	;0C
+	dc.b	$07	;07
+	dc.b	$0A	;0A
+	dc.b	$08	;08
+	dc.b	$FF	;FF
+	dc.b	$10	;10
+	dc.b	$05	;05
+	dc.b	$0C	;0C
+	dc.b	$06	;06
+	dc.b	$11	;11
+	dc.b	$FC	;FC
+	dc.b	$1B	;1B
+	dc.b	$04	;04
+	dc.b	$05	;05
+	dc.b	$0C	;0C
+	dc.b	$07	;07
+	dc.b	$0C	;0C
+	dc.b	$05	;05
+	dc.b	$0B	;0B
+	dc.b	$08	;08
+	dc.b	$0A	;0A
+	dc.b	$09	;09
+	dc.b	$0C	;0C
+	dc.b	$02	;02
+	dc.b	$0E	;0E
+	dc.b	$08	;08
+	dc.b	$09	;09
+	dc.b	$05	;05
+	dc.b	$0D	;0D
+	dc.b	$04	;04
+	dc.b	$0D	;0D
+	dc.b	$0A	;0A
+	dc.b	$0A	;0A
+	dc.b	$09	;09
+	dc.b	$07	;07
+	dc.b	$10	;10
+	dc.b	$FD	;FD
+	dc.b	$12	;12
+	dc.b	$03	;03
+	dc.b	$08	;08
+	dc.b	$03	;03
+	dc.b	$0D	;0D
+	dc.b	$08	;08
+	dc.b	$0D	;0D
+	dc.b	$08	;08
+	dc.b	$02	;02
+	dc.b	$0C	;0C
+	dc.b	$07	;07
+	dc.b	$10	;10
+	dc.b	$FE	;FE
+	dc.b	$08	;08
+	dc.b	$08	;08
+	dc.b	$02	;02
+	dc.b	$07	;07
+	dc.b	$10	;10
+	dc.b	$02	;02
+	dc.b	$10	;10
+	dc.b	$03	;03
+	dc.b	$0C	;0C
+	dc.b	$08	;08
+	dc.b	$0B	;0B
+	dc.b	$10	;10
+	dc.b	$FF	;FF
+	dc.b	$0C	;0C
+	dc.b	$06	;06
+	dc.b	$0F	;0F
+	dc.b	$01	;01
+	dc.b	$13	;13
+	dc.b	$04	;04
+	dc.b	$0B	;0B
+	dc.b	$0E	;0E
+	dc.b	$08	;08
+	dc.b	$09	;09
+	dc.b	$07	;07
+	dc.b	$0D	;0D
+	dc.b	$04	;04
+	dc.b	$07	;07
+	dc.b	$10	;10
+	dc.b	$07	;07
+	dc.b	$09	;09
+	dc.b	$0E	;0E
+	dc.b	$06	;06
+	dc.b	$0E	;0E
+	dc.b	$06	;06
+	dc.b	$10	;10
+	dc.b	$02	;02
+	dc.b	$0D	;0D
+	dc.b	$08	;08
+	dc.b	$09	;09
+	dc.b	$06	;06
+	dc.b	$07	;07
+	dc.b	$13	;13
+	dc.b	$FB	;FB
+	dc.b	$17	;17
+	dc.b	$04	;04
+	dc.b	$08	;08
+	dc.b	$0A	;0A
+	dc.b	$07	;07
+	dc.b	$08	;08
+	dc.b	$05	;05
+	dc.b	$0B	;0B
+	dc.b	$09	;09
+	dc.b	$05	;05
+	dc.b	$0D	;0D
+	dc.b	$0C	;0C
+	dc.b	$07	;07
+	dc.b	$08	;08
+	dc.b	$0D	;0D
+	dc.b	$08	;08
+	dc.b	$03	;03
+	dc.b	$15	;15
+	dc.b	$00	;00
+	dc.b	$0D	;0D
+	dc.b	$06	;06
+	dc.b	$0F	;0F
+	dc.b	$08	;08
+	dc.b	$07	;07
+	dc.b	$10	;10
+	dc.b	$FF	;FF
+	dc.b	$0F	;0F
+	dc.b	$07	;07
+	dc.b	$0B	;0B
+	dc.b	$06	;06
+	dc.b	$0A	;0A
+	dc.b	$06	;06
+	dc.b	$0A	;0A
+	dc.b	$09	;09
+	dc.b	$0D	;0D
+	dc.b	$07	;07
+	dc.b	$09	;09
+	dc.b	$0C	;0C
+	dc.b	$0A	;0A
+	dc.b	$06	;06
+	dc.b	$0E	;0E
+	dc.b	$08	;08
+	dc.b	$05	;05
+	dc.b	$0F	;0F
+	dc.b	$03	;03
+	dc.b	$10	;10
+	dc.b	$01	;01
+	dc.b	$0F	;0F
+	dc.b	$08	;08
+	dc.b	$06	;06
+	dc.b	$0A	;0A
+	dc.b	$0A	;0A
+	dc.b	$08	;08
+	dc.b	$07	;07
+	dc.b	$09	;09
+	dc.b	$04	;04
+	dc.b	$12	;12
+	dc.b	$07	;07
+	dc.b	$0C	;0C
+	dc.b	$0D	;0D
+	dc.b	$0D	;0D
+	dc.b	$0A	;0A
+	dc.b	$0D	;0D
+	dc.b	$0A	;0A
+	dc.b	$0D	;0D
+	dc.b	$08	;08
+	dc.b	$0B	;0B
+	dc.b	$0A	;0A
+	dc.b	$08	;08
+	dc.b	$09	;09
+	dc.b	$09	;09
+	dc.b	$0A	;0A
+	dc.b	$06	;06
+	dc.b	$0E	;0E
+	dc.b	$05	;05
+	dc.b	$0D	;0D
+	dc.b	$04	;04
+	dc.b	$0D	;0D
+	dc.b	$06	;06
+	dc.b	$0D	;0D
+	dc.b	$0A	;0A
+	dc.b	$05	;05
+	dc.b	$11	;11
+	dc.b	$05	;05
+	dc.b	$0E	;0E
+	dc.b	$07	;07
+	dc.b	$0C	;0C
+	dc.b	$08	;08
+	dc.b	$09	;09
+	dc.b	$09	;09
+	dc.b	$0A	;0A
+	dc.b	$08	;08
+	dc.b	$08	;08
+	dc.b	$08	;08
+	dc.b	$0C	;0C
+	dc.b	$07	;07
+	dc.b	$0D	;0D
+	dc.b	$05	;05
+	dc.b	$0A	;0A
+	dc.b	$0D	;0D
+	dc.b	$03	;03
+	dc.b	$0F	;0F
+	dc.b	$00	;00
+	dc.b	$0D	;0D
+	dc.b	$05	;05
+	dc.b	$0B	;0B
+	dc.b	$0A	;0A
+	dc.b	$07	;07
+	dc.b	$0A	;0A
+	dc.b	$07	;07
+	dc.b	$0E	;0E
+	dc.b	$03	;03
+	dc.b	$0D	;0D
+	dc.b	$06	;06
+	dc.b	$07	;07
+	dc.b	$09	;09
+	dc.b	$08	;08
+	dc.b	$09	;09
+	dc.b	$0A	;0A
+	dc.b	$06	;06
+	dc.b	$0C	;0C
+	dc.b	$06	;06
+	dc.b	$0D	;0D
+	dc.b	$04	;04
+	dc.b	$0B	;0B
+	dc.b	$08	;08
+	dc.b	$08	;08
+	dc.b	$0E	;0E
+	dc.b	$03	;03
+	dc.b	$11	;11
+	dc.b	$04	;04
+	dc.b	$0D	;0D
+	dc.b	$09	;09
+	dc.b	$0B	;0B
+	dc.b	$0A	;0A
+	dc.b	$0A	;0A
+	dc.b	$0C	;0C
+	dc.b	$07	;07
+	dc.b	$0B	;0B
+	dc.b	$09	;09
+	dc.b	$0A	;0A
+	dc.b	$0B	;0B
+	dc.b	$0A	;0A
+	dc.b	$0B	;0B
+	dc.b	$0A	;0A
+	dc.b	$08	;08
+	dc.b	$0D	;0D
+	dc.b	$05	;05
+	dc.b	$0C	;0C
+	dc.b	$08	;08
+	dc.b	$0B	;0B
+	dc.b	$08	;08
+	dc.b	$0A	;0A
+	dc.b	$0A	;0A
+	dc.b	$07	;07
+	dc.b	$0C	;0C
+	dc.b	$06	;06
+	dc.b	$0C	;0C
+	dc.b	$06	;06
+	dc.b	$0B	;0B
+	dc.b	$06	;06
+	dc.b	$09	;09
+	dc.b	$08	;08
+	dc.b	$09	;09
+	dc.b	$06	;06
+	dc.b	$07	;07
+	dc.b	$0C	;0C
+	dc.b	$07	;07
+	dc.b	$09	;09
+	dc.b	$0A	;0A
+	dc.b	$08	;08
+	dc.b	$07	;07
+	dc.b	$0B	;0B
+	dc.b	$06	;06
+	dc.b	$0A	;0A
+	dc.b	$08	;08
+	dc.b	$0B	;0B
+	dc.b	$09	;09
+	dc.b	$0B	;0B
+	dc.b	$09	;09
+	dc.b	$0C	;0C
+	dc.b	$08	;08
+	dc.b	$09	;09
+	dc.b	$0C	;0C
+	dc.b	$05	;05
+	dc.b	$0F	;0F
+	dc.b	$06	;06
+	dc.b	$0B	;0B
+	dc.b	$0A	;0A
+	dc.b	$0D	;0D
+	dc.b	$0A	;0A
+	dc.b	$0A	;0A
+	dc.b	$0C	;0C
+	dc.b	$09	;09
+	dc.b	$0A	;0A
+	dc.b	$09	;09
+	dc.b	$0A	;0A
+	dc.b	$08	;08
+	dc.b	$09	;09
+	dc.b	$0A	;0A
+	dc.b	$0A	;0A
+	dc.b	$07	;07
+	dc.b	$0C	;0C
+	dc.b	$06	;06
+	dc.b	$0A	;0A
+	dc.b	$06	;06
+	dc.b	$0D	;0D
+	dc.b	$04	;04
+	dc.b	$0B	;0B
+	dc.b	$09	;09
+	dc.b	$05	;05
+	dc.b	$0C	;0C
+	dc.b	$07	;07
+	dc.b	$0C	;0C
+	dc.b	$06	;06
+	dc.b	$0B	;0B
+	dc.b	$08	;08
+	dc.b	$07	;07
+	dc.b	$09	;09
+	dc.b	$09	;09
+	dc.b	$09	;09
+	dc.b	$06	;06
+	dc.b	$09	;09
+	dc.b	$0A	;0A
+	dc.b	$07	;07
+	dc.b	$0D	;0D
+	dc.b	$06	;06
+	dc.b	$07	;07
+	dc.b	$0C	;0C
+	dc.b	$07	;07
+	dc.b	$0C	;0C
+	dc.b	$06	;06
+	dc.b	$0D	;0D
+	dc.b	$06	;06
+	dc.b	$0B	;0B
+	dc.b	$0A	;0A
+	dc.b	$09	;09
 AudioSample_3:
-	INCBIN bw-sfx/sample3.sound
-
+	dc.b	'FORM'	;464F524D
+	dc.b	$00	;00
+	dc.b	$00	;00
+	dc.b	$18	;18
+	dc.b	$80	;80
+	dc.b	'8SVXVHDR'	;3853565856484452
+	dc.b	$00	;00
+	dc.b	$00	;00
+	dc.b	$00	;00
+	dc.b	$14	;14
+	dc.b	$00	;00
+	dc.b	$00	;00
+	dc.b	$18	;18
+	dc.b	$58	;58
+	dc.b	$00	;00
+	dc.b	$00	;00
+	dc.b	$00	;00
+	dc.b	$00	;00
+	dc.b	$00	;00
+	dc.b	$00	;00
+	dc.b	$00	;00
+	dc.b	$00	;00
+	dc.b	$20	;20
+	dc.b	$AB	;AB
+	dc.b	$01	;01
+	dc.b	$00	;00
+	dc.b	$00	;00
+	dc.b	$01	;01
+	dc.b	$00	;00
+	dc.b	$00	;00
+	dc.b	'BODY'	;424F4459
+	dc.b	$00	;00
+	dc.b	$00	;00
+	dc.b	$18	;18
+	dc.b	$58	;58
+	dc.b	$FD	;FD
+	dc.b	$F4	;F4
+	dc.b	$BD	;BD
+	dc.b	$CB	;CB
+	dc.b	$DB	;DB
+	dc.b	$EB	;EB
+	dc.b	$F7	;F7
+	dc.b	$FF	;FF
+	dc.b	$09	;09
+	dc.b	$15	;15
+	dc.b	$1F	;1F
+	dc.b	$2F	;2F
+	dc.b	$3B	;3B
+	dc.b	$43	;43
+	dc.b	$43	;43
+	dc.b	$40	;40
+	dc.b	$34	;34
+	dc.b	$28	;28
+	dc.b	$16	;16
+	dc.b	$08	;08
+	dc.b	$F9	;F9
+	dc.b	$F7	;F7
+	dc.b	$F6	;F6
+	dc.b	$FA	;FA
+	dc.b	$FA	;FA
+	dc.b	$F5	;F5
+	dc.b	$F2	;F2
+	dc.b	$F0	;F0
+	dc.b	$EE	;EE
+	dc.b	$EF	;EF
+	dc.b	$F4	;F4
+	dc.b	$F6	;F6
+	dc.b	$F2	;F2
+	dc.b	$F0	;F0
+	dc.b	$EE	;EE
+	dc.b	$EC	;EC
+	dc.b	$E6	;E6
+	dc.b	$E0	;E0
+	dc.b	$E3	;E3
+	dc.b	$EA	;EA
+	dc.b	$EF	;EF
+	dc.b	$FB	;FB
+	dc.b	$0B	;0B
+	dc.b	$16	;16
+	dc.b	$1C	;1C
+	dc.b	$23	;23
+	dc.b	$2D	;2D
+	dc.b	$37	;37
+	dc.b	$47	;47
+	dc.b	$55	;55
+	dc.b	$5E	;5E
+	dc.b	$61	;61
+	dc.b	$60	;60
+	dc.b	$5E	;5E
+	dc.b	$5D	;5D
+	dc.b	$5B	;5B
+	dc.b	$54	;54
+	dc.b	$28	;28
+	dc.b	$0A	;0A
+	dc.b	$06	;06
+	dc.b	$09	;09
+	dc.b	$06	;06
+	dc.b	$02	;02
+	dc.b	$F8	;F8
+	dc.b	$EA	;EA
+	dc.b	$E6	;E6
+	dc.b	$ED	;ED
+	dc.b	$F6	;F6
+	dc.b	$FA	;FA
+	dc.b	$F6	;F6
+	dc.b	$F1	;F1
+	dc.b	$F4	;F4
+	dc.b	$F4	;F4
+	dc.b	$E6	;E6
+	dc.b	$D8	;D8
+	dc.b	$C8	;C8
+	dc.b	$BA	;BA
+	dc.b	$B6	;B6
+	dc.b	$CB	;CB
+	dc.b	$DF	;DF
+	dc.b	$ED	;ED
+	dc.b	$F7	;F7
+	dc.b	$03	;03
+	dc.b	$0D	;0D
+	dc.b	$19	;19
+	dc.b	$29	;29
+	dc.b	$37	;37
+	dc.b	$43	;43
+	dc.b	$48	;48
+	dc.b	$45	;45
+	dc.b	$40	;40
+	dc.b	$34	;34
+	dc.b	$24	;24
+	dc.b	$12	;12
+	dc.b	$04	;04
+	dc.b	$F8	;F8
+	dc.b	$F0	;F0
+	dc.b	$EF	;EF
+	dc.b	$EF	;EF
+	dc.b	$F0	;F0
+	dc.b	$EF	;EF
+	dc.b	$EE	;EE
+	dc.b	$EC	;EC
+	dc.b	$EB	;EB
+	dc.b	$EE	;EE
+	dc.b	$F5	;F5
+	dc.b	$FA	;FA
+	dc.b	$F6	;F6
+	dc.b	$F2	;F2
+	dc.b	$F0	;F0
+	dc.b	$E9	;E9
+	dc.b	$E4	;E4
+	dc.b	$E0	;E0
+	dc.b	$E1	;E1
+	dc.b	$E7	;E7
+	dc.b	$EC	;EC
+	dc.b	$F2	;F2
+	dc.b	$FF	;FF
+	dc.b	$0F	;0F
+	dc.b	$1B	;1B
+	dc.b	$1F	;1F
+	dc.b	$2D	;2D
+	dc.b	$3B	;3B
+	dc.b	$4D	;4D
+	dc.b	$5B	;5B
+	dc.b	$60	;60
+	dc.b	$5E	;5E
+	dc.b	$5E	;5E
+	dc.b	$5F	;5F
+	dc.b	$5E	;5E
+	dc.b	$5B	;5B
+	dc.b	$48	;48
+	dc.b	$08	;08
+	dc.b	$FB	;FB
+	dc.b	$05	;05
+	dc.b	$04	;04
+	dc.b	$FC	;FC
+	dc.b	$F2	;F2
+	dc.b	$E8	;E8
+	dc.b	$E1	;E1
+	dc.b	$E7	;E7
+	dc.b	$F7	;F7
+	dc.b	$FE	;FE
+	dc.b	$F5	;F5
+	dc.b	$F2	;F2
+	dc.b	$FF	;FF
+	dc.b	$06	;06
+	dc.b	$F6	;F6
+	dc.b	$E0	;E0
+	dc.b	$C4	;C4
+	dc.b	$AC	;AC
+	dc.b	$A4	;A4
+	dc.b	$B7	;B7
+	dc.b	$CD	;CD
+	dc.b	$DF	;DF
+	dc.b	$E9	;E9
+	dc.b	$F5	;F5
+	dc.b	$07	;07
+	dc.b	$17	;17
+	dc.b	$25	;25
+	dc.b	$36	;36
+	dc.b	$47	;47
+	dc.b	$52	;52
+	dc.b	$53	;53
+	dc.b	$50	;50
+	dc.b	$42	;42
+	dc.b	$30	;30
+	dc.b	$18	;18
+	dc.b	$00	;00
+	dc.b	$F0	;F0
+	dc.b	$E3	;E3
+	dc.b	$E5	;E5
+	dc.b	$E9	;E9
+	dc.b	$ED	;ED
+	dc.b	$EE	;EE
+	dc.b	$ED	;ED
+	dc.b	$EA	;EA
+	dc.b	$E9	;E9
+	dc.b	$EF	;EF
+	dc.b	$FA	;FA
+	dc.b	$FF	;FF
+	dc.b	$FA	;FA
+	dc.b	$F8	;F8
+	dc.b	$F6	;F6
+	dc.b	$EE	;EE
+	dc.b	$E3	;E3
+	dc.b	$DD	;DD
+	dc.b	$DC	;DC
+	dc.b	$DC	;DC
+	dc.b	$DF	;DF
+	dc.b	$EF	;EF
+	dc.b	$FF	;FF
+	dc.b	$13	;13
+	dc.b	$1F	;1F
+	dc.b	$23	;23
+	dc.b	$2F	;2F
+	dc.b	$3B	;3B
+	dc.b	$47	;47
+	dc.b	$55	;55
+	dc.b	$5D	;5D
+	dc.b	$5E	;5E
+	dc.b	$5F	;5F
+	dc.b	$60	;60
+	dc.b	$60	;60
+	dc.b	$5E	;5E
+	dc.b	$5B	;5B
+	dc.b	$50	;50
+	dc.b	$24	;24
+	dc.b	$06	;06
+	dc.b	$01	;01
+	dc.b	$FC	;FC
+	dc.b	$FE	;FE
+	dc.b	$04	;04
+	dc.b	$F8	;F8
+	dc.b	$EA	;EA
+	dc.b	$E0	;E0
+	dc.b	$E3	;E3
+	dc.b	$E9	;E9
+	dc.b	$FB	;FB
+	dc.b	$F8	;F8
+	dc.b	$E4	;E4
+	dc.b	$DC	;DC
+	dc.b	$E0	;E0
+	dc.b	$DE	;DE
+	dc.b	$D8	;D8
+	dc.b	$D0	;D0
+	dc.b	$C0	;C0
+	dc.b	$B4	;B4
+	dc.b	$BF	;BF
+	dc.b	$DF	;DF
+	dc.b	$F9	;F9
+	dc.b	$05	;05
+	dc.b	$0F	;0F
+	dc.b	$15	;15
+	dc.b	$1D	;1D
+	dc.b	$2F	;2F
+	dc.b	$43	;43
+	dc.b	$49	;49
+	dc.b	$46	;46
+	dc.b	$40	;40
+	dc.b	$38	;38
+	dc.b	$30	;30
+	dc.b	$22	;22
+	dc.b	$12	;12
+	dc.b	$04	;04
+	dc.b	$F4	;F4
+	dc.b	$E4	;E4
+	dc.b	$E3	;E3
+	dc.b	$E9	;E9
+	dc.b	$E9	;E9
+	dc.b	$E9	;E9
+	dc.b	$EB	;EB
+	dc.b	$EB	;EB
+	dc.b	$E8	;E8
+	dc.b	$E9	;E9
+	dc.b	$F3	;F3
+	dc.b	$FD	;FD
+	dc.b	$F5	;F5
+	dc.b	$EC	;EC
+	dc.b	$EF	;EF
+	dc.b	$EC	;EC
+	dc.b	$E2	;E2
+	dc.b	$DF	;DF
+	dc.b	$E5	;E5
+	dc.b	$E4	;E4
+	dc.b	$E5	;E5
+	dc.b	$F3	;F3
+	dc.b	$FF	;FF
+	dc.b	$17	;17
+	dc.b	$21	;21
+	dc.b	$2B	;2B
+	dc.b	$3A	;3A
+	dc.b	$47	;47
+	dc.b	$53	;53
+	dc.b	$5F	;5F
+	dc.b	$60	;60
+	dc.b	$60	;60
+	dc.b	$5D	;5D
+	dc.b	$5D	;5D
+	dc.b	$5A	;5A
+	dc.b	$58	;58
+	dc.b	$20	;20
+	dc.b	$F0	;F0
+	dc.b	$EE	;EE
+	dc.b	$FB	;FB
+	dc.b	$FE	;FE
+	dc.b	$F0	;F0
+	dc.b	$E4	;E4
+	dc.b	$DE	;DE
+	dc.b	$DF	;DF
+	dc.b	$EF	;EF
+	dc.b	$03	;03
+	dc.b	$00	;00
+	dc.b	$EC	;EC
+	dc.b	$EF	;EF
+	dc.b	$07	;07
+	dc.b	$04	;04
+	dc.b	$F0	;F0
+	dc.b	$D0	;D0
+	dc.b	$B0	;B0
+	dc.b	$90	;90
+	dc.b	$9F	;9F
+	dc.b	$BF	;BF
+	dc.b	$DD	;DD
+	dc.b	$EB	;EB
+	dc.b	$F4	;F4
+	dc.b	$FF	;FF
+	dc.b	$17	;17
+	dc.b	$2F	;2F
+	dc.b	$3D	;3D
+	dc.b	$47	;47
+	dc.b	$52	;52
+	dc.b	$55	;55
+	dc.b	$54	;54
+	dc.b	$50	;50
+	dc.b	$40	;40
+	dc.b	$20	;20
+	dc.b	$00	;00
+	dc.b	$E4	;E4
+	dc.b	$D7	;D7
+	dc.b	$DB	;DB
+	dc.b	$E7	;E7
+	dc.b	$E8	;E8
+	dc.b	$EA	;EA
+	dc.b	$EE	;EE
+	dc.b	$E8	;E8
+	dc.b	$E0	;E0
+	dc.b	$E5	;E5
+	dc.b	$F3	;F3
+	dc.b	$FC	;FC
+	dc.b	$F8	;F8
+	dc.b	$F0	;F0
+	dc.b	$F5	;F5
+	dc.b	$F4	;F4
+	dc.b	$E6	;E6
+	dc.b	$D6	;D6
+	dc.b	$DB	;DB
+	dc.b	$E0	;E0
+	dc.b	$DE	;DE
+	dc.b	$EF	;EF
+	dc.b	$13	;13
+	dc.b	$27	;27
+	dc.b	$2E	;2E
+	dc.b	$3B	;3B
+	dc.b	$47	;47
+	dc.b	$4F	;4F
+	dc.b	$5B	;5B
+	dc.b	$60	;60
+	dc.b	$60	;60
+	dc.b	$5F	;5F
+	dc.b	$5E	;5E
+	dc.b	$5D	;5D
+	dc.b	$5E	;5E
+	dc.b	$5A	;5A
+	dc.b	$58	;58
+	dc.b	$20	;20
+	dc.b	$F4	;F4
+	dc.b	$F3	;F3
+	dc.b	$FB	;FB
+	dc.b	$03	;03
+	dc.b	$04	;04
+	dc.b	$F2	;F2
+	dc.b	$E0	;E0
+	dc.b	$DB	;DB
+	dc.b	$EB	;EB
+	dc.b	$F5	;F5
+	dc.b	$F5	;F5
+	dc.b	$F0	;F0
+	dc.b	$F1	;F1
+	dc.b	$F5	;F5
+	dc.b	$EC	;EC
+	dc.b	$DA	;DA
+	dc.b	$C2	;C2
+	dc.b	$A8	;A8
+	dc.b	$99	;99
+	dc.b	$A7	;A7
+	dc.b	$C7	;C7
+	dc.b	$E5	;E5
+	dc.b	$FB	;FB
+	dc.b	$07	;07
+	dc.b	$15	;15
+	dc.b	$23	;23
+	dc.b	$33	;33
+	dc.b	$3F	;3F
+	dc.b	$4F	;4F
+	dc.b	$5C	;5C
+	dc.b	$5E	;5E
+	dc.b	$55	;55
+	dc.b	$48	;48
+	dc.b	$34	;34
+	dc.b	$20	;20
+	dc.b	$04	;04
+	dc.b	$EC	;EC
+	dc.b	$E0	;E0
+	dc.b	$E4	;E4
+	dc.b	$E9	;E9
+	dc.b	$EF	;EF
+	dc.b	$F7	;F7
+	dc.b	$F9	;F9
+	dc.b	$F1	;F1
+	dc.b	$EB	;EB
+	dc.b	$EF	;EF
+	dc.b	$FB	;FB
+	dc.b	$01	;01
+	dc.b	$00	;00
+	dc.b	$FB	;FB
+	dc.b	$FA	;FA
+	dc.b	$EC	;EC
+	dc.b	$D8	;D8
+	dc.b	$D1	;D1
+	dc.b	$D2	;D2
+	dc.b	$CC	;CC
+	dc.b	$D3	;D3
+	dc.b	$E7	;E7
+	dc.b	$F7	;F7
+	dc.b	$07	;07
+	dc.b	$17	;17
+	dc.b	$25	;25
+	dc.b	$2E	;2E
+	dc.b	$33	;33
+	dc.b	$3F	;3F
+	dc.b	$53	;53
+	dc.b	$5F	;5F
+	dc.b	$5F	;5F
+	dc.b	$5E	;5E
+	dc.b	$5F	;5F
+	dc.b	$5F	;5F
+	dc.b	$60	;60
+	dc.b	$5A	;5A
+	dc.b	$44	;44
+	dc.b	$00	;00
+	dc.b	$E3	;E3
+	dc.b	$F3	;F3
+	dc.b	$0D	;0D
+	dc.b	$12	;12
+	dc.b	$00	;00
+	dc.b	$E8	;E8
+	dc.b	$D0	;D0
+	dc.b	$D5	;D5
+	dc.b	$F7	;F7
+	dc.b	$0B	;0B
+	dc.b	$00	;00
+	dc.b	$E8	;E8
+	dc.b	$E5	;E5
+	dc.b	$EE	;EE
+	dc.b	$F0	;F0
+	dc.b	$E8	;E8
+	dc.b	$C8	;C8
+	dc.b	$98	;98
+	dc.b	$87	;87
+	dc.b	$9F	;9F
+	dc.b	$D7	;D7
+	dc.b	$FB	;FB
+	dc.b	$02	;02
+	dc.b	$FF	;FF
+	dc.b	$03	;03
+	dc.b	$15	;15
+	dc.b	$2B	;2B
+	dc.b	$47	;47
+	dc.b	$55	;55
+	dc.b	$52	;52
+	dc.b	$49	;49
+	dc.b	$45	;45
+	dc.b	$40	;40
+	dc.b	$2C	;2C
+	dc.b	$14	;14
+	dc.b	$F4	;F4
+	dc.b	$D8	;D8
+	dc.b	$D3	;D3
+	dc.b	$DD	;DD
+	dc.b	$E5	;E5
+	dc.b	$EF	;EF
+	dc.b	$F0	;F0
+	dc.b	$E8	;E8
+	dc.b	$E0	;E0
+	dc.b	$DA	;DA
+	dc.b	$E3	;E3
+	dc.b	$F6	;F6
+	dc.b	$F8	;F8
+	dc.b	$F0	;F0
+	dc.b	$ED	;ED
+	dc.b	$EC	;EC
+	dc.b	$E0	;E0
+	dc.b	$D9	;D9
+	dc.b	$DF	;DF
+	dc.b	$E5	;E5
+	dc.b	$E3	;E3
+	dc.b	$EF	;EF
+	dc.b	$0F	;0F
+	dc.b	$29	;29
+	dc.b	$34	;34
+	dc.b	$3F	;3F
+	dc.b	$49	;49
+	dc.b	$4D	;4D
+	dc.b	$52	;52
+	dc.b	$5A	;5A
+	dc.b	$5E	;5E
+	dc.b	$5E	;5E
+	dc.b	$5F	;5F
+	dc.b	$5F	;5F
+	dc.b	$5F	;5F
+	dc.b	$5D	;5D
+	dc.b	$5C	;5C
+	dc.b	$52	;52
+	dc.b	$40	;40
+	dc.b	$18	;18
+	dc.b	$00	;00
+	dc.b	$F3	;F3
+	dc.b	$F9	;F9
+	dc.b	$FD	;FD
+	dc.b	$F5	;F5
+	dc.b	$E8	;E8
+	dc.b	$DC	;DC
+	dc.b	$CE	;CE
+	dc.b	$C9	;C9
+	dc.b	$DF	;DF
+	dc.b	$EB	;EB
+	dc.b	$E2	;E2
+	dc.b	$D8	;D8
+	dc.b	$D2	;D2
+	dc.b	$CE	;CE
+	dc.b	$CF	;CF
+	dc.b	$D5	;D5
+	dc.b	$D6	;D6
+	dc.b	$CC	;CC
+	dc.b	$C7	;C7
+	dc.b	$DB	;DB
+	dc.b	$FB	;FB
+	dc.b	$13	;13
+	dc.b	$1F	;1F
+	dc.b	$28	;28
+	dc.b	$26	;26
+	dc.b	$2A	;2A
+	dc.b	$3D	;3D
+	dc.b	$4E	;4E
+	dc.b	$56	;56
+	dc.b	$50	;50
+	dc.b	$40	;40
+	dc.b	$2E	;2E
+	dc.b	$25	;25
+	dc.b	$18	;18
+	dc.b	$08	;08
+	dc.b	$F4	;F4
+	dc.b	$E5	;E5
+	dc.b	$DF	;DF
+	dc.b	$E5	;E5
+	dc.b	$F3	;F3
+	dc.b	$FB	;FB
+	dc.b	$FB	;FB
+	dc.b	$FB	;FB
+	dc.b	$F8	;F8
+	dc.b	$F7	;F7
+	dc.b	$FE	;FE
+	dc.b	$02	;02
+	dc.b	$FC	;FC
+	dc.b	$F3	;F3
+	dc.b	$EC	;EC
+	dc.b	$E0	;E0
+	dc.b	$D0	;D0
+	dc.b	$CC	;CC
+	dc.b	$CF	;CF
+	dc.b	$CC	;CC
+	dc.b	$D5	;D5
+	dc.b	$E5	;E5
+	dc.b	$F7	;F7
+	dc.b	$0B	;0B
+	dc.b	$1F	;1F
+	dc.b	$2F	;2F
+	dc.b	$37	;37
+	dc.b	$3B	;3B
+	dc.b	$43	;43
+	dc.b	$4F	;4F
+	dc.b	$5D	;5D
+	dc.b	$61	;61
+	dc.b	$5F	;5F
+	dc.b	$5E	;5E
+	dc.b	$5E	;5E
+	dc.b	$5A	;5A
+	dc.b	$40	;40
+	dc.b	$E8	;E8
+	dc.b	$C2	;C2
+	dc.b	$D7	;D7
+	dc.b	$FF	;FF
+	dc.b	$1A	;1A
+	dc.b	$10	;10
+	dc.b	$F0	;F0
+	dc.b	$C4	;C4
+	dc.b	$C3	;C3
+	dc.b	$EF	;EF
+	dc.b	$07	;07
+	dc.b	$04	;04
+	dc.b	$F8	;F8
+	dc.b	$E4	;E4
+	dc.b	$D8	;D8
+	dc.b	$EB	;EB
+	dc.b	$F8	;F8
+	dc.b	$D8	;D8
+	dc.b	$A0	;A0
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$B7	;B7
+	dc.b	$FF	;FF
+	dc.b	$2B	;2B
+	dc.b	$20	;20
+	dc.b	$04	;04
+	dc.b	$FB	;FB
+	dc.b	$1B	;1B
+	dc.b	$4F	;4F
+	dc.b	$5B	;5B
+	dc.b	$5C	;5C
+	dc.b	$4C	;4C
+	dc.b	$2C	;2C
+	dc.b	$25	;25
+	dc.b	$29	;29
+	dc.b	$1A	;1A
+	dc.b	$F4	;F4
+	dc.b	$C4	;C4
+	dc.b	$B2	;B2
+	dc.b	$BF	;BF
+	dc.b	$DF	;DF
+	dc.b	$FF	;FF
+	dc.b	$00	;00
+	dc.b	$EA	;EA
+	dc.b	$D0	;D0
+	dc.b	$C4	;C4
+	dc.b	$CF	;CF
+	dc.b	$E7	;E7
+	dc.b	$F0	;F0
+	dc.b	$E5	;E5
+	dc.b	$D6	;D6
+	dc.b	$C8	;C8
+	dc.b	$CB	;CB
+	dc.b	$D5	;D5
+	dc.b	$DD	;DD
+	dc.b	$DF	;DF
+	dc.b	$E3	;E3
+	dc.b	$F7	;F7
+	dc.b	$1F	;1F
+	dc.b	$4F	;4F
+	dc.b	$61	;61
+	dc.b	$61	;61
+	dc.b	$5E	;5E
+	dc.b	$5E	;5E
+	dc.b	$5E	;5E
+	dc.b	$5F	;5F
+	dc.b	$60	;60
+	dc.b	$5F	;5F
+	dc.b	$5D	;5D
+	dc.b	$5C	;5C
+	dc.b	$5B	;5B
+	dc.b	$5C	;5C
+	dc.b	$5C	;5C
+	dc.b	$54	;54
+	dc.b	$20	;20
+	dc.b	$F4	;F4
+	dc.b	$EB	;EB
+	dc.b	$F7	;F7
+	dc.b	$03	;03
+	dc.b	$0A	;0A
+	dc.b	$F8	;F8
+	dc.b	$D0	;D0
+	dc.b	$A9	;A9
+	dc.b	$A3	;A3
+	dc.b	$BB	;BB
+	dc.b	$C6	;C6
+	dc.b	$C2	;C2
+	dc.b	$BA	;BA
+	dc.b	$B5	;B5
+	dc.b	$B4	;B4
+	dc.b	$B9	;B9
+	dc.b	$C5	;C5
+	dc.b	$C8	;C8
+	dc.b	$C3	;C3
+	dc.b	$CF	;CF
+	dc.b	$EF	;EF
+	dc.b	$1F	;1F
+	dc.b	$3D	;3D
+	dc.b	$4E	;4E
+	dc.b	$4E	;4E
+	dc.b	$46	;46
+	dc.b	$41	;41
+	dc.b	$4B	;4B
+	dc.b	$5B	;5B
+	dc.b	$5F	;5F
+	dc.b	$5D	;5D
+	dc.b	$59	;59
+	dc.b	$44	;44
+	dc.b	$2A	;2A
+	dc.b	$20	;20
+	dc.b	$1A	;1A
+	dc.b	$0A	;0A
+	dc.b	$F8	;F8
+	dc.b	$F4	;F4
+	dc.b	$FD	;FD
+	dc.b	$FF	;FF
+	dc.b	$01	;01
+	dc.b	$00	;00
+	dc.b	$F2	;F2
+	dc.b	$E0	;E0
+	dc.b	$CB	;CB
+	dc.b	$CF	;CF
+	dc.b	$DE	;DE
+	dc.b	$D5	;D5
+	dc.b	$C8	;C8
+	dc.b	$C3	;C3
+	dc.b	$C0	;C0
+	dc.b	$B4	;B4
+	dc.b	$B1	;B1
+	dc.b	$C7	;C7
+	dc.b	$D6	;D6
+	dc.b	$DA	;DA
+	dc.b	$E7	;E7
+	dc.b	$FF	;FF
+	dc.b	$1F	;1F
+	dc.b	$29	;29
+	dc.b	$2F	;2F
+	dc.b	$3B	;3B
+	dc.b	$38	;38
+	dc.b	$30	;30
+	dc.b	$37	;37
+	dc.b	$47	;47
+	dc.b	$46	;46
+	dc.b	$40	;40
+	dc.b	$38	;38
+	dc.b	$39	;39
+	dc.b	$3F	;3F
+	dc.b	$53	;53
+	dc.b	$5E	;5E
+	dc.b	$5F	;5F
+	dc.b	$5F	;5F
+	dc.b	$5C	;5C
+	dc.b	$54	;54
+	dc.b	$10	;10
+	dc.b	$CC	;CC
+	dc.b	$C4	;C4
+	dc.b	$D3	;D3
+	dc.b	$DA	;DA
+	dc.b	$D0	;D0
+	dc.b	$A8	;A8
+	dc.b	$90	;90
+	dc.b	$8F	;8F
+	dc.b	$9D	;9D
+	dc.b	$B5	;B5
+	dc.b	$DB	;DB
+	dc.b	$E8	;E8
+	dc.b	$E3	;E3
+	dc.b	$ED	;ED
+	dc.b	$FF	;FF
+	dc.b	$0A	;0A
+	dc.b	$08	;08
+	dc.b	$F4	;F4
+	dc.b	$D0	;D0
+	dc.b	$BE	;BE
+	dc.b	$CF	;CF
+	dc.b	$FF	;FF
+	dc.b	$2D	;2D
+	dc.b	$3A	;3A
+	dc.b	$2C	;2C
+	dc.b	$1A	;1A
+	dc.b	$1B	;1B
+	dc.b	$3F	;3F
+	dc.b	$5B	;5B
+	dc.b	$5F	;5F
+	dc.b	$5C	;5C
+	dc.b	$5A	;5A
+	dc.b	$44	;44
+	dc.b	$20	;20
+	dc.b	$08	;08
+	dc.b	$EA	;EA
+	dc.b	$C4	;C4
+	dc.b	$A0	;A0
+	dc.b	$81	;81
+	dc.b	$85	;85
+	dc.b	$9F	;9F
+	dc.b	$B6	;B6
+	dc.b	$B0	;B0
+	dc.b	$A2	;A2
+	dc.b	$9F	;9F
+	dc.b	$B3	;B3
+	dc.b	$CB	;CB
+	dc.b	$EB	;EB
+	dc.b	$05	;05
+	dc.b	$06	;06
+	dc.b	$F8	;F8
+	dc.b	$EC	;EC
+	dc.b	$F5	;F5
+	dc.b	$FF	;FF
+	dc.b	$06	;06
+	dc.b	$0F	;0F
+	dc.b	$1F	;1F
+	dc.b	$3F	;3F
+	dc.b	$5F	;5F
+	dc.b	$5F	;5F
+	dc.b	$5E	;5E
+	dc.b	$5E	;5E
+	dc.b	$5F	;5F
+	dc.b	$60	;60
+	dc.b	$60	;60
+	dc.b	$5E	;5E
+	dc.b	$5D	;5D
+	dc.b	$5A	;5A
+	dc.b	$58	;58
+	dc.b	$50	;50
+	dc.b	$08	;08
+	dc.b	$CA	;CA
+	dc.b	$BB	;BB
+	dc.b	$B0	;B0
+	dc.b	$9C	;9C
+	dc.b	$95	;95
+	dc.b	$9F	;9F
+	dc.b	$BB	;BB
+	dc.b	$DB	;DB
+	dc.b	$EF	;EF
+	dc.b	$E6	;E6
+	dc.b	$DE	;DE
+	dc.b	$D4	;D4
+	dc.b	$C8	;C8
+	dc.b	$B4	;B4
+	dc.b	$A0	;A0
+	dc.b	$8A	;8A
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$A7	;A7
+	dc.b	$C7	;C7
+	dc.b	$EF	;EF
+	dc.b	$1F	;1F
+	dc.b	$4F	;4F
+	dc.b	$60	;60
+	dc.b	$5D	;5D
+	dc.b	$5D	;5D
+	dc.b	$5E	;5E
+	dc.b	$5F	;5F
+	dc.b	$60	;60
+	dc.b	$5D	;5D
+	dc.b	$5A	;5A
+	dc.b	$54	;54
+	dc.b	$20	;20
+	dc.b	$E8	;E8
+	dc.b	$D4	;D4
+	dc.b	$C8	;C8
+	dc.b	$C2	;C2
+	dc.b	$C7	;C7
+	dc.b	$D3	;D3
+	dc.b	$D7	;D7
+	dc.b	$D7	;D7
+	dc.b	$DF	;DF
+	dc.b	$EF	;EF
+	dc.b	$FE	;FE
+	dc.b	$0A	;0A
+	dc.b	$0F	;0F
+	dc.b	$06	;06
+	dc.b	$F0	;F0
+	dc.b	$D0	;D0
+	dc.b	$B8	;B8
+	dc.b	$AA	;AA
+	dc.b	$AF	;AF
+	dc.b	$B4	;B4
+	dc.b	$BF	;BF
+	dc.b	$E7	;E7
+	dc.b	$0B	;0B
+	dc.b	$27	;27
+	dc.b	$4B	;4B
+	dc.b	$5D	;5D
+	dc.b	$61	;61
+	dc.b	$5F	;5F
+	dc.b	$5E	;5E
+	dc.b	$5E	;5E
+	dc.b	$5F	;5F
+	dc.b	$5C	;5C
+	dc.b	$54	;54
+	dc.b	$30	;30
+	dc.b	$08	;08
+	dc.b	$E0	;E0
+	dc.b	$D4	;D4
+	dc.b	$E2	;E2
+	dc.b	$E6	;E6
+	dc.b	$EE	;EE
+	dc.b	$F7	;F7
+	dc.b	$0B	;0B
+	dc.b	$18	;18
+	dc.b	$10	;10
+	dc.b	$09	;09
+	dc.b	$0B	;0B
+	dc.b	$02	;02
+	dc.b	$EC	;EC
+	dc.b	$DA	;DA
+	dc.b	$D4	;D4
+	dc.b	$C2	;C2
+	dc.b	$A8	;A8
+	dc.b	$98	;98
+	dc.b	$9A	;9A
+	dc.b	$9D	;9D
+	dc.b	$AF	;AF
+	dc.b	$CF	;CF
+	dc.b	$F7	;F7
+	dc.b	$1F	;1F
+	dc.b	$4F	;4F
+	dc.b	$5F	;5F
+	dc.b	$60	;60
+	dc.b	$60	;60
+	dc.b	$5E	;5E
+	dc.b	$5A	;5A
+	dc.b	$57	;57
+	dc.b	$30	;30
+	dc.b	$EC	;EC
+	dc.b	$E7	;E7
+	dc.b	$F6	;F6
+	dc.b	$F4	;F4
+	dc.b	$F2	;F2
+	dc.b	$EA	;EA
+	dc.b	$E1	;E1
+	dc.b	$E5	;E5
+	dc.b	$FF	;FF
+	dc.b	$1F	;1F
+	dc.b	$3F	;3F
+	dc.b	$57	;57
+	dc.b	$5C	;5C
+	dc.b	$4C	;4C
+	dc.b	$20	;20
+	dc.b	$E8	;E8
+	dc.b	$B0	;B0
+	dc.b	$8C	;8C
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$8D	;8D
+	dc.b	$9B	;9B
+	dc.b	$AD	;AD
+	dc.b	$BF	;BF
+	dc.b	$CF	;CF
+	dc.b	$DF	;DF
+	dc.b	$FF	;FF
+	dc.b	$1F	;1F
+	dc.b	$39	;39
+	dc.b	$40	;40
+	dc.b	$30	;30
+	dc.b	$10	;10
+	dc.b	$E0	;E0
+	dc.b	$C4	;C4
+	dc.b	$B2	;B2
+	dc.b	$AE	;AE
+	dc.b	$BF	;BF
+	dc.b	$DF	;DF
+	dc.b	$FF	;FF
+	dc.b	$17	;17
+	dc.b	$2B	;2B
+	dc.b	$3D	;3D
+	dc.b	$4F	;4F
+	dc.b	$59	;59
+	dc.b	$5F	;5F
+	dc.b	$5E	;5E
+	dc.b	$5E	;5E
+	dc.b	$5F	;5F
+	dc.b	$5F	;5F
+	dc.b	$5E	;5E
+	dc.b	$5D	;5D
+	dc.b	$5E	;5E
+	dc.b	$5E	;5E
+	dc.b	$5F	;5F
+	dc.b	$60	;60
+	dc.b	$60	;60
+	dc.b	$5D	;5D
+	dc.b	$59	;59
+	dc.b	$48	;48
+	dc.b	$F0	;F0
+	dc.b	$BD	;BD
+	dc.b	$DF	;DF
+	dc.b	$07	;07
+	dc.b	$00	;00
+	dc.b	$D8	;D8
+	dc.b	$90	;90
+	dc.b	$80	;80
+	dc.b	$87	;87
+	dc.b	$BF	;BF
+	dc.b	$EF	;EF
+	dc.b	$F5	;F5
+	dc.b	$E9	;E9
+	dc.b	$E4	;E4
+	dc.b	$F7	;F7
+	dc.b	$1F	;1F
+	dc.b	$30	;30
+	dc.b	$00	;00
+	dc.b	$B0	;B0
+	dc.b	$80	;80
+	dc.b	$8F	;8F
+	dc.b	$DF	;DF
+	dc.b	$3F	;3F
+	dc.b	$55	;55
+	dc.b	$4C	;4C
+	dc.b	$14	;14
+	dc.b	$FF	;FF
+	dc.b	$37	;37
+	dc.b	$5B	;5B
+	dc.b	$5E	;5E
+	dc.b	$5C	;5C
+	dc.b	$5A	;5A
+	dc.b	$50	;50
+	dc.b	$2A	;2A
+	dc.b	$26	;26
+	dc.b	$20	;20
+	dc.b	$E0	;E0
+	dc.b	$84	;84
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$83	;83
+	dc.b	$A7	;A7
+	dc.b	$A4	;A4
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$9F	;9F
+	dc.b	$E7	;E7
+	dc.b	$09	;09
+	dc.b	$08	;08
+	dc.b	$FC	;FC
+	dc.b	$F7	;F7
+	dc.b	$07	;07
+	dc.b	$1F	;1F
+	dc.b	$37	;37
+	dc.b	$35	;35
+	dc.b	$20	;20
+	dc.b	$1F	;1F
+	dc.b	$4D	;4D
+	dc.b	$5E	;5E
+	dc.b	$5E	;5E
+	dc.b	$5F	;5F
+	dc.b	$60	;60
+	dc.b	$60	;60
+	dc.b	$5D	;5D
+	dc.b	$5D	;5D
+	dc.b	$5E	;5E
+	dc.b	$5E	;5E
+	dc.b	$5D	;5D
+	dc.b	$5C	;5C
+	dc.b	$5A	;5A
+	dc.b	$44	;44
+	dc.b	$10	;10
+	dc.b	$E4	;E4
+	dc.b	$C0	;C0
+	dc.b	$98	;98
+	dc.b	$84	;84
+	dc.b	$8B	;8B
+	dc.b	$99	;99
+	dc.b	$8C	;8C
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$85	;85
+	dc.b	$A7	;A7
+	dc.b	$CF	;CF
+	dc.b	$DA	;DA
+	dc.b	$D0	;D0
+	dc.b	$C8	;C8
+	dc.b	$D3	;D3
+	dc.b	$E7	;E7
+	dc.b	$ED	;ED
+	dc.b	$FF	;FF
+	dc.b	$1D	;1D
+	dc.b	$33	;33
+	dc.b	$4F	;4F
+	dc.b	$5F	;5F
+	dc.b	$5F	;5F
+	dc.b	$60	;60
+	dc.b	$60	;60
+	dc.b	$5E	;5E
+	dc.b	$5D	;5D
+	dc.b	$5D	;5D
+	dc.b	$5F	;5F
+	dc.b	$5E	;5E
+	dc.b	$5C	;5C
+	dc.b	$5A	;5A
+	dc.b	$48	;48
+	dc.b	$18	;18
+	dc.b	$04	;04
+	dc.b	$04	;04
+	dc.b	$00	;00
+	dc.b	$F0	;F0
+	dc.b	$ED	;ED
+	dc.b	$F6	;F6
+	dc.b	$EA	;EA
+	dc.b	$D8	;D8
+	dc.b	$D4	;D4
+	dc.b	$C0	;C0
+	dc.b	$A4	;A4
+	dc.b	$9A	;9A
+	dc.b	$9C	;9C
+	dc.b	$91	;91
+	dc.b	$86	;86
+	dc.b	$81	;81
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$8F	;8F
+	dc.b	$AF	;AF
+	dc.b	$CF	;CF
+	dc.b	$F7	;F7
+	dc.b	$1F	;1F
+	dc.b	$33	;33
+	dc.b	$47	;47
+	dc.b	$57	;57
+	dc.b	$59	;59
+	dc.b	$56	;56
+	dc.b	$5B	;5B
+	dc.b	$5D	;5D
+	dc.b	$5C	;5C
+	dc.b	$52	;52
+	dc.b	$40	;40
+	dc.b	$18	;18
+	dc.b	$00	;00
+	dc.b	$F2	;F2
+	dc.b	$EA	;EA
+	dc.b	$EC	;EC
+	dc.b	$EE	;EE
+	dc.b	$E4	;E4
+	dc.b	$D2	;D2
+	dc.b	$C0	;C0
+	dc.b	$AA	;AA
+	dc.b	$94	;94
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$85	;85
+	dc.b	$9F	;9F
+	dc.b	$BF	;BF
+	dc.b	$EF	;EF
+	dc.b	$13	;13
+	dc.b	$2B	;2B
+	dc.b	$3F	;3F
+	dc.b	$57	;57
+	dc.b	$5F	;5F
+	dc.b	$5F	;5F
+	dc.b	$60	;60
+	dc.b	$5E	;5E
+	dc.b	$5D	;5D
+	dc.b	$5E	;5E
+	dc.b	$5F	;5F
+	dc.b	$60	;60
+	dc.b	$60	;60
+	dc.b	$5E	;5E
+	dc.b	$5D	;5D
+	dc.b	$5C	;5C
+	dc.b	$5A	;5A
+	dc.b	$59	;59
+	dc.b	$50	;50
+	dc.b	$18	;18
+	dc.b	$E0	;E0
+	dc.b	$A8	;A8
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$9F	;9F
+	dc.b	$B6	;B6
+	dc.b	$BB	;BB
+	dc.b	$C1	;C1
+	dc.b	$B8	;B8
+	dc.b	$A0	;A0
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$87	;87
+	dc.b	$A7	;A7
+	dc.b	$CF	;CF
+	dc.b	$E7	;E7
+	dc.b	$FD	;FD
+	dc.b	$1F	;1F
+	dc.b	$4B	;4B
+	dc.b	$5E	;5E
+	dc.b	$5E	;5E
+	dc.b	$5F	;5F
+	dc.b	$5F	;5F
+	dc.b	$60	;60
+	dc.b	$5D	;5D
+	dc.b	$59	;59
+	dc.b	$50	;50
+	dc.b	$00	;00
+	dc.b	$C4	;C4
+	dc.b	$B1	;B1
+	dc.b	$AC	;AC
+	dc.b	$A5	;A5
+	dc.b	$9D	;9D
+	dc.b	$94	;94
+	dc.b	$8C	;8C
+	dc.b	$8D	;8D
+	dc.b	$97	;97
+	dc.b	$BF	;BF
+	dc.b	$E5	;E5
+	dc.b	$F7	;F7
+	dc.b	$FF	;FF
+	dc.b	$07	;07
+	dc.b	$02	;02
+	dc.b	$EC	;EC
+	dc.b	$DA	;DA
+	dc.b	$DF	;DF
+	dc.b	$FF	;FF
+	dc.b	$1B	;1B
+	dc.b	$3F	;3F
+	dc.b	$5E	;5E
+	dc.b	$5E	;5E
+	dc.b	$5E	;5E
+	dc.b	$5F	;5F
+	dc.b	$60	;60
+	dc.b	$60	;60
+	dc.b	$5D	;5D
+	dc.b	$5D	;5D
+	dc.b	$5E	;5E
+	dc.b	$5C	;5C
+	dc.b	$5B	;5B
+	dc.b	$5A	;5A
+	dc.b	$40	;40
+	dc.b	$E4	;E4
+	dc.b	$C0	;C0
+	dc.b	$A3	;A3
+	dc.b	$A7	;A7
+	dc.b	$BF	;BF
+	dc.b	$BD	;BD
+	dc.b	$B9	;B9
+	dc.b	$BC	;BC
+	dc.b	$BC	;BC
+	dc.b	$B8	;B8
+	dc.b	$B0	;B0
+	dc.b	$A0	;A0
+	dc.b	$90	;90
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$8F	;8F
+	dc.b	$BF	;BF
+	dc.b	$F7	;F7
+	dc.b	$2F	;2F
+	dc.b	$5A	;5A
+	dc.b	$5D	;5D
+	dc.b	$5D	;5D
+	dc.b	$5F	;5F
+	dc.b	$5F	;5F
+	dc.b	$60	;60
+	dc.b	$5E	;5E
+	dc.b	$5C	;5C
+	dc.b	$59	;59
+	dc.b	$59	;59
+	dc.b	$44	;44
+	dc.b	$1A	;1A
+	dc.b	$0E	;0E
+	dc.b	$0A	;0A
+	dc.b	$02	;02
+	dc.b	$0D	;0D
+	dc.b	$2B	;2B
+	dc.b	$34	;34
+	dc.b	$31	;31
+	dc.b	$37	;37
+	dc.b	$30	;30
+	dc.b	$08	;08
+	dc.b	$D8	;D8
+	dc.b	$C0	;C0
+	dc.b	$A2	;A2
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$9F	;9F
+	dc.b	$BB	;BB
+	dc.b	$EB	;EB
+	dc.b	$2B	;2B
+	dc.b	$55	;55
+	dc.b	$5D	;5D
+	dc.b	$5E	;5E
+	dc.b	$5E	;5E
+	dc.b	$5F	;5F
+	dc.b	$5B	;5B
+	dc.b	$54	;54
+	dc.b	$40	;40
+	dc.b	$28	;28
+	dc.b	$1A	;1A
+	dc.b	$17	;17
+	dc.b	$27	;27
+	dc.b	$2E	;2E
+	dc.b	$2F	;2F
+	dc.b	$3F	;3F
+	dc.b	$59	;59
+	dc.b	$5E	;5E
+	dc.b	$5E	;5E
+	dc.b	$60	;60
+	dc.b	$5D	;5D
+	dc.b	$50	;50
+	dc.b	$22	;22
+	dc.b	$04	;04
+	dc.b	$E0	;E0
+	dc.b	$B0	;B0
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$8F	;8F
+	dc.b	$9A	;9A
+	dc.b	$B7	;B7
+	dc.b	$EF	;EF
+	dc.b	$0F	;0F
+	dc.b	$1F	;1F
+	dc.b	$3F	;3F
+	dc.b	$53	;53
+	dc.b	$59	;59
+	dc.b	$50	;50
+	dc.b	$34	;34
+	dc.b	$20	;20
+	dc.b	$10	;10
+	dc.b	$F0	;F0
+	dc.b	$EF	;EF
+	dc.b	$1F	;1F
+	dc.b	$2E	;2E
+	dc.b	$37	;37
+	dc.b	$42	;42
+	dc.b	$44	;44
+	dc.b	$38	;38
+	dc.b	$2C	;2C
+	dc.b	$2A	;2A
+	dc.b	$20	;20
+	dc.b	$04	;04
+	dc.b	$D4	;D4
+	dc.b	$B0	;B0
+	dc.b	$88	;88
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$9F	;9F
+	dc.b	$BF	;BF
+	dc.b	$DF	;DF
+	dc.b	$FF	;FF
+	dc.b	$17	;17
+	dc.b	$2F	;2F
+	dc.b	$4F	;4F
+	dc.b	$5E	;5E
+	dc.b	$5D	;5D
+	dc.b	$5E	;5E
+	dc.b	$5F	;5F
+	dc.b	$5F	;5F
+	dc.b	$60	;60
+	dc.b	$5E	;5E
+	dc.b	$5D	;5D
+	dc.b	$5E	;5E
+	dc.b	$5F	;5F
+	dc.b	$5F	;5F
+	dc.b	$61	;61
+	dc.b	$5F	;5F
+	dc.b	$5E	;5E
+	dc.b	$5D	;5D
+	dc.b	$59	;59
+	dc.b	$59	;59
+	dc.b	$30	;30
+	dc.b	$D8	;D8
+	dc.b	$A8	;A8
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$97	;97
+	dc.b	$AF	;AF
+	dc.b	$C3	;C3
+	dc.b	$C0	;C0
+	dc.b	$A4	;A4
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$9B	;9B
+	dc.b	$CF	;CF
+	dc.b	$F7	;F7
+	dc.b	$17	;17
+	dc.b	$3F	;3F
+	dc.b	$5F	;5F
+	dc.b	$60	;60
+	dc.b	$5D	;5D
+	dc.b	$5D	;5D
+	dc.b	$5E	;5E
+	dc.b	$5F	;5F
+	dc.b	$60	;60
+	dc.b	$60	;60
+	dc.b	$5D	;5D
+	dc.b	$58	;58
+	dc.b	$50	;50
+	dc.b	$00	;00
+	dc.b	$90	;90
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$97	;97
+	dc.b	$BF	;BF
+	dc.b	$E5	;E5
+	dc.b	$E4	;E4
+	dc.b	$C8	;C8
+	dc.b	$AC	;AC
+	dc.b	$A7	;A7
+	dc.b	$A5	;A5
+	dc.b	$A1	;A1
+	dc.b	$A7	;A7
+	dc.b	$CF	;CF
+	dc.b	$FF	;FF
+	dc.b	$27	;27
+	dc.b	$55	;55
+	dc.b	$5F	;5F
+	dc.b	$60	;60
+	dc.b	$60	;60
+	dc.b	$5E	;5E
+	dc.b	$5E	;5E
+	dc.b	$5E	;5E
+	dc.b	$5F	;5F
+	dc.b	$60	;60
+	dc.b	$60	;60
+	dc.b	$5E	;5E
+	dc.b	$5D	;5D
+	dc.b	$5A	;5A
+	dc.b	$59	;59
+	dc.b	$58	;58
+	dc.b	$10	;10
+	dc.b	$B0	;B0
+	dc.b	$94	;94
+	dc.b	$8D	;8D
+	dc.b	$8F	;8F
+	dc.b	$89	;89
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$87	;87
+	dc.b	$8C	;8C
+	dc.b	$8A	;8A
+	dc.b	$8C	;8C
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$9F	;9F
+	dc.b	$DF	;DF
+	dc.b	$1F	;1F
+	dc.b	$55	;55
+	dc.b	$5F	;5F
+	dc.b	$5E	;5E
+	dc.b	$5D	;5D
+	dc.b	$5E	;5E
+	dc.b	$5F	;5F
+	dc.b	$5F	;5F
+	dc.b	$5F	;5F
+	dc.b	$5F	;5F
+	dc.b	$5C	;5C
+	dc.b	$59	;59
+	dc.b	$59	;59
+	dc.b	$50	;50
+	dc.b	$2A	;2A
+	dc.b	$12	;12
+	dc.b	$02	;02
+	dc.b	$FE	;FE
+	dc.b	$00	;00
+	dc.b	$FC	;FC
+	dc.b	$F2	;F2
+	dc.b	$E8	;E8
+	dc.b	$D8	;D8
+	dc.b	$C0	;C0
+	dc.b	$88	;88
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$B7	;B7
+	dc.b	$EB	;EB
+	dc.b	$1F	;1F
+	dc.b	$4F	;4F
+	dc.b	$5F	;5F
+	dc.b	$5F	;5F
+	dc.b	$5E	;5E
+	dc.b	$5D	;5D
+	dc.b	$5E	;5E
+	dc.b	$5F	;5F
+	dc.b	$5F	;5F
+	dc.b	$60	;60
+	dc.b	$5E	;5E
+	dc.b	$5D	;5D
+	dc.b	$5C	;5C
+	dc.b	$5B	;5B
+	dc.b	$5B	;5B
+	dc.b	$5C	;5C
+	dc.b	$50	;50
+	dc.b	$3C	;3C
+	dc.b	$30	;30
+	dc.b	$20	;20
+	dc.b	$0A	;0A
+	dc.b	$F4	;F4
+	dc.b	$D4	;D4
+	dc.b	$A0	;A0
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$97	;97
+	dc.b	$BD	;BD
+	dc.b	$D7	;D7
+	dc.b	$EF	;EF
+	dc.b	$07	;07
+	dc.b	$13	;13
+	dc.b	$17	;17
+	dc.b	$1B	;1B
+	dc.b	$2B	;2B
+	dc.b	$3F	;3F
+	dc.b	$4F	;4F
+	dc.b	$5D	;5D
+	dc.b	$5E	;5E
+	dc.b	$5D	;5D
+	dc.b	$5D	;5D
+	dc.b	$59	;59
+	dc.b	$4A	;4A
+	dc.b	$47	;47
+	dc.b	$4B	;4B
+	dc.b	$44	;44
+	dc.b	$34	;34
+	dc.b	$22	;22
+	dc.b	$0C	;0C
+	dc.b	$F8	;F8
+	dc.b	$E0	;E0
+	dc.b	$D2	;D2
+	dc.b	$D7	;D7
+	dc.b	$E1	;E1
+	dc.b	$EF	;EF
+	dc.b	$0F	;0F
+	dc.b	$2F	;2F
+	dc.b	$47	;47
+	dc.b	$4F	;4F
+	dc.b	$5F	;5F
+	dc.b	$60	;60
+	dc.b	$5E	;5E
+	dc.b	$5E	;5E
+	dc.b	$5E	;5E
+	dc.b	$5F	;5F
+	dc.b	$60	;60
+	dc.b	$60	;60
+	dc.b	$5D	;5D
+	dc.b	$58	;58
+	dc.b	$50	;50
+	dc.b	$10	;10
+	dc.b	$EC	;EC
+	dc.b	$FF	;FF
+	dc.b	$18	;18
+	dc.b	$0C	;0C
+	dc.b	$00	;00
+	dc.b	$F0	;F0
+	dc.b	$ED	;ED
+	dc.b	$FF	;FF
+	dc.b	$2B	;2B
+	dc.b	$38	;38
+	dc.b	$34	;34
+	dc.b	$37	;37
+	dc.b	$30	;30
+	dc.b	$18	;18
+	dc.b	$F4	;F4
+	dc.b	$D0	;D0
+	dc.b	$90	;90
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$8B	;8B
+	dc.b	$B7	;B7
+	dc.b	$DF	;DF
+	dc.b	$FB	;FB
+	dc.b	$15	;15
+	dc.b	$27	;27
+	dc.b	$37	;37
+	dc.b	$57	;57
+	dc.b	$5D	;5D
+	dc.b	$5C	;5C
+	dc.b	$58	;58
+	dc.b	$38	;38
+	dc.b	$08	;08
+	dc.b	$E8	;E8
+	dc.b	$C8	;C8
+	dc.b	$B0	;B0
+	dc.b	$90	;90
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$9B	;9B
+	dc.b	$AE	;AE
+	dc.b	$C7	;C7
+	dc.b	$DF	;DF
+	dc.b	$FF	;FF
+	dc.b	$1F	;1F
+	dc.b	$3F	;3F
+	dc.b	$56	;56
+	dc.b	$58	;58
+	dc.b	$40	;40
+	dc.b	$20	;20
+	dc.b	$0C	;0C
+	dc.b	$08	;08
+	dc.b	$03	;03
+	dc.b	$04	;04
+	dc.b	$09	;09
+	dc.b	$15	;15
+	dc.b	$2F	;2F
+	dc.b	$4F	;4F
+	dc.b	$5E	;5E
+	dc.b	$5F	;5F
+	dc.b	$5F	;5F
+	dc.b	$60	;60
+	dc.b	$5F	;5F
+	dc.b	$5E	;5E
+	dc.b	$5E	;5E
+	dc.b	$5E	;5E
+	dc.b	$5C	;5C
+	dc.b	$5B	;5B
+	dc.b	$5A	;5A
+	dc.b	$30	;30
+	dc.b	$E8	;E8
+	dc.b	$CC	;CC
+	dc.b	$C1	;C1
+	dc.b	$B2	;B2
+	dc.b	$AF	;AF
+	dc.b	$C7	;C7
+	dc.b	$D7	;D7
+	dc.b	$EB	;EB
+	dc.b	$FB	;FB
+	dc.b	$FA	;FA
+	dc.b	$FF	;FF
+	dc.b	$07	;07
+	dc.b	$0D	;0D
+	dc.b	$0E	;0E
+	dc.b	$06	;06
+	dc.b	$F4	;F4
+	dc.b	$D8	;D8
+	dc.b	$D4	;D4
+	dc.b	$DD	;DD
+	dc.b	$E5	;E5
+	dc.b	$EF	;EF
+	dc.b	$FF	;FF
+	dc.b	$1F	;1F
+	dc.b	$3F	;3F
+	dc.b	$57	;57
+	dc.b	$5F	;5F
+	dc.b	$5F	;5F
+	dc.b	$60	;60
+	dc.b	$60	;60
+	dc.b	$5D	;5D
+	dc.b	$5B	;5B
+	dc.b	$5A	;5A
+	dc.b	$54	;54
+	dc.b	$28	;28
+	dc.b	$04	;04
+	dc.b	$F8	;F8
+	dc.b	$F0	;F0
+	dc.b	$EF	;EF
+	dc.b	$F4	;F4
+	dc.b	$F1	;F1
+	dc.b	$F6	;F6
+	dc.b	$FC	;FC
+	dc.b	$FE	;FE
+	dc.b	$FF	;FF
+	dc.b	$FD	;FD
+	dc.b	$F8	;F8
+	dc.b	$E8	;E8
+	dc.b	$CC	;CC
+	dc.b	$BA	;BA
+	dc.b	$B0	;B0
+	dc.b	$94	;94
+	dc.b	$82	;82
+	dc.b	$8A	;8A
+	dc.b	$8E	;8E
+	dc.b	$95	;95
+	dc.b	$AF	;AF
+	dc.b	$D3	;D3
+	dc.b	$DF	;DF
+	dc.b	$EF	;EF
+	dc.b	$03	;03
+	dc.b	$03	;03
+	dc.b	$03	;03
+	dc.b	$0A	;0A
+	dc.b	$0B	;0B
+	dc.b	$13	;13
+	dc.b	$25	;25
+	dc.b	$3D	;3D
+	dc.b	$56	;56
+	dc.b	$5D	;5D
+	dc.b	$5E	;5E
+	dc.b	$5A	;5A
+	dc.b	$40	;40
+	dc.b	$22	;22
+	dc.b	$14	;14
+	dc.b	$1F	;1F
+	dc.b	$35	;35
+	dc.b	$3D	;3D
+	dc.b	$40	;40
+	dc.b	$3A	;3A
+	dc.b	$20	;20
+	dc.b	$00	;00
+	dc.b	$C0	;C0
+	dc.b	$A4	;A4
+	dc.b	$A7	;A7
+	dc.b	$BD	;BD
+	dc.b	$CB	;CB
+	dc.b	$D7	;D7
+	dc.b	$C4	;C4
+	dc.b	$90	;90
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$83	;83
+	dc.b	$9B	;9B
+	dc.b	$A0	;A0
+	dc.b	$98	;98
+	dc.b	$8E	;8E
+	dc.b	$8E	;8E
+	dc.b	$8F	;8F
+	dc.b	$95	;95
+	dc.b	$9F	;9F
+	dc.b	$AD	;AD
+	dc.b	$CB	;CB
+	dc.b	$F7	;F7
+	dc.b	$1B	;1B
+	dc.b	$20	;20
+	dc.b	$12	;12
+	dc.b	$04	;04
+	dc.b	$FC	;FC
+	dc.b	$0F	;0F
+	dc.b	$37	;37
+	dc.b	$4F	;4F
+	dc.b	$5C	;5C
+	dc.b	$58	;58
+	dc.b	$40	;40
+	dc.b	$22	;22
+	dc.b	$1F	;1F
+	dc.b	$2D	;2D
+	dc.b	$3B	;3B
+	dc.b	$4F	;4F
+	dc.b	$5F	;5F
+	dc.b	$5E	;5E
+	dc.b	$5E	;5E
+	dc.b	$5F	;5F
+	dc.b	$60	;60
+	dc.b	$60	;60
+	dc.b	$5D	;5D
+	dc.b	$5E	;5E
+	dc.b	$5E	;5E
+	dc.b	$5F	;5F
+	dc.b	$60	;60
+	dc.b	$60	;60
+	dc.b	$5B	;5B
+	dc.b	$57	;57
+	dc.b	$40	;40
+	dc.b	$D0	;D0
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$8B	;8B
+	dc.b	$A7	;A7
+	dc.b	$BF	;BF
+	dc.b	$CD	;CD
+	dc.b	$D3	;D3
+	dc.b	$D4	;D4
+	dc.b	$DF	;DF
+	dc.b	$FF	;FF
+	dc.b	$0F	;0F
+	dc.b	$08	;08
+	dc.b	$F8	;F8
+	dc.b	$D8	;D8
+	dc.b	$A8	;A8
+	dc.b	$8F	;8F
+	dc.b	$9F	;9F
+	dc.b	$BF	;BF
+	dc.b	$EF	;EF
+	dc.b	$2F	;2F
+	dc.b	$57	;57
+	dc.b	$5F	;5F
+	dc.b	$60	;60
+	dc.b	$60	;60
+	dc.b	$5E	;5E
+	dc.b	$5D	;5D
+	dc.b	$5E	;5E
+	dc.b	$5D	;5D
+	dc.b	$5D	;5D
+	dc.b	$5B	;5B
+	dc.b	$50	;50
+	dc.b	$00	;00
+	dc.b	$90	;90
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$8F	;8F
+	dc.b	$AF	;AF
+	dc.b	$CB	;CB
+	dc.b	$D8	;D8
+	dc.b	$D0	;D0
+	dc.b	$C1	;C1
+	dc.b	$B8	;B8
+	dc.b	$C5	;C5
+	dc.b	$CA	;CA
+	dc.b	$CA	;CA
+	dc.b	$D3	;D3
+	dc.b	$E3	;E3
+	dc.b	$E0	;E0
+	dc.b	$D9	;D9
+	dc.b	$EF	;EF
+	dc.b	$2F	;2F
+	dc.b	$5B	;5B
+	dc.b	$5F	;5F
+	dc.b	$5F	;5F
+	dc.b	$5F	;5F
+	dc.b	$60	;60
+	dc.b	$60	;60
+	dc.b	$60	;60
+	dc.b	$5D	;5D
+	dc.b	$5B	;5B
+	dc.b	$58	;58
+	dc.b	$50	;50
+	dc.b	$20	;20
+	dc.b	$00	;00
+	dc.b	$E8	;E8
+	dc.b	$C0	;C0
+	dc.b	$AA	;AA
+	dc.b	$B1	;B1
+	dc.b	$AE	;AE
+	dc.b	$AF	;AF
+	dc.b	$C7	;C7
+	dc.b	$DD	;DD
+	dc.b	$EE	;EE
+	dc.b	$E0	;E0
+	dc.b	$C0	;C0
+	dc.b	$A0	;A0
+	dc.b	$8E	;8E
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$9F	;9F
+	dc.b	$CF	;CF
+	dc.b	$D9	;D9
+	dc.b	$DD	;DD
+	dc.b	$0F	;0F
+	dc.b	$4F	;4F
+	dc.b	$55	;55
+	dc.b	$5F	;5F
+	dc.b	$5E	;5E
+	dc.b	$5E	;5E
+	dc.b	$5F	;5F
+	dc.b	$60	;60
+	dc.b	$60	;60
+	dc.b	$5D	;5D
+	dc.b	$58	;58
+	dc.b	$50	;50
+	dc.b	$34	;34
+	dc.b	$34	;34
+	dc.b	$18	;18
+	dc.b	$EA	;EA
+	dc.b	$FF	;FF
+	dc.b	$24	;24
+	dc.b	$E4	;E4
+	dc.b	$B4	;B4
+	dc.b	$DB	;DB
+	dc.b	$FF	;FF
+	dc.b	$D8	;D8
+	dc.b	$B3	;B3
+	dc.b	$BF	;BF
+	dc.b	$C0	;C0
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$9F	;9F
+	dc.b	$BB	;BB
+	dc.b	$CB	;CB
+	dc.b	$F7	;F7
+	dc.b	$1B	;1B
+	dc.b	$2F	;2F
+	dc.b	$47	;47
+	dc.b	$5D	;5D
+	dc.b	$5E	;5E
+	dc.b	$5F	;5F
+	dc.b	$5F	;5F
+	dc.b	$5D	;5D
+	dc.b	$5E	;5E
+	dc.b	$5C	;5C
+	dc.b	$52	;52
+	dc.b	$38	;38
+	dc.b	$33	;33
+	dc.b	$4F	;4F
+	dc.b	$54	;54
+	dc.b	$48	;48
+	dc.b	$42	;42
+	dc.b	$4B	;4B
+	dc.b	$4C	;4C
+	dc.b	$28	;28
+	dc.b	$00	;00
+	dc.b	$EE	;EE
+	dc.b	$E0	;E0
+	dc.b	$A0	;A0
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$93	;93
+	dc.b	$B7	;B7
+	dc.b	$DB	;DB
+	dc.b	$EB	;EB
+	dc.b	$F3	;F3
+	dc.b	$0F	;0F
+	dc.b	$25	;25
+	dc.b	$2F	;2F
+	dc.b	$3F	;3F
+	dc.b	$5E	;5E
+	dc.b	$5E	;5E
+	dc.b	$5E	;5E
+	dc.b	$5F	;5F
+	dc.b	$60	;60
+	dc.b	$60	;60
+	dc.b	$5D	;5D
+	dc.b	$5D	;5D
+	dc.b	$5E	;5E
+	dc.b	$5F	;5F
+	dc.b	$60	;60
+	dc.b	$60	;60
+	dc.b	$5D	;5D
+	dc.b	$5D	;5D
+	dc.b	$5E	;5E
+	dc.b	$5F	;5F
+	dc.b	$5F	;5F
+	dc.b	$5F	;5F
+	dc.b	$5A	;5A
+	dc.b	$54	;54
+	dc.b	$00	;00
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$87	;87
+	dc.b	$AF	;AF
+	dc.b	$DB	;DB
+	dc.b	$E8	;E8
+	dc.b	$E0	;E0
+	dc.b	$C8	;C8
+	dc.b	$BD	;BD
+	dc.b	$DF	;DF
+	dc.b	$37	;37
+	dc.b	$5B	;5B
+	dc.b	$5E	;5E
+	dc.b	$5E	;5E
+	dc.b	$5F	;5F
+	dc.b	$60	;60
+	dc.b	$60	;60
+	dc.b	$5E	;5E
+	dc.b	$5D	;5D
+	dc.b	$5D	;5D
+	dc.b	$5C	;5C
+	dc.b	$5B	;5B
+	dc.b	$5A	;5A
+	dc.b	$40	;40
+	dc.b	$D0	;D0
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$87	;87
+	dc.b	$8D	;8D
+	dc.b	$95	;95
+	dc.b	$9F	;9F
+	dc.b	$AB	;AB
+	dc.b	$BE	;BE
+	dc.b	$C7	;C7
+	dc.b	$C4	;C4
+	dc.b	$C6	;C6
+	dc.b	$CB	;CB
+	dc.b	$C5	;C5
+	dc.b	$B8	;B8
+	dc.b	$A2	;A2
+	dc.b	$99	;99
+	dc.b	$B7	;B7
+	dc.b	$FF	;FF
+	dc.b	$4F	;4F
+	dc.b	$5E	;5E
+	dc.b	$5E	;5E
+	dc.b	$5F	;5F
+	dc.b	$5F	;5F
+	dc.b	$60	;60
+	dc.b	$60	;60
+	dc.b	$5D	;5D
+	dc.b	$5D	;5D
+	dc.b	$5B	;5B
+	dc.b	$59	;59
+	dc.b	$50	;50
+	dc.b	$00	;00
+	dc.b	$B4	;B4
+	dc.b	$A4	;A4
+	dc.b	$A6	;A6
+	dc.b	$AB	;AB
+	dc.b	$CF	;CF
+	dc.b	$0F	;0F
+	dc.b	$2F	;2F
+	dc.b	$3D	;3D
+	dc.b	$3A	;3A
+	dc.b	$24	;24
+	dc.b	$F0	;F0
+	dc.b	$D0	;D0
+	dc.b	$C8	;C8
+	dc.b	$C0	;C0
+	dc.b	$B2	;B2
+	dc.b	$88	;88
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$9F	;9F
+	dc.b	$DF	;DF
+	dc.b	$1F	;1F
+	dc.b	$55	;55
+	dc.b	$5E	;5E
+	dc.b	$5D	;5D
+	dc.b	$5E	;5E
+	dc.b	$5F	;5F
+	dc.b	$5F	;5F
+	dc.b	$60	;60
+	dc.b	$5D	;5D
+	dc.b	$5D	;5D
+	dc.b	$5D	;5D
+	dc.b	$5B	;5B
+	dc.b	$5B	;5B
+	dc.b	$54	;54
+	dc.b	$40	;40
+	dc.b	$4F	;4F
+	dc.b	$58	;58
+	dc.b	$48	;48
+	dc.b	$47	;47
+	dc.b	$59	;59
+	dc.b	$50	;50
+	dc.b	$30	;30
+	dc.b	$18	;18
+	dc.b	$F0	;F0
+	dc.b	$A0	;A0
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$87	;87
+	dc.b	$B7	;B7
+	dc.b	$F7	;F7
+	dc.b	$1F	;1F
+	dc.b	$35	;35
+	dc.b	$3D	;3D
+	dc.b	$41	;41
+	dc.b	$38	;38
+	dc.b	$35	;35
+	dc.b	$3F	;3F
+	dc.b	$53	;53
+	dc.b	$5B	;5B
+	dc.b	$5E	;5E
+	dc.b	$5D	;5D
+	dc.b	$50	;50
+	dc.b	$38	;38
+	dc.b	$24	;24
+	dc.b	$18	;18
+	dc.b	$0A	;0A
+	dc.b	$00	;00
+	dc.b	$F5	;F5
+	dc.b	$EC	;EC
+	dc.b	$D0	;D0
+	dc.b	$A8	;A8
+	dc.b	$84	;84
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$8B	;8B
+	dc.b	$9F	;9F
+	dc.b	$B9	;B9
+	dc.b	$CB	;CB
+	dc.b	$EF	;EF
+	dc.b	$0D	;0D
+	dc.b	$1F	;1F
+	dc.b	$47	;47
+	dc.b	$5B	;5B
+	dc.b	$5E	;5E
+	dc.b	$5F	;5F
+	dc.b	$60	;60
+	dc.b	$5F	;5F
+	dc.b	$5E	;5E
+	dc.b	$5E	;5E
+	dc.b	$5E	;5E
+	dc.b	$5F	;5F
+	dc.b	$60	;60
+	dc.b	$60	;60
+	dc.b	$5D	;5D
+	dc.b	$5D	;5D
+	dc.b	$5E	;5E
+	dc.b	$5F	;5F
+	dc.b	$5F	;5F
+	dc.b	$60	;60
+	dc.b	$5C	;5C
+	dc.b	$58	;58
+	dc.b	$50	;50
+	dc.b	$E0	;E0
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$9F	;9F
+	dc.b	$B1	;B1
+	dc.b	$BB	;BB
+	dc.b	$C8	;C8
+	dc.b	$C6	;C6
+	dc.b	$C1	;C1
+	dc.b	$C3	;C3
+	dc.b	$C4	;C4
+	dc.b	$AC	;AC
+	dc.b	$88	;88
+	dc.b	$80	;80
+	dc.b	$81	;81
+	dc.b	$AF	;AF
+	dc.b	$E7	;E7
+	dc.b	$17	;17
+	dc.b	$3B	;3B
+	dc.b	$5B	;5B
+	dc.b	$5F	;5F
+	dc.b	$60	;60
+	dc.b	$5E	;5E
+	dc.b	$5E	;5E
+	dc.b	$5D	;5D
+	dc.b	$5C	;5C
+	dc.b	$5A	;5A
+	dc.b	$58	;58
+	dc.b	$20	;20
+	dc.b	$D0	;D0
+	dc.b	$90	;90
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$95	;95
+	dc.b	$AB	;AB
+	dc.b	$BF	;BF
+	dc.b	$DF	;DF
+	dc.b	$F6	;F6
+	dc.b	$03	;03
+	dc.b	$0B	;0B
+	dc.b	$06	;06
+	dc.b	$F8	;F8
+	dc.b	$EA	;EA
+	dc.b	$E0	;E0
+	dc.b	$DA	;DA
+	dc.b	$CC	;CC
+	dc.b	$C2	;C2
+	dc.b	$CB	;CB
+	dc.b	$DF	;DF
+	dc.b	$17	;17
+	dc.b	$4F	;4F
+	dc.b	$5F	;5F
+	dc.b	$5F	;5F
+	dc.b	$60	;60
+	dc.b	$60	;60
+	dc.b	$60	;60
+	dc.b	$5D	;5D
+	dc.b	$5D	;5D
+	dc.b	$5E	;5E
+	dc.b	$5D	;5D
+	dc.b	$5E	;5E
+	dc.b	$5F	;5F
+	dc.b	$5E	;5E
+	dc.b	$5A	;5A
+	dc.b	$57	;57
+	dc.b	$28	;28
+	dc.b	$C0	;C0
+	dc.b	$A7	;A7
+	dc.b	$C5	;C5
+	dc.b	$C5	;C5
+	dc.b	$CB	;CB
+	dc.b	$E7	;E7
+	dc.b	$D0	;D0
+	dc.b	$A0	;A0
+	dc.b	$8D	;8D
+	dc.b	$9B	;9B
+	dc.b	$A2	;A2
+	dc.b	$84	;84
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$8D	;8D
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$9F	;9F
+	dc.b	$A0	;A0
+	dc.b	$9C	;9C
+	dc.b	$BF	;BF
+	dc.b	$FF	;FF
+	dc.b	$4B	;4B
+	dc.b	$5B	;5B
+	dc.b	$5F	;5F
+	dc.b	$60	;60
+	dc.b	$5D	;5D
+	dc.b	$5D	;5D
+	dc.b	$5E	;5E
+	dc.b	$5F	;5F
+	dc.b	$5F	;5F
+	dc.b	$5C	;5C
+	dc.b	$5C	;5C
+	dc.b	$5A	;5A
+	dc.b	$50	;50
+	dc.b	$2A	;2A
+	dc.b	$04	;04
+	dc.b	$F9	;F9
+	dc.b	$FB	;FB
+	dc.b	$FF	;FF
+	dc.b	$03	;03
+	dc.b	$03	;03
+	dc.b	$00	;00
+	dc.b	$E8	;E8
+	dc.b	$C0	;C0
+	dc.b	$A1	;A1
+	dc.b	$A2	;A2
+	dc.b	$98	;98
+	dc.b	$84	;84
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$97	;97
+	dc.b	$CB	;CB
+	dc.b	$EF	;EF
+	dc.b	$1F	;1F
+	dc.b	$4F	;4F
+	dc.b	$5E	;5E
+	dc.b	$5F	;5F
+	dc.b	$5F	;5F
+	dc.b	$60	;60
+	dc.b	$5D	;5D
+	dc.b	$5B	;5B
+	dc.b	$5B	;5B
+	dc.b	$5C	;5C
+	dc.b	$5E	;5E
+	dc.b	$5E	;5E
+	dc.b	$54	;54
+	dc.b	$40	;40
+	dc.b	$4B	;4B
+	dc.b	$5B	;5B
+	dc.b	$5D	;5D
+	dc.b	$5F	;5F
+	dc.b	$5E	;5E
+	dc.b	$5E	;5E
+	dc.b	$5B	;5B
+	dc.b	$58	;58
+	dc.b	$30	;30
+	dc.b	$F0	;F0
+	dc.b	$B0	;B0
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$8F	;8F
+	dc.b	$BF	;BF
+	dc.b	$CB	;CB
+	dc.b	$CF	;CF
+	dc.b	$DF	;DF
+	dc.b	$EC	;EC
+	dc.b	$E8	;E8
+	dc.b	$D8	;D8
+	dc.b	$C6	;C6
+	dc.b	$BE	;BE
+	dc.b	$BF	;BF
+	dc.b	$CF	;CF
+	dc.b	$E7	;E7
+	dc.b	$FB	;FB
+	dc.b	$00	;00
+	dc.b	$F6	;F6
+	dc.b	$F0	;F0
+	dc.b	$FB	;FB
+	dc.b	$0F	;0F
+	dc.b	$22	;22
+	dc.b	$18	;18
+	dc.b	$00	;00
+	dc.b	$E8	;E8
+	dc.b	$D0	;D0
+	dc.b	$B8	;B8
+	dc.b	$A5	;A5
+	dc.b	$A7	;A7
+	dc.b	$B1	;B1
+	dc.b	$B9	;B9
+	dc.b	$C7	;C7
+	dc.b	$EB	;EB
+	dc.b	$15	;15
+	dc.b	$20	;20
+	dc.b	$21	;21
+	dc.b	$37	;37
+	dc.b	$4F	;4F
+	dc.b	$5B	;5B
+	dc.b	$61	;61
+	dc.b	$5F	;5F
+	dc.b	$5E	;5E
+	dc.b	$5E	;5E
+	dc.b	$5F	;5F
+	dc.b	$60	;60
+	dc.b	$60	;60
+	dc.b	$5E	;5E
+	dc.b	$5D	;5D
+	dc.b	$5E	;5E
+	dc.b	$5F	;5F
+	dc.b	$5F	;5F
+	dc.b	$60	;60
+	dc.b	$5E	;5E
+	dc.b	$5A	;5A
+	dc.b	$57	;57
+	dc.b	$40	;40
+	dc.b	$00	;00
+	dc.b	$EF	;EF
+	dc.b	$E8	;E8
+	dc.b	$C0	;C0
+	dc.b	$90	;90
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$97	;97
+	dc.b	$90	;90
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$9F	;9F
+	dc.b	$94	;94
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$BF	;BF
+	dc.b	$EF	;EF
+	dc.b	$0B	;0B
+	dc.b	$25	;25
+	dc.b	$3F	;3F
+	dc.b	$5B	;5B
+	dc.b	$60	;60
+	dc.b	$5D	;5D
+	dc.b	$5D	;5D
+	dc.b	$5E	;5E
+	dc.b	$5D	;5D
+	dc.b	$5C	;5C
+	dc.b	$5A	;5A
+	dc.b	$30	;30
+	dc.b	$E0	;E0
+	dc.b	$A4	;A4
+	dc.b	$92	;92
+	dc.b	$9F	;9F
+	dc.b	$BB	;BB
+	dc.b	$D7	;D7
+	dc.b	$F1	;F1
+	dc.b	$F0	;F0
+	dc.b	$E0	;E0
+	dc.b	$CE	;CE
+	dc.b	$CF	;CF
+	dc.b	$DB	;DB
+	dc.b	$DA	;DA
+	dc.b	$C2	;C2
+	dc.b	$B6	;B6
+	dc.b	$BC	;BC
+	dc.b	$BD	;BD
+	dc.b	$C1	;C1
+	dc.b	$CF	;CF
+	dc.b	$E7	;E7
+	dc.b	$FF	;FF
+	dc.b	$37	;37
+	dc.b	$5F	;5F
+	dc.b	$5F	;5F
+	dc.b	$5E	;5E
+	dc.b	$5E	;5E
+	dc.b	$5F	;5F
+	dc.b	$60	;60
+	dc.b	$60	;60
+	dc.b	$5E	;5E
+	dc.b	$5D	;5D
+	dc.b	$5D	;5D
+	dc.b	$5E	;5E
+	dc.b	$5F	;5F
+	dc.b	$5E	;5E
+	dc.b	$5C	;5C
+	dc.b	$58	;58
+	dc.b	$40	;40
+	dc.b	$F0	;F0
+	dc.b	$DB	;DB
+	dc.b	$F3	;F3
+	dc.b	$FF	;FF
+	dc.b	$F4	;F4
+	dc.b	$E4	;E4
+	dc.b	$C4	;C4
+	dc.b	$92	;92
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$84	;84
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$83	;83
+	dc.b	$89	;89
+	dc.b	$86	;86
+	dc.b	$80	;80
+	dc.b	$83	;83
+	dc.b	$9F	;9F
+	dc.b	$C7	;C7
+	dc.b	$F7	;F7
+	dc.b	$27	;27
+	dc.b	$46	;46
+	dc.b	$42	;42
+	dc.b	$30	;30
+	dc.b	$2D	;2D
+	dc.b	$3F	;3F
+	dc.b	$59	;59
+	dc.b	$5E	;5E
+	dc.b	$5F	;5F
+	dc.b	$5F	;5F
+	dc.b	$60	;60
+	dc.b	$5D	;5D
+	dc.b	$5C	;5C
+	dc.b	$5B	;5B
+	dc.b	$58	;58
+	dc.b	$4C	;4C
+	dc.b	$47	;47
+	dc.b	$53	;53
+	dc.b	$58	;58
+	dc.b	$40	;40
+	dc.b	$10	;10
+	dc.b	$F0	;F0
+	dc.b	$C0	;C0
+	dc.b	$92	;92
+	dc.b	$86	;86
+	dc.b	$8D	;8D
+	dc.b	$84	;84
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$87	;87
+	dc.b	$9F	;9F
+	dc.b	$BF	;BF
+	dc.b	$DF	;DF
+	dc.b	$FF	;FF
+	dc.b	$1B	;1B
+	dc.b	$31	;31
+	dc.b	$35	;35
+	dc.b	$32	;32
+	dc.b	$3F	;3F
+	dc.b	$4F	;4F
+	dc.b	$55	;55
+	dc.b	$5C	;5C
+	dc.b	$5D	;5D
+	dc.b	$5F	;5F
+	dc.b	$60	;60
+	dc.b	$5E	;5E
+	dc.b	$5D	;5D
+	dc.b	$5E	;5E
+	dc.b	$5F	;5F
+	dc.b	$60	;60
+	dc.b	$60	;60
+	dc.b	$5D	;5D
+	dc.b	$5D	;5D
+	dc.b	$5D	;5D
+	dc.b	$5A	;5A
+	dc.b	$58	;58
+	dc.b	$00	;00
+	dc.b	$90	;90
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$A7	;A7
+	dc.b	$DB	;DB
+	dc.b	$FF	;FF
+	dc.b	$14	;14
+	dc.b	$00	;00
+	dc.b	$C8	;C8
+	dc.b	$98	;98
+	dc.b	$8B	;8B
+	dc.b	$97	;97
+	dc.b	$8C	;8C
+	dc.b	$80	;80
+	dc.b	$8F	;8F
+	dc.b	$BF	;BF
+	dc.b	$EB	;EB
+	dc.b	$17	;17
+	dc.b	$3F	;3F
+	dc.b	$4C	;4C
+	dc.b	$38	;38
+	dc.b	$2B	;2B
+	dc.b	$33	;33
+	dc.b	$34	;34
+	dc.b	$14	;14
+	dc.b	$D4	;D4
+	dc.b	$90	;90
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$9B	;9B
+	dc.b	$BF	;BF
+	dc.b	$EB	;EB
+	dc.b	$0D	;0D
+	dc.b	$2D	;2D
+	dc.b	$2E	;2E
+	dc.b	$2D	;2D
+	dc.b	$3B	;3B
+	dc.b	$55	;55
+	dc.b	$5E	;5E
+	dc.b	$5E	;5E
+	dc.b	$5F	;5F
+	dc.b	$5F	;5F
+	dc.b	$60	;60
+	dc.b	$60	;60
+	dc.b	$5D	;5D
+	dc.b	$5E	;5E
+	dc.b	$5E	;5E
+	dc.b	$5F	;5F
+	dc.b	$60	;60
+	dc.b	$60	;60
+	dc.b	$5D	;5D
+	dc.b	$5D	;5D
+	dc.b	$5E	;5E
+	dc.b	$59	;59
+	dc.b	$50	;50
+	dc.b	$E0	;E0
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$97	;97
+	dc.b	$94	;94
+	dc.b	$82	;82
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$9F	;9F
+	dc.b	$CF	;CF
+	dc.b	$DA	;DA
+	dc.b	$D1	;D1
+	dc.b	$D0	;D0
+	dc.b	$C4	;C4
+	dc.b	$B0	;B0
+	dc.b	$98	;98
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$BB	;BB
+	dc.b	$FF	;FF
+	dc.b	$3F	;3F
+	dc.b	$59	;59
+	dc.b	$5D	;5D
+	dc.b	$5D	;5D
+	dc.b	$5D	;5D
+	dc.b	$5F	;5F
+	dc.b	$5F	;5F
+	dc.b	$60	;60
+	dc.b	$5A	;5A
+	dc.b	$54	;54
+	dc.b	$10	;10
+	dc.b	$C0	;C0
+	dc.b	$88	;88
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$97	;97
+	dc.b	$B7	;B7
+	dc.b	$CD	;CD
+	dc.b	$CE	;CE
+	dc.b	$C8	;C8
+	dc.b	$C9	;C9
+	dc.b	$DD	;DD
+	dc.b	$E8	;E8
+	dc.b	$D0	;D0
+	dc.b	$A8	;A8
+	dc.b	$93	;93
+	dc.b	$97	;97
+	dc.b	$92	;92
+	dc.b	$9F	;9F
+	dc.b	$BF	;BF
+	dc.b	$EF	;EF
+	dc.b	$2F	;2F
+	dc.b	$5B	;5B
+	dc.b	$5F	;5F
+	dc.b	$60	;60
+	dc.b	$60	;60
+	dc.b	$60	;60
+	dc.b	$5D	;5D
+	dc.b	$5D	;5D
+	dc.b	$5F	;5F
+	dc.b	$5F	;5F
+	dc.b	$60	;60
+	dc.b	$5D	;5D
+	dc.b	$58	;58
+	dc.b	$56	;56
+	dc.b	$10	;10
+	dc.b	$A8	;A8
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$86	;86
+	dc.b	$80	;80
+	dc.b	$9F	;9F
+	dc.b	$FB	;FB
+	dc.b	$F0	;F0
+	dc.b	$A0	;A0
+	dc.b	$8B	;8B
+	dc.b	$90	;90
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$8B	;8B
+	dc.b	$CF	;CF
+	dc.b	$27	;27
+	dc.b	$57	;57
+	dc.b	$5E	;5E
+	dc.b	$5F	;5F
+	dc.b	$60	;60
+	dc.b	$5D	;5D
+	dc.b	$5D	;5D
+	dc.b	$5C	;5C
+	dc.b	$5C	;5C
+	dc.b	$5B	;5B
+	dc.b	$5B	;5B
+	dc.b	$50	;50
+	dc.b	$10	;10
+	dc.b	$E4	;E4
+	dc.b	$E3	;E3
+	dc.b	$FF	;FF
+	dc.b	$17	;17
+	dc.b	$2B	;2B
+	dc.b	$3F	;3F
+	dc.b	$42	;42
+	dc.b	$3A	;3A
+	dc.b	$28	;28
+	dc.b	$10	;10
+	dc.b	$EC	;EC
+	dc.b	$B4	;B4
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$9F	;9F
+	dc.b	$DF	;DF
+	dc.b	$2F	;2F
+	dc.b	$53	;53
+	dc.b	$5D	;5D
+	dc.b	$5E	;5E
+	dc.b	$5F	;5F
+	dc.b	$5F	;5F
+	dc.b	$5E	;5E
+	dc.b	$5A	;5A
+	dc.b	$59	;59
+	dc.b	$4A	;4A
+	dc.b	$34	;34
+	dc.b	$3B	;3B
+	dc.b	$57	;57
+	dc.b	$5E	;5E
+	dc.b	$5E	;5E
+	dc.b	$5F	;5F
+	dc.b	$5F	;5F
+	dc.b	$60	;60
+	dc.b	$5E	;5E
+	dc.b	$5C	;5C
+	dc.b	$5A	;5A
+	dc.b	$59	;59
+	dc.b	$40	;40
+	dc.b	$20	;20
+	dc.b	$00	;00
+	dc.b	$EC	;EC
+	dc.b	$E0	;E0
+	dc.b	$D0	;D0
+	dc.b	$D5	;D5
+	dc.b	$DD	;DD
+	dc.b	$DC	;DC
+	dc.b	$D3	;D3
+	dc.b	$CD	;CD
+	dc.b	$CD	;CD
+	dc.b	$C8	;C8
+	dc.b	$C7	;C7
+	dc.b	$CF	;CF
+	dc.b	$D9	;D9
+	dc.b	$D0	;D0
+	dc.b	$CF	;CF
+	dc.b	$E5	;E5
+	dc.b	$E4	;E4
+	dc.b	$D2	;D2
+	dc.b	$CF	;CF
+	dc.b	$E3	;E3
+	dc.b	$FB	;FB
+	dc.b	$0D	;0D
+	dc.b	$1F	;1F
+	dc.b	$36	;36
+	dc.b	$32	;32
+	dc.b	$24	;24
+	dc.b	$1F	;1F
+	dc.b	$1C	;1C
+	dc.b	$0C	;0C
+	dc.b	$F8	;F8
+	dc.b	$EA	;EA
+	dc.b	$E5	;E5
+	dc.b	$D8	;D8
+	dc.b	$C8	;C8
+	dc.b	$C3	;C3
+	dc.b	$C4	;C4
+	dc.b	$B6	;B6
+	dc.b	$A9	;A9
+	dc.b	$A7	;A7
+	dc.b	$AF	;AF
+	dc.b	$BF	;BF
+	dc.b	$CA	;CA
+	dc.b	$C0	;C0
+	dc.b	$B0	;B0
+	dc.b	$A0	;A0
+	dc.b	$90	;90
+	dc.b	$88	;88
+	dc.b	$80	;80
+	dc.b	$87	;87
+	dc.b	$9A	;9A
+	dc.b	$9F	;9F
+	dc.b	$A3	;A3
+	dc.b	$B7	;B7
+	dc.b	$C9	;C9
+	dc.b	$CD	;CD
+	dc.b	$D5	;D5
+	dc.b	$E5	;E5
+	dc.b	$FF	;FF
+	dc.b	$1B	;1B
+	dc.b	$3F	;3F
+	dc.b	$56	;56
+	dc.b	$5E	;5E
+	dc.b	$5E	;5E
+	dc.b	$5F	;5F
+	dc.b	$60	;60
+	dc.b	$60	;60
+	dc.b	$5E	;5E
+	dc.b	$5D	;5D
+	dc.b	$5E	;5E
+	dc.b	$5F	;5F
+	dc.b	$60	;60
+	dc.b	$60	;60
+	dc.b	$5E	;5E
+	dc.b	$5D	;5D
+	dc.b	$5D	;5D
+	dc.b	$58	;58
+	dc.b	$50	;50
+	dc.b	$D0	;D0
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$BF	;BF
+	dc.b	$1F	;1F
+	dc.b	$42	;42
+	dc.b	$39	;39
+	dc.b	$37	;37
+	dc.b	$38	;38
+	dc.b	$14	;14
+	dc.b	$E0	;E0
+	dc.b	$A8	;A8
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$D7	;D7
+	dc.b	$1F	;1F
+	dc.b	$55	;55
+	dc.b	$5E	;5E
+	dc.b	$5D	;5D
+	dc.b	$5D	;5D
+	dc.b	$5F	;5F
+	dc.b	$5F	;5F
+	dc.b	$5F	;5F
+	dc.b	$5B	;5B
+	dc.b	$50	;50
+	dc.b	$D0	;D0
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$97	;97
+	dc.b	$CF	;CF
+	dc.b	$DF	;DF
+	dc.b	$F7	;F7
+	dc.b	$0F	;0F
+	dc.b	$14	;14
+	dc.b	$F4	;F4
+	dc.b	$C8	;C8
+	dc.b	$BA	;BA
+	dc.b	$BD	;BD
+	dc.b	$B2	;B2
+	dc.b	$CB	;CB
+	dc.b	$FF	;FF
+	dc.b	$4B	;4B
+	dc.b	$5F	;5F
+	dc.b	$5E	;5E
+	dc.b	$5E	;5E
+	dc.b	$5F	;5F
+	dc.b	$60	;60
+	dc.b	$60	;60
+	dc.b	$5E	;5E
+	dc.b	$5D	;5D
+	dc.b	$5E	;5E
+	dc.b	$5F	;5F
+	dc.b	$5F	;5F
+	dc.b	$60	;60
+	dc.b	$5A	;5A
+	dc.b	$55	;55
+	dc.b	$00	;00
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$87	;87
+	dc.b	$AB	;AB
+	dc.b	$AE	;AE
+	dc.b	$BF	;BF
+	dc.b	$D1	;D1
+	dc.b	$A8	;A8
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$87	;87
+	dc.b	$FF	;FF
+	dc.b	$4B	;4B
+	dc.b	$5B	;5B
+	dc.b	$5D	;5D
+	dc.b	$5F	;5F
+	dc.b	$5F	;5F
+	dc.b	$5F	;5F
+	dc.b	$5E	;5E
+	dc.b	$5D	;5D
+	dc.b	$59	;59
+	dc.b	$59	;59
+	dc.b	$30	;30
+	dc.b	$04	;04
+	dc.b	$F0	;F0
+	dc.b	$D8	;D8
+	dc.b	$C1	;C1
+	dc.b	$C3	;C3
+	dc.b	$D7	;D7
+	dc.b	$FF	;FF
+	dc.b	$2A	;2A
+	dc.b	$31	;31
+	dc.b	$20	;20
+	dc.b	$00	;00
+	dc.b	$E0	;E0
+	dc.b	$C4	;C4
+	dc.b	$A0	;A0
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$85	;85
+	dc.b	$AF	;AF
+	dc.b	$17	;17
+	dc.b	$4F	;4F
+	dc.b	$5C	;5C
+	dc.b	$5D	;5D
+	dc.b	$5F	;5F
+	dc.b	$5D	;5D
+	dc.b	$5C	;5C
+	dc.b	$5C	;5C
+	dc.b	$5C	;5C
+	dc.b	$5A	;5A
+	dc.b	$4A	;4A
+	dc.b	$39	;39
+	dc.b	$4F	;4F
+	dc.b	$5E	;5E
+	dc.b	$5E	;5E
+	dc.b	$5E	;5E
+	dc.b	$5F	;5F
+	dc.b	$60	;60
+	dc.b	$60	;60
+	dc.b	$5D	;5D
+	dc.b	$5D	;5D
+	dc.b	$5E	;5E
+	dc.b	$5D	;5D
+	dc.b	$5C	;5C
+	dc.b	$5C	;5C
+	dc.b	$5A	;5A
+	dc.b	$48	;48
+	dc.b	$E8	;E8
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$9B	;9B
+	dc.b	$98	;98
+	dc.b	$97	;97
+	dc.b	$CF	;CF
+	dc.b	$2F	;2F
+	dc.b	$38	;38
+	dc.b	$14	;14
+	dc.b	$13	;13
+	dc.b	$2A	;2A
+	dc.b	$20	;20
+	dc.b	$10	;10
+	dc.b	$0D	;0D
+	dc.b	$00	;00
+	dc.b	$C0	;C0
+	dc.b	$A7	;A7
+	dc.b	$CF	;CF
+	dc.b	$0F	;0F
+	dc.b	$2F	;2F
+	dc.b	$37	;37
+	dc.b	$3F	;3F
+	dc.b	$46	;46
+	dc.b	$3A	;3A
+	dc.b	$31	;31
+	dc.b	$3F	;3F
+	dc.b	$30	;30
+	dc.b	$E8	;E8
+	dc.b	$A0	;A0
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$81	;81
+	dc.b	$9F	;9F
+	dc.b	$A5	;A5
+	dc.b	$AD	;AD
+	dc.b	$BF	;BF
+	dc.b	$CF	;CF
+	dc.b	$DF	;DF
+	dc.b	$E6	;E6
+	dc.b	$E3	;E3
+	dc.b	$E5	;E5
+	dc.b	$E7	;E7
+	dc.b	$FB	;FB
+	dc.b	$1F	;1F
+	dc.b	$4F	;4F
+	dc.b	$5F	;5F
+	dc.b	$61	;61
+	dc.b	$60	;60
+	dc.b	$5E	;5E
+	dc.b	$5E	;5E
+	dc.b	$5E	;5E
+	dc.b	$5F	;5F
+	dc.b	$60	;60
+	dc.b	$60	;60
+	dc.b	$5D	;5D
+	dc.b	$5D	;5D
+	dc.b	$5E	;5E
+	dc.b	$5F	;5F
+	dc.b	$5F	;5F
+	dc.b	$60	;60
+	dc.b	$5E	;5E
+	dc.b	$5C	;5C
+	dc.b	$58	;58
+	dc.b	$56	;56
+	dc.b	$20	;20
+	dc.b	$B0	;B0
+	dc.b	$A5	;A5
+	dc.b	$B5	;B5
+	dc.b	$AE	;AE
+	dc.b	$AE	;AE
+	dc.b	$B0	;B0
+	dc.b	$9A	;9A
+	dc.b	$A7	;A7
+	dc.b	$CF	;CF
+	dc.b	$D8	;D8
+	dc.b	$C0	;C0
+	dc.b	$CB	;CB
+	dc.b	$E7	;E7
+	dc.b	$E8	;E8
+	dc.b	$E0	;E0
+	dc.b	$D4	;D4
+	dc.b	$C0	;C0
+	dc.b	$98	;98
+	dc.b	$8E	;8E
+	dc.b	$AF	;AF
+	dc.b	$EF	;EF
+	dc.b	$1F	;1F
+	dc.b	$3F	;3F
+	dc.b	$57	;57
+	dc.b	$5E	;5E
+	dc.b	$5A	;5A
+	dc.b	$59	;59
+	dc.b	$5B	;5B
+	dc.b	$5B	;5B
+	dc.b	$48	;48
+	dc.b	$24	;24
+	dc.b	$F4	;F4
+	dc.b	$D0	;D0
+	dc.b	$B8	;B8
+	dc.b	$98	;98
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$81	;81
+	dc.b	$9B	;9B
+	dc.b	$AF	;AF
+	dc.b	$C5	;C5
+	dc.b	$C9	;C9
+	dc.b	$CF	;CF
+	dc.b	$D1	;D1
+	dc.b	$CD	;CD
+	dc.b	$D1	;D1
+	dc.b	$D7	;D7
+	dc.b	$D5	;D5
+	dc.b	$E3	;E3
+	dc.b	$1F	;1F
+	dc.b	$57	;57
+	dc.b	$5F	;5F
+	dc.b	$60	;60
+	dc.b	$60	;60
+	dc.b	$60	;60
+	dc.b	$5D	;5D
+	dc.b	$5E	;5E
+	dc.b	$5F	;5F
+	dc.b	$5F	;5F
+	dc.b	$60	;60
+	dc.b	$60	;60
+	dc.b	$5D	;5D
+	dc.b	$5D	;5D
+	dc.b	$5F	;5F
+	dc.b	$5C	;5C
+	dc.b	$5A	;5A
+	dc.b	$5A	;5A
+	dc.b	$40	;40
+	dc.b	$F0	;F0
+	dc.b	$DD	;DD
+	dc.b	$EF	;EF
+	dc.b	$F2	;F2
+	dc.b	$E4	;E4
+	dc.b	$CC	;CC
+	dc.b	$A0	;A0
+	dc.b	$9B	;9B
+	dc.b	$A0	;A0
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$9F	;9F
+	dc.b	$DF	;DF
+	dc.b	$0B	;0B
+	dc.b	$37	;37
+	dc.b	$53	;53
+	dc.b	$56	;56
+	dc.b	$4C	;4C
+	dc.b	$49	;49
+	dc.b	$53	;53
+	dc.b	$4E	;4E
+	dc.b	$48	;48
+	dc.b	$49	;49
+	dc.b	$4E	;4E
+	dc.b	$40	;40
+	dc.b	$30	;30
+	dc.b	$20	;20
+	dc.b	$0A	;0A
+	dc.b	$F8	;F8
+	dc.b	$F9	;F9
+	dc.b	$FF	;FF
+	dc.b	$02	;02
+	dc.b	$F8	;F8
+	dc.b	$E0	;E0
+	dc.b	$B4	;B4
+	dc.b	$8A	;8A
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$A7	;A7
+	dc.b	$CF	;CF
+	dc.b	$EB	;EB
+	dc.b	$0F	;0F
+	dc.b	$1D	;1D
+	dc.b	$1F	;1F
+	dc.b	$35	;35
+	dc.b	$53	;53
+	dc.b	$60	;60
+	dc.b	$5E	;5E
+	dc.b	$5E	;5E
+	dc.b	$5E	;5E
+	dc.b	$5F	;5F
+	dc.b	$5F	;5F
+	dc.b	$60	;60
+	dc.b	$5F	;5F
+	dc.b	$5E	;5E
+	dc.b	$5E	;5E
+	dc.b	$5F	;5F
+	dc.b	$5F	;5F
+	dc.b	$60	;60
+	dc.b	$5F	;5F
+	dc.b	$5E	;5E
+	dc.b	$5E	;5E
+	dc.b	$5A	;5A
+	dc.b	$58	;58
+	dc.b	$40	;40
+	dc.b	$E0	;E0
+	dc.b	$98	;98
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$A7	;A7
+	dc.b	$DF	;DF
+	dc.b	$0B	;0B
+	dc.b	$F0	;F0
+	dc.b	$A8	;A8
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$93	;93
+	dc.b	$B7	;B7
+	dc.b	$E7	;E7
+	dc.b	$1B	;1B
+	dc.b	$47	;47
+	dc.b	$5D	;5D
+	dc.b	$5E	;5E
+	dc.b	$5E	;5E
+	dc.b	$5F	;5F
+	dc.b	$60	;60
+	dc.b	$5E	;5E
+	dc.b	$5A	;5A
+	dc.b	$50	;50
+	dc.b	$10	;10
+	dc.b	$A8	;A8
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$81	;81
+	dc.b	$8F	;8F
+	dc.b	$96	;96
+	dc.b	$9A	;9A
+	dc.b	$99	;99
+	dc.b	$9F	;9F
+	dc.b	$A9	;A9
+	dc.b	$A8	;A8
+	dc.b	$AA	;AA
+	dc.b	$AF	;AF
+	dc.b	$CF	;CF
+	dc.b	$FF	;FF
+	dc.b	$3F	;3F
+	dc.b	$5E	;5E
+	dc.b	$5F	;5F
+	dc.b	$60	;60
+	dc.b	$60	;60
+	dc.b	$5E	;5E
+	dc.b	$5D	;5D
+	dc.b	$5E	;5E
+	dc.b	$5F	;5F
+	dc.b	$5F	;5F
+	dc.b	$60	;60
+	dc.b	$5E	;5E
+	dc.b	$5E	;5E
+	dc.b	$5E	;5E
+	dc.b	$5F	;5F
+	dc.b	$5F	;5F
+	dc.b	$5E	;5E
+	dc.b	$5A	;5A
+	dc.b	$58	;58
+	dc.b	$28	;28
+	dc.b	$EC	;EC
+	dc.b	$E0	;E0
+	dc.b	$D6	;D6
+	dc.b	$C8	;C8
+	dc.b	$C6	;C6
+	dc.b	$B0	;B0
+	dc.b	$88	;88
+	dc.b	$87	;87
+	dc.b	$BB	;BB
+	dc.b	$C2	;C2
+	dc.b	$A4	;A4
+	dc.b	$88	;88
+	dc.b	$8F	;8F
+	dc.b	$A5	;A5
+	dc.b	$A1	;A1
+	dc.b	$98	;98
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$81	;81
+	dc.b	$AF	;AF
+	dc.b	$EF	;EF
+	dc.b	$1F	;1F
+	dc.b	$3F	;3F
+	dc.b	$4F	;4F
+	dc.b	$56	;56
+	dc.b	$5E	;5E
+	dc.b	$5F	;5F
+	dc.b	$5E	;5E
+	dc.b	$58	;58
+	dc.b	$40	;40
+	dc.b	$24	;24
+	dc.b	$10	;10
+	dc.b	$F4	;F4
+	dc.b	$CC	;CC
+	dc.b	$A8	;A8
+	dc.b	$88	;88
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$A7	;A7
+	dc.b	$D7	;D7
+	dc.b	$FB	;FB
+	dc.b	$27	;27
+	dc.b	$57	;57
+	dc.b	$5F	;5F
+	dc.b	$5E	;5E
+	dc.b	$5E	;5E
+	dc.b	$5E	;5E
+	dc.b	$5F	;5F
+	dc.b	$60	;60
+	dc.b	$60	;60
+	dc.b	$5E	;5E
+	dc.b	$5D	;5D
+	dc.b	$5E	;5E
+	dc.b	$5F	;5F
+	dc.b	$5F	;5F
+	dc.b	$60	;60
+	dc.b	$5E	;5E
+	dc.b	$5E	;5E
+	dc.b	$5B	;5B
+	dc.b	$5B	;5B
+	dc.b	$5A	;5A
+	dc.b	$58	;58
+	dc.b	$20	;20
+	dc.b	$D4	;D4
+	dc.b	$A6	;A6
+	dc.b	$A6	;A6
+	dc.b	$90	;90
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$87	;87
+	dc.b	$86	;86
+	dc.b	$87	;87
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$9F	;9F
+	dc.b	$DB	;DB
+	dc.b	$F7	;F7
+	dc.b	$1B	;1B
+	dc.b	$4B	;4B
+	dc.b	$5B	;5B
+	dc.b	$5F	;5F
+	dc.b	$5E	;5E
+	dc.b	$5E	;5E
+	dc.b	$5F	;5F
+	dc.b	$5E	;5E
+	dc.b	$5E	;5E
+	dc.b	$5E	;5E
+	dc.b	$5A	;5A
+	dc.b	$40	;40
+	dc.b	$2A	;2A
+	dc.b	$1C	;1C
+	dc.b	$08	;08
+	dc.b	$F2	;F2
+	dc.b	$F6	;F6
+	dc.b	$F8	;F8
+	dc.b	$D4	;D4
+	dc.b	$A8	;A8
+	dc.b	$8A	;8A
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$81	;81
+	dc.b	$9F	;9F
+	dc.b	$C7	;C7
+	dc.b	$E7	;E7
+	dc.b	$0F	;0F
+	dc.b	$3F	;3F
+	dc.b	$5D	;5D
+	dc.b	$5D	;5D
+	dc.b	$5E	;5E
+	dc.b	$5F	;5F
+	dc.b	$60	;60
+	dc.b	$60	;60
+	dc.b	$5D	;5D
+	dc.b	$5D	;5D
+	dc.b	$5E	;5E
+	dc.b	$5E	;5E
+	dc.b	$5F	;5F
+	dc.b	$5F	;5F
+	dc.b	$5E	;5E
+	dc.b	$5E	;5E
+	dc.b	$5E	;5E
+	dc.b	$5F	;5F
+	dc.b	$60	;60
+	dc.b	$60	;60
+	dc.b	$5E	;5E
+	dc.b	$5D	;5D
+	dc.b	$5E	;5E
+	dc.b	$5A	;5A
+	dc.b	$58	;58
+	dc.b	$30	;30
+	dc.b	$C4	;C4
+	dc.b	$90	;90
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$AF	;AF
+	dc.b	$E5	;E5
+	dc.b	$EA	;EA
+	dc.b	$FF	;FF
+	dc.b	$37	;37
+	dc.b	$40	;40
+	dc.b	$14	;14
+	dc.b	$F0	;F0
+	dc.b	$C4	;C4
+	dc.b	$A0	;A0
+	dc.b	$91	;91
+	dc.b	$A7	;A7
+	dc.b	$D7	;D7
+	dc.b	$FF	;FF
+	dc.b	$15	;15
+	dc.b	$27	;27
+	dc.b	$47	;47
+	dc.b	$5B	;5B
+	dc.b	$5F	;5F
+	dc.b	$60	;60
+	dc.b	$5C	;5C
+	dc.b	$50	;50
+	dc.b	$24	;24
+	dc.b	$F4	;F4
+	dc.b	$C8	;C8
+	dc.b	$94	;94
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$83	;83
+	dc.b	$9F	;9F
+	dc.b	$BB	;BB
+	dc.b	$D7	;D7
+	dc.b	$F3	;F3
+	dc.b	$1F	;1F
+	dc.b	$53	;53
+	dc.b	$5E	;5E
+	dc.b	$5F	;5F
+	dc.b	$60	;60
+	dc.b	$60	;60
+	dc.b	$5D	;5D
+	dc.b	$5D	;5D
+	dc.b	$5E	;5E
+	dc.b	$5F	;5F
+	dc.b	$60	;60
+	dc.b	$60	;60
+	dc.b	$5D	;5D
+	dc.b	$5D	;5D
+	dc.b	$5E	;5E
+	dc.b	$5F	;5F
+	dc.b	$5F	;5F
+	dc.b	$60	;60
+	dc.b	$5E	;5E
+	dc.b	$5E	;5E
+	dc.b	$5C	;5C
+	dc.b	$5B	;5B
+	dc.b	$5B	;5B
+	dc.b	$5A	;5A
+	dc.b	$20	;20
+	dc.b	$C0	;C0
+	dc.b	$90	;90
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$87	;87
+	dc.b	$BF	;BF
+	dc.b	$DB	;DB
+	dc.b	$EB	;EB
+	dc.b	$FF	;FF
+	dc.b	$27	;27
+	dc.b	$24	;24
+	dc.b	$10	;10
+	dc.b	$E8	;E8
+	dc.b	$C0	;C0
+	dc.b	$A0	;A0
+	dc.b	$9B	;9B
+	dc.b	$B7	;B7
+	dc.b	$DF	;DF
+	dc.b	$F3	;F3
+	dc.b	$F5	;F5
+	dc.b	$0B	;0B
+	dc.b	$3B	;3B
+	dc.b	$57	;57
+	dc.b	$5F	;5F
+	dc.b	$5F	;5F
+	dc.b	$5F	;5F
+	dc.b	$5E	;5E
+	dc.b	$58	;58
+	dc.b	$30	;30
+	dc.b	$E8	;E8
+	dc.b	$A8	;A8
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$88	;88
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$9F	;9F
+	dc.b	$D3	;D3
+	dc.b	$FB	;FB
+	dc.b	$1F	;1F
+	dc.b	$4F	;4F
+	dc.b	$5F	;5F
+	dc.b	$5F	;5F
+	dc.b	$60	;60
+	dc.b	$5D	;5D
+	dc.b	$5E	;5E
+	dc.b	$5E	;5E
+	dc.b	$5F	;5F
+	dc.b	$60	;60
+	dc.b	$60	;60
+	dc.b	$5D	;5D
+	dc.b	$5D	;5D
+	dc.b	$5E	;5E
+	dc.b	$5F	;5F
+	dc.b	$5F	;5F
+	dc.b	$60	;60
+	dc.b	$5E	;5E
+	dc.b	$5C	;5C
+	dc.b	$5B	;5B
+	dc.b	$59	;59
+	dc.b	$59	;59
+	dc.b	$30	;30
+	dc.b	$F0	;F0
+	dc.b	$D0	;D0
+	dc.b	$C0	;C0
+	dc.b	$A0	;A0
+	dc.b	$8A	;8A
+	dc.b	$8C	;8C
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$81	;81
+	dc.b	$97	;97
+	dc.b	$A5	;A5
+	dc.b	$BB	;BB
+	dc.b	$D7	;D7
+	dc.b	$E0	;E0
+	dc.b	$CA	;CA
+	dc.b	$B4	;B4
+	dc.b	$AF	;AF
+	dc.b	$BB	;BB
+	dc.b	$DB	;DB
+	dc.b	$E8	;E8
+	dc.b	$F3	;F3
+	dc.b	$0F	;0F
+	dc.b	$2F	;2F
+	dc.b	$41	;41
+	dc.b	$47	;47
+	dc.b	$49	;49
+	dc.b	$48	;48
+	dc.b	$57	;57
+	dc.b	$5C	;5C
+	dc.b	$50	;50
+	dc.b	$40	;40
+	dc.b	$35	;35
+	dc.b	$24	;24
+	dc.b	$04	;04
+	dc.b	$EA	;EA
+	dc.b	$D8	;D8
+	dc.b	$D0	;D0
+	dc.b	$C0	;C0
+	dc.b	$A4	;A4
+	dc.b	$88	;88
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$83	;83
+	dc.b	$9B	;9B
+	dc.b	$A3	;A3
+	dc.b	$A3	;A3
+	dc.b	$A9	;A9
+	dc.b	$BB	;BB
+	dc.b	$CB	;CB
+	dc.b	$D4	;D4
+	dc.b	$D7	;D7
+	dc.b	$EB	;EB
+	dc.b	$0F	;0F
+	dc.b	$37	;37
+	dc.b	$5B	;5B
+	dc.b	$5F	;5F
+	dc.b	$5F	;5F
+	dc.b	$60	;60
+	dc.b	$60	;60
+	dc.b	$60	;60
+	dc.b	$5D	;5D
+	dc.b	$5D	;5D
+	dc.b	$5F	;5F
+	dc.b	$5E	;5E
+	dc.b	$5F	;5F
+	dc.b	$5F	;5F
+	dc.b	$5E	;5E
+	dc.b	$5D	;5D
+	dc.b	$5E	;5E
+	dc.b	$5F	;5F
+	dc.b	$5F	;5F
+	dc.b	$60	;60
+	dc.b	$5D	;5D
+	dc.b	$5D	;5D
+	dc.b	$5E	;5E
+	dc.b	$5F	;5F
+	dc.b	$5D	;5D
+	dc.b	$5B	;5B
+	dc.b	$58	;58
+	dc.b	$20	;20
+	dc.b	$D0	;D0
+	dc.b	$88	;88
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$9B	;9B
+	dc.b	$BF	;BF
+	dc.b	$DF	;DF
+	dc.b	$F3	;F3
+	dc.b	$0B	;0B
+	dc.b	$2F	;2F
+	dc.b	$3D	;3D
+	dc.b	$3A	;3A
+	dc.b	$30	;30
+	dc.b	$00	;00
+	dc.b	$C0	;C0
+	dc.b	$A5	;A5
+	dc.b	$AF	;AF
+	dc.b	$C5	;C5
+	dc.b	$D6	;D6
+	dc.b	$DE	;DE
+	dc.b	$E7	;E7
+	dc.b	$FB	;FB
+	dc.b	$0B	;0B
+	dc.b	$10	;10
+	dc.b	$0A	;0A
+	dc.b	$07	;07
+	dc.b	$03	;03
+	dc.b	$F4	;F4
+	dc.b	$D8	;D8
+	dc.b	$B8	;B8
+	dc.b	$A0	;A0
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$83	;83
+	dc.b	$93	;93
+	dc.b	$9F	;9F
+	dc.b	$A4	;A4
+	dc.b	$98	;98
+	dc.b	$97	;97
+	dc.b	$AF	;AF
+	dc.b	$CB	;CB
+	dc.b	$DF	;DF
+	dc.b	$F3	;F3
+	dc.b	$07	;07
+	dc.b	$19	;19
+	dc.b	$37	;37
+	dc.b	$4F	;4F
+	dc.b	$61	;61
+	dc.b	$60	;60
+	dc.b	$5E	;5E
+	dc.b	$5E	;5E
+	dc.b	$5F	;5F
+	dc.b	$5F	;5F
+	dc.b	$60	;60
+	dc.b	$60	;60
+	dc.b	$5D	;5D
+	dc.b	$5D	;5D
+	dc.b	$5F	;5F
+	dc.b	$5F	;5F
+	dc.b	$60	;60
+	dc.b	$60	;60
+	dc.b	$5D	;5D
+	dc.b	$5D	;5D
+	dc.b	$5F	;5F
+	dc.b	$5F	;5F
+	dc.b	$5F	;5F
+	dc.b	$5F	;5F
+	dc.b	$5A	;5A
+	dc.b	$58	;58
+	dc.b	$40	;40
+	dc.b	$F0	;F0
+	dc.b	$D0	;D0
+	dc.b	$B4	;B4
+	dc.b	$98	;98
+	dc.b	$8D	;8D
+	dc.b	$8D	;8D
+	dc.b	$9B	;9B
+	dc.b	$BF	;BF
+	dc.b	$D0	;D0
+	dc.b	$CB	;CB
+	dc.b	$DF	;DF
+	dc.b	$F7	;F7
+	dc.b	$07	;07
+	dc.b	$10	;10
+	dc.b	$00	;00
+	dc.b	$DC	;DC
+	dc.b	$C4	;C4
+	dc.b	$B2	;B2
+	dc.b	$B7	;B7
+	dc.b	$DF	;DF
+	dc.b	$EA	;EA
+	dc.b	$E6	;E6
+	dc.b	$F5	;F5
+	dc.b	$0B	;0B
+	dc.b	$1F	;1F
+	dc.b	$3B	;3B
+	dc.b	$4C	;4C
+	dc.b	$45	;45
+	dc.b	$3A	;3A
+	dc.b	$33	;33
+	dc.b	$2C	;2C
+	dc.b	$08	;08
+	dc.b	$D8	;D8
+	dc.b	$B4	;B4
+	dc.b	$A0	;A0
+	dc.b	$90	;90
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$8F	;8F
+	dc.b	$A3	;A3
+	dc.b	$B7	;B7
+	dc.b	$D7	;D7
+	dc.b	$0F	;0F
+	dc.b	$4B	;4B
+	dc.b	$5D	;5D
+	dc.b	$5E	;5E
+	dc.b	$5F	;5F
+	dc.b	$60	;60
+	dc.b	$60	;60
+	dc.b	$5E	;5E
+	dc.b	$5D	;5D
+	dc.b	$5E	;5E
+	dc.b	$5F	;5F
+	dc.b	$5F	;5F
+	dc.b	$60	;60
+	dc.b	$5F	;5F
+	dc.b	$5E	;5E
+	dc.b	$5E	;5E
+	dc.b	$5F	;5F
+	dc.b	$5F	;5F
+	dc.b	$60	;60
+	dc.b	$5E	;5E
+	dc.b	$5B	;5B
+	dc.b	$58	;58
+	dc.b	$56	;56
+	dc.b	$20	;20
+	dc.b	$C8	;C8
+	dc.b	$A6	;A6
+	dc.b	$A9	;A9
+	dc.b	$A2	;A2
+	dc.b	$9D	;9D
+	dc.b	$B3	;B3
+	dc.b	$B4	;B4
+	dc.b	$A8	;A8
+	dc.b	$A2	;A2
+	dc.b	$AF	;AF
+	dc.b	$B8	;B8
+	dc.b	$BF	;BF
+	dc.b	$CD	;CD
+	dc.b	$C4	;C4
+	dc.b	$B4	;B4
+	dc.b	$AB	;AB
+	dc.b	$B4	;B4
+	dc.b	$BA	;BA
+	dc.b	$C1	;C1
+	dc.b	$C9	;C9
+	dc.b	$EF	;EF
+	dc.b	$27	;27
+	dc.b	$4F	;4F
+	dc.b	$5D	;5D
+	dc.b	$60	;60
+	dc.b	$60	;60
+	dc.b	$5D	;5D
+	dc.b	$5D	;5D
+	dc.b	$58	;58
+	dc.b	$40	;40
+	dc.b	$1D	;1D
+	dc.b	$17	;17
+	dc.b	$04	;04
+	dc.b	$EC	;EC
+	dc.b	$D4	;D4
+	dc.b	$C2	;C2
+	dc.b	$B0	;B0
+	dc.b	$A0	;A0
+	dc.b	$91	;91
+	dc.b	$8A	;8A
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$89	;89
+	dc.b	$93	;93
+	dc.b	$A7	;A7
+	dc.b	$BB	;BB
+	dc.b	$DF	;DF
+	dc.b	$FF	;FF
+	dc.b	$17	;17
+	dc.b	$37	;37
+	dc.b	$57	;57
+	dc.b	$5F	;5F
+	dc.b	$5E	;5E
+	dc.b	$5E	;5E
+	dc.b	$5F	;5F
+	dc.b	$60	;60
+	dc.b	$60	;60
+	dc.b	$5E	;5E
+	dc.b	$5D	;5D
+	dc.b	$5E	;5E
+	dc.b	$5F	;5F
+	dc.b	$5F	;5F
+	dc.b	$5F	;5F
+	dc.b	$5F	;5F
+	dc.b	$5E	;5E
+	dc.b	$5E	;5E
+	dc.b	$5E	;5E
+	dc.b	$5F	;5F
+	dc.b	$60	;60
+	dc.b	$5E	;5E
+	dc.b	$5D	;5D
+	dc.b	$5B	;5B
+	dc.b	$5A	;5A
+	dc.b	$5A	;5A
+	dc.b	$40	;40
+	dc.b	$F0	;F0
+	dc.b	$C8	;C8
+	dc.b	$A8	;A8
+	dc.b	$88	;88
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$87	;87
+	dc.b	$9D	;9D
+	dc.b	$9B	;9B
+	dc.b	$AF	;AF
+	dc.b	$DF	;DF
+	dc.b	$FF	;FF
+	dc.b	$0F	;0F
+	dc.b	$00	;00
+	dc.b	$E0	;E0
+	dc.b	$D7	;D7
+	dc.b	$E7	;E7
+	dc.b	$ED	;ED
+	dc.b	$EF	;EF
+	dc.b	$EA	;EA
+	dc.b	$EF	;EF
+	dc.b	$F7	;F7
+	dc.b	$07	;07
+	dc.b	$15	;15
+	dc.b	$1F	;1F
+	dc.b	$2F	;2F
+	dc.b	$37	;37
+	dc.b	$32	;32
+	dc.b	$22	;22
+	dc.b	$0C	;0C
+	dc.b	$F0	;F0
+	dc.b	$D4	;D4
+	dc.b	$B8	;B8
+	dc.b	$90	;90
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$85	;85
+	dc.b	$9F	;9F
+	dc.b	$BF	;BF
+	dc.b	$DB	;DB
+	dc.b	$F7	;F7
+	dc.b	$1F	;1F
+	dc.b	$4B	;4B
+	dc.b	$5D	;5D
+	dc.b	$5F	;5F
+	dc.b	$60	;60
+	dc.b	$5E	;5E
+	dc.b	$5D	;5D
+	dc.b	$5E	;5E
+	dc.b	$5F	;5F
+	dc.b	$60	;60
+	dc.b	$60	;60
+	dc.b	$5E	;5E
+	dc.b	$5D	;5D
+	dc.b	$5E	;5E
+	dc.b	$5F	;5F
+	dc.b	$5F	;5F
+	dc.b	$60	;60
+	dc.b	$5E	;5E
+	dc.b	$5E	;5E
+	dc.b	$5E	;5E
+	dc.b	$5F	;5F
+	dc.b	$5F	;5F
+	dc.b	$5F	;5F
+	dc.b	$5D	;5D
+	dc.b	$5A	;5A
+	dc.b	$58	;58
+	dc.b	$40	;40
+	dc.b	$E0	;E0
+	dc.b	$A0	;A0
+	dc.b	$80	;80
+	dc.b	$87	;87
+	dc.b	$9D	;9D
+	dc.b	$A1	;A1
+	dc.b	$B3	;B3
+	dc.b	$DF	;DF
+	dc.b	$DE	;DE
+	dc.b	$DE	;DE
+	dc.b	$EF	;EF
+	dc.b	$0F	;0F
+	dc.b	$20	;20
+	dc.b	$10	;10
+	dc.b	$F0	;F0
+	dc.b	$D0	;D0
+	dc.b	$C4	;C4
+	dc.b	$B4	;B4
+	dc.b	$A6	;A6
+	dc.b	$A9	;A9
+	dc.b	$B7	;B7
+	dc.b	$D7	;D7
+	dc.b	$0F	;0F
+	dc.b	$3F	;3F
+	dc.b	$46	;46
+	dc.b	$4B	;4B
+	dc.b	$57	;57
+	dc.b	$4A	;4A
+	dc.b	$3C	;3C
+	dc.b	$43	;43
+	dc.b	$34	;34
+	dc.b	$10	;10
+	dc.b	$E0	;E0
+	dc.b	$B8	;B8
+	dc.b	$A0	;A0
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$87	;87
+	dc.b	$9F	;9F
+	dc.b	$B7	;B7
+	dc.b	$EF	;EF
+	dc.b	$1F	;1F
+	dc.b	$4F	;4F
+	dc.b	$5D	;5D
+	dc.b	$5F	;5F
+	dc.b	$5F	;5F
+	dc.b	$60	;60
+	dc.b	$5D	;5D
+	dc.b	$5D	;5D
+	dc.b	$5E	;5E
+	dc.b	$5F	;5F
+	dc.b	$60	;60
+	dc.b	$60	;60
+	dc.b	$5E	;5E
+	dc.b	$5D	;5D
+	dc.b	$5E	;5E
+	dc.b	$5F	;5F
+	dc.b	$5F	;5F
+	dc.b	$60	;60
+	dc.b	$5E	;5E
+	dc.b	$5E	;5E
+	dc.b	$5E	;5E
+	dc.b	$5D	;5D
+	dc.b	$5D	;5D
+	dc.b	$5B	;5B
+	dc.b	$50	;50
+	dc.b	$00	;00
+	dc.b	$98	;98
+	dc.b	$93	;93
+	dc.b	$98	;98
+	dc.b	$9B	;9B
+	dc.b	$A7	;A7
+	dc.b	$B2	;B2
+	dc.b	$A8	;A8
+	dc.b	$A7	;A7
+	dc.b	$C3	;C3
+	dc.b	$C7	;C7
+	dc.b	$D7	;D7
+	dc.b	$FF	;FF
+	dc.b	$23	;23
+	dc.b	$18	;18
+	dc.b	$00	;00
+	dc.b	$E0	;E0
+	dc.b	$D6	;D6
+	dc.b	$C0	;C0
+	dc.b	$9A	;9A
+	dc.b	$AF	;AF
+	dc.b	$F7	;F7
+	dc.b	$13	;13
+	dc.b	$37	;37
+	dc.b	$57	;57
+	dc.b	$5A	;5A
+	dc.b	$4C	;4C
+	dc.b	$47	;47
+	dc.b	$57	;57
+	dc.b	$5A	;5A
+	dc.b	$44	;44
+	dc.b	$32	;32
+	dc.b	$32	;32
+	dc.b	$18	;18
+	dc.b	$E0	;E0
+	dc.b	$A0	;A0
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$86	;86
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$92	;92
+	dc.b	$94	;94
+	dc.b	$9D	;9D
+	dc.b	$BF	;BF
+	dc.b	$FF	;FF
+	dc.b	$1F	;1F
+	dc.b	$35	;35
+	dc.b	$4B	;4B
+	dc.b	$5C	;5C
+	dc.b	$5F	;5F
+	dc.b	$60	;60
+	dc.b	$5D	;5D
+	dc.b	$5D	;5D
+	dc.b	$5E	;5E
+	dc.b	$5F	;5F
+	dc.b	$60	;60
+	dc.b	$60	;60
+	dc.b	$5D	;5D
+	dc.b	$5D	;5D
+	dc.b	$5E	;5E
+	dc.b	$5F	;5F
+	dc.b	$5F	;5F
+	dc.b	$61	;61
+	dc.b	$5E	;5E
+	dc.b	$5E	;5E
+	dc.b	$5E	;5E
+	dc.b	$5E	;5E
+	dc.b	$5E	;5E
+	dc.b	$5F	;5F
+	dc.b	$5E	;5E
+	dc.b	$59	;59
+	dc.b	$54	;54
+	dc.b	$10	;10
+	dc.b	$C0	;C0
+	dc.b	$A4	;A4
+	dc.b	$A1	;A1
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$9B	;9B
+	dc.b	$DF	;DF
+	dc.b	$FE	;FE
+	dc.b	$00	;00
+	dc.b	$05	;05
+	dc.b	$1D	;1D
+	dc.b	$20	;20
+	dc.b	$04	;04
+	dc.b	$EC	;EC
+	dc.b	$E7	;E7
+	dc.b	$DA	;DA
+	dc.b	$C0	;C0
+	dc.b	$B1	;B1
+	dc.b	$B7	;B7
+	dc.b	$B7	;B7
+	dc.b	$BB	;BB
+	dc.b	$D3	;D3
+	dc.b	$E6	;E6
+	dc.b	$FB	;FB
+	dc.b	$17	;17
+	dc.b	$3F	;3F
+	dc.b	$3C	;3C
+	dc.b	$24	;24
+	dc.b	$0C	;0C
+	dc.b	$F8	;F8
+	dc.b	$E0	;E0
+	dc.b	$A8	;A8
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$97	;97
+	dc.b	$AB	;AB
+	dc.b	$C7	;C7
+	dc.b	$EF	;EF
+	dc.b	$0B	;0B
+	dc.b	$1B	;1B
+	dc.b	$22	;22
+	dc.b	$35	;35
+	dc.b	$53	;53
+	dc.b	$5F	;5F
+	dc.b	$5E	;5E
+	dc.b	$5E	;5E
+	dc.b	$5E	;5E
+	dc.b	$5F	;5F
+	dc.b	$60	;60
+	dc.b	$60	;60
+	dc.b	$5D	;5D
+	dc.b	$5D	;5D
+	dc.b	$5E	;5E
+	dc.b	$5F	;5F
+	dc.b	$60	;60
+	dc.b	$60	;60
+	dc.b	$5D	;5D
+	dc.b	$5D	;5D
+	dc.b	$5E	;5E
+	dc.b	$5E	;5E
+	dc.b	$5E	;5E
+	dc.b	$5E	;5E
+	dc.b	$5C	;5C
+	dc.b	$5A	;5A
+	dc.b	$58	;58
+	dc.b	$40	;40
+	dc.b	$F4	;F4
+	dc.b	$E0	;E0
+	dc.b	$DD	;DD
+	dc.b	$D0	;D0
+	dc.b	$B0	;B0
+	dc.b	$AD	;AD
+	dc.b	$B6	;B6
+	dc.b	$B4	;B4
+	dc.b	$BF	;BF
+	dc.b	$CD	;CD
+	dc.b	$D7	;D7
+	dc.b	$DF	;DF
+	dc.b	$E7	;E7
+	dc.b	$E1	;E1
+	dc.b	$D9	;D9
+	dc.b	$D3	;D3
+	dc.b	$DD	;DD
+	dc.b	$EB	;EB
+	dc.b	$E4	;E4
+	dc.b	$DD	;DD
+	dc.b	$E7	;E7
+	dc.b	$F5	;F5
+	dc.b	$FB	;FB
+	dc.b	$FD	;FD
+	dc.b	$07	;07
+	dc.b	$17	;17
+	dc.b	$1F	;1F
+	dc.b	$1E	;1E
+	dc.b	$1A	;1A
+	dc.b	$0C	;0C
+	dc.b	$F8	;F8
+	dc.b	$F9	;F9
+	dc.b	$F0	;F0
+	dc.b	$C8	;C8
+	dc.b	$B2	;B2
+	dc.b	$B1	;B1
+	dc.b	$AC	;AC
+	dc.b	$90	;90
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$87	;87
+	dc.b	$97	;97
+	dc.b	$A7	;A7
+	dc.b	$B7	;B7
+	dc.b	$C5	;C5
+	dc.b	$DF	;DF
+	dc.b	$F7	;F7
+	dc.b	$17	;17
+	dc.b	$3F	;3F
+	dc.b	$5B	;5B
+	dc.b	$5E	;5E
+	dc.b	$5E	;5E
+	dc.b	$5F	;5F
+	dc.b	$60	;60
+	dc.b	$60	;60
+	dc.b	$5E	;5E
+	dc.b	$5D	;5D
+	dc.b	$5E	;5E
+	dc.b	$5F	;5F
+	dc.b	$60	;60
+	dc.b	$60	;60
+	dc.b	$5D	;5D
+	dc.b	$5D	;5D
+	dc.b	$5E	;5E
+	dc.b	$5F	;5F
+	dc.b	$5F	;5F
+	dc.b	$5F	;5F
+	dc.b	$5E	;5E
+	dc.b	$5D	;5D
+	dc.b	$5A	;5A
+	dc.b	$59	;59
+	dc.b	$50	;50
+	dc.b	$20	;20
+	dc.b	$F8	;F8
+	dc.b	$E0	;E0
+	dc.b	$C8	;C8
+	dc.b	$B9	;B9
+	dc.b	$BB	;BB
+	dc.b	$BD	;BD
+	dc.b	$BF	;BF
+	dc.b	$CA	;CA
+	dc.b	$D3	;D3
+	dc.b	$E5	;E5
+	dc.b	$F5	;F5
+	dc.b	$F0	;F0
+	dc.b	$E0	;E0
+	dc.b	$CC	;CC
+	dc.b	$CB	;CB
+	dc.b	$DB	;DB
+	dc.b	$E4	;E4
+	dc.b	$E7	;E7
+	dc.b	$F3	;F3
+	dc.b	$FE	;FE
+	dc.b	$07	;07
+	dc.b	$1F	;1F
+	dc.b	$2F	;2F
+	dc.b	$30	;30
+	dc.b	$2D	;2D
+	dc.b	$35	;35
+	dc.b	$36	;36
+	dc.b	$2C	;2C
+	dc.b	$14	;14
+	dc.b	$00	;00
+	dc.b	$F9	;F9
+	dc.b	$F0	;F0
+	dc.b	$E0	;E0
+	dc.b	$CC	;CC
+	dc.b	$BC	;BC
+	dc.b	$AC	;AC
+	dc.b	$9A	;9A
+	dc.b	$90	;90
+	dc.b	$8C	;8C
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$87	;87
+	dc.b	$9B	;9B
+	dc.b	$A9	;A9
+	dc.b	$B5	;B5
+	dc.b	$BF	;BF
+	dc.b	$D7	;D7
+	dc.b	$EF	;EF
+	dc.b	$FF	;FF
+	dc.b	$0B	;0B
+	dc.b	$1F	;1F
+	dc.b	$3B	;3B
+	dc.b	$4B	;4B
+	dc.b	$5F	;5F
+	dc.b	$5F	;5F
+	dc.b	$60	;60
+	dc.b	$60	;60
+	dc.b	$5D	;5D
+	dc.b	$5E	;5E
+	dc.b	$5E	;5E
+	dc.b	$5F	;5F
+	dc.b	$60	;60
+	dc.b	$60	;60
+	dc.b	$5D	;5D
+	dc.b	$5D	;5D
+	dc.b	$5E	;5E
+	dc.b	$5F	;5F
+	dc.b	$5F	;5F
+	dc.b	$61	;61
+	dc.b	$5E	;5E
+	dc.b	$5E	;5E
+	dc.b	$5C	;5C
+	dc.b	$5D	;5D
+	dc.b	$5E	;5E
+	dc.b	$5D	;5D
+	dc.b	$59	;59
+	dc.b	$48	;48
+	dc.b	$20	;20
+	dc.b	$14	;14
+	dc.b	$00	;00
+	dc.b	$DC	;DC
+	dc.b	$DB	;DB
+	dc.b	$DA	;DA
+	dc.b	$C0	;C0
+	dc.b	$A9	;A9
+	dc.b	$BF	;BF
+	dc.b	$E7	;E7
+	dc.b	$F5	;F5
+	dc.b	$EC	;EC
+	dc.b	$D8	;D8
+	dc.b	$C0	;C0
+	dc.b	$B7	;B7
+	dc.b	$CB	;CB
+	dc.b	$EF	;EF
+	dc.b	$F6	;F6
+	dc.b	$E8	;E8
+	dc.b	$DA	;DA
+	dc.b	$DD	;DD
+	dc.b	$E9	;E9
+	dc.b	$F5	;F5
+	dc.b	$FD	;FD
+	dc.b	$F8	;F8
+	dc.b	$F1	;F1
+	dc.b	$F7	;F7
+	dc.b	$07	;07
+	dc.b	$09	;09
+	dc.b	$02	;02
+	dc.b	$F4	;F4
+	dc.b	$DA	;DA
+	dc.b	$C8	;C8
+	dc.b	$BE	;BE
+	dc.b	$CB	;CB
+	dc.b	$D0	;D0
+	dc.b	$C0	;C0
+	dc.b	$98	;98
+	dc.b	$88	;88
+	dc.b	$88	;88
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$93	;93
+	dc.b	$AB	;AB
+	dc.b	$BF	;BF
+	dc.b	$D3	;D3
+	dc.b	$DC	;DC
+	dc.b	$E7	;E7
+	dc.b	$F3	;F3
+	dc.b	$0B	;0B
+	dc.b	$1F	;1F
+	dc.b	$27	;27
+	dc.b	$3F	;3F
+	dc.b	$5F	;5F
+	dc.b	$5F	;5F
+	dc.b	$5E	;5E
+	dc.b	$5F	;5F
+	dc.b	$60	;60
+	dc.b	$60	;60
+	dc.b	$60	;60
+	dc.b	$5D	;5D
+	dc.b	$5D	;5D
+	dc.b	$5F	;5F
+	dc.b	$5F	;5F
+	dc.b	$60	;60
+	dc.b	$60	;60
+	dc.b	$5D	;5D
+	dc.b	$5D	;5D
+	dc.b	$5F	;5F
+	dc.b	$5E	;5E
+	dc.b	$5E	;5E
+	dc.b	$5E	;5E
+	dc.b	$5D	;5D
+	dc.b	$5C	;5C
+	dc.b	$59	;59
+	dc.b	$59	;59
+	dc.b	$40	;40
+	dc.b	$08	;08
+	dc.b	$07	;07
+	dc.b	$16	;16
+	dc.b	$0A	;0A
+	dc.b	$F8	;F8
+	dc.b	$E4	;E4
+	dc.b	$D0	;D0
+	dc.b	$C1	;C1
+	dc.b	$BE	;BE
+	dc.b	$C1	;C1
+	dc.b	$CF	;CF
+	dc.b	$DF	;DF
+	dc.b	$D9	;D9
+	dc.b	$D6	;D6
+	dc.b	$EB	;EB
+	dc.b	$FE	;FE
+	dc.b	$01	;01
+	dc.b	$0A	;0A
+	dc.b	$0D	;0D
+	dc.b	$0A	;0A
+	dc.b	$0B	;0B
+	dc.b	$13	;13
+	dc.b	$17	;17
+	dc.b	$0C	;0C
+	dc.b	$F8	;F8
+	dc.b	$E4	;E4
+	dc.b	$E6	;E6
+	dc.b	$E2	;E2
+	dc.b	$DF	;DF
+	dc.b	$E5	;E5
+	dc.b	$F3	;F3
+	dc.b	$F5	;F5
+	dc.b	$F7	;F7
+	dc.b	$02	;02
+	dc.b	$FA	;FA
+	dc.b	$E0	;E0
+	dc.b	$C2	;C2
+	dc.b	$B4	;B4
+	dc.b	$AC	;AC
+	dc.b	$98	;98
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$8E	;8E
+	dc.b	$9A	;9A
+	dc.b	$A7	;A7
+	dc.b	$B5	;B5
+	dc.b	$BA	;BA
+	dc.b	$C3	;C3
+	dc.b	$D3	;D3
+	dc.b	$E9	;E9
+	dc.b	$F9	;F9
+	dc.b	$03	;03
+	dc.b	$15	;15
+	dc.b	$2B	;2B
+	dc.b	$47	;47
+	dc.b	$5F	;5F
+	dc.b	$5F	;5F
+	dc.b	$60	;60
+	dc.b	$60	;60
+	dc.b	$60	;60
+	dc.b	$5D	;5D
+	dc.b	$5E	;5E
+	dc.b	$5F	;5F
+	dc.b	$5F	;5F
+	dc.b	$60	;60
+	dc.b	$60	;60
+	dc.b	$5D	;5D
+	dc.b	$5D	;5D
+	dc.b	$5F	;5F
+	dc.b	$5F	;5F
+	dc.b	$60	;60
+	dc.b	$60	;60
+	dc.b	$5D	;5D
+	dc.b	$5C	;5C
+	dc.b	$5C	;5C
+	dc.b	$5B	;5B
+	dc.b	$5B	;5B
+	dc.b	$5E	;5E
+	dc.b	$5C	;5C
+	dc.b	$5A	;5A
+	dc.b	$50	;50
+	dc.b	$28	;28
+	dc.b	$15	;15
+	dc.b	$10	;10
+	dc.b	$00	;00
+	dc.b	$D0	;D0
+	dc.b	$B2	;B2
+	dc.b	$BF	;BF
+	dc.b	$D5	;D5
+	dc.b	$E7	;E7
+	dc.b	$F1	;F1
+	dc.b	$EE	;EE
+	dc.b	$E6	;E6
+	dc.b	$DC	;DC
+	dc.b	$D4	;D4
+	dc.b	$DD	;DD
+	dc.b	$EB	;EB
+	dc.b	$F3	;F3
+	dc.b	$F3	;F3
+	dc.b	$ED	;ED
+	dc.b	$F5	;F5
+	dc.b	$09	;09
+	dc.b	$00	;00
+	dc.b	$E8	;E8
+	dc.b	$DE	;DE
+	dc.b	$E7	;E7
+	dc.b	$FB	;FB
+	dc.b	$02	;02
+	dc.b	$FA	;FA
+	dc.b	$F5	;F5
+	dc.b	$EC	;EC
+	dc.b	$E0	;E0
+	dc.b	$D2	;D2
+	dc.b	$C8	;C8
+	dc.b	$B6	;B6
+	dc.b	$A6	;A6
+	dc.b	$9F	;9F
+	dc.b	$A1	;A1
+	dc.b	$94	;94
+	dc.b	$82	;82
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$85	;85
+	dc.b	$9F	;9F
+	dc.b	$BB	;BB
+	dc.b	$D5	;D5
+	dc.b	$E1	;E1
+	dc.b	$ED	;ED
+	dc.b	$FD	;FD
+	dc.b	$09	;09
+	dc.b	$08	;08
+	dc.b	$07	;07
+	dc.b	$1F	;1F
+	dc.b	$4B	;4B
+	dc.b	$5E	;5E
+	dc.b	$5E	;5E
+	dc.b	$5F	;5F
+	dc.b	$60	;60
+	dc.b	$60	;60
+	dc.b	$5E	;5E
+	dc.b	$5E	;5E
+	dc.b	$5E	;5E
+	dc.b	$5F	;5F
+	dc.b	$5F	;5F
+	dc.b	$60	;60
+	dc.b	$5F	;5F
+	dc.b	$5E	;5E
+	dc.b	$5E	;5E
+	dc.b	$5F	;5F
+	dc.b	$5E	;5E
+	dc.b	$5F	;5F
+	dc.b	$5F	;5F
+	dc.b	$5E	;5E
+	dc.b	$5D	;5D
+	dc.b	$5E	;5E
+	dc.b	$5C	;5C
+	dc.b	$5B	;5B
+	dc.b	$5B	;5B
+	dc.b	$40	;40
+	dc.b	$14	;14
+	dc.b	$04	;04
+	dc.b	$F8	;F8
+	dc.b	$EC	;EC
+	dc.b	$E2	;E2
+	dc.b	$D2	;D2
+	dc.b	$C6	;C6
+	dc.b	$CB	;CB
+	dc.b	$D7	;D7
+	dc.b	$D8	;D8
+	dc.b	$CE	;CE
+	dc.b	$CA	;CA
+	dc.b	$CF	;CF
+	dc.b	$E7	;E7
+	dc.b	$F3	;F3
+	dc.b	$F4	;F4
+	dc.b	$EC	;EC
+	dc.b	$E2	;E2
+	dc.b	$DC	;DC
+	dc.b	$D9	;D9
+	dc.b	$E5	;E5
+	dc.b	$F5	;F5
+	dc.b	$FB	;FB
+	dc.b	$F8	;F8
+	dc.b	$F0	;F0
+	dc.b	$F1	;F1
+	dc.b	$F0	;F0
+	dc.b	$EA	;EA
+	dc.b	$E4	;E4
+	dc.b	$E2	;E2
+	dc.b	$E3	;E3
+	dc.b	$E0	;E0
+	dc.b	$D0	;D0
+	dc.b	$C2	;C2
+	dc.b	$BB	;BB
+	dc.b	$B6	;B6
+	dc.b	$A8	;A8
+	dc.b	$98	;98
+	dc.b	$94	;94
+	dc.b	$8E	;8E
+	dc.b	$84	;84
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$83	;83
+	dc.b	$9F	;9F
+	dc.b	$BB	;BB
+	dc.b	$CF	;CF
+	dc.b	$DD	;DD
+	dc.b	$ED	;ED
+	dc.b	$FF	;FF
+	dc.b	$13	;13
+	dc.b	$27	;27
+	dc.b	$2F	;2F
+	dc.b	$37	;37
+	dc.b	$4B	;4B
+	dc.b	$5B	;5B
+	dc.b	$5F	;5F
+	dc.b	$5F	;5F
+	dc.b	$5F	;5F
+	dc.b	$5F	;5F
+	dc.b	$60	;60
+	dc.b	$60	;60
+	dc.b	$5E	;5E
+	dc.b	$5E	;5E
+	dc.b	$5E	;5E
+	dc.b	$5F	;5F
+	dc.b	$5F	;5F
+	dc.b	$61	;61
+	dc.b	$5F	;5F
+	dc.b	$5E	;5E
+	dc.b	$5E	;5E
+	dc.b	$5E	;5E
+	dc.b	$5F	;5F
+	dc.b	$5F	;5F
+	dc.b	$5F	;5F
+	dc.b	$5E	;5E
+	dc.b	$5D	;5D
+	dc.b	$5C	;5C
+	dc.b	$5C	;5C
+	dc.b	$5D	;5D
+	dc.b	$5D	;5D
+	dc.b	$5A	;5A
+	dc.b	$40	;40
+	dc.b	$08	;08
+	dc.b	$F2	;F2
+	dc.b	$E0	;E0
+	dc.b	$A8	;A8
+	dc.b	$93	;93
+	dc.b	$A5	;A5
+	dc.b	$BD	;BD
+	dc.b	$C0	;C0
+	dc.b	$BA	;BA
+	dc.b	$CB	;CB
+	dc.b	$DB	;DB
+	dc.b	$D4	;D4
+	dc.b	$D1	;D1
+	dc.b	$DF	;DF
+	dc.b	$F2	;F2
+	dc.b	$FD	;FD
+	dc.b	$FC	;FC
+	dc.b	$EC	;EC
+	dc.b	$D8	;D8
+	dc.b	$D3	;D3
+	dc.b	$D5	;D5
+	dc.b	$CC	;CC
+	dc.b	$B8	;B8
+	dc.b	$B1	;B1
+	dc.b	$BF	;BF
+	dc.b	$CB	;CB
+	dc.b	$D1	;D1
+	dc.b	$D9	;D9
+	dc.b	$E7	;E7
+	dc.b	$E5	;E5
+	dc.b	$D8	;D8
+	dc.b	$C6	;C6
+	dc.b	$B4	;B4
+	dc.b	$A4	;A4
+	dc.b	$90	;90
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$8F	;8F
+	dc.b	$A1	;A1
+	dc.b	$A9	;A9
+	dc.b	$B5	;B5
+	dc.b	$C7	;C7
+	dc.b	$D7	;D7
+	dc.b	$E5	;E5
+	dc.b	$F3	;F3
+	dc.b	$0F	;0F
+	dc.b	$2F	;2F
+	dc.b	$4F	;4F
+	dc.b	$5F	;5F
+	dc.b	$5F	;5F
+	dc.b	$5E	;5E
+	dc.b	$5E	;5E
+	dc.b	$5F	;5F
+	dc.b	$60	;60
+	dc.b	$60	;60
+	dc.b	$5E	;5E
+	dc.b	$5D	;5D
+	dc.b	$5E	;5E
+	dc.b	$5F	;5F
+	dc.b	$60	;60
+	dc.b	$60	;60
+	dc.b	$5E	;5E
+	dc.b	$5D	;5D
+	dc.b	$5E	;5E
+	dc.b	$5E	;5E
+	dc.b	$5F	;5F
+	dc.b	$5F	;5F
+	dc.b	$5F	;5F
+	dc.b	$5E	;5E
+	dc.b	$5D	;5D
+	dc.b	$5B	;5B
+	dc.b	$5B	;5B
+	dc.b	$5B	;5B
+	dc.b	$40	;40
+	dc.b	$1B	;1B
+	dc.b	$27	;27
+	dc.b	$22	;22
+	dc.b	$04	;04
+	dc.b	$D8	;D8
+	dc.b	$C0	;C0
+	dc.b	$BF	;BF
+	dc.b	$CA	;CA
+	dc.b	$C1	;C1
+	dc.b	$B6	;B6
+	dc.b	$C7	;C7
+	dc.b	$D5	;D5
+	dc.b	$D5	;D5
+	dc.b	$D4	;D4
+	dc.b	$DE	;DE
+	dc.b	$D0	;D0
+	dc.b	$BC	;BC
+	dc.b	$BB	;BB
+	dc.b	$CB	;CB
+	dc.b	$D5	;D5
+	dc.b	$DA	;DA
+	dc.b	$DF	;DF
+	dc.b	$E7	;E7
+	dc.b	$EC	;EC
+	dc.b	$E0	;E0
+	dc.b	$D0	;D0
+	dc.b	$C6	;C6
+	dc.b	$C9	;C9
+	dc.b	$C5	;C5
+	dc.b	$CB	;CB
+	dc.b	$CA	;CA
+	dc.b	$B8	;B8
+	dc.b	$A8	;A8
+	dc.b	$A6	;A6
+	dc.b	$A3	;A3
+	dc.b	$98	;98
+	dc.b	$89	;89
+	dc.b	$82	;82
+	dc.b	$8B	;8B
+	dc.b	$9B	;9B
+	dc.b	$9E	;9E
+	dc.b	$88	;88
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$83	;83
+	dc.b	$9F	;9F
+	dc.b	$C7	;C7
+	dc.b	$E7	;E7
+	dc.b	$F9	;F9
+	dc.b	$FF	;FF
+	dc.b	$0F	;0F
+	dc.b	$1F	;1F
+	dc.b	$29	;29
+	dc.b	$27	;27
+	dc.b	$25	;25
+	dc.b	$2F	;2F
+	dc.b	$4F	;4F
+	dc.b	$5E	;5E
+	dc.b	$5F	;5F
+	dc.b	$5F	;5F
+	dc.b	$60	;60
+	dc.b	$60	;60
+	dc.b	$5E	;5E
+	dc.b	$5D	;5D
+	dc.b	$5E	;5E
+	dc.b	$5F	;5F
+	dc.b	$60	;60
+	dc.b	$60	;60
+	dc.b	$5E	;5E
+	dc.b	$5D	;5D
+	dc.b	$5D	;5D
+	dc.b	$5E	;5E
+	dc.b	$5F	;5F
+	dc.b	$60	;60
+	dc.b	$5E	;5E
+	dc.b	$5D	;5D
+	dc.b	$5D	;5D
+	dc.b	$5E	;5E
+	dc.b	$5E	;5E
+	dc.b	$5D	;5D
+	dc.b	$5C	;5C
+	dc.b	$5A	;5A
+	dc.b	$5A	;5A
+	dc.b	$50	;50
+	dc.b	$30	;30
+	dc.b	$18	;18
+	dc.b	$00	;00
+	dc.b	$E0	;E0
+	dc.b	$C0	;C0
+	dc.b	$AE	;AE
+	dc.b	$B3	;B3
+	dc.b	$CD	;CD
+	dc.b	$D4	;D4
+	dc.b	$D0	;D0
+	dc.b	$D1	;D1
+	dc.b	$DD	;DD
+	dc.b	$F3	;F3
+	dc.b	$F8	;F8
+	dc.b	$EA	;EA
+	dc.b	$DD	;DD
+	dc.b	$DC	;DC
+	dc.b	$DC	;DC
+	dc.b	$E3	;E3
+	dc.b	$E3	;E3
+	dc.b	$D4	;D4
+	dc.b	$BA	;BA
+	dc.b	$AC	;AC
+	dc.b	$AF	;AF
+	dc.b	$B8	;B8
+	dc.b	$B2	;B2
+	dc.b	$AB	;AB
+	dc.b	$B5	;B5
+	dc.b	$C2	;C2
+	dc.b	$C9	;C9
+	dc.b	$CA	;CA
+	dc.b	$C0	;C0
+	dc.b	$B0	;B0
+	dc.b	$9A	;9A
+	dc.b	$8C	;8C
+	dc.b	$8B	;8B
+	dc.b	$88	;88
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$82	;82
+	dc.b	$8B	;8B
+	dc.b	$9A	;9A
+	dc.b	$AD	;AD
+	dc.b	$BF	;BF
+	dc.b	$D3	;D3
+	dc.b	$DE	;DE
+	dc.b	$E7	;E7
+	dc.b	$FF	;FF
+	dc.b	$1F	;1F
+	dc.b	$37	;37
+	dc.b	$43	;43
+	dc.b	$49	;49
+	dc.b	$59	;59
+	dc.b	$60	;60
+	dc.b	$60	;60
+	dc.b	$5E	;5E
+	dc.b	$5D	;5D
+	dc.b	$5E	;5E
+	dc.b	$5F	;5F
+	dc.b	$60	;60
+	dc.b	$60	;60
+	dc.b	$5E	;5E
+	dc.b	$5D	;5D
+	dc.b	$5E	;5E
+	dc.b	$5F	;5F
+	dc.b	$5F	;5F
+	dc.b	$5F	;5F
+	dc.b	$5F	;5F
+	dc.b	$5E	;5E
+	dc.b	$5D	;5D
+	dc.b	$5D	;5D
+	dc.b	$5F	;5F
+	dc.b	$5F	;5F
+	dc.b	$5F	;5F
+	dc.b	$5B	;5B
+	dc.b	$5A	;5A
+	dc.b	$5A	;5A
+	dc.b	$51	;51
+	dc.b	$38	;38
+	dc.b	$1C	;1C
+	dc.b	$08	;08
+	dc.b	$F8	;F8
+	dc.b	$EA	;EA
+	dc.b	$D4	;D4
+	dc.b	$B8	;B8
+	dc.b	$AE	;AE
+	dc.b	$B3	;B3
+	dc.b	$B2	;B2
+	dc.b	$B9	;B9
+	dc.b	$BC	;BC
+	dc.b	$BB	;BB
+	dc.b	$CB	;CB
+	dc.b	$D7	;D7
+	dc.b	$D6	;D6
+	dc.b	$CC	;CC
+	dc.b	$C6	;C6
+	dc.b	$CB	;CB
+	dc.b	$D1	;D1
+	dc.b	$CA	;CA
+	dc.b	$C5	;C5
+	dc.b	$C0	;C0
+	dc.b	$A8	;A8
+	dc.b	$92	;92
+	dc.b	$8D	;8D
+	dc.b	$A3	;A3
+	dc.b	$A9	;A9
+	dc.b	$A0	;A0
+	dc.b	$98	;98
+	dc.b	$9D	;9D
+	dc.b	$A5	;A5
+	dc.b	$A2	;A2
+	dc.b	$9D	;9D
+	dc.b	$98	;98
+	dc.b	$88	;88
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$81	;81
+	dc.b	$97	;97
+	dc.b	$AB	;AB
+	dc.b	$BF	;BF
+	dc.b	$D3	;D3
+	dc.b	$E2	;E2
+	dc.b	$EF	;EF
+	dc.b	$FB	;FB
+	dc.b	$07	;07
+	dc.b	$16	;16
+	dc.b	$27	;27
+	dc.b	$3D	;3D
+	dc.b	$4B	;4B
+	dc.b	$54	;54
+	dc.b	$57	;57
+	dc.b	$5E	;5E
+	dc.b	$5F	;5F
+	dc.b	$60	;60
+	dc.b	$60	;60
+	dc.b	$5E	;5E
+	dc.b	$5D	;5D
+	dc.b	$5E	;5E
+	dc.b	$5F	;5F
+	dc.b	$60	;60
+	dc.b	$60	;60
+	dc.b	$5E	;5E
+	dc.b	$5D	;5D
+	dc.b	$5D	;5D
+	dc.b	$5E	;5E
+	dc.b	$5F	;5F
+	dc.b	$5F	;5F
+	dc.b	$5F	;5F
+	dc.b	$5E	;5E
+	dc.b	$5E	;5E
+	dc.b	$5D	;5D
+	dc.b	$5C	;5C
+	dc.b	$5D	;5D
+	dc.b	$5E	;5E
+	dc.b	$5C	;5C
+	dc.b	$5D	;5D
+	dc.b	$5E	;5E
+	dc.b	$5D	;5D
+	dc.b	$5C	;5C
+	dc.b	$40	;40
+	dc.b	$00	;00
+	dc.b	$E5	;E5
+	dc.b	$E4	;E4
+	dc.b	$E2	;E2
+	dc.b	$DC	;DC
+	dc.b	$D8	;D8
+	dc.b	$DC	;DC
+	dc.b	$ED	;ED
+	dc.b	$FF	;FF
+	dc.b	$FA	;FA
+	dc.b	$EC	;EC
+	dc.b	$E7	;E7
+	dc.b	$FB	;FB
+	dc.b	$03	;03
+	dc.b	$00	;00
+	dc.b	$F8	;F8
+	dc.b	$F4	;F4
+	dc.b	$E4	;E4
+	dc.b	$C8	;C8
+	dc.b	$AD	;AD
+	dc.b	$AA	;AA
+	dc.b	$AC	;AC
+	dc.b	$AA	;AA
+	dc.b	$AD	;AD
+	dc.b	$BF	;BF
+	dc.b	$CD	;CD
+	dc.b	$D0	;D0
+	dc.b	$D5	;D5
+	dc.b	$DB	;DB
+	dc.b	$D2	;D2
+	dc.b	$C4	;C4
+	dc.b	$B8	;B8
+	dc.b	$B9	;B9
+	dc.b	$B8	;B8
+	dc.b	$B0	;B0
+	dc.b	$A0	;A0
+	dc.b	$94	;94
+	dc.b	$8E	;8E
+	dc.b	$84	;84
+	dc.b	$80	;80
+	dc.b	$84	;84
+	dc.b	$8F	;8F
+	dc.b	$9E	;9E
+	dc.b	$A3	;A3
+	dc.b	$A7	;A7
+	dc.b	$AC	;AC
+	dc.b	$B1	;B1
+	dc.b	$B2	;B2
+	dc.b	$A8	;A8
+	dc.b	$9A	;9A
+	dc.b	$9F	;9F
+	dc.b	$BB	;BB
+	dc.b	$D5	;D5
+	dc.b	$E6	;E6
+	dc.b	$F3	;F3
+	dc.b	$FF	;FF
+	dc.b	$0B	;0B
+	dc.b	$1B	;1B
+	dc.b	$2B	;2B
+	dc.b	$3F	;3F
+	dc.b	$51	;51
+	dc.b	$5B	;5B
+	dc.b	$5F	;5F
+	dc.b	$5F	;5F
+	dc.b	$60	;60
+	dc.b	$60	;60
+	dc.b	$5D	;5D
+	dc.b	$5D	;5D
+	dc.b	$5E	;5E
+	dc.b	$5F	;5F
+	dc.b	$60	;60
+	dc.b	$60	;60
+	dc.b	$5E	;5E
+	dc.b	$5D	;5D
+	dc.b	$5E	;5E
+	dc.b	$5F	;5F
+	dc.b	$5F	;5F
+	dc.b	$60	;60
+	dc.b	$5E	;5E
+	dc.b	$5E	;5E
+	dc.b	$5E	;5E
+	dc.b	$5F	;5F
+	dc.b	$5F	;5F
+	dc.b	$60	;60
+	dc.b	$5E	;5E
+	dc.b	$5D	;5D
+	dc.b	$5D	;5D
+	dc.b	$5D	;5D
+	dc.b	$5F	;5F
+	dc.b	$5F	;5F
+	dc.b	$5F	;5F
+	dc.b	$5D	;5D
+	dc.b	$5C	;5C
+	dc.b	$5C	;5C
+	dc.b	$5A	;5A
+	dc.b	$54	;54
+	dc.b	$2C	;2C
+	dc.b	$1D	;1D
+	dc.b	$2F	;2F
+	dc.b	$3A	;3A
+	dc.b	$2E	;2E
+	dc.b	$25	;25
+	dc.b	$20	;20
+	dc.b	$15	;15
+	dc.b	$13	;13
+	dc.b	$14	;14
+	dc.b	$00	;00
+	dc.b	$EA	;EA
+	dc.b	$E6	;E6
+	dc.b	$F7	;F7
+	dc.b	$04	;04
+	dc.b	$08	;08
+	dc.b	$04	;04
+	dc.b	$FC	;FC
+	dc.b	$EC	;EC
+	dc.b	$DE	;DE
+	dc.b	$E1	;E1
+	dc.b	$D8	;D8
+	dc.b	$C8	;C8
+	dc.b	$C2	;C2
+	dc.b	$CA	;CA
+	dc.b	$C6	;C6
+	dc.b	$B8	;B8
+	dc.b	$AE	;AE
+	dc.b	$A8	;A8
+	dc.b	$AB	;AB
+	dc.b	$A8	;A8
+	dc.b	$AF	;AF
+	dc.b	$BF	;BF
+	dc.b	$C0	;C0
+	dc.b	$BA	;BA
+	dc.b	$B9	;B9
+	dc.b	$B5	;B5
+	dc.b	$B0	;B0
+	dc.b	$A1	;A1
+	dc.b	$94	;94
+	dc.b	$93	;93
+	dc.b	$99	;99
+	dc.b	$94	;94
+	dc.b	$88	;88
+	dc.b	$84	;84
+	dc.b	$8A	;8A
+	dc.b	$9B	;9B
+	dc.b	$A7	;A7
+	dc.b	$AD	;AD
+	dc.b	$B1	;B1
+	dc.b	$B5	;B5
+	dc.b	$BF	;BF
+	dc.b	$CF	;CF
+	dc.b	$D9	;D9
+	dc.b	$E6	;E6
+	dc.b	$EF	;EF
+	dc.b	$F7	;F7
+	dc.b	$FF	;FF
+	dc.b	$0B	;0B
+	dc.b	$16	;16
+	dc.b	$23	;23
+	dc.b	$35	;35
+	dc.b	$4B	;4B
+	dc.b	$5D	;5D
+	dc.b	$60	;60
+	dc.b	$5F	;5F
+	dc.b	$60	;60
+	dc.b	$5E	;5E
+	dc.b	$5E	;5E
+	dc.b	$5E	;5E
+	dc.b	$5F	;5F
+	dc.b	$60	;60
+	dc.b	$5F	;5F
+	dc.b	$5E	;5E
+	dc.b	$5E	;5E
+	dc.b	$5E	;5E
+	dc.b	$5F	;5F
+	dc.b	$5F	;5F
+	dc.b	$60	;60
+	dc.b	$5E	;5E
+	dc.b	$5D	;5D
+	dc.b	$5E	;5E
+	dc.b	$5E	;5E
+	dc.b	$5F	;5F
+	dc.b	$60	;60
+	dc.b	$5E	;5E
+	dc.b	$5D	;5D
+	dc.b	$5E	;5E
+	dc.b	$5D	;5D
+	dc.b	$5D	;5D
+	dc.b	$5D	;5D
+	dc.b	$5D	;5D
+	dc.b	$5C	;5C
+	dc.b	$5A	;5A
+	dc.b	$48	;48
+	dc.b	$30	;30
+	dc.b	$27	;27
+	dc.b	$26	;26
+	dc.b	$23	;23
+	dc.b	$27	;27
+	dc.b	$28	;28
+	dc.b	$26	;26
+	dc.b	$24	;24
+	dc.b	$1A	;1A
+	dc.b	$0C	;0C
+	dc.b	$F0	;F0
+	dc.b	$C8	;C8
+	dc.b	$B5	;B5
+	dc.b	$B9	;B9
+	dc.b	$CD	;CD
+	dc.b	$D1	;D1
+	dc.b	$C0	;C0
+	dc.b	$AA	;AA
+	dc.b	$9E	;9E
+	dc.b	$A3	;A3
+	dc.b	$AA	;AA
+	dc.b	$AC	;AC
+	dc.b	$AC	;AC
+	dc.b	$AE	;AE
+	dc.b	$B1	;B1
+	dc.b	$AA	;AA
+	dc.b	$A0	;A0
+	dc.b	$9A	;9A
+	dc.b	$88	;88
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$83	;83
+	dc.b	$87	;87
+	dc.b	$8F	;8F
+	dc.b	$96	;96
+	dc.b	$95	;95
+	dc.b	$8D	;8D
+	dc.b	$84	;84
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$93	;93
+	dc.b	$AF	;AF
+	dc.b	$C3	;C3
+	dc.b	$C6	;C6
+	dc.b	$C4	;C4
+	dc.b	$C4	;C4
+	dc.b	$C2	;C2
+	dc.b	$C5	;C5
+	dc.b	$CF	;CF
+	dc.b	$E7	;E7
+	dc.b	$FA	;FA
+	dc.b	$FF	;FF
+	dc.b	$13	;13
+	dc.b	$26	;26
+	dc.b	$32	;32
+	dc.b	$37	;37
+	dc.b	$3B	;3B
+	dc.b	$4B	;4B
+	dc.b	$5E	;5E
+	dc.b	$5F	;5F
+	dc.b	$5E	;5E
+	dc.b	$5F	;5F
+	dc.b	$60	;60
+	dc.b	$60	;60
+	dc.b	$5D	;5D
+	dc.b	$5D	;5D
+	dc.b	$5E	;5E
+	dc.b	$5F	;5F
+	dc.b	$5F	;5F
+	dc.b	$60	;60
+	dc.b	$5E	;5E
+	dc.b	$5D	;5D
+	dc.b	$5E	;5E
+	dc.b	$5F	;5F
+	dc.b	$5F	;5F
+	dc.b	$60	;60
+	dc.b	$5E	;5E
+	dc.b	$5D	;5D
+	dc.b	$5E	;5E
+	dc.b	$5E	;5E
+	dc.b	$5E	;5E
+	dc.b	$5F	;5F
+	dc.b	$5E	;5E
+	dc.b	$5B	;5B
+	dc.b	$59	;59
+	dc.b	$54	;54
+	dc.b	$30	;30
+	dc.b	$1B	;1B
+	dc.b	$2B	;2B
+	dc.b	$37	;37
+	dc.b	$35	;35
+	dc.b	$36	;36
+	dc.b	$2E	;2E
+	dc.b	$21	;21
+	dc.b	$10	;10
+	dc.b	$00	;00
+	dc.b	$F0	;F0
+	dc.b	$E0	;E0
+	dc.b	$C0	;C0
+	dc.b	$A8	;A8
+	dc.b	$A2	;A2
+	dc.b	$A9	;A9
+	dc.b	$AF	;AF
+	dc.b	$B7	;B7
+	dc.b	$BA	;BA
+	dc.b	$B0	;B0
+	dc.b	$A0	;A0
+	dc.b	$96	;96
+	dc.b	$A3	;A3
+	dc.b	$B1	;B1
+	dc.b	$AE	;AE
+	dc.b	$A0	;A0
+	dc.b	$8C	;8C
+	dc.b	$87	;87
+	dc.b	$86	;86
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$8F	;8F
+	dc.b	$9F	;9F
+	dc.b	$9E	;9E
+	dc.b	$96	;96
+	dc.b	$93	;93
+	dc.b	$92	;92
+	dc.b	$90	;90
+	dc.b	$92	;92
+	dc.b	$92	;92
+	dc.b	$8C	;8C
+	dc.b	$86	;86
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$87	;87
+	dc.b	$88	;88
+	dc.b	$8A	;8A
+	dc.b	$97	;97
+	dc.b	$A7	;A7
+	dc.b	$B3	;B3
+	dc.b	$BD	;BD
+	dc.b	$BF	;BF
+	dc.b	$C6	;C6
+	dc.b	$D7	;D7
+	dc.b	$E5	;E5
+	dc.b	$EA	;EA
+	dc.b	$E3	;E3
+	dc.b	$DF	;DF
+	dc.b	$EA	;EA
+	dc.b	$FB	;FB
+	dc.b	$0D	;0D
+	dc.b	$1D	;1D
+	dc.b	$26	;26
+	dc.b	$2D	;2D
+	dc.b	$3B	;3B
+	dc.b	$4F	;4F
+	dc.b	$5D	;5D
+	dc.b	$61	;61
+	dc.b	$61	;61
+	dc.b	$5F	;5F
+	dc.b	$5E	;5E
+	dc.b	$5E	;5E
+	dc.b	$5F	;5F
+	dc.b	$5F	;5F
+	dc.b	$60	;60
+	dc.b	$5E	;5E
+	dc.b	$5D	;5D
+	dc.b	$5E	;5E
+	dc.b	$5F	;5F
+	dc.b	$5F	;5F
+	dc.b	$60	;60
+	dc.b	$5E	;5E
+	dc.b	$5D	;5D
+	dc.b	$5E	;5E
+	dc.b	$5D	;5D
+	dc.b	$5E	;5E
+	dc.b	$5E	;5E
+	dc.b	$5C	;5C
+	dc.b	$5A	;5A
+	dc.b	$59	;59
+	dc.b	$54	;54
+	dc.b	$38	;38
+	dc.b	$20	;20
+	dc.b	$14	;14
+	dc.b	$15	;15
+	dc.b	$1F	;1F
+	dc.b	$28	;28
+	dc.b	$20	;20
+	dc.b	$19	;19
+	dc.b	$1F	;1F
+	dc.b	$1C	;1C
+	dc.b	$00	;00
+	dc.b	$D8	;D8
+	dc.b	$C0	;C0
+	dc.b	$B0	;B0
+	dc.b	$A2	;A2
+	dc.b	$92	;92
+	dc.b	$8D	;8D
+	dc.b	$9D	;9D
+	dc.b	$A9	;A9
+	dc.b	$AF	;AF
+	dc.b	$B1	;B1
+	dc.b	$B7	;B7
+	dc.b	$BD	;BD
+	dc.b	$BF	;BF
+	dc.b	$C7	;C7
+	dc.b	$D1	;D1
+	dc.b	$C8	;C8
+	dc.b	$B2	;B2
+	dc.b	$9C	;9C
+	dc.b	$88	;88
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$83	;83
+	dc.b	$97	;97
+	dc.b	$A7	;A7
+	dc.b	$AA	;AA
+	dc.b	$AC	;AC
+	dc.b	$AF	;AF
+	dc.b	$B4	;B4
+	dc.b	$AE	;AE
+	dc.b	$A6	;A6
+	dc.b	$9C	;9C
+	dc.b	$91	;91
+	dc.b	$89	;89
+	dc.b	$86	;86
+	dc.b	$84	;84
+	dc.b	$83	;83
+	dc.b	$89	;89
+	dc.b	$97	;97
+	dc.b	$A7	;A7
+	dc.b	$B5	;B5
+	dc.b	$C7	;C7
+	dc.b	$DB	;DB
+	dc.b	$E3	;E3
+	dc.b	$E4	;E4
+	dc.b	$E2	;E2
+	dc.b	$D8	;D8
+	dc.b	$D3	;D3
+	dc.b	$D4	;D4
+	dc.b	$D9	;D9
+	dc.b	$E2	;E2
+	dc.b	$EA	;EA
+	dc.b	$F3	;F3
+	dc.b	$FD	;FD
+	dc.b	$0B	;0B
+	dc.b	$1D	;1D
+	dc.b	$33	;33
+	dc.b	$4F	;4F
+	dc.b	$5D	;5D
+	dc.b	$5F	;5F
+	dc.b	$60	;60
+	dc.b	$60	;60
+	dc.b	$5E	;5E
+	dc.b	$5D	;5D
+	dc.b	$5E	;5E
+	dc.b	$5F	;5F
+	dc.b	$5F	;5F
+	dc.b	$60	;60
+	dc.b	$5E	;5E
+	dc.b	$5D	;5D
+	dc.b	$5D	;5D
+	dc.b	$5F	;5F
+	dc.b	$5F	;5F
+	dc.b	$60	;60
+	dc.b	$5E	;5E
+	dc.b	$5D	;5D
+	dc.b	$5E	;5E
+	dc.b	$5F	;5F
+	dc.b	$5F	;5F
+	dc.b	$60	;60
+	dc.b	$5E	;5E
+	dc.b	$5D	;5D
+	dc.b	$5D	;5D
+	dc.b	$5D	;5D
+	dc.b	$5E	;5E
+	dc.b	$5D	;5D
+	dc.b	$5D	;5D
+	dc.b	$5B	;5B
+	dc.b	$5C	;5C
+	dc.b	$5C	;5C
+	dc.b	$54	;54
+	dc.b	$40	;40
+	dc.b	$28	;28
+	dc.b	$19	;19
+	dc.b	$14	;14
+	dc.b	$11	;11
+	dc.b	$0B	;0B
+	dc.b	$05	;05
+	dc.b	$00	;00
+	dc.b	$F8	;F8
+	dc.b	$ED	;ED
+	dc.b	$E0	;E0
+	dc.b	$D0	;D0
+	dc.b	$C1	;C1
+	dc.b	$C1	;C1
+	dc.b	$C7	;C7
+	dc.b	$D1	;D1
+	dc.b	$CC	;CC
+	dc.b	$C2	;C2
+	dc.b	$B6	;B6
+	dc.b	$AE	;AE
+	dc.b	$B0	;B0
+	dc.b	$AD	;AD
+	dc.b	$A1	;A1
+	dc.b	$98	;98
+	dc.b	$99	;99
+	dc.b	$A3	;A3
+	dc.b	$AA	;AA
+	dc.b	$A6	;A6
+	dc.b	$9A	;9A
+	dc.b	$90	;90
+	dc.b	$86	;86
+	dc.b	$88	;88
+	dc.b	$8E	;8E
+	dc.b	$97	;97
+	dc.b	$9D	;9D
+	dc.b	$9C	;9C
+	dc.b	$96	;96
+	dc.b	$97	;97
+	dc.b	$9E	;9E
+	dc.b	$A3	;A3
+	dc.b	$9C	;9C
+	dc.b	$95	;95
+	dc.b	$9B	;9B
+	dc.b	$AB	;AB
+	dc.b	$B7	;B7
+	dc.b	$BF	;BF
+	dc.b	$C0	;C0
+	dc.b	$C1	;C1
+	dc.b	$C3	;C3
+	dc.b	$C4	;C4
+	dc.b	$C4	;C4
+	dc.b	$C3	;C3
+	dc.b	$C9	;C9
+	dc.b	$D5	;D5
+	dc.b	$DD	;DD
+	dc.b	$E5	;E5
+	dc.b	$E8	;E8
+	dc.b	$E7	;E7
+	dc.b	$E7	;E7
+	dc.b	$F3	;F3
+	dc.b	$07	;07
+	dc.b	$17	;17
+	dc.b	$1F	;1F
+	dc.b	$23	;23
+	dc.b	$33	;33
+	dc.b	$46	;46
+	dc.b	$48	;48
+	dc.b	$41	;41
+	dc.b	$43	;43
+	dc.b	$53	;53
+	dc.b	$5D	;5D
+	dc.b	$5F	;5F
+	dc.b	$60	;60
+	dc.b	$60	;60
+	dc.b	$5E	;5E
+	dc.b	$5D	;5D
+	dc.b	$5E	;5E
+	dc.b	$5F	;5F
+	dc.b	$5F	;5F
+	dc.b	$60	;60
+	dc.b	$5E	;5E
+	dc.b	$5D	;5D
+	dc.b	$5D	;5D
+	dc.b	$5F	;5F
+	dc.b	$5F	;5F
+	dc.b	$60	;60
+	dc.b	$5E	;5E
+	dc.b	$5D	;5D
+	dc.b	$5D	;5D
+	dc.b	$5D	;5D
+	dc.b	$5F	;5F
+	dc.b	$5F	;5F
+	dc.b	$5F	;5F
+	dc.b	$5E	;5E
+	dc.b	$5B	;5B
+	dc.b	$5B	;5B
+	dc.b	$5C	;5C
+	dc.b	$5D	;5D
+	dc.b	$54	;54
+	dc.b	$4B	;4B
+	dc.b	$49	;49
+	dc.b	$41	;41
+	dc.b	$39	;39
+	dc.b	$3B	;3B
+	dc.b	$32	;32
+	dc.b	$18	;18
+	dc.b	$00	;00
+	dc.b	$EA	;EA
+	dc.b	$ED	;ED
+	dc.b	$EC	;EC
+	dc.b	$D9	;D9
+	dc.b	$C4	;C4
+	dc.b	$BC	;BC
+	dc.b	$BF	;BF
+	dc.b	$BA	;BA
+	dc.b	$B0	;B0
+	dc.b	$AD	;AD
+	dc.b	$AE	;AE
+	dc.b	$A8	;A8
+	dc.b	$9C	;9C
+	dc.b	$99	;99
+	dc.b	$9A	;9A
+	dc.b	$96	;96
+	dc.b	$88	;88
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$8D	;8D
+	dc.b	$95	;95
+	dc.b	$97	;97
+	dc.b	$9F	;9F
+	dc.b	$A3	;A3
+	dc.b	$A3	;A3
+	dc.b	$A0	;A0
+	dc.b	$9E	;9E
+	dc.b	$9C	;9C
+	dc.b	$92	;92
+	dc.b	$8A	;8A
+	dc.b	$8F	;8F
+	dc.b	$99	;99
+	dc.b	$9E	;9E
+	dc.b	$9F	;9F
+	dc.b	$A7	;A7
+	dc.b	$B7	;B7
+	dc.b	$C5	;C5
+	dc.b	$CF	;CF
+	dc.b	$D5	;D5
+	dc.b	$D7	;D7
+	dc.b	$DC	;DC
+	dc.b	$DF	;DF
+	dc.b	$E1	;E1
+	dc.b	$E1	;E1
+	dc.b	$DE	;DE
+	dc.b	$DD	;DD
+	dc.b	$E2	;E2
+	dc.b	$ED	;ED
+	dc.b	$FD	;FD
+	dc.b	$03	;03
+	dc.b	$07	;07
+	dc.b	$13	;13
+	dc.b	$27	;27
+	dc.b	$36	;36
+	dc.b	$3D	;3D
+	dc.b	$41	;41
+	dc.b	$46	;46
+	dc.b	$4C	;4C
+	dc.b	$55	;55
+	dc.b	$5C	;5C
+	dc.b	$5E	;5E
+	dc.b	$5E	;5E
+	dc.b	$5F	;5F
+	dc.b	$5F	;5F
+	dc.b	$60	;60
+	dc.b	$5E	;5E
+	dc.b	$5D	;5D
+	dc.b	$5D	;5D
+	dc.b	$5F	;5F
+	dc.b	$5F	;5F
+	dc.b	$60	;60
+	dc.b	$5E	;5E
+	dc.b	$5D	;5D
+	dc.b	$5D	;5D
+	dc.b	$5E	;5E
+	dc.b	$5E	;5E
+	dc.b	$5F	;5F
+	dc.b	$5F	;5F
+	dc.b	$5E	;5E
+	dc.b	$5E	;5E
+	dc.b	$5F	;5F
+	dc.b	$5F	;5F
+	dc.b	$5F	;5F
+	dc.b	$5E	;5E
+	dc.b	$5B	;5B
+	dc.b	$5B	;5B
+	dc.b	$5D	;5D
+	dc.b	$5E	;5E
+	dc.b	$5D	;5D
+	dc.b	$5D	;5D
+	dc.b	$4C	;4C
+	dc.b	$38	;38
+	dc.b	$28	;28
+	dc.b	$1C	;1C
+	dc.b	$13	;13
+	dc.b	$12	;12
+	dc.b	$08	;08
+	dc.b	$FC	;FC
+	dc.b	$F5	;F5
+	dc.b	$FF	;FF
+	dc.b	$06	;06
+	dc.b	$F0	;F0
+	dc.b	$D0	;D0
+	dc.b	$BC	;BC
+	dc.b	$BF	;BF
+	dc.b	$C4	;C4
+	dc.b	$B4	;B4
+	dc.b	$A2	;A2
+	dc.b	$9F	;9F
+	dc.b	$AB	;AB
+	dc.b	$AE	;AE
+	dc.b	$AA	;AA
+	dc.b	$A5	;A5
+	dc.b	$9C	;9C
+	dc.b	$90	;90
+	dc.b	$8B	;8B
+	dc.b	$97	;97
+	dc.b	$A2	;A2
+	dc.b	$A0	;A0
+	dc.b	$92	;92
+	dc.b	$8F	;8F
+	dc.b	$99	;99
+	dc.b	$98	;98
+	dc.b	$90	;90
+	dc.b	$8C	;8C
+	dc.b	$95	;95
+	dc.b	$A2	;A2
+	dc.b	$A4	;A4
+	dc.b	$9C	;9C
+	dc.b	$99	;99
+	dc.b	$9F	;9F
+	dc.b	$A2	;A2
+	dc.b	$9E	;9E
+	dc.b	$94	;94
+	dc.b	$91	;91
+	dc.b	$99	;99
+	dc.b	$9F	;9F
+	dc.b	$A4	;A4
+	dc.b	$AB	;AB
+	dc.b	$B1	;B1
+	dc.b	$B4	;B4
+	dc.b	$B5	;B5
+	dc.b	$BB	;BB
+	dc.b	$C7	;C7
+	dc.b	$C7	;C7
+	dc.b	$C0	;C0
+	dc.b	$BE	;BE
+	dc.b	$CA	;CA
+	dc.b	$D3	;D3
+	dc.b	$D7	;D7
+	dc.b	$DC	;DC
+	dc.b	$E5	;E5
+	dc.b	$F1	;F1
+	dc.b	$FA	;FA
+	dc.b	$FF	;FF
+	dc.b	$0F	;0F
+	dc.b	$25	;25
+	dc.b	$2F	;2F
+	dc.b	$30	;30
+	dc.b	$35	;35
+	dc.b	$3F	;3F
+	dc.b	$4D	;4D
+	dc.b	$50	;50
+	dc.b	$4F	;4F
+	dc.b	$57	;57
+	dc.b	$5D	;5D
+	dc.b	$60	;60
+	dc.b	$60	;60
+	dc.b	$5E	;5E
+	dc.b	$5D	;5D
+	dc.b	$5D	;5D
+	dc.b	$5F	;5F
+	dc.b	$5F	;5F
+	dc.b	$60	;60
+	dc.b	$5E	;5E
+	dc.b	$5D	;5D
+	dc.b	$5D	;5D
+	dc.b	$5F	;5F
+	dc.b	$5F	;5F
+	dc.b	$5F	;5F
+	dc.b	$5F	;5F
+	dc.b	$5E	;5E
+	dc.b	$5D	;5D
+	dc.b	$5F	;5F
+	dc.b	$5E	;5E
+	dc.b	$5F	;5F
+	dc.b	$5F	;5F
+	dc.b	$5E	;5E
+	dc.b	$5D	;5D
+	dc.b	$5D	;5D
+	dc.b	$5D	;5D
+	dc.b	$5E	;5E
+	dc.b	$5E	;5E
+	dc.b	$5C	;5C
+	dc.b	$5B	;5B
+	dc.b	$5C	;5C
+	dc.b	$56	;56
+	dc.b	$4A	;4A
+	dc.b	$45	;45
+	dc.b	$47	;47
+	dc.b	$44	;44
+	dc.b	$38	;38
+	dc.b	$26	;26
+	dc.b	$16	;16
+	dc.b	$0D	;0D
+	dc.b	$04	;04
+	dc.b	$F4	;F4
+	dc.b	$E8	;E8
+	dc.b	$E0	;E0
+	dc.b	$DC	;DC
+	dc.b	$D5	;D5
+	dc.b	$D0	;D0
+	dc.b	$C8	;C8
+	dc.b	$C2	;C2
+	dc.b	$C0	;C0
+	dc.b	$C5	;C5
+	dc.b	$CA	;CA
+	dc.b	$D0	;D0
+	dc.b	$CB	;CB
+	dc.b	$C4	;C4
+	dc.b	$BA	;BA
+	dc.b	$B3	;B3
+	dc.b	$AC	;AC
+	dc.b	$A0	;A0
+	dc.b	$96	;96
+	dc.b	$99	;99
+	dc.b	$A5	;A5
+	dc.b	$AB	;AB
+	dc.b	$AC	;AC
+	dc.b	$A7	;A7
+	dc.b	$AA	;AA
+	dc.b	$B5	;B5
+	dc.b	$B9	;B9
+	dc.b	$B7	;B7
+	dc.b	$B7	;B7
+	dc.b	$B9	;B9
+	dc.b	$B5	;B5
+	dc.b	$B0	;B0
+	dc.b	$AF	;AF
+	dc.b	$B0	;B0
+	dc.b	$AA	;AA
+	dc.b	$A2	;A2
+	dc.b	$A1	;A1
+	dc.b	$A7	;A7
+	dc.b	$B2	;B2
+	dc.b	$BC	;BC
+	dc.b	$C3	;C3
+	dc.b	$C9	;C9
+	dc.b	$D2	;D2
+	dc.b	$DB	;DB
+	dc.b	$DF	;DF
+	dc.b	$DC	;DC
+	dc.b	$DA	;DA
+	dc.b	$DD	;DD
+	dc.b	$E7	;E7
+	dc.b	$EF	;EF
+	dc.b	$F3	;F3
+	dc.b	$F5	;F5
+	dc.b	$F7	;F7
+	dc.b	$FB	;FB
+	dc.b	$FF	;FF
+	dc.b	$0B	;0B
+	dc.b	$16	;16
+	dc.b	$1F	;1F
+	dc.b	$2B	;2B
+	dc.b	$3A	;3A
+	dc.b	$45	;45
+	dc.b	$44	;44
+	dc.b	$3E	;3E
+	dc.b	$3B	;3B
+	dc.b	$3F	;3F
+	dc.b	$4B	;4B
+	dc.b	$55	;55
+	dc.b	$5A	;5A
+	dc.b	$5F	;5F
+	dc.b	$60	;60
+	dc.b	$5F	;5F
+	dc.b	$5F	;5F
+	dc.b	$5E	;5E
+	dc.b	$5E	;5E
+	dc.b	$5E	;5E
+	dc.b	$5E	;5E
+	dc.b	$5F	;5F
+	dc.b	$5F	;5F
+	dc.b	$5E	;5E
+	dc.b	$5D	;5D
+	dc.b	$5F	;5F
+	dc.b	$5E	;5E
+	dc.b	$5E	;5E
+	dc.b	$5E	;5E
+	dc.b	$5D	;5D
+	dc.b	$5D	;5D
+	dc.b	$5D	;5D
+	dc.b	$5F	;5F
+	dc.b	$60	;60
+	dc.b	$5E	;5E
+	dc.b	$5D	;5D
+	dc.b	$5C	;5C
+	dc.b	$50	;50
+	dc.b	$41	;41
+	dc.b	$3D	;3D
+	dc.b	$44	;44
+	dc.b	$41	;41
+	dc.b	$3D	;3D
+	dc.b	$38	;38
+	dc.b	$2C	;2C
+	dc.b	$20	;20
+	dc.b	$12	;12
+	dc.b	$0C	;0C
+	dc.b	$0C	;0C
+	dc.b	$0B	;0B
+	dc.b	$0A	;0A
+	dc.b	$0A	;0A
+	dc.b	$05	;05
+	dc.b	$FA	;FA
+	dc.b	$E8	;E8
+	dc.b	$D8	;D8
+	dc.b	$D3	;D3
+	dc.b	$D1	;D1
+	dc.b	$C9	;C9
+	dc.b	$C5	;C5
+	dc.b	$C1	;C1
+	dc.b	$BE	;BE
+	dc.b	$BB	;BB
+	dc.b	$B4	;B4
+	dc.b	$B2	;B2
+	dc.b	$B2	;B2
+	dc.b	$B2	;B2
+	dc.b	$B6	;B6
+	dc.b	$B9	;B9
+	dc.b	$BD	;BD
+	dc.b	$BC	;BC
+	dc.b	$B7	;B7
+	dc.b	$B2	;B2
+	dc.b	$AE	;AE
+	dc.b	$AC	;AC
+	dc.b	$AE	;AE
+	dc.b	$AD	;AD
+	dc.b	$AB	;AB
+	dc.b	$AC	;AC
+	dc.b	$B3	;B3
+	dc.b	$BB	;BB
+	dc.b	$B9	;B9
+	dc.b	$B6	;B6
+	dc.b	$B5	;B5
+	dc.b	$B9	;B9
+	dc.b	$BD	;BD
+	dc.b	$C2	;C2
+	dc.b	$C7	;C7
+	dc.b	$CB	;CB
+	dc.b	$CD	;CD
+	dc.b	$CE	;CE
+	dc.b	$D1	;D1
+	dc.b	$D4	;D4
+	dc.b	$CE	;CE
+	dc.b	$CF	;CF
+	dc.b	$DB	;DB
+	dc.b	$E3	;E3
+	dc.b	$EB	;EB
+	dc.b	$ED	;ED
+	dc.b	$F3	;F3
+	dc.b	$F9	;F9
+	dc.b	$FB	;FB
+	dc.b	$FF	;FF
+	dc.b	$0B	;0B
+	dc.b	$16	;16
+	dc.b	$1D	;1D
+	dc.b	$1F	;1F
+	dc.b	$21	;21
+	dc.b	$29	;29
+	dc.b	$31	;31
+	dc.b	$37	;37
+	dc.b	$3D	;3D
+	dc.b	$49	;49
+	dc.b	$57	;57
+	dc.b	$5F	;5F
+	dc.b	$5F	;5F
+	dc.b	$5F	;5F
+	dc.b	$60	;60
+	dc.b	$5F	;5F
+	dc.b	$5F	;5F
+	dc.b	$5E	;5E
+	dc.b	$5D	;5D
+	dc.b	$5F	;5F
+	dc.b	$5F	;5F
+	dc.b	$60	;60
+	dc.b	$5E	;5E
+	dc.b	$5D	;5D
+	dc.b	$5D	;5D
+	dc.b	$5F	;5F
+	dc.b	$5F	;5F
+	dc.b	$5F	;5F
+	dc.b	$60	;60
+	dc.b	$5D	;5D
+	dc.b	$5D	;5D
+	dc.b	$5F	;5F
+	dc.b	$5F	;5F
+	dc.b	$5F	;5F
+	dc.b	$60	;60
+	dc.b	$5D	;5D
+	dc.b	$5D	;5D
+	dc.b	$5D	;5D
+	dc.b	$5E	;5E
+	dc.b	$5F	;5F
+	dc.b	$60	;60
+	dc.b	$5D	;5D
+	dc.b	$5C	;5C
+	dc.b	$5C	;5C
+	dc.b	$5C	;5C
+	dc.b	$5D	;5D
+	dc.b	$5D	;5D
+	dc.b	$5C	;5C
+	dc.b	$50	;50
+	dc.b	$42	;42
+	dc.b	$3F	;3F
+	dc.b	$42	;42
+	dc.b	$3B	;3B
+	dc.b	$34	;34
+	dc.b	$32	;32
+	dc.b	$31	;31
+	dc.b	$2E	;2E
+	dc.b	$22	;22
+	dc.b	$14	;14
+	dc.b	$0B	;0B
+	dc.b	$0A	;0A
+	dc.b	$00	;00
+	dc.b	$F0	;F0
+	dc.b	$EA	;EA
+	dc.b	$EB	;EB
+	dc.b	$E8	;E8
+	dc.b	$E0	;E0
+	dc.b	$D4	;D4
+	dc.b	$D5	;D5
+	dc.b	$DF	;DF
+	dc.b	$E9	;E9
 AudioSample_4:
-	INCBIN bw-sfx/sample4.sound
-
+	dc.b	'FORM'	;464F524D
+	dc.b	$00	;00
+	dc.b	$00	;00
+	dc.b	$17	;17
+	dc.b	$AE	;AE
+	dc.b	'8SVXVHDR'	;3853565856484452
+	dc.b	$00	;00
+	dc.b	$00	;00
+	dc.b	$00	;00
+	dc.b	$14	;14
+	dc.b	$00	;00
+	dc.b	$00	;00
+	dc.b	$17	;17
+	dc.b	$86	;86
+	dc.b	$00	;00
+	dc.b	$00	;00
+	dc.b	$00	;00
+	dc.b	$00	;00
+	dc.b	$00	;00
+	dc.b	$00	;00
+	dc.b	$00	;00
+	dc.b	$00	;00
+	dc.b	$20	;20
+	dc.b	$AB	;AB
+	dc.b	$01	;01
+	dc.b	$00	;00
+	dc.b	$00	;00
+	dc.b	$01	;01
+	dc.b	$00	;00
+	dc.b	$00	;00
+	dc.b	'BODY'	;424F4459
+	dc.b	$00	;00
+	dc.b	$00	;00
+	dc.b	$17	;17
+	dc.b	$86	;86
+	dc.b	$00	;00
+	dc.b	$00	;00
+	dc.b	$00	;00
+	dc.b	$00	;00
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$C4	;C4
+	dc.b	$2C	;2C
+	dc.b	$60	;60
+	dc.b	$62	;62
+	dc.b	$64	;64
+	dc.b	$66	;66
+	dc.b	$63	;63
+	dc.b	$64	;64
+	dc.b	$65	;65
+	dc.b	$62	;62
+	dc.b	$63	;63
+	dc.b	$64	;64
+	dc.b	$64	;64
+	dc.b	$63	;63
+	dc.b	$64	;64
+	dc.b	$64	;64
+	dc.b	$63	;63
+	dc.b	$64	;64
+	dc.b	$66	;66
+	dc.b	$63	;63
+	dc.b	$64	;64
+	dc.b	$65	;65
+	dc.b	$62	;62
+	dc.b	$64	;64
+	dc.b	$65	;65
+	dc.b	$62	;62
+	dc.b	$62	;62
+	dc.b	$63	;63
+	dc.b	$61	;61
+	dc.b	$55	;55
+	dc.b	$AD	;AD
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$B4	;B4
+	dc.b	$E4	;E4
+	dc.b	$24	;24
+	dc.b	$38	;38
+	dc.b	$60	;60
+	dc.b	$64	;64
+	dc.b	$64	;64
+	dc.b	$66	;66
+	dc.b	$63	;63
+	dc.b	$63	;63
+	dc.b	$65	;65
+	dc.b	$63	;63
+	dc.b	$62	;62
+	dc.b	$64	;64
+	dc.b	$65	;65
+	dc.b	$62	;62
+	dc.b	$64	;64
+	dc.b	$65	;65
+	dc.b	$62	;62
+	dc.b	$64	;64
+	dc.b	$65	;65
+	dc.b	$62	;62
+	dc.b	$64	;64
+	dc.b	$65	;65
+	dc.b	$62	;62
+	dc.b	$63	;63
+	dc.b	$64	;64
+	dc.b	$64	;64
+	dc.b	$63	;63
+	dc.b	$64	;64
+	dc.b	$65	;65
+	dc.b	$62	;62
+	dc.b	$64	;64
+	dc.b	$64	;64
+	dc.b	$62	;62
+	dc.b	$60	;60
+	dc.b	$63	;63
+	dc.b	$5D	;5D
+	dc.b	$35	;35
+	dc.b	$25	;25
+	dc.b	$07	;07
+	dc.b	$D1	;D1
+	dc.b	$A5	;A5
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$8A	;8A
+	dc.b	$C4	;C4
+	dc.b	$E4	;E4
+	dc.b	$EF	;EF
+	dc.b	$D1	;D1
+	dc.b	$A5	;A5
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$93	;93
+	dc.b	$92	;92
+	dc.b	$9C	;9C
+	dc.b	$BC	;BC
+	dc.b	$E0	;E0
+	dc.b	$1C	;1C
+	dc.b	$28	;28
+	dc.b	$3E	;3E
+	dc.b	$61	;61
+	dc.b	$65	;65
+	dc.b	$63	;63
+	dc.b	$62	;62
+	dc.b	$65	;65
+	dc.b	$63	;63
+	dc.b	$62	;62
+	dc.b	$64	;64
+	dc.b	$65	;65
+	dc.b	$62	;62
+	dc.b	$64	;64
+	dc.b	$65	;65
+	dc.b	$62	;62
+	dc.b	$64	;64
+	dc.b	$64	;64
+	dc.b	$64	;64
+	dc.b	$63	;63
+	dc.b	$64	;64
+	dc.b	$64	;64
+	dc.b	$63	;63
+	dc.b	$64	;64
+	dc.b	$65	;65
+	dc.b	$62	;62
+	dc.b	$64	;64
+	dc.b	$65	;65
+	dc.b	$62	;62
+	dc.b	$64	;64
+	dc.b	$65	;65
+	dc.b	$62	;62
+	dc.b	$63	;63
+	dc.b	$63	;63
+	dc.b	$61	;61
+	dc.b	$5D	;5D
+	dc.b	$E5	;E5
+	dc.b	$A5	;A5
+	dc.b	$9F	;9F
+	dc.b	$AA	;AA
+	dc.b	$9B	;9B
+	dc.b	$86	;86
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$A4	;A4
+	dc.b	$E4	;E4
+	dc.b	$2C	;2C
+	dc.b	$63	;63
+	dc.b	$64	;64
+	dc.b	$63	;63
+	dc.b	$63	;63
+	dc.b	$65	;65
+	dc.b	$62	;62
+	dc.b	$63	;63
+	dc.b	$64	;64
+	dc.b	$65	;65
+	dc.b	$62	;62
+	dc.b	$64	;64
+	dc.b	$65	;65
+	dc.b	$62	;62
+	dc.b	$63	;63
+	dc.b	$65	;65
+	dc.b	$62	;62
+	dc.b	$64	;64
+	dc.b	$65	;65
+	dc.b	$62	;62
+	dc.b	$63	;63
+	dc.b	$64	;64
+	dc.b	$64	;64
+	dc.b	$63	;63
+	dc.b	$64	;64
+	dc.b	$66	;66
+	dc.b	$63	;63
+	dc.b	$5F	;5F
+	dc.b	$45	;45
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$D0	;D0
+	dc.b	$44	;44
+	dc.b	$62	;62
+	dc.b	$64	;64
+	dc.b	$63	;63
+	dc.b	$64	;64
+	dc.b	$65	;65
+	dc.b	$62	;62
+	dc.b	$63	;63
+	dc.b	$64	;64
+	dc.b	$64	;64
+	dc.b	$63	;63
+	dc.b	$64	;64
+	dc.b	$66	;66
+	dc.b	$63	;63
+	dc.b	$64	;64
+	dc.b	$65	;65
+	dc.b	$62	;62
+	dc.b	$64	;64
+	dc.b	$64	;64
+	dc.b	$63	;63
+	dc.b	$62	;62
+	dc.b	$64	;64
+	dc.b	$64	;64
+	dc.b	$64	;64
+	dc.b	$65	;65
+	dc.b	$63	;63
+	dc.b	$62	;62
+	dc.b	$64	;64
+	dc.b	$66	;66
+	dc.b	$63	;63
+	dc.b	$64	;64
+	dc.b	$66	;66
+	dc.b	$63	;63
+	dc.b	$64	;64
+	dc.b	$65	;65
+	dc.b	$63	;63
+	dc.b	$63	;63
+	dc.b	$64	;64
+	dc.b	$64	;64
+	dc.b	$64	;64
+	dc.b	$65	;65
+	dc.b	$64	;64
+	dc.b	$63	;63
+	dc.b	$64	;64
+	dc.b	$66	;66
+	dc.b	$63	;63
+	dc.b	$64	;64
+	dc.b	$66	;66
+	dc.b	$63	;63
+	dc.b	$64	;64
+	dc.b	$65	;65
+	dc.b	$63	;63
+	dc.b	$63	;63
+	dc.b	$64	;64
+	dc.b	$64	;64
+	dc.b	$64	;64
+	dc.b	$65	;65
+	dc.b	$65	;65
+	dc.b	$62	;62
+	dc.b	$64	;64
+	dc.b	$62	;62
+	dc.b	$45	;45
+	dc.b	$A5	;A5
+	dc.b	$86	;86
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$A4	;A4
+	dc.b	$04	;04
+	dc.b	$5C	;5C
+	dc.b	$64	;64
+	dc.b	$63	;63
+	dc.b	$63	;63
+	dc.b	$65	;65
+	dc.b	$62	;62
+	dc.b	$63	;63
+	dc.b	$64	;64
+	dc.b	$65	;65
+	dc.b	$62	;62
+	dc.b	$64	;64
+	dc.b	$65	;65
+	dc.b	$62	;62
+	dc.b	$64	;64
+	dc.b	$65	;65
+	dc.b	$62	;62
+	dc.b	$64	;64
+	dc.b	$65	;65
+	dc.b	$62	;62
+	dc.b	$63	;63
+	dc.b	$64	;64
+	dc.b	$64	;64
+	dc.b	$64	;64
+	dc.b	$64	;64
+	dc.b	$65	;65
+	dc.b	$62	;62
+	dc.b	$64	;64
+	dc.b	$66	;66
+	dc.b	$63	;63
+	dc.b	$64	;64
+	dc.b	$65	;65
+	dc.b	$63	;63
+	dc.b	$64	;64
+	dc.b	$64	;64
+	dc.b	$63	;63
+	dc.b	$62	;62
+	dc.b	$62	;62
+	dc.b	$61	;61
+	dc.b	$2D	;2D
+	dc.b	$19	;19
+	dc.b	$FD	;FD
+	dc.b	$EB	;EB
+	dc.b	$DD	;DD
+	dc.b	$D3	;D3
+	dc.b	$BD	;BD
+	dc.b	$9D	;9D
+	dc.b	$8B	;8B
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$8A	;8A
+	dc.b	$A4	;A4
+	dc.b	$C2	;C2
+	dc.b	$C7	;C7
+	dc.b	$B5	;B5
+	dc.b	$91	;91
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$B4	;B4
+	dc.b	$F0	;F0
+	dc.b	$24	;24
+	dc.b	$3A	;3A
+	dc.b	$5F	;5F
+	dc.b	$63	;63
+	dc.b	$64	;64
+	dc.b	$65	;65
+	dc.b	$62	;62
+	dc.b	$64	;64
+	dc.b	$65	;65
+	dc.b	$62	;62
+	dc.b	$63	;63
+	dc.b	$65	;65
+	dc.b	$62	;62
+	dc.b	$63	;63
+	dc.b	$64	;64
+	dc.b	$64	;64
+	dc.b	$63	;63
+	dc.b	$64	;64
+	dc.b	$66	;66
+	dc.b	$63	;63
+	dc.b	$64	;64
+	dc.b	$64	;64
+	dc.b	$63	;63
+	dc.b	$63	;63
+	dc.b	$64	;64
+	dc.b	$64	;64
+	dc.b	$63	;63
+	dc.b	$64	;64
+	dc.b	$64	;64
+	dc.b	$63	;63
+	dc.b	$64	;64
+	dc.b	$65	;65
+	dc.b	$62	;62
+	dc.b	$64	;64
+	dc.b	$64	;64
+	dc.b	$5F	;5F
+	dc.b	$4D	;4D
+	dc.b	$D5	;D5
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$E4	;E4
+	dc.b	$2C	;2C
+	dc.b	$44	;44
+	dc.b	$62	;62
+	dc.b	$63	;63
+	dc.b	$63	;63
+	dc.b	$63	;63
+	dc.b	$65	;65
+	dc.b	$63	;63
+	dc.b	$62	;62
+	dc.b	$65	;65
+	dc.b	$63	;63
+	dc.b	$62	;62
+	dc.b	$64	;64
+	dc.b	$66	;66
+	dc.b	$63	;63
+	dc.b	$64	;64
+	dc.b	$65	;65
+	dc.b	$62	;62
+	dc.b	$64	;64
+	dc.b	$65	;65
+	dc.b	$62	;62
+	dc.b	$63	;63
+	dc.b	$64	;64
+	dc.b	$64	;64
+	dc.b	$63	;63
+	dc.b	$64	;64
+	dc.b	$65	;65
+	dc.b	$62	;62
+	dc.b	$64	;64
+	dc.b	$65	;65
+	dc.b	$62	;62
+	dc.b	$61	;61
+	dc.b	$5F	;5F
+	dc.b	$0D	;0D
+	dc.b	$DE	;DE
+	dc.b	$CD	;CD
+	dc.b	$95	;95
+	dc.b	$88	;88
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$C4	;C4
+	dc.b	$EC	;EC
+	dc.b	$24	;24
+	dc.b	$5C	;5C
+	dc.b	$63	;63
+	dc.b	$61	;61
+	dc.b	$55	;55
+	dc.b	$15	;15
+	dc.b	$F1	;F1
+	dc.b	$BD	;BD
+	dc.b	$BA	;BA
+	dc.b	$C9	;C9
+	dc.b	$B2	;B2
+	dc.b	$CC	;CC
+	dc.b	$DC	;DC
+	dc.b	$EB	;EB
+	dc.b	$FC	;FC
+	dc.b	$24	;24
+	dc.b	$44	;44
+	dc.b	$66	;66
+	dc.b	$64	;64
+	dc.b	$64	;64
+	dc.b	$66	;66
+	dc.b	$64	;64
+	dc.b	$63	;63
+	dc.b	$65	;65
+	dc.b	$63	;63
+	dc.b	$63	;63
+	dc.b	$63	;63
+	dc.b	$5F	;5F
+	dc.b	$E5	;E5
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$87	;87
+	dc.b	$9C	;9C
+	dc.b	$BC	;BC
+	dc.b	$DA	;DA
+	dc.b	$EA	;EA
+	dc.b	$FA	;FA
+	dc.b	$FD	;FD
+	dc.b	$0C	;0C
+	dc.b	$1C	;1C
+	dc.b	$2C	;2C
+	dc.b	$27	;27
+	dc.b	$F9	;F9
+	dc.b	$CF	;CF
+	dc.b	$AD	;AD
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$8C	;8C
+	dc.b	$EC	;EC
+	dc.b	$30	;30
+	dc.b	$60	;60
+	dc.b	$64	;64
+	dc.b	$65	;65
+	dc.b	$62	;62
+	dc.b	$63	;63
+	dc.b	$65	;65
+	dc.b	$62	;62
+	dc.b	$63	;63
+	dc.b	$65	;65
+	dc.b	$63	;63
+	dc.b	$62	;62
+	dc.b	$62	;62
+	dc.b	$61	;61
+	dc.b	$45	;45
+	dc.b	$C5	;C5
+	dc.b	$99	;99
+	dc.b	$A7	;A7
+	dc.b	$A4	;A4
+	dc.b	$D0	;D0
+	dc.b	$18	;18
+	dc.b	$5C	;5C
+	dc.b	$62	;62
+	dc.b	$37	;37
+	dc.b	$1E	;1E
+	dc.b	$19	;19
+	dc.b	$34	;34
+	dc.b	$64	;64
+	dc.b	$65	;65
+	dc.b	$64	;64
+	dc.b	$63	;63
+	dc.b	$64	;64
+	dc.b	$66	;66
+	dc.b	$63	;63
+	dc.b	$64	;64
+	dc.b	$65	;65
+	dc.b	$63	;63
+	dc.b	$63	;63
+	dc.b	$64	;64
+	dc.b	$64	;64
+	dc.b	$63	;63
+	dc.b	$64	;64
+	dc.b	$66	;66
+	dc.b	$63	;63
+	dc.b	$64	;64
+	dc.b	$65	;65
+	dc.b	$62	;62
+	dc.b	$64	;64
+	dc.b	$65	;65
+	dc.b	$63	;63
+	dc.b	$62	;62
+	dc.b	$64	;64
+	dc.b	$64	;64
+	dc.b	$5F	;5F
+	dc.b	$49	;49
+	dc.b	$D1	;D1
+	dc.b	$9D	;9D
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$C4	;C4
+	dc.b	$04	;04
+	dc.b	$50	;50
+	dc.b	$62	;62
+	dc.b	$64	;64
+	dc.b	$64	;64
+	dc.b	$63	;63
+	dc.b	$64	;64
+	dc.b	$65	;65
+	dc.b	$62	;62
+	dc.b	$64	;64
+	dc.b	$65	;65
+	dc.b	$62	;62
+	dc.b	$64	;64
+	dc.b	$65	;65
+	dc.b	$62	;62
+	dc.b	$64	;64
+	dc.b	$65	;65
+	dc.b	$62	;62
+	dc.b	$63	;63
+	dc.b	$64	;64
+	dc.b	$64	;64
+	dc.b	$63	;63
+	dc.b	$64	;64
+	dc.b	$61	;61
+	dc.b	$35	;35
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$A0	;A0
+	dc.b	$34	;34
+	dc.b	$62	;62
+	dc.b	$64	;64
+	dc.b	$64	;64
+	dc.b	$61	;61
+	dc.b	$64	;64
+	dc.b	$65	;65
+	dc.b	$62	;62
+	dc.b	$64	;64
+	dc.b	$66	;66
+	dc.b	$63	;63
+	dc.b	$64	;64
+	dc.b	$65	;65
+	dc.b	$62	;62
+	dc.b	$64	;64
+	dc.b	$65	;65
+	dc.b	$63	;63
+	dc.b	$63	;63
+	dc.b	$64	;64
+	dc.b	$64	;64
+	dc.b	$64	;64
+	dc.b	$64	;64
+	dc.b	$65	;65
+	dc.b	$63	;63
+	dc.b	$64	;64
+	dc.b	$65	;65
+	dc.b	$62	;62
+	dc.b	$64	;64
+	dc.b	$65	;65
+	dc.b	$62	;62
+	dc.b	$61	;61
+	dc.b	$61	;61
+	dc.b	$55	;55
+	dc.b	$E5	;E5
+	dc.b	$9F	;9F
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$86	;86
+	dc.b	$BF	;BF
+	dc.b	$D8	;D8
+	dc.b	$D8	;D8
+	dc.b	$D7	;D7
+	dc.b	$D9	;D9
+	dc.b	$BD	;BD
+	dc.b	$DC	;DC
+	dc.b	$0A	;0A
+	dc.b	$10	;10
+	dc.b	$19	;19
+	dc.b	$10	;10
+	dc.b	$13	;13
+	dc.b	$05	;05
+	dc.b	$24	;24
+	dc.b	$5E	;5E
+	dc.b	$60	;60
+	dc.b	$4C	;4C
+	dc.b	$62	;62
+	dc.b	$62	;62
+	dc.b	$60	;60
+	dc.b	$65	;65
+	dc.b	$62	;62
+	dc.b	$64	;64
+	dc.b	$65	;65
+	dc.b	$62	;62
+	dc.b	$64	;64
+	dc.b	$65	;65
+	dc.b	$62	;62
+	dc.b	$5F	;5F
+	dc.b	$5D	;5D
+	dc.b	$2A	;2A
+	dc.b	$62	;62
+	dc.b	$65	;65
+	dc.b	$63	;63
+	dc.b	$62	;62
+	dc.b	$64	;64
+	dc.b	$65	;65
+	dc.b	$62	;62
+	dc.b	$64	;64
+	dc.b	$65	;65
+	dc.b	$62	;62
+	dc.b	$64	;64
+	dc.b	$65	;65
+	dc.b	$62	;62
+	dc.b	$64	;64
+	dc.b	$65	;65
+	dc.b	$62	;62
+	dc.b	$63	;63
+	dc.b	$64	;64
+	dc.b	$64	;64
+	dc.b	$63	;63
+	dc.b	$64	;64
+	dc.b	$66	;66
+	dc.b	$63	;63
+	dc.b	$64	;64
+	dc.b	$65	;65
+	dc.b	$62	;62
+	dc.b	$64	;64
+	dc.b	$65	;65
+	dc.b	$62	;62
+	dc.b	$63	;63
+	dc.b	$64	;64
+	dc.b	$64	;64
+	dc.b	$64	;64
+	dc.b	$65	;65
+	dc.b	$64	;64
+	dc.b	$63	;63
+	dc.b	$63	;63
+	dc.b	$62	;62
+	dc.b	$5E	;5E
+	dc.b	$25	;25
+	dc.b	$B5	;B5
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$8C	;8C
+	dc.b	$C4	;C4
+	dc.b	$24	;24
+	dc.b	$61	;61
+	dc.b	$64	;64
+	dc.b	$65	;65
+	dc.b	$62	;62
+	dc.b	$64	;64
+	dc.b	$65	;65
+	dc.b	$62	;62
+	dc.b	$64	;64
+	dc.b	$65	;65
+	dc.b	$62	;62
+	dc.b	$63	;63
+	dc.b	$64	;64
+	dc.b	$64	;64
+	dc.b	$63	;63
+	dc.b	$64	;64
+	dc.b	$64	;64
+	dc.b	$62	;62
+	dc.b	$60	;60
+	dc.b	$61	;61
+	dc.b	$25	;25
+	dc.b	$20	;20
+	dc.b	$38	;38
+	dc.b	$5E	;5E
+	dc.b	$64	;64
+	dc.b	$65	;65
+	dc.b	$62	;62
+	dc.b	$60	;60
+	dc.b	$62	;62
+	dc.b	$57	;57
+	dc.b	$55	;55
+	dc.b	$55	;55
+	dc.b	$5B	;5B
+	dc.b	$62	;62
+	dc.b	$64	;64
+	dc.b	$65	;65
+	dc.b	$62	;62
+	dc.b	$63	;63
+	dc.b	$64	;64
+	dc.b	$63	;63
+	dc.b	$63	;63
+	dc.b	$64	;64
+	dc.b	$64	;64
+	dc.b	$63	;63
+	dc.b	$64	;64
+	dc.b	$65	;65
+	dc.b	$62	;62
+	dc.b	$64	;64
+	dc.b	$65	;65
+	dc.b	$62	;62
+	dc.b	$63	;63
+	dc.b	$64	;64
+	dc.b	$63	;63
+	dc.b	$62	;62
+	dc.b	$64	;64
+	dc.b	$64	;64
+	dc.b	$62	;62
+	dc.b	$62	;62
+	dc.b	$5F	;5F
+	dc.b	$38	;38
+	dc.b	$19	;19
+	dc.b	$E7	;E7
+	dc.b	$E4	;E4
+	dc.b	$DD	;DD
+	dc.b	$DB	;DB
+	dc.b	$F2	;F2
+	dc.b	$04	;04
+	dc.b	$24	;24
+	dc.b	$54	;54
+	dc.b	$64	;64
+	dc.b	$65	;65
+	dc.b	$61	;61
+	dc.b	$5D	;5D
+	dc.b	$ED	;ED
+	dc.b	$A7	;A7
+	dc.b	$8E	;8E
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$97	;97
+	dc.b	$93	;93
+	dc.b	$D8	;D8
+	dc.b	$E2	;E2
+	dc.b	$EC	;EC
+	dc.b	$14	;14
+	dc.b	$2C	;2C
+	dc.b	$4C	;4C
+	dc.b	$64	;64
+	dc.b	$64	;64
+	dc.b	$66	;66
+	dc.b	$63	;63
+	dc.b	$64	;64
+	dc.b	$65	;65
+	dc.b	$62	;62
+	dc.b	$63	;63
+	dc.b	$65	;65
+	dc.b	$62	;62
+	dc.b	$63	;63
+	dc.b	$64	;64
+	dc.b	$65	;65
+	dc.b	$62	;62
+	dc.b	$64	;64
+	dc.b	$65	;65
+	dc.b	$62	;62
+	dc.b	$64	;64
+	dc.b	$65	;65
+	dc.b	$62	;62
+	dc.b	$64	;64
+	dc.b	$65	;65
+	dc.b	$62	;62
+	dc.b	$63	;63
+	dc.b	$64	;64
+	dc.b	$64	;64
+	dc.b	$63	;63
+	dc.b	$64	;64
+	dc.b	$65	;65
+	dc.b	$62	;62
+	dc.b	$64	;64
+	dc.b	$65	;65
+	dc.b	$62	;62
+	dc.b	$64	;64
+	dc.b	$65	;65
+	dc.b	$62	;62
+	dc.b	$64	;64
+	dc.b	$65	;65
+	dc.b	$63	;63
+	dc.b	$63	;63
+	dc.b	$64	;64
+	dc.b	$64	;64
+	dc.b	$63	;63
+	dc.b	$62	;62
+	dc.b	$62	;62
+	dc.b	$61	;61
+	dc.b	$4D	;4D
+	dc.b	$09	;09
+	dc.b	$E5	;E5
+	dc.b	$C5	;C5
+	dc.b	$9D	;9D
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$88	;88
+	dc.b	$98	;98
+	dc.b	$C2	;C2
+	dc.b	$E4	;E4
+	dc.b	$F4	;F4
+	dc.b	$0C	;0C
+	dc.b	$44	;44
+	dc.b	$65	;65
+	dc.b	$62	;62
+	dc.b	$63	;63
+	dc.b	$65	;65
+	dc.b	$63	;63
+	dc.b	$62	;62
+	dc.b	$64	;64
+	dc.b	$66	;66
+	dc.b	$63	;63
+	dc.b	$64	;64
+	dc.b	$65	;65
+	dc.b	$62	;62
+	dc.b	$64	;64
+	dc.b	$65	;65
+	dc.b	$62	;62
+	dc.b	$63	;63
+	dc.b	$64	;64
+	dc.b	$64	;64
+	dc.b	$63	;63
+	dc.b	$64	;64
+	dc.b	$64	;64
+	dc.b	$63	;63
+	dc.b	$64	;64
+	dc.b	$66	;66
+	dc.b	$63	;63
+	dc.b	$64	;64
+	dc.b	$65	;65
+	dc.b	$62	;62
+	dc.b	$61	;61
+	dc.b	$60	;60
+	dc.b	$45	;45
+	dc.b	$B5	;B5
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$E0	;E0
+	dc.b	$4C	;4C
+	dc.b	$64	;64
+	dc.b	$63	;63
+	dc.b	$63	;63
+	dc.b	$64	;64
+	dc.b	$66	;66
+	dc.b	$63	;63
+	dc.b	$64	;64
+	dc.b	$65	;65
+	dc.b	$62	;62
+	dc.b	$64	;64
+	dc.b	$65	;65
+	dc.b	$62	;62
+	dc.b	$63	;63
+	dc.b	$64	;64
+	dc.b	$64	;64
+	dc.b	$63	;63
+	dc.b	$64	;64
+	dc.b	$65	;65
+	dc.b	$62	;62
+	dc.b	$64	;64
+	dc.b	$65	;65
+	dc.b	$62	;62
+	dc.b	$64	;64
+	dc.b	$65	;65
+	dc.b	$62	;62
+	dc.b	$64	;64
+	dc.b	$65	;65
+	dc.b	$62	;62
+	dc.b	$63	;63
+	dc.b	$64	;64
+	dc.b	$64	;64
+	dc.b	$64	;64
+	dc.b	$64	;64
+	dc.b	$65	;65
+	dc.b	$62	;62
+	dc.b	$62	;62
+	dc.b	$64	;64
+	dc.b	$62	;62
+	dc.b	$62	;62
+	dc.b	$66	;66
+	dc.b	$63	;63
+	dc.b	$62	;62
+	dc.b	$65	;65
+	dc.b	$63	;63
+	dc.b	$63	;63
+	dc.b	$64	;64
+	dc.b	$64	;64
+	dc.b	$63	;63
+	dc.b	$64	;64
+	dc.b	$65	;65
+	dc.b	$62	;62
+	dc.b	$64	;64
+	dc.b	$66	;66
+	dc.b	$63	;63
+	dc.b	$63	;63
+	dc.b	$65	;65
+	dc.b	$63	;63
+	dc.b	$63	;63
+	dc.b	$64	;64
+	dc.b	$64	;64
+	dc.b	$64	;64
+	dc.b	$64	;64
+	dc.b	$64	;64
+	dc.b	$64	;64
+	dc.b	$64	;64
+	dc.b	$66	;66
+	dc.b	$63	;63
+	dc.b	$64	;64
+	dc.b	$65	;65
+	dc.b	$62	;62
+	dc.b	$64	;64
+	dc.b	$66	;66
+	dc.b	$64	;64
+	dc.b	$64	;64
+	dc.b	$63	;63
+	dc.b	$5F	;5F
+	dc.b	$25	;25
+	dc.b	$E9	;E9
+	dc.b	$A5	;A5
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$9C	;9C
+	dc.b	$D4	;D4
+	dc.b	$F2	;F2
+	dc.b	$34	;34
+	dc.b	$5C	;5C
+	dc.b	$64	;64
+	dc.b	$66	;66
+	dc.b	$63	;63
+	dc.b	$64	;64
+	dc.b	$65	;65
+	dc.b	$62	;62
+	dc.b	$63	;63
+	dc.b	$65	;65
+	dc.b	$62	;62
+	dc.b	$63	;63
+	dc.b	$64	;64
+	dc.b	$64	;64
+	dc.b	$63	;63
+	dc.b	$64	;64
+	dc.b	$66	;66
+	dc.b	$63	;63
+	dc.b	$64	;64
+	dc.b	$65	;65
+	dc.b	$62	;62
+	dc.b	$62	;62
+	dc.b	$64	;64
+	dc.b	$64	;64
+	dc.b	$63	;63
+	dc.b	$64	;64
+	dc.b	$62	;62
+	dc.b	$60	;60
+	dc.b	$5D	;5D
+	dc.b	$35	;35
+	dc.b	$0D	;0D
+	dc.b	$F4	;F4
+	dc.b	$F1	;F1
+	dc.b	$C5	;C5
+	dc.b	$C4	;C4
+	dc.b	$BF	;BF
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$BC	;BC
+	dc.b	$34	;34
+	dc.b	$63	;63
+	dc.b	$64	;64
+	dc.b	$63	;63
+	dc.b	$64	;64
+	dc.b	$66	;66
+	dc.b	$63	;63
+	dc.b	$64	;64
+	dc.b	$65	;65
+	dc.b	$62	;62
+	dc.b	$63	;63
+	dc.b	$64	;64
+	dc.b	$64	;64
+	dc.b	$63	;63
+	dc.b	$64	;64
+	dc.b	$64	;64
+	dc.b	$63	;63
+	dc.b	$64	;64
+	dc.b	$66	;66
+	dc.b	$63	;63
+	dc.b	$64	;64
+	dc.b	$65	;65
+	dc.b	$62	;62
+	dc.b	$64	;64
+	dc.b	$65	;65
+	dc.b	$62	;62
+	dc.b	$63	;63
+	dc.b	$64	;64
+	dc.b	$64	;64
+	dc.b	$64	;64
+	dc.b	$65	;65
+	dc.b	$64	;64
+	dc.b	$63	;63
+	dc.b	$64	;64
+	dc.b	$66	;66
+	dc.b	$63	;63
+	dc.b	$64	;64
+	dc.b	$65	;65
+	dc.b	$62	;62
+	dc.b	$64	;64
+	dc.b	$65	;65
+	dc.b	$63	;63
+	dc.b	$63	;63
+	dc.b	$64	;64
+	dc.b	$64	;64
+	dc.b	$63	;63
+	dc.b	$62	;62
+	dc.b	$65	;65
+	dc.b	$62	;62
+	dc.b	$62	;62
+	dc.b	$62	;62
+	dc.b	$5D	;5D
+	dc.b	$45	;45
+	dc.b	$26	;26
+	dc.b	$28	;28
+	dc.b	$38	;38
+	dc.b	$44	;44
+	dc.b	$3A	;3A
+	dc.b	$44	;44
+	dc.b	$60	;60
+	dc.b	$54	;54
+	dc.b	$60	;60
+	dc.b	$66	;66
+	dc.b	$66	;66
+	dc.b	$63	;63
+	dc.b	$64	;64
+	dc.b	$65	;65
+	dc.b	$5D	;5D
+	dc.b	$05	;05
+	dc.b	$E4	;E4
+	dc.b	$D5	;D5
+	dc.b	$9D	;9D
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$AC	;AC
+	dc.b	$DC	;DC
+	dc.b	$14	;14
+	dc.b	$38	;38
+	dc.b	$53	;53
+	dc.b	$49	;49
+	dc.b	$25	;25
+	dc.b	$E7	;E7
+	dc.b	$BD	;BD
+	dc.b	$A4	;A4
+	dc.b	$DC	;DC
+	dc.b	$00	;00
+	dc.b	$E9	;E9
+	dc.b	$BD	;BD
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$A0	;A0
+	dc.b	$FC	;FC
+	dc.b	$3C	;3C
+	dc.b	$40	;40
+	dc.b	$4C	;4C
+	dc.b	$65	;65
+	dc.b	$62	;62
+	dc.b	$61	;61
+	dc.b	$63	;63
+	dc.b	$5F	;5F
+	dc.b	$19	;19
+	dc.b	$44	;44
+	dc.b	$63	;63
+	dc.b	$62	;62
+	dc.b	$64	;64
+	dc.b	$65	;65
+	dc.b	$61	;61
+	dc.b	$62	;62
+	dc.b	$64	;64
+	dc.b	$62	;62
+	dc.b	$60	;60
+	dc.b	$61	;61
+	dc.b	$37	;37
+	dc.b	$27	;27
+	dc.b	$D5	;D5
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$86	;86
+	dc.b	$C4	;C4
+	dc.b	$0C	;0C
+	dc.b	$24	;24
+	dc.b	$54	;54
+	dc.b	$65	;65
+	dc.b	$61	;61
+	dc.b	$63	;63
+	dc.b	$65	;65
+	dc.b	$61	;61
+	dc.b	$63	;63
+	dc.b	$64	;64
+	dc.b	$63	;63
+	dc.b	$63	;63
+	dc.b	$64	;64
+	dc.b	$63	;63
+	dc.b	$63	;63
+	dc.b	$64	;64
+	dc.b	$65	;65
+	dc.b	$62	;62
+	dc.b	$64	;64
+	dc.b	$65	;65
+	dc.b	$62	;62
+	dc.b	$63	;63
+	dc.b	$65	;65
+	dc.b	$62	;62
+	dc.b	$64	;64
+	dc.b	$64	;64
+	dc.b	$63	;63
+	dc.b	$63	;63
+	dc.b	$64	;64
+	dc.b	$64	;64
+	dc.b	$63	;63
+	dc.b	$64	;64
+	dc.b	$65	;65
+	dc.b	$62	;62
+	dc.b	$64	;64
+	dc.b	$65	;65
+	dc.b	$62	;62
+	dc.b	$64	;64
+	dc.b	$65	;65
+	dc.b	$62	;62
+	dc.b	$64	;64
+	dc.b	$65	;65
+	dc.b	$62	;62
+	dc.b	$63	;63
+	dc.b	$64	;64
+	dc.b	$64	;64
+	dc.b	$63	;63
+	dc.b	$60	;60
+	dc.b	$45	;45
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$9C	;9C
+	dc.b	$E4	;E4
+	dc.b	$50	;50
+	dc.b	$63	;63
+	dc.b	$65	;65
+	dc.b	$61	;61
+	dc.b	$63	;63
+	dc.b	$64	;64
+	dc.b	$63	;63
+	dc.b	$63	;63
+	dc.b	$64	;64
+	dc.b	$63	;63
+	dc.b	$63	;63
+	dc.b	$64	;64
+	dc.b	$64	;64
+	dc.b	$63	;63
+	dc.b	$64	;64
+	dc.b	$65	;65
+	dc.b	$62	;62
+	dc.b	$63	;63
+	dc.b	$65	;65
+	dc.b	$62	;62
+	dc.b	$64	;64
+	dc.b	$65	;65
+	dc.b	$62	;62
+	dc.b	$63	;63
+	dc.b	$64	;64
+	dc.b	$64	;64
+	dc.b	$63	;63
+	dc.b	$64	;64
+	dc.b	$64	;64
+	dc.b	$63	;63
+	dc.b	$64	;64
+	dc.b	$66	;66
+	dc.b	$63	;63
+	dc.b	$64	;64
+	dc.b	$65	;65
+	dc.b	$62	;62
+	dc.b	$64	;64
+	dc.b	$65	;65
+	dc.b	$62	;62
+	dc.b	$63	;63
+	dc.b	$63	;63
+	dc.b	$60	;60
+	dc.b	$4D	;4D
+	dc.b	$D9	;D9
+	dc.b	$AD	;AD
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$B2	;B2
+	dc.b	$EC	;EC
+	dc.b	$32	;32
+	dc.b	$60	;60
+	dc.b	$66	;66
+	dc.b	$63	;63
+	dc.b	$64	;64
+	dc.b	$66	;66
+	dc.b	$63	;63
+	dc.b	$62	;62
+	dc.b	$62	;62
+	dc.b	$5F	;5F
+	dc.b	$F5	;F5
+	dc.b	$AD	;AD
+	dc.b	$95	;95
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$A4	;A4
+	dc.b	$04	;04
+	dc.b	$5C	;5C
+	dc.b	$63	;63
+	dc.b	$65	;65
+	dc.b	$61	;61
+	dc.b	$63	;63
+	dc.b	$64	;64
+	dc.b	$63	;63
+	dc.b	$63	;63
+	dc.b	$64	;64
+	dc.b	$64	;64
+	dc.b	$63	;63
+	dc.b	$64	;64
+	dc.b	$64	;64
+	dc.b	$63	;63
+	dc.b	$64	;64
+	dc.b	$66	;66
+	dc.b	$63	;63
+	dc.b	$64	;64
+	dc.b	$65	;65
+	dc.b	$62	;62
+	dc.b	$64	;64
+	dc.b	$65	;65
+	dc.b	$62	;62
+	dc.b	$63	;63
+	dc.b	$64	;64
+	dc.b	$64	;64
+	dc.b	$63	;63
+	dc.b	$64	;64
+	dc.b	$65	;65
+	dc.b	$62	;62
+	dc.b	$64	;64
+	dc.b	$66	;66
+	dc.b	$63	;63
+	dc.b	$64	;64
+	dc.b	$63	;63
+	dc.b	$5E	;5E
+	dc.b	$15	;15
+	dc.b	$99	;99
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$D4	;D4
+	dc.b	$14	;14
+	dc.b	$44	;44
+	dc.b	$63	;63
+	dc.b	$62	;62
+	dc.b	$63	;63
+	dc.b	$65	;65
+	dc.b	$62	;62
+	dc.b	$63	;63
+	dc.b	$64	;64
+	dc.b	$64	;64
+	dc.b	$63	;63
+	dc.b	$64	;64
+	dc.b	$66	;66
+	dc.b	$63	;63
+	dc.b	$64	;64
+	dc.b	$65	;65
+	dc.b	$62	;62
+	dc.b	$64	;64
+	dc.b	$65	;65
+	dc.b	$62	;62
+	dc.b	$63	;63
+	dc.b	$64	;64
+	dc.b	$64	;64
+	dc.b	$63	;63
+	dc.b	$64	;64
+	dc.b	$65	;65
+	dc.b	$62	;62
+	dc.b	$64	;64
+	dc.b	$65	;65
+	dc.b	$62	;62
+	dc.b	$63	;63
+	dc.b	$62	;62
+	dc.b	$5E	;5E
+	dc.b	$05	;05
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$A4	;A4
+	dc.b	$EC	;EC
+	dc.b	$44	;44
+	dc.b	$64	;64
+	dc.b	$63	;63
+	dc.b	$63	;63
+	dc.b	$65	;65
+	dc.b	$63	;63
+	dc.b	$63	;63
+	dc.b	$64	;64
+	dc.b	$65	;65
+	dc.b	$62	;62
+	dc.b	$64	;64
+	dc.b	$65	;65
+	dc.b	$62	;62
+	dc.b	$64	;64
+	dc.b	$65	;65
+	dc.b	$62	;62
+	dc.b	$64	;64
+	dc.b	$65	;65
+	dc.b	$63	;63
+	dc.b	$63	;63
+	dc.b	$63	;63
+	dc.b	$64	;64
+	dc.b	$63	;63
+	dc.b	$60	;60
+	dc.b	$4D	;4D
+	dc.b	$FB	;FB
+	dc.b	$CD	;CD
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$90	;90
+	dc.b	$A6	;A6
+	dc.b	$BC	;BC
+	dc.b	$02	;02
+	dc.b	$24	;24
+	dc.b	$58	;58
+	dc.b	$64	;64
+	dc.b	$64	;64
+	dc.b	$65	;65
+	dc.b	$63	;63
+	dc.b	$63	;63
+	dc.b	$64	;64
+	dc.b	$66	;66
+	dc.b	$63	;63
+	dc.b	$64	;64
+	dc.b	$65	;65
+	dc.b	$62	;62
+	dc.b	$64	;64
+	dc.b	$61	;61
+	dc.b	$45	;45
+	dc.b	$89	;89
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$88	;88
+	dc.b	$DC	;DC
+	dc.b	$44	;44
+	dc.b	$63	;63
+	dc.b	$62	;62
+	dc.b	$64	;64
+	dc.b	$66	;66
+	dc.b	$63	;63
+	dc.b	$64	;64
+	dc.b	$65	;65
+	dc.b	$62	;62
+	dc.b	$64	;64
+	dc.b	$65	;65
+	dc.b	$62	;62
+	dc.b	$63	;63
+	dc.b	$64	;64
+	dc.b	$64	;64
+	dc.b	$63	;63
+	dc.b	$64	;64
+	dc.b	$64	;64
+	dc.b	$63	;63
+	dc.b	$64	;64
+	dc.b	$66	;66
+	dc.b	$63	;63
+	dc.b	$64	;64
+	dc.b	$65	;65
+	dc.b	$62	;62
+	dc.b	$64	;64
+	dc.b	$65	;65
+	dc.b	$62	;62
+	dc.b	$63	;63
+	dc.b	$64	;64
+	dc.b	$63	;63
+	dc.b	$5F	;5F
+	dc.b	$51	;51
+	dc.b	$1B	;1B
+	dc.b	$32	;32
+	dc.b	$62	;62
+	dc.b	$66	;66
+	dc.b	$64	;64
+	dc.b	$64	;64
+	dc.b	$66	;66
+	dc.b	$64	;64
+	dc.b	$64	;64
+	dc.b	$66	;66
+	dc.b	$64	;64
+	dc.b	$64	;64
+	dc.b	$65	;65
+	dc.b	$63	;63
+	dc.b	$63	;63
+	dc.b	$64	;64
+	dc.b	$66	;66
+	dc.b	$63	;63
+	dc.b	$64	;64
+	dc.b	$66	;66
+	dc.b	$63	;63
+	dc.b	$64	;64
+	dc.b	$64	;64
+	dc.b	$64	;64
+	dc.b	$63	;63
+	dc.b	$62	;62
+	dc.b	$61	;61
+	dc.b	$5D	;5D
+	dc.b	$45	;45
+	dc.b	$11	;11
+	dc.b	$E5	;E5
+	dc.b	$C7	;C7
+	dc.b	$99	;99
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$BC	;BC
+	dc.b	$3C	;3C
+	dc.b	$63	;63
+	dc.b	$62	;62
+	dc.b	$64	;64
+	dc.b	$66	;66
+	dc.b	$63	;63
+	dc.b	$64	;64
+	dc.b	$65	;65
+	dc.b	$62	;62
+	dc.b	$64	;64
+	dc.b	$65	;65
+	dc.b	$62	;62
+	dc.b	$63	;63
+	dc.b	$64	;64
+	dc.b	$64	;64
+	dc.b	$63	;63
+	dc.b	$64	;64
+	dc.b	$65	;65
+	dc.b	$62	;62
+	dc.b	$64	;64
+	dc.b	$65	;65
+	dc.b	$62	;62
+	dc.b	$64	;64
+	dc.b	$65	;65
+	dc.b	$62	;62
+	dc.b	$64	;64
+	dc.b	$65	;65
+	dc.b	$63	;63
+	dc.b	$63	;63
+	dc.b	$64	;64
+	dc.b	$64	;64
+	dc.b	$60	;60
+	dc.b	$59	;59
+	dc.b	$C5	;C5
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$B4	;B4
+	dc.b	$FC	;FC
+	dc.b	$4C	;4C
+	dc.b	$63	;63
+	dc.b	$63	;63
+	dc.b	$64	;64
+	dc.b	$65	;65
+	dc.b	$62	;62
+	dc.b	$64	;64
+	dc.b	$66	;66
+	dc.b	$63	;63
+	dc.b	$64	;64
+	dc.b	$64	;64
+	dc.b	$63	;63
+	dc.b	$60	;60
+	dc.b	$62	;62
+	dc.b	$61	;61
+	dc.b	$3D	;3D
+	dc.b	$19	;19
+	dc.b	$0A	;0A
+	dc.b	$1C	;1C
+	dc.b	$37	;37
+	dc.b	$64	;64
+	dc.b	$64	;64
+	dc.b	$65	;65
+	dc.b	$64	;64
+	dc.b	$63	;63
+	dc.b	$64	;64
+	dc.b	$65	;65
+	dc.b	$62	;62
+	dc.b	$63	;63
+	dc.b	$65	;65
+	dc.b	$62	;62
+	dc.b	$63	;63
+	dc.b	$64	;64
+	dc.b	$64	;64
+	dc.b	$63	;63
+	dc.b	$65	;65
+	dc.b	$64	;64
+	dc.b	$63	;63
+	dc.b	$64	;64
+	dc.b	$65	;65
+	dc.b	$62	;62
+	dc.b	$64	;64
+	dc.b	$65	;65
+	dc.b	$63	;63
+	dc.b	$63	;63
+	dc.b	$64	;64
+	dc.b	$64	;64
+	dc.b	$63	;63
+	dc.b	$64	;64
+	dc.b	$65	;65
+	dc.b	$62	;62
+	dc.b	$64	;64
+	dc.b	$66	;66
+	dc.b	$63	;63
+	dc.b	$64	;64
+	dc.b	$65	;65
+	dc.b	$62	;62
+	dc.b	$62	;62
+	dc.b	$62	;62
+	dc.b	$62	;62
+	dc.b	$61	;61
+	dc.b	$3D	;3D
+	dc.b	$22	;22
+	dc.b	$FD	;FD
+	dc.b	$DA	;DA
+	dc.b	$D0	;D0
+	dc.b	$D6	;D6
+	dc.b	$D5	;D5
+	dc.b	$C2	;C2
+	dc.b	$D8	;D8
+	dc.b	$EA	;EA
+	dc.b	$F4	;F4
+	dc.b	$0A	;0A
+	dc.b	$0B	;0B
+	dc.b	$05	;05
+	dc.b	$CD	;CD
+	dc.b	$B1	;B1
+	dc.b	$91	;91
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$94	;94
+	dc.b	$34	;34
+	dc.b	$62	;62
+	dc.b	$65	;65
+	dc.b	$62	;62
+	dc.b	$64	;64
+	dc.b	$65	;65
+	dc.b	$62	;62
+	dc.b	$63	;63
+	dc.b	$64	;64
+	dc.b	$64	;64
+	dc.b	$63	;63
+	dc.b	$64	;64
+	dc.b	$64	;64
+	dc.b	$63	;63
+	dc.b	$64	;64
+	dc.b	$66	;66
+	dc.b	$63	;63
+	dc.b	$63	;63
+	dc.b	$64	;64
+	dc.b	$5F	;5F
+	dc.b	$45	;45
+	dc.b	$A9	;A9
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$A4	;A4
+	dc.b	$C0	;C0
+	dc.b	$F4	;F4
+	dc.b	$18	;18
+	dc.b	$1C	;1C
+	dc.b	$40	;40
+	dc.b	$59	;59
+	dc.b	$47	;47
+	dc.b	$3A	;3A
+	dc.b	$31	;31
+	dc.b	$05	;05
+	dc.b	$DD	;DD
+	dc.b	$BD	;BD
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$A4	;A4
+	dc.b	$FC	;FC
+	dc.b	$54	;54
+	dc.b	$63	;63
+	dc.b	$62	;62
+	dc.b	$64	;64
+	dc.b	$66	;66
+	dc.b	$63	;63
+	dc.b	$64	;64
+	dc.b	$65	;65
+	dc.b	$62	;62
+	dc.b	$64	;64
+	dc.b	$65	;65
+	dc.b	$62	;62
+	dc.b	$63	;63
+	dc.b	$64	;64
+	dc.b	$64	;64
+	dc.b	$63	;63
+	dc.b	$64	;64
+	dc.b	$64	;64
+	dc.b	$63	;63
+	dc.b	$64	;64
+	dc.b	$66	;66
+	dc.b	$63	;63
+	dc.b	$64	;64
+	dc.b	$65	;65
+	dc.b	$62	;62
+	dc.b	$64	;64
+	dc.b	$65	;65
+	dc.b	$62	;62
+	dc.b	$63	;63
+	dc.b	$64	;64
+	dc.b	$64	;64
+	dc.b	$63	;63
+	dc.b	$64	;64
+	dc.b	$65	;65
+	dc.b	$62	;62
+	dc.b	$64	;64
+	dc.b	$65	;65
+	dc.b	$62	;62
+	dc.b	$64	;64
+	dc.b	$65	;65
+	dc.b	$62	;62
+	dc.b	$60	;60
+	dc.b	$5F	;5F
+	dc.b	$E5	;E5
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$E4	;E4
+	dc.b	$5C	;5C
+	dc.b	$62	;62
+	dc.b	$65	;65
+	dc.b	$62	;62
+	dc.b	$63	;63
+	dc.b	$64	;64
+	dc.b	$64	;64
+	dc.b	$63	;63
+	dc.b	$64	;64
+	dc.b	$64	;64
+	dc.b	$63	;63
+	dc.b	$64	;64
+	dc.b	$66	;66
+	dc.b	$63	;63
+	dc.b	$64	;64
+	dc.b	$65	;65
+	dc.b	$62	;62
+	dc.b	$64	;64
+	dc.b	$65	;65
+	dc.b	$62	;62
+	dc.b	$63	;63
+	dc.b	$64	;64
+	dc.b	$64	;64
+	dc.b	$64	;64
+	dc.b	$65	;65
+	dc.b	$65	;65
+	dc.b	$62	;62
+	dc.b	$64	;64
+	dc.b	$65	;65
+	dc.b	$62	;62
+	dc.b	$64	;64
+	dc.b	$65	;65
+	dc.b	$62	;62
+	dc.b	$62	;62
+	dc.b	$64	;64
+	dc.b	$64	;64
+	dc.b	$63	;63
+	dc.b	$64	;64
+	dc.b	$64	;64
+	dc.b	$63	;63
+	dc.b	$64	;64
+	dc.b	$65	;65
+	dc.b	$62	;62
+	dc.b	$64	;64
+	dc.b	$66	;66
+	dc.b	$63	;63
+	dc.b	$64	;64
+	dc.b	$65	;65
+	dc.b	$63	;63
+	dc.b	$64	;64
+	dc.b	$65	;65
+	dc.b	$63	;63
+	dc.b	$63	;63
+	dc.b	$64	;64
+	dc.b	$64	;64
+	dc.b	$64	;64
+	dc.b	$65	;65
+	dc.b	$65	;65
+	dc.b	$62	;62
+	dc.b	$64	;64
+	dc.b	$65	;65
+	dc.b	$63	;63
+	dc.b	$64	;64
+	dc.b	$65	;65
+	dc.b	$63	;63
+	dc.b	$63	;63
+	dc.b	$65	;65
+	dc.b	$63	;63
+	dc.b	$63	;63
+	dc.b	$63	;63
+	dc.b	$63	;63
+	dc.b	$5F	;5F
+	dc.b	$35	;35
+	dc.b	$DD	;DD
+	dc.b	$CA	;CA
+	dc.b	$B1	;B1
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$B0	;B0
+	dc.b	$CC	;CC
+	dc.b	$F4	;F4
+	dc.b	$14	;14
+	dc.b	$44	;44
+	dc.b	$64	;64
+	dc.b	$66	;66
+	dc.b	$63	;63
+	dc.b	$64	;64
+	dc.b	$66	;66
+	dc.b	$63	;63
+	dc.b	$64	;64
+	dc.b	$65	;65
+	dc.b	$62	;62
+	dc.b	$63	;63
+	dc.b	$64	;64
+	dc.b	$64	;64
+	dc.b	$63	;63
+	dc.b	$64	;64
+	dc.b	$65	;65
+	dc.b	$62	;62
+	dc.b	$64	;64
+	dc.b	$65	;65
+	dc.b	$62	;62
+	dc.b	$64	;64
+	dc.b	$64	;64
+	dc.b	$60	;60
+	dc.b	$55	;55
+	dc.b	$A5	;A5
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$9C	;9C
+	dc.b	$FC	;FC
+	dc.b	$50	;50
+	dc.b	$65	;65
+	dc.b	$62	;62
+	dc.b	$64	;64
+	dc.b	$66	;66
+	dc.b	$63	;63
+	dc.b	$64	;64
+	dc.b	$65	;65
+	dc.b	$62	;62
+	dc.b	$63	;63
+	dc.b	$64	;64
+	dc.b	$64	;64
+	dc.b	$63	;63
+	dc.b	$64	;64
+	dc.b	$64	;64
+	dc.b	$64	;64
+	dc.b	$64	;64
+	dc.b	$65	;65
+	dc.b	$62	;62
+	dc.b	$63	;63
+	dc.b	$64	;64
+	dc.b	$63	;63
+	dc.b	$63	;63
+	dc.b	$64	;64
+	dc.b	$61	;61
+	dc.b	$5E	;5E
+	dc.b	$1D	;1D
+	dc.b	$F6	;F6
+	dc.b	$C5	;C5
+	dc.b	$89	;89
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$B0	;B0
+	dc.b	$F4	;F4
+	dc.b	$2C	;2C
+	dc.b	$58	;58
+	dc.b	$65	;65
+	dc.b	$62	;62
+	dc.b	$64	;64
+	dc.b	$66	;66
+	dc.b	$63	;63
+	dc.b	$64	;64
+	dc.b	$65	;65
+	dc.b	$62	;62
+	dc.b	$63	;63
+	dc.b	$64	;64
+	dc.b	$64	;64
+	dc.b	$63	;63
+	dc.b	$64	;64
+	dc.b	$65	;65
+	dc.b	$62	;62
+	dc.b	$64	;64
+	dc.b	$65	;65
+	dc.b	$62	;62
+	dc.b	$64	;64
+	dc.b	$65	;65
+	dc.b	$62	;62
+	dc.b	$64	;64
+	dc.b	$65	;65
+	dc.b	$62	;62
+	dc.b	$63	;63
+	dc.b	$64	;64
+	dc.b	$64	;64
+	dc.b	$64	;64
+	dc.b	$64	;64
+	dc.b	$65	;65
+	dc.b	$62	;62
+	dc.b	$5F	;5F
+	dc.b	$45	;45
+	dc.b	$AD	;AD
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$A0	;A0
+	dc.b	$EC	;EC
+	dc.b	$44	;44
+	dc.b	$63	;63
+	dc.b	$62	;62
+	dc.b	$64	;64
+	dc.b	$66	;66
+	dc.b	$63	;63
+	dc.b	$64	;64
+	dc.b	$65	;65
+	dc.b	$62	;62
+	dc.b	$64	;64
+	dc.b	$65	;65
+	dc.b	$62	;62
+	dc.b	$63	;63
+	dc.b	$64	;64
+	dc.b	$64	;64
+	dc.b	$63	;63
+	dc.b	$64	;64
+	dc.b	$64	;64
+	dc.b	$63	;63
+	dc.b	$64	;64
+	dc.b	$66	;66
+	dc.b	$63	;63
+	dc.b	$64	;64
+	dc.b	$65	;65
+	dc.b	$62	;62
+	dc.b	$64	;64
+	dc.b	$65	;65
+	dc.b	$63	;63
+	dc.b	$63	;63
+	dc.b	$64	;64
+	dc.b	$64	;64
+	dc.b	$63	;63
+	dc.b	$63	;63
+	dc.b	$63	;63
+	dc.b	$5E	;5E
+	dc.b	$25	;25
+	dc.b	$D5	;D5
+	dc.b	$9D	;9D
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$94	;94
+	dc.b	$E0	;E0
+	dc.b	$34	;34
+	dc.b	$63	;63
+	dc.b	$64	;64
+	dc.b	$66	;66
+	dc.b	$63	;63
+	dc.b	$64	;64
+	dc.b	$66	;66
+	dc.b	$63	;63
+	dc.b	$64	;64
+	dc.b	$65	;65
+	dc.b	$62	;62
+	dc.b	$63	;63
+	dc.b	$64	;64
+	dc.b	$64	;64
+	dc.b	$63	;63
+	dc.b	$64	;64
+	dc.b	$65	;65
+	dc.b	$62	;62
+	dc.b	$64	;64
+	dc.b	$66	;66
+	dc.b	$63	;63
+	dc.b	$64	;64
+	dc.b	$65	;65
+	dc.b	$62	;62
+	dc.b	$64	;64
+	dc.b	$65	;65
+	dc.b	$63	;63
+	dc.b	$63	;63
+	dc.b	$64	;64
+	dc.b	$64	;64
+	dc.b	$63	;63
+	dc.b	$64	;64
+	dc.b	$64	;64
+	dc.b	$5F	;5F
+	dc.b	$35	;35
+	dc.b	$CD	;CD
+	dc.b	$99	;99
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$92	;92
+	dc.b	$A3	;A3
+	dc.b	$B0	;B0
+	dc.b	$C2	;C2
+	dc.b	$DC	;DC
+	dc.b	$EE	;EE
+	dc.b	$FE	;FE
+	dc.b	$0C	;0C
+	dc.b	$14	;14
+	dc.b	$22	;22
+	dc.b	$2A	;2A
+	dc.b	$34	;34
+	dc.b	$38	;38
+	dc.b	$33	;33
+	dc.b	$38	;38
+	dc.b	$40	;40
+	dc.b	$40	;40
+	dc.b	$48	;48
+	dc.b	$50	;50
+	dc.b	$4A	;4A
+	dc.b	$49	;49
+	dc.b	$3D	;3D
+	dc.b	$28	;28
+	dc.b	$16	;16
+	dc.b	$05	;05
+	dc.b	$F9	;F9
+	dc.b	$F2	;F2
+	dc.b	$E7	;E7
+	dc.b	$DA	;DA
+	dc.b	$BF	;BF
+	dc.b	$9D	;9D
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$9C	;9C
+	dc.b	$BC	;BC
+	dc.b	$D8	;D8
+	dc.b	$F0	;F0
+	dc.b	$F3	;F3
+	dc.b	$FC	;FC
+	dc.b	$14	;14
+	dc.b	$2E	;2E
+	dc.b	$48	;48
+	dc.b	$62	;62
+	dc.b	$64	;64
+	dc.b	$63	;63
+	dc.b	$65	;65
+	dc.b	$62	;62
+	dc.b	$62	;62
+	dc.b	$64	;64
+	dc.b	$65	;65
+	dc.b	$62	;62
+	dc.b	$64	;64
+	dc.b	$66	;66
+	dc.b	$63	;63
+	dc.b	$64	;64
+	dc.b	$65	;65
+	dc.b	$62	;62
+	dc.b	$63	;63
+	dc.b	$64	;64
+	dc.b	$63	;63
+	dc.b	$63	;63
+	dc.b	$64	;64
+	dc.b	$64	;64
+	dc.b	$63	;63
+	dc.b	$64	;64
+	dc.b	$66	;66
+	dc.b	$63	;63
+	dc.b	$64	;64
+	dc.b	$65	;65
+	dc.b	$62	;62
+	dc.b	$64	;64
+	dc.b	$65	;65
+	dc.b	$62	;62
+	dc.b	$63	;63
+	dc.b	$64	;64
+	dc.b	$64	;64
+	dc.b	$62	;62
+	dc.b	$62	;62
+	dc.b	$61	;61
+	dc.b	$45	;45
+	dc.b	$E9	;E9
+	dc.b	$B5	;B5
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$C4	;C4
+	dc.b	$04	;04
+	dc.b	$40	;40
+	dc.b	$62	;62
+	dc.b	$62	;62
+	dc.b	$64	;64
+	dc.b	$64	;64
+	dc.b	$63	;63
+	dc.b	$64	;64
+	dc.b	$65	;65
+	dc.b	$62	;62
+	dc.b	$64	;64
+	dc.b	$65	;65
+	dc.b	$62	;62
+	dc.b	$64	;64
+	dc.b	$65	;65
+	dc.b	$62	;62
+	dc.b	$64	;64
+	dc.b	$65	;65
+	dc.b	$62	;62
+	dc.b	$63	;63
+	dc.b	$64	;64
+	dc.b	$64	;64
+	dc.b	$63	;63
+	dc.b	$64	;64
+	dc.b	$65	;65
+	dc.b	$62	;62
+	dc.b	$64	;64
+	dc.b	$65	;65
+	dc.b	$62	;62
+	dc.b	$64	;64
+	dc.b	$64	;64
+	dc.b	$63	;63
+	dc.b	$62	;62
+	dc.b	$64	;64
+	dc.b	$64	;64
+	dc.b	$63	;63
+	dc.b	$64	;64
+	dc.b	$64	;64
+	dc.b	$63	;63
+	dc.b	$64	;64
+	dc.b	$65	;65
+	dc.b	$62	;62
+	dc.b	$64	;64
+	dc.b	$65	;65
+	dc.b	$62	;62
+	dc.b	$63	;63
+	dc.b	$62	;62
+	dc.b	$60	;60
+	dc.b	$57	;57
+	dc.b	$27	;27
+	dc.b	$26	;26
+	dc.b	$1E	;1E
+	dc.b	$1F	;1F
+	dc.b	$21	;21
+	dc.b	$11	;11
+	dc.b	$05	;05
+	dc.b	$F7	;F7
+	dc.b	$E9	;E9
+	dc.b	$DF	;DF
+	dc.b	$DB	;DB
+	dc.b	$D2	;D2
+	dc.b	$C1	;C1
+	dc.b	$9E	;9E
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$8C	;8C
+	dc.b	$B4	;B4
+	dc.b	$D8	;D8
+	dc.b	$F0	;F0
+	dc.b	$04	;04
+	dc.b	$04	;04
+	dc.b	$03	;03
+	dc.b	$08	;08
+	dc.b	$0C	;0C
+	dc.b	$05	;05
+	dc.b	$F5	;F5
+	dc.b	$DE	;DE
+	dc.b	$C5	;C5
+	dc.b	$A1	;A1
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$A4	;A4
+	dc.b	$E4	;E4
+	dc.b	$1C	;1C
+	dc.b	$54	;54
+	dc.b	$63	;63
+	dc.b	$64	;64
+	dc.b	$65	;65
+	dc.b	$62	;62
+	dc.b	$63	;63
+	dc.b	$65	;65
+	dc.b	$62	;62
+	dc.b	$63	;63
+	dc.b	$64	;64
+	dc.b	$64	;64
+	dc.b	$63	;63
+	dc.b	$64	;64
+	dc.b	$66	;66
+	dc.b	$63	;63
+	dc.b	$64	;64
+	dc.b	$65	;65
+	dc.b	$62	;62
+	dc.b	$64	;64
+	dc.b	$65	;65
+	dc.b	$62	;62
+	dc.b	$63	;63
+	dc.b	$64	;64
+	dc.b	$64	;64
+	dc.b	$63	;63
+	dc.b	$64	;64
+	dc.b	$64	;64
+	dc.b	$63	;63
+	dc.b	$63	;63
+	dc.b	$65	;65
+	dc.b	$62	;62
+	dc.b	$63	;63
+	dc.b	$64	;64
+	dc.b	$63	;63
+	dc.b	$63	;63
+	dc.b	$63	;63
+	dc.b	$61	;61
+	dc.b	$60	;60
+	dc.b	$51	;51
+	dc.b	$27	;27
+	dc.b	$15	;15
+	dc.b	$01	;01
+	dc.b	$ED	;ED
+	dc.b	$D6	;D6
+	dc.b	$C5	;C5
+	dc.b	$AD	;AD
+	dc.b	$97	;97
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$92	;92
+	dc.b	$A4	;A4
+	dc.b	$B4	;B4
+	dc.b	$C4	;C4
+	dc.b	$D4	;D4
+	dc.b	$DE	;DE
+	dc.b	$EC	;EC
+	dc.b	$00	;00
+	dc.b	$10	;10
+	dc.b	$22	;22
+	dc.b	$34	;34
+	dc.b	$44	;44
+	dc.b	$4E	;4E
+	dc.b	$60	;60
+	dc.b	$64	;64
+	dc.b	$66	;66
+	dc.b	$63	;63
+	dc.b	$63	;63
+	dc.b	$65	;65
+	dc.b	$62	;62
+	dc.b	$63	;63
+	dc.b	$64	;64
+	dc.b	$65	;65
+	dc.b	$62	;62
+	dc.b	$64	;64
+	dc.b	$65	;65
+	dc.b	$62	;62
+	dc.b	$64	;64
+	dc.b	$65	;65
+	dc.b	$62	;62
+	dc.b	$64	;64
+	dc.b	$65	;65
+	dc.b	$62	;62
+	dc.b	$63	;63
+	dc.b	$64	;64
+	dc.b	$64	;64
+	dc.b	$62	;62
+	dc.b	$64	;64
+	dc.b	$64	;64
+	dc.b	$61	;61
+	dc.b	$60	;60
+	dc.b	$4D	;4D
+	dc.b	$2D	;2D
+	dc.b	$0D	;0D
+	dc.b	$E7	;E7
+	dc.b	$BD	;BD
+	dc.b	$8F	;8F
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$86	;86
+	dc.b	$AA	;AA
+	dc.b	$C2	;C2
+	dc.b	$D4	;D4
+	dc.b	$E8	;E8
+	dc.b	$F7	;F7
+	dc.b	$14	;14
+	dc.b	$38	;38
+	dc.b	$54	;54
+	dc.b	$60	;60
+	dc.b	$5F	;5F
+	dc.b	$5A	;5A
+	dc.b	$62	;62
+	dc.b	$65	;65
+	dc.b	$64	;64
+	dc.b	$62	;62
+	dc.b	$64	;64
+	dc.b	$63	;63
+	dc.b	$62	;62
+	dc.b	$63	;63
+	dc.b	$64	;64
+	dc.b	$63	;63
+	dc.b	$62	;62
+	dc.b	$63	;63
+	dc.b	$63	;63
+	dc.b	$62	;62
+	dc.b	$64	;64
+	dc.b	$65	;65
+	dc.b	$61	;61
+	dc.b	$63	;63
+	dc.b	$63	;63
+	dc.b	$62	;62
+	dc.b	$64	;64
+	dc.b	$65	;65
+	dc.b	$62	;62
+	dc.b	$62	;62
+	dc.b	$65	;65
+	dc.b	$62	;62
+	dc.b	$63	;63
+	dc.b	$64	;64
+	dc.b	$66	;66
+	dc.b	$63	;63
+	dc.b	$64	;64
+	dc.b	$65	;65
+	dc.b	$62	;62
+	dc.b	$63	;63
+	dc.b	$64	;64
+	dc.b	$63	;63
+	dc.b	$62	;62
+	dc.b	$62	;62
+	dc.b	$61	;61
+	dc.b	$45	;45
+	dc.b	$0B	;0B
+	dc.b	$E9	;E9
+	dc.b	$CF	;CF
+	dc.b	$AD	;AD
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$88	;88
+	dc.b	$A4	;A4
+	dc.b	$BF	;BF
+	dc.b	$D0	;D0
+	dc.b	$D8	;D8
+	dc.b	$DA	;DA
+	dc.b	$D5	;D5
+	dc.b	$D0	;D0
+	dc.b	$D8	;D8
+	dc.b	$DE	;DE
+	dc.b	$EC	;EC
+	dc.b	$0C	;0C
+	dc.b	$28	;28
+	dc.b	$48	;48
+	dc.b	$64	;64
+	dc.b	$65	;65
+	dc.b	$63	;63
+	dc.b	$62	;62
+	dc.b	$64	;64
+	dc.b	$66	;66
+	dc.b	$63	;63
+	dc.b	$64	;64
+	dc.b	$65	;65
+	dc.b	$62	;62
+	dc.b	$63	;63
+	dc.b	$64	;64
+	dc.b	$64	;64
+	dc.b	$63	;63
+	dc.b	$64	;64
+	dc.b	$64	;64
+	dc.b	$63	;63
+	dc.b	$64	;64
+	dc.b	$66	;66
+	dc.b	$63	;63
+	dc.b	$64	;64
+	dc.b	$65	;65
+	dc.b	$62	;62
+	dc.b	$64	;64
+	dc.b	$65	;65
+	dc.b	$62	;62
+	dc.b	$63	;63
+	dc.b	$64	;64
+	dc.b	$64	;64
+	dc.b	$63	;63
+	dc.b	$64	;64
+	dc.b	$65	;65
+	dc.b	$62	;62
+	dc.b	$63	;63
+	dc.b	$65	;65
+	dc.b	$62	;62
+	dc.b	$63	;63
+	dc.b	$64	;64
+	dc.b	$63	;63
+	dc.b	$63	;63
+	dc.b	$64	;64
+	dc.b	$63	;63
+	dc.b	$63	;63
+	dc.b	$63	;63
+	dc.b	$62	;62
+	dc.b	$60	;60
+	dc.b	$45	;45
+	dc.b	$1F	;1F
+	dc.b	$09	;09
+	dc.b	$F1	;F1
+	dc.b	$DF	;DF
+	dc.b	$C6	;C6
+	dc.b	$AE	;AE
+	dc.b	$9B	;9B
+	dc.b	$87	;87
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$98	;98
+	dc.b	$B4	;B4
+	dc.b	$CB	;CB
+	dc.b	$E4	;E4
+	dc.b	$F3	;F3
+	dc.b	$01	;01
+	dc.b	$11	;11
+	dc.b	$1C	;1C
+	dc.b	$1A	;1A
+	dc.b	$12	;12
+	dc.b	$06	;06
+	dc.b	$F7	;F7
+	dc.b	$E5	;E5
+	dc.b	$CF	;CF
+	dc.b	$BB	;BB
+	dc.b	$A5	;A5
+	dc.b	$91	;91
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$90	;90
+	dc.b	$A4	;A4
+	dc.b	$B8	;B8
+	dc.b	$CE	;CE
+	dc.b	$EC	;EC
+	dc.b	$04	;04
+	dc.b	$1A	;1A
+	dc.b	$30	;30
+	dc.b	$43	;43
+	dc.b	$54	;54
+	dc.b	$63	;63
+	dc.b	$63	;63
+	dc.b	$65	;65
+	dc.b	$62	;62
+	dc.b	$62	;62
+	dc.b	$64	;64
+	dc.b	$64	;64
+	dc.b	$63	;63
+	dc.b	$64	;64
+	dc.b	$65	;65
+	dc.b	$61	;61
+	dc.b	$63	;63
+	dc.b	$64	;64
+	dc.b	$63	;63
+	dc.b	$64	;64
+	dc.b	$65	;65
+	dc.b	$62	;62
+	dc.b	$63	;63
+	dc.b	$64	;64
+	dc.b	$64	;64
+	dc.b	$63	;63
+	dc.b	$64	;64
+	dc.b	$65	;65
+	dc.b	$62	;62
+	dc.b	$64	;64
+	dc.b	$65	;65
+	dc.b	$62	;62
+	dc.b	$63	;63
+	dc.b	$65	;65
+	dc.b	$62	;62
+	dc.b	$64	;64
+	dc.b	$65	;65
+	dc.b	$62	;62
+	dc.b	$63	;63
+	dc.b	$64	;64
+	dc.b	$64	;64
+	dc.b	$63	;63
+	dc.b	$64	;64
+	dc.b	$65	;65
+	dc.b	$62	;62
+	dc.b	$64	;64
+	dc.b	$65	;65
+	dc.b	$62	;62
+	dc.b	$64	;64
+	dc.b	$65	;65
+	dc.b	$62	;62
+	dc.b	$64	;64
+	dc.b	$64	;64
+	dc.b	$64	;64
+	dc.b	$62	;62
+	dc.b	$63	;63
+	dc.b	$61	;61
+	dc.b	$55	;55
+	dc.b	$0D	;0D
+	dc.b	$DD	;DD
+	dc.b	$A5	;A5
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$90	;90
+	dc.b	$A4	;A4
+	dc.b	$BA	;BA
+	dc.b	$CC	;CC
+	dc.b	$E3	;E3
+	dc.b	$FF	;FF
+	dc.b	$17	;17
+	dc.b	$2C	;2C
+	dc.b	$40	;40
+	dc.b	$58	;58
+	dc.b	$65	;65
+	dc.b	$63	;63
+	dc.b	$62	;62
+	dc.b	$64	;64
+	dc.b	$66	;66
+	dc.b	$63	;63
+	dc.b	$64	;64
+	dc.b	$65	;65
+	dc.b	$62	;62
+	dc.b	$64	;64
+	dc.b	$65	;65
+	dc.b	$62	;62
+	dc.b	$63	;63
+	dc.b	$64	;64
+	dc.b	$64	;64
+	dc.b	$63	;63
+	dc.b	$64	;64
+	dc.b	$65	;65
+	dc.b	$62	;62
+	dc.b	$63	;63
+	dc.b	$64	;64
+	dc.b	$63	;63
+	dc.b	$63	;63
+	dc.b	$64	;64
+	dc.b	$63	;63
+	dc.b	$61	;61
+	dc.b	$61	;61
+	dc.b	$60	;60
+	dc.b	$47	;47
+	dc.b	$39	;39
+	dc.b	$2B	;2B
+	dc.b	$1A	;1A
+	dc.b	$07	;07
+	dc.b	$F3	;F3
+	dc.b	$E2	;E2
+	dc.b	$D9	;D9
+	dc.b	$D7	;D7
+	dc.b	$D5	;D5
+	dc.b	$D4	;D4
+	dc.b	$DE	;DE
+	dc.b	$E6	;E6
+	dc.b	$F4	;F4
+	dc.b	$14	;14
+	dc.b	$34	;34
+	dc.b	$5A	;5A
+	dc.b	$66	;66
+	dc.b	$65	;65
+	dc.b	$62	;62
+	dc.b	$64	;64
+	dc.b	$65	;65
+	dc.b	$62	;62
+	dc.b	$64	;64
+	dc.b	$65	;65
+	dc.b	$62	;62
+	dc.b	$63	;63
+	dc.b	$65	;65
+	dc.b	$62	;62
+	dc.b	$63	;63
+	dc.b	$64	;64
+	dc.b	$64	;64
+	dc.b	$63	;63
+	dc.b	$64	;64
+	dc.b	$66	;66
+	dc.b	$63	;63
+	dc.b	$64	;64
+	dc.b	$64	;64
+	dc.b	$63	;63
+	dc.b	$62	;62
+	dc.b	$63	;63
+	dc.b	$60	;60
+	dc.b	$55	;55
+	dc.b	$15	;15
+	dc.b	$F5	;F5
+	dc.b	$CD	;CD
+	dc.b	$A5	;A5
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$90	;90
+	dc.b	$B0	;B0
+	dc.b	$D0	;D0
+	dc.b	$F2	;F2
+	dc.b	$14	;14
+	dc.b	$38	;38
+	dc.b	$5B	;5B
+	dc.b	$65	;65
+	dc.b	$63	;63
+	dc.b	$62	;62
+	dc.b	$64	;64
+	dc.b	$66	;66
+	dc.b	$63	;63
+	dc.b	$64	;64
+	dc.b	$66	;66
+	dc.b	$63	;63
+	dc.b	$64	;64
+	dc.b	$65	;65
+	dc.b	$62	;62
+	dc.b	$63	;63
+	dc.b	$64	;64
+	dc.b	$64	;64
+	dc.b	$63	;63
+	dc.b	$64	;64
+	dc.b	$64	;64
+	dc.b	$63	;63
+	dc.b	$64	;64
+	dc.b	$66	;66
+	dc.b	$63	;63
+	dc.b	$64	;64
+	dc.b	$65	;65
+	dc.b	$62	;62
+	dc.b	$61	;61
+	dc.b	$61	;61
+	dc.b	$5D	;5D
+	dc.b	$05	;05
+	dc.b	$C5	;C5
+	dc.b	$8D	;8D
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$A0	;A0
+	dc.b	$CA	;CA
+	dc.b	$F4	;F4
+	dc.b	$1C	;1C
+	dc.b	$44	;44
+	dc.b	$63	;63
+	dc.b	$63	;63
+	dc.b	$65	;65
+	dc.b	$62	;62
+	dc.b	$63	;63
+	dc.b	$64	;64
+	dc.b	$64	;64
+	dc.b	$63	;63
+	dc.b	$64	;64
+	dc.b	$66	;66
+	dc.b	$63	;63
+	dc.b	$64	;64
+	dc.b	$65	;65
+	dc.b	$62	;62
+	dc.b	$64	;64
+	dc.b	$65	;65
+	dc.b	$62	;62
+	dc.b	$63	;63
+	dc.b	$64	;64
+	dc.b	$64	;64
+	dc.b	$63	;63
+	dc.b	$64	;64
+	dc.b	$64	;64
+	dc.b	$63	;63
+	dc.b	$63	;63
+	dc.b	$65	;65
+	dc.b	$62	;62
+	dc.b	$62	;62
+	dc.b	$62	;62
+	dc.b	$61	;61
+	dc.b	$51	;51
+	dc.b	$2E	;2E
+	dc.b	$21	;21
+	dc.b	$09	;09
+	dc.b	$F1	;F1
+	dc.b	$D9	;D9
+	dc.b	$C5	;C5
+	dc.b	$B7	;B7
+	dc.b	$AF	;AF
+	dc.b	$A1	;A1
+	dc.b	$96	;96
+	dc.b	$8A	;8A
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$A2	;A2
+	dc.b	$C3	;C3
+	dc.b	$E2	;E2
+	dc.b	$04	;04
+	dc.b	$34	;34
+	dc.b	$5C	;5C
+	dc.b	$65	;65
+	dc.b	$62	;62
+	dc.b	$63	;63
+	dc.b	$64	;64
+	dc.b	$64	;64
+	dc.b	$63	;63
+	dc.b	$64	;64
+	dc.b	$66	;66
+	dc.b	$63	;63
+	dc.b	$64	;64
+	dc.b	$65	;65
+	dc.b	$62	;62
+	dc.b	$63	;63
+	dc.b	$64	;64
+	dc.b	$63	;63
+	dc.b	$63	;63
+	dc.b	$64	;64
+	dc.b	$64	;64
+	dc.b	$63	;63
+	dc.b	$63	;63
+	dc.b	$63	;63
+	dc.b	$5F	;5F
+	dc.b	$59	;59
+	dc.b	$1D	;1D
+	dc.b	$F9	;F9
+	dc.b	$D1	;D1
+	dc.b	$AF	;AF
+	dc.b	$99	;99
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$94	;94
+	dc.b	$B4	;B4
+	dc.b	$E0	;E0
+	dc.b	$14	;14
+	dc.b	$52	;52
+	dc.b	$65	;65
+	dc.b	$62	;62
+	dc.b	$64	;64
+	dc.b	$66	;66
+	dc.b	$63	;63
+	dc.b	$64	;64
+	dc.b	$65	;65
+	dc.b	$62	;62
+	dc.b	$63	;63
+	dc.b	$64	;64
+	dc.b	$64	;64
+	dc.b	$63	;63
+	dc.b	$64	;64
+	dc.b	$64	;64
+	dc.b	$63	;63
+	dc.b	$64	;64
+	dc.b	$66	;66
+	dc.b	$63	;63
+	dc.b	$64	;64
+	dc.b	$65	;65
+	dc.b	$62	;62
+	dc.b	$64	;64
+	dc.b	$65	;65
+	dc.b	$62	;62
+	dc.b	$63	;63
+	dc.b	$64	;64
+	dc.b	$64	;64
+	dc.b	$64	;64
+	dc.b	$65	;65
+	dc.b	$64	;64
+	dc.b	$63	;63
+	dc.b	$62	;62
+	dc.b	$62	;62
+	dc.b	$59	;59
+	dc.b	$ED	;ED
+	dc.b	$95	;95
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$AC	;AC
+	dc.b	$E4	;E4
+	dc.b	$0C	;0C
+	dc.b	$1E	;1E
+	dc.b	$1D	;1D
+	dc.b	$1E	;1E
+	dc.b	$23	;23
+	dc.b	$2E	;2E
+	dc.b	$39	;39
+	dc.b	$32	;32
+	dc.b	$32	;32
+	dc.b	$21	;21
+	dc.b	$11	;11
+	dc.b	$0D	;0D
+	dc.b	$05	;05
+	dc.b	$04	;04
+	dc.b	$1A	;1A
+	dc.b	$1C	;1C
+	dc.b	$2E	;2E
+	dc.b	$30	;30
+	dc.b	$34	;34
+	dc.b	$40	;40
+	dc.b	$42	;42
+	dc.b	$54	;54
+	dc.b	$64	;64
+	dc.b	$63	;63
+	dc.b	$64	;64
+	dc.b	$65	;65
+	dc.b	$61	;61
+	dc.b	$61	;61
+	dc.b	$62	;62
+	dc.b	$63	;63
+	dc.b	$62	;62
+	dc.b	$5C	;5C
+	dc.b	$5A	;5A
+	dc.b	$56	;56
+	dc.b	$51	;51
+	dc.b	$57	;57
+	dc.b	$5E	;5E
+	dc.b	$5A	;5A
+	dc.b	$57	;57
+	dc.b	$53	;53
+	dc.b	$4E	;4E
+	dc.b	$58	;58
+	dc.b	$5D	;5D
+	dc.b	$62	;62
+	dc.b	$65	;65
+	dc.b	$62	;62
+	dc.b	$63	;63
+	dc.b	$64	;64
+	dc.b	$64	;64
+	dc.b	$63	;63
+	dc.b	$64	;64
+	dc.b	$65	;65
+	dc.b	$61	;61
+	dc.b	$63	;63
+	dc.b	$64	;64
+	dc.b	$63	;63
+	dc.b	$64	;64
+	dc.b	$65	;65
+	dc.b	$62	;62
+	dc.b	$63	;63
+	dc.b	$64	;64
+	dc.b	$64	;64
+	dc.b	$63	;63
+	dc.b	$64	;64
+	dc.b	$65	;65
+	dc.b	$62	;62
+	dc.b	$64	;64
+	dc.b	$65	;65
+	dc.b	$62	;62
+	dc.b	$64	;64
+	dc.b	$65	;65
+	dc.b	$62	;62
+	dc.b	$64	;64
+	dc.b	$65	;65
+	dc.b	$63	;63
+	dc.b	$63	;63
+	dc.b	$63	;63
+	dc.b	$64	;64
+	dc.b	$63	;63
+	dc.b	$64	;64
+	dc.b	$64	;64
+	dc.b	$60	;60
+	dc.b	$60	;60
+	dc.b	$31	;31
+	dc.b	$1E	;1E
+	dc.b	$0D	;0D
+	dc.b	$EF	;EF
+	dc.b	$CD	;CD
+	dc.b	$99	;99
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$86	;86
+	dc.b	$A4	;A4
+	dc.b	$C8	;C8
+	dc.b	$EC	;EC
+	dc.b	$0C	;0C
+	dc.b	$2C	;2C
+	dc.b	$50	;50
+	dc.b	$64	;64
+	dc.b	$64	;64
+	dc.b	$65	;65
+	dc.b	$62	;62
+	dc.b	$63	;63
+	dc.b	$64	;64
+	dc.b	$64	;64
+	dc.b	$63	;63
+	dc.b	$64	;64
+	dc.b	$65	;65
+	dc.b	$62	;62
+	dc.b	$63	;63
+	dc.b	$64	;64
+	dc.b	$62	;62
+	dc.b	$61	;61
+	dc.b	$61	;61
+	dc.b	$55	;55
+	dc.b	$39	;39
+	dc.b	$2D	;2D
+	dc.b	$1A	;1A
+	dc.b	$0B	;0B
+	dc.b	$F9	;F9
+	dc.b	$EB	;EB
+	dc.b	$E5	;E5
+	dc.b	$E3	;E3
+	dc.b	$D7	;D7
+	dc.b	$BD	;BD
+	dc.b	$9A	;9A
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$86	;86
+	dc.b	$86	;86
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$8B	;8B
+	dc.b	$A0	;A0
+	dc.b	$B3	;B3
+	dc.b	$C0	;C0
+	dc.b	$D0	;D0
+	dc.b	$EC	;EC
+	dc.b	$12	;12
+	dc.b	$38	;38
+	dc.b	$60	;60
+	dc.b	$64	;64
+	dc.b	$65	;65
+	dc.b	$65	;65
+	dc.b	$61	;61
+	dc.b	$64	;64
+	dc.b	$65	;65
+	dc.b	$62	;62
+	dc.b	$64	;64
+	dc.b	$65	;65
+	dc.b	$62	;62
+	dc.b	$63	;63
+	dc.b	$64	;64
+	dc.b	$64	;64
+	dc.b	$63	;63
+	dc.b	$64	;64
+	dc.b	$64	;64
+	dc.b	$63	;63
+	dc.b	$64	;64
+	dc.b	$66	;66
+	dc.b	$63	;63
+	dc.b	$64	;64
+	dc.b	$65	;65
+	dc.b	$62	;62
+	dc.b	$64	;64
+	dc.b	$62	;62
+	dc.b	$5E	;5E
+	dc.b	$ED	;ED
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$A4	;A4
+	dc.b	$CA	;CA
+	dc.b	$F0	;F0
+	dc.b	$14	;14
+	dc.b	$3A	;3A
+	dc.b	$5C	;5C
+	dc.b	$66	;66
+	dc.b	$63	;63
+	dc.b	$63	;63
+	dc.b	$64	;64
+	dc.b	$64	;64
+	dc.b	$63	;63
+	dc.b	$64	;64
+	dc.b	$65	;65
+	dc.b	$62	;62
+	dc.b	$64	;64
+	dc.b	$65	;65
+	dc.b	$62	;62
+	dc.b	$64	;64
+	dc.b	$65	;65
+	dc.b	$62	;62
+	dc.b	$63	;63
+	dc.b	$64	;64
+	dc.b	$64	;64
+	dc.b	$63	;63
+	dc.b	$64	;64
+	dc.b	$64	;64
+	dc.b	$63	;63
+	dc.b	$64	;64
+	dc.b	$66	;66
+	dc.b	$63	;63
+	dc.b	$64	;64
+	dc.b	$65	;65
+	dc.b	$62	;62
+	dc.b	$64	;64
+	dc.b	$65	;65
+	dc.b	$62	;62
+	dc.b	$63	;63
+	dc.b	$64	;64
+	dc.b	$64	;64
+	dc.b	$63	;63
+	dc.b	$64	;64
+	dc.b	$64	;64
+	dc.b	$64	;64
+	dc.b	$64	;64
+	dc.b	$66	;66
+	dc.b	$63	;63
+	dc.b	$64	;64
+	dc.b	$66	;66
+	dc.b	$63	;63
+	dc.b	$64	;64
+	dc.b	$65	;65
+	dc.b	$63	;63
+	dc.b	$62	;62
+	dc.b	$64	;64
+	dc.b	$64	;64
+	dc.b	$60	;60
+	dc.b	$5F	;5F
+	dc.b	$11	;11
+	dc.b	$DD	;DD
+	dc.b	$A5	;A5
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$94	;94
+	dc.b	$CC	;CC
+	dc.b	$00	;00
+	dc.b	$28	;28
+	dc.b	$44	;44
+	dc.b	$58	;58
+	dc.b	$63	;63
+	dc.b	$64	;64
+	dc.b	$65	;65
+	dc.b	$62	;62
+	dc.b	$61	;61
+	dc.b	$51	;51
+	dc.b	$39	;39
+	dc.b	$21	;21
+	dc.b	$FD	;FD
+	dc.b	$D5	;D5
+	dc.b	$97	;97
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$C4	;C4
+	dc.b	$10	;10
+	dc.b	$44	;44
+	dc.b	$62	;62
+	dc.b	$62	;62
+	dc.b	$64	;64
+	dc.b	$64	;64
+	dc.b	$63	;63
+	dc.b	$64	;64
+	dc.b	$66	;66
+	dc.b	$63	;63
+	dc.b	$64	;64
+	dc.b	$65	;65
+	dc.b	$62	;62
+	dc.b	$64	;64
+	dc.b	$65	;65
+	dc.b	$62	;62
+	dc.b	$63	;63
+	dc.b	$64	;64
+	dc.b	$64	;64
+	dc.b	$63	;63
+	dc.b	$64	;64
+	dc.b	$65	;65
+	dc.b	$62	;62
+	dc.b	$64	;64
+	dc.b	$65	;65
+	dc.b	$62	;62
+	dc.b	$64	;64
+	dc.b	$65	;65
+	dc.b	$62	;62
+	dc.b	$64	;64
+	dc.b	$65	;65
+	dc.b	$62	;62
+	dc.b	$63	;63
+	dc.b	$62	;62
+	dc.b	$5F	;5F
+	dc.b	$25	;25
+	dc.b	$C5	;C5
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$A4	;A4
+	dc.b	$EC	;EC
+	dc.b	$2A	;2A
+	dc.b	$5C	;5C
+	dc.b	$64	;64
+	dc.b	$65	;65
+	dc.b	$62	;62
+	dc.b	$64	;64
+	dc.b	$66	;66
+	dc.b	$63	;63
+	dc.b	$64	;64
+	dc.b	$65	;65
+	dc.b	$62	;62
+	dc.b	$64	;64
+	dc.b	$65	;65
+	dc.b	$62	;62
+	dc.b	$63	;63
+	dc.b	$64	;64
+	dc.b	$64	;64
+	dc.b	$63	;63
+	dc.b	$64	;64
+	dc.b	$65	;65
+	dc.b	$62	;62
+	dc.b	$64	;64
+	dc.b	$65	;65
+	dc.b	$62	;62
+	dc.b	$64	;64
+	dc.b	$65	;65
+	dc.b	$62	;62
+	dc.b	$64	;64
+	dc.b	$65	;65
+	dc.b	$62	;62
+	dc.b	$63	;63
+	dc.b	$64	;64
+	dc.b	$64	;64
+	dc.b	$64	;64
+	dc.b	$64	;64
+	dc.b	$66	;66
+	dc.b	$63	;63
+	dc.b	$64	;64
+	dc.b	$66	;66
+	dc.b	$63	;63
+	dc.b	$64	;64
+	dc.b	$65	;65
+	dc.b	$63	;63
+	dc.b	$63	;63
+	dc.b	$64	;64
+	dc.b	$64	;64
+	dc.b	$64	;64
+	dc.b	$65	;65
+	dc.b	$64	;64
+	dc.b	$63	;63
+	dc.b	$63	;63
+	dc.b	$65	;65
+	dc.b	$62	;62
+	dc.b	$63	;63
+	dc.b	$64	;64
+	dc.b	$63	;63
+	dc.b	$62	;62
+	dc.b	$63	;63
+	dc.b	$62	;62
+	dc.b	$61	;61
+	dc.b	$55	;55
+	dc.b	$3A	;3A
+	dc.b	$29	;29
+	dc.b	$15	;15
+	dc.b	$05	;05
+	dc.b	$F6	;F6
+	dc.b	$E5	;E5
+	dc.b	$CF	;CF
+	dc.b	$B5	;B5
+	dc.b	$9B	;9B
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$8F	;8F
+	dc.b	$A8	;A8
+	dc.b	$C4	;C4
+	dc.b	$E0	;E0
+	dc.b	$FC	;FC
+	dc.b	$14	;14
+	dc.b	$24	;24
+	dc.b	$34	;34
+	dc.b	$48	;48
+	dc.b	$5C	;5C
+	dc.b	$66	;66
+	dc.b	$63	;63
+	dc.b	$64	;64
+	dc.b	$65	;65
+	dc.b	$62	;62
+	dc.b	$63	;63
+	dc.b	$64	;64
+	dc.b	$63	;63
+	dc.b	$63	;63
+	dc.b	$64	;64
+	dc.b	$64	;64
+	dc.b	$63	;63
+	dc.b	$64	;64
+	dc.b	$66	;66
+	dc.b	$63	;63
+	dc.b	$64	;64
+	dc.b	$65	;65
+	dc.b	$62	;62
+	dc.b	$64	;64
+	dc.b	$65	;65
+	dc.b	$62	;62
+	dc.b	$63	;63
+	dc.b	$64	;64
+	dc.b	$64	;64
+	dc.b	$63	;63
+	dc.b	$64	;64
+	dc.b	$65	;65
+	dc.b	$62	;62
+	dc.b	$64	;64
+	dc.b	$66	;66
+	dc.b	$63	;63
+	dc.b	$64	;64
+	dc.b	$65	;65
+	dc.b	$62	;62
+	dc.b	$64	;64
+	dc.b	$65	;65
+	dc.b	$62	;62
+	dc.b	$63	;63
+	dc.b	$64	;64
+	dc.b	$64	;64
+	dc.b	$62	;62
+	dc.b	$61	;61
+	dc.b	$5D	;5D
+	dc.b	$E5	;E5
+	dc.b	$89	;89
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$AC	;AC
+	dc.b	$14	;14
+	dc.b	$62	;62
+	dc.b	$63	;63
+	dc.b	$63	;63
+	dc.b	$64	;64
+	dc.b	$66	;66
+	dc.b	$63	;63
+	dc.b	$64	;64
+	dc.b	$65	;65
+	dc.b	$62	;62
+	dc.b	$64	;64
+	dc.b	$65	;65
+	dc.b	$62	;62
+	dc.b	$63	;63
+	dc.b	$64	;64
+	dc.b	$64	;64
+	dc.b	$63	;63
+	dc.b	$64	;64
+	dc.b	$64	;64
+	dc.b	$63	;63
+	dc.b	$63	;63
+	dc.b	$64	;64
+	dc.b	$63	;63
+	dc.b	$63	;63
+	dc.b	$64	;64
+	dc.b	$62	;62
+	dc.b	$61	;61
+	dc.b	$62	;62
+	dc.b	$5D	;5D
+	dc.b	$45	;45
+	dc.b	$4C	;4C
+	dc.b	$52	;52
+	dc.b	$56	;56
+	dc.b	$5A	;5A
+	dc.b	$64	;64
+	dc.b	$64	;64
+	dc.b	$64	;64
+	dc.b	$66	;66
+	dc.b	$63	;63
+	dc.b	$64	;64
+	dc.b	$65	;65
+	dc.b	$62	;62
+	dc.b	$64	;64
+	dc.b	$65	;65
+	dc.b	$62	;62
+	dc.b	$63	;63
+	dc.b	$64	;64
+	dc.b	$64	;64
+	dc.b	$63	;63
+	dc.b	$65	;65
+	dc.b	$64	;64
+	dc.b	$63	;63
+	dc.b	$64	;64
+	dc.b	$66	;66
+	dc.b	$63	;63
+	dc.b	$64	;64
+	dc.b	$65	;65
+	dc.b	$63	;63
+	dc.b	$63	;63
+	dc.b	$65	;65
+	dc.b	$63	;63
+	dc.b	$63	;63
+	dc.b	$64	;64
+	dc.b	$64	;64
+	dc.b	$63	;63
+	dc.b	$64	;64
+	dc.b	$65	;65
+	dc.b	$62	;62
+	dc.b	$63	;63
+	dc.b	$64	;64
+	dc.b	$63	;63
+	dc.b	$62	;62
+	dc.b	$63	;63
+	dc.b	$61	;61
+	dc.b	$5F	;5F
+	dc.b	$45	;45
+	dc.b	$37	;37
+	dc.b	$31	;31
+	dc.b	$2D	;2D
+	dc.b	$2C	;2C
+	dc.b	$36	;36
+	dc.b	$3D	;3D
+	dc.b	$3E	;3E
+	dc.b	$48	;48
+	dc.b	$57	;57
+	dc.b	$62	;62
+	dc.b	$64	;64
+	dc.b	$64	;64
+	dc.b	$64	;64
+	dc.b	$62	;62
+	dc.b	$49	;49
+	dc.b	$2F	;2F
+	dc.b	$15	;15
+	dc.b	$ED	;ED
+	dc.b	$C9	;C9
+	dc.b	$A5	;A5
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$90	;90
+	dc.b	$B8	;B8
+	dc.b	$D8	;D8
+	dc.b	$FC	;FC
+	dc.b	$1C	;1C
+	dc.b	$3A	;3A
+	dc.b	$60	;60
+	dc.b	$64	;64
+	dc.b	$64	;64
+	dc.b	$66	;66
+	dc.b	$63	;63
+	dc.b	$63	;63
+	dc.b	$64	;64
+	dc.b	$64	;64
+	dc.b	$63	;63
+	dc.b	$64	;64
+	dc.b	$65	;65
+	dc.b	$61	;61
+	dc.b	$62	;62
+	dc.b	$64	;64
+	dc.b	$63	;63
+	dc.b	$63	;63
+	dc.b	$64	;64
+	dc.b	$63	;63
+	dc.b	$63	;63
+	dc.b	$64	;64
+	dc.b	$63	;63
+	dc.b	$63	;63
+	dc.b	$64	;64
+	dc.b	$64	;64
+	dc.b	$63	;63
+	dc.b	$64	;64
+	dc.b	$66	;66
+	dc.b	$63	;63
+	dc.b	$64	;64
+	dc.b	$66	;66
+	dc.b	$63	;63
+	dc.b	$64	;64
+	dc.b	$65	;65
+	dc.b	$62	;62
+	dc.b	$63	;63
+	dc.b	$65	;65
+	dc.b	$63	;63
+	dc.b	$63	;63
+	dc.b	$64	;64
+	dc.b	$65	;65
+	dc.b	$62	;62
+	dc.b	$64	;64
+	dc.b	$66	;66
+	dc.b	$63	;63
+	dc.b	$64	;64
+	dc.b	$65	;65
+	dc.b	$62	;62
+	dc.b	$64	;64
+	dc.b	$65	;65
+	dc.b	$63	;63
+	dc.b	$63	;63
+	dc.b	$64	;64
+	dc.b	$64	;64
+	dc.b	$64	;64
+	dc.b	$65	;65
+	dc.b	$64	;64
+	dc.b	$62	;62
+	dc.b	$61	;61
+	dc.b	$60	;60
+	dc.b	$0D	;0D
+	dc.b	$CF	;CF
+	dc.b	$91	;91
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$98	;98
+	dc.b	$B4	;B4
+	dc.b	$CF	;CF
+	dc.b	$EA	;EA
+	dc.b	$04	;04
+	dc.b	$18	;18
+	dc.b	$2A	;2A
+	dc.b	$37	;37
+	dc.b	$44	;44
+	dc.b	$52	;52
+	dc.b	$5E	;5E
+	dc.b	$65	;65
+	dc.b	$63	;63
+	dc.b	$62	;62
+	dc.b	$64	;64
+	dc.b	$65	;65
+	dc.b	$62	;62
+	dc.b	$64	;64
+	dc.b	$65	;65
+	dc.b	$62	;62
+	dc.b	$64	;64
+	dc.b	$65	;65
+	dc.b	$62	;62
+	dc.b	$63	;63
+	dc.b	$64	;64
+	dc.b	$63	;63
+	dc.b	$63	;63
+	dc.b	$64	;64
+	dc.b	$64	;64
+	dc.b	$63	;63
+	dc.b	$64	;64
+	dc.b	$65	;65
+	dc.b	$62	;62
+	dc.b	$64	;64
+	dc.b	$65	;65
+	dc.b	$62	;62
+	dc.b	$64	;64
+	dc.b	$65	;65
+	dc.b	$62	;62
+	dc.b	$63	;63
+	dc.b	$64	;64
+	dc.b	$64	;64
+	dc.b	$63	;63
+	dc.b	$64	;64
+	dc.b	$64	;64
+	dc.b	$63	;63
+	dc.b	$64	;64
+	dc.b	$65	;65
+	dc.b	$62	;62
+	dc.b	$62	;62
+	dc.b	$64	;64
+	dc.b	$62	;62
+	dc.b	$62	;62
+	dc.b	$64	;64
+	dc.b	$63	;63
+	dc.b	$55	;55
+	dc.b	$36	;36
+	dc.b	$21	;21
+	dc.b	$0B	;0B
+	dc.b	$FB	;FB
+	dc.b	$EF	;EF
+	dc.b	$E3	;E3
+	dc.b	$D3	;D3
+	dc.b	$C1	;C1
+	dc.b	$AD	;AD
+	dc.b	$95	;95
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$8E	;8E
+	dc.b	$B4	;B4
+	dc.b	$E0	;E0
+	dc.b	$10	;10
+	dc.b	$44	;44
+	dc.b	$64	;64
+	dc.b	$65	;65
+	dc.b	$62	;62
+	dc.b	$64	;64
+	dc.b	$65	;65
+	dc.b	$62	;62
+	dc.b	$63	;63
+	dc.b	$65	;65
+	dc.b	$62	;62
+	dc.b	$63	;63
+	dc.b	$64	;64
+	dc.b	$65	;65
+	dc.b	$62	;62
+	dc.b	$64	;64
+	dc.b	$65	;65
+	dc.b	$62	;62
+	dc.b	$63	;63
+	dc.b	$64	;64
+	dc.b	$63	;63
+	dc.b	$61	;61
+	dc.b	$60	;60
+	dc.b	$51	;51
+	dc.b	$05	;05
+	dc.b	$D5	;D5
+	dc.b	$A5	;A5
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$98	;98
+	dc.b	$BE	;BE
+	dc.b	$E2	;E2
+	dc.b	$04	;04
+	dc.b	$24	;24
+	dc.b	$44	;44
+	dc.b	$62	;62
+	dc.b	$65	;65
+	dc.b	$62	;62
+	dc.b	$64	;64
+	dc.b	$65	;65
+	dc.b	$62	;62
+	dc.b	$63	;63
+	dc.b	$65	;65
+	dc.b	$62	;62
+	dc.b	$63	;63
+	dc.b	$64	;64
+	dc.b	$64	;64
+	dc.b	$63	;63
+	dc.b	$64	;64
+	dc.b	$66	;66
+	dc.b	$63	;63
+	dc.b	$64	;64
+	dc.b	$65	;65
+	dc.b	$62	;62
+	dc.b	$64	;64
+	dc.b	$65	;65
+	dc.b	$62	;62
+	dc.b	$63	;63
+	dc.b	$64	;64
+	dc.b	$64	;64
+	dc.b	$63	;63
+	dc.b	$64	;64
+	dc.b	$64	;64
+	dc.b	$63	;63
+	dc.b	$64	;64
+	dc.b	$66	;66
+	dc.b	$63	;63
+	dc.b	$64	;64
+	dc.b	$65	;65
+	dc.b	$62	;62
+	dc.b	$64	;64
+	dc.b	$65	;65
+	dc.b	$63	;63
+	dc.b	$63	;63
+	dc.b	$64	;64
+	dc.b	$64	;64
+	dc.b	$64	;64
+	dc.b	$65	;65
+	dc.b	$65	;65
+	dc.b	$62	;62
+	dc.b	$63	;63
+	dc.b	$64	;64
+	dc.b	$63	;63
+	dc.b	$62	;62
+	dc.b	$62	;62
+	dc.b	$57	;57
+	dc.b	$09	;09
+	dc.b	$D5	;D5
+	dc.b	$95	;95
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$9A	;9A
+	dc.b	$BA	;BA
+	dc.b	$D4	;D4
+	dc.b	$F2	;F2
+	dc.b	$0C	;0C
+	dc.b	$28	;28
+	dc.b	$44	;44
+	dc.b	$60	;60
+	dc.b	$64	;64
+	dc.b	$64	;64
+	dc.b	$65	;65
+	dc.b	$62	;62
+	dc.b	$63	;63
+	dc.b	$64	;64
+	dc.b	$64	;64
+	dc.b	$63	;63
+	dc.b	$64	;64
+	dc.b	$66	;66
+	dc.b	$63	;63
+	dc.b	$64	;64
+	dc.b	$65	;65
+	dc.b	$62	;62
+	dc.b	$64	;64
+	dc.b	$65	;65
+	dc.b	$62	;62
+	dc.b	$63	;63
+	dc.b	$64	;64
+	dc.b	$64	;64
+	dc.b	$63	;63
+	dc.b	$64	;64
+	dc.b	$65	;65
+	dc.b	$62	;62
+	dc.b	$64	;64
+	dc.b	$66	;66
+	dc.b	$63	;63
+	dc.b	$64	;64
+	dc.b	$65	;65
+	dc.b	$62	;62
+	dc.b	$62	;62
+	dc.b	$64	;64
+	dc.b	$64	;64
+	dc.b	$61	;61
+	dc.b	$61	;61
+	dc.b	$61	;61
+	dc.b	$37	;37
+	dc.b	$1D	;1D
+	dc.b	$01	;01
+	dc.b	$E5	;E5
+	dc.b	$CD	;CD
+	dc.b	$B3	;B3
+	dc.b	$9A	;9A
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$8A	;8A
+	dc.b	$9C	;9C
+	dc.b	$B4	;B4
+	dc.b	$C7	;C7
+	dc.b	$DA	;DA
+	dc.b	$F0	;F0
+	dc.b	$04	;04
+	dc.b	$1C	;1C
+	dc.b	$34	;34
+	dc.b	$52	;52
+	dc.b	$64	;64
+	dc.b	$64	;64
+	dc.b	$65	;65
+	dc.b	$62	;62
+	dc.b	$63	;63
+	dc.b	$64	;64
+	dc.b	$63	;63
+	dc.b	$63	;63
+	dc.b	$64	;64
+	dc.b	$65	;65
+	dc.b	$62	;62
+	dc.b	$64	;64
+	dc.b	$65	;65
+	dc.b	$62	;62
+	dc.b	$64	;64
+	dc.b	$65	;65
+	dc.b	$62	;62
+	dc.b	$64	;64
+	dc.b	$65	;65
+	dc.b	$62	;62
+	dc.b	$63	;63
+	dc.b	$64	;64
+	dc.b	$64	;64
+	dc.b	$63	;63
+	dc.b	$64	;64
+	dc.b	$66	;66
+	dc.b	$63	;63
+	dc.b	$64	;64
+	dc.b	$65	;65
+	dc.b	$62	;62
+	dc.b	$64	;64
+	dc.b	$65	;65
+	dc.b	$62	;62
+	dc.b	$63	;63
+	dc.b	$64	;64
+	dc.b	$64	;64
+	dc.b	$64	;64
+	dc.b	$64	;64
+	dc.b	$64	;64
+	dc.b	$63	;63
+	dc.b	$64	;64
+	dc.b	$65	;65
+	dc.b	$62	;62
+	dc.b	$63	;63
+	dc.b	$64	;64
+	dc.b	$63	;63
+	dc.b	$63	;63
+	dc.b	$64	;64
+	dc.b	$62	;62
+	dc.b	$61	;61
+	dc.b	$62	;62
+	dc.b	$63	;63
+	dc.b	$4D	;4D
+	dc.b	$3D	;3D
+	dc.b	$29	;29
+	dc.b	$19	;19
+	dc.b	$09	;09
+	dc.b	$F9	;F9
+	dc.b	$EB	;EB
+	dc.b	$D9	;D9
+	dc.b	$C7	;C7
+	dc.b	$B7	;B7
+	dc.b	$AA	;AA
+	dc.b	$A2	;A2
+	dc.b	$9A	;9A
+	dc.b	$8E	;8E
+	dc.b	$87	;87
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$8A	;8A
+	dc.b	$8E	;8E
+	dc.b	$8E	;8E
+	dc.b	$8D	;8D
+	dc.b	$8B	;8B
+	dc.b	$89	;89
+	dc.b	$87	;87
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$88	;88
+	dc.b	$90	;90
+	dc.b	$9B	;9B
+	dc.b	$A3	;A3
+	dc.b	$AC	;AC
+	dc.b	$BA	;BA
+	dc.b	$C4	;C4
+	dc.b	$CE	;CE
+	dc.b	$DA	;DA
+	dc.b	$E1	;E1
+	dc.b	$E7	;E7
+	dc.b	$F1	;F1
+	dc.b	$FC	;FC
+	dc.b	$04	;04
+	dc.b	$0D	;0D
+	dc.b	$14	;14
+	dc.b	$1A	;1A
+	dc.b	$23	;23
+	dc.b	$2D	;2D
+	dc.b	$3A	;3A
+	dc.b	$44	;44
+	dc.b	$4F	;4F
+	dc.b	$5C	;5C
+	dc.b	$66	;66
+	dc.b	$63	;63
+	dc.b	$64	;64
+	dc.b	$65	;65
+	dc.b	$62	;62
+	dc.b	$63	;63
+	dc.b	$64	;64
+	dc.b	$63	;63
+	dc.b	$63	;63
+	dc.b	$64	;64
+	dc.b	$64	;64
+	dc.b	$63	;63
+	dc.b	$64	;64
+	dc.b	$65	;65
+	dc.b	$62	;62
+	dc.b	$64	;64
+	dc.b	$65	;65
+	dc.b	$62	;62
+	dc.b	$63	;63
+	dc.b	$64	;64
+	dc.b	$63	;63
+	dc.b	$63	;63
+	dc.b	$64	;64
+	dc.b	$63	;63
+	dc.b	$63	;63
+	dc.b	$64	;64
+	dc.b	$64	;64
+	dc.b	$63	;63
+	dc.b	$63	;63
+	dc.b	$62	;62
+	dc.b	$60	;60
+	dc.b	$61	;61
+	dc.b	$45	;45
+	dc.b	$37	;37
+	dc.b	$29	;29
+	dc.b	$1B	;1B
+	dc.b	$0C	;0C
+	dc.b	$FF	;FF
+	dc.b	$F8	;F8
+	dc.b	$F4	;F4
+	dc.b	$EF	;EF
+	dc.b	$ED	;ED
+	dc.b	$F2	;F2
+	dc.b	$FC	;FC
+	dc.b	$06	;06
+	dc.b	$13	;13
+	dc.b	$24	;24
+	dc.b	$34	;34
+	dc.b	$48	;48
+	dc.b	$60	;60
+	dc.b	$64	;64
+	dc.b	$66	;66
+	dc.b	$64	;64
+	dc.b	$63	;63
+	dc.b	$65	;65
+	dc.b	$63	;63
+	dc.b	$62	;62
+	dc.b	$64	;64
+	dc.b	$65	;65
+	dc.b	$62	;62
+	dc.b	$60	;60
+	dc.b	$61	;61
+	dc.b	$3D	;3D
+	dc.b	$13	;13
+	dc.b	$FE	;FE
+	dc.b	$E5	;E5
+	dc.b	$CD	;CD
+	dc.b	$C1	;C1
+	dc.b	$B7	;B7
+	dc.b	$B4	;B4
+	dc.b	$B8	;B8
+	dc.b	$BB	;BB
+	dc.b	$B6	;B6
+	dc.b	$A8	;A8
+	dc.b	$97	;97
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$98	;98
+	dc.b	$C4	;C4
+	dc.b	$EC	;EC
+	dc.b	$12	;12
+	dc.b	$38	;38
+	dc.b	$60	;60
+	dc.b	$66	;66
+	dc.b	$63	;63
+	dc.b	$63	;63
+	dc.b	$65	;65
+	dc.b	$62	;62
+	dc.b	$63	;63
+	dc.b	$64	;64
+	dc.b	$65	;65
+	dc.b	$62	;62
+	dc.b	$64	;64
+	dc.b	$65	;65
+	dc.b	$62	;62
+	dc.b	$64	;64
+	dc.b	$65	;65
+	dc.b	$62	;62
+	dc.b	$63	;63
+	dc.b	$64	;64
+	dc.b	$63	;63
+	dc.b	$63	;63
+	dc.b	$64	;64
+	dc.b	$64	;64
+	dc.b	$63	;63
+	dc.b	$63	;63
+	dc.b	$63	;63
+	dc.b	$60	;60
+	dc.b	$60	;60
+	dc.b	$51	;51
+	dc.b	$40	;40
+	dc.b	$3B	;3B
+	dc.b	$32	;32
+	dc.b	$2C	;2C
+	dc.b	$2C	;2C
+	dc.b	$2C	;2C
+	dc.b	$34	;34
+	dc.b	$4A	;4A
+	dc.b	$5E	;5E
+	dc.b	$65	;65
+	dc.b	$62	;62
+	dc.b	$64	;64
+	dc.b	$65	;65
+	dc.b	$62	;62
+	dc.b	$64	;64
+	dc.b	$65	;65
+	dc.b	$61	;61
+	dc.b	$62	;62
+	dc.b	$64	;64
+	dc.b	$63	;63
+	dc.b	$61	;61
+	dc.b	$61	;61
+	dc.b	$61	;61
+	dc.b	$4D	;4D
+	dc.b	$2A	;2A
+	dc.b	$12	;12
+	dc.b	$F1	;F1
+	dc.b	$D5	;D5
+	dc.b	$BF	;BF
+	dc.b	$AF	;AF
+	dc.b	$9A	;9A
+	dc.b	$8C	;8C
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$90	;90
+	dc.b	$A2	;A2
+	dc.b	$BC	;BC
+	dc.b	$E0	;E0
+	dc.b	$04	;04
+	dc.b	$40	;40
+	dc.b	$64	;64
+	dc.b	$63	;63
+	dc.b	$64	;64
+	dc.b	$66	;66
+	dc.b	$63	;63
+	dc.b	$64	;64
+	dc.b	$65	;65
+	dc.b	$62	;62
+	dc.b	$63	;63
+	dc.b	$64	;64
+	dc.b	$64	;64
+	dc.b	$63	;63
+	dc.b	$64	;64
+	dc.b	$66	;66
+	dc.b	$63	;63
+	dc.b	$64	;64
+	dc.b	$64	;64
+	dc.b	$63	;63
+	dc.b	$62	;62
+	dc.b	$63	;63
+	dc.b	$5F	;5F
+	dc.b	$45	;45
+	dc.b	$ED	;ED
+	dc.b	$AD	;AD
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$8C	;8C
+	dc.b	$A0	;A0
+	dc.b	$BA	;BA
+	dc.b	$D8	;D8
+	dc.b	$F2	;F2
+	dc.b	$04	;04
+	dc.b	$1A	;1A
+	dc.b	$28	;28
+	dc.b	$33	;33
+	dc.b	$40	;40
+	dc.b	$4F	;4F
+	dc.b	$5E	;5E
+	dc.b	$66	;66
+	dc.b	$63	;63
+	dc.b	$64	;64
+	dc.b	$65	;65
+	dc.b	$62	;62
+	dc.b	$63	;63
+	dc.b	$64	;64
+	dc.b	$63	;63
+	dc.b	$63	;63
+	dc.b	$64	;64
+	dc.b	$63	;63
+	dc.b	$63	;63
+	dc.b	$64	;64
+	dc.b	$65	;65
+	dc.b	$62	;62
+	dc.b	$64	;64
+	dc.b	$65	;65
+	dc.b	$62	;62
+	dc.b	$64	;64
+	dc.b	$65	;65
+	dc.b	$62	;62
+	dc.b	$64	;64
+	dc.b	$65	;65
+	dc.b	$62	;62
+	dc.b	$63	;63
+	dc.b	$64	;64
+	dc.b	$64	;64
+	dc.b	$63	;63
+	dc.b	$64	;64
+	dc.b	$65	;65
+	dc.b	$62	;62
+	dc.b	$64	;64
+	dc.b	$65	;65
+	dc.b	$62	;62
+	dc.b	$64	;64
+	dc.b	$65	;65
+	dc.b	$62	;62
+	dc.b	$64	;64
+	dc.b	$65	;65
+	dc.b	$63	;63
+	dc.b	$63	;63
+	dc.b	$63	;63
+	dc.b	$64	;64
+	dc.b	$62	;62
+	dc.b	$63	;63
+	dc.b	$63	;63
+	dc.b	$60	;60
+	dc.b	$4D	;4D
+	dc.b	$21	;21
+	dc.b	$09	;09
+	dc.b	$EA	;EA
+	dc.b	$D1	;D1
+	dc.b	$B7	;B7
+	dc.b	$9D	;9D
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$90	;90
+	dc.b	$A8	;A8
+	dc.b	$C4	;C4
+	dc.b	$E0	;E0
+	dc.b	$F8	;F8
+	dc.b	$0E	;0E
+	dc.b	$20	;20
+	dc.b	$32	;32
+	dc.b	$44	;44
+	dc.b	$57	;57
+	dc.b	$64	;64
+	dc.b	$63	;63
+	dc.b	$65	;65
+	dc.b	$62	;62
+	dc.b	$63	;63
+	dc.b	$64	;64
+	dc.b	$65	;65
+	dc.b	$61	;61
+	dc.b	$63	;63
+	dc.b	$64	;64
+	dc.b	$63	;63
+	dc.b	$64	;64
+	dc.b	$65	;65
+	dc.b	$62	;62
+	dc.b	$63	;63
+	dc.b	$64	;64
+	dc.b	$63	;63
+	dc.b	$63	;63
+	dc.b	$64	;64
+	dc.b	$64	;64
+	dc.b	$63	;63
+	dc.b	$64	;64
+	dc.b	$65	;65
+	dc.b	$62	;62
+	dc.b	$63	;63
+	dc.b	$65	;65
+	dc.b	$62	;62
+	dc.b	$64	;64
+	dc.b	$64	;64
+	dc.b	$63	;63
+	dc.b	$63	;63
+	dc.b	$64	;64
+	dc.b	$64	;64
+	dc.b	$63	;63
+	dc.b	$64	;64
+	dc.b	$64	;64
+	dc.b	$63	;63
+	dc.b	$64	;64
+	dc.b	$65	;65
+	dc.b	$62	;62
+	dc.b	$63	;63
+	dc.b	$64	;64
+	dc.b	$63	;63
+	dc.b	$62	;62
+	dc.b	$63	;63
+	dc.b	$63	;63
+	dc.b	$61	;61
+	dc.b	$62	;62
+	dc.b	$53	;53
+	dc.b	$48	;48
+	dc.b	$3F	;3F
+	dc.b	$3A	;3A
+	dc.b	$33	;33
+	dc.b	$29	;29
+	dc.b	$1F	;1F
+	dc.b	$18	;18
+	dc.b	$10	;10
+	dc.b	$07	;07
+	dc.b	$01	;01
+	dc.b	$FA	;FA
+	dc.b	$F2	;F2
+	dc.b	$ED	;ED
+	dc.b	$EA	;EA
+	dc.b	$E4	;E4
+	dc.b	$DC	;DC
+	dc.b	$D5	;D5
+	dc.b	$D1	;D1
+	dc.b	$CD	;CD
+	dc.b	$C8	;C8
+	dc.b	$C2	;C2
+	dc.b	$BB	;BB
+	dc.b	$B1	;B1
+	dc.b	$AA	;AA
+	dc.b	$A6	;A6
+	dc.b	$A6	;A6
+	dc.b	$A3	;A3
+	dc.b	$9E	;9E
+	dc.b	$95	;95
+	dc.b	$89	;89
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$91	;91
+	dc.b	$9C	;9C
+	dc.b	$A3	;A3
+	dc.b	$B0	;B0
+	dc.b	$C1	;C1
+	dc.b	$D0	;D0
+	dc.b	$E4	;E4
+	dc.b	$00	;00
+	dc.b	$14	;14
+	dc.b	$26	;26
+	dc.b	$3C	;3C
+	dc.b	$4C	;4C
+	dc.b	$58	;58
+	dc.b	$64	;64
+	dc.b	$65	;65
+	dc.b	$63	;63
+	dc.b	$62	;62
+	dc.b	$64	;64
+	dc.b	$65	;65
+	dc.b	$61	;61
+	dc.b	$62	;62
+	dc.b	$64	;64
+	dc.b	$63	;63
+	dc.b	$63	;63
+	dc.b	$64	;64
+	dc.b	$63	;63
+	dc.b	$62	;62
+	dc.b	$64	;64
+	dc.b	$63	;63
+	dc.b	$62	;62
+	dc.b	$62	;62
+	dc.b	$64	;64
+	dc.b	$62	;62
+	dc.b	$62	;62
+	dc.b	$61	;61
+	dc.b	$41	;41
+	dc.b	$2B	;2B
+	dc.b	$0D	;0D
+	dc.b	$F9	;F9
+	dc.b	$EC	;EC
+	dc.b	$E7	;E7
+	dc.b	$E5	;E5
+	dc.b	$DD	;DD
+	dc.b	$C9	;C9
+	dc.b	$AD	;AD
+	dc.b	$8D	;8D
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$90	;90
+	dc.b	$AA	;AA
+	dc.b	$C4	;C4
+	dc.b	$E4	;E4
+	dc.b	$00	;00
+	dc.b	$1C	;1C
+	dc.b	$34	;34
+	dc.b	$4C	;4C
+	dc.b	$5E	;5E
+	dc.b	$64	;64
+	dc.b	$63	;63
+	dc.b	$65	;65
+	dc.b	$62	;62
+	dc.b	$62	;62
+	dc.b	$64	;64
+	dc.b	$65	;65
+	dc.b	$62	;62
+	dc.b	$64	;64
+	dc.b	$65	;65
+	dc.b	$61	;61
+	dc.b	$63	;63
+	dc.b	$64	;64
+	dc.b	$63	;63
+	dc.b	$63	;63
+	dc.b	$64	;64
+	dc.b	$63	;63
+	dc.b	$63	;63
+	dc.b	$64	;64
+	dc.b	$64	;64
+	dc.b	$63	;63
+	dc.b	$64	;64
+	dc.b	$65	;65
+	dc.b	$61	;61
+	dc.b	$62	;62
+	dc.b	$64	;64
+	dc.b	$61	;61
+	dc.b	$5F	;5F
+	dc.b	$5F	;5F
+	dc.b	$29	;29
+	dc.b	$05	;05
+	dc.b	$CF	;CF
+	dc.b	$9D	;9D
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$B0	;B0
+	dc.b	$CC	;CC
+	dc.b	$DE	;DE
+	dc.b	$EE	;EE
+	dc.b	$0B	;0B
+	dc.b	$30	;30
+	dc.b	$50	;50
+	dc.b	$63	;63
+	dc.b	$64	;64
+	dc.b	$65	;65
+	dc.b	$62	;62
+	dc.b	$62	;62
+	dc.b	$64	;64
+	dc.b	$64	;64
+	dc.b	$63	;63
+	dc.b	$64	;64
+	dc.b	$65	;65
+	dc.b	$61	;61
+	dc.b	$62	;62
+	dc.b	$64	;64
+	dc.b	$63	;63
+	dc.b	$64	;64
+	dc.b	$65	;65
+	dc.b	$62	;62
+	dc.b	$63	;63
+	dc.b	$64	;64
+	dc.b	$64	;64
+	dc.b	$63	;63
+	dc.b	$64	;64
+	dc.b	$65	;65
+	dc.b	$62	;62
+	dc.b	$64	;64
+	dc.b	$65	;65
+	dc.b	$62	;62
+	dc.b	$64	;64
+	dc.b	$65	;65
+	dc.b	$62	;62
+	dc.b	$64	;64
+	dc.b	$65	;65
+	dc.b	$62	;62
+	dc.b	$63	;63
+	dc.b	$64	;64
+	dc.b	$64	;64
+	dc.b	$63	;63
+	dc.b	$64	;64
+	dc.b	$65	;65
+	dc.b	$62	;62
+	dc.b	$64	;64
+	dc.b	$65	;65
+	dc.b	$62	;62
+	dc.b	$64	;64
+	dc.b	$65	;65
+	dc.b	$62	;62
+	dc.b	$64	;64
+	dc.b	$65	;65
+	dc.b	$63	;63
+	dc.b	$62	;62
+	dc.b	$64	;64
+	dc.b	$64	;64
+	dc.b	$63	;63
+	dc.b	$64	;64
+	dc.b	$65	;65
+	dc.b	$62	;62
+	dc.b	$63	;63
+	dc.b	$64	;64
+	dc.b	$63	;63
+	dc.b	$63	;63
+	dc.b	$64	;64
+	dc.b	$63	;63
+	dc.b	$62	;62
+	dc.b	$63	;63
+	dc.b	$63	;63
+	dc.b	$61	;61
+	dc.b	$5F	;5F
+	dc.b	$4B	;4B
+	dc.b	$3F	;3F
+	dc.b	$31	;31
+	dc.b	$25	;25
+	dc.b	$16	;16
+	dc.b	$09	;09
+	dc.b	$FB	;FB
+	dc.b	$EB	;EB
+	dc.b	$D9	;D9
+	dc.b	$C7	;C7
+	dc.b	$B5	;B5
+	dc.b	$A2	;A2
+	dc.b	$91	;91
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$85	;85
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$89	;89
+	dc.b	$9C	;9C
+	dc.b	$AD	;AD
+	dc.b	$BE	;BE
+	dc.b	$CF	;CF
+	dc.b	$DF	;DF
+	dc.b	$EF	;EF
+	dc.b	$FF	;FF
+	dc.b	$0B	;0B
+	dc.b	$17	;17
+	dc.b	$25	;25
+	dc.b	$33	;33
+	dc.b	$41	;41
+	dc.b	$4D	;4D
+	dc.b	$57	;57
+	dc.b	$5F	;5F
+	dc.b	$5F	;5F
+	dc.b	$61	;61
+	dc.b	$5E	;5E
+	dc.b	$5F	;5F
+	dc.b	$60	;60
+	dc.b	$5C	;5C
+	dc.b	$5D	;5D
+	dc.b	$5F	;5F
+	dc.b	$5E	;5E
+	dc.b	$5E	;5E
+	dc.b	$5F	;5F
+	dc.b	$5E	;5E
+	dc.b	$5D	;5D
+	dc.b	$5E	;5E
+	dc.b	$5E	;5E
+	dc.b	$5D	;5D
+	dc.b	$5D	;5D
+	dc.b	$56	;56
+	dc.b	$50	;50
+	dc.b	$4A	;4A
+	dc.b	$44	;44
+	dc.b	$40	;40
+	dc.b	$38	;38
+	dc.b	$2A	;2A
+	dc.b	$1E	;1E
+	dc.b	$14	;14
+	dc.b	$0A	;0A
+	dc.b	$01	;01
+	dc.b	$F6	;F6
+	dc.b	$EA	;EA
+	dc.b	$D9	;D9
+	dc.b	$CC	;CC
+	dc.b	$C3	;C3
+	dc.b	$BA	;BA
+	dc.b	$B2	;B2
+	dc.b	$AA	;AA
+	dc.b	$A0	;A0
+	dc.b	$95	;95
+	dc.b	$88	;88
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$80	;80
+	dc.b	$83	;83
+	dc.b	$8E	;8E
+	dc.b	$95	;95
+	dc.b	$A2	;A2
+	dc.b	$B4	;B4
+	dc.b	$BD	;BD
+	dc.b	$C4	;C4
+	dc.b	$D1	;D1
+	dc.b	$DE	;DE
+	dc.b	$EA	;EA
+	dc.b	$FE	;FE
+	dc.b	$13	;13
+	dc.b	$25	;25
+	dc.b	$37	;37
 AudioSample_5:
 	dc.b	'FORM'	;464F524D
 	dc.b	$00	;00

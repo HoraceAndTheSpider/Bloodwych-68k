@@ -1,44 +1,45 @@
 
-dsksync:	equ	$0000007E
-copjmp1:	equ	$00000088
-aud:	equ	$000000A0
-ac_vol:	equ	$00000008
-adkcon:	equ	$0000009E
-_custom:	equ	$00DFF000
-ddfstop:	equ	$00000094
-bplcon2:	equ	$00000104
-diwstrt:	equ	$0000008E
-ac_per:	equ	$00000006
-intreq:	equ	$0000009C
-bplcon0:	equ	$00000100
-bplcon1:	equ	$00000102
-aud0:	equ	$000000A0
-diwstop:	equ	$00000090
-cli_SIZEOF:	equ	$00000040
-ddfstrt:	equ	$00000092
-SYSBASESIZE:	equ	$00000278
+dsksync:		equ	$0000007E
+copjmp1:		equ	$00000088
+aud:			equ	$000000A0
+ac_vol:			equ	$00000008
+adkcon:			equ	$0000009E
+_custom:		equ	$00DFF000
+ddfstop:		equ	$00000094
+bplcon2:		equ	$00000104
+diwstrt:		equ	$0000008E
+ac_per:			equ	$00000006
+intreq:			equ	$0000009C
+bplcon0:		equ	$00000100
+bplcon1:		equ	$00000102
+aud0:			equ	$000000A0
+diwstop:		equ	$00000090
+cli_SIZEOF:		equ	$00000040
+ddfstrt:		equ	$00000092
+SYSBASESIZE:		equ	$00000278
 tv_TrapInstrVects:	equ	$00000080
-ciaprb:	equ	$00000100
-intena:	equ	$0000009A
-intreqr:	equ	$0000001E
-joy0dat:	equ	$0000000A
-ac_dat:	equ	$0000000A
-joy1dat:	equ	$0000000C
-bpl2mod:	equ	$0000010A
-color:	equ	$00000180
-bltddat:	equ	$00000000
-bpl1mod:	equ	$00000108
-ciaicr:	equ	$00000D00
-dskpt:	equ	$00000020
-cop1lc:	equ	$00000080
-_ciaa:	equ	$00BFE001
-_ciab:	equ	$00BFD000
-dmacon:	equ	$00000096
-wd_SIZEOF:	equ	$00000088
-dsklen:	equ	$00000024
-ac_len:	equ	$00000004
-ciacra:	equ	$00000E00
+ciaprb:			equ	$00000100
+intena:			equ	$0000009A
+intreqr:		equ	$0000001E
+joy0dat:		equ	$0000000A
+ac_dat:			equ	$0000000A
+joy1dat:		equ	$0000000C
+bpl2mod:		equ	$0000010A
+color:			equ	$00000180
+bltddat:		equ	$00000000
+bpl1mod:		equ	$00000108
+ciaicr:			equ	$00000D00
+dskpt:			equ	$00000020
+cop1lc:			equ	$00000080
+_ciaa:			equ	$00BFE001
+_ciab:			equ	$00BFD000
+dmacon:			equ	$00000096
+wd_SIZEOF:		equ	$00000088
+dsklen:			equ	$00000024
+ac_len:			equ	$00000004
+ciacra:			equ	$00000E00
 ****************************************************************************
+
 ; Fixed for Devpac:
 ;	SECTION	BW_002rs000000,CODE,CHIP
 	SECTION	BW_002rs000000,CODE_C
@@ -106,26 +107,26 @@ GameStart:
 	clr.b	adrB_00EE2D.l	;42390000EE2D
 	clr.w	adrB_008C1E.l	;427900008C1E
 	bsr	adrCd0008C4	;61000496
-	bsr	adrCd000746	;61000314
+	bsr	MainMenu	;61000314
 	jsr	adrCd008DA8.l	;4EB900008DA8
 	jsr	adrCd008DA0.l	;4EB900008DA0
 	moveq	#$00,d0	;7000
 	jsr	PlaySound.l	;4EB9000088BE
-	tst.w	MainMenuText.l	;4A7900000656
+	tst.w	MainMenuBuffer.l	;4A7900000656
 	bmi.s	adrCd00048E	;6B3E
 	beq.s	adrCd000456	;6704
 	bra	adrCd000BA6	;60000752
 
 adrCd000456:
-	jsr	adrCd00C0FA.l	;4EB90000C0FA
+	jsr	ChampionSelection_Main.l	;4EB90000C0FA
 	move.b	adrB_00EE83.l,adrL_00EE94.l	;13F90000EE830000EE94
 	move.b	adrB_00EEE5.l,adrL_00EEF6.l	;13F90000EEE50000EEF6
 	move.l	adrL_00EE94.l,adrL_00EEA2.l	;23F90000EE940000EEA2
 	move.l	adrL_00EEF6.l,adrL_00EF04.l	;23F90000EEF60000EF04
 	moveq	#$0F,d0	;700F
-adrLp000486:
-	dbra	d1,adrLp000486	;51C9FFFE
-	dbra	d0,adrLp000486	;51C8FFFA
+DBFWait1a:
+	dbra	d1,DBFWait1a	;51C9FFFE
+	dbra	d0,DBFWait1a	;51C8FFFA
 adrCd00048E:
 	bra	adrCd000BA2	;60000712
 
@@ -164,8 +165,8 @@ adrLp00050E:
 adrLp000538:
 	move.l	d0,(a0)+	;20C0
 	dbra	d1,adrLp000538	;51C9FFFC
-	move.l	#adrL_008C20,$006C.w	;21FC00008C20006C	;Short Absolute converted to symbol!
-	move.l	#adrL_0005CE,$0068.w	;21FC000005CE0068	;Short Absolute converted to symbol!
+	move.l	#VerticalBlankInterupt,$006C.w	;21FC00008C20006C	;Short Absolute converted to symbol!
+	move.l	#Level_2_Interrupt,$0068.w	;21FC000005CE0068	;Short Absolute converted to symbol!
 	move.l	#adrL_0088A4,$0070.w	;21FC000088A40070	;Short Absolute converted to symbol!
 	move.w	#$7FFF,_custom+intena.l	;33FC7FFF00DFF09A
 	move.b	_ciaa+ciacra.l,d0	;103900BFEE01
@@ -186,35 +187,35 @@ adrEA0005AA:
 	dc.w	$0402	;0402
 	dc.w	$0100	;0100
 adrEA0005B2:
-	dc.l	adrEA008E84	;00008E84
-	dc.l	adrEA008F14	;00008F14
-	dc.l	adrEA008ECC	;00008ECC
-	dc.l	adrEA008F5C	;00008F5C
+	dc.l	SpritePosition_00	;00008E84
+	dc.l	SpritePosition_01	;00008F14
+	dc.l	SpritePosition_04	;00008ECC
+	dc.l	SpritePosition_02	;00008F5C
 	dc.l	adrEA008EC8	;00008EC8
 	dc.w	$0000	;0000
 adrEA0005C8:
 	dc.b	$00	;00
-adrEA0005C9:
+KeyboardKeyCode:
 	dc.b	$00	;00
 	dc.b	$00	;00
 	dc.b	$00	;00
 	dc.b	$00	;00
 	dc.b	$00	;00
 
-adrL_0005CE:
+Level_2_Interrupt:
 	movem.l	d0/d1/a0,-(sp)	;48E7C080
 	lea	_ciaa.l,a0	;41F900BFE001
 	move.b	$0C00(a0),d0	;10280C00
 	ror.b	#$01,d0	;E218
 	not.b	d0	;4600
-	move.b	d0,adrEA0005C9.w	;11C005C9	;Short Absolute converted to symbol!
+	move.b	d0,KeyboardKeyCode.w	;11C005C9	;Short Absolute converted to symbol!
 	or.b	#$40,$0E00(a0)	;002800400E00
 	clr.b	$0C00(a0)	;42280C00
 	move.b	$0100(a0),d1	;12280100
-	bsr.s	adrCd00061C	;6128
+	bsr.s	CheckKeyboard	;6128
 	moveq	#$2D,d0	;702D
-adrLp0005F6:
-	dbra	d0,adrLp0005F6	;51C8FFFE
+.L2InteruptLoop:
+	dbra	d0,.L2InteruptLoop	;51C8FFFE
 	lea	_ciaa.l,a0	;41F900BFE001
 	move.b	$0D00(a0),d0	;10280D00
 	and.b	#$BF,$0E00(a0)	;022800BF0E00
@@ -223,22 +224,22 @@ adrLp0005F6:
 	move.w	#$0008,_custom+intreq.l	;33FC000800DFF09C
 	rte	;4E73
 
-adrCd00061C:
+CheckKeyboard:
 	lea	RawKeyCodes.l,a0	;41F90000064A
 	moveq	#$0B,d1	;720B
-adrLp000624:
+.keyboardloop:
 	cmp.b	(a0)+,d0	;B018
-	beq.s	adrCd00062E	;6706
-	dbra	d1,adrLp000624	;51C9FFFA
+	beq.s	KeyboardAction	;6706
+	dbra	d1,.keyboardloop	;51C9FFFA
 	rts	;4E75
 
-adrCd00062E:
+KeyboardAction:
 	lea	Player1_Data.l,a0	;41F90000EE7C
 	subq.w	#$06,d1	;5D41
-	bcc.s	adrCd000640	;6408
+	bcc.s	.skipPlayer2	;6408
 	addq.w	#$06,d1	;5C41
 	lea	Player2_Data.l,a0	;41F90000EEDE
-adrCd000640:
+.skipPlayer2:
 	add.w	#$000A,d1	;0641000A
 	move.b	d1,$0056(a0)	;11410056
 	rts	;4E75
@@ -257,16 +258,16 @@ RawKeyCodes:
 	dc.b	$21	;21
 	dc.b	$11	;11
 
-MainMenuText:
+MainMenuBuffer:
 	dc.b	$00	;00
 	dc.b	$00	;00
-adrEA000658:
+MainMenuInitColours:
 	dc.b	$00	;00
 	dc.b	$00	;00
 	dc.b	$FD	;FD
 	dc.b	$00	;00
 	dc.b	$F0	;F0
-adrEA00065D:
+MainMenuText:
 	dc.b	$FE	;FE
 	dc.b	$0C	;0C
 	dc.b	$FC	;FC
@@ -309,58 +310,58 @@ adrEA00065D:
 	dc.b	$06	;06
 	dc.b	$FF	;FF
 
-adrCd000746:
-	clr.w	MainMenuText.w	;42780656	;Short Absolute converted to symbol!
+MainMenu:
+	clr.w	MainMenuBuffer.w	;42780656	;Short Absolute converted to symbol!
 	clr.w	MultiPlayer.l	;42790000EE30
 	jsr	adrCd008DA8.l	;4EB900008DA8
 	jsr	adrCd008DA0.l	;4EB900008DA0
-	lea	adrEA00065D.w,a6	;4DF8065D	;Short Absolute converted to symbol!
-	tst.w	adrEA000658.w	;4A780658	;Short Absolute converted to symbol!
-	bne.s	adrCd000768	;6602
+	lea	MainMenuText.w,a6	;4DF8065D	;Short Absolute converted to symbol!
+	tst.w	MainMenuInitColours.w	;4A780658	;Short Absolute converted to symbol!
+	bne.s	.menuscreen	;6602
 	subq.w	#$03,a6	;574E
-adrCd000768:
+.menuscreen:
 	lea	Player1_Data.l,a5	;4BF90000EE7C
-	jsr	adrCd00D0C6.l	;4EB90000D0C6
+	jsr	Print_fflim_text.l	;4EB90000D0C6
 	jsr	adrCd008CCA.l	;4EB900008CCA
-	tst.w	adrEA000658.w	;4A780658	;Short Absolute converted to symbol!
+	tst.w	MainMenuInitColours.w	;4A780658	;Short Absolute converted to symbol!
 	bne.s	MenuKeyboard	;660C
-	move.w	#$FFFF,adrEA000658.w	;31FCFFFF0658	;Short Absolute converted to symbol!
+	move.w	#$FFFF,MainMenuInitColours.w	;31FCFFFF0658	;Short Absolute converted to symbol!
 	jsr	adrCd008878.l	;4EB900008878
 MenuKeyboard:
-	clr.b	adrEA0005C9.w	;423805C9	;Short Absolute converted to symbol!
+	clr.b	KeyboardKeyCode.w	;423805C9	;Short Absolute converted to symbol!
 MenuKeyboardLoop:
-	move.b	adrEA0005C9.w,d0	;103805C9	;Short Absolute converted to symbol!
-	sub.b	#$50,d0				;04000050
-	beq	Ply1_Start		;67000088
-	subq.b	#$01,d0			;5300
-	beq	Ply2_Start		;6700008C
-	subq.b	#$01,d0	;5300
-	beq	QkPly1_Start		;6700008E
-	subq.b	#$01,d0			;5300
-	beq	QkPly2_Start	;670000CE
-	cmp.b	#$06,d0	;0C000006
-	beq.s	LoadGameFromMenu	;670C
-	subq.b	#$05,d0	;5B00
-	bne.s	MenuKeyboardLoop	;66D8
-	move.w	#$FFFF,MultiPlayer.l	;33FCFFFF0000EE30
+	move.b	KeyboardKeyCode.w,d0	;103805C9	;Short Absolute converted to symbol!
+	sub.b	#$50,d0					;04000050
+	beq	Ply1_Start				;67000088
+	subq.b	#$01,d0					;5300
+	beq	Ply2_Start				;6700008C
+	subq.b	#$01,d0					;5300
+	beq	QkPly1_Start				;6700008E
+	subq.b	#$01,d0					;5300
+	beq	QkPly2_Start				;670000CE
+	cmpi.b	#$06,d0					;0C000006
+	beq.s	LoadGameFromMenu			;670C
+	subq.b	#$05,d0					;5B00
+	bne.s	MenuKeyboardLoop			;66D8
+	move.w	#$FFFF,MultiPlayer.l			;33FCFFFF0000EE30
 LoadGameFromMenu:
-	move.l	#$00067D00,screen_ptr.l	;23FC00067D0000008D36
-	move.l	#$00060000,framebuffer_ptr.l	;23FC0006000000008D3A
-	jsr	adrCd008DA8.l	;4EB900008DA8
-	move.l	screen_ptr.l,a0	;207900008D36
-	add.w	#$0E10,a0	;D0FC0E10
-	lea	InsertLoadDiskMsg.l,a6	;4DF9000044E5
-	jsr	adrCd00D0C6.l	;4EB90000D0C6
+	move.l	#$00067D00,screen_ptr.l			;23FC00067D0000008D36
+	move.l	#$00060000,framebuffer_ptr.l		;23FC0006000000008D3A
+	jsr	adrCd008DA8.l				;4EB900008DA8
+	move.l	screen_ptr.l,a0				;207900008D36
+	add.w	#$0E10,a0				;D0FC0E10
+	lea	InsertLoadDiskMsg.l,a6	;		4DF9000044E5
+	jsr	Print_fflim_text.l				;4EB90000D0C6
 	jsr	adrCd008CCA.l	;4EB900008CCA
-	clr.b	adrEA0005C9.w	;423805C9	;Short Absolute converted to symbol!
-	bsr	adrCd004406	;61003C0A
-	bcs	adrCd000746	;6500FF46
-	bsr	adrCd004422	;61003C1E
+	clr.b	KeyboardKeyCode.w	;423805C9	;Short Absolute converted to symbol!
+	bsr	LoadSaveGame_Loop	;61003C0A
+	bcs	MainMenu	;6500FF46
+	bsr	LoadSaveGame_Action	;61003C1E
 	bsr	adrCd004440	;61003C38
-	cmp.b	#$FF,CharacterSpellWorn.l	;0C3900FF0000EB3B
-	beq	adrCd000746	;6700FF32
+	cmp.b	#$FF,CharacterStats+$11.l	;0C3900FF0000EB3B
+	beq	MainMenu	;6700FF32
 	bsr	adrCd000B68	;61000350
-	move.w	#$0001,MainMenuText.w	;31FC00010656	;Short Absolute converted to symbol!
+	move.w	#$0001,MainMenuBuffer.w	;31FC00010656	;Short Absolute converted to symbol!
 	rts	;4E75
 
 Ply1_Start:
@@ -373,7 +374,7 @@ Ply2_Start:
 
 QkPly1_Start:
 	move.w	#$FFFF,MultiPlayer.l	;33FCFFFF0000EE30
-	move.w	#$FFFF,MainMenuText.w	;31FCFFFF0656	;Short Absolute converted to symbol!
+	move.w	#$FFFF,MainMenuBuffer.w	;31FCFFFF0656	;Short Absolute converted to symbol!
 	move.l	#$000E0503,$0018(a5)	;2B7C000E05030018
 	move.l	$0018(a5),$0026(a5)	;2B6D00180026
 	clr.w	$0006(a5)	;426D0006
@@ -439,7 +440,7 @@ adrCd000904:
 	move.b	$0003(a4),d1	;122C0003
 	lsr.b	#$01,d1	;E209
 	add.b	d1,d0	;D001
-	cmp.b	#$64,d0	;0C000064
+	cmpi.b	#$64,d0	;0C000064
 	bcs.s	adrCd00091E	;6502
 	moveq	#$63,d0	;7063
 adrCd00091E:
@@ -538,7 +539,7 @@ CharacterFillLoop:
 adrCd0009EE:
 	add.w	#$0020,a4	;D8FC0020
 	dbra	d6,CharacterFillLoop	;51CEFFAE
-adrCd0009F6:
+MonsterTransfer:
 	bsr	adrCd000960	;6100FF68
 	lea	adrEA017390.l,a4	;49F900017390
 	moveq	#-$01,d6	;7CFF
@@ -549,9 +550,9 @@ adrLp000A08:
 	dbra	d0,adrLp000A08	;51C8FFFC
 	lea	UnpackedMonsters.l,a4	;49F900016B7E
 	move.w	#$01FF,d0	;303C01FF
-ClearMonstersLoop:
+.ClearMonstersLoop:
 	move.l	d6,(a4)+	;28C6
-	dbra	d0,ClearMonstersLoop	;51C8FFFC
+	dbra	d0,.ClearMonstersLoop	;51C8FFFC
 	move.w	CurrentTower.l,d0	;30390000EE2E
 	move.w	d0,d1	;3200
 	add.w	d0,d0	;D040
@@ -559,13 +560,13 @@ ClearMonstersLoop:
 	move.w	$00(a4,d0.w),d6	;3C340000
 	lea	UnpackedMonsters.l,a4	;49F900016B7E
 	move.w	d6,-$0002(a4)	;3946FFFE
-	bmi	adrJB007016	;6B0065D8
+	bmi	Trigger_00_t00_Null	;6B0065D8
 	add.w	d1,d0	;D041
 	asl.w	#$08,d0	;E140
 	lea	TheMonsterBlock.l,a3	;47F900017584
 	add.w	d0,a3	;D6C0
 	moveq	#$00,d4	;7800
-FillMonstersLoop:
+.FillMonstersLoop:
 	clr.b	$0005(a4)	;422C0005
 	clr.b	$0002(a4)	;422C0002
 	move.b	(a3)+,d0	;101B
@@ -583,62 +584,62 @@ FillMonstersLoop:
 	move.b	(a3)+,d7	;1E1B
 	move.b	d7,$0001(a4)	;19470001
 	btst	#$17,d7	;08070017
-	bne.s	adrCd000A8E	;660A
+	bne.s	.MarkedOnMap	;660A
 	bsr	CoordToMap	;61007A16
 	bset	#$07,$01(a6,d0.w)	;08F600070001
-adrCd000A8E:
+.MarkedOnMap:
 	moveq	#$00,d0	;7000
-	move.b	(a3)+,d0	;101B
-	move.b	d0,$0006(a4)	;19400006
-	move.b	d0,$0007(a4)	;19400007
-	moveq	#$0E,d1	;720E
-	sub.b	d0,d1	;9200
-	bcs.s	adrCd000AA6	;6506
-	cmp.b	#$08,d1	;0C010008
-	bcc.s	adrCd000AA8	;6402
-adrCd000AA6:
+	move.b	(a3)+,d0			;101B
+	move.b	d0,$0006(a4)			;19400006
+	move.b	d0,$0007(a4)			;19400007
+	moveq	#$0E,d1				;720E
+	sub.b	d0,d1				;9200
+	bcs.s	.SkipSomething1_TEMP			;6506
+	cmpi.b	#$08,d1				;0C010008
+	bcc.s	.SkipSomething2_TEMP		;6402
+.SkipSomething1_TEMP:
 	moveq	#$08,d1	;7208
-adrCd000AA8:
+.SkipSomething2_TEMP:
 	asl.b	#$04,d1	;E901
 	move.b	d1,$0003(a4)	;19410003
 	move.w	#$0190,d1	;323C0190
-	cmp.b	#$19,d0	;0C000019
-	bcc.s	adrCd000AC6	;640E
+	cmpi.b	#$19,d0	;0C000019
+	bcc.s	.SkipSomething3_TEMP	;640E
 	move.w	#$00FA,d1	;323C00FA
-	cmp.b	#$10,d0	;0C000010
-	bcc.s	adrCd000AC6	;6404
+	cmpi.b	#$10,d0	;0C000010
+	bcc.s	.SkipSomething3_TEMP	;6404
 	move.b	adrB_000B22(pc,d0.w),d1	;123B005E
-adrCd000AC6:
+.SkipSomething3_TEMP:
 	mulu	d1,d0	;C0C1
 	add.w	#$0019,d0	;06400019
 	move.w	d0,$0008(a4)	;39400008
 	move.b	(a3)+,$000B(a4)	;195B000B
-	bpl.s	SpecialObjects	;6A08
+	bpl.s	.SpecialObjects	;6A08
 	move.b	#$10,$0003(a4)	;197C00100003
-	bra.s	adrCd000AEC	;600E
+	bra.s	.SkipSomething4_TEMP	;600E
 
-SpecialObjects:
+.SpecialObjects:
 	cmp.b	#$40,$000B(a4)	;0C2C0040000B	;
-	bne.s	adrCd000AEC	;6606
+	bne.s	.SkipSomething4_TEMP	;6606
 	move.b	#$37,$000C(a4)	;197C0037000C
-adrCd000AEC:
+.SkipSomething4_TEMP:
 	moveq	#$00,d0	;7000
 	move.b	(a3)+,d0	;101B
-	cmp.b	#$FF,d0	;0C0000FF
-	beq.s	adrCd000B16	;6720
+	cmpi.b	#$FF,d0	;0C0000FF
+	beq.s	.SkipSomething5_TEMP	;6720
 	lea	adrEA017390.l,a0	;41F900017390
 	move.b	d4,$00(a0,d0.w)	;11840000
 	move.b	d0,d1	;1200
 	and.b	#$03,d1	;02010003
 	tst.b	$0000(a4)	;4A2C0000
-	bmi.s	adrCd000B16	;6B0A
+	bmi.s	.SkipSomething5_TEMP	;6B0A
 	addq.w	#$01,-$0002(a0)	;5268FFFE
 	lsr.b	#$02,d0	;E408
 	move.b	d0,$000D(a4)	;1940000D
-adrCd000B16:
+.SkipSomething5_TEMP:
 	add.w	#$0010,a4	;D8FC0010
 	addq.w	#$01,d4	;5244
-	dbra	d6,FillMonstersLoop	;51CEFF30
+	dbra	d6,.FillMonstersLoop	;51CEFF30
 	rts	;4E75
 
 adrB_000B22:
@@ -679,7 +680,7 @@ adrCd000B66:
 adrCd000B68:
 	move.w	CurrentTower.l,d0	;30390000EE2E
 	add.w	d0,d0	;D040
-	lea	LevelDataOffsets.l,a0	;41F900000B96
+	lea	LevelData_LookupTable.l,a0	;41F900000B96
 	lea	MapData1.l,a6	;4DF90000EF40
 	add.w	$00(a0,d0.w),a6	;DCF00000
 	lea	adrEA00EE40.l,a0	;41F90000EE40
@@ -690,7 +691,7 @@ adrLp000B88:
 	move.l	a6,adrL_00EE78.l	;23CE0000EE78
 	rts	;4E75
 
-LevelDataOffsets:
+LevelData_LookupTable:
 	dc.w	MapData1-MapData1	;0000
 	dc.w	MapData2-MapData1	;1402
 	dc.w	MaoData3-MapData1	;2804
@@ -769,19 +770,19 @@ adrCd000CB4:
 adrCd000CC2:
 	move.l	adrEA00EE36.l,-(sp)	;2F390000EE36
 	moveq	#$14,d0	;7014
-adrLp000CCA:
-	dbra	d1,adrLp000CCA	;51C9FFFE
-	dbra	d0,adrLp000CCA	;51C8FFFA
+DBFWait1b:
+	dbra	d1,DBFWait1b	;51C9FFFE
+	dbra	d0,DBFWait1b	;51C8FFFA
 	move.l	#$FFFFFFFF,adrL_00EED6.l	;23FCFFFFFFFF0000EED6
 	move.l	#$FFFFFFFF,adrL_00EF38.l	;23FCFFFFFFFF0000EF38
 	clr.w	adrB_008C1E.l	;427900008C1E
 	bsr	adrCd0042BA	;610035CC
 	clr.w	adrB_008C1E.l	;427900008C1E
 	moveq	#$14,d0	;7014
-adrLp000CF8:
-	dbra	d1,adrLp000CF8	;51C9FFFE
-	dbra	d0,adrLp000CF8	;51C8FFFA
-	bra	adrCd0043A4	;600036A2
+DBFWait1c:
+	dbra	d1,DBFWait1c	;51C9FFFE
+	dbra	d0,DBFWait1c	;51C8FFFA
+	bra	LoadGame	;600036A2
 
 adrCd000D04:
 	lea	Player1_Data.l,a5	;4BF90000EE7C
@@ -948,7 +949,7 @@ adrCd000E9E:
 	tst.b	$0007(a4)	;4A2C0007
 	bne.s	adrCd000ECE	;6626
 	movem.l	d7/a4/a5,-(sp)	;48E7010C
-	bsr	adrCd0055AC	;610046FE
+	bsr	RandomGen_BytewithOffset	;610046FE
 	and.w	#$0007,d0	;02400007
 	add.b	(a4),d0	;D014
 	cmp.b	$0005(a4),d0	;B02C0005
@@ -1018,7 +1019,7 @@ adrLp000F4C:
 	bne.s	adrCd000F80	;6618
 	btst	#$06,$18(a5,d7.w)	;083500067018
 	bne.s	adrCd000F80	;6610
-	cmp.b	#$0B,d1	;0C01000B
+	cmpi.b	#$0B,d1	;0C01000B
 	beq.s	adrCd000F80	;670A
 	subq.b	#$01,$0010(a4)	;532C0010
 	bcc.s	adrCd000F80	;6404
@@ -1099,7 +1100,7 @@ adrCd00104A:
 	bsr	adrCd0080CA	;6100707E
 	move.w	$0014(a5),d1	;322D0014
 	subq.w	#$01,d1	;5341
-	beq	adrJA006616	;670055C0
+	beq	Click_ShowStats	;670055C0
 	subq.b	#$01,d1	;5301
 	bne.s	adrCd00108E	;6632
 	jmp	adrCd00C812.l	;4EF90000C812
@@ -1246,7 +1247,7 @@ adrCd0011BA:
 	bcc.s	adrCd001208	;6438
 	tst.b	d0	;4A00
 	bmi.s	adrCd0011F0	;6B1C
-	cmp.b	#$10,d0	;0C000010
+	cmpi.b	#$10,d0	;0C000010
 	bcs.s	adrCd0011E0	;6506
 	tst.b	$000B(a1)	;4A29000B
 	bmi.s	adrCd001208	;6B28
@@ -1295,11 +1296,11 @@ adrCd001238:
 	bsr	adrCd001174	;6100FF2A
 	lea	Player1_Data.l,a5	;4BF90000EE7C
 	bsr	adrCd000FDC	;6100FD88
-	lea	adrEA058828.l,a6	;4DF900058828
+	lea	ReserveSpace_1.l,a6	;4DF900058828
 	bsr	adrCd005694	;61004436
 	lea	Player2_Data.l,a5	;4BF90000EEDE
 	bsr	adrCd000FDC	;6100FD74
-	lea	adrEA058C10.l,a6	;4DF900058C10
+	lea	ReserveSpace_2.l,a6	;4DF900058C10
 	bsr	adrCd005694	;61004422
 	bsr	adrCd001090	;6100FE1A
 	bchg	#$01,adrB_00EE3F.l	;087900010000EE3F
@@ -1358,7 +1359,7 @@ adrCd001320:
 	add.w	#$0020,a4	;D8FC0020
 	move.w	(sp)+,d7	;3E1F
 	addq.w	#$01,d7	;5247
-	cmp.w	#$0010,d7	;0C470010
+	cmpi.w	#$0010,d7	;0C470010
 	bcs.s	adrCd001308	;65DA
 	lea	UnpackedMonsters.l,a4	;49F900016B7E
 	move.w	-$0002(a4),d7	;3E2CFFFE
@@ -1507,23 +1508,23 @@ adrCd001498:
 	bsr	CoordToMap	;61006FE8
 	move.b	$01(a6,d0.w),d1	;12360001
 	bpl.s	adrCd001496	;6ADA
-	cmp.w	#$0000,d4	;0C440000
+	cmpi.w	#$0000,d4	;0C440000
 	beq.s	adrCd00150C	;674A
 	bsr	adrCd001842	;6100037E
 	bpl	adrCd001BCE	;6A000706
 	tst.w	adrW_0013C4.w	;4A7813C4	;Short Absolute converted to symbol!
 	beq	adrJA00175A	;6700028A
-	lea	adrEA058828.l,a6	;4DF900058828
+	lea	ReserveSpace_1.l,a6	;4DF900058828
 	btst	#$00,(a5)	;08150000
 	beq.s	adrCd0014E4	;6706
-	lea	adrEA058C10.l,a6	;4DF900058C10
+	lea	ReserveSpace_2.l,a6	;4DF900058C10
 adrCd0014E4:
 	bra	adrCd0016CE	;600001E8
 
 adrCd0014E8:
 	move.l	a4,a1	;224C
 	move.l	a1,d0	;2009
-	cmp.w	#$0000,d4	;0C440000
+	cmpi.w	#$0000,d4	;0C440000
 	bne.s	adrCd001500	;660E
 	sub.l	#UnpackedMonsters,d0	;048000016B7E
 	lsr.w	#$04,d0	;E848
@@ -1537,20 +1538,20 @@ adrCd001508:
 	bra	adrCd0020F6	;60000BEC
 
 adrCd00150C:
-	move.b	$000B(a4),d2	;142C000B
-	bmi	adrCd001708	;6B0001F6
-	cmp.b	#$40,d2	;0C020040
-	beq.s	adrCd001526	;670C
-	cmp.b	#$67,d2	;0C020067
-	bcc.s	adrCd001526	;6406
-	tst.b	$000D(a4)	;4A2C000D
-	bmi.s	adrCd00153A	;6B14
+	move.b	$000B(a4),d2					;142C000B
+	bmi	adrCd001708					;6B0001F6
+	cmpi.b	#$40,d2						;0C020040
+	beq.s	adrCd001526					;670C
+	cmpi.b	#$67,d2						;0C020067
+	bcc.s	adrCd001526					;6406
+	tst.b	$000D(a4)					;4A2C000D
+	bmi.s	adrCd00153A					;6B14
 adrCd001526:
-	and.b	#$03,$0002(a4)	;022C00030002
-	move.b	$0002(a4),d6	;1C2C0002
-	asl.b	#$04,d6	;E906
-	or.b	$0002(a4),d6	;8C2C0002
-	move.b	d6,$0002(a4)	;19460002
+	and.b	#$03,$0002(a4)					;022C00030002
+	move.b	$0002(a4),d6					;1C2C0002
+	asl.b	#$04,d6						;E906
+	or.b	$0002(a4),d6					;8C2C0002
+	move.b	d6,$0002(a4)					;19460002
 adrCd00153A:
 	bsr	adrCd001842	;61000306
 	bpl	adrCd001BCE	;6A00068E
@@ -1592,7 +1593,7 @@ adrJT0015AE:
 	dc.w	adrJA001664-adrJB00166A	;FFFA
 
 adrJA0015B8:
-	bsr	adrCd0055AC	;61003FF2
+	bsr	RandomGen_BytewithOffset	;61003FF2
 	and.w	#$000F,d0	;0240000F
 	bne	adrJA00175A	;66000198
 	bra.s	adrCd0015E0	;601A
@@ -1620,17 +1621,17 @@ adrJA0015D6:
 	subq.b	#$02,d0	;5500
 	bcc	adrJB00166A	;6400008C
 adrCd0015E0:
-	bsr	adrCd0055AC	;61003FCA
+	bsr	RandomGen_BytewithOffset	;61003FCA
 	and.w	#$000F,d0	;0240000F
 	move.b	$0007(a4),d3	;162C0007
 	and.w	#$007F,d3	;0243007F
-	cmp.b	#$08,d3	;0C030008
+	cmpi.b	#$08,d3	;0C030008
 	bcc.s	adrCd001608	;6412
 	lsr.w	#$01,d0	;E248
-	cmp.b	#$05,d3	;0C030005
+	cmpi.b	#$05,d3	;0C030005
 	bcc.s	adrCd001608	;640A
 	lsr.w	#$01,d0	;E248
-	cmp.b	#$04,d3	;0C030004
+	cmpi.b	#$04,d3	;0C030004
 	bcc.s	adrCd001608	;6402
 	lsr.w	#$01,d0	;E248
 adrCd001608:
@@ -1642,9 +1643,9 @@ adrCd001608:
 	or.b	d0,d3	;8600
 	add.w	d3,d3	;D643
 	add.b	d6,d3	;D606
-	cmp.b	#$81,d4	;0C040081
+	cmpi.b	#$81,d4	;0C040081
 	beq.s	adrCd00162C	;6708
-	cmp.b	#$8E,d4	;0C04008E
+	cmpi.b	#$8E,d4	;0C04008E
 	beq.s	adrCd00162C	;6702
 	lsr.b	#$01,d3	;E20B
 adrCd00162C:
@@ -1700,58 +1701,58 @@ adrCd0016A0:
 	and.w	#$0001,d0	;02400001
 	add.w	d0,d2	;D440
 adrCd0016BE:
-	lea	adrEA058828.l,a6	;4DF900058828
+	lea	ReserveSpace_1.l,a6	;4DF900058828
 	cmp.w	d2,d3	;B642
 	bcs.s	adrCd0016CE	;6506
-	lea	adrEA058C10.l,a6	;4DF900058C10
+	lea	ReserveSpace_2.l,a6	;4DF900058C10
 adrCd0016CE:
 	move.w	d7,d0	;3007
-	mulu	adrW_00EE70.l,d0	;C0F90000EE70
-	swap	d7	;4847
-	add.w	d7,d0	;D047
-	swap	d7	;4847
-	move.b	$00(a6,d0.w),d0	;10360000
-	beq.s	adrJA00175A	;6778
-	cmp.b	#$FF,d0	;0C0000FF
-	beq.s	adrJA00175A	;6772
-	and.w	#$0003,d0	;02400003
-	move.b	$02(a4,d4.w),d6	;1C344002
-	and.w	#$0003,d6	;02460003
-	cmp.w	d0,d6	;BC40
-	beq.s	adrJA00175A	;6762
-	eor.w	d0,d6	;B146
-	subq.w	#$02,d6	;5546
-	beq	adrCd001BB8	;670004BA
-	move.b	$02(a4,d4.w),d6	;1C344002
-	bra	adrCd001BC6	;600004C0
+	mulu	adrW_00EE70.l,d0			;C0F90000EE70
+	swap	d7					;4847
+	add.w	d7,d0					;D047
+	swap	d7					;4847
+	move.b	$00(a6,d0.w),d0				;10360000
+	beq.s	adrJA00175A				;6778
+	cmpi.b	#$FF,d0					;0C0000FF
+	beq.s	adrJA00175A				;6772
+	and.w	#$0003,d0				;02400003
+	move.b	$02(a4,d4.w),d6				;1C344002
+	and.w	#$0003,d6				;02460003
+	cmp.w	d0,d6					;BC40
+	beq.s	adrJA00175A				;6762
+	eor.w	d0,d6					;B146
+	subq.w	#$02,d6					;5546
+	beq	adrCd001BB8				;670004BA
+	move.b	$02(a4,d4.w),d6				;1C344002
+	bra	adrCd001BC6				;600004C0
 
 adrCd001708:
-	sub.b	#$84,d2	;04020084
-	bcs.s	adrJA00175A	;654C
-	beq.s	adrCd001714	;6704
-	subq.b	#$03,d2	;5702
-	bne.s	adrJA00175A	;6646
+	sub.b	#$84,d2					;04020084
+	bcs.s	adrJA00175A				;654C
+	beq.s	adrCd001714				;6704
+	subq.b	#$03,d2					;5702
+	bne.s	adrJA00175A				;6646
 adrCd001714:
-	not.w	d1	;4641
-	and.w	#$0007,d1	;02410007
-	beq.s	adrCd001728	;670C
-	cmp.w	#$0007,d1	;0C410007
-	bne.s	adrJA00175A	;6638
-	tst.b	$00(a6,d0.w)	;4A360000
-	bne.s	adrJA00175A	;6632
+	not.w	d1					;4641
+	and.w	#$0007,d1				;02410007
+	beq.s	adrCd001728				;670C
+	cmpi.w	#$0007,d1				;0C410007
+	bne.s	adrJA00175A				;6638
+	tst.b	$00(a6,d0.w)				;4A360000
+	bne.s	adrJA00175A				;6632
 adrCd001728:
-	or.b	#$07,$01(a6,d0.w)	;003600070001
-	moveq	#$00,d1	;7200
-	move.b	$0006(a4),d1	;122C0006
-	cmp.b	#$84,$000B(a4)	;0C2C0084000B
-	bne.s	adrCd001746	;660A
-	add.b	d1,d1	;D201
-	cmp.b	#$40,d1	;0C010040
-	bcs.s	adrCd001746	;6502
-	moveq	#$3F,d1	;723F
+	or.b	#$07,$01(a6,d0.w)			;003600070001
+	moveq	#$00,d1					;7200
+	move.b	$0006(a4),d1				;122C0006
+	cmp.b	#$84,$000B(a4)				;0C2C0084000B
+	bne.s	adrCd001746				;660A
+	add.b	d1,d1					;D201
+	cmpi.b	#$40,d1					;0C010040
+	bcs.s	adrCd001746				;6502
+	moveq	#$3F,d1					;723F
 adrCd001746:
-	asl.b	#$02,d1	;E501
-	addq.b	#$01,d1	;5201
+	asl.b	#$02,d1					;E501
+	addq.b	#$01,d1					;5201
 	move.b	d1,$00(a6,d0.w)	;1D810000
 	move.w	#$0100,d1	;323C0100
 	move.b	$000C(a4),d1	;122C000C
@@ -1761,7 +1762,7 @@ adrJA00175A:
 	and.w	#$0003,d6	;02460003
 	bsr	adrCd007A44	;610062E0
 	bcs	adrCd001AF0	;65000388
-	cmp.w	#$0000,d4	;0C440000
+	cmpi.w	#$0000,d4	;0C440000
 	bne.s	adrCd001778	;6608
 	cmp.b	#$85,$000B(a4)	;0C2C0085000B
 	beq.s	adrCd0017EE	;6776
@@ -1773,7 +1774,7 @@ adrCd001778:
 	bsr	adrCd001842	;610000BC
 	and.w	#$0030,d0	;02400030
 	bsr	adrCd001BCE	;61000440
-	cmp.b	#$00,d4	;0C040000
+	cmpi.b	#$00,d4	;0C040000
 	bne.s	adrCd00179C	;6606
 	tst.b	$000B(a4)	;4A2C000B
 	bmi.s	adrCd0017EC	;6B50
@@ -1865,49 +1866,49 @@ adrCd00185C:
 	bcc	adrCd001BB8	;6400034E
 	tst.b	d0	;4A00
 	bmi	adrCd001AB6	;6B000246
-	cmp.b	#$10,d0	;0C000010
+	cmpi.b	#$10,d0	;0C000010
 	bcs	adrCd001982	;6500010A
 	move.b	$000B(a4),d2	;142C000B
 	bmi	adrCd001982	;6B000102
-	cmp.b	#$64,d2	;0C020064
+	cmpi.b	#$64,d2	;0C020064
 	bne.s	adrCd001894	;660C
 	move.b	$000C(a4),adrB_00EE3E.l	;13EC000C0000EE3E
 	bra	adrCd001982	;600000F0
 
 adrCd001894:
-	cmp.b	#$64,$000B(a1)	;0C290064000B
-	beq	adrCd001982	;670000E6
-	cmp.b	#$40,d2	;0C020040
-	beq	adrCd001BB8	;67000314
-	cmp.b	#$67,d2	;0C020067
-	bcc	adrCd001BB8	;6400030C
-	move.b	$000B(a1),d2	;1429000B
-	bpl.s	adrCd0018F6	;6A42
-	cmp.b	#$85,d2	;0C020085
-	bne	adrCd001BB8	;660002FE
-	move.l	a4,-(sp)	;2F0C
-	moveq	#$00,d7	;7E00
-	move.b	$0000(a4),d7	;1E2C0000
-	swap	d7	;4847
-	move.b	$0001(a4),d7	;1E2C0001
-	bsr	CoordToMap	;61006BD0
-	bclr	#$07,$01(a6,d0.w)	;08B600070001
-	moveq	#$00,d7	;7E00
-	move.b	$0000(a1),d7	;1E290000
-	move.b	d7,$0000(a4)	;19470000
-	swap	d7	;4847
-	move.b	$0001(a1),d7	;1E290001
-	move.b	d7,$0001(a4)	;19470001
-	bsr	CoordToMap	;61006BB2
-	move.l	a1,a4	;2849
-	bsr	adrCd001D58	;61000468
-	move.l	(sp)+,a4	;285F
-	rts	;4E75
+	cmp.b	#$64,$000B(a1)				;0C290064000B
+	beq	adrCd001982				;670000E6
+	cmpi.b	#$40,d2					;0C020040
+	beq	adrCd001BB8				;67000314
+	cmpi.b	#$67,d2					;0C020067
+	bcc	adrCd001BB8				;6400030C
+	move.b	$000B(a1),d2				;1429000B
+	bpl.s	adrCd0018F6				;6A42
+	cmpi.b	#$85,d2					;0C020085
+	bne	adrCd001BB8				;660002FE
+	move.l	a4,-(sp)				;2F0C
+	moveq	#$00,d7					;7E00
+	move.b	$0000(a4),d7				;1E2C0000
+	swap	d7					;4847
+	move.b	$0001(a4),d7				;1E2C0001
+	bsr	CoordToMap				;61006BD0
+	bclr	#$07,$01(a6,d0.w)			;08B600070001
+	moveq	#$00,d7				;7E00
+	move.b	$0000(a1),d7			;1E290000
+	move.b	d7,$0000(a4)			;19470000
+	swap	d7				;4847
+	move.b	$0001(a1),d7			;1E290001
+	move.b	d7,$0001(a4)			;19470001
+	bsr	CoordToMap		;61006BB2
+	move.l	a1,a4				;2849
+	bsr	adrCd001D58		;61000468
+	move.l	(sp)+,a4		;285F
+	rts				;4E75
 
 adrCd0018F6:
-	cmp.b	#$40,d2	;0C020040
+	cmpi.b	#$40,d2	;0C020040
 	beq	adrCd001BB8	;670002BC
-	cmp.b	#$67,d2	;0C020067
+	cmpi.b	#$67,d2	;0C020067
 	bcc	adrCd001BB8	;640002B4
 	tst.b	$000D(a4)	;4A2C000D
 	bpl	adrCd001BB8	;6A0002AC
@@ -1953,7 +1954,7 @@ adrCd001982:
 adrCd001984:
 	move.b	$000B(a4),d0	;102C000B
 	bpl	adrCd001A4A	;6A0000C0
-	cmp.b	#$10,d1	;0C010010
+	cmpi.b	#$10,d1	;0C010010
 	bcs.s	adrCd00199C	;650A
 	tst.b	$000C(a4)	;4A2C000C
 	bpl	adrCd001A4A	;6A0000B2
@@ -1977,15 +1978,15 @@ adrCd00199C:
 	bra.s	adrCd0019C6	;6004
 
 adrCd0019C2:
-	movem.l	(sp)+,d1/a5	;4CDF2002
+	movem.l	(sp)+,d1/a5			;4CDF2002
 adrCd0019C6:
-	move.w	d1,d0	;3001
-	move.l	a4,a2	;244C
-	bsr	adrCd006660	;61004C94
-	exg	a2,a4	;C54C
-	move.b	$0011(a2),d0	;102A0011
-	and.w	#$0007,d0	;02400007
-	subq.w	#$01,d0	;5340
+	move.w	d1,d0				;3001
+	move.l	a4,a2				;244C
+	bsr	adrCd006660			;61004C94
+	exg	a4,a2				;C54C
+	move.b	$0011(a2),d0			;102A0011
+	and.w	#$0007,d0			;02400007
+	subq.w	#$01,d0				;5340
 	bne.s	adrCd001A4A	;666E
 	move.b	#$01,$0011(a2)	;157C00010011
 	moveq	#$00,d7	;7E00
@@ -2063,7 +2064,7 @@ adrCd001A84:
 	rts	;4E75
 
 adrCd001AB6:
-	bsr	adrCd0055AC	;61003AF4
+	bsr	RandomGen_BytewithOffset	;61003AF4
 	move.w	d0,d2	;3400
 	and.w	#$0001,d2	;02420001
 	moveq	#$00,d0	;7000
@@ -2086,7 +2087,7 @@ adrCd001AF0:
 	beq	adrCd001BD4	;670000D8
 	cmp.b	adrB_00EF13.l,d1	;B2390000EF13
 	beq	adrCd001BD4	;670000CE
-	cmp.w	#$0000,d4	;0C440000
+	cmpi.w	#$0000,d4	;0C440000
 	beq.s	adrCd001B74	;6766
 	tst.w	adrW_0013C4.w	;4A7813C4	;Short Absolute converted to symbol!
 	beq	adrCd001BB8	;670000A4
@@ -2142,7 +2143,7 @@ adrCd001BA0:
 	subq.w	#$01,d2	;5342
 	bne	adrCd00185C	;6600FCA6
 adrCd001BB8:
-	bsr	adrCd0055AC	;610039F2
+	bsr	RandomGen_BytewithOffset	;610039F2
 	or.w	#$0001,d0	;00400001
 	move.b	$02(a4,d4.w),d6	;1C344002
 	add.w	d6,d0	;D046
@@ -2201,7 +2202,7 @@ adrCd001C48:
 adrCd001C4E:
 	move.b	$0002(a4),d6	;1C2C0002
 	and.w	#$0003,d6	;02460003
-	cmp.w	#$0002,d6	;0C460002
+	cmpi.w	#$0002,d6	;0C460002
 	bcs.s	adrCd001C60	;6504
 	eor.w	#$0001,d6	;0A460001
 adrCd001C60:
@@ -2211,7 +2212,7 @@ adrCd001C60:
 	movem.w	d0/d1/d6,-(sp)	;48A7C200
 	bsr	adrCd0027E0	;61000B70
 	movem.w	(sp)+,d0/d1/d6	;4C9F0043
-	cmp.w	#$0005,d1	;0C410005
+	cmpi.w	#$0005,d1	;0C410005
 	beq.s	adrCd001CD2	;6756
 	moveq	#$01,d5	;7A01
 	swap	d5	;4845
@@ -2313,10 +2314,10 @@ adrCd001D7A:
 	move.b	$000C(a4),adrB_00EE3E.l	;13EC000C0000EE3E
 	bmi.s	adrCd001DAA	;6B1E
 	movem.l	d0/a0,-(sp)	;48E78080
-	cmp.b	#$83,d7	;0C070083
+	cmpi.b	#$83,d7	;0C070083
 	beq.s	adrCd001D9E	;6708
 	moveq	#$04,d0	;7004
-	cmp.b	#$8B,d7	;0C07008B
+	cmpi.b	#$8B,d7	;0C07008B
 	bcs.s	adrCd001DA0	;6502
 adrCd001D9E:
 	moveq	#$05,d0	;7005
@@ -2367,9 +2368,9 @@ adrCd001E08:
 	move.b	d7,d5	;1A07
 	swap	d7	;4847
 	lsr.b	#$02,d5	;E40D
-	cmp.b	#$03,d5	;0C050003
+	cmpi.b	#$03,d5	;0C050003
 	beq.s	adrCd001E28	;670E
-	cmp.b	#$0B,d5	;0C05000B
+	cmpi.b	#$0B,d5	;0C05000B
 	bcc.s	adrCd001E28	;6408
 	moveq	#$04,d0	;7004
 	jsr	PlaySound.l	;4EB9000088BE
@@ -2394,7 +2395,7 @@ adrLp001E50:
 	dbra	d7,adrLp001E50	;51CFFFF8
 	move.w	(sp)+,d0	;301F
 	move.w	d5,-(sp)	;3F05
-	cmp.w	#$0100,d5	;0C450100
+	cmpi.w	#$0100,d5	;0C450100
 	bcs.s	adrCd001E68	;6504
 	move.w	#$00FD,d5	;3A3C00FD
 adrCd001E68:
@@ -2410,26 +2411,26 @@ adrLp001E70:
 	rts	;4E75
 
 adrCd001E84:
-	swap	d7	;4847
-	lsr.b	#$02,d7	;E40F
-	cmp.b	#$03,d7	;0C070003
-	beq	adrCd001FD2	;67000144
-	cmp.b	#$0B,d7	;0C07000B
-	beq	adrCd002086	;670001F0
-	cmp.b	#$0C,d7	;0C07000C
-	beq	adrCd001F78	;670000DA
-	cmp.b	#$0F,d7	;0C07000F
-	beq	adrCd001F4A	;670000A4
-	cmp.b	#$0E,d7	;0C07000E
-	beq.s	adrCd001EB0	;6702
-	rts	;4E75
+	swap	d7						;4847
+	lsr.b	#$02,d7						;E40F
+	cmpi.b	#$03,d7						;0C070003
+	beq	adrCd001FD2					;67000144
+	cmpi.b	#$0B,d7						;0C07000B
+	beq	adrCd002086					;670001F0
+	cmpi.b	#$0C,d7						;0C07000C
+	beq	adrCd001F78					;670000DA
+	cmpi.b	#$0F,d7						;0C07000F
+	beq	adrCd001F4A					;670000A4
+	cmpi.b	#$0E,d7						;0C07000E
+	beq.s	adrCd001EB0					;6702
+	rts							;4E75
 
 adrCd001EB0:
 	bsr	adrCd0098A4	;610079F2
 	bcc.s	adrCd001EDA	;6424
 	tst.b	d0	;4A00
 	bmi.s	adrCd001F0C	;6B52
-	cmp.b	#$10,d0	;0C000010
+	cmpi.b	#$10,d0	;0C000010
 	bcs.s	adrCd001EDC	;651C
 	move.b	$0007(a1),d5	;1A290007
 	and.b	#$7F,d5	;0205007F
@@ -2454,7 +2455,7 @@ adrCd001EF4:
 	move.b	d1,$0009(a1)	;13410009
 	move.b	$0015(a1),d1	;12290015
 	add.b	d5,d1	;D205
-	cmp.b	#$64,d1	;0C010064
+	cmpi.b	#$64,d1	;0C010064
 	bcs.s	adrCd001F06	;6502
 	moveq	#$64,d1	;7264
 adrCd001F06:
@@ -2475,9 +2476,9 @@ adrLp001F16:
 	move.w	d1,d0	;3001
 	bsr	adrCd006660	;61004734
 	move.w	d1,d0	;3001
-	exg	a4,a1	;C949
+	exg	a1,a4	;C949
 	bsr.s	adrCd001EDC	;61A8
-	exg	a4,a1	;C949
+	exg	a1,a4	;C949
 adrCd001F36:
 	dbra	d7,adrLp001F16	;51CFFFDE
 	move.l	a5,-(sp)	;2F0D
@@ -2494,7 +2495,7 @@ adrCd001F50:
 	moveq	#$19,d4	;7819
 	tst.b	d0	;4A00
 	bmi.s	adrCd001F76	;6B20
-	cmp.b	#$10,d0	;0C000010
+	cmpi.b	#$10,d0	;0C000010
 	bcs.s	adrCd001F5E	;6502
 	moveq	#$03,d4	;7803
 adrCd001F5E:
@@ -2512,7 +2513,7 @@ adrCd001F78:
 	moveq	#$16,d4	;7816
 	tst.b	d0	;4A00
 	bmi.s	adrCd001FA2	;6B1E
-	cmp.b	#$10,d0	;0C000010
+	cmpi.b	#$10,d0	;0C000010
 	bcs.s	adrCd001F8C	;6502
 	moveq	#$00,d4	;7800
 adrCd001F8C:
@@ -2538,9 +2539,9 @@ adrLp001FAC:
 	move.w	d1,d0	;3001
 	bsr	adrCd006660	;6100469E
 	move.w	d1,d0	;3001
-	exg	a4,a1	;C949
+	exg	a1,a4	;C949
 	bsr.s	adrCd001F8C	;61C2
-	exg	a4,a1	;C949
+	exg	a1,a4	;C949
 adrCd001FCC:
 	dbra	d7,adrLp001FAC	;51CFFFDE
 	rts	;4E75
@@ -2556,7 +2557,7 @@ adrCd001FD2:
 	move.w	(sp),d0	;3017
 	tst.b	d0	;4A00
 	bmi.s	adrCd002010	;6B20
-	cmp.b	#$10,d0	;0C000010
+	cmpi.b	#$10,d0	;0C000010
 	bcs.s	adrCd002014	;651E
 	addq.w	#$02,sp	;544F
 	move.b	$0006(a1),d7	;1E290006
@@ -2581,7 +2582,7 @@ adrCd00201C:
 adrCd002024:
 	tst.b	d0	;4A00
 	bmi.s	adrCd00204A	;6B22
-	cmp.b	#$10,d0	;0C000010
+	cmpi.b	#$10,d0	;0C000010
 	bcs.s	adrCd002040	;6512
 	clr.w	d5	;4245
 	cmp.b	#$15,$0006(a1)	;0C2900150006
@@ -2627,7 +2628,7 @@ adrCd00208C:
 	tst.b	d0	;4A00
 	bmi.s	adrCd0020D6	;6B46
 	moveq	#$18,d4	;7818
-	cmp.b	#$10,d0	;0C000010
+	cmpi.b	#$10,d0	;0C000010
 	bcs.s	adrCd0020A0	;6508
 	tst.b	$000B(a1)	;4A29000B
 	bmi.s	adrCd0020D4	;6B36
@@ -2659,7 +2660,7 @@ adrCd0020D6:
 	bsr	adrCd00665C	;61004584
 	moveq	#$05,d0	;7005
 	jsr	PlaySound.l	;4EB9000088BE
-	exg	a1,a4	;C34C
+	exg	a4,a1	;C34C
 	move.w	$0006(a4),d0	;302C0006
 	move.w	$0020(a4),d7	;3E2C0020
 	bsr.s	adrCd0020B8	;61CA
@@ -2674,7 +2675,7 @@ adrCd0020F6:
 adrCd0020F8:
 	tst.b	d0	;4A00
 	bmi.s	adrCd00212E	;6B32
-	cmp.b	#$10,d0	;0C000010
+	cmpi.b	#$10,d0	;0C000010
 	bcs.s	adrCd002128	;6526
 	move.b	$0006(a1),d2	;14290006
 	and.w	#$007F,d2	;0242007F
@@ -2687,7 +2688,7 @@ adrCd00210A:
 	bpl.s	adrCd00211C	;6A02
 	moveq	#$0A,d2	;740A
 adrCd00211C:
-	bsr	adrCd0055AC	;6100348E
+	bsr	RandomGen_BytewithOffset	;6100348E
 	cmp.w	d0,d2	;B440
 	bcs.s	adrCd002126	;6502
 	lsr.w	#$01,d5	;E24D
@@ -2734,9 +2735,9 @@ adrLp002176:
 	move.b	$18(a1,d7.w),d0	;10317018
 	bsr	adrCd006660	;610044E4
 	move.b	$00(a0,d7.w),d5	;1A307000
-	exg	a4,a1	;C949
+	exg	a1,a4	;C949
 	bsr.s	adrCd002128	;61A2
-	exg	a4,a1	;C949
+	exg	a1,a4	;C949
 	move.b	d5,$00(a0,d7.w)	;11857000
 	dbra	d7,adrLp002176	;51CFFFE8
 	move.l	(sp)+,a4	;285F
@@ -2749,7 +2750,7 @@ adrCd002194:
 	sub.b	#$64,d0	;04000064
 	beq.s	adrCd002192	;67F2
 	move.b	adrB_00EE3E.l,d0	;10390000EE3E
-	cmp.b	#$10,d0	;0C000010
+	cmpi.b	#$10,d0	;0C000010
 	bcc.s	adrCd002192	;64E6
 	bsr	adrCd006660	;610044B2
 	cmp.b	#$EC,$001C(a4)	;0C2C00EC001C
@@ -2779,7 +2780,7 @@ adrCd0021EC:
 	move.b	adrB_00EE3E.l,d0	;10390000EE3E
 	and.w	#$000F,d0	;0240000F
 	bsr	adrCd004066	;61001E6C
-	exg	a2,a5	;C54D
+	exg	a5,a2	;C54D
 	tst.w	d1	;4A41
 	bmi.s	adrCd002192	;6B90
 	move.w	$0008(a1),d1	;32290008
@@ -2795,7 +2796,7 @@ adrLp002214:
 	move.b	$18(a2,d7.w),d0	;10327018
 	bsr	adrCd006660	;6100443C
 	move.b	$001C(a4),d0	;102C001C
-	cmp.b	#$EC,d0	;0C0000EC
+	cmpi.b	#$EC,d0	;0C0000EC
 	bcc.s	adrCd002252	;6422
 	moveq	#$00,d2	;7400
 	move.b	d1,d2	;1401
@@ -2831,7 +2832,7 @@ adrCd002258:
 	lsr.b	#$05,d3	;EA0B
 	and.w	#$0003,d3	;02430003
 	beq.s	adrCd00228A	;6706
-	cmp.w	#$0003,d3	;0C430003
+	cmpi.w	#$0003,d3	;0C430003
 	bcs.s	adrCd002290	;6506
 adrCd00228A:
 	btst	#$00,d2	;08020000
@@ -2845,7 +2846,7 @@ adrCd002298:
 	swap	d5	;4845
 	clr.w	d5	;4245
 	swap	d5	;4845
-	cmp.w	#$0010,d0	;0C400010
+	cmpi.w	#$0010,d0	;0C400010
 	bcs.s	adrCd0022CA	;6526
 	move.w	d0,d1	;3200
 	sub.w	#$0010,d0	;04400010
@@ -2898,7 +2899,7 @@ adrCd00230C:
 adrCd002316:
 	tst.b	d0	;4A00
 	bmi	adrCd00248C	;6B000172
-	cmp.w	#$0010,d0	;0C400010
+	cmpi.w	#$0010,d0	;0C400010
 	bcs	adrCd002414	;650000F2
 adrCd002324:
 	tst.w	adrW_00230A.w	;4A78230A	;Short Absolute converted to symbol!
@@ -2957,30 +2958,30 @@ adrCd002396:
 	move.l	(sp)+,d2	;241F
 	tst.b	d2	;4A02
 	bmi.s	adrCd002394	;6BDE
-	moveq	#$01,d5	;7A01
-	swap	d5	;4845
-	cmp.b	#$64,d2	;0C020064
-	beq.s	adrCd002394	;67D4
-	move.w	#$0056,d5	;3A3C0056
-	cmp.b	#$6B,d2	;0C02006B
-	beq.s	adrCd0023F6	;672C
-	cmp.b	#$40,d2	;0C020040
-	bne.s	adrCd0023D6	;6606
-	swap	d2	;4842
-	move.w	d2,d5	;3A02
-	bra.s	adrCd0023F6	;6020
+	moveq	#$01,d5				;7A01
+	swap	d5				;4845
+	cmpi.b	#$64,d2				;0C020064
+	beq.s	adrCd002394			;67D4
+	move.w	#$0056,d5			;3A3C0056
+	cmpi.b	#$6B,d2				;0C02006B
+	beq.s	adrCd0023F6			;672C
+	cmpi.b	#$40,d2				;0C020040
+	bne.s	adrCd0023D6			;6606
+	swap	d2				;4842
+	move.w	d2,d5				;3A02
+	bra.s	adrCd0023F6			;6020
 
 adrCd0023D6:
-	bsr	adrCd0055AC	;610031D4
-	and.w	#$000F,d0	;0240000F
-	move.b	adrB_002404(pc,d0.w),d5	;1A3B0024
-	beq.s	adrCd002394	;67B0
-	cmp.w	#$0005,d5	;0C450005
-	bcc.s	adrCd0023F6	;640C
-	bsr	adrCd0055AC	;610031C0
-	and.w	#$0007,d0	;02400007
-	swap	d0	;4840
-	add.l	d0,d5	;DA80
+	bsr	RandomGen_BytewithOffset			;610031D4
+	and.w	#$000F,d0			;0240000F
+	move.b	adrB_002404(pc,d0.w),d5		;1A3B0024
+	beq.s	adrCd002394			;67B0
+	cmpi.w	#$0005,d5			;0C450005
+	bcc.s	adrCd0023F6			;640C
+	bsr	RandomGen_BytewithOffset			;610031C0
+	and.w	#$0007,d0			;02400007
+	swap	d0				;4840
+	add.l	d0,d5				;DA80
 adrCd0023F6:
 	move.w	d4,d0	;3004
 	move.l	adrL_00EE78.l,a6	;2C790000EE78
@@ -3132,7 +3133,7 @@ adrCd002564:
 
 adrCd002576:
 	addq.w	#$01,d1	;5241
-	cmp.w	#$0004,d1	;0C410004
+	cmpi.w	#$0004,d1	;0C410004
 	bcs.s	adrCd002538	;65BA
 	and.b	#$01,(a5)	;02150001
 	moveq	#$03,d1	;7203
@@ -3226,7 +3227,7 @@ adrEA002680:
 adrCd002684:
 	move.w	d0,-(sp)		;3F00
 	move.l	#$000D000C,adrW_00D92A.l	;23FC000D000C0000D92A
-	lea	adrEA053D8A.l,a1	;43F900053D8A
+	lea	_Temp_GFX_Pockets_14.l,a1	;43F900053D8A
 	move.b	#$07,$5A(a5,d7.w)	;1BBC0007705A
 	move.w	d7,d0			;3007
 	move.l	#$1000A,d7		;2E3C0001000A
@@ -3257,7 +3258,7 @@ adrCd0026E4:
 adrLp0026E6:
 	move.b	(a6)+,d0		;101E
 	movem.l	d1/d4/d5/a6,-(sp)	;48E74C02
-	jsr	adrCd00D92E.l		;4EB90000D92E
+	jsr	Draw_woundflash_digit.l		;4EB90000D92E
 	movem.l	(sp)+,d1/d4/d5/a6	;4CDF4032
 	addq.w	#$08,d4			;5044
 	dbra	d1,adrLp0026E6		;51C9FFEC
@@ -3276,10 +3277,10 @@ adrW_002700:
 
 adrCd00270E:
 	bsr.s	adrCd002734		;6124
-	lea	adrEA00271C.l,a6	;4DF90000271C
-	jmp	adrCd00D0C6.l		;4EF90000D0C6
+	lea	ThouArtDead.l,a6	;4DF90000271C
+	jmp	Print_fflim_text.l		;4EF90000D0C6
 
-adrEA00271C:
+ThouArtDead:
 	dc.b	$FC		;FC
 	dc.b	$12		;12
 	dc.b	$04		;04
@@ -3331,7 +3332,7 @@ adrLp00278C:
 	lea	$00(a4,d0.w),a3	;47F40000
 	move.b	$000B(a3),d0	;102B000B
 	bmi.s	adrCd0027A0	;6B06
-	cmp.b	#$64,d0	;0C000064
+	cmpi.b	#$64,d0	;0C000064
 	bne.s	adrCd0027C6	;6626
 adrCd0027A0:
 	moveq	#$00,d0	;7000
@@ -3493,7 +3494,7 @@ adrLp00292A:
 	beq.s	adrCd002960	;6724
 	tst.b	$0050(a5)	;4A2D0050
 	beq.s	adrCd00296C	;672A
-	cmp.b	#$20,d0	;0C000020
+	cmpi.b	#$20,d0	;0C000020
 	bne.s	adrCd00296C	;6624
 	move.w	d3,d0	;3003
 	move.w	d7,-(sp)	;3F07
@@ -3585,12 +3586,12 @@ adrCd002A14:
 	movem.w	(sp)+,d2/d3/d7	;4C9F008C
 	tst.b	d0	;4A00
 	bmi.s	adrCd002A28	;6B0C
-	cmp.b	#$10,d0	;0C000010
+	cmpi.b	#$10,d0	;0C000010
 	bcs.s	adrCd002A28	;6506
 	tst.b	$000B(a1)	;4A29000B
 	bmi.s	adrCd002A06	;6BDE
 adrCd002A28:
-	cmp.w	#$0002,d2	;0C420002
+	cmpi.w	#$0002,d2	;0C420002
 	bcc	adrCd002B26	;640000F8
 	movem.l	a4/a5,-(sp)	;48E7000C
 	bsr	adrCd002ABA	;61000084
@@ -3656,7 +3657,7 @@ adrCd002ABA:
 
 adrCd002ADC:
 	move.b	$0002(a1),d2	;14290002
-	cmp.b	#$10,d0	;0C000010
+	cmpi.b	#$10,d0	;0C000010
 	bcc.s	adrCd002AEA	;6404
 	move.b	$0018(a1),d2	;14290018
 adrCd002AEA:
@@ -3732,18 +3733,18 @@ adrCd002B86:
 
 adrCd002B90:
 	move.b	$00(a0,d3.w),d2	;14303000
-	cmp.b	#$05,d2	;0C020005
+	cmpi.b	#$05,d2	;0C020005
 	bcc.s	adrCd002BA4	;640A
-	cmp.b	#$03,d2	;0C020003
+	cmpi.b	#$03,d2	;0C020003
 	bcs.s	adrCd002BA2	;6502
 	move.w	d3,d4	;3803
 adrCd002BA2:
 	rts	;4E75
 
 adrCd002BA4:
-	cmp.b	#$5C,d2	;0C02005C
+	cmpi.b	#$5C,d2	;0C02005C
 	bcs.s	adrCd002BA2	;65F8
-	cmp.b	#$5F,d2	;0C02005F
+	cmpi.b	#$5F,d2	;0C02005F
 	bcc.s	adrCd002BA2	;64F2
 	move.w	d3,d5	;3A03
 	rts	;4E75
@@ -3776,7 +3777,7 @@ adrCd002BD8:
 	move.b	d0,$0003(a4)	;19400003
 	moveq	#$00,d0	;7000
 	move.b	$0000(a4),d0	;102C0000
-	cmp.b	#$09,d0	;0C000009
+	cmpi.b	#$09,d0	;0C000009
 	bne.s	adrCd002C40	;6638
 	movem.l	d0/a4/a5,-(sp)	;48E7800C
 	bsr	adrCd0033BE	;610007B0
@@ -3793,7 +3794,7 @@ adrCd002BD8:
 	btst	#$05,$03(a1,d4.w)	;083100054003
 	beq.s	adrCd002C3C	;6708
 	movem.l	(sp)+,d0/a4/a5	;4CDF3001
-	bra	adrJA0032DE	;600006A4
+	bra	Click_ShowTeamAvatars	;600006A4
 
 adrCd002C3C:
 	movem.l	(sp)+,d0/a4/a5	;4CDF3001
@@ -3815,7 +3816,7 @@ adrCd002C40:
 	move.b	$0001(a4),$0000(a4)	;196C00010000
 	or.b	#$40,$0052(a5)	;002D00400052
 	move.b	$0035(a5),d0	;102D0035
-	cmp.b	#$10,d0	;0C000010
+	cmpi.b	#$10,d0	;0C000010
 	bcs.s	adrCd002C98	;6512
 	bsr	adrCd006660	;610039D8
 	and.b	#$F0,$0019(a4)	;022C00F00019
@@ -3862,7 +3863,7 @@ adrJT002CAE:
 adrJA002CE4:
 	tst.b	$0007(a4)	;4A2C0007
 	bmi	adrJA002DA6	;6B0000BC
-	cmp.b	#$10,d0	;0C000010
+	cmpi.b	#$10,d0	;0C000010
 	bcs.s	adrCd002D04	;6512
 	cmp.b	#$07,$0006(a4)	;0C2C00070006
 	bcs	adrJA002DA6	;650000AC
@@ -3889,7 +3890,7 @@ adrCd002D1E:
 	bcs.s	adrJA002DA6	;6578
 	lea	KeepTalkingMsg.l,a6	;4DF900003147
 adrCd002D34:
-	jmp	Ask_CC96.l	;4EF90000D03A
+	jmp	WriteMessage.l	;4EF90000D03A
 
 adrCd002D3A:
 	bsr	adrCd004054	;61001318
@@ -3897,7 +3898,7 @@ adrCd002D3A:
 	bpl.s	adrCd002D9E	;6A5A
 	lea	adrEA00CAE6.l,a6	;4DF90000CAE6
 	move.w	#$45FF,(a6)	;3CBC45FF
-	jsr	adrCd00D81C.l	;4EB90000D81C
+	jsr	Print_npc_message.l	;4EB90000D81C
 	move.b	$0003(a4),d0	;102C0003
 	and.w	#$000F,d0	;0240000F
 	move.w	d0,d2	;3400
@@ -3940,7 +3941,7 @@ adrJA002DAC:
 
 adrJA002DBE:
 	moveq	#$0C,d1	;720C
-	cmp.b	#$10,d0	;0C000010
+	cmpi.b	#$10,d0	;0C000010
 	bcs.s	adrCd002DA8	;65E2
 	cmp.b	#$05,$0006(a4)	;0C2C00050006
 	bcs.s	adrJA002DA6	;65D8
@@ -3955,7 +3956,7 @@ NotNamed:
 	bra	adrCd002D34	;6000FF48
 
 adrJA002DEE:
-	cmp.b	#$10,d0	;0C000010
+	cmpi.b	#$10,d0	;0C000010
 	bcc.s	adrJA002DA6	;64B2
 	moveq	#$0D,d1	;720D
 	bra.s	adrCd002DA8	;60B0
@@ -3967,24 +3968,24 @@ adrJA002DF8:
 	bra	adrJA003918	;60000B14
 
 adrCd002E06:
-	bsr	adrCd0055AC	;610027A4
+	bsr	RandomGen_BytewithOffset	;610027A4
 	moveq	#$18,d1	;7218
 	tst.b	d0	;4A00
 	bmi.s	adrCd002DA8	;6B98
 	bra.s	adrJA002DA6	;6094
 
 adrJA002E12:
-	cmp.b	#$10,d0	;0C000010
-	bcs.s	adrJA002DA6	;658E
-	move.w	$002E(a5),d1	;322D002E
-	cmp.b	$000A(a4),d1	;B22C000A
-	bne	adrCd002FD8	;660001B6
-	tst.w	d1	;4A41
-	beq.s	adrCd002E52	;672A
-	cmp.b	#$5F,d1	;0C01005F
-	beq.s	adrCd002E36	;6708
-	cmp.b	#$40,d1	;0C010040
-	bcc	ItemNotToTrade	;6400023A
+	cmpi.b	#$10,d0						;0C000010
+	bcs.s	adrJA002DA6					;658E
+	move.w	$002E(a5),d1					;322D002E
+	cmp.b	$000A(a4),d1					;B22C000A
+	bne	adrCd002FD8					;660001B6
+	tst.w	d1						;4A41
+	beq.s	adrCd002E52					;672A
+	cmpi.b	#$5F,d1						;0C01005F
+	beq.s	adrCd002E36					;6708
+	cmpi.b	#$40,d1						;0C010040
+	bcc	ItemNotToTrade					;6400023A
 adrCd002E36:
 	moveq	#$00,d2	;7400
 	move.b	$0008(a4),d2	;142C0008
@@ -4004,18 +4005,18 @@ adrCd002E52:
 	bra	adrJA002DA6	;6000FF4C
 
 adrJB002E5C:
-	cmp.b	#$5F,d1	;0C01005F
-	beq.s	adrCd002E76	;6714
-	sub.w	#$0014,d1	;04410014
-	bcs.s	adrCd002E76	;650E
-	lea	adrEA0031E6.l,a0	;41F9000031E6
-	tst.b	$00(a0,d1.w)	;4A301000
-	bmi	ItemNotToTrade	;6B0001FA
+	cmpi.b	#$5F,d1						;0C01005F
+	beq.s	adrCd002E76					;6714
+	sub.w	#$0014,d1					;04410014
+	bcs.s	adrCd002E76					;650E
+	lea	adrEA0031E6.l,a0				;41F9000031E6
+	tst.b	$00(a0,d1.w)					;4A301000
+	bmi	ItemNotToTrade					;6B0001FA
 adrCd002E76:
-	clr.l	$002C(a5)	;42AD002C
+	clr.l	$002C(a5)					;42AD002C
 adrCd002E7A:
-	bsr	adrCd0035FA	;6100077E
-	bra	adrCd006C34	;60003DB4
+	bsr	adrCd0035FA					;6100077E
+	bra	adrCd006C34					;60003DB4
 
 adrJA002E82:
 	move.w	$002C(a5),d4	;382D002C
@@ -4027,7 +4028,7 @@ adrJA002E82:
 	moveq	#$01,d2	;7401
 	sub.b	#$14,d3	;04030014
 	bcs.s	adrCd002EB4	;6514
-	cmp.b	#$5F,d0	;0C00005F
+	cmpi.b	#$5F,d0	;0C00005F
 	bne.s	adrCd002EAA	;6604
 	moveq	#$5A,d2	;745A
 	bra.s	adrCd002EB4	;600A
@@ -4057,14 +4058,14 @@ adrCd002EDE:
 	bra	adrCd002DA8	;6000FEC6
 
 adrJA002EE4:
-	lea	adrEA0031E6.l,a1	;43F9000031E6
-	moveq	#$02,d2	;7402
-	sub.w	#$0014,d1	;04410014
-	bcs.s	adrCd002F04	;6512
-	cmp.b	#$4B,d1	;0C01004B
-	bne.s	adrCd002EFC	;6604
-	moveq	#$5A,d2	;745A
-	bra.s	adrCd002F04	;6008
+	lea	adrEA0031E6.l,a1		;43F9000031E6
+	moveq	#$02,d2				;7402
+	sub.w	#$0014,d1			;04410014
+	bcs.s	adrCd002F04			;6512
+	cmpi.b	#$4B,d1				;0C01004B
+	bne.s	adrCd002EFC			;6604
+	moveq	#$5A,d2				;745A
+	bra.s	adrCd002F04			;6008
 
 adrCd002EFC:
 	move.b	$00(a1,d1.w),d2	;14311000
@@ -4083,7 +4084,7 @@ adrCd002F16:
 	bra.s	adrCd002ED2	;60AE
 
 adrJA002F24:
-	cmp.b	#$10,d0	;0C000010
+	cmpi.b	#$10,d0	;0C000010
 	bcs	adrJA002DA6	;6500FE7C
 adrCd002F2C:
 	bsr	adrCd003232	;61000304
@@ -4098,7 +4099,7 @@ adrCd002F4C:
 	bra	adrCd0038D2	;60000984
 
 adrJA002F50:
-	cmp.b	#$10,d0	;0C000010
+	cmpi.b	#$10,d0	;0C000010
 	bcs	adrJA002DA6	;6500FE50
 	move.w	$002E(a5),d1	;322D002E
 	cmp.b	$000A(a4),d1	;B22C000A
@@ -4106,13 +4107,13 @@ adrJA002F50:
 	tst.w	d1	;4A41
 	beq.s	adrCd002F2C	;67C4
 	lea	adrEA0031E6.l,a1	;43F9000031E6
-	cmp.b	#$5F,d1	;0C01005F
+	cmpi.b	#$5F,d1	;0C01005F
 	bne.s	adrCd002F78	;6604
 	moveq	#$5A,d2	;745A
 	bra.s	adrCd002F90	;6018
 
 adrCd002F78:
-	cmp.b	#$40,d1	;0C010040
+	cmpi.b	#$40,d1	;0C010040
 	bcc	ItemNotToTrade	;640000F0
 	moveq	#$02,d2	;7402
 	sub.w	#$0014,d1	;04410014
@@ -4134,14 +4135,14 @@ adrCd002FA2:
 
 adrCd002FB0:
 	lea	adrEA0031D2.l,a6	;4DF9000031D2
-	jmp	adrCd00D81C.l	;4EF90000D81C
+	jmp	Print_npc_message.l	;4EF90000D81C
 
 adrCd002FBC:
 	clr.b	$0008(a4)	;422C0008
 	bra	adrJA002DA6	;6000FDE4
 
 adrJA002FC4:
-	cmp.b	#$10,d0	;0C000010
+	cmpi.b	#$10,d0	;0C000010
 	bcs	adrJA002DA6	;6500FDDC
 	move.w	$002E(a5),d0	;302D002E
 	beq.s	adrCd002FBC	;67EA
@@ -4153,16 +4154,16 @@ adrCd002FD8:
 	clr.b	$0006(a4)	;422C0006
 adrCd002FE2:
 	lea	RipMeOffMsg.l,a6	;4DF900003112
-	jmp	Ask_CC96.l	;4EF90000D03A
+	jmp	WriteMessage.l	;4EF90000D03A
 
 adrCd002FEE:
-	cmp.b	#$5F,d0	;0C00005F
+	cmpi.b	#$5F,d0	;0C00005F
 	bne.s	adrCd002FF8	;6604
 	moveq	#$5A,d0	;705A
 	bra.s	adrCd003016	;601E
 
 adrCd002FF8:
-	cmp.b	#$40,d0	;0C000040
+	cmpi.b	#$40,d0	;0C000040
 	bcc.s	ItemNotToTrade	;6470
 	sub.b	#$14,d0	;04000014
 	bcc.s	adrCd00300A	;6406
@@ -4246,7 +4247,7 @@ adrJA0030D2:
 	bcs.s	adrJA00309A	;65B6
 	cmp.b	#$08,$0006(a4)	;0C2C00080006
 	bcs	adrJA002DA6	;6500FCBA
-	bsr	adrCd0055AC	;610024BC
+	bsr	RandomGen_BytewithOffset	;610024BC
 	moveq	#$0A,d1	;720A
 	tst.b	d0	;4A00
 	bmi	adrCd002DA8	;6B00FCB0
@@ -4392,7 +4393,7 @@ adrCd003242:
 	lea	adrEA0031D9.w,a6	;4DF831D9	;Short Absolute converted to symbol!
 	moveq	#$06,d2	;7406
 	ror.w	#$08,d1	;E059
-	cmp.b	#$30,d1	;0C010030
+	cmpi.b	#$30,d1	;0C010030
 	beq.s	adrCd00326A	;670C
 	move.b	d1,$00(a6,d2.w)	;1D812000
 	move.b	#$FA,$01(a6,d2.w)	;1DBC00FA2001
@@ -4409,7 +4410,7 @@ adrCd00327C:
 	move.b	#$03,$0006(a4)	;197C00030006
 	cmp.b	#$40,$000B(a1)	;0C290040000B
 	beq.s	adrCd0032D8	;674A
-	bsr	adrCd0055AC	;6100231C
+	bsr	RandomGen_BytewithOffset	;6100231C
 	cmp.b	#$16,$000B(a1)	;0C290016000B
 	bne.s	adrCd0032A8	;660E
 	and.w	#$0003,d0	;02400003
@@ -4420,10 +4421,10 @@ adrCd00327C:
 adrCd0032A8:
 	and.w	#$001F,d0	;0240001F
 	move.b	$0006(a1),d1	;12290006
-	cmp.b	#$08,d1	;0C010008
+	cmpi.b	#$08,d1	;0C010008
 	bcc.s	adrCd0032C0	;640A
 	lsr.w	#$01,d0	;E248
-	cmp.b	#$04,d1	;0C010004
+	cmpi.b	#$04,d1	;0C010004
 	bcc.s	adrCd0032C0	;6402
 	lsr.w	#$01,d0	;E248
 adrCd0032C0:
@@ -4437,7 +4438,7 @@ adrCd0032D8:
 	movem.w	(sp)+,d0/d1	;4C9F0003
 	rts	;4E75
 
-adrJA0032DE:
+Click_ShowTeamAvatars:
 	move.b	#$01,$0052(a5)	;1B7C00010052
 	clr.b	$004A(a5)	;422D004A
 	tst.b	$004B(a5)	;4A2D004B
@@ -4547,7 +4548,7 @@ adrJA0033EE:
 adrCd0033F2:
 	lea	adrEA0041F3.l,a6	;4DF9000041F3
 	clr.w	$0042(a5)	;426D0042
-	jmp	adrCd00D86A.l	;4EF90000D86A
+	jmp	Print_timed_message.l	;4EF90000D86A
 
 adrCd003402:
 	move.w	d0,d1	;3200
@@ -4563,7 +4564,7 @@ adrCd003402:
 	move.w	$0020(a5),d1	;322D0020
 	eor.w	#$0002,d1	;0A410002
 	moveq	#$18,d4	;7818
-	cmp.w	#$0010,d0	;0C400010
+	cmpi.w	#$0010,d0	;0C400010
 	bcs.s	adrCd003444	;650C
 	tst.b	$000B(a1)	;4A29000B
 	bmi.s	adrCd0033F2	;6BB4
@@ -4587,7 +4588,7 @@ adrCd003462:
 	bsr	adrCd00665C	;610031E8
 	move.b	$0004(a4),d2	;142C0004
 	move.l	(sp)+,a4	;285F
-	bsr	adrCd0055AC	;6100212E
+	bsr	RandomGen_BytewithOffset	;6100212E
 	and.w	#$0007,d0	;02400007
 	addq.w	#$02,d0	;5440
 	sub.b	#$14,d2	;04020014
@@ -4601,14 +4602,14 @@ adrCd00348E:
 	moveq	#$00,d0	;7000
 adrCd00349A:
 	move.b	d0,$0006(a4)	;19400006
-	bsr	adrCd0055AC	;6100210C
+	bsr	RandomGen_BytewithOffset	;6100210C
 	and.w	#$0007,d0	;02400007
 	addq.w	#$08,d0	;5040
 	move.b	d0,$0007(a4)	;19400007
 	move.b	#$14,$0004(a4)	;197C00140004
 	clr.b	$0008(a4)	;422C0008
 	lea	adrEA003DF7.l,a6	;4DF900003DF7
-	jsr	adrCd00D81C.l	;4EB90000D81C
+	jsr	Print_npc_message.l	;4EB90000D81C
 	move.w	#$0004,$0044(a5)	;3B7C00040044
 	bra	adrCd003D9C	;600008D2
 
@@ -4643,7 +4644,7 @@ adrCd003510:
 	add.w	d1,d1	;D241
 	lea	adrJB00355C.l,a0	;41F90000355C
 	add.w	adrJT003526(pc,d1.w),a0	;D0FB1008
-	bsr	adrCd0055AC	;6100208A
+	bsr	RandomGen_BytewithOffset	;6100208A
 	jmp	(a0)	;4ED0
 
 adrJT003526:
@@ -4677,7 +4678,7 @@ adrJT003526:
 
 adrJB00355C:
 	lea	ComeJoinMsg.l,a6	;4DF900003E83
-	jmp	Ask_CC96.l	;4EF90000D03A
+	jmp	WriteMessage.l	;4EF90000D03A
 
 adrJA003568:
 	rts	;4E75
@@ -4692,7 +4693,7 @@ adrJA003572:
 
 adrJA00357A:
 	lea	WhereIsThisMsg.l,a6	;4DF900003E2F
-	jmp	Ask_CC96.l	;4EF90000D03A
+	jmp	WriteMessage.l	;4EF90000D03A
 
 adrJA003586:
 	addq.w	#$03,$0044(a5)	;566D0044
@@ -4713,7 +4714,7 @@ adrJA003596:
 	cmp.b	$000A(a4),d0	;B02C000A
 	bne.s	adrCd0035FA	;6648
 	move.b	$0035(a5),d0	;102D0035
-	cmp.b	#$10,d0	;0C000010
+	cmpi.b	#$10,d0	;0C000010
 	bcs.s	adrCd0035FE	;6542
 	bsr	adrCd003232	;6100FC74
 	move.b	$002F(a5),$0C(a0,d1.w)	;11AD002F100C
@@ -4745,7 +4746,7 @@ adrJA003604:
 	beq.s	adrCd003626	;6718
 	add.b	#$12,d1	;06010012
 	move.b	d1,$0001(a4)	;19410001
-	cmp.b	#$15,d1	;0C010015
+	cmpi.b	#$15,d1	;0C010015
 	bne.s	adrCd003626	;660A
 	subq.b	#$04,$0006(a4)	;592C0006
 	bpl.s	adrCd003626	;6A04
@@ -4757,11 +4758,11 @@ adrCd003626:
 adrCd003630:
 	lea	adrEA00CAE6.l,a6	;4DF90000CAE6
 	move.w	d0,(a6)	;3C80
-	jmp	adrCd00D81C.l	;4EF90000D81C
+	jmp	Print_npc_message.l	;4EF90000D81C
 
 adrJA00363E:
 	lea	adrEA003E26.l,a6	;4DF900003E26
-	jmp	adrCd00D81C.l	;4EF90000D81C
+	jmp	Print_npc_message.l	;4EF90000D81C
 
 adrJA00364A:
 	lea	adrEA003DC0.l,a6	;4DF900003DC0
@@ -4773,7 +4774,7 @@ adrJA00364A:
 	bpl.s	adrCd00366C	;6A04
 	clr.b	$0006(a4)	;422C0006
 adrCd00366C:
-	cmp.b	#$0A,d0	;0C00000A
+	cmpi.b	#$0A,d0	;0C00000A
 	bcs.s	adrCd0036A2	;6530
 adrCd003672:
 	move.b	$0002(a4),d0	;102C0002
@@ -4798,24 +4799,24 @@ adrCd00369E:
 
 adrCd0036A2:
 	move.b	#$62,(a6)+	;1CFC0062
-	bsr	adrCd0055AC	;61001F04
+	bsr	RandomGen_BytewithOffset	;61001F04
 	and.w	#$0003,d0	;02400003
 	lea	adrEA003DEE.l,a3	;47F900003DEE
 	bsr.s	adrCd0036E0	;612A
 	cmp.b	#$06,$0006(a4)	;0C2C00060006
 	bcc.s	adrCd003672	;64B4
 	move.b	#$1A,(a6)+	;1CFC001A
-	bsr	adrCd0055AC	;61001EE8
+	bsr	RandomGen_BytewithOffset	;61001EE8
 	and.w	#$0007,d0	;02400007
 	add.b	#$B6,d0	;060000B6
 	move.b	d0,(a6)+	;1CC0
 adrCd0036D0:
 	move.b	#$FF,(a6)	;1CBC00FF
 	lea	adrEA003DC0.l,a6	;4DF900003DC0
-	jmp	adrCd00D81C.l	;4EF90000D81C
+	jmp	Print_npc_message.l	;4EF90000D81C
 
 adrCd0036E0:
-	jsr	adrCd00D7CC.l	;4EB90000D7CC
+	jsr	Proceed_in_stringtable.l	;4EB90000D7CC
 	subq.w	#$01,d5	;5345
 adrLp0036E8:
 	move.b	(a3)+,(a6)+	;1CDB
@@ -4824,11 +4825,11 @@ adrLp0036E8:
 
 adrJA0036F0:
 	lea	adrEA003DFD.l,a6	;4DF900003DFD
-	jmp	adrCd00D81C.l	;4EF90000D81C
+	jmp	Print_npc_message.l	;4EF90000D81C
 
 adrJA0036FC:
 	lea	WhatThyBusinessMsg.l,a6	;4DF900003708
-	jmp	Ask_CC96.l	;4EF90000D03A
+	jmp	WriteMessage.l	;4EF90000D03A
 
 WhatThyBusinessMsg:
 	dc.b	'WHAT BE THY BUSINESS?'	;574841542042452054485920425553494E4553533F
@@ -4842,7 +4843,7 @@ adrJA00371E:
 	move.b	d1,$0003(a6)	;1D410003
 	add.w	#$0064,d1	;06410064
 	move.b	d1,$0004(a6)	;1D410004
-	jmp	adrCd00D81C.l	;4EF90000D81C
+	jmp	Print_npc_message.l	;4EF90000D81C
 
 adrJA003744:
 	lea	adrEA003E03.l,a6	;4DF900003E03
@@ -4855,23 +4856,23 @@ adrJA003744:
 	add.w	#$005B,d0	;0640005B
 	move.b	d0,$0006(a6)	;1D400006
 adrCd00376C:
-	jmp	adrCd00D81C.l	;4EF90000D81C
+	jmp	Print_npc_message.l	;4EF90000D81C
 
 adrJA003772:
 	lea	AnyLegendsMsg.l,a6	;4DF9000037A2
-	jmp	Ask_CC96.l	;4EF90000D03A
+	jmp	WriteMessage.l	;4EF90000D03A
 
 adrJA00377E:
 	lea	AnyEnchantedMsg.l,a6	;4DF9000037BF
-	jmp	Ask_CC96.l	;4EF90000D03A
+	jmp	WriteMessage.l	;4EF90000D03A
 
 adrJA00378A:
 	lea	AnyWeaponsMsg.l,a6	;4DF9000037E4
-	jmp	Ask_CC96.l	;4EF90000D03A
+	jmp	WriteMessage.l	;4EF90000D03A
 
 adrJA003796:
 	lea	AnyPowerfulMsg.l,a6	;4DF900003809
-	jmp	Ask_CC96.l	;4EF90000D03A
+	jmp	WriteMessage.l	;4EF90000D03A
 
 AnyLegendsMsg:
 	dc.b	'HAST THOU HEARD ANY LEGENDS?'	;484153542054484F5520484541524420414E59204C4547454E44533F
@@ -4895,7 +4896,7 @@ adrJA00382C:
 	bra.s	adrCd003894	;6056
 
 adrCd00383E:
-	cmp.w	#$0001,d0	;0C400001
+	cmpi.w	#$0001,d0	;0C400001
 	bne.s	adrCd00385C	;6618
 	move.w	$002C(a5),d0	;302D002C
 	cmp.b	#$02,$0008(a4)	;0C2C00020008
@@ -4927,12 +4928,12 @@ adrCd003892:
 adrCd003894:
 	lea	adrEA003E58.l,a6	;4DF900003E58
 	move.b	d0,$0005(a6)	;1D400005
-	jmp	adrCd00D81C.l	;4EF90000D81C
+	jmp	Print_npc_message.l	;4EF90000D81C
 
 adrJA0038A4:
 	lea	adrEA003E7B.l,a6	;4DF900003E7B
 	move.b	#$01,$0008(a4)	;197C00010008
-	jmp	adrCd00D81C.l	;4EF90000D81C
+	jmp	Print_npc_message.l	;4EF90000D81C
 
 adrJA0038B6:
 	move.b	#$02,$0008(a4)	;197C00020008
@@ -4940,7 +4941,7 @@ adrJA0038B6:
 	move.b	d0,$000A(a4)	;1940000A
 	bne.s	adrCd0038D2	;660C
 	lea	adrEA003E0B.l,a6	;4DF900003E0B
-	jmp	adrCd00D81C.l	;4EF90000D81C
+	jmp	Print_npc_message.l	;4EF90000D81C
 
 adrCd0038D2:
 	lea	adrEA003E15.l,a6	;4DF900003E15
@@ -4951,10 +4952,10 @@ adrCd0038DC:
 	move.b	#$FA,$00(a6,d2.w)	;1DBC00FA2000
 	move.b	#$3F,$01(a6,d2.w)	;1DBC003F2001
 	move.b	#$FF,$02(a6,d2.w)	;1DBC00FF2002
-	jmp	adrCd00D81C.l	;4EF90000D81C
+	jmp	Print_npc_message.l	;4EF90000D81C
 
 adrCd0038F4:
-	lea	adrEA00E4C4.l,a0	;41F90000E4C4
+	lea	ObjectDefinitionsTable.l,a0	;41F90000E4C4
 	add.w	d0,d0	;D040
 	add.w	d0,d0	;D040
 	add.w	d0,a0	;D0C0
@@ -4990,10 +4991,10 @@ adrCd00393E:
 	addq.w	#$02,a0	;5448
 	dbra	d4,adrLp003938	;51CCFFF6
 	move.b	#$FF,$00(a6,d2.w)	;1DBC00FF2000
-	jmp	adrCd00D81C.l	;4EF90000D81C
+	jmp	Print_npc_message.l	;4EF90000D81C
 
 adrCd003950:
-	bsr	adrCd0055AC	;61001C5A
+	bsr	RandomGen_BytewithOffset	;61001C5A
 	and.w	#$0007,d0	;02400007
 	tst.w	d7	;4A47
 	bpl.s	adrCd003972	;6A16
@@ -5033,14 +5034,14 @@ adrCd00398E:
 	bra.s	adrCd0039BA	;6008
 
 adrCd0039B2:
-	bsr	adrCd0055AC	;61001BF8
+	bsr	RandomGen_BytewithOffset	;61001BF8
 	and.w	#$0007,d0	;02400007
 adrCd0039BA:
 	move.w	#$0084,d1	;323C0084
 	add.w	d0,d1	;D240
 	move.b	d1,$0001(a6)	;1D410001
 	moveq	#$02,d2	;7402
-	cmp.w	#$0007,d0	;0C400007
+	cmpi.w	#$0007,d0	;0C400007
 	beq.s	adrCd0039DA	;670E
 	move.b	#$FA,$0002(a6)	;1D7C00FA0002
 	move.b	#$53,$0003(a6)	;1D7C00530003
@@ -5048,7 +5049,7 @@ adrCd0039BA:
 adrCd0039DA:
 	ror.w	#$01,d7	;E25F
 	bpl.s	adrCd0039F4	;6A16
-	cmp.w	#$0005,d0	;0C400005
+	cmpi.w	#$0005,d0	;0C400005
 	bcc.s	adrCd0039EC	;6408
 	move.b	#$8C,$00(a6,d2.w)	;1DBC008C2000
 	addq.w	#$01,d2	;5242
@@ -5086,11 +5087,11 @@ adrJA003A0E:
 	and.w	#$0007,d0	;02400007
 	add.w	#$0074,d0	;06400074
 	move.b	d0,$0002(a6)	;1D400002
-	bsr	adrCd0055AC	;61001B8A
+	bsr	RandomGen_BytewithOffset	;61001B8A
 	and.w	#$0007,d0	;02400007
 	add.w	#$007C,d0	;0640007C
 	move.b	d0,$0004(a6)	;1D400004
-	jmp	adrCd00D81C.l	;4EF90000D81C
+	jmp	Print_npc_message.l	;4EF90000D81C
 
 adrB_003A36:
 	dc.b	$00	;00
@@ -5132,11 +5133,11 @@ adrJA003A52:
 	tst.b	(a6)	;4A16
 	bpl.s	ReplyToQuestion	;6A12
 	lea	VeryPossibleMsg_0.l,a6	;4DF900003ABA
-	bsr	adrCd0055AC	;61001B38
+	bsr	RandomGen_BytewithOffset	;61001B38
 	and.w	#$0006,d0	;02400006
 	add.w	NoAnswerList_Offsets(pc,d0.w),a6	;DCFB0008
 ReplyToQuestion:
-	jmp	Ask_CC96.l	;4EF90000D03A
+	jmp	WriteMessage.l	;4EF90000D03A
 
 NoAnswerList_Offsets:
 	dc.w	VeryPossibleMsg_0-VeryPossibleMsg_0	;0000
@@ -5259,7 +5260,7 @@ AnswerList_22:
 	bra.s	adrCd003D74	;6022
 
 adrCd003D52:
-	lea	adrEA00E4C4.l,a0	;41F90000E4C4
+	lea	ObjectDefinitionsTable.l,a0	;41F90000E4C4
 	add.w	d1,d1	;D241
 	add.w	d1,d1	;D241
 	add.w	d1,a0	;D0C1
@@ -5272,12 +5273,12 @@ adrCd003D52:
 	addq.w	#$02,d2	;5442
 adrCd003D74:
 	move.b	#$35,$00(a6,d2.w)	;1DBC00352000
-	bsr	adrCd0055AC	;61001830
+	bsr	RandomGen_BytewithOffset	;61001830
 	and.w	#$0007,d0	;02400007
 	add.w	#$007C,d0	;0640007C
 	move.b	d0,$01(a6,d2.w)	;1D802001
 	move.b	#$FF,$02(a6,d2.w)	;1DBC00FF2002
-	jsr	adrCd00D81C.l	;4EB90000D81C
+	jsr	Print_npc_message.l	;4EB90000D81C
 	move.w	#$0006,$0044(a5)	;3B7C00060044
 adrCd003D9C:
 	move.w	#$0008,$0042(a5)	;3B7C00080042
@@ -5451,7 +5452,7 @@ ComeJoinMsg:
 
 adrJA003E9C:
 	lea	adrEA0041D4.l,a6	;4DF9000041D4
-	jsr	adrCd00D86A.l	;4EB90000D86A
+	jsr	Print_timed_message.l	;4EB90000D86A
 	move.b	#$FF,$0050(a5)	;1B7C00FF0050
 	lea	Player1_Data.l,a1	;43F90000EE7C
 	btst	#$00,(a5)	;08150000
@@ -5472,9 +5473,9 @@ adrCd003EC0:
 	move.l	$001C(a1),d1	;2229001C
 	move.l	$001C(a5),d0	;202D001C
 	bsr	adrCd0013A8	;6100D4B2
-	cmp.w	#$0005,d2	;0C420005
+	cmpi.w	#$0005,d2	;0C420005
 	bcs.s	adrCd003F0C	;650E
-	cmp.w	#$0009,d2	;0C420009
+	cmpi.w	#$0009,d2	;0C420009
 	bcs.s	adrCd003F08	;6504
 	move.b	#$8E,(a6)+	;1CFC008E
 adrCd003F08:
@@ -5506,7 +5507,7 @@ adrCd003F36:
 	lea	adrEA003DC0.w,a6	;4DF83DC0	;Short Absolute converted to symbol!
 	move.l	a5,-(sp)	;2F0D
 	move.l	a1,a5	;2A49
-	jsr	adrCd00D86A.l	;4EB90000D86A
+	jsr	Print_timed_message.l	;4EB90000D86A
 	move.l	(sp)+,a5	;2A5F
 adrCd003F58:
 	bra	adrCd00332A	;6000F3D0
@@ -5531,7 +5532,7 @@ adrCd003F66:
 	addq.w	#$02,sp	;544F
 	lea	adrEA0041BB.l,a6	;4DF9000041BB
 	move.b	$004F(a5),(a6)	;1CAD004F
-	jsr	adrCd00D86A.l	;4EB90000D86A
+	jsr	Print_timed_message.l	;4EB90000D86A
 	bra	adrCd00332A	;6000F390
 
 adrCd003F9C:
@@ -5540,7 +5541,7 @@ adrCd003F9C:
 	bsr	adrCd004004	;6100005C
 	lea	adrEA0041C6.l,a6	;4DF9000041C6
 	move.w	(sp)+,d1	;321F
-	cmp.w	#$0015,d1	;0C410015
+	cmpi.w	#$0015,d1	;0C410015
 	beq.s	adrCd003FCE	;6716
 	bsr	adrCd004054	;6100009A
 	move.b	$004F(a5),d0	;102D004F
@@ -5557,7 +5558,7 @@ adrCd003FCE:
 	move.b	$0059(a5),$001A(a4)	;196D0059001A
 	move.b	$0021(a5),$0018(a4)	;196D00210018
 	move.b	adrB_00EE2F.l,$001F(a4)	;19790000EE2F001F
-	jsr	adrCd00D86A.l	;4EB90000D86A
+	jsr	Print_timed_message.l	;4EB90000D86A
 	bsr	adrCd008246	;61004248
 	bra	adrCd00332A	;6000F328
 
@@ -5573,7 +5574,7 @@ adrCd00401A:
 adrCd004020:
 	move.b	$19(a5,d1.w),$18(a5,d1.w)	;1BB510191018
 	addq.w	#$01,d1	;5241
-	cmp.w	#$0003,d1	;0C410003
+	cmpi.w	#$0003,d1	;0C410003
 	bcs.s	adrCd004020	;65F2
 	move.b	#$FF,$001B(a5)	;1B7C00FF001B
 	cmp.b	#$03,$0015(a5)	;0C2D00030015
@@ -5581,7 +5582,7 @@ adrCd004020:
 	cmp.b	$000F(a5),d3	;B62D000F
 	bne.s	adrCd00404C	;660A
 	move.l	d7,-(sp)	;2F07
-	bsr	adrJA006BF0	;61002BAA
+	bsr	Click_OpenInventory	;61002BAA
 	move.l	(sp)+,d7	;2E1F
 	rts	;4E75
 
@@ -5597,7 +5598,7 @@ adrCd004056:
 	tst.b	$18(a5,d1.w)	;4A351018
 	bmi.s	adrCd004064	;6B08
 	addq.w	#$01,d1	;5241
-	cmp.w	#$0003,d1	;0C410003
+	cmpi.w	#$0003,d1	;0C410003
 	bcs.s	adrCd004056	;65F2
 adrCd004064:
 	rts	;4E75
@@ -5640,7 +5641,7 @@ adrCd0040A0:
 	move.b	d7,$0005(a6)	;1D470005
 adrCd0040B2:
 	clr.w	$0042(a5)	;426D0042
-	jmp	adrCd00D86A.l	;4EF90000D86A
+	jmp	Print_timed_message.l	;4EF90000D86A
 
 adrCd0040BC:
 	move.w	#$0001,$0044(a5)	;3B7C00010044
@@ -5652,7 +5653,7 @@ adrCd0040CA:
 	move.b	#$01,$004E(a5)	;1B7C0001004E
 	lea	adrEA0041A0.l,a6	;4DF9000041A0
 	move.b	d7,$0007(a6)	;1D470007
-	jsr	adrCd00D870.l	;4EB90000D870
+	jsr	Print_fix_message.l	;4EB90000D870
 	bra	adrCd007D6C	;60003C8A
 
 adrJA0040E4:
@@ -5683,7 +5684,7 @@ adrCd004114:
 	move.b	#$01,$0014(a5)	;1B7C00010014
 	lea	adrEA0041E3.l,a6	;4DF9000041E3
 	move.b	$0053(a5),$0004(a6)	;1D6D00530004
-	jsr	adrCd00D870.l	;4EB90000D870
+	jsr	Print_fix_message.l	;4EB90000D870
 	move.w	#$0101,$0040(a5)	;3B7C01010040
 	bra	adrCd00332A	;6000F1E8
 
@@ -5705,7 +5706,7 @@ adrCd00415A:
 	or.b	$19(a5,d2.w),d3	;86352019
 	move.b	d3,$19(a5,d2.w)	;1B832019
 	move.b	d0,(a6)	;1C80
-	jsr	adrCd00D86A.l	;4EB90000D86A
+	jsr	Print_timed_message.l	;4EB90000D86A
 	bra	adrCd00332A	;6000F1AE
 
 adrCd00417E:
@@ -5835,10 +5836,10 @@ adrCd0041FA:
 adrCd00420A:
 	rts	;4E75
 
-adrJA00420C:
+Click_CommsAndOptions:
 	move.w	$0004(a5),d1	;322D0004
 	sub.w	$0008(a5),d1	;926D0008
-	cmp.w	#$0037,d1	;0C410037
+	cmpi.w	#$0037,d1	;0C410037
 	bcs.s	adrCd004234	;651A
 	move.w	$0002(a5),d1	;322D0002
 	lsr.w	#$05,d1	;EA49
@@ -5856,23 +5857,23 @@ adrCd004234:
 	bcs.s	adrCd004226	;65E8
 	move.b	$003E(a5),d0	;102D003E
 	and.b	#$0E,d0	;0200000E
-	bne.s	adrCd0042B8	;6670
+	bne.s	ExitPause	;6670
 	clr.w	$0042(a5)	;426D0042
 	clr.w	$0044(a5)	;426D0044
 	move.w	#$FFFF,$0040(a5)	;3B7CFFFF0040
 	clr.b	$003E(a5)	;422D003E
 	bra	adrCd007B50	;600038F4
 
-adrJA00425E:
+Click_PauseGame:
 	move.l	adrEA00EE36.l,d1	;22390000EE36
-	move.w	#$FFFF,adrW_008C1C.l	;33FCFFFF00008C1C
+	move.w	#$FFFF,Paused_Marker.l	;33FCFFFF00008C1C
 	lea	_custom+color.l,a0	;41F900DFF180
 	move.w	#$0400,(a0)	;30BC0400
 	move.w	#$0400,$001E(a0)	;317C0400001E
-adrCd00427C:
+.PauseLoop:
 	move.b	adrB_00EE7D.l,d0	;10390000EE7D
 	or.b	adrB_00EEDF.l,d0	;80390000EEDF
-	bpl.s	adrCd00427C	;6AF2
+	bpl.s	.PauseLoop	;6AF2
 	clr.w	(a0)	;4250
 	clr.w	$001E(a0)	;4268001E
 	move.l	d1,adrEA00EE36.l	;23C10000EE36
@@ -5880,8 +5881,8 @@ adrCd00427C:
 	and.b	#$7F,adrB_00EEDF.l	;0239007F0000EEDF
 	clr.b	adrB_00EED2.l	;42390000EED2
 	clr.b	adrB_00EF34.l	;42390000EF34
-	clr.w	adrW_008C1C.l	;427900008C1C
-adrCd0042B8:
+	clr.w	Paused_Marker.l	;427900008C1C
+ExitPause:
 	rts	;4E75
 
 adrCd0042BA:
@@ -5916,7 +5917,7 @@ adrCd00430A:
 	move.w	#$FFFF,$000C(a5)	;3B7CFFFF000C
 	rts	;4E75
 
-adrJA00432A:
+Click_LoadSaveGame:
 	move.l	adrEA00EE36.l,-(sp)	;2F390000EE36
 	clr.w	adrB_008C1E.l	;427900008C1E
 	move.l	#$00067D00,screen_ptr.l	;23FC00067D0000008D36
@@ -5925,89 +5926,89 @@ adrJA00432A:
 	lea	F1_F2_F10_Msg.l,a6	;4DF9000044C4
 	jsr	WriteText.l	;4EB90000D08E
 	tst.w	MultiPlayer.l	;4A790000EE30
-	bne.s	adrCd004376	;6612
+	bne.s	.skipPlayer2	;6612
 	lea	Player2_Data.l,a5	;4BF90000EEDE
 	lea	F1_F2_F10_Msg.l,a6	;4DF9000044C4
 	jsr	WriteText.l	;4EB90000D08E
-adrCd004376:
-	clr.b	adrEA0005C9.w	;423805C9	;Short Absolute converted to symbol!
+.skipPlayer2:
+	clr.b	KeyboardKeyCode.w	;423805C9	;Short Absolute converted to symbol!
 	bsr	adrCd008CCA	;6100494E
-adrCd00437E:
-	move.b	adrEA0005C9.w,d0	;103805C9	;Short Absolute converted to symbol!
-	cmp.b	#$50,d0	;0C000050
-	beq.s	adrCd0043A4	;671C
-	cmp.b	#$51,d0	;0C000051
-	beq	adrCd0043BA	;6700002C
-	cmp.b	#$59,d0	;0C000059
-	bne.s	adrCd00437E	;66E8
+.PickLoadSaveGame_Loop:
+	move.b	KeyboardKeyCode.w,d0	;103805C9	;Short Absolute converted to symbol!
+	cmpi.b	#$50,d0	;0C000050
+	beq.s	LoadGame	;671C
+	cmpi.b	#$51,d0	;0C000051
+	beq	SaveGame	;6700002C
+	cmpi.b	#$59,d0	;0C000059
+	bne.s	.PickLoadSaveGame_Loop	;66E8
 adrCd004396:
 	move.l	(sp)+,adrEA00EE36.l	;23DF0000EE36
-	clr.b	adrEA0005C9.w	;423805C9	;Short Absolute converted to symbol!
+	clr.b	KeyboardKeyCode.w	;423805C9	;Short Absolute converted to symbol!
 	bra	adrCd0042BA	;6000FF18
 
-adrCd0043A4:
+LoadGame:
 	moveq	#$00,d0	;7000
 	bsr	adrCd0043E2	;6100003A
 	bcs.s	adrCd004396	;65EA
 	bsr	adrCd004440	;61000092
 	tst.l	d0	;4A80
-	bmi.s	adrCd0043A4	;6BF0
+	bmi.s	LoadGame	;6BF0
 	bsr	adrCd000B68	;6100C7B2
 	bra.s	adrCd004396	;60DC
 
-adrCd0043BA:
+SaveGame:
 	moveq	#$01,d0	;7001
 	bsr	adrCd0043E2	;61000024
 	bcs.s	adrCd004396	;65D4
 	bsr	adrCd004480	;610000BC
 	tst.l	d0	;4A80
-	bmi.s	adrCd0043BA	;6BF0
+	bmi.s	SaveGame	;6BF0
 	bra.s	adrCd004396	;60CA
 
-adrCd0043CC:
+AwaitDisk:
 	lea	InsertLoadDiskMsg.l,a6	;4DF9000044E5
 	tst.w	d0	;4A40
-	beq.s	adrCd0043DC	;6706
+	beq.s	.PickLoadSaveMessage	;6706
 	lea	InsertSaveDiskMsg.l,a6	;4DF90000450D
-adrCd0043DC:
+.PickLoadSaveMessage:
 	jmp	WriteText.l	;4EF90000D08E
 
 adrCd0043E2:
 	lea	Player1_Data.l,a5	;4BF90000EE7C
 	tst.w	MultiPlayer.l	;4A790000EE30
-	bne.s	adrCd0043FC	;660C
+	bne.s	.skipPlayer2	;660C
 	move.w	d0,-(sp)	;3F00
-	bsr.s	adrCd0043CC	;61D8
+	bsr.s	AwaitDisk	;61D8
 	move.w	(sp)+,d0	;301F
 	lea	Player2_Data.l,a5	;4BF90000EEDE
-adrCd0043FC:
-	bsr.s	adrCd0043CC	;61CE
-	clr.b	adrEA0005C9.w	;423805C9	;Short Absolute converted to symbol!
+.skipPlayer2:
+	bsr.s	AwaitDisk	;61CE
+	clr.b	KeyboardKeyCode.w	;423805C9	;Short Absolute converted to symbol!
 	bsr	adrCd008CCA	;610048C6
-adrCd004406:
-	move.b	adrEA0005C9.w,d0	;103805C9	;Short Absolute converted to symbol!
-	cmp.b	#$44,d0	;0C000044
-	beq.s	adrCd004422	;6712
-	cmp.b	#$43,d0	;0C000043
-	beq.s	adrCd004422	;670C
-	cmp.b	#$59,d0	;0C000059
-	bne.s	adrCd004406	;66EA
-	sub.b	#$FF,d0	;040000FF
-	rts	;4E75
+LoadSaveGame_Loop:
+	move.b	KeyboardKeyCode.w,d0	;103805C9	;Short Absolute converted to symbol!
+	cmpi.b	#$44,d0			;0C000044
+	beq.s	LoadSaveGame_Action		;6712
+	cmpi.b	#$43,d0			;0C000043
+	beq.s	LoadSaveGame_Action		;670C
+	cmpi.b	#$59,d0			;0C000059
+	bne.s	LoadSaveGame_Loop		;66EA
+	sub.b	#$FF,d0			;040000FF
+	rts				;4E75
 
-adrCd004422:
-	moveq	#$3C,d0	;703C
-	tst.w	MultiPlayer.l	;4A790000EE30
-	beq.s	adrCd00442E	;6702
-	moveq	#$46,d0	;7046
+LoadSaveGame_Action:
+	moveq	#$3C,d0			;703C
+	tst.w	MultiPlayer.l		;4A790000EE30
+	beq.s	adrCd00442E		;6702
+	moveq	#$46,d0			;7046
 adrCd00442E:
 	move.w	d0,adrW_00447E.l	;33C00000447E
-	rts	;4E75
+	rts				;4E75
 
 adrCd004436:
-	jsr	adrCd008878.l	;4EB900008878
-	moveq	#-$01,d0	;70FF
-	rts	;4E75
+	jsr	adrCd008878.l		;4EB900008878
+	moveq	#-$01,d0		;70FF
+	rts				;4E75
 
 adrCd004440:
 	jsr	CopyProtection.l	;4EB90000D138
@@ -6056,7 +6057,7 @@ InsertSaveDiskMsg:
 	dc.b	$FF	;FF
 	dc.b	$00	;00
 
-adrJA004536:
+Click_SleepParty:
 	move.b	#$03,$004F(a5)	;1B7C0003004F
 	clr.w	$0014(a5)	;426D0014
 	move.w	#$FFFF,$0042(a5)	;3B7CFFFF0042
@@ -6089,11 +6090,11 @@ adrCd004580:
 	bmi.s	adrCd0045B2	;6B06
 	move.w	#$00FF,$004A(a5)	;3B7C00FF004A
 adrCd0045B2:
-	lea	adrEA0045C4.l,a6	;4DF9000045C4
-	jsr	adrCd00D0C6.l	;4EB90000D0C6
+	lea	ThouArtAsleep.l,a6	;4DF9000045C4
+	jsr	Print_fflim_text.l	;4EB90000D0C6
 	jmp	adrCd00CF96.l	;4EF90000CF96
 
-adrEA0045C4:
+ThouArtAsleep:
 	dc.b	$FC	;FC
 	dc.b	$10	;10
 	dc.b	$04	;04
@@ -6223,13 +6224,13 @@ adrLp0046E6:
 	moveq	#$04,d0	;7004
 	bsr	adrCd0045DE	;6100FED2
 	or.b	#$40,$0054(a5)	;002D00400054
-	jsr	adrCd00D09A.l	;4EB90000D09A
+	jsr	InitialiseText.l	;4EB90000D09A
 	moveq	#$00,d7	;7E00
 	move.b	$004F(a5),d7	;1E2D004F
 	move.b	$18(a5,d7.w),d0	;10357018
 	and.w	#$000F,d0	;0240000F
 	clr.b	$0052(a5)	;422D0052
-	jsr	adrCd00D7E6.l	;4EB90000D7E6
+	jsr	Print_wordstext.l	;4EB90000D7E6
 	lea	MayBuySpellMsg.l,a6	;4DF900004A84
 	jsr	adrLp00CFDA.l	;4EB90000CFDA
 	move.b	#$01,$004E(a5)	;1B7C0001004E
@@ -6240,18 +6241,18 @@ adrCd004748:
 	beq	adrCd004AFE	;670003AE
 	move.l	$0002(a5),d1	;222D0002
 	sub.w	$0008(a5),d1	;926D0008
-	cmp.b	#$42,d1	;0C010042
+	cmpi.b	#$42,d1	;0C010042
 	bcs	adrCd004AFE	;6500039E
-	cmp.b	#$54,d1	;0C010054
+	cmpi.b	#$54,d1	;0C010054
 	bcc	adrCd004AFE	;64000396
 	swap	d1	;4841
 	sub.b	#$70,d1	;04010070
 	bcs	adrCd004AFE	;6500038C
-	cmp.b	#$40,d1	;0C010040
+	cmpi.b	#$40,d1	;0C010040
 	bcs.s	adrCd004792	;6518
 	sub.b	#$50,d1	;04010050
 	bcs	adrCd004AFE	;6500037E
-	cmp.b	#$10,d1	;0C010010
+	cmpi.b	#$10,d1	;0C010010
 	bcc	adrCd004AFE	;64000376
 	subq.b	#$01,$004F(a5)	;532D004F
 	bra	adrCd004580	;6000FDF0
@@ -6337,18 +6338,18 @@ adrCd004870:
 	beq.s	adrCd00486E	;67F6
 	move.l	$0002(a5),d1	;222D0002
 	sub.w	$0008(a5),d1	;926D0008
-	cmp.w	#$0018,d1	;0C410018
+	cmpi.w	#$0018,d1	;0C410018
 	bcs.s	adrCd00486E	;65E8
-	cmp.w	#$0027,d1	;0C410027
+	cmpi.w	#$0027,d1	;0C410027
 	bcs.s	adrCd0048AA	;651E
 	sub.b	#$42,d1	;04010042
 	bcs.s	adrCd00486E	;65DC
-	cmp.b	#$10,d1	;0C010010
+	cmpi.b	#$10,d1	;0C010010
 	bcc.s	adrCd00486E	;64D6
 	swap	d1	;4841
 	sub.w	#$00C0,d1	;044100C0
 	bcs.s	adrCd00486E	;65CE
-	cmp.b	#$10,d1	;0C010010
+	cmpi.b	#$10,d1	;0C010010
 	bcc.s	adrCd00486E	;64C8
 	bra	adrCd0046CC	;6000FE24
 
@@ -6356,7 +6357,7 @@ adrCd0048AA:
 	swap	d1	;4841
 	sub.b	#$90,d1	;04010090
 	bcs.s	adrCd00486E	;65BC
-	cmp.b	#$40,d1	;0C010040
+	cmpi.b	#$40,d1	;0C010040
 	bcc.s	adrCd00486E	;64B6
 	swap	d1	;4841
 	sub.w	#$0018,d1	;04410018
@@ -6364,12 +6365,12 @@ adrCd0048AA:
 	move.b	$44(a5,d1.w),d0	;10351044
 	bmi.s	adrCd00486E	;6BA8
 	move.b	d0,$0044(a5)	;1B400044
-	jsr	adrCd00D09A.l	;4EB90000D09A
-	lea	WearWithPrideMsg.l,a3	;47F900019F8E
+	jsr	InitialiseText.l	;4EB90000D09A
+	lea	SpellDescriptions.l,a3	;47F900019F8E
 	moveq	#$00,d0	;7000
 	move.b	$0044(a5),d0	;102D0044
-	jsr	adrCd00D7E2.l	;4EB90000D7E2
-	jsr	adrCd00D008.l	;4EB90000D008
+	jsr	Print_word.l	;4EB90000D7E2
+	jsr	TerminateText.l	;4EB90000D008
 	move.l	#$00100018,d5	;2A3C00100018
 	add.w	$0008(a5),d5	;DA6D0008
 	move.l	#$003F0090,d4	;283C003F0090
@@ -6396,7 +6397,7 @@ adrCd0048AA:
 	move.b	d1,$000E(a6)	;1D41000E
 	jsr	adrCd00CEC4.l	;4EB90000CEC4
 	move.w	d1,$0012(a6)	;3D410012
-	jsr	adrCd00D0C6.l	;4EB90000D0C6
+	jsr	Print_fflim_text.l	;4EB90000D0C6
 	moveq	#$00,d0	;7000
 	move.b	$004F(a5),d0	;102D004F
 	move.b	$18(a5,d0.w),d0	;10350018
@@ -6421,15 +6422,15 @@ adrCd004996:
 	rts	;4E75
 
 adrCd0049AE:
-	jsr	adrCd00D09A.l	;4EB90000D09A
-	jsr	adrCd00D0C6.l	;4EB90000D0C6
+	jsr	InitialiseText.l	;4EB90000D09A
+	jsr	Print_fflim_text.l	;4EB90000D0C6
 	moveq	#$00,d0	;7000
 	move.b	$004F(a5),d0	;102D004F
 	move.b	$18(a5,d0.w),d0	;10350018
 	and.w	#$000F,d0	;0240000F
 	moveq	#$11,d6	;7C11
-	jsr	adrCd00D7E6.l	;4EB90000D7E6
-	jmp	adrCd00D008.l	;4EF90000D008
+	jsr	Print_wordstext.l	;4EB90000D7E6
+	jmp	TerminateText.l	;4EF90000D008
 
 adrCd0049D6:
 	bclr	#$07,$0001(a5)	;08AD00070001
@@ -6438,16 +6439,16 @@ adrCd0049D6:
 	sub.w	$0008(a5),d1	;926D0008
 	sub.b	#$42,d1	;04010042
 	bcs.s	adrCd004994	;65A8
-	cmp.b	#$10,d1	;0C010010
+	cmpi.b	#$10,d1	;0C010010
 	bcc.s	adrCd004994	;64A2
 	swap	d1	;4841
 	sub.w	#$0070,d1	;04410070
 	bcs.s	adrCd004994	;659A
-	cmp.w	#$0010,d1	;0C410010
+	cmpi.w	#$0010,d1	;0C410010
 	bcs.s	adrCd004A10	;6510
-	cmp.w	#$0050,d1	;0C410050
+	cmpi.w	#$0050,d1	;0C410050
 	bcs.s	adrCd004994	;658E
-	cmp.w	#$0060,d1	;0C410060
+	cmpi.w	#$0060,d1	;0C410060
 	bcc.s	adrCd004994	;6488
 	bra	adrCd0046CC	;6000FCBE
 
@@ -6522,7 +6523,7 @@ adrCd004AE8:
 	move.l	a6,-(sp)	;2F0E
 	bsr.s	adrCd004B28	;6138
 	move.l	(sp)+,a6	;2C5F
-	jsr	adrCd00D86A.l	;4EB90000D86A
+	jsr	Print_timed_message.l	;4EB90000D86A
 	move.b	#$32,$003F(a5)	;1B7C0032003F
 adrCd004AFE:
 	bclr	#$07,$0001(a5)	;08AD00070001
@@ -6552,7 +6553,7 @@ adrCd004B28:
 	move.b	(a4),d1	;1214
 	move.b	adrEA004B1A(pc,d1.w),$001C(a4)	;197B10EA001C
 	move.w	d0,d4	;3800
-	bsr	adrCd0055AC	;61000A74
+	bsr	RandomGen_BytewithOffset	;61000A74
 	and.w	#$000F,d0	;0240000F
 	move.w	d4,d1	;3204
 	and.w	#$0001,d1	;02410001
@@ -6565,11 +6566,11 @@ adrCd004B48:
 	move.b	#$FD,d0	;103C00FD
 adrCd004B56:
 	move.b	d0,$0006(a4)	;19400006
-	bsr	adrCd0055AC	;61000A50
+	bsr	RandomGen_BytewithOffset	;61000A50
 	and.w	#$0007,d0	;02400007
 	addq.w	#$01,d0	;5240
 	add.b	$0008(a4),d0	;D02C0008
-	cmp.w	#$0064,d0	;0C400064
+	cmpi.w	#$0064,d0	;0C400064
 	bcs.s	adrCd004B70	;6502
 	moveq	#$63,d0	;7063
 adrCd004B70:
@@ -6587,7 +6588,7 @@ adrLp004B86:
 	bra.s	adrCd004BA2	;6010
 
 adrCd004B92:
-	bsr	adrCd0055AC	;61000A18
+	bsr	RandomGen_BytewithOffset	;61000A18
 	and.w	#$0007,d0	;02400007
 	cmp.b	#$04,(a2)	;0C120004
 	bne.s	adrCd004BA2	;6602
@@ -6595,7 +6596,7 @@ adrCd004B92:
 adrCd004BA2:
 	addq.w	#$01,d0	;5240
 	add.b	$01(a4,d6.w),d0	;D0346001
-	cmp.b	#$64,d0	;0C000064
+	cmpi.b	#$64,d0	;0C000064
 	bcs.s	adrCd004BB0	;6502
 	moveq	#$63,d0	;7063
 adrCd004BB0:
@@ -6620,7 +6621,7 @@ adrCd004BCE:
 	add.b	d2,d1	;D202
 	sub.b	#$0F,d1	;0401000F
 	neg.b	d1	;4401
-	cmp.b	#$08,d1	;0C010008
+	cmpi.b	#$08,d1	;0C010008
 	bcc.s	adrCd004BF8	;6402
 	moveq	#$08,d1	;7208
 adrCd004BF8:
@@ -6706,7 +6707,7 @@ adrCd004CB2:
 	bsr	adrCd008498	;610037DA
 	move.w	$00(a6,d0.w),d1	;32360000
 	and.w	#$0007,d1	;02410007
-	cmp.w	#$0006,d1	;0C410006
+	cmpi.w	#$0006,d1	;0C410006
 	bne.s	adrCd004D08	;663A
 	move.b	$00(a6,d0.w),d1	;12360000
 	and.w	#$0003,d1	;02410003
@@ -6730,13 +6731,13 @@ adrCd004D08:
 	bcs.s	adrCd004D1A	;6504
 	bsr	adrCd00332A	;6100E612
 adrCd004D1A:
-	move.b	$0014(a5),d0	;102D0014
-	beq.s	adrCd004D32	;6712
-	cmp.b	#$01,d0	;0C000001
-	beq.s	adrCd004D8C	;6766
-	cmp.b	#$02,d0	;0C000002
-	beq	adrCd00465E	;6700F932
-	bra	adrJA004DEA	;600000BA
+	move.b	$0014(a5),d0		;102D0014
+	beq.s	adrCd004D32		;6712
+	cmpi.b	#$01,d0			;0C000001
+	beq.s	adrCd004D8C		;6766
+	cmpi.b	#$02,d0			;0C000002
+	beq	adrCd00465E		;6700F932
+	bra	adrJA004DEA		;600000BA
 
 adrCd004D32:
 	moveq	#$00,d0	;7000
@@ -6746,7 +6747,7 @@ adrCd004D32:
 	clr.b	$0056(a5)	;422D0056
 	cmp.w	#$0004,$0014(a5)	;0C6D00040014
 	bne.s	adrCd004D4E	;6604
-	bsr	adrJA0057A4	;61000A58
+	bsr	Click_CloseSpellBook	;61000A58
 adrCd004D4E:
 	cmp.w	#$005E,$0002(a5)	;0C6D005E0002
 	bcs	adrCd004C2A	;6500FED4
@@ -6763,10 +6764,10 @@ adrCd004D4E:
 
 adrJT004D78:
 	dc.l	adrJA004DAA	;00004DAA
-	dc.l	adrJA0057A4	;000057A4
+	dc.l	Click_CloseSpellBook	;000057A4
 	dc.l	adrJA004DEA	;00004DEA
 	dc.l	adrJA005628	;00005628
-	dc.l	adrJA0057A4	;000057A4
+	dc.l	Click_CloseSpellBook	;000057A4
 
 adrCd004D8C:
 	bclr	#$07,$0001(a5)	;08AD00070001
@@ -6774,7 +6775,7 @@ adrCd004D8C:
 	clr.b	$0014(a5)	;422D0014
 	move.b	#$FF,$0053(a5)	;1B7C00FF0053
 	lea	adrEA0041ED.w,a6	;4DF841ED	;Short Absolute converted to symbol!
-	jmp	adrCd00D86A.l	;4EF90000D86A
+	jmp	Print_timed_message.l	;4EF90000D86A
 
 adrCd004DA8:
 	rts	;4E75
@@ -6834,16 +6835,16 @@ adrCd004E12:
 	bsr	adrCd00665C	;6100183E
 	tst.b	$0013(a4)	;4A2C0013
 	bmi.s	adrCd004E4C	;6B26
-	cmp.w	#$0048,d1	;0C410048
+	cmpi.w	#$0048,d1	;0C410048
 	bcs.s	adrCd004E4C	;6520
-	cmp.w	#$0058,d1	;0C410058
+	cmpi.w	#$0058,d1	;0C410058
 	bcc.s	adrCd004E4C	;641A
 	swap	d1	;4841
-	cmp.w	#$00E0,d1	;0C4100E0
+	cmpi.w	#$00E0,d1	;0C4100E0
 	bcs.s	adrCd004E4C	;6512
-	cmp.w	#$00F0,d1	;0C4100F0
+	cmpi.w	#$00F0,d1	;0C4100F0
 	bcs.s	adrCd004E46	;6506
-	cmp.w	#$0132,d1	;0C410132
+	cmpi.w	#$0132,d1	;0C410132
 	bcs.s	adrCd004E4E	;6508
 adrCd004E46:
 	move.w	#$0015,$000C(a5)	;3B7C0015000C
@@ -6852,14 +6853,14 @@ adrCd004E4C:
 
 adrCd004E4E:
 	swap	d1	;4841
-	cmp.w	#$0050,d1	;0C410050
+	cmpi.w	#$0050,d1	;0C410050
 	bcs.s	adrCd004E4C	;65F6
 	swap	d1	;4841
-	cmp.w	#$0128,d1	;0C410128
+	cmpi.w	#$0128,d1	;0C410128
 	bcc.s	adrCd004E72	;6414
-	cmp.w	#$011A,d1	;0C41011A
+	cmpi.w	#$011A,d1	;0C41011A
 	bcc.s	adrCd004E4C	;64E8
-	cmp.w	#$0110,d1	;0C410110
+	cmpi.w	#$0110,d1	;0C410110
 	bcs.s	adrCd004E4C	;65E2
 	addq.b	#$01,$0014(a4)	;522C0014
 	bra	adrCd0066F6	;60001886
@@ -6868,7 +6869,7 @@ adrCd004E72:
 	subq.b	#$01,$0014(a4)	;532C0014
 	bra	adrCd0066F6	;6000187E
 
-adrJA004E7A:
+Click_LaunchSpellFromBook:
 	bsr.s	adrCd004E8E	;6112
 	bne.s	adrCd004E86	;6608
 	bsr	adrCd006698	;61001818
@@ -6902,13 +6903,13 @@ adrCd004EC8:
 	bsr	adrCd00688C	;610019B8
 	move.b	$0009(a4),d1	;122C0009
 	sub.b	d0,d1	;9200
-	bcs	adrCd004FD6	;650000F8
+	bcs	Spells_NotEnoughSP	;650000F8
 	move.b	d1,$0009(a4)	;19410009
 	tst.b	d0	;4A00
 	bne.s	adrCd004EFA	;6612
 	move.b	$0013(a4),d0	;102C0013
 	bsr	adrCd006900	;61001A12
-	lea	adrEA00EE32.l,a0	;41F90000EE32
+	lea	RingUses.l,a0	;41F90000EE32
 	subq.b	#$01,$00(a0,d0.w)	;53300000
 adrCd004EFA:
 	bsr	adrCd0080CA	;610031CE
@@ -6919,18 +6920,18 @@ adrCd004EFA:
 	move.b	$00(a6,d0.w),d1	;12360000
 	addq.b	#$05,d1	;5A01
 	add.b	$0015(a4),d1	;D22C0015
-	cmp.b	#$64,d1	;0C010064
+	cmpi.b	#$64,d1	;0C010064
 	bcs.s	adrCd004F20	;6502
 	moveq	#$64,d1	;7264
 adrCd004F20:
 	move.b	d1,$0015(a4)	;19410015
 	add.w	d0,d0	;D040
-	lea	adrJB00505C.l,a0	;41F90000505C
-	lea	adrJT00500C.l,a6	;4DF90000500C
+	lea	Spells_01_Armour.l,a0	;41F90000505C
+	lea	Spells_LookupTable.l,a6	;4DF90000500C
 	add.w	$00(a6,d0.w),a0	;D0F60000
 	bsr	adrCd005546	;6100060E
 	add.b	d0,d7	;DE00
-	bmi.s	adrCd004FB0	;6B72
+	bmi.s	Spells_Failed	;6B72
 	move.w	d7,-(sp)	;3F07
 	bsr	adrCd008498	;61003556
 	move.w	(sp)+,d7	;3E1F
@@ -6973,7 +6974,7 @@ adrCd004FA8:
 	lea	NullString.l,a6	;4DF90000CAE9
 	bra.s	adrCd004FBE	;600E
 
-adrCd004FB0:
+Spells_Failed:
 	lea	SpellFailedMsg.l,a6	;4DF90000504C
 	move.w	#$0004,adrW_00D92A.l	;33FC00040000D92A
 adrCd004FBE:
@@ -6985,10 +6986,10 @@ adrCd004FBE:
 adrCd004FD4:
 	rts	;4E75
 
-adrCd004FD6:
+Spells_NotEnoughSP:
 	tst.b	adrB_00505B.l	;4A390000505B
 	bne.s	adrCd004FD4	;66F6
-	lea	adrEA00EA62.l,a6	;4DF90000EA62
+	lea	CostTooHighMsg.l,a6	;4DF90000EA62
 	jsr	LowerText.l	;4EB90000CFB8
 	moveq	#$01,d0	;7001
 	rts	;4E75
@@ -7001,39 +7002,39 @@ adrCd004FEE:
 SpellFizzledMsg:
 	dc.b	'SPELL FIZZLED'	;5350454C4C2046495A5A4C4544
 	dc.b	$FF	;FF
-adrJT00500C:
-	dc.w	adrJB00505C-adrJB00505C	;0000
-	dc.w	adrJA00507E-adrJB00505C	;0022
-	dc.w	adrJA005086-adrJB00505C	;002A
-	dc.w	adrJA00508E-adrJB00505C	;0032
-	dc.w	adrJA0050BE-adrJB00505C	;0062
-	dc.w	adrJA0050C2-adrJB00505C	;0066
-	dc.w	adrJA005136-adrJB00505C	;00DA
-	dc.w	adrJA005152-adrJB00505C	;00F6
-	dc.w	adrJA005158-adrJB00505C	;00FC
-	dc.w	adrJA005162-adrJB00505C	;0106
-	dc.w	adrJA005168-adrJB00505C	;010C
-	dc.w	adrJA005170-adrJB00505C	;0114
-	dc.w	adrJA0051D0-adrJB00505C	;0174
-	dc.w	adrJA0051D8-adrJB00505C	;017C
-	dc.w	adrJA0051DE-adrJB00505C	;0182
-	dc.w	adrJA0051E4-adrJB00505C	;0188
-	dc.w	adrJA005226-adrJB00505C	;01CA
-	dc.w	adrJA00522C-adrJB00505C	;01D0
-	dc.w	adrJA00527E-adrJB00505C	;0222
-	dc.w	adrJA0052B4-adrJB00505C	;0258
-	dc.w	adrJA0052F4-adrJB00505C	;0298
-	dc.w	adrJA0052FC-adrJB00505C	;02A0
-	dc.w	adrJA005302-adrJB00505C	;02A6
-	dc.w	adrJA005308-adrJB00505C	;02AC
-	dc.w	adrJA00530E-adrJB00505C	;02B2
-	dc.w	adrJA00531C-adrJB00505C	;02C0
-	dc.w	adrJA00541C-adrJB00505C	;03C0
-	dc.w	adrJA00546E-adrJB00505C	;0412
-	dc.w	adrJA005476-adrJB00505C	;041A
-	dc.w	adrJA0054E6-adrJB00505C	;048A
-	dc.w	adrJA0054EC-adrJB00505C	;0490
-	dc.w	adrJA0054FA-adrJB00505C	;049E
+Spells_LookupTable:
+	dc.w	Spells_01_Armour-Spells_01_Armour	;0000
+	dc.w	Spells_02_Terror-Spells_01_Armour	;0022
+	dc.w	Spells_03_Vitalise-Spells_01_Armour	;002A
+	dc.w	Spells_04_Biguile-Spells_01_Armour	;0032
+	dc.w	Spells_05_Deflect-Spells_01_Armour	;0062
+	dc.w	Spells_06_Magelock-Spells_01_Armour	;0066
+	dc.w	Spells_07_Conceal-Spells_01_Armour	;00DA
+	dc.w	Spells_08_Warpower-Spells_01_Armour	;00F6
+	dc.w	Spells_09_Missle-Spells_01_Armour	;00FC
+	dc.w	Spells_10_Vanish-Spells_01_Armour	;0106
+	dc.w	Spells_11_Paralyze-Spells_01_Armour	;010C
+	dc.w	Spells_12_Alchemy-Spells_01_Armour	;0114
+	dc.w	Spells_13_Confuse-Spells_01_Armour	;0174
+	dc.w	Spells_14_Levitate-Spells_01_Armour	;017C
+	dc.w	Spells_15_Antimage-Spells_01_Armour	;0182
+	dc.w	Spells_16_Recharge-Spells_01_Armour	;0188
+	dc.w	Spells_17_Trueview-Spells_01_Armour	;01CA
+	dc.w	Spells_18_Renew-Spells_01_Armour	;01D0
+	dc.w	Spells_19_Vivify-Spells_01_Armour	;0222
+	dc.w	Spells_20_Dispell-Spells_01_Armour	;0258
+	dc.w	Spells_21_Firepath-Spells_01_Armour	;0298
+	dc.w	Spells_22_Illusion-Spells_01_Armour	;02A0
+	dc.w	Spells_23_Compass-Spells_01_Armour	;02A6
+	dc.w	Spells_24_Spelltap-Spells_01_Armour	;02AC
+	dc.w	Spells_25_Disrupt-Spells_01_Armour	;02B2
+	dc.w	Spells_26_Fireball-Spells_01_Armour	;02C0
+	dc.w	Spells_27_Wychwind-Spells_01_Armour	;03C0
+	dc.w	Spells_28_ArcBolt-Spells_01_Armour	;0412
+	dc.w	Spells_29_Formwall-Spells_01_Armour	;041A
+	dc.w	Spells_30_Summon-Spells_01_Armour	;048A
+	dc.w	Spells_31_Blaze-Spells_01_Armour	;0490
+	dc.w	Spells_32_Mindrock-Spells_01_Armour	;049E
 SpellFailedMsg:
 	dc.b	'SPELL FAILED'	;5350454C4C204641494C4544
 	dc.b	$FF	;FF
@@ -7043,11 +7044,11 @@ adrW_00505A:
 adrB_00505B:
 	dc.b	$00	;00
 
-adrJB00505C:
+Spells_01_Armour:
 	moveq	#$00,d4	;7800
 	addq.w	#$02,d7	;5447
 adrCd005060:
-	cmp.w	#$0040,d7	;0C470040
+	cmpi.w	#$0040,d7	;0C470040
 	bcs.s	adrCd005068	;6502
 	moveq	#$3F,d7	;7E3F
 adrCd005068:
@@ -7058,16 +7059,16 @@ adrCd005068:
 	move.b	#$02,adrB_00EE3C.l	;13FC00020000EE3C
 	rts	;4E75
 
-adrJA00507E:
+Spells_02_Terror:
 	move.w	#$008F,d4	;383C008F
 	bra	adrCd005316	;60000292
 
-adrJA005086:
+Spells_03_Vitalise:
 	moveq	#$07,d4	;7807
 	lsr.w	#$02,d7	;E44F
 	bra	adrCd005236	;600001AA
 
-adrJA00508E:
+Spells_04_Biguile:
 	cmp.w	#$0008,$0042(a5)	;0C6D00080042
 	bne.s	adrCd0050BC	;6626
 	lsr.b	#$02,d7	;E40F
@@ -7085,11 +7086,11 @@ adrJA00508E:
 adrCd0050BC:
 	rts	;4E75
 
-adrJA0050BE:
+Spells_05_Deflect:
 	moveq	#$01,d4	;7801
 	bra.s	adrCd005060	;609E
 
-adrJA0050C2:
+Spells_06_Magelock:
 	bsr	adrCd008498	;610033D4
 	move.b	$01(a6,d0.w),d1	;12360001
 	and.w	#$0007,d1	;02410007
@@ -7112,9 +7113,9 @@ adrCd0050E8:
 	bcc.s	adrCd005134	;6436
 	move.b	$01(a6,d0.w),d1	;12360001
 	and.w	#$0007,d1	;02410007
-	cmp.w	#$0002,d1	;0C410002
+	cmpi.w	#$0002,d1	;0C410002
 	beq.s	adrCd00511C	;6710
-	cmp.w	#$0005,d1	;0C410005
+	cmpi.w	#$0005,d1	;0C410005
 	bne.s	adrCd005134	;6622
 	move.b	$00(a6,d0.w),d1	;12360000
 	lsr.b	#$04,d1	;E809
@@ -7133,7 +7134,7 @@ adrCd00512E:
 adrCd005134:
 	rts	;4E75
 
-adrJA005136:
+Spells_07_Conceal:
 	bsr	adrCd00847E	;61003346
 	cmp.w	adrW_00EE72.l,d7	;BE790000EE72
 	bcc.s	adrCd005150	;640E
@@ -7143,24 +7144,24 @@ adrJA005136:
 adrCd005150:
 	rts	;4E75
 
-adrJA005152:
+Spells_08_Warpower:
 	moveq	#$02,d4	;7802
 	bra	adrCd005060	;6000FF0A
 
-adrJA005158:
+Spells_09_Missle:
 	move.w	#$008A,d4	;383C008A
 	lsr.w	#$01,d7	;E24F
 	bra	adrCd005328	;600001C8
 
-adrJA005162:
+Spells_10_Vanish:
 	moveq	#$03,d4	;7803
 	bra	adrCd005060	;6000FEFA
 
-adrJA005168:
+Spells_11_Paralyze:
 	move.w	#$008C,d4	;383C008C
 	bra	adrCd005316	;600001A8
 
-adrJA005170:
+Spells_12_Alchemy:
 	moveq	#$00,d0	;7000
 	move.b	adrB_00EE3E.l,d0	;10390000EE3E
 	asl.w	#$04,d0	;E940
@@ -7168,21 +7169,21 @@ adrJA005170:
 	add.w	d0,a0	;D0C0
 	moveq	#$00,d0	;7000
 	move.b	(a0),d1	;1210
-	cmp.b	#$1B,d1	;0C01001B
+	cmpi.b	#$1B,d1	;0C01001B
 	bcs.s	adrCd005192	;6506
-	cmp.b	#$3F,d1	;0C01003F
+	cmpi.b	#$3F,d1	;0C01003F
 	bcs.s	adrCd0051A4	;6512
 adrCd005192:
 	move.b	$0001(a0),d1	;12280001
 	moveq	#$01,d0	;7001
-	cmp.b	#$1B,d1	;0C01001B
+	cmpi.b	#$1B,d1	;0C01001B
 	bcs.s	adrCd0051CE	;6530
-	cmp.b	#$3F,d1	;0C01003F
+	cmpi.b	#$3F,d1	;0C01003F
 	bcc.s	adrCd0051CE	;642A
 adrCd0051A4:
 	addq.w	#$05,d7	;5A47
 	add.b	$000C(a0),d7	;DE28000C
-	cmp.b	#$64,d7	;0C070064
+	cmpi.b	#$64,d7						;0C070064
 	bcs.s	adrCd0051B2	;6502
 	moveq	#$63,d7	;7E63
 adrCd0051B2:
@@ -7198,48 +7199,48 @@ adrCd0051C4:
 adrCd0051CE:
 	rts	;4E75
 
-adrJA0051D0:
+Spells_13_Confuse:
 	move.w	#$008B,d4	;383C008B
 	bra	adrCd005316	;60000140
 
-adrJA0051D8:
+Spells_14_Levitate:
 	moveq	#$05,d4	;7805
 	bra	adrCd005060	;6000FE84
 
-adrJA0051DE:
+Spells_15_Antimage:
 	moveq	#$06,d4	;7806
 	bra	adrCd005060	;6000FE7E
 
-adrJA0051E4:
-	moveq	#$00,d0	;7000
+Spells_16_Recharge:
+	moveq	#$00,d0			;7000
 	move.b	adrB_00EE3E.l,d0	;10390000EE3E
-	asl.w	#$04,d0	;E940
+	asl.w	#$04,d0			;E940
 	lea	PocketContents.l,a0	;41F90000ED2A
-	add.w	d0,a0	;D0C0
-	move.b	(a0),d0	;1010
-	cmp.b	#$69,d0	;0C000069
-	bcs.s	adrCd005204	;6506
-	cmp.b	#$6D,d0	;0C00006D
-	bcs.s	adrCd005214	;6510
+	add.w	d0,a0			;D0C0
+	move.b	(a0),d0			;1010
+	cmpi.b	#$69,d0			;0C000069
+	bcs.s	adrCd005204		;6506
+	cmpi.b	#$6D,d0			;0C00006D
+	bcs.s	adrCd005214		;6510
 adrCd005204:
-	move.b	$0001(a0),d0	;10280001
-	cmp.b	#$69,d0	;0C000069
-	bcs.s	adrCd005224	;6516
-	cmp.b	#$6D,d0	;0C00006D
-	bcc.s	adrCd005224	;6410
+	move.b	$0001(a0),d0		;10280001
+	cmpi.b	#$69,d0			;0C000069
+	bcs.s	adrCd005224		;6516
+	cmpi.b	#$6D,d0			;0C00006D
+	bcc.s	adrCd005224		;6410
 adrCd005214:
-	sub.w	#$0069,d0	;04400069
-	lea	adrEA00EE32.l,a0	;41F90000EE32
-	lsr.w	#$03,d7	;E64F
-	move.b	d7,$00(a0,d0.w)	;11870000
+	sub.w	#$0069,d0		;04400069
+	lea	RingUses.l,a0	;41F90000EE32
+	lsr.w	#$03,d7			;E64F
+	move.b	d7,$00(a0,d0.w)		;11870000
 adrCd005224:
 	rts	;4E75
 
-adrJA005226:
+Spells_17_Trueview:
 	moveq	#$07,d4	;7807
 	bra	adrCd005060	;6000FE36
 
-adrJA00522C:
+Spells_18_Renew:
 	move.w	d7,d4	;3807
 	add.w	d7,d7	;DE47
 	add.w	d4,d7	;DE44
@@ -7251,7 +7252,7 @@ adrLp005238:
 	bsr	adrCd005556	;6100031C
 	add.w	d0,d5	;DA40
 	dbra	d7,adrLp005238	;51CFFFF8
-	cmp.w	#$0100,d5	;0C450100
+	cmpi.w	#$0100,d5	;0C450100
 	bcs.s	adrCd00524A	;6502
 	moveq	#-$01,d5	;7AFF
 adrCd00524A:
@@ -7276,7 +7277,7 @@ adrCd005276:
 	dbra	d1,adrLp00524C	;51C9FFD4
 	bra	adrCd0080CA	;60002E4E
 
-adrJA00527E:
+Spells_19_Vivify:
 	bsr	adrCd008498	;61003218
 	bsr	adrCd0078FA	;61002676
 	bsr	adrCd0033BE	;6100E136
@@ -7299,7 +7300,7 @@ adrCd0052A0:
 	beq.s	adrCd00529E	;67EE
 	bra	adrCd007812	;60002560
 
-adrJA0052B4:
+Spells_20_Dispell:
 	bsr	adrCd00847E	;610031C8
 	bclr	#$03,$01(a6,d0.w)	;08B600030001
 	move.b	$01(a6,d0.w),d1	;12360001
@@ -7324,24 +7325,24 @@ adrCd0052E2:
 	bne.s	adrCd0052E2	;66F2
 	bra	adrCd001212	;6000BF20
 
-adrJA0052F4:
+Spells_21_Firepath:
 	move.w	#$0087,d4	;383C0087
 	addq.w	#$02,d7	;5447
 	bra.s	adrCd005316	;601A
 
-adrJA0052FC:
+Spells_22_Illusion:
 	moveq	#$65,d4	;7865
 	bra	adrCd005328	;60000028
 
-adrJA005302:
+Spells_23_Compass:
 	moveq	#$04,d4	;7804
 	bra	adrCd005060	;6000FD5A
 
-adrJA005308:
+Spells_24_Spelltap:
 	move.w	#$008E,d4	;383C008E
 	bra.s	adrCd005316	;6008
 
-adrJA00530E:
+Spells_25_Disrupt:
 	move.w	#$0083,d4	;383C0083
 	addq.w	#$05,d7	;5A47
 	add.w	d7,d7	;DE47
@@ -7349,7 +7350,7 @@ adrCd005316:
 	bset	#$08,d7	;08C70008
 	bra.s	adrCd005328	;600C
 
-adrJA00531C:
+Spells_26_Fireball:
 	move.w	#$0080,d4	;383C0080
 adrCd005320:
 	move.w	d7,d3	;3607
@@ -7383,7 +7384,7 @@ adrCd00535E:
 	lea	UnpackedMonsters.l,a4	;49F900016B7E
 	addq.w	#$01,-$0002(a4)	;526CFFFE
 	move.w	-$0002(a4),d1	;322CFFFE
-	cmp.w	#$007D,d1	;0C41007D
+	cmpi.w	#$007D,d1	;0C41007D
 	bcs.s	adrCd00537C	;650A
 	subq.w	#$01,-$0002(a4)	;536CFFFE
 	bsr	adrCd00277E	;6100D406
@@ -7409,7 +7410,7 @@ adrCd00537C:
 	tst.b	d4	;4A04
 	bmi.s	adrCd0053FE	;6B3E
 	move.b	#$64,$000B(a4)	;197C0064000B
-	cmp.b	#$65,d4	;0C040065
+	cmpi.b	#$65,d4	;0C040065
 	beq.s	adrCd0053D6	;670A
 	moveq	#$06,d4	;7806
 	add.w	d3,d4	;D843
@@ -7417,7 +7418,7 @@ adrCd00537C:
 	move.w	d4,$0008(a4)	;39440008
 adrCd0053D6:
 	lsr.w	#$02,d3	;E44B
-	cmp.b	#$65,d4	;0C040065
+	cmpi.b	#$65,d4	;0C040065
 	bne.s	adrCd0053E2	;6604
 	bset	#$07,d3	;08C30007
 adrCd0053E2:
@@ -7440,36 +7441,36 @@ adrCd005412:
 	bne	adrCd001D58	;6600C940
 	rts	;4E75
 
-adrJA00541C:
+Spells_27_Wychwind:
 	add.w	#$000A,d7	;0647000A
 	add.w	d7,d7	;DE47
 	moveq	#$07,d5	;7A07
-adrLp005424:
+.wychwind_loop:
 	movem.w	d5/d7,-(sp)	;48A70500
 	move.w	#$0081,d4	;383C0081
 	move.w	$0020(a5),d6	;3C2D0020
-	add.b	adrB_005466(pc,d5.w),d6	;DC3B5034
+	add.b	.wychwind_data(pc,d5.w),d6	;DC3B5034
 	and.w	#$0003,d6	;02460003
 	swap	d6	;4846
 	move.w	d5,d6	;3C05
-	cmp.w	#$0004,d6	;0C460004
-	bcc.s	adrCd00544C	;640A
+	cmpi.w	#$0004,d6	;0C460004
+	bcc.s	.wychwind_skip1	;640A
 	add.w	$0020(a5),d6	;DC6D0020
 	and.w	#$0003,d6	;02460003
-	bra.s	adrCd005458	;600C
+	bra.s	.wychwind_skip2	;600C
 
-adrCd00544C:
+.wychwind_skip1:
 	subq.w	#$04,d6	;5946
 	add.w	$0020(a5),d6	;DC6D0020
 	and.w	#$0003,d6	;02460003
 	addq.w	#$04,d6	;5846
-adrCd005458:
+.wychwind_skip2:
 	bsr	adrCd005332	;6100FED8
 	movem.w	(sp)+,d5/d7	;4C9F00A0
-	dbra	d5,adrLp005424	;51CDFFC2
+	dbra	d5,.wychwind_loop	;51CDFFC2
 	rts	;4E75
 
-adrB_005466:
+.wychwind_data:
 	dc.b	$00	;00
 	dc.b	$01	;01
 	dc.b	$02	;02
@@ -7479,11 +7480,11 @@ adrB_005466:
 	dc.b	$02	;02
 	dc.b	$00	;00
 
-adrJA00546E:
+Spells_28_ArcBolt:
 	move.w	#$0082,d4	;383C0082
 	bra	adrCd005320	;6000FEAC
 
-adrJA005476:
+Spells_29_Formwall:
 	moveq	#$03,d4	;7803
 adrCd005478:
 	move.w	d7,d3	;3607
@@ -7529,17 +7530,17 @@ adrCd0054E0:
 adrCd0054E4:
 	rts	;4E75
 
-adrJA0054E6:
+Spells_30_Summon:
 	moveq	#$64,d4	;7864
 	bra	adrCd005328	;6000FE3E
 
-adrJA0054EC:
+Spells_31_Blaze:
 	move.w	#$0084,d4	;383C0084
 	add.w	#$000A,d7	;0647000A
 	lsr.w	#$01,d7	;E24F
 	bra	adrCd005328	;6000FE30
 
-adrJA0054FA:
+Spells_32_Mindrock:
 	moveq	#$02,d4	;7802
 	bra	adrCd005478	;6000FF7A
 
@@ -7629,19 +7630,19 @@ adrCd0055A6:
 
 adrW_0055AA:
 	dc.b	$03	;03
-adrB_0055AB:
+RandomOffsetValue:
 	dc.b	$E1	;E1
 
-adrCd0055AC:
+RandomGen_BytewithOffset:
 	moveq	#$01,d1	;7201
-	bsr.s	adrCd0055BC	;610C
+	bsr.s	RandomGen	;610C
 	swap	d0	;4840
-	add.b	adrB_0055AB(pc),d0	;D03AFFF7
+	add.b	RandomOffsetValue(pc),d0	;D03AFFF7
 	rts	;4E75
 
-adrCd0055B8:
+RandomGen_100:
 	move.w	#$6400,d1	;323C6400
-adrCd0055BC:
+RandomGen:
 	swap	d1	;4841
 	moveq	#$00,d0	;7000
 	move.b	adrB_0055DE.l,d0	;1039000055DE
@@ -7660,7 +7661,7 @@ adrB_0055DE:
 	dc.b	$FF	;FF
 	dc.b	$FF	;FF
 
-adrJA0055E0:
+Click_ViewSpell:
 	move.w	#$0002,$0014(a5)	;3B7C00020014
 	bsr	adrCd00C2AC	;61006CC4
 	bpl.s	adrCd0055F6	;6A0A
@@ -7698,17 +7699,17 @@ adrJA005628:
 	bsr	adrCd00587C	;61000246
 	tst.w	$000C(a5)	;4A6D000C
 	bpl.s	adrCd005676	;6A38
-	cmp.w	#$0048,d1	;0C410048
+	cmpi.w	#$0048,d1	;0C410048
 	bcs.s	adrCd005676	;6532
-	cmp.w	#$0058,d1	;0C410058
+	cmpi.w	#$0058,d1	;0C410058
 	bcc.s	adrCd005676	;642C
 	swap	d1	;4841
 	sub.w	#$00E0,d1	;044100E0
 	bcs.s	adrCd005676	;6524
 	lsr.w	#$04,d1	;E849
-	cmp.w	#$0005,d1	;0C410005
-	beq	adrJA0057A4	;6700014A
-	cmp.w	#$0004,d1	;0C410004
+	cmpi.w	#$0005,d1	;0C410005
+	beq	Click_CloseSpellBook	;6700014A
+	cmpi.w	#$0004,d1	;0C410004
 	beq.s	adrCd005678	;6716
 	move.b	$18(a5,d1.w),d0	;10351018
 	and.w	#$00A0,d0	;024000A0
@@ -7758,12 +7759,12 @@ adrCd0056AC:
 adrLp0056C8:
 	move.w	(a2)+,d1	;321A
 	and.w	#$0007,d1	;02410007
-	cmp.b	#$02,d1	;0C010002
+	cmpi.b	#$02,d1	;0C010002
 	bne.s	adrCd0056DC	;6608
 	btst	#$04,-$0001(a2)	;082A0004FFFF
 	bne.s	adrCd0056EE	;6612
 adrCd0056DC:
-	cmp.b	#$07,d1	;0C010007
+	cmpi.b	#$07,d1	;0C010007
 	bne.s	adrCd0056F0	;660E
 	move.b	-$0002(a2),d1	;122AFFFE
 	and.w	#$0003,d1	;02410003
@@ -7820,7 +7821,7 @@ adrCd00575A:
 	cmp.l	a1,a3	;B7C9
 	beq.s	adrCd005792	;6734
 	move.b	#$FF,(a1)	;12BC00FF
-	exg	a3,a2	;C74A
+	exg	a2,a3	;C74A
 	dbra	d2,adrLp005714	;51CAFFAE
 	rts	;4E75
 
@@ -7855,7 +7856,7 @@ adrEA005794:
 	dc.w	$FF01	;FF01
 	dc.w	$01FF	;01FF
 
-adrJA0057A4:
+Click_CloseSpellBook:
 	clr.w	$0014(a5)	;426D0014
 	bra	adrCd008278	;60002ACE
 
@@ -7867,43 +7868,43 @@ adrCd0057BA:
 	move.w	$000C(a5),d0	;302D000C
 	bmi.s	adrCd005792	;6BD2
 	asl.w	#$02,d0	;E540
-	lea	adrJT0057CE.l,a0	;41F9000057CE
+	lea	InterfaceButtons.l,a0	;41F9000057CE
 	move.l	$00(a0,d0.w),a0	;20700000
 	jmp	(a0)	;4ED0
 
-adrJT0057CE:
+InterfaceButtons:
 	dc.l	adrJA006684	;00006684
-	dc.l	adrJA006616	;00006616
-	dc.l	adrJA0064AA	;000064AA
-	dc.l	adrJA006BF0	;00006BF0
+	dc.l	Click_ShowStats	;00006616
+	dc.l	Click_MultiFunctionButton	;000064AA
+	dc.l	Click_OpenInventory	;00006BF0
 	dc.l	adrJA005F9E	;00005F9E
-	dc.l	adrJA005F94	;00005F94
-	dc.l	adrJA0065B2	;000065B2
-	dc.l	adrJA0065B2	;000065B2
-	dc.l	adrJA0065B2	;000065B2
-	dc.l	adrJA0065B2	;000065B2
-	dc.l	adrJA006DEE	;00006DEE
-	dc.l	adrJA006DF2	;00006DF2
-	dc.l	adrJA006DF6	;00006DF6
-	dc.l	adrJA006DFA	;00006DFA
-	dc.l	adrJA006F5A	;00006F5A
-	dc.l	adrJA006F68	;00006F68
-	dc.l	adrJA00588E	;0000588E
+	dc.l	Click_Display_Centre	;00005F94
+	dc.l	Click_PartyMember	;000065B2
+	dc.l	Click_PartyMember	;000065B2
+	dc.l	Click_PartyMember	;000065B2
+	dc.l	Click_PartyMember	;000065B2
+	dc.l	Click_MoveForwards	;00006DEE
+	dc.l	Click_MoveBackwards	;00006DF2
+	dc.l	Click_MoveLeft	;00006DF6
+	dc.l	Click_MoveRight	;00006DFA
+	dc.l	Click_RotateLeft	;00006F5A
+	dc.l	Click_RotateRight	;00006F68
+	dc.l	Click_Display	;0000588E
 	dc.l	adrJA006C0A	;00006C0A
 	dc.l	adrJA006A46	;00006A46
-	dc.l	adrJA006914	;00006914
+	dc.l	Click_Item_17_to_1A_Potions	;00006914
 	dc.l	adrJA005862	;00005862
-	dc.l	adrJA004E7A	;00004E7A
-	dc.l	adrJA0055E0	;000055E0
-	dc.l	adrJA00C2EA	;0000C2EA
-	dc.l	adrJA0057A4	;000057A4
-	dc.l	adrJA00C2EA	;0000C2EA
-	dc.l	adrJA00420C	;0000420C
+	dc.l	Click_LaunchSpellFromBook	;00004E7A
+	dc.l	Click_ViewSpell	;000055E0
+	dc.l	Click_TurnSpellBookPage	;0000C2EA
+	dc.l	Click_CloseSpellBook	;000057A4
+	dc.l	Click_TurnSpellBookPage	;0000C2EA
+	dc.l	Click_CommsAndOptions	;0000420C
 	dc.l	adrJA005862	;00005862
-	dc.l	adrJA00425E	;0000425E
-	dc.l	adrJA00432A	;0000432A
-	dc.l	adrJA004536	;00004536
-	dc.l	adrJA0032DE	;000032DE
+	dc.l	Click_PauseGame	;0000425E
+	dc.l	Click_LoadSaveGame	;0000432A
+	dc.l	Click_SleepParty	;00004536
+	dc.l	Click_ShowTeamAvatars	;000032DE
 	dc.l	adrJA004C10	;00004C10
 	dc.l	adrJA00336A	;0000336A
 	dc.l	adrJA005D3E	;00005D3E
@@ -7934,7 +7935,7 @@ adrCd00587C:
 	move.w	#$FFFF,$000C(a5)	;3B7CFFFF000C
 	bra	adrCd004DB4	;6000F528
 
-adrJA00588E:
+Click_Display:
 	bsr.s	adrCd00587C	;61EC
 	bra	adrCd0057BA	;6000FF28
 
@@ -7962,7 +7963,7 @@ adrJA005894:
 	move.b	$00(a6,d0.w),d3	;16360000
 	and.w	#$0003,d3	;02430003
 	add.w	d3,d3	;D643
-	lea	adrJB0058F4.l,a0	;41F9000058F4
+	lea	MainWall_Action_01.l,a0	;41F9000058F4
 	add.w	adrJT0058EC(pc,d3.w),a0	;D0FB3006
 	jmp	(a0)	;4ED0
 
@@ -7970,21 +7971,21 @@ adrCd0058EA:
 	rts	;4E75
 
 adrJT0058EC:
-	dc.w	adrJB0058F4-adrJB0058F4	;0000
-	dc.w	adrJA00590C-adrJB0058F4	;0018
-	dc.w	adrJA005B2A-adrJB0058F4	;0236
-	dc.w	adrJA005958-adrJB0058F4	;0064
+	dc.w	MainWall_Action_01-MainWall_Action_01	;0000
+	dc.w	MainWall_Action_02-MainWall_Action_01	;0018
+	dc.w	MainWall_Action_03-MainWall_Action_01	;0236
+	dc.w	MainWall_Action_04-MainWall_Action_01	;0064
 
-adrJB0058F4:
+MainWall_Action_01:
 	move.w	$0004(a5),d1	;322D0004
 	sub.w	$0008(a5),d1	;926D0008
 	moveq	#$02,d6	;7C02
-	cmp.w	#$0033,d1	;0C410033
+	cmpi.w	#$0033,d1	;0C410033
 	bcs	adrCd005D4E	;6500044A
 	moveq	#$03,d6	;7C03
 	bra	adrCd005D4E	;60000444
 
-adrJA00590C:
+MainWall_Action_02:
 	moveq	#$00,d1	;7200
 	move.b	$00(a6,d0.w),d1	;12360000
 	lsr.b	#$02,d1	;E409
@@ -7998,16 +7999,16 @@ adrCd00591A:
 	bsr	adrCd00CC3A	;6100731A
 	move.w	(sp)+,d1	;321F
 	move.w	CurrentTower.l,d0	;30390000EE2E
-	add.b	adrB_005952(pc,d0.w),d1	;D23B0026
+	add.b	ScrollTowerOffsets(pc,d0.w),d1	;D23B0026
 	lea	ScrollOffsets.l,a0	;41F90001A31C
 	lea	$0092(a0),a6	;4DE80092
 	add.w	d1,d1	;D241
 	add.w	$00(a0,d1.w),a6	;DCF01000
 	move.w	#$0004,$0014(a5)	;3B7C00040014
 	move.l	#$00000003,adrW_00D92A.l	;23FC000000030000D92A
-	bra	adrCd00D0C6	;60007776
+	bra	Print_fflim_text	;60007776
 
-adrB_005952:
+ScrollTowerOffsets:
 	dc.b	$00	;00
 	dc.b	$15	;15
 	dc.b	$21	;21
@@ -8015,7 +8016,7 @@ adrB_005952:
 	dc.b	$31	;31
 	dc.b	$3B	;3B
 
-adrJA005958:
+MainWall_Action_04:
 	moveq	#$00,d1	;7200
 	move.b	$00(a6,d0.w),d1	;12360000
 	btst	#$02,d1	;08010002
@@ -8044,71 +8045,71 @@ adrCd005986:
 	move.b	$00(a6,d0.w),d1	;12360000
 	lsr.w	#$02,d1	;E449
 	and.w	#$000E,d1	;0241000E
-	lea	CrystalActions.l,a0	;41F9000059CE
-	add.w	adrJT0059BE(pc,d1.w),a0	;D0FB100A
+	lea	SocketActions_SerpentCrystal.l,a0	;41F9000059CE
+	add.w	Sockets_LookupTable(pc,d1.w),a0	;D0FB100A
 	jsr	(a0)	;4E90
 	moveq	#$05,d0	;7005
 	bra	PlaySound	;60002F02
 
-adrJT0059BE:
-	dc.w	CrystalActions-CrystalActions	;0000
-	dc.w	adrJA0059F2-CrystalActions	;0024
-	dc.w	adrJA005A38-CrystalActions	;006A
-	dc.w	adrJA005A58-CrystalActions	;008A
-	dc.w	Exit_CrystalAction-CrystalActions	;0022
-	dc.w	adrJA005AAE-CrystalActions	;00E0
-	dc.w	Exit_CrystalAction-CrystalActions	;0022
-	dc.w	adrJA005AA6-CrystalActions	;00D8
+Sockets_LookupTable:
+	dc.w	SocketActions_SerpentCrystal-SocketActions_SerpentCrystal	;0000
+	dc.w	SocketActions_ChaosCrystal-SocketActions_SerpentCrystal	;0024
+	dc.w	SocketActions_DragonCrystal-SocketActions_SerpentCrystal	;006A
+	dc.w	SocketActions_MoonCrystal-SocketActions_SerpentCrystal	;008A
+	dc.w	Exit_SocketAction-SocketActions_SerpentCrystal	;0022
+	dc.w	SocketActions_BluishGem-SocketActions_SerpentCrystal	;00E0
+	dc.w	Exit_SocketAction-SocketActions_SerpentCrystal	;0022
+	dc.w	SocketActions_TanGem-SocketActions_SerpentCrystal	;00D8
 
-CrystalActions:
+SocketActions_SerpentCrystal:
 	moveq	#$05,d4	;7805
 	moveq	#$12,d6	;7C12
 	bsr	adrCd005A7C	;610000A8
 	cmp.w	#$0005,CurrentTower.l	;0C7900050000EE2E
-	bne.s	Exit_CrystalAction	;6610
+	bne.s	Exit_SocketAction	;6610
 	move.l	#$00090001,d7	;2E3C00090001
 Last_CrystalAction:
 	bsr	CoordToMap	;61002AB4
 	and.w	#$00F8,$00(a6,d0.w)	;027600F80000
-Exit_CrystalAction:
+Exit_SocketAction:
 	rts	;4E75
 
-adrJA0059F2:
+SocketActions_ChaosCrystal:
 	bclr	#$02,$00(a6,d0.w)	;08B600020000
 	bsr	adrCd008498	;61002A9E
 	bsr	adrCd0078FA	;61001EFC
 	cmp.w	#$0005,CurrentTower.l	;0C7900050000EE2E
-	bne.s	Exit_CrystalAction	;66E6
+	bne.s	Exit_SocketAction	;66E6
 	lea	UnpackedMonsters.l,a0	;41F900016B7E
 	cmp.b	#$6B,$000B(a0)	;0C28006B000B
-	bne.s	adrCd005A30	;6618
+	bne.s	.EntropySummoned	;6618
 	tst.b	(a0)	;4A10
-	bpl.s	adrCd005A30	;6A14
+	bpl.s	.EntropySummoned	;6A14
 	and.b	#$7F,(a0)	;0210007F
 	move.l	#$00090008,d7	;2E3C00090008
 	bsr	CoordToMap	;61002A74
 	bset	#$07,$01(a6,d0.w)	;08F600070001
-adrCd005A30:
+.EntropySummoned:
 	move.l	#$00090003,d7	;2E3C00090003
 	bra.s	Last_CrystalAction	;60AE
 
-adrJA005A38:
+SocketActions_DragonCrystal:
 	moveq	#$07,d4	;7807
 	moveq	#$11,d6	;7C11
 	bsr.s	adrCd005A7C	;613E
 	cmp.w	#$0005,CurrentTower.l	;0C7900050000EE2E
-	bne.s	Exit_CrystalAction	;66A8
+	bne.s	Exit_SocketAction	;66A8
 	move.l	#$00100008,d7	;2E3C00100008
 	bsr.s	Last_CrystalAction	;6196
 	move.l	#$00040008,d7	;2E3C00040008	;
 	bra.s	Last_CrystalAction	;608E
 
-adrJA005A58:
+SocketActions_MoonCrystal:
 	moveq	#$09,d4	;7809
 	moveq	#$13,d6	;7C13
 	bsr.s	adrCd005A7C	;611E
 	cmp.w	#$0005,CurrentTower.l	;0C7900050000EE2E
-	bne.s	Exit_CrystalAction	;6688
+	bne.s	Exit_SocketAction	;6688
 	move.l	#$00030009,d7	;2E3C00030009	;Long Addr replaced with Symbol
 	bsr	Last_CrystalAction	;6100FF76
 	move.l	#$000F0009,d7	;2E3C000F0009
@@ -8129,13 +8130,13 @@ adrCd005A94:
 	bsr	adrCd001DBC	;6100C31C
 	bra	adrCd007FF8	;60002554
 
-adrJA005AA6:
+SocketActions_TanGem:
 	lea	TanGemLocs.l,a0	;41F900005AFA
-	bra.s	adrCd005AB4	;6006
+	bra.s	TeleportGem	;6006
 
-adrJA005AAE:
+SocketActions_BluishGem:
 	lea	BlueGemLocs.l,a0	;41F900005B12
-adrCd005AB4:
+TeleportGem:
 	move.w	CurrentTower.l,d1	;32390000EE2E
 	asl.w	#$02,d1	;E541
 	add.w	d1,a0	;D0C1
@@ -8186,11 +8187,11 @@ BlueGemLocs:
 	dc.w	$0011	;0011
 	dc.w	$0802	;0802
 
-adrJA005B2A:
+MainWall_Action_03:
 	moveq	#$00,d1	;7200
 	move.b	$00(a6,d0.w),d1	;12360000
 	and.w	#$00F8,d1	;024100F8
-	beq.s	adrJB005B66	;6730
+	beq.s	Switch_00_s00_Null	;6730
 	bchg	#$02,$00(a6,d0.w)	;087600020000
 	lsr.b	#$01,d1	;E209
 	move.w	CurrentTower.l,d0	;30390000EE2E
@@ -8199,24 +8200,24 @@ adrJA005B2A:
 	add.w	d0,a1	;D2C0
 	moveq	#$00,d0	;7000
 	move.b	$00(a1,d1.w),d0	;10311000
-	lea	adrJB005B66.l,a0	;41F900005B66
-	add.w	adrJT005B68(pc,d0.w),a0	;D0FB000C
+	lea	Switch_00_s00_Null.l,a0	;41F900005B66
+	add.w	Switches_LookupTable(pc,d0.w),a0	;D0FB000C
 	jsr	(a0)	;4E90
 	moveq	#$00,d0	;7000
 	bra	PlaySound	;60002D5A
 
-adrJB005B66:
+Switch_00_s00_Null:
 	rts	;4E75
 
-adrJT005B68:
-	dc.w	adrJB005B66-adrJB005B66	;0000
-	dc.w	adrJA005D12-adrJB005B66	;01AC
-	dc.w	adrJA005CFC-adrJB005B66	;0196
-	dc.w	adrJA007746-adrJB005B66	;1BE0
-	dc.w	adrJA0076B4-adrJB005B66	;1B4E
-	dc.w	adrJA00776C-adrJB005B66	;1C06
-	dc.w	adrJA007768-adrJB005B66	;1C02
-	dc.w	adrJA007758-adrJB005B66	;1BF2
+Switches_LookupTable:
+	dc.w	Switch_00_s00_Null-Switch_00_s00_Null	;0000
+	dc.w	Switch_01_s02_Trigger_11_t16_RemoveXY-Switch_00_s00_Null	;01AC
+	dc.w	Switch_02_s04_Trigger_23_t2E-Switch_00_s00_Null	;0196
+	dc.w	Switch_03_s06_Trigger_03_t06_OpenLockedDoorXY-Switch_00_s00_Null	;1BE0
+	dc.w	Switch_04_s08_Trigger_22_t2C_RotateWallXY-Switch_00_s00_Null	;1B4E
+	dc.w	Switch05_s0A_Trigger_13_t1A_TogglePillarXY-Switch_00_s00_Null	;1C06
+	dc.w	Switch06_s0C_Trigger_18_t24_CreatePillarXY-Switch_00_s00_Null	;1C02
+	dc.w	Switch_07_s0E_Trigger_26_t34_RotateWoodXY-Switch_00_s00_Null	;1BF2
 SwitchData_1:
 	dc.w	$0000	;0000
 	dc.w	$0000	;0000
@@ -8416,9 +8417,9 @@ SwitchData_6:
 	dc.w	$0000	;0000
 	dc.w	$0000	;0000
 
-adrJA005CF8:
-	bsr	adrJA005D12	;61000018
-adrJA005CFC:
+Switch_00_s00_Trigger_15_t1E_ToggleWallXY:
+	bsr	Switch_01_s02_Trigger_11_t16_RemoveXY	;61000018
+Switch_02_s04_Trigger_23_t2E:
 	bsr.s	adrCd005D2E	;6130
 	tst.b	$01(a6,d0.w)	;4A360001
 	bmi.s	adrCd005D10	;6B0C
@@ -8427,7 +8428,7 @@ adrJA005CFC:
 adrCd005D10:
 	rts	;4E75
 
-adrJA005D12:
+Switch_01_s02_Trigger_11_t16_RemoveXY:
 	bsr.s	adrCd005D2E	;611A
 	move.b	$01(a6,d0.w),d2	;14360001
 	and.w	#$0007,d2	;02420007
@@ -8460,17 +8461,17 @@ adrCd005D52:
 	move.l	$0002(a5),d1	;222D0002
 	sub.w	$0008(a5),d1	;926D0008
 	moveq	#$02,d6	;7C02
-	cmp.w	#$0051,d1	;0C410051
+	cmpi.w	#$0051,d1	;0C410051
 	bcs.s	adrCd005D64	;6502
 	subq.w	#$02,d6	;5546
 adrCd005D64:
 	swap	d1	;4841
-	cmp.w	#$00A0,d1	;0C4100A0
+	cmpi.w	#$00A0,d1	;0C4100A0
 	bcs.s	adrCd005D6E	;6502
 	addq.w	#$01,d6	;5246
 adrCd005D6E:
 	move.l	$001C(a5),d7	;2E2D001C
-	cmp.w	#$0002,d6	;0C460002
+	cmpi.w	#$0002,d6	;0C460002
 	bcc.s	adrCd005D7E	;6406
 	bsr	CoordToMap	;61002722
 	bra.s	adrCd005D9E	;6020
@@ -8509,7 +8510,7 @@ adrCd005D9E:
 	cmp.w	#$0005,$002E(a5)	;0C6D0005002E
 	bcc.s	adrCd005DEC	;640A
 	move.w	d1,d2	;3401
-	cmp.b	#$64,d2	;0C020064
+	cmpi.b	#$64,d2	;0C020064
 	bcs.s	adrCd005DEC	;6502
 	moveq	#$63,d2	;7463
 adrCd005DEC:
@@ -8710,7 +8711,7 @@ adrCd005F90:
 adrCd005F92:
 	rts	;4E75
 
-adrJA005F94:
+Click_Display_Centre:
 	and.b	#$01,(a5)	;02150001
 	bset	#$03,(a5)	;08D50003
 	bra.s	adrCd005FA6	;6008
@@ -8731,7 +8732,7 @@ adrCd005FA6:
 	bra	adrCd007B50	;60001B8E
 
 adrCd005FC4:
-	lea	adrEA052C0A.l,a1	;43F900052C0A
+	lea	_Temp_GFX_Pockets_09.l,a1	;43F900052C0A
 	move.l	screen_ptr.l,a0	;207900008D36
 	add.w	$000A(a5),a0	;D0ED000A
 	moveq	#$00,d0	;7000
@@ -8925,7 +8926,7 @@ adrCd006190:
 	ror.w	#$08,d1	;E059
 	tst.w	d3	;4A43
 	bne.s	adrCd0061A4	;6606
-	cmp.b	#$30,d1	;0C010030
+	cmpi.b	#$30,d1	;0C010030
 	beq.s	adrCd0061AA	;6706
 adrCd0061A4:
 	move.b	d1,$00(a6,d2.w)	;1D812000
@@ -8956,10 +8957,10 @@ adrCd0061DA:
 	bsr	adrCd00641C	;61000238
 	clr.w	$0000(a6)	;426E0000
 	clr.w	adrW_00230A.w	;4278230A	;Short Absolute converted to symbol!
-	bsr	adrCd0055B8	;6100F3C8
+	bsr	RandomGen_100	;6100F3C8
 	add.w	$0002(a6),d0	;D06E0002
 	move.w	d0,d2	;3400
-	bsr	adrCd0055B8	;6100F3BE
+	bsr	RandomGen_100	;6100F3BE
 	add.w	$0004(a6),d0	;D06E0004
 	sub.w	d0,d2	;9440
 	bmi.s	adrCd006210	;6B0C
@@ -8978,7 +8979,7 @@ adrCd006210:
 	bpl	adrCd006288	;6A00006E
 adrCd00621C:
 	move.w	$0006(a6),d1	;322E0006
-	bsr	adrCd0055BC	;6100F39A
+	bsr	RandomGen	;6100F39A
 	addq.w	#$01,d0	;5240
 	add.b	$0008(a6),d0	;D02E0008
 	add.b	$000A(a6),d0	;D02E000A
@@ -9011,13 +9012,13 @@ adrCd006264:
 	bcs.s	adrCd006288	;6520
 	beq.s	adrCd006288	;671E
 	move.w	d0,d1	;3200
-	cmp.w	#$0028,d2	;0C420028
+	cmpi.w	#$0028,d2	;0C420028
 	bcc.s	adrCd006284	;6412
 	add.w	d1,d0	;D041
-	cmp.w	#$0019,d2	;0C420019
+	cmpi.w	#$0019,d2	;0C420019
 	bcc.s	adrCd006284	;640A
 	add.w	d1,d0	;D041
-	cmp.w	#$000A,d2	;0C42000A
+	cmpi.w	#$000A,d2	;0C42000A
 	bcc.s	adrCd006284	;6402
 	add.w	d1,d0	;D041
 adrCd006284:
@@ -9033,7 +9034,7 @@ adrCd00628C:
 	moveq	#$00,d5	;7A00
 	moveq	#$00,d6	;7C00
 	moveq	#$00,d7	;7E00
-	cmp.w	#$0010,d0	;0C400010
+	cmpi.w	#$0010,d0	;0C400010
 	bcs.s	adrCd0062C6	;652C
 	sub.w	#$0010,d0	;04400010
 	asl.w	#$04,d0	;E940
@@ -9125,7 +9126,7 @@ adrCd006362:
 	move.b	$0003(a1),d2	;14290003
 	sub.b	#$24,d2	;04020024
 	bcs.s	adrCd006378	;650A
-	cmp.w	#$0007,d2	;0C420007
+	cmpi.w	#$0007,d2	;0C420007
 	bcc.s	adrCd006378	;6404
 	add.b	Monster_Grades?_5FD6(pc,d2.w),d3	;D63B2004
 adrCd006378:
@@ -9142,33 +9143,33 @@ Monster_Grades?_5FD6:
 	dc.b	$00	;00
 
 adrCd006382:
-	moveq	#$00,d0	;7000
-	move.b	(a1),d0	;1011
-	sub.b	#$30,d0	;04000030
-	bcs.s	adrCd006392	;6506
-	cmp.b	#$10,d0	;0C000010
-	bcs.s	adrCd0063A2	;6510
+	moveq	#$00,d0			;7000
+	move.b	(a1),d0			;1011
+	sub.b	#$30,d0			;04000030
+	bcs.s	adrCd006392		;6506
+	cmpi.b	#$10,d0			;0C000010
+	bcs.s	adrCd0063A2		;6510
 adrCd006392:
-	move.b	$0001(a1),d0	;10290001
-	sub.b	#$30,d0	;04000030
-	bcs.s	adrCd0063DA	;653E
-	cmp.b	#$10,d0	;0C000010
-	bcc.s	adrCd0063DA	;6438
+	move.b	$0001(a1),d0		;10290001
+	sub.b	#$30,d0			;04000030
+	bcs.s	adrCd0063DA		;653E
+	cmpi.b	#$10,d0			;0C000010
+	bcc.s	adrCd0063DA		;6438
 adrCd0063A2:
 	lea	adrEA0063DC.l,a0	;41F9000063DC
-	asl.w	#$02,d0	;E540
-	add.w	d0,a0	;D0C0
-	move.b	(a0)+,d4	;1818
-	move.b	(a0)+,d5	;1A18
-	move.b	(a0)+,d6	;1C18
-	move.b	(a0)+,d7	;1E18
-	tst.w	adrW_00628A.w	;4A78628A	;Short Absolute converted to symbol!
-	bne.s	adrCd0063C6	;660C
-	cmp.b	#$08,d0	;0C000008
-	bcs.s	adrCd0063C6	;6506
+	asl.w	#$02,d0			;E540
+	add.w	d0,a0			;D0C0
+	move.b	(a0)+,d4		;1818
+	move.b	(a0)+,d5		;1A18
+	move.b	(a0)+,d6		;1C18
+	move.b	(a0)+,d7		;1E18
+	tst.w	adrW_00628A.w		;4A78628A	;Short Absolute converted to symbol!
+	bne.s	adrCd0063C6		;660C
+	cmpi.b	#$08,d0			;0C000008
+	bcs.s	adrCd0063C6		;6506
 	move.w	#$FFFF,adrW_00628A.w	;31FCFFFF628A	;Short Absolute converted to symbol!
 adrCd0063C6:
-	cmp.b	#$1C,d0	;0C00001C
+	cmpi.b	#$1C,d0	;0C00001C
 	bne.s	adrCd0063DA	;660E
 	cmp.b	#$2B,$0012(a4)	;0C2C002B0012
 	beq.s	adrCd0063DA	;6706
@@ -9271,7 +9272,7 @@ adrCd0064A4:
 	move.w	d0,$0002(a6)	;3D400002
 	rts	;4E75
 
-adrJA0064AA:
+Click_MultiFunctionButton:
 	bsr	adrCd00665C	;610001B0
 	tst.b	$0011(a4)	;4A2C0011
 	beq.s	adrCd0064C2	;670E
@@ -9295,7 +9296,7 @@ adrJA0064D0:
 	bsr	adrCd008498	;61001FBC
 	move.b	$01(a6,d0.w),d1	;12360001
 	and.w	#$0007,d1	;02410007
-	cmp.b	#$02,d1	;0C010002
+	cmpi.b	#$02,d1	;0C010002
 	bne.s	adrCd0064F2	;6606
 	btst	d2,$00(a6,d0.w)	;05360000
 	bne.s	adrCd006552	;6660
@@ -9309,9 +9310,9 @@ adrCd0064F2:
 	eor.w	#$0004,d2	;0A420004
 	move.b	$01(a6,d0.w),d1	;12360001
 	and.w	#$0007,d1	;02410007
-	cmp.b	#$02,d1	;0C010002
+	cmpi.b	#$02,d1	;0C010002
 	beq.s	adrCd00654A	;6730
-	cmp.b	#$05,d1	;0C010005
+	cmpi.b	#$05,d1	;0C010005
 	bne.s	adrCd006550	;6630
 	tst.b	$01(a6,d0.w)	;4A360001
 	bmi.s	adrCd006550	;6B2A
@@ -9357,14 +9358,14 @@ adrCd00657C:
 
 adrCd006594:
 	lea	DoorLockedMsg.l,a6	;4DF90000659E
-	bra	adrCd00D088	;60006AEC
+	bra	WriteTimedText	;60006AEC
 
 DoorLockedMsg:
 	dc.b	'THE DOOR IS LOCKED'	;54484520444F4F52204953204C4F434B4544
 	dc.b	$FF	;FF
 	dc.b	$00	;00
 
-adrJA0065B2:
+Click_PartyMember:
 	lsr.w	#$02,d0	;E448
 	subq.w	#$06,d0	;5D40
 	tst.w	$0016(a5)	;4A6D0016
@@ -9401,12 +9402,12 @@ adrCd006608:
 	bsr	adrCd008278	;61001C68
 	bra	adrCd007B50	;6000153C
 
-adrJA006616:
+Click_ShowStats:
 	move.w	#$0001,$0014(a5)	;3B7C00010014
 	moveq	#$38,d5	;7A38
 	bsr	adrCd00CB2A	;6100650A
 	lea	adrEA00E9E8.l,a6	;4DF90000E9E8
-	bsr	adrCd00D0C6	;61006A9C
+	bsr	Print_fflim_text	;61006A9C
 	asl.w	#$05,d7	;EB47
 	lea	CharacterStats.l,a6	;4DF90000EB2A
 	moveq	#$00,d0	;7000
@@ -9458,7 +9459,7 @@ adrCd0066AA:
 	move.w	d7,d0	;3007
 	bsr	adrCd00CAEA	;6100643C
 	addq.w	#$01,d7	;5247
-	cmp.w	#$006C,d7	;0C47006C
+	cmpi.w	#$006C,d7	;0C47006C
 	bcs.s	adrCd0066AA	;65F2
 adrCd0066B8:
 	moveq	#$4F,d0	;704F
@@ -9487,7 +9488,7 @@ adrCd0066F6:
 	lea	adrEA00EA36.l,a6	;4DF90000EA36
 	bsr	adrCd00CEC4	;610067BC
 	move.w	d1,$0010(a6)	;3D410010
-	bsr	adrCd00D0C6	;610069B6
+	bsr	Print_fflim_text	;610069B6
 adrCd006712:
 	lea	adrEA00EA4C.l,a6	;4DF90000EA4C
 	bsr	LowerText	;6100689E
@@ -9501,7 +9502,7 @@ adrCd006720:
 	bpl.s	adrCd006736	;6A02
 	moveq	#$00,d7	;7E00
 adrCd006736:
-	cmp.b	#$13,d7	;0C070013
+	cmpi.b	#$13,d7	;0C070013
 	bcc.s	adrCd00675E	;6422
 	move.b	adrB_006760(pc,d7.w),d0	;103B7022
 	moveq	#$64,d1	;7264
@@ -9726,7 +9727,7 @@ adrCd00688C:
 	bne.s	adrCd0068D0	;661C
 adrCd0068B4:
 	sub.w	#$0069,d0	;04400069
-	lea	adrEA00EE32.l,a0	;41F90000EE32
+	lea	RingUses.l,a0	;41F90000EE32
 	tst.b	$00(a0,d0.w)	;4A300000
 	bmi.s	adrCd0068D0	;6B0C
 	moveq	#$00,d0	;7000
@@ -9752,13 +9753,13 @@ adrCd0068DC:
 	addq.b	#$01,$0014(a4)	;522C0014
 	moveq	#$01,d0	;7001
 adrCd0068F8:
-	cmp.w	#$0064,d0	;0C400064
+	cmpi.w	#$0064,d0	;0C400064
 	bcc.s	adrCd0068CC	;64CE
 	rts	;4E75
 
 adrCd006900:
 	move.w	d0,d6	;3C00
-	cmp.b	#$10,d0	;0C000010
+	cmpi.b	#$10,d0	;0C000010
 	bcs.s	adrCd00690A	;6502
 	not.w	d0	;4640
 adrCd00690A:
@@ -9768,12 +9769,12 @@ adrCd00690A:
 adrCd006912:
 	rts	;4E75
 
-adrJA006914:
+Click_Item_17_to_1A_Potions:
 	move.w	$002E(a5),d0	;302D002E
 	beq.s	adrCd006912	;67F8
-	cmp.w	#$001B,d0	;0C40001B
+	cmpi.w	#$001B,d0	;0C40001B
 	bcc.s	adrCd006912	;64F2
-	cmp.w	#$0017,d0	;0C400017
+	cmpi.w	#$0017,d0	;0C400017
 	bcs.s	adrCd00699A	;6574
 	sub.w	#$0017,d0	;04400017
 	move.w	d0,d1	;3200
@@ -9781,33 +9782,33 @@ adrJA006914:
 	move.b	$000F(a5),d0	;102D000F
 	move.b	$18(a5,d0.w),d0	;10350018
 	bsr	adrCd006660	;6100FD26
-	lea	adrJB00695A.l,a0	;41F90000695A
+	lea	Potion_1_SerpentSlime.l,a0	;41F90000695A
 	add.w	d1,d1	;D241
-	add.w	adrJT006952(pc,d1.w),a0	;D0FB100C
+	add.w	Potion_LookupTable(pc,d1.w),a0	;D0FB100C
 	jsr	(a0)	;4E90
 	bsr	adrCd007FF8	;610016AC
 	bra	adrCd006C34	;600002E4
 
-adrJT006952:
-	dc.w	adrJB00695A-adrJB00695A	;0000
-	dc.w	adrJA006976-adrJB00695A	;001C
-	dc.w	adrJA006962-adrJB00695A	;0008
-	dc.w	adrJA00696A-adrJB00695A	;0010
+Potion_LookupTable:
+	dc.w	Potion_1_SerpentSlime-Potion_1_SerpentSlime	;0000
+	dc.w	Potion_2_BrimstoneBroth-Potion_1_SerpentSlime	;001C
+	dc.w	Potion_3_DragonAle-Potion_1_SerpentSlime	;0008
+	dc.w	Potion_4_MoonElixir-Potion_1_SerpentSlime	;0010
 
-adrJB00695A:
+Potion_1_SerpentSlime:
 	move.b	$0006(a4),$0005(a4)	;196C00060005
 	rts	;4E75
 
-adrJA006962:
+Potion_3_DragonAle:
 	move.b	$0008(a4),$0007(a4)	;196C00080007
 	rts	;4E75
 
-adrJA00696A:
+Potion_4_MoonElixir:
 	move.b	$000A(a4),$0009(a4)	;196C000A0009
 	clr.b	$0015(a4)	;422C0015
 	rts	;4E75
 
-adrJA006976:
+Potion_2_BrimstoneBroth:
 	clr.b	$0015(a4)	;422C0015
 	moveq	#$05,d4	;7805
 	bsr.s	adrCd006984	;6106
@@ -9824,9 +9825,9 @@ adrCd006984:
 	rts	;4E75
 
 adrCd00699A:
-	cmp.w	#$0005,d0	;0C400005
+	cmpi.w	#$0005,d0	;0C400005
 	bcs	adrCd006A16	;65000076
-	cmp.w	#$0014,d0	;0C400014
+	cmpi.w	#$0014,d0	;0C400014
 	bcs.s	adrCd0069BA	;6512
 	moveq	#$00,d1	;7200
 	sub.w	#$0014,d0	;04400014
@@ -9838,7 +9839,7 @@ adrLp0069AE:
 
 adrCd0069BA:
 	moveq	#$14,d1	;7214
-	cmp.w	#$000E,d0	;0C40000E
+	cmpi.w	#$000E,d0	;0C40000E
 	bcc.s	adrCd0069C4	;6402
 	moveq	#$20,d1	;7220
 adrCd0069C4:
@@ -9858,7 +9859,7 @@ adrCd0069D4:
 	bsr	adrCd006660	;6100FC7E
 	add.b	$0010(a4),d1	;D22C0010
 	bcs.s	adrCd0069F0	;6506
-	cmp.w	#$00C8,d1	;0C4100C8
+	cmpi.w	#$00C8,d1	;0C4100C8
 	bcs.s	adrCd0069F4	;6504
 adrCd0069F0:
 	move.b	#$C7,d1	;123C00C7
@@ -9868,7 +9869,7 @@ adrCd0069F4:
 	add.w	#$0B64,a0	;D0FC0B64
 	add.w	$000A(a5),a0	;D0ED000A
 	move.w	$002E(a5),d0	;302D002E
-	bsr	adrCd00CA66	;6100605A
+	bsr	ObjectGraphic	;6100605A
 	bsr	adrCd006D1E	;6100030E
 	bra	adrCd006C9C	;60000288
 
@@ -9908,26 +9909,26 @@ adrJA006A46:
 	move.b	$000F(a5),d0	;102D000F
 	move.w	$002E(a5),d1	;322D002E
 	beq.s	adrCd006A98	;6720
-	cmp.b	#$03,d0	;0C000003
+	cmpi.b	#$03,d0	;0C000003
 	bne.s	adrCd006A98	;661A
-	cmp.w	#$0024,d1	;0C410024
+	cmpi.w	#$0024,d1	;0C410024
 	bcs.s	adrCd006AAE	;652A
-	cmp.w	#$002B,d1	;0C41002B
+	cmpi.w	#$002B,d1	;0C41002B
 	bcc.s	adrCd006AAE	;6424
 	btst	#$00,d2	;08020000
 	beq.s	adrCd006AF2	;6762
-	cmp.w	#$0027,d1	;0C410027
+	cmpi.w	#$0027,d1	;0C410027
 	bcs.s	adrCd006AF2	;655C
 	bra.s	adrCd006AAE	;6016
 
 adrCd006A98:
-	cmp.b	#$02,d0	;0C000002
+	cmpi.b	#$02,d0	;0C000002
 	bne.s	adrCd006AB4	;6616
 	tst.w	d1	;4A41
 	beq.s	adrCd006AF2	;6750
-	cmp.w	#$001B,d1	;0C41001B
+	cmpi.w	#$001B,d1	;0C41001B
 	bcs.s	adrCd006AAE	;6506
-	cmp.w	#$0024,d1	;0C410024
+	cmpi.w	#$0024,d1	;0C410024
 	bcs.s	adrCd006AF2	;6544
 adrCd006AAE:
 	move.w	d7,$000E(a5)	;3B47000E
@@ -9957,7 +9958,7 @@ adrCd006AF2:
 	moveq	#$00,d1	;7200
 	move.b	$00(a6,d0.w),d1	;12360000
 	beq	adrCd006B82	;67000088
-	cmp.w	#$0005,d1	;0C410005
+	cmpi.w	#$0005,d1	;0C410005
 	bcc	adrCd006B82	;64000080
 	move.w	$002E(a5),d3	;362D002E
 	bne.s	adrCd006B1C	;6612
@@ -9967,7 +9968,7 @@ adrCd006AF2:
 	bra	adrCd006BB8	;6000009E
 
 adrCd006B1C:
-	cmp.w	#$0005,d3	;0C430005
+	cmpi.w	#$0005,d3	;0C430005
 	bcs.s	adrCd006B30	;650E
 	move.b	$0B(a6,d1.w),$002D(a5)	;1B76100B002D
 	clr.b	$0B(a6,d1.w)	;4236100B
@@ -9979,7 +9980,7 @@ adrCd006B30:
 	move.b	$0B(a6,d1.w),d2	;1436100B
 	add.b	$002D(a5),d2	;D42D002D
 	move.b	d2,$0B(a6,d1.w)	;1D82100B
-	cmp.b	#$64,d2	;0C020064
+	cmpi.b	#$64,d2	;0C020064
 	bcc.s	adrCd006B4C	;6406
 	clr.l	$002C(a5)	;42AD002C
 	bra.s	adrCd006BB8	;606C
@@ -9991,7 +9992,7 @@ adrCd006B4C:
 adrCd006B54:
 	move.b	$0B(a6,d3.w),d2	;1436300B
 	add.b	$002D(a5),d2	;D42D002D
-	cmp.b	#$64,d2	;0C020064
+	cmpi.b	#$64,d2	;0C020064
 	bcc.s	adrCd006B72	;6410
 	move.b	d2,$0B(a6,d3.w)	;1D82300B
 	move.b	$0B(a6,d1.w),$002D(a5)	;1B76100B002D
@@ -10008,12 +10009,12 @@ adrCd006B78:
 adrCd006B82:
 	move.w	$002E(a5),d3	;362D002E
 	beq.s	adrCd006BB0	;6728
-	cmp.w	#$0005,d3	;0C430005
+	cmpi.w	#$0005,d3	;0C430005
 	bcc.s	adrCd006BB0	;6422
 	move.b	$0B(a6,d3.w),d2	;1436300B
 	add.b	$002D(a5),d2	;D42D002D
 	move.b	d2,$0B(a6,d3.w)	;1D82300B
-	cmp.b	#$64,d2	;0C020064
+	cmpi.b	#$64,d2	;0C020064
 	bcc.s	adrCd006B72	;64D2
 adrCd006BA0:
 	moveq	#$0B,d2	;740B
@@ -10042,13 +10043,13 @@ adrCd006BD8:
 	move.w	d7,$000E(a5)	;3B47000E
 	move.w	$002E(a5),d0	;302D002E
 	beq.s	adrCd006BE8	;6706
-	cmp.w	#$0005,d0	;0C400005
+	cmpi.w	#$0005,d0	;0C400005
 	bcs.s	adrJA006C0A	;6522
 adrCd006BE8:
 	move.w	#$0001,$002C(a5)	;3B7C0001002C
 	bra.s	adrJA006C0A	;601A
 
-adrJA006BF0:
+Click_OpenInventory:
 	clr.w	$000E(a5)	;426D000E
 	move.l	#$005E00E1,d4	;283C005E00E1
 	move.l	#$00070040,d5	;2A3C00070040
@@ -10068,7 +10069,7 @@ adrJA006C0A:
 adrCd006C34:
 	bsr	adrCd006CD2	;6100009C
 	cmp.b	#$03,$0015(a5)	;0C2D00030015
-	bne	adrJB007016	;660003D6
+	bne	Trigger_00_t00_Null	;660003D6
 adrCd006C42:
 	or.b	#$04,$0054(a5)	;002D00040054
 	move.l	screen_ptr.l,a0	;207900008D36
@@ -10078,27 +10079,27 @@ adrCd006C42:
 adrCd006C58:
 	bsr	adrCd008416	;610017BC
 	addq.w	#$01,d7	;5247
-	cmp.w	#$0004,d7	;0C470004
+	cmpi.w	#$0004,d7	;0C470004
 	bcs.s	adrCd006C58	;65F4
 	move.w	$002E(a5),d0	;302D002E
 	move.w	$002C(a5),d1	;322D002C
-	bsr	adrCd00CA66	;61005DF8
+	bsr	ObjectGraphic	;61005DF8
 	move.w	$0012(a5),d3	;362D0012
 	moveq	#$74,d0	;7074
 	bsr	adrCd00CAEA	;61005E72
 	bsr	adrCd006D1E	;610000A2
 	move.w	$002E(a5),d0	;302D002E
 	beq.s	adrCd006C90	;670C
-	cmp.w	#$0005,d0	;0C400005
+	cmpi.w	#$0005,d0	;0C400005
 	bcs.s	adrCd006C90	;6506
-	cmp.w	#$0017,d0	;0C400017
+	cmpi.w	#$0017,d0	;0C400017
 	bcs.s	adrCd006C92	;6502
 adrCd006C90:
 	rts	;4E75
 
 adrCd006C92:
 	lea	adrEA00E998.l,a6	;4DF90000E998
-	bsr	adrCd00D0C6	;6100642C
+	bsr	Print_fflim_text	;6100642C
 adrCd006C9C:
 	or.b	#$14,$0054(a5)	;002D00140054
 	move.w	$000E(a5),d0	;302D000E
@@ -10124,7 +10125,7 @@ adrCd006CE2:
 	move.w	d0,d1	;3200
 	sub.w	#$0040,d1	;04410040
 	bcs.s	adrCd006D08	;651E
-	cmp.w	#$0010,d1	;0C410010
+	cmpi.w	#$0010,d1	;0C410010
 	bcc.s	adrCd006D08	;6418
 	move.w	d1,d0	;3001
 	bsr	adrCd004078	;6100D384
@@ -10134,11 +10135,11 @@ adrCd006CE2:
 	bclr	#$05,$18(a5,d1.w)	;08B500051018
 	clr.l	$002C(a5)	;42AD002C
 adrCd006D08:
-	lea	adrEA00E4C4.l,a6	;4DF90000E4C4
+	lea	ObjectDefinitionsTable.l,a6	;4DF90000E4C4
 	asl.w	#$02,d0	;E540
 	add.w	d0,a6	;DCC0
 	move.w	#$0006,adrW_00D92A.l	;33FC00060000D92A
-	bra	adrCd00D7FE	;60006AE2
+	bra	Print_item_desc_fresh	;60006AE2
 
 adrCd006D1E:
 	moveq	#$0D,d3	;760D
@@ -10164,7 +10165,7 @@ adrCd006D44:
 	move.l	screen_ptr.l,a0	;207900008D36
 	add.w	$000A(a5),a0	;D0ED000A
 	add.w	#$097C,a0	;D0FC097C
-	lea	adrEA053162.l,a1	;43F900053162
+	lea	_Temp_GFX_Pockets_12.l,a1	;43F900053162
 	btst	#$00,(a5)	;08150000
 	bne.s	adrCd006D6E	;6604
 	lea	$0020(a1),a1	;43E90020
@@ -10225,21 +10226,21 @@ adrCd006DA2:
 	swap	d3	;4843
 	bra	adrCd00B5CA	;600047DE
 
-adrJA006DEE:
+Click_MoveForwards:
 	moveq	#$00,d0	;7000
-	bra.s	adrCd006DFC	;600A
+	bra.s	MoveParty	;600A
 
-adrJA006DF2:
+Click_MoveBackwards:
 	moveq	#$02,d0	;7002
-	bra.s	adrCd006DFC	;6006
+	bra.s	MoveParty	;6006
 
-adrJA006DF6:
+Click_MoveLeft:
 	moveq	#$03,d0	;7003
-	bra.s	adrCd006DFC	;6002
+	bra.s	MoveParty	;6002
 
-adrJA006DFA:
+Click_MoveRight:
 	moveq	#$01,d0	;7001
-adrCd006DFC:
+MoveParty:
 	and.b	#$01,(a5)	;02150001
 	move.w	d0,-(sp)	;3F00
 	bsr.s	adrCd006DA2	;619E
@@ -10253,7 +10254,7 @@ adrCd006DFC:
 	bne.s	adrCd006E3C	;661E
 	move.w	$00(a6,d0.w),d1	;32360000
 	and.w	#$0007,d1	;02410007
-	cmp.w	#$0004,d1	;0C410004
+	cmpi.w	#$0004,d1	;0C410004
 	bne.s	adrCd006E3C	;6610
 	move.b	$00(a6,d0.w),d1	;12360000
 	lsr.b	#$01,d1	;E209
@@ -10310,7 +10311,7 @@ adrCd006EA8:
 	movem.l	(sp)+,d0/d7/a6	;4CDF4081
 	move.w	$00(a6,d0.w),d1	;32360000
 	and.w	#$0007,d1	;02410007
-	cmp.w	#$0004,d1	;0C410004
+	cmpi.w	#$0004,d1	;0C410004
 	bne	adrCd006F38	;66000076
 	moveq	#$00,d6	;7C00
 	move.b	$00(a6,d0.w),d6	;1C360000
@@ -10358,18 +10359,18 @@ adrCd006F38:
 adrCd006F4A:
 	move.w	$0042(a5),d0	;302D0042
 	bmi.s	adrCd006F58	;6B08
-	cmp.w	#$0008,d0	;0C400008
-	bcc	adrJA0032DE	;6400C388
+	cmpi.w	#$0008,d0	;0C400008
+	bcc	Click_ShowTeamAvatars	;6400C388
 adrCd006F58:
 	rts	;4E75
 
-adrJA006F5A:
+Click_RotateLeft:
 	subq.w	#$01,$0020(a5)	;536D0020
 	and.w	#$0003,$0020(a5)	;026D00030020
 	moveq	#$04,d0	;7004
 	bra.s	adrCd006F74	;600C
 
-adrJA006F68:
+Click_RotateRight:
 	addq.w	#$01,$0020(a5)	;526D0020
 	and.w	#$0003,$0020(a5)	;026D00030020
 	moveq	#$05,d0	;7005
@@ -10414,17 +10415,17 @@ adrCd006FC0:
 	add.w	d2,a1	;D2C2
 	moveq	#$00,d2	;7400
 	move.b	$00(a1,d1.w),d2	;14311000
-	cmp.b	#$08,d2	;0C020008
+	cmpi.b	#$08,d2	;0C020008
 	beq.s	adrCd006FF2	;670C
-	cmp.b	#$0A,d2	;0C02000A
+	cmpi.b	#$0A,d2	;0C02000A
 	beq.s	adrCd006FF2	;6706
-	cmp.b	#$2A,d2	;0C02002A
+	cmpi.b	#$2A,d2	;0C02002A
 	bne.s	adrCd006FF8	;6606
 adrCd006FF2:
 	move.w	#$0005,adrEA006FA8.w	;31FC00056FA8	;Short Absolute converted to symbol!
 adrCd006FF8:
-	lea	adrJB007016.l,a0	;41F900007016
-	add.w	adrJT007018(pc,d2.w),a0	;D0FB2018
+	lea	Trigger_00_t00_Null.l,a0	;41F900007016
+	add.w	Triggers_LookupTable(pc,d2.w),a0	;D0FB2018
 	movem.l	d0/d7/a6,-(sp)	;48E78102
 	jsr	(a0)	;4E90
 	move.w	adrEA006FA8.w,d0	;30386FA8	;Short Absolute converted to symbol!
@@ -10432,110 +10433,48 @@ adrCd006FF8:
 	bsr	PlaySound	;610018AE
 adrCd007012:
 	movem.l	(sp)+,d0/d7/a6	;4CDF4081
-adrJB007016:
+Trigger_00_t00_Null:
 	rts	;4E75
 
-adrJT007018:
-	dc.w	adrJB007016-adrJB007016	;0000
-	dc.w	adrJA007712-adrJB007016	;06FC
-	dc.w	adrJA00771A-adrJB007016	;0704
-	dc.w	adrJA007746-adrJB007016	;0730
-	dc.w	adrJA007800-adrJB007016	;07EA
-	dc.w	adrJA0078F0-adrJB007016	;08DA
-	dc.w	adrJA0076D2-adrJB007016	;06BC
-	dc.w	adrJA0076EA-adrJB007016	;06D4
-	dc.w	adrJA007702-adrJB007016	;06EC
-	dc.w	adrJA007454-adrJB007016	;043E
-	dc.w	adrJA0073E6-adrJB007016	;03D0
-	dc.w	adrJA005D12-adrJB007016	;ECFC
-	dc.w	adrJA007734-adrJB007016	;071E
-	dc.w	adrJA00776C-adrJB007016	;0756
-	dc.w	adrJA00777E-adrJB007016	;0768
+Triggers_LookupTable:
+	dc.w	Trigger_00_t00_Null-Trigger_00_t00_Null	;0000
+	dc.w	Trigger_01_t02_Spinner180-Trigger_00_t00_Null	;06FC
+	dc.w	Trigger_02_t04_SpinnerRandom-Trigger_00_t00_Null	;0704
+	dc.w	Switch_03_s06_Trigger_03_t06_OpenLockedDoorXY-Trigger_00_t00_Null	;0730
+	dc.w	Trigger_04_t08-Trigger_00_t00_Null	;07EA
+	dc.w	Trigger_05_t0A-Trigger_00_t00_Null	;08DA
+	dc.w	Trigger_06_t0C_WoodTrap1-Trigger_00_t00_Null	;06BC
+	dc.w	Trigger_07_t0E_WoodTrap2-Trigger_00_t00_Null	;06D4
+	dc.w	Trigger_08_t10-Trigger_00_t00_Null	;06EC
+	dc.w	Trigger_09_t12-Trigger_00_t00_Null	;043E
+	dc.w	Trigger_10_t14-Trigger_00_t00_Null	;03D0
+	dc.w	Switch_01_s02_Trigger_11_t16_RemoveXY-Trigger_00_t00_Null	;ECFC
+	dc.w	Trigger_12_t18-Trigger_00_t00_Null	;071E
+	dc.w	Switch05_s0A_Trigger_13_t1A_TogglePillarXY-Trigger_00_t00_Null	;0756
+	dc.w	Trigger_14_t1C-Trigger_00_t00_Null	;0768
 
-	dc.w	adrJA005CF8-adrJB007016	;ECE2
-	dc.w	adrJA007796-adrJB007016	;0780
-	dc.w	adrJA0077D6-adrJB007016	;07C0
-	dc.w	adrJA007768-adrJB007016	;0752
+	dc.w	Switch_00_s00_Trigger_15_t1E_ToggleWallXY-Trigger_00_t00_Null	;ECE2
+	dc.w	Trigger_16_t20-Trigger_00_t00_Null	;0780
+	dc.w	Trigger_17_t22-Trigger_00_t00_Null	;07C0
+	dc.w	Switch06_s0C_Trigger_18_t24_CreatePillarXY-Trigger_00_t00_Null	;0752
 
-	dc.w	adrJA007386-adrJB007016	;0370
-	dc.w	adrJA007356-adrJB007016	;0340
-	dc.w	adrJA007686-adrJB007016	;0670
-	dc.w	adrJA0076B4-adrJB007016	;069E
+	dc.w	Trigger_19_t26-Trigger_00_t00_Null	;0370
+	dc.w	Trigger_20_t28-Trigger_00_t00_Null	;0340
+	dc.w	Trigger_21_t2A-Trigger_00_t00_Null	;0670
+	dc.w	Switch_04_s08_Trigger_22_t2C_RotateWallXY-Trigger_00_t00_Null	;069E
 
-	dc.w	adrJA005CFC-adrJB007016	;ECE6
-	dc.w	adrJA007728-adrJB007016	;0712
-	dc.w	adrJA00763C-adrJB007016	;0626
-	dc.w	adrJA00778A-adrJB007016	;0774
+	dc.w	Switch_02_s04_Trigger_23_t2E-Trigger_00_t00_Null	;ECE6
+	dc.w	adrJA007728-Trigger_00_t00_Null	;0712
+	dc.w	Trigger_24_t30_Spinner3-Trigger_00_t00_Null	;0626
+	dc.w	Trigger_25_t32-Trigger_00_t00_Null	;0774
 
-	dc.w	adrJA007758-adrJB007016	;0742
-	dc.w	adrJA007630-adrJB007016	;061A
-	dc.w	adrJA00751A-adrJB007016	;0504
-	dc.w	adrJA007502-adrJB007016	;04EC
+	dc.w	Switch_07_s0E_Trigger_26_t34_RotateWoodXY-Trigger_00_t00_Null	;0742
+	dc.w	Trigger_27_t36-Trigger_00_t00_Null	;061A
+	dc.w	Trigger_28_t38_GameCompletion-Trigger_00_t00_Null	;0504
+	dc.w	adrJA007502-Trigger_00_t00_Null	;04EC
 TriggersData_1:
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0200	;0200
-	dc.w	$0000	;0000
-	dc.w	$0400	;0400
-	dc.w	$0000	;0000
-	dc.w	$0600	;0600
-	dc.w	$0E06	;0E06
-	dc.w	$0800	;0800
-	dc.w	$0000	;0000
-	dc.w	$0A00	;0A00
-	dc.w	$0000	;0000
-	dc.w	$0C00	;0C00
-	dc.w	$0000	;0000
-	dc.w	$0E00	;0E00
-	dc.w	$0000	;0000
-	dc.w	$0600	;0600
-	dc.w	$1403	;1403
-	dc.w	$1000	;1000
-	dc.w	$0000	;0000
-	dc.w	$1202	;1202
-	dc.w	$0A01	;0A01
-	dc.w	$1404	;1404
-	dc.w	$0000	;0000
-	dc.w	$1203	;1203
-	dc.w	$0801	;0801
-	dc.w	$1204	;1204
-	dc.w	$0A11	;0A11
-	dc.w	$1408	;1408
-	dc.w	$0000	;0000
-	dc.w	$1205	;1205
-	dc.w	$0811	;0811
-	dc.w	$1206	;1206
-	dc.w	$110A	;110A
-	dc.w	$140C	;140C
-	dc.w	$0000	;0000
-	dc.w	$1207	;1207
-	dc.w	$1108	;1108
-	dc.w	$1208	;1208
-	dc.w	$010A	;010A
-	dc.w	$1410	;1410
-	dc.w	$0000	;0000
-	dc.w	$1209	;1209
-	dc.w	$0108	;0108
-	dc.w	$120A	;120A
-	dc.w	$0103	;0103
-	dc.w	$1414	;1414
-	dc.w	$0000	;0000
-	dc.w	$120B	;120B
-	dc.w	$0101	;0101
-	dc.w	$1600	;1600
-	dc.w	$0002	;0002
-	dc.w	$1600	;1600
-	dc.w	$0202	;0202
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
+	INCBIN bw-data/mod0.triggers
+
 TriggersData_2:
 	dc.w	$0000	;0000
 	dc.w	$0000	;0000
@@ -10862,7 +10801,7 @@ TriggersData_6:
 	dc.w	$2600	;2600
 	dc.w	$0607	;0607
 
-adrJA007356:
+Trigger_20_t28:
 	tst.w	MultiPlayer.l	;4A790000EE30
 	beq	adrCd007470	;67000112
 	pea	$00(a1,d1.w)	;48711000
@@ -10877,7 +10816,7 @@ adrJA007356:
 	moveq	#$00,d0	;7000
 	bra	adrCd007408	;60000084
 
-adrJA007386:
+Trigger_19_t26:
 	tst.w	MultiPlayer.l	;4A790000EE30
 	bne	adrCd007470	;660000E2
 	pea	$00(a1,d1.w)	;48711000
@@ -10919,7 +10858,7 @@ KeepStartLocations:
 	dc.w	$0101	;0101
 	dc.w	$0103	;0103
 
-adrJA0073E6:
+Trigger_10_t14:
 	tst.w	MultiPlayer.l	;4A790000EE30
 	beq	adrCd007470	;67000082
 	pea	$00(a1,d1.w)	;48711000
@@ -10949,9 +10888,9 @@ adrCd007408:
 	move.l	$001C(a5),$0008(sp)	;2F6D001C0008
 	move.l	a6,$000C(sp)	;2F4E000C
 	bset	#$07,$01(a6,d0.w)	;08F600070001
-	bra	adrCd0009F6	;600095A4
+	bra	MonsterTransfer	;600095A4
 
-adrJA007454:
+Trigger_09_t12:
 	tst.w	MultiPlayer.l	;4A790000EE30
 	bmi.s	adrCd007470	;6B14
 	pea	$00(a1,d1.w)	;48711000
@@ -10991,11 +10930,11 @@ adrCd00748C:
 	move.l	$001C(a5),$0008(sp)	;2F6D001C0008
 	move.l	a6,$000C(sp)	;2F4E000C
 	bset	#$07,$01(a6,d0.w)	;08F600070001
-	exg	a5,a1	;CB49
+	exg	a1,a5	;CB49
 	bsr	adrCd008498	;61000FBC
 	bset	#$07,$01(a6,d0.w)	;08F600070001
-	exg	a5,a1	;CB49
-	bra	adrCd0009F6	;6000950E
+	exg	a1,a5	;CB49
+	bra	MonsterTransfer	;6000950E
 
 DungeonStartLocs:
 	dc.w	$0000	;0000
@@ -11016,30 +10955,30 @@ adrJA007502:
 	move.b	$0014(a6),d0	;102E0014
 	and.b	$001C(a6),d0	;C02E001C
 	btst	#$00,d0	;08000000
-	bne	adrJA005D12	;6600E7FC
+	bne	Switch_01_s02_Trigger_11_t16_RemoveXY	;6600E7FC
 	rts	;4E75
 
-adrJA00751A:
+Trigger_28_t38_GameCompletion:
 	move.l	a5,-(sp)	;2F0D
-	bsr.s	GameEndSequence	;6164
+	bsr.s	GameEndPicture	;6164
 	clr.w	adrB_008C1E.l	;427900008C1E
 	bsr	adrCd008CCA	;610017A4
 	bsr	adrCd008D88	;6100185E
 	moveq	#$4B,d0	;704B
-adrLp00752E:
-	dbra	d1,adrLp00752E	;51C9FFFE
-	dbra	d0,adrLp00752E	;51C8FFFA
+DBFWait1d:
+	dbra	d1,DBFWait1d	;51C9FFFE
+	dbra	d0,DBFWait1d	;51C8FFFA
 	lea	Player1_Data.l,a5	;4BF90000EE7C
 	bsr	adrCd00CF96	;61005A58
 	lea	NullString.l,a6	;4DF90000CAE9
 	bsr	WriteText	;61005B46
 	tst.w	MultiPlayer.l	;4A790000EE30
-	bne.s	adrCd007566	;6614
+	bne.s	.Player2Skip	;6614
 	lea	Player2_Data.l,a5	;4BF90000EEDE
 	bsr	adrCd00CF96	;61005A3C
 	lea	NullString.l,a6	;4DF90000CAE9
 	bsr	WriteText	;61005B2A
-adrCd007566:
+.Player2Skip:
 	bsr	adrCd008CCA	;61001762
 	bsr	adrCd008D88	;6100181C
 	move.w	#$FFFF,adrB_008C1E.l	;33FCFFFF00008C1E
@@ -11049,7 +10988,7 @@ adrCd007576:
 	move.l	(sp)+,a5	;2A5F
 	rts	;4E75
 
-GameEndSequence:
+GameEndPicture:
 	lea	Player1_Data.l,a5	;4BF90000EE7C
 	tst.w	MultiPlayer.l	;4A790000EE30
 	bne.s	.GameEnd_repeat	;6608
@@ -11072,7 +11011,7 @@ GameEndSequence:
 	moveq	#$00,d1	;7200
 	moveq	#$28,d5	;7A28
 	moveq	#$36,d4	;7836
-	bsr	adrJA00A53C	;61002F66
+	bsr	Draw_Entropy	;61002F66
 	unlk	a3	;4E5B
 	lea	AccursedBloodwychMsg.l,a6	;4DF9000075F4
 	bsr	WriteText	;61005AAC
@@ -11091,12 +11030,12 @@ CongratsText:
 	dc.b	$FF	;FF
 	dc.b	$00	;00
 
-adrJA007630:
+Trigger_27_t36:
 	bsr	adrCd005D2E	;6100E6FC
 	eor.b	#$03,$00(a6,d0.w)	;0A3600030000
 	rts	;4E75
 
-adrJA00763C:
+Trigger_24_t30_Spinner3:
 	moveq	#$00,d0	;7000
 	move.b	$01(a1,d1.w),d0	;10311001
 	move.w	d0,d6	;3C00
@@ -11124,7 +11063,7 @@ adrCd007664:
 	move.l	d0,$0008(sp)	;2F400008
 	rts	;4E75
 
-adrJA007686:
+Trigger_21_t2A:
 	moveq	#$00,d0	;7000
 	move.b	$01(a1,d1.w),d0	;10311001
 	move.w	d0,d6	;3C00
@@ -11145,7 +11084,7 @@ adrCd0076AC:
 	moveq	#$10,d7	;7E10
 	bra	adrCd001DBC	;6000A70A
 
-adrJA0076B4:
+Switch_04_s08_Trigger_22_t2C_RotateWallXY:
 	bsr	adrCd005D2E	;6100E678
 	move.b	$01(a6,d0.w),d1	;12360001
 	move.w	d1,d2	;3401
@@ -11156,21 +11095,21 @@ adrJA0076B4:
 	move.b	d2,$01(a6,d0.w)	;1D820001
 	rts	;4E75
 
-adrJA0076D2:
+Trigger_06_t0C_WoodTrap1:
 	move.l	#$000D000C,d7	;2E3C000D000C
 	bsr	CoordToMap	;61000DC2
 	bset	#$02,$00(a6,d0.w)	;08F600020000
 	bclr	#$06,$02(a6,d0.w)	;08B600060002
 	rts	;4E75
 
-adrJA0076EA:
+Trigger_07_t0E_WoodTrap2:
 	move.l	#$00030000,d7	;2E3C00030000	;Long Addr replaced with Symbol
 	bsr	CoordToMap	;61000DAA
 	bclr	#$02,$00(a6,d0.w)	;08B600020000
 	bset	#$06,$02(a6,d0.w)	;08F600060002
 	rts	;4E75
 
-adrJA007702:
+Trigger_08_t10:
 	subq.w	#$02,d0	;5540
 	tst.b	$01(a6,d0.w)	;4A360001
 	bmi.s	adrCd007710	;6B06
@@ -11178,12 +11117,12 @@ adrJA007702:
 adrCd007710:
 	rts	;4E75
 
-adrJA007712:
+Trigger_01_t02_Spinner180:
 	eor.w	#$0002,$0020(a5)	;0A6D00020020
 	rts	;4E75
 
-adrJA00771A:
-	bsr	adrCd0055AC	;6100DE90
+Trigger_02_t04_SpinnerRandom:
+	bsr	RandomGen_BytewithOffset	;6100DE90
 	and.w	#$0003,d0	;02400003
 	move.w	d0,$0020(a5)	;3B400020
 	rts	;4E75
@@ -11193,44 +11132,44 @@ adrJA007728:
 	and.w	#$0003,$0020(a5)	;026D00030020
 	rts	;4E75
 
-adrJA007734:
+Trigger_12_t18:
 	bsr	adrCd005D2E	;6100E5F8
 	bset	#$00,$00(a6,d0.w)	;08F600000000
 	move.w	#$0001,adrEA006FA8.w	;31FC00016FA8	;Short Absolute converted to symbol!
 	rts	;4E75
 
-adrJA007746:
+Switch_03_s06_Trigger_03_t06_OpenLockedDoorXY:
 	bsr	adrCd005D2E	;6100E5E6
 	bclr	#$00,$00(a6,d0.w)	;08B600000000
 	move.w	#$0001,adrEA006FA8.w	;31FC00016FA8	;Short Absolute converted to symbol!
 	rts	;4E75
 
-adrJA007758:
+Switch_07_s0E_Trigger_26_t34_RotateWoodXY:
 	bsr	adrCd005D2E	;6100E5D4
 	move.b	$00(a6,d0.w),d1	;12360000
 	ror.b	#$02,d1	;E419
 	move.b	d1,$00(a6,d0.w)	;1D810000
 	rts	;4E75
 
-adrJA007768:
-	bsr	adrJA005D12	;6100E5A8
-adrJA00776C:
+Switch06_s0C_Trigger_18_t24_CreatePillarXY:
+	bsr	Switch_01_s02_Trigger_11_t16_RemoveXY	;6100E5A8
+Switch05_s0A_Trigger_13_t1A_TogglePillarXY:
 	bsr	adrCd005D2E	;6100E5C0
 	move.b	#$01,$00(a6,d0.w)	;1DBC00010000
 	eor.b	#$03,$01(a6,d0.w)	;0A3600030001
 	rts	;4E75
 
-adrJA00777E:
+Trigger_14_t1C:
 	bsr	adrCd005D2E	;6100E5AE
 	or.b	#$06,$01(a6,d0.w)	;003600060001
 	rts	;4E75
 
-adrJA00778A:
+Trigger_25_t32:
 	bsr	adrCd005D2E	;6100E5A2
 	eor.b	#$06,$01(a6,d0.w)	;0A3600060001
 	rts	;4E75
 
-adrJA007796:
+Trigger_16_t20:
 	moveq	#$00,d6	;7C00
 	move.b	$01(a1,d1.w),d6	;1C311001
 	move.w	d1,-(sp)	;3F01
@@ -11240,17 +11179,17 @@ adrJA007796:
 	lea	adrEA005794.w,a0	;41F85794	;Short Absolute converted to symbol!
 	add.b	$08(a0,d6.w),d7	;DE306008
 	cmp.w	adrW_00EE72.l,d7	;BE790000EE72
-	bcc	adrJA005D12	;6400E55C
+	bcc	Switch_01_s02_Trigger_11_t16_RemoveXY	;6400E55C
 	swap	d7	;4847
 	add.b	$00(a0,d6.w),d7	;DE306000
 	cmp.w	adrW_00EE70.l,d7	;BE790000EE70
-	bcc	adrJA005D12	;6400E54C
+	bcc	Switch_01_s02_Trigger_11_t16_RemoveXY	;6400E54C
 	swap	d7	;4847
 	bsr	CoordToMap	;61000CD0
 	eor.b	#$06,$01(a6,d0.w)	;0A3600060001
 	rts	;4E75
 
-adrJA0077D6:
+Trigger_17_t22:
 	bsr	adrCd0084FC	;61000D24
 	move.l	d2,d7	;2E02
 	subq.b	#$01,d7	;5307
@@ -11264,10 +11203,10 @@ adrJA0077D6:
 	and.w	#$00F8,$00(a6,d0.w)	;027600F80000
 	rts	;4E75
 
-adrJA007800:
+Trigger_04_t08:
 	addq.w	#$02,d0	;5440
 	tst.b	$01(a6,d0.w)	;4A360001
-	bmi	adrJB007016	;6B00F80E
+	bmi	Trigger_00_t00_Null	;6B00F80E
 	bset	#$00,$00(a6,d0.w)	;08F600000000
 	addq.w	#$02,d0	;5440
 adrCd007812:
@@ -11296,7 +11235,7 @@ adrCd007844:
 	move.b	$00(a1,d3.w),d2	;14313000
 	sub.b	#$40,d2	;04020040
 	bcs.s	adrCd007854	;6506
-	cmp.b	#$10,d2	;0C020010
+	cmpi.b	#$10,d2	;0C020010
 	bcs.s	adrCd00785A	;6506
 adrCd007854:
 	subq.w	#$02,d3	;5543
@@ -11353,7 +11292,7 @@ adrCd0078E4:
 	move.l	(sp)+,a5	;2A5F
 	rts	;4E75
 
-adrJA0078F0:
+Trigger_05_t0A:
 	subq.w	#$02,d0	;5540
 	bset	#$00,$00(a6,d0.w)	;08F600000000
 	addq.w	#$02,d0	;5440
@@ -11552,7 +11491,7 @@ adrCd007ADE:
 adrCd007AE6:
 	move.b	$01(a6,d0.w),d1	;12360001
 	and.w	#$0007,d1	;02410007
-	cmp.b	#$02,d1	;0C010002
+	cmpi.b	#$02,d1	;0C010002
 	bne.s	adrCd007B04	;6610
 adrCd007AF4:
 	move.w	d6,d1	;3206
@@ -11589,7 +11528,7 @@ adrCd007B34:
 	bsr	BW_blit_horiz_line	;6100604E
 	addq.w	#$01,d5	;5245
 	addq.w	#$01,d3	;5243
-	cmp.w	#$0005,d3	;0C430005
+	cmpi.w	#$0005,d3	;0C430005
 	bcs.s	adrCd007B34	;65F2
 	subq.w	#$02,d3	;5543
 adrCd007B44:
@@ -11614,15 +11553,15 @@ adrCd007B50:
 	add.w	$0008(a5),d5	;DA6D0008
 	moveq	#$32,d4	;7832
 	move.l	#$002B0002,d3	;263C002B0002
-	bsr	BW_blit_vertical	;61005F74
+	bsr	BW_blit_vertical_line	;61005F74
 	moveq	#$5D,d4	;785D
-	bsr	BW_blit_vertical	;61005F6E
+	bsr	BW_blit_vertical_line	;61005F6E
 	addq.w	#$02,d5	;5445
 	sub.l	#$00040000,d3	;048300040000	;Long Addr replaced with Symbol
 	moveq	#$5B,d4	;785B
-	bsr	BW_blit_vertical	;61005F60
+	bsr	BW_blit_vertical_line	;61005F60
 	moveq	#$34,d4	;7834
-	bsr	BW_blit_vertical	;61005F5A
+	bsr	BW_blit_vertical_line	;61005F5A
 	move.l	screen_ptr.l,a0	;207900008D36
 	add.w	#$0147,a0	;D0FC0147
 	add.w	$000A(a5),a0	;D0ED000A
@@ -11636,15 +11575,15 @@ adrCd007BC0:
 	bsr	adrCd00CAEA	;61004F1E
 	addq.w	#$01,d7	;5247
 	add.w	#$027C,a0	;D0FC027C
-	cmp.w	#$0075,d7	;0C470075
+	cmpi.w	#$0075,d7	;0C470075
 	bcs.s	adrCd007BC0	;65E6
 	cmp.w	#$0008,$0042(a5)	;0C6D00080042
 	bne.s	adrCd007BE8	;6606
-	cmp.w	#$0077,d7	;0C470077
+	cmpi.w	#$0077,d7	;0C470077
 	bcs.s	adrCd007BC0	;65D8
 adrCd007BE8:
 	bsr	adrCd007D6C	;61000182
-	lea	adrEA050362.l,a1	;43F900050362
+	lea	_Temp_GFX_Pockets_04.l,a1	;43F900050362
 	move.l	#$00050006,d5	;2A3C00050006	;Long Addr replaced with Symbol
 	move.l	screen_ptr.l,a0	;207900008D36
 	add.w	#$0DE8,a0	;D0FC0DE8
@@ -11828,7 +11767,7 @@ adrCd007CAC:
 	addq.w	#$02,d2	;5442
 adrCd007CCC:
 	addq.w	#$01,d1	;5241
-	cmp.w	#$0004,d1	;0C410004
+	cmpi.w	#$0004,d1	;0C410004
 	bcs.s	adrCd007CAC	;65D8
 	rts	;4E75
 
@@ -11932,7 +11871,7 @@ adrCd007DAC:
 	swap	d4	;4844
 	addq.w	#$01,d4	;5244
 	move.l	#$00060000,d3	;263C00060000
-	bsr	BW_blit_vertical	;61005D3E
+	bsr	BW_blit_vertical_line	;61005D3E
 	movem.l	(sp),d4/d5/d7	;4CD700B0
 	swap	d4	;4844
 	addq.w	#$02,d4	;5444
@@ -11954,7 +11893,7 @@ adrCd007DF2:
 	movem.l	(sp)+,d4/d5/d7	;4CDF00B0
 	addq.w	#$08,d5	;5045
 	addq.w	#$01,d7	;5247
-	cmp.w	#$0004,d7	;0C470004
+	cmpi.w	#$0004,d7	;0C470004
 	bcs.s	adrCd007D8E	;658E
 	move.l	screen_ptr.l,a0	;207900008D36
 	add.w	$000A(a5),a0	;D0ED000A
@@ -11963,28 +11902,28 @@ adrCd007DF2:
 	moveq	#$00,d7	;7E00
 adrCd007E12:
 	move.l	a0,-(sp)	;2F08
-	bsr	adrCd00D74C	;61005936
+	bsr	Print_com_menu_entry	;61005936
 	clr.b	adrB_00EE2D.l	;42390000EE2D
 	move.l	(sp)+,a0	;205F
 	add.w	#$0140,a0	;D0FC0140
 adrL_007E22:	equ	*-2
 	addq.w	#$01,d7	;5247
-	cmp.w	#$0004,d7	;0C470004
+	cmpi.w	#$0004,d7	;0C470004
 	bcs.s	adrCd007E12	;65E6
 	moveq	#$00,d4	;7800
 	moveq	#$39,d5	;7A39
 	add.w	$0008(a5),d5	;DA6D0008
 	move.l	#$001E0000,d3	;263C001E0000
-	bsr	BW_blit_vertical	;61005CC8
+	bsr	BW_blit_vertical_line	;61005CC8
 	moveq	#$5E,d4	;785E
-	bsr	BW_blit_vertical	;61005CC2
+	bsr	BW_blit_vertical_line	;61005CC2
 	addq.w	#$01,d4	;5244
-	bra	BW_blit_vertical	;60005CBC
+	bra	BW_blit_vertical_line	;60005CBC
 
 adrCd007E4A:
 	add.l	screen_ptr.l,a0	;D1F900008D36
 	add.w	$000A(a5),a0	;D0ED000A
-	lea	adrEA052C02.l,a1	;43F900052C02
+	lea	_Temp_GFX_Pockets_08.l,a1	;43F900052C02
 	move.l	#$00000024,-(sp)	;2F3C00000024
 	moveq	#$00,d3	;7600
 adrCd007E62:
@@ -12013,7 +11952,7 @@ adrCd007E82:
 	move.w	adrW_007EAC(pc,d7.w),d1	;323B7014
 	moveq	#$00,d0	;7000
 	move.w	#$FFFF,adrW_00AD64.l	;33FCFFFF0000AD64
-	bra	adrCd00A744	;6000289E
+	bra	Draw_Character	;6000289E
 
 adrW_007EA8:
 	dc.w	$0011	;0011
@@ -12040,7 +11979,7 @@ adrLp007EC2:
 	dbra	d7,adrLp007EC2	;51CFFFF6
 	bsr	adrCd007FF8	;61000128
 adrCd007ED2:
-	lea	adrEA050332.l,a1	;43F900050332
+	lea	_Temp_GFX_Pockets_03.l,a1	;43F900050332
 	move.l	#$00050006,d5	;2A3C00050006	;Long Addr replaced with Symbol
 	move.l	screen_ptr.l,a0	;207900008D36
 	add.w	#$0DE8,a0	;D0FC0DE8
@@ -12106,7 +12045,7 @@ adrCd007F86:
 	btst	#$06,d7	;08070006
 	bne.s	adrCd007FDE	;6646
 	move.w	d0,-(sp)	;3F00
-	lea	adrEA051772.l,a1	;43F900051772
+	lea	_Temp_GFX_Pockets_07.l,a1	;43F900051772
 	move.l	#$00010028,d5	;2A3C00010028	;Long Addr replaced with Symbol
 	move.l	#$00000090,a3	;267C00000090
 	bsr	adrCd00CCB8	;61004D0A
@@ -12134,11 +12073,11 @@ adrCd007FE0:
 	tst.w	d3	;4A43
 	beq.s	adrCd007FF4	;670C
 	bsr	adrCd00CCFE	;61004D14
-	cmp.w	#$0008,d3	;0C430008
+	cmpi.w	#$0008,d3	;0C430008
 	bne.s	adrCd007FF4	;6602
 	subq.w	#$01,d3	;5343
 adrCd007FF4:
-	bra	adrCd00CDA0	;60004DAA
+	bra	Draw_ShieldAvatar	;60004DAA
 
 adrCd007FF8:
 	tst.w	$0042(a5)	;4A6D0042
@@ -12185,16 +12124,16 @@ adrCd007FF8:
 	add.w	$0008(a5),d5	;DA6D0008
 	moveq	#$34,d4	;7834
 	move.l	#$001F0001,d3	;263C001F0001
-	bsr	BW_blit_vertical	;61005A7A
+	bsr	BW_blit_vertical_line	;61005A7A
 	moveq	#$5C,d4	;785C
-	bsr	BW_blit_vertical	;61005A74
+	bsr	BW_blit_vertical_line	;61005A74
 	swap	d5	;4845
 	move.w	#$001F,d5	;3A3C001F
 	swap	d5	;4845
 	move.l	#$00260035,d4	;283C00260035
 	moveq	#$02,d3	;7602
 	bsr	BW_draw_bar	;610059C4
-	lea	adrEA053C82.l,a1	;43F900053C82
+	lea	_Temp_GFX_Pockets_13.l,a1	;43F900053C82
 	move.l	#$00000088,a3	;267C00000088
 	move.l	screen_ptr.l,a0	;207900008D36
 	add.w	$000A(a5),a0	;D0ED000A
@@ -12255,7 +12194,7 @@ adrCd008158:
 
 adrCd00815C:
 	moveq	#$0E,d3	;760E
-	lea	CharacterHitPoints.l,a6	;4DF90000EB2F
+	lea	CharacterStats+$5.l,a6	;4DF90000EB2F
 	moveq	#$03,d6	;7C03
 	move.l	#$00060052,d5	;2A3C00060052
 adrLp00816C:
@@ -12322,7 +12261,7 @@ adrCd008206:
 adrCd00820A:
 	and.w	#$0007,d2	;02420007
 	move.b	adrB_00821E(pc,d2.w),d0	;103B200E
-	cmp.w	#$0040,d0	;0C400040
+	cmpi.w	#$0040,d0	;0C400040
 	bne.s	adrCd008206	;66EE
 	add.w	$0020(a5),d0	;D06D0020
 	bra.s	adrCd008206	;60E8
@@ -12347,7 +12286,7 @@ adrCd008230:
 	move.b	#$FF,$0034(a5)	;1B7C00FF0034
 	lea	adrEA0041DE.w,a6	;4DF841DE	;Short Absolute converted to symbol!
 	move.b	d0,(a6)	;1C80
-	bsr	adrCd00D86A	;61005626
+	bsr	Print_timed_message	;61005626
 adrCd008246:
 	moveq	#$00,d0	;7000
 	move.b	$0015(a5),d0	;102D0015
@@ -12376,7 +12315,7 @@ adrCd00828A:
 	bsr	BW_blit_horiz_line	;610058F8
 	addq.w	#$01,d5	;5245
 	addq.w	#$01,d3	;5243
-	cmp.w	#$0005,d3	;0C430005
+	cmpi.w	#$0005,d3	;0C430005
 	bcs.s	adrCd00828A	;65F2
 	subq.w	#$04,d3	;5943
 	bsr	BW_blit_horiz_line	;610058E8
@@ -12390,19 +12329,19 @@ adrCd0082BA:
 	addq.w	#$01,d5	;5245
 	bsr	BW_blit_horiz_line	;610058C6
 	addq.w	#$01,d3	;5243
-	cmp.w	#$0005,d3	;0C430005
+	cmpi.w	#$0005,d3	;0C430005
 	bcs.s	adrCd0082BA	;65F2
 	move.w	$0006(a5),d0	;302D0006
 	bsr	adrCd00CF08	;61004C3A
 	move.l	screen_ptr.l,a0	;207900008D36
 	add.w	#$0544,a0	;D0FC0544
 	add.w	$000A(a5),a0	;D0ED000A
-	lea	adrEA052EC2.l,a1	;43F900052EC2
+	lea	_Temp_GFX_Pockets_10.l,a1	;43F900052EC2
 	move.l	#$00000080,a3	;267C00000080
 	move.l	#$00030015,d5	;2A3C00030015	;Long Addr replaced with Symbol
 	bsr	adrCd00CCB8	;610049C6
 	add.w	#$0028,a0	;D0FC0028
-	lea	adrEA052EE2.l,a1	;43F900052EE2
+	lea	_Temp_GFX_Pockets_11.l,a1	;43F900052EE2
 	btst	#$00,(a5)	;08150000
 	bne.s	adrCd008308	;6604
 	add.w	#$0020,a1	;D2FC0020
@@ -12424,7 +12363,7 @@ adrCd00833C:
 	bsr	BW_blit_horiz_line	;61005846
 	addq.w	#$01,d5	;5245
 	addq.w	#$01,d3	;5243
-	cmp.w	#$0005,d3	;0C430005
+	cmpi.w	#$0005,d3	;0C430005
 	bcs.s	adrCd00833C	;65F2
 	subq.w	#$04,d3	;5943
 	bsr	BW_blit_horiz_line	;61005836
@@ -12432,7 +12371,7 @@ adrCd00833C:
 	move.l	#$00000E04,a0	;207C00000E04	;Long Addr replaced with Symbol
 adrCd008358:
 	move.l	#$00000070,a3	;267C00000070
-	lea	adrEA050302.l,a1	;43F900050302
+	lea	_Temp_GFX_Pockets_02.l,a1	;43F900050302
 	move.l	#$00050006,d5	;2A3C00050006	;Long Addr replaced with Symbol
 	add.l	screen_ptr.l,a0	;D1F900008D36
 	add.w	$000A(a5),a0	;D0ED000A
@@ -12481,7 +12420,7 @@ adrCd0083D0:
 	bsr	adrCd00842C	;6100005A
 adrCd0083D4:
 	addq.w	#$01,d7	;5247
-	cmp.w	#$0004,d7	;0C470004
+	cmpi.w	#$0004,d7	;0C470004
 	bcs.s	adrCd0083B0	;65D4
 	move.w	$0006(a5),d0	;302D0006
 	bsr	adrCd004092	;6100BCB0
@@ -12541,7 +12480,7 @@ adrCd008462:
 adrEA00846A:
 	dc.w	$0004	;0004
 	dc.w	$030E	;030E
-adrEA00846E:
+ClassColours:
 	dc.w	$0006	;0006
 	dc.w	$050E	;050E
 	dc.w	$000D	;000D
@@ -12927,8 +12866,8 @@ PlaySound:
 	move.w	#$0080,_custom+intena.l		;33FC008000DFF09A
 	asl.w	#$02,d0				;E540
 	lea	AudioSample_1.l,a0		;41F900054422
-	add.w	adrW_008938(pc,d0.w),a0		;D0FB005E
-	move.w	adrW_00893A(pc,d0.w),d0		;303B005C
+	add.w	AudioSampleOffsets(pc,d0.w),a0		;D0FB005E
+	move.w	AudioSampleOffsets+2(pc,d0.w),d0		;303B005C
 	lea	$0030(a0),a0			;41E80030
 	move.w	-$0002(a0),d1			;3228FFFE
 	lsr.w	#$01,d1				;E249
@@ -12939,20 +12878,20 @@ PlaySound:
 	move.w	d0,_custom+aud0+ac_per.l	;33C000DFF0A6
 	move.w	(a0),_custom+aud0+ac_dat.l	;33D000DFF0AA
 	move.w	#$0078,d1			;323C0078
-adrLp008910:
-	dbra	d1,adrLp008910			;51C9FFFE
+.soundloop1:
+	dbra	d1,.soundloop1			;51C9FFFE
 	move.w	#$8001,_custom+dmacon.l		;33FC800100DFF096
 	move.w	#$0078,d1			;323C0078
-adrLp008920:
-	dbra	d1,adrLp008920			;51C9FFFE
+.soundloop2:
+	dbra	d1,.soundloop2			;51C9FFFE
 	move.w	#$0080,_custom+intreq.l		;33FC008000DFF09C
 	move.w	#$8080,_custom+intena.l		;33FC808000DFF09A
 	move.w	(sp)+,d1			;321F
 	rts					;4E75
 
-adrW_008938:
+AudioSampleOffsets:
 	dc.w	AudioSample_1-AudioSample_1	;0000
-adrW_00893A:
+
 	dc.w	$0028				;0028
 	dc.w	AudioSample_1-AudioSample_1	;0000
 	dc.w	$009B				;009B
@@ -12968,7 +12907,7 @@ adrW_00893A:
 adrW_008950:
 	dc.w	AudioSample_1-AudioSample_1	;0000
 
-adrCd008952:
+MouseControl:
 	move.w	_custom+joy0dat.l,d0	;303900DFF00A
 	move.w	adrW_008950.l,d1	;323900008950
 	move.w	d0,adrW_008950.l	;33C000008950
@@ -13001,15 +12940,15 @@ adrCd00899A:
 	bpl.s	adrCd0089AE		;6A04
 	add.w	#$0140,d1		;06410140
 adrCd0089AE:
-	cmp.w	#$0140,d1		;0C410140
+	cmpi.w	#$0140,d1		;0C410140
 	bcs.s	adrCd0089B8		;6504
 	sub.w	#$0140,d1		;04410140
 adrCd0089B8:
 	move.w	d1,$0002(a5)		;3B410002
 	move.l	$0002(a5),d1		;222D0002
-	lea	adrEA008E84.l,a0	;41F900008E84
+	lea	SpritePosition_00.l,a0	;41F900008E84
 	bsr	adrCd008A50		;61000088
-	lea	adrEA008F14.l,a0	;41F900008F14
+	lea	SpritePosition_01.l,a0	;41F900008F14
 	move.l	#$FF81FFC9,d1		;223CFF81FFC9
 	bsr	adrCd008A50		;61000078
 	move.b	_ciaa.l,d1		;123900BFE001
@@ -13046,19 +12985,19 @@ adrCd008A18:
 adrCd008A1A:
 	rts	;4E75
 
-adrCd008A1C:
+InputControls:
 	tst.w	MultiPlayer.l	;4A790000EE30
-	bne	adrCd008952	;6600FF2E
-	bsr	adrCd008AFE	;610000D6
+	bne	MouseControl	;6600FF2E
+	bsr	JoystickControl	;610000D6
 	move.w	(a0),d0	;3010
 	lea	Player2_Data.l,a5	;4BF90000EEDE
 	bsr	adrCd008A98	;61000064
-	lea	adrEA008F14.l,a0	;41F900008F14
+	lea	SpritePosition_01.l,a0	;41F900008F14
 	bsr.s	adrCd008A50	;6112
 	lsr.w	#$08,d0	;E048
 	lea	Player1_Data.l,a5	;4BF90000EE7C
 	bsr	adrCd008A98	;61000050
-	lea	adrEA008E84.l,a0	;41F900008E84
+	lea	SpritePosition_00.l,a0	;41F900008E84
 adrCd008A50:
 	add.w	#$0037,d1	;06410037
 	move.b	d1,(a0)	;1081
@@ -13111,7 +13050,7 @@ adrCd008AC6:
 	bcc.s	adrCd008ACC	;6402
 	addq.w	#$02,d1	;5441
 adrCd008ACC:
-	cmp.w	#$0140,d1	;0C410140
+	cmpi.w	#$0140,d1	;0C410140
 	bcs.s	adrCd008AD6	;6504
 	sub.w	#$0140,d1	;04410140
 adrCd008AD6:
@@ -13140,7 +13079,7 @@ adrEA008AFA:
 adrEA008AFC:
 	dc.w	$0000	;0000
 
-adrCd008AFE:
+JoystickControl:
 	move.w	_custom+joy0dat.l,d0	;303900DFF00A
 	bsr.s	adrCd008ADE	;61D8
 	move.b	_ciaa.l,d1	;123900BFE001
@@ -13181,7 +13120,7 @@ adrCd008B64:
 	rts	;4E75
 
 adrCd008B72:
-	tst.w	adrW_008C1C.l	;4A7900008C1C
+	tst.w	Paused_Marker.l	;4A7900008C1C
 	bne.s	adrCd008BE8	;666E
 	tst.b	$0052(a5)	;4A2D0052
 	bmi.s	adrCd008BE0	;6B60
@@ -13199,7 +13138,7 @@ adrCd008B9A:
 	bne.s	adrCd008BDC	;663C
 	tst.b	d0	;4A00
 	bpl.s	adrCd008BAC	;6A08
-	cmp.w	#$00F9,d0	;0C4000F9
+	cmpi.w	#$00F9,d0	;0C4000F9
 	beq.s	adrCd008BE0	;6736
 	neg.b	d0	;4400
 adrCd008BAC:
@@ -13252,28 +13191,28 @@ adrCd008BE8:
 	dc.w	$0400	;0400
 	dc.w	$0200	;0200
 	dc.w	$0000	;0000
-adrW_008C1A:
+VBI_Marker:
 	dc.w	$0000	;0000
-adrW_008C1C:
+Paused_Marker:
 	dc.w	$0000	;0000
 adrB_008C1E:
 	dc.b	$00	;00
 adrB_008C1F:
 	dc.b	$FF	;FF
 
-adrL_008C20:
+VerticalBlankInterupt:
 	move.w	d0,-(sp)	;3F00
 	move.w	_custom+intreqr.l,d0	;303900DFF01E
 	and.w	#$0020,d0	;02400020
 	beq.s	adrCd008C40	;6712
 	move.w	(sp)+,d0	;301F
 	move.w	#$0020,_custom+intreq.l	;33FC002000DFF09C
-	clr.w	adrW_008C1A.l	;427900008C1A
+	clr.w	VBI_Marker.l	;427900008C1A
 	rte	;4E73
 
 adrCd008C40:
 	move.w	(sp)+,d0	;301F
-	eor.w	#$0001,adrW_008C1A.l	;0A79000100008C1A
+	eor.w	#$0001,VBI_Marker.l	;0A79000100008C1A
 	beq.s	adrCd008C62	;6716
 	movem.l	d0/a5,-(sp)	;48E78004
 	lea	Player2_Data.l,a5	;4BF90000EEDE
@@ -13303,7 +13242,7 @@ adrCd008C92:
 	bsr	adrCd008B72	;6100FED4
 	tst.b	adrB_008C1F.l	;4A3900008C1F
 	beq.s	adrCd008CBC	;6714
-	bsr	adrCd008A1C	;6100FD72
+	bsr	InputControls	;6100FD72
 	tst.b	adrB_008C1E.l	;4A3900008C1E
 	beq.s	adrCd008CBC	;6708
 	clr.b	adrB_008C1E.l	;423900008C1E
@@ -13502,7 +13441,7 @@ CopperList_01:
 	dc.w	$8010	;8010
 	dc.w	$FFFF	;FFFF
 	dc.w	$FFFE	;FFFE
-adrEA008E84:
+SpritePosition_00:
 	dc.w	$0000	;0000
 	dc.w	$0000	;0000
 	dc.w	$C000	;C000
@@ -13540,7 +13479,7 @@ adrEA008E84:
 adrEA008EC8:
 	dc.w	$0000	;0000
 	dc.w	$0000	;0000
-adrEA008ECC:
+SpritePosition_04:
 	dc.w	$0000	;0000
 	dc.w	$0000	;0000
 	dc.w	$0000	;0000
@@ -13577,7 +13516,7 @@ adrEA008ECC:
 	dc.w	$0000	;0000
 	dc.w	$0000	;0000
 	dc.w	$0000	;0000
-adrEA008F14:
+SpritePosition_01:
 	dc.w	$0000	;0000
 	dc.w	$0000	;0000
 	dc.w	$C000	;C000
@@ -13614,7 +13553,7 @@ adrEA008F14:
 	dc.w	$0000	;0000
 	dc.w	$0000	;0000
 	dc.w	$0000	;0000
-adrEA008F5C:
+SpritePosition_02:
 	dc.w	$0000	;0000
 	dc.w	$0000	;0000
 	dc.w	$0000	;0000
@@ -13692,9 +13631,9 @@ adrCd009000:
 	lsr.w	#$05,d0	;EA48
 	move.w	d0,d2	;3400
 	and.w	#$0003,d2	;02420003
-	cmp.b	#$03,d2	;0C020003
+	cmpi.b	#$03,d2	;0C020003
 	bne.s	adrCd009036	;6612
-	bsr	adrCd0055AC	;6100C586
+	bsr	RandomGen_BytewithOffset	;6100C586
 	move.b	(a4),d2	;1414
 	asl.b	#$04,d2	;E902
 	moveq	#$00,d1	;7200
@@ -13730,12 +13669,12 @@ adrCd00905C:
 	move.w	$0002(a0),d1	;32280002
 	move.w	d1,d0	;3001
 	and.w	#$0003,d1	;02410003
-	cmp.w	#$0002,d1	;0C410002
+	cmpi.w	#$0002,d1	;0C410002
 	bcc.s	adrCd0090D4	;6448
 	and.w	#$00FC,d0	;024000FC
-	cmp.w	#$002C,d0	;0C40002C
+	cmpi.w	#$002C,d0	;0C40002C
 	bcc.s	adrCd00909C	;6406
-	cmp.w	#$0020,d0	;0C400020
+	cmpi.w	#$0020,d0	;0C400020
 	bcc.s	adrCd0090D4	;6438
 adrCd00909C:
 	lsr.w	#$01,d0	;E248
@@ -13823,45 +13762,45 @@ adrCd009130:
 	swap	d7	;4847
 	add.b	(a0),d7	;DE10
 	cmp.w	d1,d7	;BE41
-	bcc.s	adrCd0091C0	;6478
-	swap	d7	;4847
-	bsr	adrCd0084A2	;6100F356
-	move.w	$00(a6,d0.w),d0	;30360000
-	tst.b	d0	;4A00
-	beq.s	adrCd0091C4	;676E
-	and.b	#$07,d0	;02000007
-	beq.s	adrCd0091BC	;6760
-	cmp.b	#$01,d0	;0C000001
-	beq.s	adrCd0091C0	;675E
-	cmp.b	#$07,d0	;0C000007
-	bne.s	adrCd00917E	;6616
-	lsr.w	#$08,d0	;E048
-	and.w	#$0003,d0	;02400003
-	cmp.b	#$02,d0	;0C000002
-	bcs.s	adrCd0091BC	;6548
-	bne.s	adrCd0091C0	;664A
-	tst.b	-$001F(a3)	;4A2BFFE1
-	beq.s	adrCd0091C0	;6744
-	bra.s	adrCd0091BC	;603E
+	bcc.s	adrCd0091C0		;6478
+	swap	d7			;4847
+	bsr	adrCd0084A2		;6100F356
+	move.w	$00(a6,d0.w),d0		;30360000
+	tst.b	d0			;4A00
+	beq.s	adrCd0091C4		;676E
+	and.b	#$07,d0			;02000007
+	beq.s	adrCd0091BC		;6760
+	cmpi.b	#$01,d0			;0C000001
+	beq.s	adrCd0091C0		;675E
+	cmpi.b	#$07,d0			;0C000007
+	bne.s	adrCd00917E		;6616
+	lsr.w	#$08,d0			;E048
+	and.w	#$0003,d0		;02400003
+	cmpi.b	#$02,d0			;0C000002
+	bcs.s	adrCd0091BC		;6548
+	bne.s	adrCd0091C0		;664A
+	tst.b	-$001F(a3)		;4A2BFFE1
+	beq.s	adrCd0091C0		;6744
+	bra.s	adrCd0091BC		;603E
 
 adrCd00917E:
-	cmp.b	#$02,d0	;0C000002
-	bne.s	adrCd0091BC	;6638
-	move.w	-$000A(a3),d7	;3E2BFFF6
-	cmp.w	#$0012,d6	;0C460012
-	beq.s	adrCd009194	;6706
-	addq.w	#$02,d7	;5447
-	and.w	#$0003,d7	;02470003
+	cmpi.b	#$02,d0			;0C000002
+	bne.s	adrCd0091BC		;6638
+	move.w	-$000A(a3),d7		;3E2BFFF6
+	cmpi.w	#$0012,d6		;0C460012
+	beq.s	adrCd009194		;6706
+	addq.w	#$02,d7			;5447	
+	and.w	#$0003,d7		;02470003
 adrCd009194:
 	add.w	d7,d7	;DE47
 	addq.w	#$08,d7	;5047
 	btst	d7,d0	;0F00
 	beq.s	adrCd0091BC	;6720
-	cmp.w	#$000E,d6	;0C46000E
+	cmpi.w	#$000E,d6	;0C46000E
 	bcc.s	adrCd0091C0	;641E
 	move.w	-$000A(a3),d7	;3E2BFFF6
 	addq.w	#$01,d7	;5247
-	cmp.w	#$0007,d6	;0C460007
+	cmpi.w	#$0007,d6	;0C460007
 	bcs.s	adrCd0091B0	;6502
 	addq.w	#$02,d7	;5447
 adrCd0091B0:
@@ -13877,7 +13816,7 @@ adrCd0091C0:
 adrCd0091C4:
 	addq.w	#$02,a0	;5448
 	addq.w	#$01,d6	;5246
-	cmp.w	#$0013,d6	;0C460013
+	cmpi.w	#$0013,d6	;0C460013
 	bcs	adrCd009130	;6500FF62
 	rol.l	#$03,d5	;E79D
 	swap	d5	;4845
@@ -13909,7 +13848,7 @@ adrCd009202:
 	movem.l	(sp)+,d5-d7	;4CDF00E0
 adrCd009212:
 	addq.w	#$01,d6	;5246
-	cmp.b	#$13,d6	;0C060013
+	cmpi.b	#$13,d6	;0C060013
 	bcs.s	adrCd009202	;65E8
 	unlk	a3	;4E5B
 	rts	;4E75
@@ -13969,7 +13908,7 @@ adrCd009286:
 	move.w	$0002(a0),d1	;32280002
 	move.w	d1,d2	;3401
 	and.w	#$0003,d2	;02420003
-	cmp.w	#$0002,d2	;0C420002
+	cmpi.w	#$0002,d2	;0C420002
 	bne	adrCd0092E8	;66000032
 	lsr.b	#$02,d1	;E409
 	add.w	#$0080,d1	;06410080
@@ -13987,7 +13926,7 @@ adrCd009286:
 
 adrCd0092E8:
 	and.w	#$00FC,d1	;024100FC
-	cmp.w	#$001C,d1	;0C41001C
+	cmpi.w	#$001C,d1	;0C41001C
 	bcc.s	adrCd009358	;6466
 	move.w	d1,-(sp)	;3F01
 	bsr	adrCd00995C	;61000666
@@ -13997,7 +13936,7 @@ adrCd0092E8:
 	subq.b	#$01,d1	;5301
 	move.b	adrB_00935A(pc,d1.w),d1	;123B1058
 	add.w	d1,d1	;D241
-	lea	GFX_AirbourneSpells.l,a1	;43F900034A30
+	lea	_GFX_AirbourneSpells.l,a1	;43F900034A30
 	add.w	adrW_009360(pc,d1.w),a1	;D2FB1052
 	add.w	d1,d1	;D241
 	add.b	adrB_009368(pc,d1.w),d4	;D83B1054
@@ -14012,7 +13951,7 @@ adrCd0092E8:
 	ext.w	d6	;4886
 	asr.w	#$04,d6	;E846
 	move.w	#$FFFF,adrW_00B4BE.l	;33FCFFFF0000B4BE
-	lea	adrEA009B70.l,a0	;41F900009B70
+	lea	SpellStars_Colours.l,a0	;41F900009B70
 	move.l	$00(a0,d0.w),adrEA00B4C0.l	;23F000000000B4C0
 	move.l	a3,-(sp)	;2F0B
 	bsr	adrCd00AE5E	;61001B10
@@ -14072,9 +14011,9 @@ adrCd009388:
 	beq.s	adrCd0093BC	;6720
 	subq.b	#$01,d1	;5301
 	beq	adrCd00956A	;670001CA
-	cmp.b	#$03,d1	;0C010003
+	cmpi.b	#$03,d1	;0C010003
 	beq	adrCd0094DC	;67000134
-	cmp.b	#$04,d1	;0C010004
+	cmpi.b	#$04,d1	;0C010004
 	beq	adrCd009496	;670000E6
 	move.b	d1,-$0013(a3)	;1741FFED
 	addq.w	#$02,a6	;544E
@@ -14098,7 +14037,7 @@ adrLp0093C2:
 	bra	adrCd009482	;600000A0
 
 adrCd0093E4:
-	cmp.w	#$0002,d5	;0C450002
+	cmpi.w	#$0002,d5	;0C450002
 	bcc.s	adrCd009412	;6428
 	tst.w	d5	;4A45
 	beq.s	adrCd0093F8	;670A
@@ -14170,9 +14109,9 @@ adrCd009496:
 	move.b	-$0012(a3),d1	;122BFFEE
 	and.w	#$0003,d1	;02410003
 	beq.s	adrCd0094B2	;6712
-	cmp.w	#$0001,d1	;0C410001
+	cmpi.w	#$0001,d1	;0C410001
 	beq.s	adrCd0094BC	;6716
-	cmp.b	#$03,d1	;0C010003
+	cmpi.b	#$03,d1	;0C010003
 	beq.s	adrCd0094B4	;6708
 	tst.b	-$001F(a3)	;4A2BFFE1
 	beq.s	adrCd0094B4	;6702
@@ -14185,7 +14124,7 @@ adrCd0094B4:
 	bra	adrCd00926C	;6000FDB2
 
 adrCd0094BC:
-	bsr	adrCd0055AC	;6100C0EE
+	bsr	RandomGen_BytewithOffset	;6100C0EE
 	and.w	#$0004,d0	;02400004
 	move.l	adrL_0094D4(pc,d0.w),adrEA00B4C0.l	;23FB000E0000B4C0
 	move.b	#$02,-$0012(a3)	;177C0002FFEE
@@ -14199,7 +14138,7 @@ adrCd0094DC:
 	move.l	#$01050406,adrEA00B4C0.l	;23FC010504060000B4C0
 adrCd0094E6:
 	bsr	adrCd0099DC	;610004F4
-	cmp.w	#$0012,d0	;0C400012
+	cmpi.w	#$0012,d0	;0C400012
 	beq.s	adrCd0094F8	;6708
 	tst.b	d1	;4A01
 	bmi.s	adrCd009568	;6B74
@@ -14222,7 +14161,7 @@ adrCd009522:
 	lea	adrEA031AD8.l,a1	;43F900031AD8
 	and.w	#$0003,d1	;02410003
 	beq.s	adrCd009560	;6726
-	cmp.w	#$0003,d1	;0C410003
+	cmpi.w	#$0003,d1	;0C410003
 	beq.s	adrCd009560	;6720
 	btst	#$00,d1	;08010000
 	bne.s	adrCd00955E	;6618
@@ -14325,7 +14264,7 @@ adrCd00960A:
 adrCd00961A:
 	move.w	d1,d2	;3401
 	and.w	#$0007,d2	;02420007
-	cmp.w	#$0006,d2	;0C420006
+	cmpi.w	#$0006,d2	;0C420006
 	beq.s	adrCd00963A	;6714
 	subq.w	#$01,d2	;5342
 	bne.s	adrCd009648	;661E
@@ -14362,7 +14301,7 @@ adrLp009662:
 adrCd009676:
 	move.w	(sp)+,d1	;321F
 	addq.w	#$01,d1	;5241
-	cmp.w	#$0004,d1	;0C410004
+	cmpi.w	#$0004,d1	;0C410004
 	bcs.s	adrCd00964A	;65CA
 adrCd009680:
 	rts	;4E75
@@ -14468,7 +14407,7 @@ adrCd0096BE:
 	move.b	-$0016(a3),d3	;162BFFEA
 	move.b	$00(a0,d3.w),d4	;18303000
 adrCd009722:
-	cmp.b	#$80,d4	;0C040080
+	cmpi.b	#$80,d4	;0C040080
 	beq	adrCd009680	;6700FF58
 	lea	adrEA00E770.l,a6	;4DF90000E770
 	moveq	#$00,d3	;7600
@@ -14476,7 +14415,7 @@ adrCd009722:
 	asl.w	#$02,d3	;E543
 	lea	adrEA00E7DE.l,a6	;4DF90000E7DE
 	move.l	$00(a6,d3.w),adrEA00B4C0.l	;23F630000000B4C0
-	lea	adrEA00E67A.l,a0	;41F90000E67A
+	lea	ObjectFloorTable.l,a0	;41F90000E67A
 	move.b	$00(a0,d2.w),d3	;16302000
 	move.w	d3,d6	;3C03
 	asl.w	#$02,d6	;E546
@@ -14484,14 +14423,14 @@ adrCd009722:
 	add.w	d0,d6	;DC40
 	add.w	d6,d6	;DC46
 	lea	adrEA00E88A.l,a0	;41F90000E88A
-	lea	GFX_ObjectsOnFloor.l,a1	;43F900032F60
+	lea	_GFX_ObjectsOnFloor.l,a1	;43F900032F60
 	add.w	$00(a0,d6.w),a1	;D2F06000
-	cmp.b	#$12,d3	;0C030012
+	cmpi.b	#$12,d3	;0C030012
 	bcs.s	adrCd009774	;6504
 	add.w	#$0CB8,a1	;D2FC0CB8
 adrCd009774:
 	moveq	#$00,d7	;7E00
-	cmp.b	#$12,d3	;0C030012
+	cmpi.b	#$12,d3	;0C030012
 	bcs.s	adrCd009780	;6504
 	move.b	adrB_0097B6(pc,d0.w),d7	;1E3B0038
 adrCd009780:
@@ -14872,13 +14811,13 @@ adrCd00995E:
 	move.w	d1,d2	;3401
 	lea	adrEA018A84.l,a0	;41F900018A84
 	move.b	$00(a0,d0.w),d4	;18300000
-	cmp.b	#$FF,d4	;0C0400FF
+	cmpi.b	#$FF,d4	;0C0400FF
 	beq.s	adrCd0099C8	;6734
 	move.b	adrB_00994E(pc,d2.w),d1	;123B20B8
 	move.b	adrB_009956(pc,d1.w),d5	;1A3B10BC
 	move.w	-$0012(a3),d0	;302BFFEE
 	and.w	#$0007,d0	;02400007
-	cmp.w	#$0004,d0	;0C400004
+	cmpi.w	#$0004,d0	;0C400004
 	bne.s	adrCd0099C6	;661C
 	move.b	adrB_0099CC(pc,d2.w),d0	;103B2020
 	move.b	adrB_0099D4(pc,d2.w),d2	;143B2024
@@ -14938,7 +14877,7 @@ adrCd0099F0:
 	bcc.s	adrCd0099EE	;64E0
 	tst.b	d0	;4A00
 	bmi	adrCd009AFA	;6B0000E8
-	cmp.w	#$0010,d0	;0C400010
+	cmpi.w	#$0010,d0	;0C400010
 	bcc.s	adrCd009A2A	;6410
 	move.b	d0,-$0017(a3)	;1740FFE9
 	move.b	$001B(a1),d0	;1029001B
@@ -14986,7 +14925,7 @@ adrCd009A86:
 	cmp.b	#$1A,-$0017(a3)	;0C2B001AFFE9
 	bne.s	adrCd009AA8	;6614
 	move.w	d1,d3	;3601
-	bsr	adrCd0055AC	;6100BB14
+	bsr	RandomGen_BytewithOffset	;6100BB14
 	move.w	d3,d1	;3203
 	and.w	#$0001,d0	;02400001
 	add.w	#$001A,d0	;0640001A
@@ -15004,16 +14943,16 @@ adrCd009AB2:
 	sub.w	-$000A(a3),d1	;926BFFF6
 	and.w	#$0003,d1	;02410003
 	cmp.b	#$15,-$0017(a3)	;0C2B0015FFE9
-	beq.s	CentralPosition	;6720
+	beq.s	.CentralPosition	;6720
 	cmp.b	#$16,-$0017(a3)	;0C2B0016FFE9
-	beq.s	CentralPosition	;6718
+	beq.s	.CentralPosition	;6718
 	cmp.b	#$40,-$0017(a3)	;0C2B0040FFE9
-	beq.s	CentralPosition	;6710
+	beq.s	.CentralPosition	;6710
 	cmp.b	#$67,-$0017(a3)	;0C2B0067FFE9
-	bcc.s	CentralPosition	;6408
+	bcc.s	.CentralPosition	;6408
 	tst.b	-$0017(a3)	;4A2BFFE9
 	bpl	adrCd00A6EC	;6A000BFA
-CentralPosition:
+.CentralPosition:
 	moveq	#$04,d1	;7204
 	bra	adrCd00A6EC	;60000BF4
 
@@ -15067,7 +15006,7 @@ adrCd009B5E:
 	bsr.s	adrCd009BC0	;6154
 	bra	adrCd00A6EC	;60000B7E
 
-adrEA009B70:
+SpellStars_Colours:
 	dc.l	$090D0B0C	;090D0B0C
 	dc.l	$02060807	;02060807
 	dc.l	$020D0605	;020D0605
@@ -15129,33 +15068,33 @@ adrB_009BD0:
 	dc.b	$03	;03
 	dc.b	$03	;03
 
-adrCd009BF0:
-	lea	adrEA009C68.l,a1	;43F900009C68
-	move.b	$00(a1,d1.w),d1	;12311000
-	add.w	d1,d1	;D241
-	lea	GFX_FireBall.l,a1	;43F900034778
-	lea	adrEA009C6E.l,a2	;45F900009C6E
-	cmp.b	#$86,d0	;0C000086
-	bcs.s	adrCd009C18	;650A
-	add.w	#$0798,a1	;D2FC0798
-	lea	adrEA009C86.l,a2	;45F900009C86
+Draw_Spell:
+	lea	adrEA009C68.l,a1		;43F900009C68
+	move.b	$00(a1,d1.w),d1			;12311000
+	add.w	d1,d1				;D241
+	lea	_GFX_FireBall.l,a1		;43F900034778
+	lea	adrEA009C6E.l,a2		;45F900009C6E
+	cmpi.b	#$86,d0				;0C000086
+	bcs.s	adrCd009C18			;650A
+	add.w	#$0798,a1			;D2FC0798
+	lea	adrEA009C86.l,a2		;45F900009C86
 adrCd009C18:
-	add.w	$00(a2,d1.w),a1	;D2F21000
-	add.w	d1,d1	;D241
-	add.b	$08(a2,d1.w),d4	;D8321008
-	add.b	$09(a2,d1.w),d5	;DA321009
-	moveq	#$00,d7	;7E00
-	move.b	$0A(a2,d1.w),d7	;1E32100A
-	swap	d7	;4847
-	move.b	$0B(a2,d1.w),d7	;1E32100B
-	add.w	$0008(a5),d5	;DA6D0008
-	move.b	d4,d6	;1C04
-	add.b	#$60,d4	;06040060
-	ext.w	d6	;4886
-	asr.w	#$04,d6	;E846
-	move.l	a3,-(sp)	;2F0B
-	move.w	#$FFFF,adrW_00B4BE.l	;33FCFFFF0000B4BE
-	lea	adrEA009B70.l,a0	;41F900009B70
+	add.w	$00(a2,d1.w),a1			;D2F21000
+	add.w	d1,d1				;D241
+	add.b	$08(a2,d1.w),d4			;D8321008
+	add.b	$09(a2,d1.w),d5			;DA321009
+	moveq	#$00,d7				;7E00
+	move.b	$0A(a2,d1.w),d7			;1E32100A
+	swap	d7				;4847
+	move.b	$0B(a2,d1.w),d7			;1E32100B
+	add.w	$0008(a5),d5			;DA6D0008
+	move.b	d4,d6				;1C04
+	add.b	#$60,d4				;06040060
+	ext.w	d6				;4886
+	asr.w	#$04,d6	;			E846
+	move.l	a3,-(sp)			;2F0B
+	move.w	#$FFFF,adrW_00B4BE.l		;33FCFFFF0000B4BE
+	lea	SpellStars_Colours.l,a0		;41F900009B70
 	asl.b	#$02,d0	;E500
 	move.l	$00(a0,d0.w),adrEA00B4C0.l	;23F000000000B4C0
 	bsr	adrCd00AE5E	;61001202
@@ -15223,18 +15162,18 @@ adrCd009CB2:
 	move.b	$06(a0,d1.w),d7	;1E301006
 	rts	;4E75
 
-adrCd009CD2:
+Draw_Summon:
 	lea	adrEA009EBE.l,a2	;45F900009EBE
 	lea	adrEA009DC0.l,a0	;41F900009DC0
 	lea	_GFX_Summon.l,a1	;43F900045018
 	bsr.s	adrCd009CA2	;61BC
-	lea	MonsterPalettes.l,a6	;4DF900009E5C
+	lea	IllusionPalette.l,a6	;4DF900009E5C
 	tst.b	-$0018(a3)	;4A2BFFE8
-	bmi.s	adrCd009CFE	;6B0C
+	bmi.s	.IllusionSkip	;6B0C
 	lea	MonsterColours_Summons.l,a0	;41F900009DB8
 	moveq	#$02,d3	;7602
-	bsr	adrCd009E94	;61000198
-adrCd009CFE:
+	bsr	MonsterColourGrading	;61000198
+.IllusionSkip:
 	movem.w	d0/d1/d4/d5/d7,-(sp)	;48A7CD00
 	move.l	a1,-(sp)	;2F09
 	bsr	adrCd00AD34	;6100102E
@@ -15250,7 +15189,7 @@ adrCd009CFE:
 	bsr	adrCd00AD34	;61001012
 	movem.w	(sp)+,d0/d1/d4/d5	;4C9F0033
 adrCd009D28:
-	cmp.w	#$0004,d1	;0C410004
+	cmpi.w	#$0004,d1	;0C410004
 	bcc	adrCd009DB6	;64000088
 	lea	adrEA009DDC.l,a2	;45F900009DDC
 	movem.w	d0/d1/d4/d5,-(sp)	;48A7CC00
@@ -15287,7 +15226,7 @@ adrCd009D6A:
 	asl.w	#$02,d2	;E542
 	add.w	d0,d2	;D440
 	add.w	d2,d2	;D442
-	cmp.b	#$02,d3	;0C030002
+	cmpi.b	#$02,d3	;0C030002
 	bne.s	adrCd009DA2	;6604
 	add.w	#$0040,a2	;D4FC0040
 adrCd009DA2:
@@ -15388,10 +15327,10 @@ adrEA009DFC:
 	dc.w	$0401	;0401
 	dc.w	$0901	;0901
 	dc.w	$FFFF	;FFFF
-MonsterPalettes:
+IllusionPalette:
 	dc.w	$0000	;0000
 	dc.w	$0708	;0708
-adrEA009E60:
+MonsterPalettes:
 	dc.w	$0003	;0003
 	dc.w	$040E	;040E
 	dc.w	$0008	;0008
@@ -15419,20 +15358,20 @@ adrEA009E60:
 	dc.w	$0007	;0007
 	dc.w	$080D	;080D
 
-adrCd009E94:
+MonsterColourGrading:
 	moveq	#$00,d2	;7400
 	move.b	-$0018(a3),d2	;142BFFE8
 	sub.b	d3,d2	;9403
-	bcc.s	adrCd009EA0	;6402
+	bcc.s	.gradelower	;6402
 	moveq	#$00,d2	;7400
-adrCd009EA0:
-	cmp.b	#$08,d2	;0C020008
-	bcs.s	adrCd009EA8	;6502
+.gradelower:
+	cmpi.b	#$08,d2	;0C020008
+	bcs.s	.gradeupper	;6502
 	moveq	#$07,d2	;7407
-adrCd009EA8:
+.gradeupper:
 	move.b	$00(a0,d2.w),d2	;14302000
 	asl.w	#$02,d2	;E542
-	lea	adrEA009E60.l,a6	;4DF900009E60
+	lea	MonsterPalettes.l,a6	;4DF900009E60
 	add.w	d2,a6	;DCC2
 	move.l	(a6),adrEA00B4C0.l	;23D60000B4C0
 	rts	;4E75
@@ -15470,11 +15409,11 @@ adrEA009EE2:
 	dc.w	$1610	;1610
 	dc.w	$1670	;1670
 
-adrJA009EFA:
+Draw_Crab:
 	move.w	#$FFFF,adrW_00B4BE.l	;33FCFFFF0000B4BE
 	lea	MonsterColours_Crabs.l,a0	;41F900009F20
 	moveq	#$02,d3	;7602
-	bsr.s	adrCd009E94	;6188
+	bsr.s	MonsterColourGrading	;6188
 	bsr	adrCd00A106	;610001F8
 	lea	adrEA00B4C0.l,a6	;4DF90000B4C0
 	bsr.s	adrCd009F28	;6110
@@ -15488,15 +15427,15 @@ MonsterColours_Crabs:
 	dc.w	$090A	;090A
 
 adrCd009F28:
-	cmp.b	#$02,d1	;0C010002
+	cmpi.b	#$02,d1	;0C010002
 	bcc.s	adrCd009F32	;6404
 	bsr	adrCd00A060	;61000130
 adrCd009F32:
-	cmp.b	#$02,d0	;0C000002
+	cmpi.b	#$02,d0	;0C000002
 	beq.s	adrCd009F78	;6740
 	tst.b	d0	;4A00
 	bne	adrCd009FE8	;660000AC
-	cmp.b	#$02,d1	;0C010002
+	cmpi.b	#$02,d1	;0C010002
 	bcs.s	adrCd009F8C	;6548
 	subq.w	#$02,d1	;5541
 	lea	adrEA00A17A.l,a2	;45F90000A17A
@@ -15593,7 +15532,7 @@ adrB_009FE4:
 	dc.b	$F0	;F0
 
 adrCd009FE8:
-	cmp.b	#$02,d1	;0C010002
+	cmpi.b	#$02,d1	;0C010002
 	bcc.s	adrCd00A030	;6442
 	lea	adrEA00A17E.l,a2	;45F90000A17E
 	add.w	d1,d1	;D241
@@ -15673,7 +15612,7 @@ adrCd00A084:
 	rts	;4E75
 
 adrCd00A086:
-	cmp.b	#$02,d0	;0C000002
+	cmpi.b	#$02,d0	;0C000002
 	beq.s	adrCd00A0B4	;6728
 	tst.b	d1	;4A01
 	bne.s	adrCd00A084	;66F4
@@ -15800,12 +15739,12 @@ adrEA00A186:
 	dc.w	$0728	;0728
 	dc.w	$0770	;0770
 
-adrCd00A18A:
+Draw_Beholder:
 	moveq	#$04,d3	;7604
 	lea	MonsterColours_Beholder.l,a0	;41F90000A1AC
-	bsr	adrCd009E94	;6100FD00
+	bsr	MonsterColourGrading	;6100FD00
 	bsr	adrCd00A26E	;610000D6
-	cmp.b	#$02,d0	;0C000002
+	cmpi.b	#$02,d0	;0C000002
 	beq.s	adrCd00A1A4	;6704
 	bsr	adrCd00A1BC	;6100001A
 adrCd00A1A4:
@@ -15829,7 +15768,7 @@ adrB_00A1B8:
 	dc.b	$03	;03
 
 adrCd00A1BC:
-	cmp.b	#$04,d1	;0C010004
+	cmpi.b	#$04,d1	;0C010004
 	bcc.s	adrCd00A226	;6464
 	lea	adrEA00A308.l,a2	;45F90000A308
 	moveq	#$00,d7	;7E00
@@ -15938,7 +15877,7 @@ adrCd00A26E:
 	lea	adrEA00A2F4.l,a2	;45F90000A2F4
 	bsr	adrCd00A2E4	;61000060
 	bsr	adrCd00A2B6	;6100002E
-	cmp.b	#$04,d1	;0C010004
+	cmpi.b	#$04,d1	;0C010004
 	bcc.s	adrCd00A2B4	;6424
 	lea	adrEA00A300.l,a2	;45F90000A300
 	bsr	adrCd00A2E4	;6100004C
@@ -15962,7 +15901,7 @@ adrCd00A2B6:
 	bsr	adrCd00AD34	;61000A74
 	move.l	(sp)+,a1	;225F
 	movem.w	(sp)+,d0/d1/d4/d5/d7	;4C9F00B3
-	cmp.b	#$02,d1	;0C010002
+	cmpi.b	#$02,d1	;0C010002
 	bcc.s	adrCd00A2B4	;64E6
 	moveq	#-$01,d6	;7CFF
 	movem.w	d0/d1/d4/d5/d7,-(sp)	;48A7CD00
@@ -16017,7 +15956,7 @@ adrEA00A328:
 	dc.w	$06D0	;06D0
 	dc.w	$06E8	;06E8
 
-adrJA00A330:
+Draw_LittleDragon:
 	moveq	#$01,d2	;7401
 	lea	adrEA00A33C.l,a2	;45F90000A33C
 	moveq	#$03,d3	;7603
@@ -16034,7 +15973,7 @@ adrEA00A344:
 	dc.w	$F0F8	;F0F8
 	dc.w	$0909	;0909
 
-adrJA00A34C:
+Draw_BigDragon:
 	moveq	#$00,d2	;7400
 	lea	adrEA00A344.l,a2	;45F90000A344
 	moveq	#$09,d3	;7609
@@ -16053,7 +15992,7 @@ adrCd00A356:
 	add.b	adrB_00A39C(pc,d2.w),d4	;D83B2022
 adrCd00A37C:
 	lea	MonsterColours_Dragons.l,a0	;41F90000A3A6
-	bsr	adrCd009E94	;6100FB10
+	bsr	MonsterColourGrading	;6100FB10
 	move.w	#$FFFF,adrW_00B4BE.l	;33FCFFFF0000B4BE
 	bsr	adrCd00A476	;610000E6
 	bsr.s	adrCd00A3AE	;611A
@@ -16079,9 +16018,9 @@ MonsterColours_Dragons:
 	dc.w	$0506	;0506
 
 adrCd00A3AE:
-	cmp.b	#$02,d0	;0C000002
+	cmpi.b	#$02,d0	;0C000002
 	beq.s	adrCd00A39A	;67E6
-	cmp.b	#$03,d1	;0C010003
+	cmpi.b	#$03,d1	;0C010003
 	bcc.s	adrCd00A39A	;64E0
 	moveq	#$00,d2	;7400
 	moveq	#$00,d6	;7C00
@@ -16293,11 +16232,11 @@ adrEA00A4F2:
 	dc.w	$2888	;2888
 	dc.w	$28D8	;28D8
 
-adrJA00A50A:
+Draw_Behemoth:
 	move.w	#$FFFF,adrW_00B4BE.l	;33FCFFFF0000B4BE
 	lea	MonsterColours_Behemoth.l,a0	;41F90000A52E
 	moveq	#$06,d3	;7606
-	bsr	adrCd009E94	;6100F978
+	bsr	MonsterColourGrading	;6100F978
 	lea	adrEA00A668.l,a0	;41F90000A668
 	bsr.s	adrCd00A54C	;6126
 	clr.w	adrW_00B4BE.l	;42790000B4BE
@@ -16313,7 +16252,7 @@ adrEA00A536:
 	dc.w	$0101	;0101
 	dc.w	$0203	;0203
 
-adrJA00A53C:
+Draw_Entropy:
 	move.l	#$04080C,adrEA00B4C0.l	;23FC0004080C0000B4C0
 	lea	adrEA00A604.l,a0	;41F90000A604
 adrCd00A54C:
@@ -16339,7 +16278,7 @@ adrCd00A56E:
 	bsr	adrCd00A6CA	;61000142
 adrCd00A58A:
 	movem.l	(sp)+,d0/d1/d4/d5/d7/a0/a1	;4CDF03B3
-	cmp.b	#$02,d1	;0C010002
+	cmpi.b	#$02,d1	;0C010002
 	bcc.s	adrCd00A600	;646C
 	lea	adrEA00B4C0.l,a6	;4DF90000B4C0
 	moveq	#$00,d2	;7400
@@ -16521,7 +16460,7 @@ adrCd00A6EC:
 
 adrCd00A6F6:
 	move.b	-$0017(a3),d0	;102BFFE9
-	bmi	adrCd009BF0	;6B00F4F4
+	bmi	Draw_Spell	;6B00F4F4
 	move.w	-$000A(a3),d0	;302BFFF6
 	btst	#$00,d0	;08000000
 	bne.s	adrCd00A70A	;6602
@@ -16532,24 +16471,24 @@ adrCd00A70A:
 	moveq	#$00,d2	;7400
 	move.b	-$0017(a3),d2	;142BFFE9
 	sub.b	#$64,d2	;04020064
-	bcs.s	adrCd00A744	;6526
-	cmp.b	#$02,d2	;0C020002
-	beq	adrCd00A18A	;6700FA66
-	bcs	adrCd009CD2	;6500F5AA
+	bcs.s	Draw_Character	;6526
+	cmpi.b	#$02,d2	;0C020002
+	beq	Draw_Beholder	;6700FA66
+	bcs	Draw_Summon	;6500F5AA
 	subq.b	#$03,d2	;5702
-	lea	adrJB00A73A.l,a1	;43F90000A73A
+	lea	Creatures_LookupTable.l,a1	;43F90000A73A
 	add.w	d2,d2	;D442
 	add.w	$00(a1,d2.w),a1	;D2F12000
 	jmp	(a1)	;4ED1
 
-adrJB00A73A:
-	dc.w	adrJA00A50A-adrJB00A73A	;FDD0
-	dc.w	adrJA009EFA-adrJB00A73A	;F7C0
-	dc.w	adrJA00A34C-adrJB00A73A	;FC12
-	dc.w	adrJA00A330-adrJB00A73A	;FBF6
-	dc.w	adrJA00A53C-adrJB00A73A	;FE02
+Creatures_LookupTable:
+	dc.w	Draw_Behemoth-Creatures_LookupTable	;FDD0
+	dc.w	Draw_Crab-Creatures_LookupTable	;F7C0
+	dc.w	Draw_BigDragon-Creatures_LookupTable	;FC12
+	dc.w	Draw_LittleDragon-Creatures_LookupTable	;FBF6
+	dc.w	Draw_Entropy-Creatures_LookupTable	;FE02
 
-adrCd00A744:
+Draw_Character:
 	moveq	#$00,d2	;7400
 	move.b	-$0017(a3),d2	;142BFFE9
 	lea	CharacterHeadSel.l,a0	;41F90000A91A
@@ -16563,13 +16502,13 @@ adrCd00A744:
 	add.w	d3,d2	;D443
 	moveq	#$00,d6	;7C00
 	move.b	-$0017(a3),d3	;162BFFE9
-	cmp.b	#$10,d3	;0C030010
+	cmpi.b	#$10,d3	;0C030010
 	bcc	adrCd00A7F2	;64000082
 	move.w	d3,d7	;3E03
 	asl.b	#$04,d7	;E907
-	lea	ArmourWorn.l,a0	;41F90000ED2C
+	lea	PocketContents+$2.l,a0	;41F90000ED2C
 	move.b	$00(a0,d7.w),d7	;1E307000
-	cmp.w	#$0024,d7	;0C470024
+	cmpi.w	#$0024,d7	;0C470024
 	bcc.s	adrCd00A7F2	;646C
 	sub.w	#$001B,d7	;0447001B
 	bcs.s	adrCd00A7F2	;6566
@@ -16680,22 +16619,22 @@ adrCd00A7F2:
 	beq.s	adrCd00A808	;6710
 	tst.w	d6	;4A46
 	beq.s	adrCd00A808	;670C
-	cmp.w	#$0003,d3	;0C430003
+	cmpi.w	#$0003,d3	;0C430003
 	bcc.s	adrCd00A804	;6402
 	moveq	#$03,d3	;7603
 adrCd00A804:
 	add.b	d6,d3	;D606
 	add.b	d6,d3	;D606
 adrCd00A808:
-	move.b	d6,-$001C(a3)	;1746FFE4
-	lea	adrEA00A88E.l,a0	;41F90000A88E
-	and.w	#$000F,d3	;0243000F
-	mulu	#$000A,d3	;C6FC000A
-	lea	$02(a0,d3.w),a0	;41F03002
-	lea	adrEA018804.l,a1	;43F900018804
-	tst.w	-$0002(a0)	;4A68FFFE
-	beq.s	adrCd00A830	;6706
-	lea	adrEA018944.l,a1	;43F900018944
+	move.b	d6,-$001C(a3)			;1746FFE4
+	lea	adrEA00A88E.l,a0		;41F90000A88E
+	and.w	#$000F,d3			;0243000F
+	mulu	#$000A,d3			;C6FC000A
+	lea	$02(a0,d3.w),a0			;41F03002
+	lea	adrEA018804.l,a1		;43F900018804
+	tst.w	-$0002(a0)			;4A68FFFE
+	beq.s	adrCd00A830			;6706
+	lea	adrEA018944.l,a1		;43F900018944
 adrCd00A830:
 	move.l	a0,-(sp)	;2F08
 	move.l	a1,-(sp)	;2F09
@@ -16704,15 +16643,15 @@ adrCd00A830:
 	move.w	d4,-(sp)	;3F04
 	move.w	d1,-(sp)	;3F01
 	move.w	d0,-(sp)	;3F00
-	cmp.w	#$0004,d1	;0C410004
+	cmpi.w	#$0004,d1	;0C410004
 	beq	adrCd00AC6E	;6700042A
-	cmp.w	#$0005,d1	;0C410005
+	cmpi.w	#$0005,d1	;0C410005
 	beq	adrCd00AC9C	;67000450
 	tst.b	-$0019(a3)	;4A2BFFE7
 	bmi.s	adrCd00A876	;6B22
-	cmp.w	#$0003,d1	;0C410003
+	cmpi.w	#$0003,d1	;0C410003
 	bcc.s	adrCd00A876	;641C
-	bsr	adrCd0055AC	;6100AD50
+	bsr	RandomGen_BytewithOffset	;6100AD50
 	move.b	d0,d1	;1200
 	and.w	#$000C,d1	;0241000C
 	bne.s	adrCd00A876	;6610
@@ -16728,7 +16667,7 @@ adrCd00A878:
 	bsr	adrCd00A998	;6100011C
 	move.w	(sp)+,d0	;301F
 	addq.w	#$01,d0	;5240
-	cmp.w	#$0005,d0	;0C400005
+	cmpi.w	#$0005,d0	;0C400005
 	bcs.s	adrCd00A878	;65F0
 	add.w	#$0012,sp	;DEFC0012
 	rts	;4E75
@@ -16897,12 +16836,12 @@ adrCd00A998:
 	bpl.s	adrCd00A9C2	;6A02
 	subq.w	#$01,d6	;5346
 adrCd00A9C2:
-	cmp.b	#$FF,d2	;0C0200FF
+	cmpi.b	#$FF,d2	;0C0200FF
 	bne.s	adrCd00A9CA	;6602
 	rts	;4E75
 
 adrCd00A9CA:
-	cmp.w	#$0003,d0	;0C400003
+	cmpi.w	#$0003,d0	;0C400003
 	bcs.s	adrCd00A9DC	;650C
 	move.w	d0,d1	;3200
 	subq.w	#$03,d1	;5741
@@ -16920,7 +16859,7 @@ adrCd00A9DC:
 	add.w	d2,d2	;D442
 	moveq	#$00,d1	;7200
 	move.w	$00(a2,d2.w),d1	;32322000
-	cmp.w	#$0002,d0	;0C400002
+	cmpi.w	#$0002,d0	;0C400002
 	bne.s	adrCd00AA14	;6614
 	move.b	-$0018(a3),d0	;102BFFE8
 	mulu	#$0378,d0	;C0FC0378
@@ -16945,7 +16884,7 @@ adrCd00AA24:
 	add.b	$00(a0,d0.w),d4	;D8300000
 	add.b	$01(a0,d0.w),d5	;DA300001
 	lea	adrEA00ABF6.l,a6	;4DF90000ABF6
-	cmp.w	#$0004,d0	;0C400004
+	cmpi.w	#$0004,d0	;0C400004
 	bcs.s	adrCd00AA92	;654C
 	bne.s	adrCd00AA4E	;6606
 	moveq	#$00,d0	;7000
@@ -17345,7 +17284,7 @@ adrCd00ACCC:
 	add.b	$00(a0,d0.w),d4	;D8300000
 	add.b	$01(a0,d0.w),d5	;DA300001
 	moveq	#$00,d6	;7C00
-	cmp.w	#$0006,d0	;0C400006
+	cmpi.w	#$0006,d0	;0C400006
 	bne.s	adrCd00ACE4	;6604
 	subq.w	#$01,d6	;5346
 	subq.w	#$04,d0	;5940
@@ -17373,7 +17312,7 @@ adrCd00AD0E:
 	move.b	-$0017(a3),d0	;102BFFE9
 	add.w	d0,d1	;D240
 	asl.w	#$02,d1	;E541
-	lea	adrEA0351D8.l,a6	;4DF9000351D8
+	lea	CharacterColours+$10.l,a6	;4DF9000351D8
 	add.w	d1,a6	;DCC1
 adrCd00AD26:
 	bsr.s	adrCd00AD2E	;6106
@@ -17381,7 +17320,7 @@ adrCd00AD26:
 	rts	;4E75
 
 adrCd00AD2E:
-	add.l	#GFX_Bodies,a1	;D3FC000396F0	;Long Addr replaced with Symbol
+	add.l	#_GFX_Bodies,a1	;D3FC000396F0	;Long Addr replaced with Symbol
 adrCd00AD34:
 	move.w	d5,d0	;3005
 	add.w	d7,d0	;D047
@@ -17485,12 +17424,12 @@ adrCd00ADF6:
 	rts	;4E75
 
 adrCd00AE02:
-	cmp.w	#$0008,d6	;0C460008
+	cmpi.w	#$0008,d6	;0C460008
 	bcc.s	adrCd00AE58	;6450
 	bra.s	adrCd00AE14	;600A
 
 adrCd00AE0A:
-	cmp.w	#$0008,d7	;0C470008
+	cmpi.w	#$0008,d7	;0C470008
 	bcc.s	adrCd00AE58	;6448
 	bsr	adrCd00AFD0	;610001BE
 adrCd00AE14:
@@ -17847,7 +17786,7 @@ adrCd00B13C:
 	move.b	-$0012(a3),d1	;122BFFEE
 	lsr.b	#$02,d1	;E409
 	beq.s	adrCd00B16C	;670E
-	cmp.b	#$05,d1	;0C010005
+	cmpi.b	#$05,d1	;0C010005
 	bcc.s	adrCd00B16C	;6408
 	subq.b	#$01,d1	;5301
 	bsr	adrCd00B1D4	;6100006C
@@ -17864,7 +17803,7 @@ adrCd00B16E:
 	move.b	-$0012(a3),d1	;122BFFEE
 	lsr.b	#$02,d1	;E409
 	beq.s	adrCd00B19A	;670A
-	cmp.b	#$05,d1	;0C010005
+	cmpi.b	#$05,d1	;0C010005
 	bcc.s	adrCd00B1C4	;642E
 	subq.b	#$01,d1	;5301
 	bra.s	adrCd00B1A4	;600A
@@ -18064,7 +18003,7 @@ adrCd00B312:
 	lea	adrEA030650.l,a1	;43F900030650
 adrCd00B340:
 	move.b	-$0016(a3),d6	;1C2BFFEA
-	cmp.b	#$0E,d6	;0C06000E
+	cmpi.b	#$0E,d6	;0C06000E
 	bcc.s	adrCd00B350	;6406
 	bsr	adrCd0095B4	;6100E268
 	bra.s	adrCd00B374	;6024
@@ -18072,7 +18011,7 @@ adrCd00B340:
 adrCd00B350:
 	move.w	d6,d0	;3006
 	subq.w	#$07,d0	;5F40
-	cmp.w	#$000B,d0	;0C40000B
+	cmpi.w	#$000B,d0	;0C40000B
 	bne.s	adrCd00B370	;6616
 	move.w	-$000A(a3),d1	;322BFFF6
 	asl.w	#$02,d1	;E541
@@ -18135,7 +18074,7 @@ adrCd00B410:
 	moveq	#$00,d0	;7000
 	move.b	adrB_00B43C(pc,d6.w),d0	;103B6028
 	bmi.s	adrCd00B42E	;6B16
-	cmp.b	#$0C,d0	;0C00000C
+	cmpi.b	#$0C,d0	;0C00000C
 	bcc	adrCd00B458	;6400003A
 	bsr.s	adrCd00B486	;6164
 	swap	d3	;4843
@@ -18619,7 +18558,7 @@ adrCd00B7DE:
 	rts	;4E75
 
 adrCd00B7F4:
-	lea	GFX_FloorCeiling.l,a1	;43F900032120
+	lea	_GFX_FloorCeiling.l,a1	;43F900032120
 	move.l	-$0008(a3),a0	;206BFFF8
 	tst.w	-$000C(a3)	;4A6BFFF4
 	beq.s	adrCd00B864	;6760
@@ -19676,7 +19615,7 @@ adrCd00C032:
 	move.l	screen_ptr.l,a0	;207900008D36
 	add.w	#$0050,a0	;D0FC0050
 	move.l	#$000F0000,adrW_00D92A.l	;23FC000F00000000D92A
-	bsr	adrCd00D0C6	;6100107E
+	bsr	Print_fflim_text	;6100107E
 	lea	Player1_Data.l,a5	;4BF90000EE7C
 	tst.w	MultiPlayer.l	;4A790000EE30
 	bmi.s	adrCd00C060	;6B08
@@ -19702,7 +19641,7 @@ adrCd00C09C:
 	bsr	BW_blit_horiz_line	;61001AE6
 	addq.w	#$01,d5	;5245
 	addq.w	#$01,d3	;5243
-	cmp.w	#$0005,d3	;0C430005
+	cmpi.w	#$0005,d3	;0C430005
 	bcs.s	adrCd00C09C	;65F2
 	addq.w	#$08,d5	;5045
 	subq.w	#$01,d3	;5343
@@ -19731,11 +19670,11 @@ adrCd00C0D4:
 	movem.l	d3-d5,-(sp)	;48E71C00
 	bsr	BW_draw_frame	;610019E8
 	movem.l	(sp)+,d3-d5	;4CDF0038
-	cmp.w	#$0004,d3	;0C430004
+	cmpi.w	#$0004,d3	;0C430004
 	bne.s	adrCd00C0D4	;66DC
 	rts	;4E75
 
-adrCd00C0FA:
+ChampionSelection_Main:
 	moveq	#-$01,d0	;70FF
 	move.w	d0,adrW_00C514.l	;33C00000C514
 	move.b	d0,adrB_00EE83.l	;13C00000EE83
@@ -19754,10 +19693,10 @@ adrCd00C0FA:
 	move.w	#$0026,adrW_00EE84.l	;33FC00260000EE84
 	move.w	#$05F0,adrW_00EE86.l	;33FC05F00000EE86
 adrCd00C168:
-	bsr	adrCd00CD8C	;61000C22
+	bsr	ChampionSelection	;61000C22
 	bsr	adrCd00C01E	;6100FEB0
 	bsr	adrCd008CCA	;6100CB58
-	bsr	adrCd00CD8C	;61000C16
+	bsr	ChampionSelection	;61000C16
 	bsr	adrCd00C01E	;6100FEA4
 	move.w	#$0005,adrW_00EEC6.l	;33FC00050000EEC6
 	move.b	#$01,adrB_008C1F.l	;13FC000100008C1F
@@ -19766,7 +19705,7 @@ adrCd00C190:
 	move.w	adrW_00EEF2.l,d1	;32390000EEF2
 	lea	Player1_Data.l,a5	;4BF90000EE7C
 	and.w	$0014(a5),d1	;C26D0014
-	bmi.s	adrJA00C1F4	;6B52
+	bmi.s	ExitOrLoop	;6B52
 	clr.b	adrB_00EE2C.l	;42390000EE2C
 	bsr	adrCd00C1F6	;6100004C
 	bsr	adrCd00C232	;61000084
@@ -19786,62 +19725,62 @@ adrCd00C1C6:
 	clr.w	$000C(a5)	;426D000C
 	bra.s	adrCd00C190	;609C
 
-adrJA00C1F4:
+ExitOrLoop:
 	rts	;4E75
 
 adrCd00C1F6:
-	move.w	$0022(a5),$0024(a5)	;3B6D00220024
-	bclr	#$07,$0001(a5)	;08AD00070001
-	beq.s	adrJA00C1F4	;67F0
-	move.w	$0014(a5),d0	;302D0014
-	bmi.s	adrJA00C1F4	;6BEA
-	cmp.b	#$03,d0	;0C000003
-	beq.s	adrJA00C1F4	;67E4
-	bsr	adrCd00C74C	;6100053A
-	bpl.s	adrJA00C1F4	;6ADE
-	tst.b	$0007(a5)	;4A2D0007
-	bmi.s	adrJA00C1F4	;6BD8
-	bsr	adrCd00C5F4	;610003D6
-	bpl.s	adrJA00C1F4	;6AD2
-	bsr	adrCd00C622	;610003FE
-	bpl.s	adrJA00C1F4	;6ACC
-	bsr	adrCd00C70C	;610004E2
-	bpl.s	adrJA00C1F4	;6AC6
-	bra	adrCd00C650	;60000420
+	move.w	$0022(a5),$0024(a5)		;3B6D00220024
+	bclr	#$07,$0001(a5)			;08AD00070001
+	beq.s	ExitOrLoop			;67F0
+	move.w	$0014(a5),d0			;302D0014
+	bmi.s	ExitOrLoop			;6BEA
+	cmpi.b	#$03,d0				;0C000003
+	beq.s	ExitOrLoop			;67E4
+	bsr	adrCd00C74C			;6100053A
+	bpl.s	ExitOrLoop			;6ADE
+	tst.b	$0007(a5)			;4A2D0007
+	bmi.s	ExitOrLoop			;6BD8
+	bsr	adrCd00C5F4			;610003D6
+	bpl.s	ExitOrLoop			;6AD2
+	bsr	adrCd00C622			;610003FE
+	bpl.s	ExitOrLoop			;6ACC
+	bsr	adrCd00C70C			;610004E2
+	bpl.s	ExitOrLoop			;6AC6
+	bra	adrCd00C650			;60000420
 
 adrCd00C232:
-	move.w	$0014(a5),d0	;302D0014
-	bmi.s	adrJA00C1F4	;6BBC
-	cmp.b	#$03,d0	;0C000003
-	bne.s	adrCd00C252	;6614
-	lsr.w	#$08,d0	;E048
-	cmp.w	#$0007,d0	;0C400007
-	bne.s	adrCd00C24E	;6608
-	move.w	#$0002,$0014(a5)	;3B7C00020014
+	move.w	$0014(a5),d0			;302D0014
+	bmi.s	ExitOrLoop			;6BBC
+	cmpi.b	#$03,d0				;0C000003
+	bne.s	adrCd00C252			;6614
+	lsr.w	#$08,d0				;E048
+	cmpi.w	#$0007,d0			;0C400007
+	bne.s	adrCd00C24E			;6608
+	move.w	#$0002,$0014(a5)		;3B7C00020014
 	rts	;4E75
 
 adrCd00C24E:
 	move.w	d0,$000C(a5)	;3B40000C
 adrCd00C252:
 	move.w	$000C(a5),d0	;302D000C
-	beq.s	adrJA00C1F4	;679C
+	beq.s	ExitOrLoop	;679C
 	asl.w	#$02,d0	;E540
 	lea	adrJB00C262.l,a0	;41F90000C262
 	move.l	$00(a0,d0.w),a0	;20700000
 adrJB00C262:	equ	*-2
 	jmp	(a0)	;4ED0
 
-adrJT00C266:
-	dc.l	adrJA00C53C	;0000C53C
-	dc.l	adrJA00C436	;0000C436
-	dc.l	adrJA00C490	;0000C490
-	dc.l	adrJA00C516	;0000C516
-	dc.l	adrJA00C286	;0000C286
-	dc.l	adrJA00C2EA	;0000C2EA
-	dc.l	adrJA00C1F4	;0000C1F4
-	dc.l	adrJA00C2EA	;0000C2EA
+ChampionPreviews_LookupTable:
+	dc.l	Click_SelectionAvatar	;0000C53C
+	dc.l	Click_SwitchView	;0000C436
+	dc.l	Click_SelectChampion	;0000C490
+	dc.l	Click_ViewObject	;0000C516
+	dc.l	Click_PreviewSpell	;0000C286
+	dc.l	Click_TurnSpellBookPage	;0000C2EA
+	dc.l	ExitOrLoop	;0000C1F4
+	dc.l	Click_TurnSpellBookPage	;0000C2EA
 
-adrJA00C286:
+Click_PreviewSpell:
 	bsr	adrCd00C2AC	;61000024
 	bpl.s	adrCd00C298	;6A0C
 	move.w	$0006(a5),d7	;3E2D0006
@@ -19853,7 +19792,7 @@ adrCd00C298:
 	bsr	adrCd00D01A	;61000D7E
 	bsr	adrLp00CFDA	;61000D3A
 	moveq	#$0A,d6	;7C0A
-	bsr	adrCd00D008	;61000D62
+	bsr	TerminateText	;61000D62
 	bra	adrCd00C85E	;600005B4
 
 adrCd00C2AC:
@@ -19872,7 +19811,7 @@ adrCd00C2AC:
 	clr.b	$0014(a4)	;422C0014
 adrCd00C2D4:
 	asl.w	#$03,d0	;E740
-	lea	SpellNamesMsg.l,a6	;4DF900019E8E
+	lea	SpellNames.l,a6	;4DF900019E8E
 	add.w	d0,a6	;DCC0
 	rts	;4E75
 
@@ -19882,7 +19821,7 @@ adrCd00C2E0:
 adrCd00C2E8:
 	rts	;4E75
 
-adrJA00C2EA:
+Click_TurnSpellBookPage:
 	tst.w	$0024(a5)	;4A6D0024
 	bne.s	adrCd00C2E8	;66F8
 	tst.b	$000F(a5)	;4A2D000F
@@ -19910,7 +19849,7 @@ adrCd00C322:
 adrCd00C338:
 	and.w	#$0003,d1	;02410003
 	move.w	$002A(a5),d0	;302D002A
-	cmp.w	#$0003,d1	;0C410003
+	cmpi.w	#$0003,d1	;0C410003
 	bne.s	adrCd00C39C	;6656
 	addq.w	#$01,d0	;5240
 	bsr	adrCd00C86A	;61000520
@@ -19919,7 +19858,7 @@ adrCd00C338:
 	and.w	#$0007,d0	;02400007
 	move.w	d0,d7	;3E00
 	asl.w	#$04,d0	;E940
-	lea	SpellRunesMsg_2.l,a6	;4DF900018787
+	lea	Temp_SpellRunesMsg_2.l,a6	;4DF900018787
 	add.w	d0,a6	;DCC0
 	move.l	screen_ptr.l,a0	;207900008D36
 	add.w	#$0436,a0	;D0FC0436
@@ -19971,7 +19910,7 @@ adrCd00C3DE:
 	move.l	screen_ptr.l,a0	;207900008D36
 	add.w	#$0186,a0	;D0FC0186
 	add.w	$000A(a5),a0	;D0ED000A
-	lea	adrEA050832.l,a1	;43F900050832
+	lea	_Temp_GFX_Pockets_06.l,a1	;43F900050832
 	add.w	d0,d0	;D040
 	add.w	d0,a0	;D0C0
 	asl.w	#$03,d0	;E740
@@ -19990,7 +19929,7 @@ adrCd00C3DE:
 adrCd00C434:
 	rts	;4E75
 
-adrJA00C436:
+Click_SwitchView:
 	move.w	$0006(a5),d7	;3E2D0006
 	bsr	adrCd00CFF0	;61000BB4
 adrCd00C43E:
@@ -20019,7 +19958,7 @@ adrJT00C484:
 	dc.l	adrJA00C852	;0000C852
 	dc.l	adrJA00CB28	;0000CB28
 
-adrJA00C490:
+Click_SelectChampion:
 	clr.w	adrW_00EEC8.l	;42790000EEC8
 	move.l	screen_ptr.l,a0	;207900008D36
 	add.w	#$0050,a0	;D0FC0050
@@ -20037,7 +19976,7 @@ adrCd00C4BA:
 	add.b	#$31,d0	;06000031
 	move.b	d0,$0007(a6)	;1D400007
 	move.l	#$000F0000,adrW_00D92A.l	;23FC000F00000000D92A
-	bsr	adrCd00D0C6	;61000BF0
+	bsr	Print_fflim_text	;61000BF0
 	move.w	#$0005,adrW_00EEC6.l	;33FC00050000EEC6
 adrCd00C4E0:
 	moveq	#$2A,d5	;7A2A
@@ -20045,9 +19984,9 @@ adrCd00C4E0:
 	move.b	(a5),d0	;1015
 	and.w	#$0001,d0	;02400001
 	add.b	#$31,d0	;06000031
-	lea	adrEA00E9A8.l,a6	;4DF90000E9A8
+	lea	BeginGameScroll.l,a6	;4DF90000E9A8
 	move.b	d0,$000E(a6)	;1D40000E
-	bsr	adrCd00D0C6	;61000BCA
+	bsr	Print_fflim_text	;61000BCA
 	tst.b	adrB_00EE2C.l	;4A390000EE2C
 	beq.s	adrCd00C512	;670C
 	move.w	#$FFFF,$0014(a5)	;3B7CFFFF0014
@@ -20058,20 +19997,20 @@ adrCd00C512:
 adrW_00C514:
 	dc.w	$FFFF	;FFFF
 
-adrJA00C516:
+Click_ViewObject:
 	move.w	$0006(a5),d0	;302D0006
 	asl.w	#$04,d0	;E940
 	lea	PocketContents.l,a6	;4DF90000ED2A
 	add.w	d0,a6	;DCC0
 	move.w	$000E(a5),d0	;302D000E
 	move.b	$00(a6,d0.w),d0	;10360000
-	lea	adrEA00E4C4.l,a6	;4DF90000E4C4
+	lea	ObjectDefinitionsTable.l,a6	;4DF90000E4C4
 	add.w	d0,d0	;D040
 	add.w	d0,d0	;D040
 	add.w	d0,a6	;DCC0
-	bra	adrCd00D7F8	;600012BE
+	bra	InventoryItem_Description	;600012BE
 
-adrJA00C53C:
+Click_SelectionAvatar:
 	move.w	$0006(a5),d7	;3E2D0006
 	move.w	d7,-(sp)	;3F07
 	bsr	Draw_Select_Avatars	;61000852
@@ -20130,14 +20069,14 @@ adrCd00C5C6:
 adrCd00C5F4:
 	move.l	$0002(a5),d1	;222D0002
 	sub.w	$0008(a5),d1	;926D0008
-	cmp.w	#$0040,d1	;0C410040
+	cmpi.w	#$0040,d1	;0C410040
 	bcs.s	adrCd00C61E	;651C
-	cmp.w	#$0050,d1	;0C410050
+	cmpi.w	#$0050,d1	;0C410050
 	bcc.s	adrCd00C61E	;6416
 	swap	d1	;4841
-	cmp.w	#$00AF,d1	;0C4100AF
+	cmpi.w	#$00AF,d1	;0C4100AF
 	bcs.s	adrCd00C61E	;650E
-	cmp.w	#$00C3,d1	;0C4100C3
+	cmpi.w	#$00C3,d1	;0C4100C3
 	bcc.s	adrCd00C61E	;6408
 	move.w	#$0002,$000C(a5)	;3B7C0002000C
 	clr.w	d2	;4242
@@ -20148,14 +20087,14 @@ adrCd00C61E:
 adrCd00C622:
 	move.l	$0002(a5),d1	;222D0002
 	sub.w	$0008(a5),d1	;926D0008
-	cmp.w	#$0040,d1	;0C410040
+	cmpi.w	#$0040,d1	;0C410040
 	bcs.s	adrCd00C64C	;651C
-	cmp.w	#$0050,d1	;0C410050
+	cmpi.w	#$0050,d1	;0C410050
 	bcc.s	adrCd00C64C	;6416
 	swap	d1	;4841
-	cmp.w	#$00C6,d1	;0C4100C6
+	cmpi.w	#$00C6,d1	;0C4100C6
 	bcs.s	adrCd00C64C	;650E
-	cmp.w	#$00DA,d1	;0C4100DA
+	cmpi.w	#$00DA,d1	;0C4100DA
 	bcc.s	adrCd00C64C	;6408
 	move.w	#$0003,$000C(a5)	;3B7C0003000C
 	clr.w	d2	;4242
@@ -20170,7 +20109,7 @@ adrCd00C650:
 	sub.w	$0008(a5),d1	;926D0008
 	sub.w	#$0018,d1	;04410018
 	bcs.s	adrCd00C69C	;6536
-	cmp.w	#$0020,d1	;0C410020
+	cmpi.w	#$0020,d1	;0C410020
 	bcc.s	adrCd00C64C	;64E0
 	swap	d1	;4841
 	sub.w	#$00E8,d1	;044100E8
@@ -20193,30 +20132,30 @@ adrCd00C684:
 
 adrCd00C69C:
 	add.w	#$0018,d1	;06410018
-	cmp.w	#$0007,d1	;0C410007
+	cmpi.w	#$0007,d1	;0C410007
 	bcs.s	adrCd00C708	;6562
-	cmp.w	#$0010,d1	;0C410010
+	cmpi.w	#$0010,d1	;0C410010
 	bcc.s	adrCd00C708	;645C
 	swap	d1	;4841
-	cmp.w	#$00E8,d1	;0C4100E8
+	cmpi.w	#$00E8,d1	;0C4100E8
 	bcs.s	adrCd00C708	;6554
 	moveq	#$06,d0	;7006
-	cmp.w	#$00F8,d1	;0C4100F8
+	cmpi.w	#$00F8,d1	;0C4100F8
 	bcs.s	adrCd00C6D8	;651C
-	cmp.w	#$0100,d1	;0C410100
+	cmpi.w	#$0100,d1	;0C410100
 	bcs.s	adrCd00C708	;6546
 	moveq	#$07,d0	;7007
-	cmp.w	#$0120,d1	;0C410120
+	cmpi.w	#$0120,d1	;0C410120
 	bcs.s	adrCd00C6D8	;650E
-	cmp.w	#$0128,d1	;0C410128
+	cmpi.w	#$0128,d1	;0C410128
 	bcs.s	adrCd00C708	;6538
 	moveq	#$08,d0	;7008
-	cmp.w	#$0138,d1	;0C410138
+	cmpi.w	#$0138,d1	;0C410138
 	bcc.s	adrCd00C708	;6430
 adrCd00C6D8:
 	move.w	d0,$000C(a5)	;3B40000C
 	moveq	#$03,d2	;7403
-	cmp.w	#$0006,d0	;0C400006
+	cmpi.w	#$0006,d0	;0C400006
 	bne.s	adrCd00C6F2	;660E
 	subq.w	#$02,$002A(a5)	;556D002A
 	and.w	#$0007,$002A(a5)	;026D0007002A
@@ -20240,7 +20179,7 @@ adrCd00C714:
 	sub.w	$0008(a5),d1	;926D0008
 	sub.w	#$0020,d1	;04410020
 	bcs.s	adrCd00C748	;6526
-	cmp.w	#$0020,d1	;0C410020
+	cmpi.w	#$0020,d1	;0C410020
 	bcc.s	adrCd00C748	;6420
 	swap	d1	;4841
 	sub.w	#$00E0,d1	;044100E0
@@ -20276,7 +20215,7 @@ adrCd00C760:
 	cmp.w	d3,d1	;B243
 	bcc.s	adrCd00C7C2	;6458
 	swap	d1	;4841
-	cmp.w	#$009E,d1	;0C41009E
+	cmpi.w	#$009E,d1	;0C41009E
 	bcc.s	adrCd00C7C2	;6450
 	moveq	#$27,d3	;7627
 adrCd00C774:
@@ -20319,7 +20258,7 @@ adrCd00C7C8:
 	add.w	$000A(a5),a0	;D0ED000A
 	move.l	#$00000070,a3	;267C00000070
 	move.l	#$0005003D,d5	;2A3C0005003D	;Long Addr replaced with Symbol
-	lea	adrEA050802.l,a1	;43F900050802
+	lea	_Temp_GFX_Pockets_05.l,a1	;43F900050802
 	bsr	adrCd00CCB8	;610004CA
 	asl.w	#$05,d7	;EB47
 	lea	CharacterStats.l,a4	;49F90000EB2A
@@ -20349,7 +20288,7 @@ adrCd00C820:
 	move.b	d1,$000D(a6)	;1D41000D
 	bsr	adrCd00CEC4	;6100067C
 	move.w	d1,$0010(a6)	;3D410010
-	bra	adrCd00D0C6	;60000876
+	bra	Print_fflim_text	;60000876
 
 adrJA00C852:
 	bsr.s	adrCd00C7FC	;61A8
@@ -20365,7 +20304,7 @@ adrCd00C86A:
 	or.b	#$04,$0054(a5)	;002D00040054
 	move.w	d0,d7	;3E00
 	asl.w	#$04,d0	;E940
-	lea	SpellRunesMsg_1.l,a6	;4DF900018784
+	lea	SpellBookRunes.l,a6	;4DF900018784
 	add.w	d0,a6	;DCC0
 	move.l	screen_ptr.l,a0	;207900008D36
 	add.w	#$042D,a0	;D0FC042D
@@ -20394,7 +20333,7 @@ adrLp00C8B4:
 	bsr	adrCd00D8C0	;61000FFA
 	add.w	#$0164,a0	;D0FC0164
 	subq.w	#$01,d7	;5347
-	cmp.w	#$0004,d7	;0C470004
+	cmpi.w	#$0004,d7	;0C470004
 	bcc.s	adrCd00C8AA	;64D6
 	rts	;4E75
 
@@ -20460,7 +20399,7 @@ adrJA00C938:
 	bsr	adrCd008358	;6100B9E4
 	bsr	adrCd00C9BC	;61000044
 	lea	adrEA00EA14.l,a6	;4DF90000EA14
-	bsr	adrCd00D0C6	;61000744
+	bsr	Print_fflim_text	;61000744
 adrCd00C984:
 	move.w	d7,d0	;3007
 	bsr	adrCd006660	;61009CD8
@@ -20479,7 +20418,7 @@ adrCd00C9A0:
 	move.b	d1,$000E(a6)	;1D41000E
 	ror.w	#$08,d1	;E059
 	move.b	d1,$000D(a6)	;1D41000D
-	bra	adrCd00D0C6	;6000070C
+	bra	Print_fflim_text	;6000070C
 
 adrCd00C9BC:
 	move.l	a4,-(sp)	;2F0C
@@ -20496,7 +20435,7 @@ adrCd00C9DC:
 	moveq	#$00,d0	;7000
 	move.b	$00(a4,d7.w),d0	;10347000
 	bne.s	adrCd00CA38	;6654
-	cmp.w	#$0002,d7	;0C470002
+	cmpi.w	#$0002,d7	;0C470002
 	bcc.s	adrCd00CA14	;642A
 	swap	d7	;4847
 	move.w	d7,d0	;3007
@@ -20516,10 +20455,10 @@ adrCd00C9DC:
 
 adrCd00CA14:
 	move.w	$0012(a5),d3	;362D0012
-	cmp.w	#$0004,d7	;0C470004
+	cmpi.w	#$0004,d7	;0C470004
 	bcc.s	adrCd00CA32	;6414
 	move.w	d7,d0	;3007
-	cmp.w	#$0003,d7	;0C470003
+	cmpi.w	#$0003,d7	;0C470003
 	bne.s	adrCd00CA2E	;6608
 	btst	#$10,d7	;08070010
 	beq.s	adrCd00CA2E	;6702
@@ -20531,7 +20470,7 @@ adrCd00CA32:
 	bra.s	adrCd00CA4C	;6014
 
 adrCd00CA38:
-	cmp.w	#$0005,d0	;0C400005
+	cmpi.w	#$0005,d0	;0C400005
 	bcc.s	adrCd00CA4A	;640C
 	move.b	$0B(a4,d0.w),d1	;1234000B
 	bne.s	adrCd00CA4A	;6606
@@ -20539,35 +20478,35 @@ adrCd00CA38:
 	bra.s	adrCd00C9DC	;6092
 
 adrCd00CA4A:
-	bsr.s	adrCd00CA66	;611A
+	bsr.s	ObjectGraphic	;611A
 adrCd00CA4C:
 	addq.w	#$01,d7	;5247
-	cmp.w	#$0006,d7	;0C470006
+	cmpi.w	#$0006,d7	;0C470006
 	bne.s	adrCd00CA58	;6604
 	add.w	#$0274,a0	;D0FC0274
 adrCd00CA58:
-	cmp.w	#$000C,d7	;0C47000C
+	cmpi.w	#$000C,d7	;0C47000C
 	bcs	adrCd00C9DC	;6500FF7E
 	swap	d7	;4847
 	move.l	(sp)+,a4	;285F
 	rts	;4E75
 
-adrCd00CA66:
+ObjectGraphic:
 	tst.w	d0	;4A40
 	beq	adrCd00CAEA	;67000080
-	cmp.w	#$0005,d0	;0C400005
-	bcs.s	adrCd00CAA6	;6534
-	cmp.w	#$0069,d0	;0C400069
-	bcs.s	adrCd00CA92	;651A
-	cmp.w	#$006D,d0	;0C40006D
-	bcc.s	adrCd00CA92	;6414
+	cmpi.w	#$0005,d0	;0C400005
+	bcs.s	NumberedObject	;6534
+	cmpi.w	#$0069,d0	;0C400069
+	bcs.s	.SkipRings	;651A
+	cmpi.w	#$006D,d0	;0C40006D
+	bcc.s	.SkipRings	;6414
 	move.w	d0,d3	;3600
 	sub.w	#$0069,d3	;04430069
-	lea	adrEA00EE32.l,a1	;43F90000EE32
+	lea	RingUses.l,a1	;43F90000EE32
 	tst.b	$00(a1,d3.w)	;4A313000
-	bpl.s	adrCd00CA92	;6A02
+	bpl.s	.SkipRings	;6A02
 	moveq	#$68,d0	;7068
-adrCd00CA92:
+.SkipRings:
 	asl.w	#$02,d0	;E540
 	lea	adrEA00E4C2.l,a1	;43F90000E4C2
 	moveq	#$00,d3	;7600
@@ -20575,7 +20514,7 @@ adrCd00CA92:
 	move.b	$00(a1,d0.w),d0	;10310000
 	bra.s	adrCd00CAEA	;6044
 
-adrCd00CAA6:
+NumberedObject:
 	move.l	a0,-(sp)	;2F08
 	move.w	d0,-(sp)	;3F00
 	move.b	d1,d0	;1001
@@ -20591,7 +20530,7 @@ adrCd00CAA6:
 adrCd00CACC:
 	lea	adrEA00CAE6.l,a6	;4DF90000CAE6
 	move.l	#$00060000,adrW_00D92A.l	;23FC000600000000D92A
-	bsr	adrCd00D0C6	;610005E8
+	bsr	Print_fflim_text	;610005E8
 	move.l	(sp)+,a0	;205F
 	addq.w	#$02,a0	;5448
 	rts	;4E75
@@ -20608,7 +20547,7 @@ adrCd00CAEA:
 	lea	_GFX_Pockets.l,a1	;43F90004C702
 	and.w	#$00FF,d0	;024000FF
 adrCd00CAFA:
-	cmp.b	#$14,d0	;0C000014
+	cmpi.b	#$14,d0	;0C000014
 	bcs.s	adrCd00CB0A	;650A
 	add.w	#$0A00,a1	;D2FC0A00
 	sub.w	#$0014,d0	;04400014
@@ -20677,7 +20616,7 @@ adrCd00CBB0:
 	move.b	d1,$01(a6,d2.w)	;1D812001
 	ror.w	#$08,d1	;E059
 	move.b	d1,$00(a6,d2.w)	;1D812000
-	bra	adrCd00D0C6	;60000504
+	bra	Print_fflim_text	;60000504
 
 adrEA00CBC4:
 	dc.b	$00	;00
@@ -20896,24 +20835,24 @@ adrCd00CD78:
 	move.l	#$00010028,d5	;2A3C00010028	;Long Addr replaced with Symbol
 	bra	adrCd00CE26	;6000009C
 
-adrCd00CD8C:
+ChampionSelection:
 	moveq	#$0F,d7	;7E0F
-adrLp00CD8E:
+.ChampionSelection_Loop:
 	bsr.s	Draw_Select_Avatars	;6106
-	dbra	d7,adrLp00CD8E	;51CFFFFC
-adrCd00CD94:
+	dbra	d7,.ChampionSelection_Loop	;51CFFFFC
+ExitAvatarDrawing:
 	rts	;4E75
 
 Draw_Select_Avatars:
-	cmp.w	#$0010,d7	;0C470010
-	bcc.s	adrCd00CD94	;64F8
+	cmpi.w	#$0010,d7	;0C470010
+	bcc.s	ExitAvatarDrawing	;64F8
 	bsr.s	adrCd00CD4A	;61AC
 	moveq	#$04,d3	;7604
-adrCd00CDA0:
+Draw_ShieldAvatar:
 	move.l	#$00020103,d0	;203C00020103	;Long Addr replaced with Symbol
 	tst.w	d3	;4A43
 	beq.s	adrCd00CDBC	;6712
-	lea	adrEA00846E.l,a6	;4DF90000846E
+	lea	ClassColours.l,a6	;4DF90000846E
 	move.w	d7,d0	;3007
 	bsr	adrCd006900	;61009B4C
 	asl.w	#$02,d0	;E540
@@ -21046,7 +20985,7 @@ adrCd00CEEA:
 	move.b	d0,d1	;1200
 adrCd00CEF4:
 	and.b	#$0F,d1	;0201000F
-	cmp.b	#$0A,d1	;0C01000A
+	cmpi.b	#$0A,d1	;0C01000A
 	bcs.s	adrCd00CF02	;6504
 	add.b	#$07,d1	;06010007
 adrCd00CF02:
@@ -21061,15 +21000,15 @@ adrCd00CF08:
 	move.w	$0010(a5),adrW_00D92C.l	;33ED00100000D92C
 	moveq	#$0B,d6	;7C0B
 	and.w	#$000F,d0	;0240000F
-	bsr	adrCd00D7E6	;610008B8
-	bsr	adrCd00D008	;610000D6
+	bsr	Print_wordstext	;610008B8
+	bsr	TerminateText	;610000D6
 	move.w	#$00E0,d4	;383C00E0
 	moveq	#$12,d5	;7A12
 	add.w	$0008(a5),d5	;DA6D0008
 	move.l	#$00040000,d3	;263C00040000	;Long Addr replaced with Symbol
-	bsr	BW_blit_vertical	;61000BBE
+	bsr	BW_blit_vertical_line	;61000BBE
 	addq.w	#$01,d4	;5244
-	bra	BW_blit_vertical	;60000BB8
+	bra	BW_blit_vertical_line	;60000BB8
 
 adrCd00CF4E:
 	or.b	#$10,$0054(a5)	;002D00100054
@@ -21117,9 +21056,9 @@ adrCd00CFBC:
 adrLp00CFDA:
 	move.b	(a6)+,d0	;101E
 	bpl.s	adrCd00CFE6	;6A08
-	bsr	adrCd00D0D6	;610000F6
+	bsr	Exec_char_extensions	;610000F6
 	bcc.s	adrLp00CFDA	;64F6
-	bra.s	adrCd00D008	;6022
+	bra.s	TerminateText	;6022
 
 adrCd00CFE6:
 	bsr	adrCd00D8C0	;610008D8
@@ -21129,14 +21068,14 @@ adrCd00CFE6:
 adrCd00CFF0:
 	bsr.s	adrCd00D018	;6126
 	move.w	d7,d0	;3007
-	bsr	adrCd00D7E6	;610007F0
+	bsr	Print_wordstext	;610007F0
 	moveq	#$20,d0	;7020
 	bsr	adrCd00D8C0	;610008C4
 	subq.w	#$01,d6	;5346
 	moveq	#$64,d0	;7064
 	add.w	d7,d0	;D047
-	bsr	adrCd00D7E6	;610007E0
-adrCd00D008:
+	bsr	Print_wordstext	;610007E0
+TerminateText:
 	tst.w	d6	;4A46
 	bmi.s	adrCd00D016	;6B0A
 adrLp00D00C:
@@ -21156,7 +21095,7 @@ adrCd00D01A:
 	move.w	$0010(a5),adrW_00D92C.l	;33ED00100000D92C
 	rts	;4E75
 
-Ask_CC96:
+WriteMessage:
 	move.b	#$81,d2	;143C0081
 	bra.s	adrCd00D042	;6002
 
@@ -21165,15 +21104,15 @@ Ask_CC96:
 
 adrCd00D042:
 	tst.b	$0005(a4)	;4A2C0005
-	bpl.s	adrCd00D090	;6A48
+	bpl.s	WriteFText	;6A48
 	movem.l	d2/a6,-(sp)	;48E72002
-	bsr.s	adrCd00D090	;6142
+	bsr.s	WriteFText	;6142
 	movem.l	(sp)+,d2/a6	;4CDF4004
 	lea	Player1_Data.l,a0	;41F90000EE7C
 	btst	#$00,(a5)	;08150000
-	bne.s	adrCd00D064	;6606
+	bne.s	.continuedcode_001	;6606
 	lea	Player2_Data.l,a0	;41F90000EEDE
-adrCd00D064:
+.continuedcode_001:
 	movem.l	a4/a5,-(sp)	;48E7000C
 	move.l	a0,a5	;2A48
 	move.b	$0001(a4),d0	;102C0001
@@ -21183,22 +21122,22 @@ adrCd00D064:
 	move.b	d0,$0000(a4)	;19400000
 adrCd00D07C:
 	or.b	#$40,d2	;00020040
-	bsr.s	adrCd00D090	;610E
+	bsr.s	WriteFText	;610E
 	movem.l	(sp)+,a4/a5	;4CDF3000
 	rts	;4E75
 
-adrCd00D088:
+WriteTimedText:
 	move.b	#$81,d2	;143C0081
-	bra.s	adrCd00D090	;6002
+	bra.s	WriteFText	;6002
 
 WriteText:
 	moveq	#$00,d2	;7400
-adrCd00D090:
+WriteFText:
 	move.b	d2,$0052(a5)	;1B420052
-	bsr.s	adrCd00D09A	;6104
+	bsr.s	InitialiseText	;6104
 	bra	adrLp00CFDA	;6000FF42
 
-adrCd00D09A:
+InitialiseText:
 	or.b	#$A0,$0054(a5)	;002D00A00054
 	move.l	screen_ptr.l,a0	;207900008D36
 	add.w	$000A(a5),a0	;D0ED000A
@@ -21209,41 +21148,41 @@ adrCd00D09A:
 	move.w	#$0105,$004A(a5)	;3B7C0105004A
 	rts	;4E75
 
-adrCd00D0C6:
+Print_fflim_text:
 	move.b	(a6)+,d0	;101E
-	bpl.s	adrCd00D0D0	;6A06
-	bsr.s	adrCd00D0D6	;610A
-	bcc.s	adrCd00D0C6	;64F8
+	bpl.s	.continuedcode_002	;6A06
+	bsr.s	Exec_char_extensions	;610A
+	bcc.s	Print_fflim_text	;64F8
 	rts	;4E75
 
-adrCd00D0D0:
+.continuedcode_002:
 	bsr	adrCd00D8C0	;610007EE
-	bra.s	adrCd00D0C6	;60F0
+	bra.s	Print_fflim_text	;60F0
 
-adrCd00D0D6:
-	cmp.b	#$F0,d0	;0C0000F0
-	beq	adrCd00D12A	;6700004E
-	moveq	#$00,d1	;7200
-	move.b	(a6)+,d1	;121E
-	cmp.b	#$FE,d0	;0C0000FE
-	beq.s	adrCd00D0FA	;6712
-	cmp.b	#$FD,d0	;0C0000FD
-	beq.s	adrCd00D102	;6714
-	cmp.b	#$FC,d0	;0C0000FC
-	beq.s	adrCd00D10A	;6716
-	moveq	#$00,d0	;7000
-	subq.w	#$01,d0	;5340
-	rts	;4E75
+Exec_char_extensions:
+	cmpi.b	#$F0,d0				;0C0000F0
+	beq	.Call_F0_Function			;6700004E
+	moveq	#$00,d1				;7200
+	move.b	(a6)+,d1			;121E
+	cmpi.b	#$FE,d0				;0C0000FE
+	beq.s	.SetTextColour			;6712
+	cmpi.b	#$FD,d0				;0C0000FD
+	beq.s	.SetBackgroundTextColour			;6714
+	cmpi.b	#$FC,d0				;0C0000FC
+	beq.s	.SetXYPosition			;6716
+	moveq	#$00,d0				;7000
+	subq.w	#$01,d0				;5340
+	rts					;4E75
 
-adrCd00D0FA:
+.SetTextColour:
 	move.w	d1,adrW_00D92A.l	;33C10000D92A
 	rts	;4E75
 
-adrCd00D102:
+.SetBackgroundTextColour:
 	move.w	d1,adrW_00D92C.l	;33C10000D92C
 	rts	;4E75
 
-adrCd00D10A:
+.SetXYPosition:
 	move.w	d1,d4	;3801
 	clr.w	d5	;4245
 	move.b	(a6)+,d5	;1A1E
@@ -21254,13 +21193,13 @@ adrCd00D10A:
 	add.w	$000A(a5),a0	;D0ED000A
 	add.w	d0,a0	;D0C0
 	add.w	#$0050,a0	;D0FC0050
-adrCd00D128:
+.Exit:
 	rts	;4E75
 
-adrCd00D12A:
+.Call_F0_Function:
 	bsr.s	CopyProtection	;610C
 	tst.l	d0	;4A80
-	beq.s	adrCd00D128	;67F8
+	beq.s	.Exit	;67F8
 	lea	adrCd000C50.w,a0	;41F80C50	;Short Absolute converted to symbol!
 	bra	adrCd008DAE		;6000BC78
 
@@ -22021,104 +21960,104 @@ adrEA00D740:
 	sub.l	#$8488FFC4,d0	;04808488FFC4
 	rts	;4E75
 
-adrCd00D74C:
+Print_com_menu_entry:
 	move.l	#$000D0002,adrW_00D92A.l	;23FC000D00020000D92A
 	cmp.b	$0040(a5),d7	;BE2D0040
-	bne.s	adrCd00D772	;6616
+	bne.s	.continuedcode_005	;6616
 	tst.b	$0041(a5)	;4A2D0041
-	bne.s	adrCd00D772	;6610
+	bne.s	.continuedcode_005	;6610
 	move.w	$0010(a5),adrW_00D92C.l	;33ED00100000D92C
 	move.w	#$000E,adrW_00D92A.l	;33FC000E0000D92A
-adrCd00D772:
-	move.b	(a6)+,d0	;101E
-	cmp.b	#$FA,d0	;0C0000FA
-	beq.s	adrCd00D780	;6706
-	bcc.s	adrCd00D788	;640C
-	bsr.s	adrCd00D7E6	;6168
-	bra.s	adrCd00D772	;60F2
+.continuedcode_005:
+	move.b	(a6)+,d0				;101E
+	cmpi.b	#$FA,d0					;0C0000FA
+	beq.s	.Print_SkipSomething_TEMP				;6706
+	bcc.s	.Print_SkipSomethingElse_TEMP				;640C
+	bsr.s	Print_wordstext				;6168
+	bra.s	.continuedcode_005				;60F2
 
-adrCd00D780:
+.Print_SkipSomething_TEMP:
 	move.b	(a6)+,d0	;101E
 	bsr	adrCd00D8C0	;6100013C
-	bra.s	adrCd00D772	;60EA
+	bra.s	.continuedcode_005	;60EA
 
-adrCd00D788:
-	cmp.b	#$FF,d0	;0C0000FF
-	beq.s	adrCd00D7DA	;674C
-	cmp.b	#$FC,d0	;0C0000FC
-	bne.s	adrCd00D772	;66DE
-	addq.w	#$01,a0	;5248
-	move.b	#$FF,adrB_00EE2D.l	;13FC00FF0000EE2D
-	move.l	#$000D0002,adrW_00D92A.l	;23FC000D00020000D92A
-	cmp.b	$0040(a5),d7	;BE2D0040
-	bne.s	adrCd00D772	;66C4
-	tst.b	$0041(a5)	;4A2D0041
-	beq.s	adrCd00D772	;67BE
-	move.w	$0010(a5),adrW_00D92C.l	;33ED00100000D92C
-	move.w	#$000E,adrW_00D92A.l	;33FC000E0000D92A
-	bra.s	adrCd00D772	;60AC
+.Print_SkipSomethingElse_TEMP:
+	cmpi.b	#$FF,d0					;0C0000FF
+	beq.s	Print_LineEnd				;674C
+	cmpi.b	#$FC,d0					;0C0000FC
+	bne.s	.continuedcode_005				;66DE
+	addq.w	#$01,a0					;5248
+	move.b	#$FF,adrB_00EE2D.l			;13FC00FF0000EE2D
+	move.l	#$000D0002,adrW_00D92A.l		;23FC000D00020000D92A
+	cmp.b	$0040(a5),d7				;BE2D0040
+	bne.s	.continuedcode_005				;66C4
+	tst.b	$0041(a5)				;4A2D0041
+	beq.s	.continuedcode_005				;67BE
+	move.w	$0010(a5),adrW_00D92C.l			;33ED00100000D92C
+	move.w	#$000E,adrW_00D92A.l			;33FC000E0000D92A
+	bra.s	.continuedcode_005				;60AC
 
 adrCd00D7C6:
 	lea	WordsText.l,a3	;47F90000DC64
-adrCd00D7CC:
+Proceed_in_stringtable:
 	and.w	#$00FF,d0	;024000FF
 	moveq	#$00,d5	;7A00
-adrLp00D7D2:
+.continuedcode_006:
 	add.w	d5,a3	;D6C5
 	move.b	(a3)+,d5	;1A1B
-	dbra	d0,adrLp00D7D2	;51C8FFFA
-adrCd00D7DA:
+	dbra	d0,.continuedcode_006	;51C8FFFA
+Print_LineEnd:
 	rts	;4E75
 
-adrCd00D7DC:
+Print_item_name:
 	lea	adrEA00E21E.l,a3	;47F90000E21E
-adrCd00D7E2:
-	bsr.s	adrCd00D7CC	;61E8
-	bra.s	adrCd00D7E8	;6002
+Print_word:
+	bsr.s	Proceed_in_stringtable	;61E8
+	bra.s	Print_nchars	;6002
 
-adrCd00D7E6:
+Print_wordstext:
 	bsr.s	adrCd00D7C6	;61DE
-adrCd00D7E8:
+Print_nchars:
 	sub.w	d5,d6	;9C45
 	subq.w	#$01,d5	;5345
-adrLp00D7EC:
+.continuedcode_007:
 	move.b	(a3)+,d0	;101B
 	bsr	adrCd00D8C0	;610000D0
-	dbra	d5,adrLp00D7EC	;51CDFFF8
+	dbra	d5,.continuedcode_007	;51CDFFF8
 	rts	;4E75
 
-adrCd00D7F8:
+InventoryItem_Description:
 	bsr	adrCd00D018	;6100F81E
-	bra.s	adrCd00D802	;6004
+	bra.s	Print_item_desc	;6004
 
-adrCd00D7FE:
+Print_item_desc_fresh:
 	bsr	adrCd00CF4E	;6100F74E
-adrCd00D802:
+Print_item_desc:
 	move.b	(a6)+,d0	;101E
-	bsr.s	adrCd00D7DC	;61D6
+	bsr.s	Print_item_name	;61D6
 	subq.w	#$01,d6	;5346
 	moveq	#$20,d0	;7020
 	bsr	adrCd00D8C0	;610000B4
 	move.b	(a6),d0	;1016
-	bmi.s	adrCd00D814	;6B02
-	bsr.s	adrCd00D7DC	;61C8
-adrCd00D814:
+	bmi.s	.continuedcode_008	;6B02
+	bsr.s	Print_item_name	;61C8
+.continuedcode_008:
 	tst.w	d6	;4A46
-	bpl	adrCd00D008	;6A00F7F0
+	bpl	TerminateText	;6A00F7F0
 	rts	;4E75
 
-adrCd00D81C:
+Print_npc_message:
 	move.b	#$81,d2	;143C0081
-	bra.s	adrCd00D824	;6002
+	bra.s	.continuedcode_009	;6002
 
 ;fiX Label expected
 	dc.w	$7400	;7400
 
-adrCd00D824:
+.continuedcode_009:
 	tst.b	$0005(a4)	;4A2C0005
-	bpl.s	adrCd00D872	;6A48
+	bpl.s	Print_message	;6A48
 	movem.l	d2/a6,-(sp)	;48E72002
-	bsr.s	adrCd00D872	;6142
+	bsr.s	Print_message	;6142
 	movem.l	(sp)+,d2/a6	;4CDF4004
 	lea	Player1_Data.l,a0	;41F90000EE7C
 	btst	#$00,(a5)	;08150000
@@ -22134,48 +22073,48 @@ adrCd00D846:
 	move.b	d0,$0000(a4)	;19400000
 adrCd00D85E:
 	or.b	#$40,d2	;00020040
-	bsr.s	adrCd00D872	;610E
+	bsr.s	Print_message	;610E
 	movem.l	(sp)+,a4/a5	;4CDF3000
 	rts	;4E75
 
-adrCd00D86A:
+Print_timed_message:
 	move.b	#$81,d2	;143C0081
-	bra.s	adrCd00D872	;6002
+	bra.s	Print_message	;6002
 
-adrCd00D870:
+Print_fix_message:
 	moveq	#$00,d2	;7400
-adrCd00D872:
+Print_message:
 	move.b	d2,$0052(a5)	;1B420052
-	bsr	adrCd00D09A	;6100F822
-adrCd00D87A:
-	move.b	(a6)+,d0	;101E
-	cmp.b	#$FA,d0	;0C0000FA
-	bcc.s	adrCd00D894	;6412
-	bsr	adrCd00D7E6	;6100FF62
+	bsr	InitialiseText	;6100F822
+Print_NewLine:
+	move.b	(a6)+,d0				;101E
+	cmpi.b	#$FA,d0					;0C0000FA
+	bcc.s	adrCd00D894				;6412
+	bsr	Print_wordstext				;6100FF62
 adrCd00D886:
 	tst.w	d6	;4A46
-	bmi	adrCd00D008	;6B00F77E
+	bmi	TerminateText	;6B00F77E
 	moveq	#$20,d0	;7020
 	bsr.s	adrCd00D8C0	;6130
 	subq.w	#$01,d6	;5346
-	bra.s	adrCd00D87A	;60E6
+	bra.s	Print_NewLine	;60E6
 
 adrCd00D894:
-	beq.s	adrCd00D8B8	;6722
-	cmp.b	#$FF,d0	;0C0000FF
-	beq	adrCd00D008	;6700F76C
-	cmp.b	#$FB,d0	;0C0000FB
-	beq.s	adrCd00D8B2	;670E
-	cmp.b	#$FE,d0	;0C0000FE
-	bne.s	adrCd00D87A	;66D0
-	move.b	(a6)+,d0	;101E
-	bsr	adrCd00D7DC	;6100FF2E
-	bra.s	adrCd00D886	;60D4
+	beq.s	adrCd00D8B8				;6722
+	cmpi.b	#$FF,d0					;0C0000FF
+	beq	TerminateText				;6700F76C
+	cmpi.b	#$FB,d0					;0C0000FB
+	beq.s	Print_FB_Function				;670E
+	cmpi.b	#$FE,d0					;0C0000FE
+	bne.s	Print_NewLine				;66D0
+	move.b	(a6)+,d0				;101E
+	bsr	Print_item_name				;6100FF2E
+	bra.s	adrCd00D886				;60D4
 
-adrCd00D8B2:
+Print_FB_Function:
 	addq.w	#$01,d6	;5246
 	subq.w	#$01,a0	;5348
-	bra.s	adrCd00D87A	;60C2
+	bra.s	Print_NewLine	;60C2
 
 adrCd00D8B8:
 	subq.w	#$01,a0	;5348
@@ -22239,16 +22178,16 @@ adrW_00D92C:
 adrB_00D92D:
 	dc.b	$00	;00
 
-adrCd00D92E:
+Draw_woundflash_digit:
 	move.w	#$000F,adrW_00D92C.l	;33FC000F0000D92C
 	movem.l	d4/d5,-(sp)	;48E70C00
-	lea	adrEA00D988.l,a0	;41F90000D988
+	lea	Data_Woundflash.l,a0	;41F90000D988
 	move.l	a0,a1	;2248
 	moveq	#$09,d2	;7409
 	moveq	#-$01,d1	;72FF
-adrLp00D946:
+.continuedcode_011:
 	move.l	d1,(a1)+	;22C1
-	dbra	d2,adrLp00D946	;51CAFFFC
+	dbra	d2,.continuedcode_011	;51CAFFFC
 	move.b	#$FF,adrB_00EE2D.l	;13FC00FF0000EE2D
 	bsr	BW_Blitchar	;6100005A
 	clr.b	adrB_00EE2D.l	;42390000EE2D
@@ -22266,7 +22205,7 @@ adrLp00D946:
 	moveq	#$00,d6	;7C00
 	bra	adrCd00AD90	;6000D40A
 
-adrEA00D988:
+Data_Woundflash:
 	dc.l	$00000000	;00000000
 	dc.l	$00000000	;00000000
 	dc.l	$00000000	;00000000
@@ -22294,7 +22233,7 @@ BW_Blitchar:
 	asl.w	#$02,d2	;E542
 	move.l	$00(a2,d2.w),d2	;24322000
 	moveq	#$04,d1	;7204
-adrLp00D9E0:
+.loop:
 	move.b	(a1),d0	;1011
 	asl.w	#$08,d0	;E140
 	move.b	(a1)+,d0	;1019
@@ -22316,7 +22255,7 @@ adrLp00D9E0:
 	swap	d0	;4840
 	move.b	d0,$0004(a0)	;11400004
 	addq.w	#$08,a0	;5048
-	dbra	d1,adrLp00D9E0	;51C9FFCE
+	dbra	d1,.loop	;51C9FFCE
 	move.l	(sp)+,a0	;205F
 	rts	;4E75
 
@@ -22400,12 +22339,12 @@ BW_cs_draw_frame:
 	subq.w	#$02,d3	;5543
 	swap	d3	;4843
 	swap	d5	;4845
-	bsr	BW_blit_vertical	;6100004E
+	bsr	BW_blit_vertical_line	;6100004E
 	swap	d4	;4844
 	move.w	d4,d7	;3E04
 	swap	d4	;4844
 	add.w	d7,d4	;D847
-	bra	BW_blit_vertical	;60000042
+	bra	BW_blit_vertical_line	;60000042
 
 ;fiX Label expected
 	swap	d3	;4843
@@ -22434,12 +22373,12 @@ BW_draw_frame:
 	move.w	d5,d3	;3605
 	swap	d5	;4845
 	swap	d3	;4843
-	bsr.s	BW_blit_vertical	;6108
+	bsr.s	BW_blit_vertical_line	;6108
 	swap	d4	;4844
 	move.w	d4,d7	;3E04
 	swap	d4	;4844
 	add.w	d7,d4	;D847
-BW_blit_vertical:
+BW_blit_vertical_line:
 	bsr	BW_xy_to_offset	;6100014E	;
 	move.l	screen_ptr.l,a0	;207900008D36
 	add.w	d0,a0	;D0C0
@@ -23204,7 +23143,7 @@ adrEA00E4C2:
 	dc.b	$00	;00
 adrEA00E4C3:
 	dc.b	$00	;00
-adrEA00E4C4:
+ObjectDefinitionsTable:
 	dc.w	$0001	;0001
 	dc.w	$0100	;0100
 	dc.w	$02FF	;02FF
@@ -23424,7 +23363,7 @@ adrEA00E4C4:
 	dc.w	$0D3F	;0D3F
 	dc.w	$6000	;6000
 	dc.w	$3455	;3455
-adrEA00E67A:
+ObjectFloorTable:
 	dc.w	$FF02	;FF02
 	dc.w	$0116	;0116
 	dc.w	$160A	;160A
@@ -23839,7 +23778,7 @@ adrEA00E998:
 	dc.b	$03	;03
 	dc.b	$FF	;FF
 	dc.b	$00	;00
-adrEA00E9A8:
+BeginGameScroll:
 	dc.b	$FC	;FC
 	dc.b	$1E	;1E
 	dc.b	$03	;03
@@ -23946,7 +23885,7 @@ adrEA00EA4C:
 	dc.b	' '	;20
 	dc.b	$FF	;FF
 	dc.b	$00	;00
-adrEA00EA62:
+CostTooHighMsg:
 	dc.b	$FE	;FE
 	dc.b	$0C	;0C
 	dc.b	'COST TOO HIGH'	;434F535420544F4F2048494748
@@ -24051,7 +23990,7 @@ CharacterStats:
 	dc.b	$11	;11
 	dc.b	$0D	;0D
 	dc.b	$0D	;0D
-CharacterHitPoints:
+
 	dc.b	$23	;23
 	dc.b	$23	;23
 	dc.b	$1F	;1F
@@ -24064,7 +24003,7 @@ CharacterHitPoints:
 	dc.b	$00	;00
 	dc.b	$00	;00
 	dc.b	$C7	;C7
-CharacterSpellWorn:
+
 	dc.b	$FF	;FF
 	dc.w	$0000	;0000
 	dc.w	$0000	;0000
@@ -24316,7 +24255,7 @@ adrEA00EBAA:
 	dc.w	$0000	;0000
 PocketContents:
 	dc.w	$3300	;3300
-ArmourWorn:
+
 	dc.w	$0000	;0000
 	dc.w	$0001	;0001
 	dc.w	$0A10	;0A10
@@ -24456,7 +24395,7 @@ adrB_00EE2F:
 	dc.b	$00	;00
 MultiPlayer:
 	dc.w	$FFFF	;FFFF
-adrEA00EE32:
+RingUses:
 	dc.w	$0102	;0102
 	dc.w	$0303	;0303
 adrEA00EE36:
@@ -44173,9 +44112,9 @@ adrL_0186A0:
 	dc.w	$0000	;0000
 	dc.w	$0000	;0000
 	dc.w	$0000	;0000
-SpellRunesMsg_1:
+SpellBookRunes:
 	dc.b	'mar'	;6D6172
-SpellRunesMsg_2:
+Temp_SpellRunesMsg_2:
 	dc.b	'yhadalittlelaaneeitwerraguddutnerewanzednowtecozzitwerawuddunwhyamistillhavintotypethiscrapwhithoughtidfinishacoupleoflinesq'	;79686164616C6974746C656C61616E6565697477657272616775646475746E65726577616E7A65646E6F777465636F7A7A6974776572617775646
 *56E776879616D697374696C6C686176696E746F74797065746869736372617077686974686F75676874696466696E69736861636F75706C656F666C696E657371
 	dc.b	'x'	;78
@@ -44856,7 +44795,7 @@ adrEA018C7E:
 	dc.w	$0000	;0000
 	dc.w	$0000	;0000
 	dc.b	$00	;00
-GamerFont:
+GameFont:
 	dc.b	$0C	;0C
 	dc.w	$1E0C	;1E0C
 	dc.w	$000C	;000C
@@ -47093,13 +47032,13 @@ adrEA019BFE:
 	dc.w	$0000	;0000
 	dc.w	$0000	;0000
 	dc.w	$0000	;0000
-SpellNamesMsg:
+SpellNames:
 	dc.b	'ARMOUR  TERROR  VITALISEBEGUILE DEFLECT MAGELOCKCONCEAL WARPOWERMISSILE VANISH  PARALYZEALCHEMY CONFUSE LEVITATEANTIMAGERECH'	;41524D4F55522020544552524F522020564954414C49534542454755494C45204445464C454354204D4147454C4F434B434F4E4345414C2057415
 *04F5745524D495353494C452056414E4953482020504152414C595A45414C4348454D5920434F4E46555345204C45564954415445414E54494D41474552454348
 	dc.b	'ARGETRUEVIEWRENEW   VIVIFY  DISPELL FIREPATHILLUSIONCOMPASS SPELLTAPDISRUPT FIREBALLWYCHWINDARC BOLTFORMWALLSUMMON  BLAZE   '	;41524745545255455649455752454E4557202020564956494659202044495350454C4C204649524550415448494C4C5553494F4E434F4D5041535
 *05350454C4C54415044495352555054204649524542414C4C5759434857494E4441524320424F4C54464F524D57414C4C53554D4D4F4E2020424C415A45202020
 	dc.b	'MINDROCK'	;4D494E44524F434B
-WearWithPrideMsg:
+SpellDescriptions:
 	dc.b	$1A	;1A
 	dc.b	'WEAR THIS SPELL WITH PRIDE'	;574541522054484953205350454C4C2057495448205052494445
 	dc.b	$04	;04
@@ -95810,7 +95749,7 @@ adrEA031F68:
 	dc.w	$FFFF	;FFFF
 	dc.w	$FFFF	;FFFF
 	dc.w	$FFFF	;FFFF
-GFX_FloorCeiling:
+_GFX_FloorCeiling:
 	dc.w	$6EA5	;6EA5
 	dc.w	$DFFF	;DFFF
 	dc.w	$0000	;0000
@@ -97635,7 +97574,7 @@ GFX_FloorCeiling:
 	dc.w	$FEBF	;FEBF
 	dc.w	$0140	;0140
 	dc.w	$0000	;0000
-GFX_ObjectsOnFloor:
+_GFX_ObjectsOnFloor:
 	dc.w	$FFFF	;FFFF
 	dc.w	$FFC7	;FFC7
 	dc.w	$FFC7	;FFC7
@@ -100720,7 +100659,7 @@ GFX_ObjectsOnFloor:
 	dc.w	$E1FF	;E1FF
 	dc.w	$E1FF	;E1FF
 	dc.w	$E1FF	;E1FF
-GFX_FireBall:
+_GFX_FireBall:
 	dc.w	$FFFF	;FFFF
 	dc.w	$FFFE	;FFFE
 	dc.w	$FFFE	;FFFE
@@ -101069,7 +101008,7 @@ GFX_FireBall:
 	dc.w	$EFFF	;EFFF
 	dc.w	$FFFF	;FFFF
 	dc.w	$FFFF	;FFFF
-GFX_AirbourneSpells:
+_GFX_AirbourneSpells:
 	dc.w	$FFFD	;FFFD
 	dc.w	$FFF9	;FFF9
 	dc.w	$FFFB	;FFFB
@@ -102051,7 +101990,7 @@ CharacterColours:
 	dc.w	$0803	;0803
 	dc.w	$0408	;0408
 	dc.w	$040E	;040E
-adrEA0351D8:
+
 	dc.w	$0808	;0808
 	dc.w	$0404	;0404
 	dc.w	$0009	;0009
@@ -110897,7 +110836,7 @@ _GFX_HeadParts:
 	dc.w	$FFFF	;FFFF
 	dc.w	$FFFF	;FFFF
 	dc.w	$FFFF	;FFFF
-GFX_Bodies:
+_GFX_Bodies:
 	dc.w	$F83F	;F83F
 	dc.w	$F01F	;F01F
 	dc.w	$F45F	;F45F
@@ -157521,7 +157460,7 @@ _GFX_Pockets:
 	dc.w	$0000	;0000
 	dc.w	$0000	;0000
 	dc.w	$0000	;0000
-adrEA050302:
+_Temp_GFX_Pockets_02:
 	dc.w	$0000	;0000
 	dc.w	$0000	;0000
 	dc.w	$0000	;0000
@@ -157546,7 +157485,7 @@ adrEA050302:
 	dc.w	$0000	;0000
 	dc.w	$0000	;0000
 	dc.w	$0000	;0000
-adrEA050332:
+_Temp_GFX_Pockets_03:
 	dc.w	$0000	;0000
 	dc.w	$0000	;0000
 	dc.w	$0000	;0000
@@ -157571,7 +157510,7 @@ adrEA050332:
 	dc.w	$0000	;0000
 	dc.w	$0000	;0000
 	dc.w	$0000	;0000
-adrEA050362:
+_Temp_GFX_Pockets_04:
 	dc.w	$0000	;0000
 	dc.w	$0000	;0000
 	dc.w	$0000	;0000
@@ -158164,7 +158103,7 @@ adrEA050362:
 	dc.w	$0000	;0000
 	dc.w	$0000	;0000
 	dc.w	$0000	;0000
-adrEA050802:
+_Temp_GFX_Pockets_05:
 	dc.w	$0003	;0003
 	dc.w	$0003	;0003
 	dc.w	$0000	;0000
@@ -158189,7 +158128,7 @@ adrEA050802:
 	dc.w	$C000	;C000
 	dc.w	$0000	;0000
 	dc.w	$C000	;C000
-adrEA050832:
+_Temp_GFX_Pockets_06:
 	dc.w	$FFFF	;FFFF
 	dc.w	$FFFF	;FFFF
 	dc.w	$FFFF	;FFFF
@@ -160142,7 +160081,7 @@ adrEA050832:
 	dc.w	$1FFF	;1FFF
 	dc.w	$8FFF	;8FFF
 	dc.w	$0FFF	;0FFF
-adrEA051772:
+_Temp_GFX_Pockets_07:
 	dc.w	$0000	;0000
 	dc.w	$0000	;0000
 	dc.w	$01FF	;01FF
@@ -162775,12 +162714,12 @@ adrEA051772:
 	dc.w	$0000	;0000
 	dc.w	$0000	;0000
 	dc.w	$0000	;0000
-adrEA052C02:
+_Temp_GFX_Pockets_08:
 	dc.w	$E9FF	;E9FF
 	dc.w	$FDFF	;FDFF
 	dc.w	$E7FF	;E7FF
 	dc.w	$E5FF	;E5FF
-adrEA052C0A:
+_Temp_GFX_Pockets_09:
 	dc.w	$0800	;0800
 	dc.w	$0800	;0800
 	dc.w	$0800	;0800
@@ -163129,7 +163068,7 @@ adrEA052C0A:
 	dc.w	$0000	;0000
 	dc.w	$0000	;0000
 	dc.w	$0000	;0000
-adrEA052EC2:
+_Temp_GFX_Pockets_10:
 	dc.w	$0000	;0000
 	dc.w	$0007	;0007
 	dc.w	$0007	;0007
@@ -163146,7 +163085,7 @@ adrEA052EC2:
 	dc.w	$0018	;0018
 	dc.w	$03E0	;03E0
 	dc.w	$0000	;0000
-adrEA052EE2:
+_Temp_GFX_Pockets_11:
 	dc.w	$3FFF	;3FFF
 	dc.w	$0000	;0000
 	dc.w	$0000	;0000
@@ -163467,7 +163406,7 @@ adrEA052EE2:
 	dc.w	$001C	;001C
 	dc.w	$0000	;0000
 	dc.w	$0000	;0000
-adrEA053162:
+_Temp_GFX_Pockets_12:
 	dc.w	$0FFF	;0FFF
 	dc.w	$07FE	;07FE
 	dc.w	$0000	;0000
@@ -164892,7 +164831,7 @@ adrEA053162:
 	dc.w	$0000	;0000
 	dc.w	$0000	;0000
 	dc.w	$0000	;0000
-adrEA053C82:
+_Temp_GFX_Pockets_13:
 	dc.w	$0800	;0800
 	dc.w	$07FF	;07FF
 	dc.w	$0000	;0000
@@ -165025,7 +164964,7 @@ adrEA053C82:
 	dc.w	$FFFF	;FFFF
 	dc.w	$F7FF	;F7FF
 	dc.w	$F7FF	;F7FF
-adrEA053D8A:
+_Temp_GFX_Pockets_14:
 	dc.w	$FFFF	;FFFF
 	dc.w	$FDDD	;FDDD
 	dc.w	$FDDD	;FDDD
@@ -165871,13917 +165810,17 @@ adrEA053D8A:
 	dc.w	$002A	;002A
 	dc.w	$0000	;0000
 AudioSample_1:
-	dc.b	'FORM'	;464F524D
-	dc.b	$00	;00
-	dc.b	$00	;00
-	dc.b	$00	;00
-	dc.b	$7C	;7C
-	dc.b	'8SVXVHDR'	;3853565856484452
-	dc.b	$00	;00
-	dc.b	$00	;00
-	dc.b	$00	;00
-	dc.b	$14	;14
-	dc.b	$00	;00
-	dc.b	$00	;00
-	dc.b	$00	;00
-	dc.b	$54	;54
-	dc.b	$00	;00
-	dc.b	$00	;00
-	dc.b	$00	;00
-	dc.b	$00	;00
-	dc.b	$00	;00
-	dc.b	$00	;00
-	dc.b	$00	;00
-	dc.b	$00	;00
-	dc.b	$20	;20
-	dc.b	$AB	;AB
-	dc.b	$01	;01
-	dc.b	$00	;00
-	dc.b	$00	;00
-	dc.b	$01	;01
-	dc.b	$00	;00
-	dc.b	$00	;00
-AudioSample_1b:
-	dc.b	'BODY'	;424F4459
-	dc.b	$00	;00
-	dc.b	$00	;00
-	dc.b	$00	;00
-	dc.b	$54	;54
-	dc.b	$F5	;F5
-	dc.b	$50	;50
-	dc.b	$D7	;D7
-	dc.b	$20	;20
-	dc.b	$55	;55
-	dc.b	$10	;10
-	dc.b	$4F	;4F
-	dc.b	$DB	;DB
-	dc.b	$3F	;3F
-	dc.b	$D0	;D0
-	dc.b	$4F	;4F
-	dc.b	$F9	;F9
-	dc.b	$FF	;FF
-	dc.b	$A8	;A8
-	dc.b	$0F	;0F
-	dc.b	$10	;10
-	dc.b	$17	;17
-	dc.b	$D6	;D6
-	dc.b	$48	;48
-	dc.b	$04	;04
-	dc.b	$0F	;0F
-	dc.b	$F7	;F7
-	dc.b	$D0	;D0
-	dc.b	$FC	;FC
-	dc.b	$DB	;DB
-AudioSample_1c:
-	dc.b	$DE	;DE
-	dc.b	$C8	;C8
-	dc.b	$DD	;DD
-	dc.b	$C0	;C0
-	dc.b	$CF	;CF
-	dc.b	$C0	;C0
-	dc.b	$38	;38
-	dc.b	$E7	;E7
-	dc.b	$D0	;D0
-	dc.b	$D3	;D3
-	dc.b	$15	;15
-	dc.b	$08	;08
-	dc.b	$D7	;D7
-	dc.b	$01	;01
-	dc.b	$48	;48
-	dc.b	$DF	;DF
-	dc.b	$30	;30
-	dc.b	$47	;47
-	dc.b	$20	;20
-	dc.b	$3F	;3F
-AudioSample_1d:
-	dc.b	$D8	;D8
-	dc.b	$54	;54
-	dc.b	$18	;18
-	dc.b	$37	;37
-	dc.b	$08	;08
-	dc.b	$3F	;3F
-	dc.b	$E8	;E8
-	dc.b	$40	;40
-	dc.b	$2F	;2F
-	dc.b	$08	;08
-	dc.b	$FF	;FF
-	dc.b	$00	;00
-	dc.b	$3B	;3B
-	dc.b	$E8	;E8
-	dc.b	$1F	;1F
-	dc.b	$A3	;A3
-	dc.b	$F7	;F7
-	dc.b	$E0	;E0
-	dc.b	$40	;40
-	dc.b	$4B	;4B
-	dc.b	$00	;00
-	dc.b	$55	;55
-	dc.b	$F7	;F7
-	dc.b	$3F	;3F
-	dc.b	$C2	;C2
-	dc.b	$33	;33
-	dc.b	$0F	;0F
-	dc.b	$C0	;C0
-	dc.b	$40	;40
-	dc.b	$47	;47
-	dc.b	$C8	;C8
-	dc.b	$1F	;1F
-	dc.b	$E4	;E4
-	dc.b	$DF	;DF
-	dc.b	$C8	;C8
-	dc.b	$38	;38
-	dc.b	$F7	;F7
-	dc.b	$FD	;FD
-	dc.b	$FF	;FF
+	INCBIN bw-sfx/sample1.sound
+
 AudioSample_2:
-	dc.b	'FORM'	;464F524D
-	dc.b	$00	;00
-	dc.b	$00	;00
-	dc.b	$05	;05
-	dc.b	$BA	;BA
-	dc.b	'8SVXVHDR'	;3853565856484452
-	dc.b	$00	;00
-	dc.b	$00	;00
-	dc.b	$00	;00
-	dc.b	$14	;14
-	dc.b	$00	;00
-	dc.b	$00	;00
-	dc.b	$05	;05
-AudioSample_2b:
-	dc.b	$92	;92
-	dc.b	$00	;00
-	dc.b	$00	;00
-	dc.b	$00	;00
-	dc.b	$00	;00
-	dc.b	$00	;00
-	dc.b	$00	;00
-	dc.b	$00	;00
-	dc.b	$00	;00
-	dc.b	$20	;20
-	dc.b	$AB	;AB
-	dc.b	$01	;01
-	dc.b	$00	;00
-	dc.b	$00	;00
-	dc.b	$01	;01
-	dc.b	$00	;00
-	dc.b	$00	;00
-	dc.b	'BODY'	;424F4459
-	dc.b	$00	;00
-	dc.b	$00	;00
-	dc.b	$05	;05
-	dc.b	$92	;92
-	dc.b	$09	;09
-	dc.b	$09	;09
-	dc.b	$09	;09
-	dc.b	$09	;09
-	dc.b	$0A	;0A
-	dc.b	$09	;09
-	dc.b	$09	;09
-	dc.b	$09	;09
-	dc.b	$09	;09
-	dc.b	$09	;09
-	dc.b	$08	;08
-	dc.b	$09	;09
-	dc.b	$08	;08
-	dc.b	$08	;08
-	dc.b	$08	;08
-	dc.b	$08	;08
-	dc.b	$07	;07
-	dc.b	$08	;08
-	dc.b	$08	;08
-	dc.b	$07	;07
-	dc.b	$08	;08
-	dc.b	$08	;08
-	dc.b	$08	;08
-	dc.b	$08	;08
-	dc.b	$08	;08
-	dc.b	$08	;08
-	dc.b	$08	;08
-	dc.b	$09	;09
-	dc.b	$09	;09
-	dc.b	$09	;09
-	dc.b	$0A	;0A
-	dc.b	$0B	;0B
-	dc.b	$0A	;0A
-	dc.b	$0A	;0A
-	dc.b	$0B	;0B
-	dc.b	$0A	;0A
-	dc.b	$0A	;0A
-	dc.b	$0B	;0B
-	dc.b	$0B	;0B
-	dc.b	$0A	;0A
-	dc.b	$0B	;0B
-	dc.b	$0B	;0B
-	dc.b	$0A	;0A
-	dc.b	$0A	;0A
-	dc.b	$0B	;0B
-	dc.b	$0A	;0A
-	dc.b	$0A	;0A
-	dc.b	$0A	;0A
-	dc.b	$0A	;0A
-	dc.b	$0A	;0A
-	dc.b	$0A	;0A
-	dc.b	$0A	;0A
-	dc.b	$0B	;0B
-	dc.b	$0C	;0C
-	dc.b	$0C	;0C
-	dc.b	$0C	;0C
-	dc.b	$0C	;0C
-	dc.b	$0C	;0C
-	dc.b	$0C	;0C
-	dc.b	$0B	;0B
-	dc.b	$0C	;0C
-	dc.b	$0B	;0B
-	dc.b	$0B	;0B
-	dc.b	$0B	;0B
-	dc.b	$0B	;0B
-	dc.b	$0A	;0A
-	dc.b	$0A	;0A
-	dc.b	$0A	;0A
-	dc.b	$09	;09
-	dc.b	$0A	;0A
-	dc.b	$0A	;0A
-	dc.b	$0A	;0A
-	dc.b	$0A	;0A
-	dc.b	$0A	;0A
-	dc.b	$0A	;0A
-	dc.b	$0A	;0A
-	dc.b	$0B	;0B
-	dc.b	$0B	;0B
-	dc.b	$0B	;0B
-	dc.b	$0B	;0B
-	dc.b	$0B	;0B
-	dc.b	$0A	;0A
-	dc.b	$0A	;0A
-	dc.b	$0B	;0B
-	dc.b	$0A	;0A
-	dc.b	$0A	;0A
-	dc.b	$0A	;0A
-	dc.b	$0A	;0A
-	dc.b	$0A	;0A
-	dc.b	$0A	;0A
-	dc.b	$0A	;0A
-	dc.b	$09	;09
-	dc.b	$09	;09
-	dc.b	$0A	;0A
-	dc.b	$0A	;0A
-	dc.b	$0A	;0A
-	dc.b	$0A	;0A
-	dc.b	$0A	;0A
-	dc.b	$09	;09
-	dc.b	$0A	;0A
-	dc.b	$0A	;0A
-	dc.b	$09	;09
-	dc.b	$0A	;0A
-	dc.b	$0A	;0A
-	dc.b	$0A	;0A
-	dc.b	$0A	;0A
-	dc.b	$0B	;0B
-	dc.b	$0A	;0A
-	dc.b	$0A	;0A
-	dc.b	$0A	;0A
-	dc.b	$0A	;0A
-	dc.b	$09	;09
-	dc.b	$0A	;0A
-	dc.b	$0A	;0A
-	dc.b	$09	;09
-	dc.b	$09	;09
-	dc.b	$09	;09
-	dc.b	$09	;09
-	dc.b	$09	;09
-	dc.b	$09	;09
-	dc.b	$09	;09
-	dc.b	$09	;09
-	dc.b	$09	;09
-	dc.b	$09	;09
-	dc.b	$09	;09
-	dc.b	$09	;09
-	dc.b	$09	;09
-	dc.b	$08	;08
-	dc.b	$08	;08
-	dc.b	$08	;08
-	dc.b	$08	;08
-	dc.b	$08	;08
-	dc.b	$08	;08
-	dc.b	$08	;08
-	dc.b	$07	;07
-	dc.b	$08	;08
-	dc.b	$08	;08
-	dc.b	$08	;08
-	dc.b	$08	;08
-	dc.b	$08	;08
-	dc.b	$08	;08
-	dc.b	$08	;08
-	dc.b	$09	;09
-	dc.b	$08	;08
-	dc.b	$08	;08
-	dc.b	$08	;08
-	dc.b	$08	;08
-	dc.b	$08	;08
-	dc.b	$08	;08
-	dc.b	$09	;09
-	dc.b	$09	;09
-	dc.b	$09	;09
-	dc.b	$0A	;0A
-	dc.b	$09	;09
-	dc.b	$09	;09
-	dc.b	$09	;09
-	dc.b	$09	;09
-	dc.b	$09	;09
-	dc.b	$0A	;0A
-	dc.b	$0A	;0A
-	dc.b	$09	;09
-	dc.b	$09	;09
-	dc.b	$0A	;0A
-	dc.b	$09	;09
-	dc.b	$09	;09
-	dc.b	$0A	;0A
-	dc.b	$09	;09
-	dc.b	$09	;09
-	dc.b	$09	;09
-	dc.b	$09	;09
-	dc.b	$09	;09
-	dc.b	$09	;09
-	dc.b	$09	;09
-	dc.b	$09	;09
-	dc.b	$09	;09
-	dc.b	$09	;09
-	dc.b	$09	;09
-	dc.b	$09	;09
-	dc.b	$09	;09
-	dc.b	$09	;09
-	dc.b	$09	;09
-	dc.b	$09	;09
-	dc.b	$09	;09
-	dc.b	$08	;08
-	dc.b	$09	;09
-	dc.b	$09	;09
-	dc.b	$09	;09
-	dc.b	$09	;09
-	dc.b	$0A	;0A
-	dc.b	$0A	;0A
-	dc.b	$09	;09
-	dc.b	$0A	;0A
-	dc.b	$0A	;0A
-	dc.b	$09	;09
-	dc.b	$0A	;0A
-	dc.b	$0A	;0A
-	dc.b	$09	;09
-	dc.b	$0A	;0A
-	dc.b	$0A	;0A
-	dc.b	$0A	;0A
-	dc.b	$0A	;0A
-	dc.b	$0B	;0B
-	dc.b	$0B	;0B
-	dc.b	$0A	;0A
-	dc.b	$0B	;0B
-	dc.b	$0B	;0B
-	dc.b	$0B	;0B
-	dc.b	$0B	;0B
-	dc.b	$0B	;0B
-	dc.b	$0A	;0A
-	dc.b	$0A	;0A
-	dc.b	$0A	;0A
-	dc.b	$0A	;0A
-	dc.b	$0A	;0A
-	dc.b	$0A	;0A
-	dc.b	$0A	;0A
-	dc.b	$0A	;0A
-	dc.b	$0A	;0A
-	dc.b	$0A	;0A
-	dc.b	$09	;09
-	dc.b	$0A	;0A
-	dc.b	$0A	;0A
-	dc.b	$09	;09
-	dc.b	$09	;09
-	dc.b	$09	;09
-	dc.b	$09	;09
-	dc.b	$09	;09
-	dc.b	$09	;09
-	dc.b	$09	;09
-	dc.b	$08	;08
-	dc.b	$08	;08
-	dc.b	$08	;08
-	dc.b	$07	;07
-	dc.b	$08	;08
-	dc.b	$08	;08
-	dc.b	$08	;08
-	dc.b	$08	;08
-	dc.b	$09	;09
-	dc.b	$09	;09
-	dc.b	$09	;09
-	dc.b	$0A	;0A
-	dc.b	$0A	;0A
-	dc.b	$0A	;0A
-	dc.b	$0A	;0A
-	dc.b	$0A	;0A
-	dc.b	$0A	;0A
-	dc.b	$0A	;0A
-	dc.b	$0A	;0A
-	dc.b	$0A	;0A
-	dc.b	$0A	;0A
-	dc.b	$0A	;0A
-	dc.b	$0A	;0A
-	dc.b	$0A	;0A
-	dc.b	$0A	;0A
-	dc.b	$0A	;0A
-	dc.b	$0A	;0A
-	dc.b	$0A	;0A
-	dc.b	$0B	;0B
-	dc.b	$0A	;0A
-	dc.b	$0B	;0B
-	dc.b	$0B	;0B
-	dc.b	$0B	;0B
-	dc.b	$0A	;0A
-	dc.b	$0A	;0A
-	dc.b	$0A	;0A
-	dc.b	$09	;09
-	dc.b	$0A	;0A
-	dc.b	$0A	;0A
-	dc.b	$09	;09
-	dc.b	$0A	;0A
-	dc.b	$0A	;0A
-	dc.b	$09	;09
-	dc.b	$09	;09
-	dc.b	$0A	;0A
-	dc.b	$0A	;0A
-	dc.b	$09	;09
-	dc.b	$09	;09
-	dc.b	$09	;09
-	dc.b	$09	;09
-	dc.b	$09	;09
-	dc.b	$09	;09
-	dc.b	$09	;09
-	dc.b	$09	;09
-	dc.b	$09	;09
-	dc.b	$09	;09
-	dc.b	$09	;09
-	dc.b	$09	;09
-	dc.b	$09	;09
-	dc.b	$08	;08
-	dc.b	$08	;08
-	dc.b	$09	;09
-	dc.b	$0B	;0B
-	dc.b	$0C	;0C
-	dc.b	$0C	;0C
-	dc.b	$0C	;0C
-	dc.b	$0C	;0C
-	dc.b	$0C	;0C
-	dc.b	$0B	;0B
-	dc.b	$0B	;0B
-	dc.b	$0C	;0C
-	dc.b	$0B	;0B
-	dc.b	$0B	;0B
-	dc.b	$0B	;0B
-	dc.b	$0A	;0A
-	dc.b	$09	;09
-	dc.b	$09	;09
-	dc.b	$0A	;0A
-	dc.b	$09	;09
-	dc.b	$0A	;0A
-	dc.b	$0A	;0A
-	dc.b	$0A	;0A
-	dc.b	$09	;09
-	dc.b	$0A	;0A
-	dc.b	$0A	;0A
-	dc.b	$09	;09
-	dc.b	$0A	;0A
-	dc.b	$0A	;0A
-	dc.b	$09	;09
-	dc.b	$0A	;0A
-	dc.b	$0A	;0A
-	dc.b	$09	;09
-	dc.b	$09	;09
-	dc.b	$09	;09
-	dc.b	$09	;09
-	dc.b	$09	;09
-	dc.b	$09	;09
-	dc.b	$0A	;0A
-	dc.b	$09	;09
-	dc.b	$09	;09
-	dc.b	$09	;09
-	dc.b	$09	;09
-	dc.b	$09	;09
-	dc.b	$09	;09
-	dc.b	$09	;09
-	dc.b	$09	;09
-	dc.b	$09	;09
-	dc.b	$09	;09
-	dc.b	$08	;08
-	dc.b	$08	;08
-	dc.b	$08	;08
-	dc.b	$08	;08
-	dc.b	$08	;08
-	dc.b	$08	;08
-	dc.b	$08	;08
-	dc.b	$08	;08
-	dc.b	$08	;08
-	dc.b	$08	;08
-	dc.b	$08	;08
-	dc.b	$08	;08
-	dc.b	$09	;09
-	dc.b	$09	;09
-	dc.b	$0A	;0A
-	dc.b	$0A	;0A
-	dc.b	$0A	;0A
-	dc.b	$0A	;0A
-	dc.b	$0B	;0B
-	dc.b	$0A	;0A
-	dc.b	$0A	;0A
-	dc.b	$0A	;0A
-	dc.b	$0A	;0A
-	dc.b	$0A	;0A
-	dc.b	$0B	;0B
-	dc.b	$0B	;0B
-	dc.b	$0B	;0B
-	dc.b	$0B	;0B
-	dc.b	$0B	;0B
-	dc.b	$0B	;0B
-	dc.b	$0A	;0A
-	dc.b	$0A	;0A
-	dc.b	$0A	;0A
-	dc.b	$0A	;0A
-	dc.b	$0B	;0B
-	dc.b	$0B	;0B
-	dc.b	$0A	;0A
-	dc.b	$0A	;0A
-	dc.b	$0A	;0A
-	dc.b	$09	;09
-	dc.b	$0A	;0A
-	dc.b	$0A	;0A
-	dc.b	$0A	;0A
-	dc.b	$09	;09
-	dc.b	$0A	;0A
-	dc.b	$09	;09
-	dc.b	$09	;09
-	dc.b	$09	;09
-	dc.b	$09	;09
-	dc.b	$09	;09
-	dc.b	$09	;09
-	dc.b	$0A	;0A
-	dc.b	$09	;09
-	dc.b	$09	;09
-	dc.b	$09	;09
-	dc.b	$0A	;0A
-	dc.b	$09	;09
-	dc.b	$09	;09
-	dc.b	$0A	;0A
-	dc.b	$09	;09
-	dc.b	$09	;09
-	dc.b	$09	;09
-	dc.b	$09	;09
-	dc.b	$09	;09
-	dc.b	$0A	;0A
-	dc.b	$09	;09
-	dc.b	$0A	;0A
-	dc.b	$0A	;0A
-	dc.b	$0A	;0A
-	dc.b	$0A	;0A
-	dc.b	$0A	;0A
-	dc.b	$0A	;0A
-	dc.b	$09	;09
-	dc.b	$0A	;0A
-	dc.b	$0A	;0A
-	dc.b	$09	;09
-	dc.b	$0A	;0A
-	dc.b	$0A	;0A
-	dc.b	$0A	;0A
-	dc.b	$09	;09
-	dc.b	$0A	;0A
-	dc.b	$0A	;0A
-	dc.b	$0A	;0A
-	dc.b	$0A	;0A
-	dc.b	$0A	;0A
-	dc.b	$0A	;0A
-	dc.b	$0A	;0A
-	dc.b	$0A	;0A
-	dc.b	$0A	;0A
-	dc.b	$0A	;0A
-	dc.b	$0A	;0A
-	dc.b	$0A	;0A
-	dc.b	$0A	;0A
-	dc.b	$0A	;0A
-	dc.b	$0A	;0A
-	dc.b	$09	;09
-	dc.b	$09	;09
-	dc.b	$0A	;0A
-	dc.b	$09	;09
-	dc.b	$09	;09
-	dc.b	$09	;09
-	dc.b	$00	;00
-	dc.b	$DF	;DF
-	dc.b	$00	;00
-	dc.b	$BF	;BF
-	dc.b	$A0	;A0
-	dc.b	$D7	;D7
-	dc.b	$00	;00
-	dc.b	$AF	;AF
-	dc.b	$51	;51
-	dc.b	$80	;80
-	dc.b	$87	;87
-	dc.b	$56	;56
-	dc.b	$80	;80
-	dc.b	$4B	;4B
-	dc.b	$00	;00
-	dc.b	$80	;80
-	dc.b	$30	;30
-	dc.b	$81	;81
-	dc.b	$3C	;3C
-	dc.b	$BF	;BF
-	dc.b	$5F	;5F
-	dc.b	$00	;00
-	dc.b	$80	;80
-	dc.b	$30	;30
-	dc.b	$80	;80
-	dc.b	$2F	;2F
-	dc.b	$00	;00
-	dc.b	$1F	;1F
-	dc.b	$50	;50
-	dc.b	$80	;80
-	dc.b	$3F	;3F
-	dc.b	$80	;80
-	dc.b	$3F	;3F
-	dc.b	$D0	;D0
-	dc.b	$80	;80
-	dc.b	$3E	;3E
-	dc.b	$80	;80
-	dc.b	$47	;47
-	dc.b	$80	;80
-	dc.b	$DF	;DF
-	dc.b	$10	;10
-	dc.b	$80	;80
-	dc.b	$4F	;4F
-	dc.b	$54	;54
-	dc.b	$51	;51
-	dc.b	$80	;80
-	dc.b	$EF	;EF
-	dc.b	$40	;40
-	dc.b	$80	;80
-	dc.b	$4F	;4F
-	dc.b	$80	;80
-	dc.b	$2F	;2F
-	dc.b	$C0	;C0
-	dc.b	$BF	;BF
-	dc.b	$50	;50
-	dc.b	$80	;80
-	dc.b	$47	;47
-	dc.b	$80	;80
-	dc.b	$FF	;FF
-	dc.b	$56	;56
-	dc.b	$80	;80
-	dc.b	$28	;28
-	dc.b	$9F	;9F
-	dc.b	$48	;48
-	dc.b	$90	;90
-	dc.b	$BF	;BF
-	dc.b	$52	;52
-	dc.b	$F7	;F7
-	dc.b	$80	;80
-	dc.b	$47	;47
-	dc.b	$59	;59
-	dc.b	$80	;80
-	dc.b	$2F	;2F
-	dc.b	$5F	;5F
-	dc.b	$00	;00
-	dc.b	$EF	;EF
-	dc.b	$20	;20
-	dc.b	$F0	;F0
-	dc.b	$DF	;DF
-	dc.b	$00	;00
-	dc.b	$30	;30
-	dc.b	$8F	;8F
-	dc.b	$4F	;4F
-	dc.b	$54	;54
-	dc.b	$80	;80
-	dc.b	$1F	;1F
-	dc.b	$5C	;5C
-	dc.b	$80	;80
-	dc.b	$FF	;FF
-	dc.b	$5F	;5F
-	dc.b	$40	;40
-	dc.b	$80	;80
-	dc.b	$EF	;EF
-	dc.b	$52	;52
-	dc.b	$80	;80
-	dc.b	$2F	;2F
-	dc.b	$54	;54
-	dc.b	$CF	;CF
-	dc.b	$20	;20
-	dc.b	$EF	;EF
-	dc.b	$40	;40
-	dc.b	$80	;80
-	dc.b	$2F	;2F
-	dc.b	$30	;30
-	dc.b	$EF	;EF
-	dc.b	$59	;59
-	dc.b	$00	;00
-	dc.b	$1F	;1F
-	dc.b	$80	;80
-	dc.b	$3F	;3F
-	dc.b	$20	;20
-	dc.b	$80	;80
-	dc.b	$47	;47
-	dc.b	$88	;88
-	dc.b	$3B	;3B
-	dc.b	$8F	;8F
-	dc.b	$4F	;4F
-	dc.b	$20	;20
-	dc.b	$80	;80
-	dc.b	$4D	;4D
-	dc.b	$A0	;A0
-	dc.b	$3F	;3F
-	dc.b	$20	;20
-	dc.b	$FF	;FF
-	dc.b	$10	;10
-	dc.b	$9F	;9F
-	dc.b	$54	;54
-	dc.b	$80	;80
-	dc.b	$2F	;2F
-	dc.b	$20	;20
-	dc.b	$CF	;CF
-	dc.b	$40	;40
-	dc.b	$9F	;9F
-	dc.b	$4F	;4F
-	dc.b	$80	;80
-	dc.b	$FF	;FF
-	dc.b	$50	;50
-	dc.b	$80	;80
-	dc.b	$47	;47
-	dc.b	$C0	;C0
-	dc.b	$4F	;4F
-	dc.b	$D0	;D0
-	dc.b	$FF	;FF
-	dc.b	$48	;48
-	dc.b	$97	;97
-	dc.b	$56	;56
-	dc.b	$C0	;C0
-	dc.b	$1F	;1F
-	dc.b	$20	;20
-	dc.b	$1F	;1F
-	dc.b	$08	;08
-	dc.b	$EF	;EF
-	dc.b	$57	;57
-	dc.b	$C0	;C0
-	dc.b	$37	;37
-	dc.b	$10	;10
-	dc.b	$F7	;F7
-	dc.b	$50	;50
-	dc.b	$AF	;AF
-	dc.b	$4F	;4F
-	dc.b	$D2	;D2
-	dc.b	$2F	;2F
-	dc.b	$28	;28
-	dc.b	$9F	;9F
-	dc.b	$53	;53
-	dc.b	$17	;17
-	dc.b	$14	;14
-	dc.b	$E0	;E0
-	dc.b	$1F	;1F
-	dc.b	$00	;00
-	dc.b	$FF	;FF
-	dc.b	$5C	;5C
-	dc.b	$10	;10
-	dc.b	$DF	;DF
-	dc.b	$CD	;CD
-	dc.b	$52	;52
-	dc.b	$F4	;F4
-	dc.b	$0B	;0B
-	dc.b	$55	;55
-	dc.b	$C0	;C0
-	dc.b	$FF	;FF
-	dc.b	$3F	;3F
-	dc.b	$00	;00
-	dc.b	$0F	;0F
-	dc.b	$F7	;F7
-	dc.b	$20	;20
-	dc.b	$97	;97
-	dc.b	$2F	;2F
-	dc.b	$54	;54
-	dc.b	$DF	;DF
-	dc.b	$B8	;B8
-	dc.b	$4B	;4B
-	dc.b	$20	;20
-	dc.b	$A0	;A0
-	dc.b	$4B	;4B
-	dc.b	$10	;10
-	dc.b	$00	;00
-	dc.b	$CF	;CF
-	dc.b	$50	;50
-	dc.b	$10	;10
-	dc.b	$BF	;BF
-	dc.b	$50	;50
-	dc.b	$FF	;FF
-	dc.b	$C0	;C0
-	dc.b	$32	;32
-	dc.b	$3F	;3F
-	dc.b	$C0	;C0
-	dc.b	$37	;37
-	dc.b	$34	;34
-	dc.b	$C0	;C0
-	dc.b	$FF	;FF
-	dc.b	$4C	;4C
-	dc.b	$10	;10
-	dc.b	$CD	;CD
-	dc.b	$1F	;1F
-	dc.b	$54	;54
-	dc.b	$80	;80
-	dc.b	$1F	;1F
-	dc.b	$58	;58
-	dc.b	$C9	;C9
-	dc.b	$00	;00
-	dc.b	$FF	;FF
-	dc.b	$40	;40
-	dc.b	$A5	;A5
-	dc.b	$3F	;3F
-	dc.b	$20	;20
-	dc.b	$DF	;DF
-	dc.b	$08	;08
-	dc.b	$3C	;3C
-	dc.b	$FF	;FF
-	dc.b	$B8	;B8
-	dc.b	$47	;47
-	dc.b	$E8	;E8
-	dc.b	$D7	;D7
-	dc.b	$4B	;4B
-	dc.b	$E0	;E0
-	dc.b	$17	;17
-	dc.b	$FF	;FF
-	dc.b	$56	;56
-	dc.b	$10	;10
-	dc.b	$87	;87
-	dc.b	$4F	;4F
-	dc.b	$00	;00
-	dc.b	$EF	;EF
-	dc.b	$30	;30
-	dc.b	$1F	;1F
-	dc.b	$00	;00
-	dc.b	$DF	;DF
-	dc.b	$57	;57
-	dc.b	$E0	;E0
-	dc.b	$37	;37
-	dc.b	$E0	;E0
-	dc.b	$FD	;FD
-	dc.b	$0F	;0F
-	dc.b	$08	;08
-	dc.b	$4F	;4F
-	dc.b	$B2	;B2
-	dc.b	$17	;17
-	dc.b	$33	;33
-	dc.b	$B3	;B3
-	dc.b	$4F	;4F
-	dc.b	$0C	;0C
-	dc.b	$14	;14
-	dc.b	$E8	;E8
-	dc.b	$F7	;F7
-	dc.b	$50	;50
-	dc.b	$CF	;CF
-	dc.b	$40	;40
-	dc.b	$00	;00
-	dc.b	$FF	;FF
-	dc.b	$F0	;F0
-	dc.b	$1F	;1F
-	dc.b	$24	;24
-	dc.b	$F8	;F8
-	dc.b	$24	;24
-	dc.b	$E0	;E0
-	dc.b	$25	;25
-	dc.b	$17	;17
-	dc.b	$00	;00
-	dc.b	$2B	;2B
-	dc.b	$FB	;FB
-	dc.b	$08	;08
-	dc.b	$0F	;0F
-	dc.b	$E0	;E0
-	dc.b	$4E	;4E
-	dc.b	$EE	;EE
-	dc.b	$10	;10
-	dc.b	$1B	;1B
-	dc.b	$E7	;E7
-	dc.b	$28	;28
-	dc.b	$17	;17
-	dc.b	$08	;08
-	dc.b	$0A	;0A
-	dc.b	$07	;07
-	dc.b	$00	;00
-	dc.b	$17	;17
-	dc.b	$0F	;0F
-	dc.b	$28	;28
-	dc.b	$DF	;DF
-	dc.b	$1D	;1D
-	dc.b	$18	;18
-	dc.b	$FF	;FF
-	dc.b	$F0	;F0
-	dc.b	$37	;37
-	dc.b	$00	;00
-	dc.b	$DB	;DB
-	dc.b	$3F	;3F
-	dc.b	$E8	;E8
-	dc.b	$18	;18
-	dc.b	$FB	;FB
-	dc.b	$28	;28
-	dc.b	$08	;08
-	dc.b	$E7	;E7
-	dc.b	$38	;38
-	dc.b	$EF	;EF
-	dc.b	$EF	;EF
-	dc.b	$4F	;4F
-	dc.b	$E0	;E0
-	dc.b	$F8	;F8
-	dc.b	$FF	;FF
-	dc.b	$26	;26
-	dc.b	$10	;10
-	dc.b	$EF	;EF
-	dc.b	$40	;40
-	dc.b	$D3	;D3
-	dc.b	$FF	;FF
-	dc.b	$18	;18
-	dc.b	$37	;37
-	dc.b	$C8	;C8
-	dc.b	$1F	;1F
-	dc.b	$28	;28
-	dc.b	$C9	;C9
-	dc.b	$3F	;3F
-	dc.b	$17	;17
-	dc.b	$10	;10
-	dc.b	$EF	;EF
-	dc.b	$0F	;0F
-	dc.b	$30	;30
-	dc.b	$DF	;DF
-	dc.b	$23	;23
-	dc.b	$30	;30
-	dc.b	$BF	;BF
-	dc.b	$20	;20
-	dc.b	$27	;27
-	dc.b	$04	;04
-	dc.b	$EC	;EC
-	dc.b	$2F	;2F
-	dc.b	$00	;00
-	dc.b	$E7	;E7
-	dc.b	$1F	;1F
-	dc.b	$12	;12
-	dc.b	$14	;14
-	dc.b	$DD	;DD
-	dc.b	$4A	;4A
-	dc.b	$E0	;E0
-	dc.b	$FF	;FF
-	dc.b	$38	;38
-	dc.b	$00	;00
-	dc.b	$F9	;F9
-	dc.b	$0F	;0F
-	dc.b	$20	;20
-	dc.b	$EC	;EC
-	dc.b	$FF	;FF
-	dc.b	$30	;30
-	dc.b	$F4	;F4
-	dc.b	$EF	;EF
-	dc.b	$30	;30
-	dc.b	$FF	;FF
-	dc.b	$00	;00
-	dc.b	$1F	;1F
-	dc.b	$23	;23
-	dc.b	$D0	;D0
-	dc.b	$1F	;1F
-	dc.b	$08	;08
-	dc.b	$12	;12
-	dc.b	$F7	;F7
-	dc.b	$09	;09
-	dc.b	$28	;28
-	dc.b	$DB	;DB
-	dc.b	$30	;30
-	dc.b	$0F	;0F
-	dc.b	$F0	;F0
-	dc.b	$1E	;1E
-	dc.b	$27	;27
-	dc.b	$E0	;E0
-	dc.b	$17	;17
-	dc.b	$0D	;0D
-	dc.b	$08	;08
-	dc.b	$FF	;FF
-	dc.b	$07	;07
-	dc.b	$20	;20
-	dc.b	$EF	;EF
-	dc.b	$0B	;0B
-	dc.b	$24	;24
-	dc.b	$FF	;FF
-	dc.b	$00	;00
-	dc.b	$1C	;1C
-	dc.b	$E7	;E7
-	dc.b	$18	;18
-	dc.b	$0F	;0F
-	dc.b	$14	;14
-	dc.b	$F8	;F8
-	dc.b	$0F	;0F
-	dc.b	$00	;00
-	dc.b	$FF	;FF
-	dc.b	$18	;18
-	dc.b	$0F	;0F
-	dc.b	$04	;04
-	dc.b	$E9	;E9
-	dc.b	$3D	;3D
-	dc.b	$E4	;E4
-	dc.b	$1F	;1F
-	dc.b	$08	;08
-	dc.b	$00	;00
-	dc.b	$15	;15
-	dc.b	$F7	;F7
-	dc.b	$20	;20
-	dc.b	$0F	;0F
-	dc.b	$03	;03
-	dc.b	$14	;14
-	dc.b	$F7	;F7
-	dc.b	$13	;13
-	dc.b	$18	;18
-	dc.b	$FB	;FB
-	dc.b	$08	;08
-	dc.b	$17	;17
-	dc.b	$09	;09
-	dc.b	$F0	;F0
-	dc.b	$37	;37
-	dc.b	$E8	;E8
-	dc.b	$1F	;1F
-	dc.b	$03	;03
-	dc.b	$00	;00
-	dc.b	$20	;20
-	dc.b	$DB	;DB
-	dc.b	$38	;38
-	dc.b	$F7	;F7
-	dc.b	$02	;02
-	dc.b	$10	;10
-	dc.b	$FF	;FF
-	dc.b	$08	;08
-	dc.b	$13	;13
-	dc.b	$09	;09
-	dc.b	$00	;00
-	dc.b	$FF	;FF
-	dc.b	$1A	;1A
-	dc.b	$F4	;F4
-	dc.b	$0F	;0F
-	dc.b	$12	;12
-	dc.b	$09	;09
-	dc.b	$FA	;FA
-	dc.b	$0D	;0D
-	dc.b	$28	;28
-	dc.b	$E3	;E3
-	dc.b	$23	;23
-	dc.b	$03	;03
-	dc.b	$10	;10
-	dc.b	$F8	;F8
-	dc.b	$0F	;0F
-	dc.b	$10	;10
-	dc.b	$EF	;EF
-	dc.b	$20	;20
-	dc.b	$0F	;0F
-	dc.b	$F2	;F2
-	dc.b	$0C	;0C
-	dc.b	$1F	;1F
-	dc.b	$F0	;F0
-	dc.b	$1D	;1D
-	dc.b	$07	;07
-	dc.b	$00	;00
-	dc.b	$FF	;FF
-	dc.b	$13	;13
-	dc.b	$14	;14
-	dc.b	$FF	;FF
-	dc.b	$FB	;FB
-	dc.b	$26	;26
-	dc.b	$F6	;F6
-	dc.b	$FF	;FF
-	dc.b	$30	;30
-	dc.b	$F1	;F1
-	dc.b	$02	;02
-	dc.b	$0F	;0F
-	dc.b	$0E	;0E
-	dc.b	$00	;00
-	dc.b	$1F	;1F
-	dc.b	$00	;00
-	dc.b	$07	;07
-	dc.b	$FB	;FB
-	dc.b	$1D	;1D
-	dc.b	$0C	;0C
-	dc.b	$ED	;ED
-	dc.b	$22	;22
-	dc.b	$FB	;FB
-	dc.b	$00	;00
-	dc.b	$0F	;0F
-	dc.b	$10	;10
-	dc.b	$F8	;F8
-	dc.b	$0B	;0B
-	dc.b	$11	;11
-	dc.b	$08	;08
-	dc.b	$F7	;F7
-	dc.b	$1F	;1F
-	dc.b	$08	;08
-	dc.b	$FB	;FB
-	dc.b	$0E	;0E
-	dc.b	$0B	;0B
-	dc.b	$00	;00
-	dc.b	$0F	;0F
-	dc.b	$14	;14
-	dc.b	$F8	;F8
-	dc.b	$17	;17
-	dc.b	$FD	;FD
-	dc.b	$1C	;1C
-	dc.b	$F3	;F3
-	dc.b	$17	;17
-	dc.b	$18	;18
-	dc.b	$EF	;EF
-	dc.b	$10	;10
-	dc.b	$0F	;0F
-	dc.b	$00	;00
-	dc.b	$04	;04
-	dc.b	$17	;17
-	dc.b	$F8	;F8
-	dc.b	$15	;15
-	dc.b	$07	;07
-	dc.b	$10	;10
-	dc.b	$FF	;FF
-	dc.b	$07	;07
-	dc.b	$10	;10
-	dc.b	$0B	;0B
-	dc.b	$F4	;F4
-	dc.b	$1F	;1F
-	dc.b	$FA	;FA
-	dc.b	$07	;07
-	dc.b	$14	;14
-	dc.b	$FB	;FB
-	dc.b	$10	;10
-	dc.b	$FF	;FF
-	dc.b	$1A	;1A
-	dc.b	$F8	;F8
-	dc.b	$17	;17
-	dc.b	$00	;00
-	dc.b	$07	;07
-	dc.b	$07	;07
-	dc.b	$09	;09
-	dc.b	$11	;11
-	dc.b	$00	;00
-	dc.b	$0F	;0F
-	dc.b	$02	;02
-	dc.b	$0C	;0C
-	dc.b	$17	;17
-	dc.b	$04	;04
-	dc.b	$FF	;FF
-	dc.b	$06	;06
-	dc.b	$08	;08
-	dc.b	$16	;16
-	dc.b	$F3	;F3
-	dc.b	$21	;21
-	dc.b	$F8	;F8
-	dc.b	$0B	;0B
-	dc.b	$14	;14
-	dc.b	$FF	;FF
-	dc.b	$10	;10
-	dc.b	$FF	;FF
-	dc.b	$0E	;0E
-	dc.b	$FC	;FC
-	dc.b	$17	;17
-	dc.b	$02	;02
-	dc.b	$12	;12
-	dc.b	$03	;03
-	dc.b	$0D	;0D
-	dc.b	$15	;15
-	dc.b	$03	;03
-	dc.b	$12	;12
-	dc.b	$17	;17
-	dc.b	$F5	;F5
-	dc.b	$1B	;1B
-	dc.b	$12	;12
-	dc.b	$00	;00
-	dc.b	$14	;14
-	dc.b	$05	;05
-	dc.b	$18	;18
-	dc.b	$F9	;F9
-	dc.b	$13	;13
-	dc.b	$09	;09
-	dc.b	$0B	;0B
-	dc.b	$09	;09
-	dc.b	$13	;13
-	dc.b	$00	;00
-	dc.b	$0B	;0B
-	dc.b	$14	;14
-	dc.b	$FE	;FE
-	dc.b	$0C	;0C
-	dc.b	$0B	;0B
-	dc.b	$10	;10
-	dc.b	$FB	;FB
-	dc.b	$17	;17
-	dc.b	$08	;08
-	dc.b	$0D	;0D
-	dc.b	$01	;01
-	dc.b	$17	;17
-	dc.b	$04	;04
-	dc.b	$FF	;FF
-	dc.b	$19	;19
-	dc.b	$01	;01
-	dc.b	$04	;04
-	dc.b	$07	;07
-	dc.b	$10	;10
-	dc.b	$09	;09
-	dc.b	$03	;03
-	dc.b	$0D	;0D
-	dc.b	$12	;12
-	dc.b	$F8	;F8
-	dc.b	$1F	;1F
-	dc.b	$F7	;F7
-	dc.b	$07	;07
-	dc.b	$14	;14
-	dc.b	$06	;06
-	dc.b	$08	;08
-	dc.b	$FF	;FF
-	dc.b	$12	;12
-	dc.b	$00	;00
-	dc.b	$0F	;0F
-	dc.b	$04	;04
-	dc.b	$13	;13
-	dc.b	$F8	;F8
-	dc.b	$0C	;0C
-	dc.b	$14	;14
-	dc.b	$FC	;FC
-	dc.b	$0C	;0C
-	dc.b	$14	;14
-	dc.b	$00	;00
-	dc.b	$0F	;0F
-	dc.b	$0C	;0C
-	dc.b	$0A	;0A
-	dc.b	$06	;06
-	dc.b	$FF	;FF
-	dc.b	$10	;10
-	dc.b	$FB	;FB
-	dc.b	$16	;16
-	dc.b	$00	;00
-	dc.b	$0A	;0A
-	dc.b	$02	;02
-	dc.b	$13	;13
-	dc.b	$08	;08
-	dc.b	$FF	;FF
-	dc.b	$10	;10
-	dc.b	$05	;05
-	dc.b	$08	;08
-	dc.b	$FF	;FF
-	dc.b	$12	;12
-	dc.b	$00	;00
-	dc.b	$07	;07
-	dc.b	$10	;10
-	dc.b	$04	;04
-	dc.b	$02	;02
-	dc.b	$15	;15
-	dc.b	$02	;02
-	dc.b	$0C	;0C
-	dc.b	$07	;07
-	dc.b	$0A	;0A
-	dc.b	$08	;08
-	dc.b	$FF	;FF
-	dc.b	$10	;10
-	dc.b	$05	;05
-	dc.b	$0C	;0C
-	dc.b	$06	;06
-	dc.b	$11	;11
-	dc.b	$FC	;FC
-	dc.b	$1B	;1B
-	dc.b	$04	;04
-	dc.b	$05	;05
-	dc.b	$0C	;0C
-	dc.b	$07	;07
-	dc.b	$0C	;0C
-	dc.b	$05	;05
-	dc.b	$0B	;0B
-	dc.b	$08	;08
-	dc.b	$0A	;0A
-	dc.b	$09	;09
-	dc.b	$0C	;0C
-	dc.b	$02	;02
-	dc.b	$0E	;0E
-	dc.b	$08	;08
-	dc.b	$09	;09
-	dc.b	$05	;05
-	dc.b	$0D	;0D
-	dc.b	$04	;04
-	dc.b	$0D	;0D
-	dc.b	$0A	;0A
-	dc.b	$0A	;0A
-	dc.b	$09	;09
-	dc.b	$07	;07
-	dc.b	$10	;10
-	dc.b	$FD	;FD
-	dc.b	$12	;12
-	dc.b	$03	;03
-	dc.b	$08	;08
-	dc.b	$03	;03
-	dc.b	$0D	;0D
-	dc.b	$08	;08
-	dc.b	$0D	;0D
-	dc.b	$08	;08
-	dc.b	$02	;02
-	dc.b	$0C	;0C
-	dc.b	$07	;07
-	dc.b	$10	;10
-	dc.b	$FE	;FE
-	dc.b	$08	;08
-	dc.b	$08	;08
-	dc.b	$02	;02
-	dc.b	$07	;07
-	dc.b	$10	;10
-	dc.b	$02	;02
-	dc.b	$10	;10
-	dc.b	$03	;03
-	dc.b	$0C	;0C
-	dc.b	$08	;08
-	dc.b	$0B	;0B
-	dc.b	$10	;10
-	dc.b	$FF	;FF
-	dc.b	$0C	;0C
-	dc.b	$06	;06
-	dc.b	$0F	;0F
-	dc.b	$01	;01
-	dc.b	$13	;13
-	dc.b	$04	;04
-	dc.b	$0B	;0B
-	dc.b	$0E	;0E
-	dc.b	$08	;08
-	dc.b	$09	;09
-	dc.b	$07	;07
-	dc.b	$0D	;0D
-	dc.b	$04	;04
-	dc.b	$07	;07
-	dc.b	$10	;10
-	dc.b	$07	;07
-	dc.b	$09	;09
-	dc.b	$0E	;0E
-	dc.b	$06	;06
-	dc.b	$0E	;0E
-	dc.b	$06	;06
-	dc.b	$10	;10
-	dc.b	$02	;02
-	dc.b	$0D	;0D
-	dc.b	$08	;08
-	dc.b	$09	;09
-	dc.b	$06	;06
-	dc.b	$07	;07
-	dc.b	$13	;13
-	dc.b	$FB	;FB
-	dc.b	$17	;17
-	dc.b	$04	;04
-	dc.b	$08	;08
-	dc.b	$0A	;0A
-	dc.b	$07	;07
-	dc.b	$08	;08
-	dc.b	$05	;05
-	dc.b	$0B	;0B
-	dc.b	$09	;09
-	dc.b	$05	;05
-	dc.b	$0D	;0D
-	dc.b	$0C	;0C
-	dc.b	$07	;07
-	dc.b	$08	;08
-	dc.b	$0D	;0D
-	dc.b	$08	;08
-	dc.b	$03	;03
-	dc.b	$15	;15
-	dc.b	$00	;00
-	dc.b	$0D	;0D
-	dc.b	$06	;06
-	dc.b	$0F	;0F
-	dc.b	$08	;08
-	dc.b	$07	;07
-	dc.b	$10	;10
-	dc.b	$FF	;FF
-	dc.b	$0F	;0F
-	dc.b	$07	;07
-	dc.b	$0B	;0B
-	dc.b	$06	;06
-	dc.b	$0A	;0A
-	dc.b	$06	;06
-	dc.b	$0A	;0A
-	dc.b	$09	;09
-	dc.b	$0D	;0D
-	dc.b	$07	;07
-	dc.b	$09	;09
-	dc.b	$0C	;0C
-	dc.b	$0A	;0A
-	dc.b	$06	;06
-	dc.b	$0E	;0E
-	dc.b	$08	;08
-	dc.b	$05	;05
-	dc.b	$0F	;0F
-	dc.b	$03	;03
-	dc.b	$10	;10
-	dc.b	$01	;01
-	dc.b	$0F	;0F
-	dc.b	$08	;08
-	dc.b	$06	;06
-	dc.b	$0A	;0A
-	dc.b	$0A	;0A
-	dc.b	$08	;08
-	dc.b	$07	;07
-	dc.b	$09	;09
-	dc.b	$04	;04
-	dc.b	$12	;12
-	dc.b	$07	;07
-	dc.b	$0C	;0C
-	dc.b	$0D	;0D
-	dc.b	$0D	;0D
-	dc.b	$0A	;0A
-	dc.b	$0D	;0D
-	dc.b	$0A	;0A
-	dc.b	$0D	;0D
-	dc.b	$08	;08
-	dc.b	$0B	;0B
-	dc.b	$0A	;0A
-	dc.b	$08	;08
-	dc.b	$09	;09
-	dc.b	$09	;09
-	dc.b	$0A	;0A
-	dc.b	$06	;06
-	dc.b	$0E	;0E
-	dc.b	$05	;05
-	dc.b	$0D	;0D
-	dc.b	$04	;04
-	dc.b	$0D	;0D
-	dc.b	$06	;06
-	dc.b	$0D	;0D
-	dc.b	$0A	;0A
-	dc.b	$05	;05
-	dc.b	$11	;11
-	dc.b	$05	;05
-	dc.b	$0E	;0E
-	dc.b	$07	;07
-	dc.b	$0C	;0C
-	dc.b	$08	;08
-	dc.b	$09	;09
-	dc.b	$09	;09
-	dc.b	$0A	;0A
-	dc.b	$08	;08
-	dc.b	$08	;08
-	dc.b	$08	;08
-	dc.b	$0C	;0C
-	dc.b	$07	;07
-	dc.b	$0D	;0D
-	dc.b	$05	;05
-	dc.b	$0A	;0A
-	dc.b	$0D	;0D
-	dc.b	$03	;03
-	dc.b	$0F	;0F
-	dc.b	$00	;00
-	dc.b	$0D	;0D
-	dc.b	$05	;05
-	dc.b	$0B	;0B
-	dc.b	$0A	;0A
-	dc.b	$07	;07
-	dc.b	$0A	;0A
-	dc.b	$07	;07
-	dc.b	$0E	;0E
-	dc.b	$03	;03
-	dc.b	$0D	;0D
-	dc.b	$06	;06
-	dc.b	$07	;07
-	dc.b	$09	;09
-	dc.b	$08	;08
-	dc.b	$09	;09
-	dc.b	$0A	;0A
-	dc.b	$06	;06
-	dc.b	$0C	;0C
-	dc.b	$06	;06
-	dc.b	$0D	;0D
-	dc.b	$04	;04
-	dc.b	$0B	;0B
-	dc.b	$08	;08
-	dc.b	$08	;08
-	dc.b	$0E	;0E
-	dc.b	$03	;03
-	dc.b	$11	;11
-	dc.b	$04	;04
-	dc.b	$0D	;0D
-	dc.b	$09	;09
-	dc.b	$0B	;0B
-	dc.b	$0A	;0A
-	dc.b	$0A	;0A
-	dc.b	$0C	;0C
-	dc.b	$07	;07
-	dc.b	$0B	;0B
-	dc.b	$09	;09
-	dc.b	$0A	;0A
-	dc.b	$0B	;0B
-	dc.b	$0A	;0A
-	dc.b	$0B	;0B
-	dc.b	$0A	;0A
-	dc.b	$08	;08
-	dc.b	$0D	;0D
-	dc.b	$05	;05
-	dc.b	$0C	;0C
-	dc.b	$08	;08
-	dc.b	$0B	;0B
-	dc.b	$08	;08
-	dc.b	$0A	;0A
-	dc.b	$0A	;0A
-	dc.b	$07	;07
-	dc.b	$0C	;0C
-	dc.b	$06	;06
-	dc.b	$0C	;0C
-	dc.b	$06	;06
-	dc.b	$0B	;0B
-	dc.b	$06	;06
-	dc.b	$09	;09
-	dc.b	$08	;08
-	dc.b	$09	;09
-	dc.b	$06	;06
-	dc.b	$07	;07
-	dc.b	$0C	;0C
-	dc.b	$07	;07
-	dc.b	$09	;09
-	dc.b	$0A	;0A
-	dc.b	$08	;08
-	dc.b	$07	;07
-	dc.b	$0B	;0B
-	dc.b	$06	;06
-	dc.b	$0A	;0A
-	dc.b	$08	;08
-	dc.b	$0B	;0B
-	dc.b	$09	;09
-	dc.b	$0B	;0B
-	dc.b	$09	;09
-	dc.b	$0C	;0C
-	dc.b	$08	;08
-	dc.b	$09	;09
-	dc.b	$0C	;0C
-	dc.b	$05	;05
-	dc.b	$0F	;0F
-	dc.b	$06	;06
-	dc.b	$0B	;0B
-	dc.b	$0A	;0A
-	dc.b	$0D	;0D
-	dc.b	$0A	;0A
-	dc.b	$0A	;0A
-	dc.b	$0C	;0C
-	dc.b	$09	;09
-	dc.b	$0A	;0A
-	dc.b	$09	;09
-	dc.b	$0A	;0A
-	dc.b	$08	;08
-	dc.b	$09	;09
-	dc.b	$0A	;0A
-	dc.b	$0A	;0A
-	dc.b	$07	;07
-	dc.b	$0C	;0C
-	dc.b	$06	;06
-	dc.b	$0A	;0A
-	dc.b	$06	;06
-	dc.b	$0D	;0D
-	dc.b	$04	;04
-	dc.b	$0B	;0B
-	dc.b	$09	;09
-	dc.b	$05	;05
-	dc.b	$0C	;0C
-	dc.b	$07	;07
-	dc.b	$0C	;0C
-	dc.b	$06	;06
-	dc.b	$0B	;0B
-	dc.b	$08	;08
-	dc.b	$07	;07
-	dc.b	$09	;09
-	dc.b	$09	;09
-	dc.b	$09	;09
-	dc.b	$06	;06
-	dc.b	$09	;09
-	dc.b	$0A	;0A
-	dc.b	$07	;07
-	dc.b	$0D	;0D
-	dc.b	$06	;06
-	dc.b	$07	;07
-	dc.b	$0C	;0C
-	dc.b	$07	;07
-	dc.b	$0C	;0C
-	dc.b	$06	;06
-	dc.b	$0D	;0D
-	dc.b	$06	;06
-	dc.b	$0B	;0B
-	dc.b	$0A	;0A
-	dc.b	$09	;09
+	INCBIN bw-sfx/sample2.sound
+
 AudioSample_3:
-	dc.b	'FORM'	;464F524D
-	dc.b	$00	;00
-	dc.b	$00	;00
-	dc.b	$18	;18
-	dc.b	$80	;80
-	dc.b	'8SVXVHDR'	;3853565856484452
-	dc.b	$00	;00
-	dc.b	$00	;00
-	dc.b	$00	;00
-	dc.b	$14	;14
-	dc.b	$00	;00
-	dc.b	$00	;00
-	dc.b	$18	;18
-	dc.b	$58	;58
-	dc.b	$00	;00
-	dc.b	$00	;00
-	dc.b	$00	;00
-	dc.b	$00	;00
-	dc.b	$00	;00
-	dc.b	$00	;00
-	dc.b	$00	;00
-	dc.b	$00	;00
-	dc.b	$20	;20
-	dc.b	$AB	;AB
-	dc.b	$01	;01
-	dc.b	$00	;00
-	dc.b	$00	;00
-	dc.b	$01	;01
-	dc.b	$00	;00
-	dc.b	$00	;00
-	dc.b	'BODY'	;424F4459
-	dc.b	$00	;00
-	dc.b	$00	;00
-	dc.b	$18	;18
-	dc.b	$58	;58
-	dc.b	$FD	;FD
-	dc.b	$F4	;F4
-	dc.b	$BD	;BD
-	dc.b	$CB	;CB
-	dc.b	$DB	;DB
-	dc.b	$EB	;EB
-	dc.b	$F7	;F7
-	dc.b	$FF	;FF
-	dc.b	$09	;09
-	dc.b	$15	;15
-	dc.b	$1F	;1F
-	dc.b	$2F	;2F
-	dc.b	$3B	;3B
-	dc.b	$43	;43
-	dc.b	$43	;43
-	dc.b	$40	;40
-	dc.b	$34	;34
-	dc.b	$28	;28
-	dc.b	$16	;16
-	dc.b	$08	;08
-	dc.b	$F9	;F9
-	dc.b	$F7	;F7
-	dc.b	$F6	;F6
-	dc.b	$FA	;FA
-	dc.b	$FA	;FA
-	dc.b	$F5	;F5
-	dc.b	$F2	;F2
-	dc.b	$F0	;F0
-	dc.b	$EE	;EE
-	dc.b	$EF	;EF
-	dc.b	$F4	;F4
-	dc.b	$F6	;F6
-	dc.b	$F2	;F2
-	dc.b	$F0	;F0
-	dc.b	$EE	;EE
-	dc.b	$EC	;EC
-	dc.b	$E6	;E6
-	dc.b	$E0	;E0
-	dc.b	$E3	;E3
-	dc.b	$EA	;EA
-	dc.b	$EF	;EF
-	dc.b	$FB	;FB
-	dc.b	$0B	;0B
-	dc.b	$16	;16
-	dc.b	$1C	;1C
-	dc.b	$23	;23
-	dc.b	$2D	;2D
-	dc.b	$37	;37
-	dc.b	$47	;47
-	dc.b	$55	;55
-	dc.b	$5E	;5E
-	dc.b	$61	;61
-	dc.b	$60	;60
-	dc.b	$5E	;5E
-	dc.b	$5D	;5D
-	dc.b	$5B	;5B
-	dc.b	$54	;54
-	dc.b	$28	;28
-	dc.b	$0A	;0A
-	dc.b	$06	;06
-	dc.b	$09	;09
-	dc.b	$06	;06
-	dc.b	$02	;02
-	dc.b	$F8	;F8
-	dc.b	$EA	;EA
-	dc.b	$E6	;E6
-	dc.b	$ED	;ED
-	dc.b	$F6	;F6
-	dc.b	$FA	;FA
-	dc.b	$F6	;F6
-	dc.b	$F1	;F1
-	dc.b	$F4	;F4
-	dc.b	$F4	;F4
-	dc.b	$E6	;E6
-	dc.b	$D8	;D8
-	dc.b	$C8	;C8
-	dc.b	$BA	;BA
-	dc.b	$B6	;B6
-	dc.b	$CB	;CB
-	dc.b	$DF	;DF
-	dc.b	$ED	;ED
-	dc.b	$F7	;F7
-	dc.b	$03	;03
-	dc.b	$0D	;0D
-	dc.b	$19	;19
-	dc.b	$29	;29
-	dc.b	$37	;37
-	dc.b	$43	;43
-	dc.b	$48	;48
-	dc.b	$45	;45
-	dc.b	$40	;40
-	dc.b	$34	;34
-	dc.b	$24	;24
-	dc.b	$12	;12
-	dc.b	$04	;04
-	dc.b	$F8	;F8
-	dc.b	$F0	;F0
-	dc.b	$EF	;EF
-	dc.b	$EF	;EF
-	dc.b	$F0	;F0
-	dc.b	$EF	;EF
-	dc.b	$EE	;EE
-	dc.b	$EC	;EC
-	dc.b	$EB	;EB
-	dc.b	$EE	;EE
-	dc.b	$F5	;F5
-	dc.b	$FA	;FA
-	dc.b	$F6	;F6
-	dc.b	$F2	;F2
-	dc.b	$F0	;F0
-	dc.b	$E9	;E9
-	dc.b	$E4	;E4
-	dc.b	$E0	;E0
-	dc.b	$E1	;E1
-	dc.b	$E7	;E7
-	dc.b	$EC	;EC
-	dc.b	$F2	;F2
-	dc.b	$FF	;FF
-	dc.b	$0F	;0F
-	dc.b	$1B	;1B
-	dc.b	$1F	;1F
-	dc.b	$2D	;2D
-	dc.b	$3B	;3B
-	dc.b	$4D	;4D
-	dc.b	$5B	;5B
-	dc.b	$60	;60
-	dc.b	$5E	;5E
-	dc.b	$5E	;5E
-	dc.b	$5F	;5F
-	dc.b	$5E	;5E
-	dc.b	$5B	;5B
-	dc.b	$48	;48
-	dc.b	$08	;08
-	dc.b	$FB	;FB
-	dc.b	$05	;05
-	dc.b	$04	;04
-	dc.b	$FC	;FC
-	dc.b	$F2	;F2
-	dc.b	$E8	;E8
-	dc.b	$E1	;E1
-	dc.b	$E7	;E7
-	dc.b	$F7	;F7
-	dc.b	$FE	;FE
-	dc.b	$F5	;F5
-	dc.b	$F2	;F2
-	dc.b	$FF	;FF
-	dc.b	$06	;06
-	dc.b	$F6	;F6
-	dc.b	$E0	;E0
-	dc.b	$C4	;C4
-	dc.b	$AC	;AC
-	dc.b	$A4	;A4
-	dc.b	$B7	;B7
-	dc.b	$CD	;CD
-	dc.b	$DF	;DF
-	dc.b	$E9	;E9
-	dc.b	$F5	;F5
-	dc.b	$07	;07
-	dc.b	$17	;17
-	dc.b	$25	;25
-	dc.b	$36	;36
-	dc.b	$47	;47
-	dc.b	$52	;52
-	dc.b	$53	;53
-	dc.b	$50	;50
-	dc.b	$42	;42
-	dc.b	$30	;30
-	dc.b	$18	;18
-	dc.b	$00	;00
-	dc.b	$F0	;F0
-	dc.b	$E3	;E3
-	dc.b	$E5	;E5
-	dc.b	$E9	;E9
-	dc.b	$ED	;ED
-	dc.b	$EE	;EE
-	dc.b	$ED	;ED
-	dc.b	$EA	;EA
-	dc.b	$E9	;E9
-	dc.b	$EF	;EF
-	dc.b	$FA	;FA
-	dc.b	$FF	;FF
-	dc.b	$FA	;FA
-	dc.b	$F8	;F8
-	dc.b	$F6	;F6
-	dc.b	$EE	;EE
-	dc.b	$E3	;E3
-	dc.b	$DD	;DD
-	dc.b	$DC	;DC
-	dc.b	$DC	;DC
-	dc.b	$DF	;DF
-	dc.b	$EF	;EF
-	dc.b	$FF	;FF
-	dc.b	$13	;13
-	dc.b	$1F	;1F
-	dc.b	$23	;23
-	dc.b	$2F	;2F
-	dc.b	$3B	;3B
-	dc.b	$47	;47
-	dc.b	$55	;55
-	dc.b	$5D	;5D
-	dc.b	$5E	;5E
-	dc.b	$5F	;5F
-	dc.b	$60	;60
-	dc.b	$60	;60
-	dc.b	$5E	;5E
-	dc.b	$5B	;5B
-	dc.b	$50	;50
-	dc.b	$24	;24
-	dc.b	$06	;06
-	dc.b	$01	;01
-	dc.b	$FC	;FC
-	dc.b	$FE	;FE
-	dc.b	$04	;04
-	dc.b	$F8	;F8
-	dc.b	$EA	;EA
-	dc.b	$E0	;E0
-	dc.b	$E3	;E3
-	dc.b	$E9	;E9
-	dc.b	$FB	;FB
-	dc.b	$F8	;F8
-	dc.b	$E4	;E4
-	dc.b	$DC	;DC
-	dc.b	$E0	;E0
-	dc.b	$DE	;DE
-	dc.b	$D8	;D8
-	dc.b	$D0	;D0
-	dc.b	$C0	;C0
-	dc.b	$B4	;B4
-	dc.b	$BF	;BF
-	dc.b	$DF	;DF
-	dc.b	$F9	;F9
-	dc.b	$05	;05
-	dc.b	$0F	;0F
-	dc.b	$15	;15
-	dc.b	$1D	;1D
-	dc.b	$2F	;2F
-	dc.b	$43	;43
-	dc.b	$49	;49
-	dc.b	$46	;46
-	dc.b	$40	;40
-	dc.b	$38	;38
-	dc.b	$30	;30
-	dc.b	$22	;22
-	dc.b	$12	;12
-	dc.b	$04	;04
-	dc.b	$F4	;F4
-	dc.b	$E4	;E4
-	dc.b	$E3	;E3
-	dc.b	$E9	;E9
-	dc.b	$E9	;E9
-	dc.b	$E9	;E9
-	dc.b	$EB	;EB
-	dc.b	$EB	;EB
-	dc.b	$E8	;E8
-	dc.b	$E9	;E9
-	dc.b	$F3	;F3
-	dc.b	$FD	;FD
-	dc.b	$F5	;F5
-	dc.b	$EC	;EC
-	dc.b	$EF	;EF
-	dc.b	$EC	;EC
-	dc.b	$E2	;E2
-	dc.b	$DF	;DF
-	dc.b	$E5	;E5
-	dc.b	$E4	;E4
-	dc.b	$E5	;E5
-	dc.b	$F3	;F3
-	dc.b	$FF	;FF
-	dc.b	$17	;17
-	dc.b	$21	;21
-	dc.b	$2B	;2B
-	dc.b	$3A	;3A
-	dc.b	$47	;47
-	dc.b	$53	;53
-	dc.b	$5F	;5F
-	dc.b	$60	;60
-	dc.b	$60	;60
-	dc.b	$5D	;5D
-	dc.b	$5D	;5D
-	dc.b	$5A	;5A
-	dc.b	$58	;58
-	dc.b	$20	;20
-	dc.b	$F0	;F0
-	dc.b	$EE	;EE
-	dc.b	$FB	;FB
-	dc.b	$FE	;FE
-	dc.b	$F0	;F0
-	dc.b	$E4	;E4
-	dc.b	$DE	;DE
-	dc.b	$DF	;DF
-	dc.b	$EF	;EF
-	dc.b	$03	;03
-	dc.b	$00	;00
-	dc.b	$EC	;EC
-	dc.b	$EF	;EF
-	dc.b	$07	;07
-	dc.b	$04	;04
-	dc.b	$F0	;F0
-	dc.b	$D0	;D0
-	dc.b	$B0	;B0
-	dc.b	$90	;90
-	dc.b	$9F	;9F
-	dc.b	$BF	;BF
-	dc.b	$DD	;DD
-	dc.b	$EB	;EB
-	dc.b	$F4	;F4
-	dc.b	$FF	;FF
-	dc.b	$17	;17
-	dc.b	$2F	;2F
-	dc.b	$3D	;3D
-	dc.b	$47	;47
-	dc.b	$52	;52
-	dc.b	$55	;55
-	dc.b	$54	;54
-	dc.b	$50	;50
-	dc.b	$40	;40
-	dc.b	$20	;20
-	dc.b	$00	;00
-	dc.b	$E4	;E4
-	dc.b	$D7	;D7
-	dc.b	$DB	;DB
-	dc.b	$E7	;E7
-	dc.b	$E8	;E8
-	dc.b	$EA	;EA
-	dc.b	$EE	;EE
-	dc.b	$E8	;E8
-	dc.b	$E0	;E0
-	dc.b	$E5	;E5
-	dc.b	$F3	;F3
-	dc.b	$FC	;FC
-	dc.b	$F8	;F8
-	dc.b	$F0	;F0
-	dc.b	$F5	;F5
-	dc.b	$F4	;F4
-	dc.b	$E6	;E6
-	dc.b	$D6	;D6
-	dc.b	$DB	;DB
-	dc.b	$E0	;E0
-	dc.b	$DE	;DE
-	dc.b	$EF	;EF
-	dc.b	$13	;13
-	dc.b	$27	;27
-	dc.b	$2E	;2E
-	dc.b	$3B	;3B
-	dc.b	$47	;47
-	dc.b	$4F	;4F
-	dc.b	$5B	;5B
-	dc.b	$60	;60
-	dc.b	$60	;60
-	dc.b	$5F	;5F
-	dc.b	$5E	;5E
-	dc.b	$5D	;5D
-	dc.b	$5E	;5E
-	dc.b	$5A	;5A
-	dc.b	$58	;58
-	dc.b	$20	;20
-	dc.b	$F4	;F4
-	dc.b	$F3	;F3
-	dc.b	$FB	;FB
-	dc.b	$03	;03
-	dc.b	$04	;04
-	dc.b	$F2	;F2
-	dc.b	$E0	;E0
-	dc.b	$DB	;DB
-	dc.b	$EB	;EB
-	dc.b	$F5	;F5
-	dc.b	$F5	;F5
-	dc.b	$F0	;F0
-	dc.b	$F1	;F1
-	dc.b	$F5	;F5
-	dc.b	$EC	;EC
-	dc.b	$DA	;DA
-	dc.b	$C2	;C2
-	dc.b	$A8	;A8
-	dc.b	$99	;99
-	dc.b	$A7	;A7
-	dc.b	$C7	;C7
-	dc.b	$E5	;E5
-	dc.b	$FB	;FB
-	dc.b	$07	;07
-	dc.b	$15	;15
-	dc.b	$23	;23
-	dc.b	$33	;33
-	dc.b	$3F	;3F
-	dc.b	$4F	;4F
-	dc.b	$5C	;5C
-	dc.b	$5E	;5E
-	dc.b	$55	;55
-	dc.b	$48	;48
-	dc.b	$34	;34
-	dc.b	$20	;20
-	dc.b	$04	;04
-	dc.b	$EC	;EC
-	dc.b	$E0	;E0
-	dc.b	$E4	;E4
-	dc.b	$E9	;E9
-	dc.b	$EF	;EF
-	dc.b	$F7	;F7
-	dc.b	$F9	;F9
-	dc.b	$F1	;F1
-	dc.b	$EB	;EB
-	dc.b	$EF	;EF
-	dc.b	$FB	;FB
-	dc.b	$01	;01
-	dc.b	$00	;00
-	dc.b	$FB	;FB
-	dc.b	$FA	;FA
-	dc.b	$EC	;EC
-	dc.b	$D8	;D8
-	dc.b	$D1	;D1
-	dc.b	$D2	;D2
-	dc.b	$CC	;CC
-	dc.b	$D3	;D3
-	dc.b	$E7	;E7
-	dc.b	$F7	;F7
-	dc.b	$07	;07
-	dc.b	$17	;17
-	dc.b	$25	;25
-	dc.b	$2E	;2E
-	dc.b	$33	;33
-	dc.b	$3F	;3F
-	dc.b	$53	;53
-	dc.b	$5F	;5F
-	dc.b	$5F	;5F
-	dc.b	$5E	;5E
-	dc.b	$5F	;5F
-	dc.b	$5F	;5F
-	dc.b	$60	;60
-	dc.b	$5A	;5A
-	dc.b	$44	;44
-	dc.b	$00	;00
-	dc.b	$E3	;E3
-	dc.b	$F3	;F3
-	dc.b	$0D	;0D
-	dc.b	$12	;12
-	dc.b	$00	;00
-	dc.b	$E8	;E8
-	dc.b	$D0	;D0
-	dc.b	$D5	;D5
-	dc.b	$F7	;F7
-	dc.b	$0B	;0B
-	dc.b	$00	;00
-	dc.b	$E8	;E8
-	dc.b	$E5	;E5
-	dc.b	$EE	;EE
-	dc.b	$F0	;F0
-	dc.b	$E8	;E8
-	dc.b	$C8	;C8
-	dc.b	$98	;98
-	dc.b	$87	;87
-	dc.b	$9F	;9F
-	dc.b	$D7	;D7
-	dc.b	$FB	;FB
-	dc.b	$02	;02
-	dc.b	$FF	;FF
-	dc.b	$03	;03
-	dc.b	$15	;15
-	dc.b	$2B	;2B
-	dc.b	$47	;47
-	dc.b	$55	;55
-	dc.b	$52	;52
-	dc.b	$49	;49
-	dc.b	$45	;45
-	dc.b	$40	;40
-	dc.b	$2C	;2C
-	dc.b	$14	;14
-	dc.b	$F4	;F4
-	dc.b	$D8	;D8
-	dc.b	$D3	;D3
-	dc.b	$DD	;DD
-	dc.b	$E5	;E5
-	dc.b	$EF	;EF
-	dc.b	$F0	;F0
-	dc.b	$E8	;E8
-	dc.b	$E0	;E0
-	dc.b	$DA	;DA
-	dc.b	$E3	;E3
-	dc.b	$F6	;F6
-	dc.b	$F8	;F8
-	dc.b	$F0	;F0
-	dc.b	$ED	;ED
-	dc.b	$EC	;EC
-	dc.b	$E0	;E0
-	dc.b	$D9	;D9
-	dc.b	$DF	;DF
-	dc.b	$E5	;E5
-	dc.b	$E3	;E3
-	dc.b	$EF	;EF
-	dc.b	$0F	;0F
-	dc.b	$29	;29
-	dc.b	$34	;34
-	dc.b	$3F	;3F
-	dc.b	$49	;49
-	dc.b	$4D	;4D
-	dc.b	$52	;52
-	dc.b	$5A	;5A
-	dc.b	$5E	;5E
-	dc.b	$5E	;5E
-	dc.b	$5F	;5F
-	dc.b	$5F	;5F
-	dc.b	$5F	;5F
-	dc.b	$5D	;5D
-	dc.b	$5C	;5C
-	dc.b	$52	;52
-	dc.b	$40	;40
-	dc.b	$18	;18
-	dc.b	$00	;00
-	dc.b	$F3	;F3
-	dc.b	$F9	;F9
-	dc.b	$FD	;FD
-	dc.b	$F5	;F5
-	dc.b	$E8	;E8
-	dc.b	$DC	;DC
-	dc.b	$CE	;CE
-	dc.b	$C9	;C9
-	dc.b	$DF	;DF
-	dc.b	$EB	;EB
-	dc.b	$E2	;E2
-	dc.b	$D8	;D8
-	dc.b	$D2	;D2
-	dc.b	$CE	;CE
-	dc.b	$CF	;CF
-	dc.b	$D5	;D5
-	dc.b	$D6	;D6
-	dc.b	$CC	;CC
-	dc.b	$C7	;C7
-	dc.b	$DB	;DB
-	dc.b	$FB	;FB
-	dc.b	$13	;13
-	dc.b	$1F	;1F
-	dc.b	$28	;28
-	dc.b	$26	;26
-	dc.b	$2A	;2A
-	dc.b	$3D	;3D
-	dc.b	$4E	;4E
-	dc.b	$56	;56
-	dc.b	$50	;50
-	dc.b	$40	;40
-	dc.b	$2E	;2E
-	dc.b	$25	;25
-	dc.b	$18	;18
-	dc.b	$08	;08
-	dc.b	$F4	;F4
-	dc.b	$E5	;E5
-	dc.b	$DF	;DF
-	dc.b	$E5	;E5
-	dc.b	$F3	;F3
-	dc.b	$FB	;FB
-	dc.b	$FB	;FB
-	dc.b	$FB	;FB
-	dc.b	$F8	;F8
-	dc.b	$F7	;F7
-	dc.b	$FE	;FE
-	dc.b	$02	;02
-	dc.b	$FC	;FC
-	dc.b	$F3	;F3
-	dc.b	$EC	;EC
-	dc.b	$E0	;E0
-	dc.b	$D0	;D0
-	dc.b	$CC	;CC
-	dc.b	$CF	;CF
-	dc.b	$CC	;CC
-	dc.b	$D5	;D5
-	dc.b	$E5	;E5
-	dc.b	$F7	;F7
-	dc.b	$0B	;0B
-	dc.b	$1F	;1F
-	dc.b	$2F	;2F
-	dc.b	$37	;37
-	dc.b	$3B	;3B
-	dc.b	$43	;43
-	dc.b	$4F	;4F
-	dc.b	$5D	;5D
-	dc.b	$61	;61
-	dc.b	$5F	;5F
-	dc.b	$5E	;5E
-	dc.b	$5E	;5E
-	dc.b	$5A	;5A
-	dc.b	$40	;40
-	dc.b	$E8	;E8
-	dc.b	$C2	;C2
-	dc.b	$D7	;D7
-	dc.b	$FF	;FF
-	dc.b	$1A	;1A
-	dc.b	$10	;10
-	dc.b	$F0	;F0
-	dc.b	$C4	;C4
-	dc.b	$C3	;C3
-	dc.b	$EF	;EF
-	dc.b	$07	;07
-	dc.b	$04	;04
-	dc.b	$F8	;F8
-	dc.b	$E4	;E4
-	dc.b	$D8	;D8
-	dc.b	$EB	;EB
-	dc.b	$F8	;F8
-	dc.b	$D8	;D8
-	dc.b	$A0	;A0
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$B7	;B7
-	dc.b	$FF	;FF
-	dc.b	$2B	;2B
-	dc.b	$20	;20
-	dc.b	$04	;04
-	dc.b	$FB	;FB
-	dc.b	$1B	;1B
-	dc.b	$4F	;4F
-	dc.b	$5B	;5B
-	dc.b	$5C	;5C
-	dc.b	$4C	;4C
-	dc.b	$2C	;2C
-	dc.b	$25	;25
-	dc.b	$29	;29
-	dc.b	$1A	;1A
-	dc.b	$F4	;F4
-	dc.b	$C4	;C4
-	dc.b	$B2	;B2
-	dc.b	$BF	;BF
-	dc.b	$DF	;DF
-	dc.b	$FF	;FF
-	dc.b	$00	;00
-	dc.b	$EA	;EA
-	dc.b	$D0	;D0
-	dc.b	$C4	;C4
-	dc.b	$CF	;CF
-	dc.b	$E7	;E7
-	dc.b	$F0	;F0
-	dc.b	$E5	;E5
-	dc.b	$D6	;D6
-	dc.b	$C8	;C8
-	dc.b	$CB	;CB
-	dc.b	$D5	;D5
-	dc.b	$DD	;DD
-	dc.b	$DF	;DF
-	dc.b	$E3	;E3
-	dc.b	$F7	;F7
-	dc.b	$1F	;1F
-	dc.b	$4F	;4F
-	dc.b	$61	;61
-	dc.b	$61	;61
-	dc.b	$5E	;5E
-	dc.b	$5E	;5E
-	dc.b	$5E	;5E
-	dc.b	$5F	;5F
-	dc.b	$60	;60
-	dc.b	$5F	;5F
-	dc.b	$5D	;5D
-	dc.b	$5C	;5C
-	dc.b	$5B	;5B
-	dc.b	$5C	;5C
-	dc.b	$5C	;5C
-	dc.b	$54	;54
-	dc.b	$20	;20
-	dc.b	$F4	;F4
-	dc.b	$EB	;EB
-	dc.b	$F7	;F7
-	dc.b	$03	;03
-	dc.b	$0A	;0A
-	dc.b	$F8	;F8
-	dc.b	$D0	;D0
-	dc.b	$A9	;A9
-	dc.b	$A3	;A3
-	dc.b	$BB	;BB
-	dc.b	$C6	;C6
-	dc.b	$C2	;C2
-	dc.b	$BA	;BA
-	dc.b	$B5	;B5
-	dc.b	$B4	;B4
-	dc.b	$B9	;B9
-	dc.b	$C5	;C5
-	dc.b	$C8	;C8
-	dc.b	$C3	;C3
-	dc.b	$CF	;CF
-	dc.b	$EF	;EF
-	dc.b	$1F	;1F
-	dc.b	$3D	;3D
-	dc.b	$4E	;4E
-	dc.b	$4E	;4E
-	dc.b	$46	;46
-	dc.b	$41	;41
-	dc.b	$4B	;4B
-	dc.b	$5B	;5B
-	dc.b	$5F	;5F
-	dc.b	$5D	;5D
-	dc.b	$59	;59
-	dc.b	$44	;44
-	dc.b	$2A	;2A
-	dc.b	$20	;20
-	dc.b	$1A	;1A
-	dc.b	$0A	;0A
-	dc.b	$F8	;F8
-	dc.b	$F4	;F4
-	dc.b	$FD	;FD
-	dc.b	$FF	;FF
-	dc.b	$01	;01
-	dc.b	$00	;00
-	dc.b	$F2	;F2
-	dc.b	$E0	;E0
-	dc.b	$CB	;CB
-	dc.b	$CF	;CF
-	dc.b	$DE	;DE
-	dc.b	$D5	;D5
-	dc.b	$C8	;C8
-	dc.b	$C3	;C3
-	dc.b	$C0	;C0
-	dc.b	$B4	;B4
-	dc.b	$B1	;B1
-	dc.b	$C7	;C7
-	dc.b	$D6	;D6
-	dc.b	$DA	;DA
-	dc.b	$E7	;E7
-	dc.b	$FF	;FF
-	dc.b	$1F	;1F
-	dc.b	$29	;29
-	dc.b	$2F	;2F
-	dc.b	$3B	;3B
-	dc.b	$38	;38
-	dc.b	$30	;30
-	dc.b	$37	;37
-	dc.b	$47	;47
-	dc.b	$46	;46
-	dc.b	$40	;40
-	dc.b	$38	;38
-	dc.b	$39	;39
-	dc.b	$3F	;3F
-	dc.b	$53	;53
-	dc.b	$5E	;5E
-	dc.b	$5F	;5F
-	dc.b	$5F	;5F
-	dc.b	$5C	;5C
-	dc.b	$54	;54
-	dc.b	$10	;10
-	dc.b	$CC	;CC
-	dc.b	$C4	;C4
-	dc.b	$D3	;D3
-	dc.b	$DA	;DA
-	dc.b	$D0	;D0
-	dc.b	$A8	;A8
-	dc.b	$90	;90
-	dc.b	$8F	;8F
-	dc.b	$9D	;9D
-	dc.b	$B5	;B5
-	dc.b	$DB	;DB
-	dc.b	$E8	;E8
-	dc.b	$E3	;E3
-	dc.b	$ED	;ED
-	dc.b	$FF	;FF
-	dc.b	$0A	;0A
-	dc.b	$08	;08
-	dc.b	$F4	;F4
-	dc.b	$D0	;D0
-	dc.b	$BE	;BE
-	dc.b	$CF	;CF
-	dc.b	$FF	;FF
-	dc.b	$2D	;2D
-	dc.b	$3A	;3A
-	dc.b	$2C	;2C
-	dc.b	$1A	;1A
-	dc.b	$1B	;1B
-	dc.b	$3F	;3F
-	dc.b	$5B	;5B
-	dc.b	$5F	;5F
-	dc.b	$5C	;5C
-	dc.b	$5A	;5A
-	dc.b	$44	;44
-	dc.b	$20	;20
-	dc.b	$08	;08
-	dc.b	$EA	;EA
-	dc.b	$C4	;C4
-	dc.b	$A0	;A0
-	dc.b	$81	;81
-	dc.b	$85	;85
-	dc.b	$9F	;9F
-	dc.b	$B6	;B6
-	dc.b	$B0	;B0
-	dc.b	$A2	;A2
-	dc.b	$9F	;9F
-	dc.b	$B3	;B3
-	dc.b	$CB	;CB
-	dc.b	$EB	;EB
-	dc.b	$05	;05
-	dc.b	$06	;06
-	dc.b	$F8	;F8
-	dc.b	$EC	;EC
-	dc.b	$F5	;F5
-	dc.b	$FF	;FF
-	dc.b	$06	;06
-	dc.b	$0F	;0F
-	dc.b	$1F	;1F
-	dc.b	$3F	;3F
-	dc.b	$5F	;5F
-	dc.b	$5F	;5F
-	dc.b	$5E	;5E
-	dc.b	$5E	;5E
-	dc.b	$5F	;5F
-	dc.b	$60	;60
-	dc.b	$60	;60
-	dc.b	$5E	;5E
-	dc.b	$5D	;5D
-	dc.b	$5A	;5A
-	dc.b	$58	;58
-	dc.b	$50	;50
-	dc.b	$08	;08
-	dc.b	$CA	;CA
-	dc.b	$BB	;BB
-	dc.b	$B0	;B0
-	dc.b	$9C	;9C
-	dc.b	$95	;95
-	dc.b	$9F	;9F
-	dc.b	$BB	;BB
-	dc.b	$DB	;DB
-	dc.b	$EF	;EF
-	dc.b	$E6	;E6
-	dc.b	$DE	;DE
-	dc.b	$D4	;D4
-	dc.b	$C8	;C8
-	dc.b	$B4	;B4
-	dc.b	$A0	;A0
-	dc.b	$8A	;8A
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$A7	;A7
-	dc.b	$C7	;C7
-	dc.b	$EF	;EF
-	dc.b	$1F	;1F
-	dc.b	$4F	;4F
-	dc.b	$60	;60
-	dc.b	$5D	;5D
-	dc.b	$5D	;5D
-	dc.b	$5E	;5E
-	dc.b	$5F	;5F
-	dc.b	$60	;60
-	dc.b	$5D	;5D
-	dc.b	$5A	;5A
-	dc.b	$54	;54
-	dc.b	$20	;20
-	dc.b	$E8	;E8
-	dc.b	$D4	;D4
-	dc.b	$C8	;C8
-	dc.b	$C2	;C2
-	dc.b	$C7	;C7
-	dc.b	$D3	;D3
-	dc.b	$D7	;D7
-	dc.b	$D7	;D7
-	dc.b	$DF	;DF
-	dc.b	$EF	;EF
-	dc.b	$FE	;FE
-	dc.b	$0A	;0A
-	dc.b	$0F	;0F
-	dc.b	$06	;06
-	dc.b	$F0	;F0
-	dc.b	$D0	;D0
-	dc.b	$B8	;B8
-	dc.b	$AA	;AA
-	dc.b	$AF	;AF
-	dc.b	$B4	;B4
-	dc.b	$BF	;BF
-	dc.b	$E7	;E7
-	dc.b	$0B	;0B
-	dc.b	$27	;27
-	dc.b	$4B	;4B
-	dc.b	$5D	;5D
-	dc.b	$61	;61
-	dc.b	$5F	;5F
-	dc.b	$5E	;5E
-	dc.b	$5E	;5E
-	dc.b	$5F	;5F
-	dc.b	$5C	;5C
-	dc.b	$54	;54
-	dc.b	$30	;30
-	dc.b	$08	;08
-	dc.b	$E0	;E0
-	dc.b	$D4	;D4
-	dc.b	$E2	;E2
-	dc.b	$E6	;E6
-	dc.b	$EE	;EE
-	dc.b	$F7	;F7
-	dc.b	$0B	;0B
-	dc.b	$18	;18
-	dc.b	$10	;10
-	dc.b	$09	;09
-	dc.b	$0B	;0B
-	dc.b	$02	;02
-	dc.b	$EC	;EC
-	dc.b	$DA	;DA
-	dc.b	$D4	;D4
-	dc.b	$C2	;C2
-	dc.b	$A8	;A8
-	dc.b	$98	;98
-	dc.b	$9A	;9A
-	dc.b	$9D	;9D
-	dc.b	$AF	;AF
-	dc.b	$CF	;CF
-	dc.b	$F7	;F7
-	dc.b	$1F	;1F
-	dc.b	$4F	;4F
-	dc.b	$5F	;5F
-	dc.b	$60	;60
-	dc.b	$60	;60
-	dc.b	$5E	;5E
-	dc.b	$5A	;5A
-	dc.b	$57	;57
-	dc.b	$30	;30
-	dc.b	$EC	;EC
-	dc.b	$E7	;E7
-	dc.b	$F6	;F6
-	dc.b	$F4	;F4
-	dc.b	$F2	;F2
-	dc.b	$EA	;EA
-	dc.b	$E1	;E1
-	dc.b	$E5	;E5
-	dc.b	$FF	;FF
-	dc.b	$1F	;1F
-	dc.b	$3F	;3F
-	dc.b	$57	;57
-	dc.b	$5C	;5C
-	dc.b	$4C	;4C
-	dc.b	$20	;20
-	dc.b	$E8	;E8
-	dc.b	$B0	;B0
-	dc.b	$8C	;8C
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$8D	;8D
-	dc.b	$9B	;9B
-	dc.b	$AD	;AD
-	dc.b	$BF	;BF
-	dc.b	$CF	;CF
-	dc.b	$DF	;DF
-	dc.b	$FF	;FF
-	dc.b	$1F	;1F
-	dc.b	$39	;39
-	dc.b	$40	;40
-	dc.b	$30	;30
-	dc.b	$10	;10
-	dc.b	$E0	;E0
-	dc.b	$C4	;C4
-	dc.b	$B2	;B2
-	dc.b	$AE	;AE
-	dc.b	$BF	;BF
-	dc.b	$DF	;DF
-	dc.b	$FF	;FF
-	dc.b	$17	;17
-	dc.b	$2B	;2B
-	dc.b	$3D	;3D
-	dc.b	$4F	;4F
-	dc.b	$59	;59
-	dc.b	$5F	;5F
-	dc.b	$5E	;5E
-	dc.b	$5E	;5E
-	dc.b	$5F	;5F
-	dc.b	$5F	;5F
-	dc.b	$5E	;5E
-	dc.b	$5D	;5D
-	dc.b	$5E	;5E
-	dc.b	$5E	;5E
-	dc.b	$5F	;5F
-	dc.b	$60	;60
-	dc.b	$60	;60
-	dc.b	$5D	;5D
-	dc.b	$59	;59
-	dc.b	$48	;48
-	dc.b	$F0	;F0
-	dc.b	$BD	;BD
-	dc.b	$DF	;DF
-	dc.b	$07	;07
-	dc.b	$00	;00
-	dc.b	$D8	;D8
-	dc.b	$90	;90
-	dc.b	$80	;80
-	dc.b	$87	;87
-	dc.b	$BF	;BF
-	dc.b	$EF	;EF
-	dc.b	$F5	;F5
-	dc.b	$E9	;E9
-	dc.b	$E4	;E4
-	dc.b	$F7	;F7
-	dc.b	$1F	;1F
-	dc.b	$30	;30
-	dc.b	$00	;00
-	dc.b	$B0	;B0
-	dc.b	$80	;80
-	dc.b	$8F	;8F
-	dc.b	$DF	;DF
-	dc.b	$3F	;3F
-	dc.b	$55	;55
-	dc.b	$4C	;4C
-	dc.b	$14	;14
-	dc.b	$FF	;FF
-	dc.b	$37	;37
-	dc.b	$5B	;5B
-	dc.b	$5E	;5E
-	dc.b	$5C	;5C
-	dc.b	$5A	;5A
-	dc.b	$50	;50
-	dc.b	$2A	;2A
-	dc.b	$26	;26
-	dc.b	$20	;20
-	dc.b	$E0	;E0
-	dc.b	$84	;84
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$83	;83
-	dc.b	$A7	;A7
-	dc.b	$A4	;A4
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$9F	;9F
-	dc.b	$E7	;E7
-	dc.b	$09	;09
-	dc.b	$08	;08
-	dc.b	$FC	;FC
-	dc.b	$F7	;F7
-	dc.b	$07	;07
-	dc.b	$1F	;1F
-	dc.b	$37	;37
-	dc.b	$35	;35
-	dc.b	$20	;20
-	dc.b	$1F	;1F
-	dc.b	$4D	;4D
-	dc.b	$5E	;5E
-	dc.b	$5E	;5E
-	dc.b	$5F	;5F
-	dc.b	$60	;60
-	dc.b	$60	;60
-	dc.b	$5D	;5D
-	dc.b	$5D	;5D
-	dc.b	$5E	;5E
-	dc.b	$5E	;5E
-	dc.b	$5D	;5D
-	dc.b	$5C	;5C
-	dc.b	$5A	;5A
-	dc.b	$44	;44
-	dc.b	$10	;10
-	dc.b	$E4	;E4
-	dc.b	$C0	;C0
-	dc.b	$98	;98
-	dc.b	$84	;84
-	dc.b	$8B	;8B
-	dc.b	$99	;99
-	dc.b	$8C	;8C
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$85	;85
-	dc.b	$A7	;A7
-	dc.b	$CF	;CF
-	dc.b	$DA	;DA
-	dc.b	$D0	;D0
-	dc.b	$C8	;C8
-	dc.b	$D3	;D3
-	dc.b	$E7	;E7
-	dc.b	$ED	;ED
-	dc.b	$FF	;FF
-	dc.b	$1D	;1D
-	dc.b	$33	;33
-	dc.b	$4F	;4F
-	dc.b	$5F	;5F
-	dc.b	$5F	;5F
-	dc.b	$60	;60
-	dc.b	$60	;60
-	dc.b	$5E	;5E
-	dc.b	$5D	;5D
-	dc.b	$5D	;5D
-	dc.b	$5F	;5F
-	dc.b	$5E	;5E
-	dc.b	$5C	;5C
-	dc.b	$5A	;5A
-	dc.b	$48	;48
-	dc.b	$18	;18
-	dc.b	$04	;04
-	dc.b	$04	;04
-	dc.b	$00	;00
-	dc.b	$F0	;F0
-	dc.b	$ED	;ED
-	dc.b	$F6	;F6
-	dc.b	$EA	;EA
-	dc.b	$D8	;D8
-	dc.b	$D4	;D4
-	dc.b	$C0	;C0
-	dc.b	$A4	;A4
-	dc.b	$9A	;9A
-	dc.b	$9C	;9C
-	dc.b	$91	;91
-	dc.b	$86	;86
-	dc.b	$81	;81
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$8F	;8F
-	dc.b	$AF	;AF
-	dc.b	$CF	;CF
-	dc.b	$F7	;F7
-	dc.b	$1F	;1F
-	dc.b	$33	;33
-	dc.b	$47	;47
-	dc.b	$57	;57
-	dc.b	$59	;59
-	dc.b	$56	;56
-	dc.b	$5B	;5B
-	dc.b	$5D	;5D
-	dc.b	$5C	;5C
-	dc.b	$52	;52
-	dc.b	$40	;40
-	dc.b	$18	;18
-	dc.b	$00	;00
-	dc.b	$F2	;F2
-	dc.b	$EA	;EA
-	dc.b	$EC	;EC
-	dc.b	$EE	;EE
-	dc.b	$E4	;E4
-	dc.b	$D2	;D2
-	dc.b	$C0	;C0
-	dc.b	$AA	;AA
-	dc.b	$94	;94
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$85	;85
-	dc.b	$9F	;9F
-	dc.b	$BF	;BF
-	dc.b	$EF	;EF
-	dc.b	$13	;13
-	dc.b	$2B	;2B
-	dc.b	$3F	;3F
-	dc.b	$57	;57
-	dc.b	$5F	;5F
-	dc.b	$5F	;5F
-	dc.b	$60	;60
-	dc.b	$5E	;5E
-	dc.b	$5D	;5D
-	dc.b	$5E	;5E
-	dc.b	$5F	;5F
-	dc.b	$60	;60
-	dc.b	$60	;60
-	dc.b	$5E	;5E
-	dc.b	$5D	;5D
-	dc.b	$5C	;5C
-	dc.b	$5A	;5A
-	dc.b	$59	;59
-	dc.b	$50	;50
-	dc.b	$18	;18
-	dc.b	$E0	;E0
-	dc.b	$A8	;A8
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$9F	;9F
-	dc.b	$B6	;B6
-	dc.b	$BB	;BB
-	dc.b	$C1	;C1
-	dc.b	$B8	;B8
-	dc.b	$A0	;A0
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$87	;87
-	dc.b	$A7	;A7
-	dc.b	$CF	;CF
-	dc.b	$E7	;E7
-	dc.b	$FD	;FD
-	dc.b	$1F	;1F
-	dc.b	$4B	;4B
-	dc.b	$5E	;5E
-	dc.b	$5E	;5E
-	dc.b	$5F	;5F
-	dc.b	$5F	;5F
-	dc.b	$60	;60
-	dc.b	$5D	;5D
-	dc.b	$59	;59
-	dc.b	$50	;50
-	dc.b	$00	;00
-	dc.b	$C4	;C4
-	dc.b	$B1	;B1
-	dc.b	$AC	;AC
-	dc.b	$A5	;A5
-	dc.b	$9D	;9D
-	dc.b	$94	;94
-	dc.b	$8C	;8C
-	dc.b	$8D	;8D
-	dc.b	$97	;97
-	dc.b	$BF	;BF
-	dc.b	$E5	;E5
-	dc.b	$F7	;F7
-	dc.b	$FF	;FF
-	dc.b	$07	;07
-	dc.b	$02	;02
-	dc.b	$EC	;EC
-	dc.b	$DA	;DA
-	dc.b	$DF	;DF
-	dc.b	$FF	;FF
-	dc.b	$1B	;1B
-	dc.b	$3F	;3F
-	dc.b	$5E	;5E
-	dc.b	$5E	;5E
-	dc.b	$5E	;5E
-	dc.b	$5F	;5F
-	dc.b	$60	;60
-	dc.b	$60	;60
-	dc.b	$5D	;5D
-	dc.b	$5D	;5D
-	dc.b	$5E	;5E
-	dc.b	$5C	;5C
-	dc.b	$5B	;5B
-	dc.b	$5A	;5A
-	dc.b	$40	;40
-	dc.b	$E4	;E4
-	dc.b	$C0	;C0
-	dc.b	$A3	;A3
-	dc.b	$A7	;A7
-	dc.b	$BF	;BF
-	dc.b	$BD	;BD
-	dc.b	$B9	;B9
-	dc.b	$BC	;BC
-	dc.b	$BC	;BC
-	dc.b	$B8	;B8
-	dc.b	$B0	;B0
-	dc.b	$A0	;A0
-	dc.b	$90	;90
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$8F	;8F
-	dc.b	$BF	;BF
-	dc.b	$F7	;F7
-	dc.b	$2F	;2F
-	dc.b	$5A	;5A
-	dc.b	$5D	;5D
-	dc.b	$5D	;5D
-	dc.b	$5F	;5F
-	dc.b	$5F	;5F
-	dc.b	$60	;60
-	dc.b	$5E	;5E
-	dc.b	$5C	;5C
-	dc.b	$59	;59
-	dc.b	$59	;59
-	dc.b	$44	;44
-	dc.b	$1A	;1A
-	dc.b	$0E	;0E
-	dc.b	$0A	;0A
-	dc.b	$02	;02
-	dc.b	$0D	;0D
-	dc.b	$2B	;2B
-	dc.b	$34	;34
-	dc.b	$31	;31
-	dc.b	$37	;37
-	dc.b	$30	;30
-	dc.b	$08	;08
-	dc.b	$D8	;D8
-	dc.b	$C0	;C0
-	dc.b	$A2	;A2
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$9F	;9F
-	dc.b	$BB	;BB
-	dc.b	$EB	;EB
-	dc.b	$2B	;2B
-	dc.b	$55	;55
-	dc.b	$5D	;5D
-	dc.b	$5E	;5E
-	dc.b	$5E	;5E
-	dc.b	$5F	;5F
-	dc.b	$5B	;5B
-	dc.b	$54	;54
-	dc.b	$40	;40
-	dc.b	$28	;28
-	dc.b	$1A	;1A
-	dc.b	$17	;17
-	dc.b	$27	;27
-	dc.b	$2E	;2E
-	dc.b	$2F	;2F
-	dc.b	$3F	;3F
-	dc.b	$59	;59
-	dc.b	$5E	;5E
-	dc.b	$5E	;5E
-	dc.b	$60	;60
-	dc.b	$5D	;5D
-	dc.b	$50	;50
-	dc.b	$22	;22
-	dc.b	$04	;04
-	dc.b	$E0	;E0
-	dc.b	$B0	;B0
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$8F	;8F
-	dc.b	$9A	;9A
-	dc.b	$B7	;B7
-	dc.b	$EF	;EF
-	dc.b	$0F	;0F
-	dc.b	$1F	;1F
-	dc.b	$3F	;3F
-	dc.b	$53	;53
-	dc.b	$59	;59
-	dc.b	$50	;50
-	dc.b	$34	;34
-	dc.b	$20	;20
-	dc.b	$10	;10
-	dc.b	$F0	;F0
-	dc.b	$EF	;EF
-	dc.b	$1F	;1F
-	dc.b	$2E	;2E
-	dc.b	$37	;37
-	dc.b	$42	;42
-	dc.b	$44	;44
-	dc.b	$38	;38
-	dc.b	$2C	;2C
-	dc.b	$2A	;2A
-	dc.b	$20	;20
-	dc.b	$04	;04
-	dc.b	$D4	;D4
-	dc.b	$B0	;B0
-	dc.b	$88	;88
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$9F	;9F
-	dc.b	$BF	;BF
-	dc.b	$DF	;DF
-	dc.b	$FF	;FF
-	dc.b	$17	;17
-	dc.b	$2F	;2F
-	dc.b	$4F	;4F
-	dc.b	$5E	;5E
-	dc.b	$5D	;5D
-	dc.b	$5E	;5E
-	dc.b	$5F	;5F
-	dc.b	$5F	;5F
-	dc.b	$60	;60
-	dc.b	$5E	;5E
-	dc.b	$5D	;5D
-	dc.b	$5E	;5E
-	dc.b	$5F	;5F
-	dc.b	$5F	;5F
-	dc.b	$61	;61
-	dc.b	$5F	;5F
-	dc.b	$5E	;5E
-	dc.b	$5D	;5D
-	dc.b	$59	;59
-	dc.b	$59	;59
-	dc.b	$30	;30
-	dc.b	$D8	;D8
-	dc.b	$A8	;A8
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$97	;97
-	dc.b	$AF	;AF
-	dc.b	$C3	;C3
-	dc.b	$C0	;C0
-	dc.b	$A4	;A4
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$9B	;9B
-	dc.b	$CF	;CF
-	dc.b	$F7	;F7
-	dc.b	$17	;17
-	dc.b	$3F	;3F
-	dc.b	$5F	;5F
-	dc.b	$60	;60
-	dc.b	$5D	;5D
-	dc.b	$5D	;5D
-	dc.b	$5E	;5E
-	dc.b	$5F	;5F
-	dc.b	$60	;60
-	dc.b	$60	;60
-	dc.b	$5D	;5D
-	dc.b	$58	;58
-	dc.b	$50	;50
-	dc.b	$00	;00
-	dc.b	$90	;90
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$97	;97
-	dc.b	$BF	;BF
-	dc.b	$E5	;E5
-	dc.b	$E4	;E4
-	dc.b	$C8	;C8
-	dc.b	$AC	;AC
-	dc.b	$A7	;A7
-	dc.b	$A5	;A5
-	dc.b	$A1	;A1
-	dc.b	$A7	;A7
-	dc.b	$CF	;CF
-	dc.b	$FF	;FF
-	dc.b	$27	;27
-	dc.b	$55	;55
-	dc.b	$5F	;5F
-	dc.b	$60	;60
-	dc.b	$60	;60
-	dc.b	$5E	;5E
-	dc.b	$5E	;5E
-	dc.b	$5E	;5E
-	dc.b	$5F	;5F
-	dc.b	$60	;60
-	dc.b	$60	;60
-	dc.b	$5E	;5E
-	dc.b	$5D	;5D
-	dc.b	$5A	;5A
-	dc.b	$59	;59
-	dc.b	$58	;58
-	dc.b	$10	;10
-	dc.b	$B0	;B0
-	dc.b	$94	;94
-	dc.b	$8D	;8D
-	dc.b	$8F	;8F
-	dc.b	$89	;89
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$87	;87
-	dc.b	$8C	;8C
-	dc.b	$8A	;8A
-	dc.b	$8C	;8C
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$9F	;9F
-	dc.b	$DF	;DF
-	dc.b	$1F	;1F
-	dc.b	$55	;55
-	dc.b	$5F	;5F
-	dc.b	$5E	;5E
-	dc.b	$5D	;5D
-	dc.b	$5E	;5E
-	dc.b	$5F	;5F
-	dc.b	$5F	;5F
-	dc.b	$5F	;5F
-	dc.b	$5F	;5F
-	dc.b	$5C	;5C
-	dc.b	$59	;59
-	dc.b	$59	;59
-	dc.b	$50	;50
-	dc.b	$2A	;2A
-	dc.b	$12	;12
-	dc.b	$02	;02
-	dc.b	$FE	;FE
-	dc.b	$00	;00
-	dc.b	$FC	;FC
-	dc.b	$F2	;F2
-	dc.b	$E8	;E8
-	dc.b	$D8	;D8
-	dc.b	$C0	;C0
-	dc.b	$88	;88
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$B7	;B7
-	dc.b	$EB	;EB
-	dc.b	$1F	;1F
-	dc.b	$4F	;4F
-	dc.b	$5F	;5F
-	dc.b	$5F	;5F
-	dc.b	$5E	;5E
-	dc.b	$5D	;5D
-	dc.b	$5E	;5E
-	dc.b	$5F	;5F
-	dc.b	$5F	;5F
-	dc.b	$60	;60
-	dc.b	$5E	;5E
-	dc.b	$5D	;5D
-	dc.b	$5C	;5C
-	dc.b	$5B	;5B
-	dc.b	$5B	;5B
-	dc.b	$5C	;5C
-	dc.b	$50	;50
-	dc.b	$3C	;3C
-	dc.b	$30	;30
-	dc.b	$20	;20
-	dc.b	$0A	;0A
-	dc.b	$F4	;F4
-	dc.b	$D4	;D4
-	dc.b	$A0	;A0
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$97	;97
-	dc.b	$BD	;BD
-	dc.b	$D7	;D7
-	dc.b	$EF	;EF
-	dc.b	$07	;07
-	dc.b	$13	;13
-	dc.b	$17	;17
-	dc.b	$1B	;1B
-	dc.b	$2B	;2B
-	dc.b	$3F	;3F
-	dc.b	$4F	;4F
-	dc.b	$5D	;5D
-	dc.b	$5E	;5E
-	dc.b	$5D	;5D
-	dc.b	$5D	;5D
-	dc.b	$59	;59
-	dc.b	$4A	;4A
-	dc.b	$47	;47
-	dc.b	$4B	;4B
-	dc.b	$44	;44
-	dc.b	$34	;34
-	dc.b	$22	;22
-	dc.b	$0C	;0C
-	dc.b	$F8	;F8
-	dc.b	$E0	;E0
-	dc.b	$D2	;D2
-	dc.b	$D7	;D7
-	dc.b	$E1	;E1
-	dc.b	$EF	;EF
-	dc.b	$0F	;0F
-	dc.b	$2F	;2F
-	dc.b	$47	;47
-	dc.b	$4F	;4F
-	dc.b	$5F	;5F
-	dc.b	$60	;60
-	dc.b	$5E	;5E
-	dc.b	$5E	;5E
-	dc.b	$5E	;5E
-	dc.b	$5F	;5F
-	dc.b	$60	;60
-	dc.b	$60	;60
-	dc.b	$5D	;5D
-	dc.b	$58	;58
-	dc.b	$50	;50
-	dc.b	$10	;10
-	dc.b	$EC	;EC
-	dc.b	$FF	;FF
-	dc.b	$18	;18
-	dc.b	$0C	;0C
-	dc.b	$00	;00
-	dc.b	$F0	;F0
-	dc.b	$ED	;ED
-	dc.b	$FF	;FF
-	dc.b	$2B	;2B
-	dc.b	$38	;38
-	dc.b	$34	;34
-	dc.b	$37	;37
-	dc.b	$30	;30
-	dc.b	$18	;18
-	dc.b	$F4	;F4
-	dc.b	$D0	;D0
-	dc.b	$90	;90
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$8B	;8B
-	dc.b	$B7	;B7
-	dc.b	$DF	;DF
-	dc.b	$FB	;FB
-	dc.b	$15	;15
-	dc.b	$27	;27
-	dc.b	$37	;37
-	dc.b	$57	;57
-	dc.b	$5D	;5D
-	dc.b	$5C	;5C
-	dc.b	$58	;58
-	dc.b	$38	;38
-	dc.b	$08	;08
-	dc.b	$E8	;E8
-	dc.b	$C8	;C8
-	dc.b	$B0	;B0
-	dc.b	$90	;90
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$9B	;9B
-	dc.b	$AE	;AE
-	dc.b	$C7	;C7
-	dc.b	$DF	;DF
-	dc.b	$FF	;FF
-	dc.b	$1F	;1F
-	dc.b	$3F	;3F
-	dc.b	$56	;56
-	dc.b	$58	;58
-	dc.b	$40	;40
-	dc.b	$20	;20
-	dc.b	$0C	;0C
-	dc.b	$08	;08
-	dc.b	$03	;03
-	dc.b	$04	;04
-	dc.b	$09	;09
-	dc.b	$15	;15
-	dc.b	$2F	;2F
-	dc.b	$4F	;4F
-	dc.b	$5E	;5E
-	dc.b	$5F	;5F
-	dc.b	$5F	;5F
-	dc.b	$60	;60
-	dc.b	$5F	;5F
-	dc.b	$5E	;5E
-	dc.b	$5E	;5E
-	dc.b	$5E	;5E
-	dc.b	$5C	;5C
-	dc.b	$5B	;5B
-	dc.b	$5A	;5A
-	dc.b	$30	;30
-	dc.b	$E8	;E8
-	dc.b	$CC	;CC
-	dc.b	$C1	;C1
-	dc.b	$B2	;B2
-	dc.b	$AF	;AF
-	dc.b	$C7	;C7
-	dc.b	$D7	;D7
-	dc.b	$EB	;EB
-	dc.b	$FB	;FB
-	dc.b	$FA	;FA
-	dc.b	$FF	;FF
-	dc.b	$07	;07
-	dc.b	$0D	;0D
-	dc.b	$0E	;0E
-	dc.b	$06	;06
-	dc.b	$F4	;F4
-	dc.b	$D8	;D8
-	dc.b	$D4	;D4
-	dc.b	$DD	;DD
-	dc.b	$E5	;E5
-	dc.b	$EF	;EF
-	dc.b	$FF	;FF
-	dc.b	$1F	;1F
-	dc.b	$3F	;3F
-	dc.b	$57	;57
-	dc.b	$5F	;5F
-	dc.b	$5F	;5F
-	dc.b	$60	;60
-	dc.b	$60	;60
-	dc.b	$5D	;5D
-	dc.b	$5B	;5B
-	dc.b	$5A	;5A
-	dc.b	$54	;54
-	dc.b	$28	;28
-	dc.b	$04	;04
-	dc.b	$F8	;F8
-	dc.b	$F0	;F0
-	dc.b	$EF	;EF
-	dc.b	$F4	;F4
-	dc.b	$F1	;F1
-	dc.b	$F6	;F6
-	dc.b	$FC	;FC
-	dc.b	$FE	;FE
-	dc.b	$FF	;FF
-	dc.b	$FD	;FD
-	dc.b	$F8	;F8
-	dc.b	$E8	;E8
-	dc.b	$CC	;CC
-	dc.b	$BA	;BA
-	dc.b	$B0	;B0
-	dc.b	$94	;94
-	dc.b	$82	;82
-	dc.b	$8A	;8A
-	dc.b	$8E	;8E
-	dc.b	$95	;95
-	dc.b	$AF	;AF
-	dc.b	$D3	;D3
-	dc.b	$DF	;DF
-	dc.b	$EF	;EF
-	dc.b	$03	;03
-	dc.b	$03	;03
-	dc.b	$03	;03
-	dc.b	$0A	;0A
-	dc.b	$0B	;0B
-	dc.b	$13	;13
-	dc.b	$25	;25
-	dc.b	$3D	;3D
-	dc.b	$56	;56
-	dc.b	$5D	;5D
-	dc.b	$5E	;5E
-	dc.b	$5A	;5A
-	dc.b	$40	;40
-	dc.b	$22	;22
-	dc.b	$14	;14
-	dc.b	$1F	;1F
-	dc.b	$35	;35
-	dc.b	$3D	;3D
-	dc.b	$40	;40
-	dc.b	$3A	;3A
-	dc.b	$20	;20
-	dc.b	$00	;00
-	dc.b	$C0	;C0
-	dc.b	$A4	;A4
-	dc.b	$A7	;A7
-	dc.b	$BD	;BD
-	dc.b	$CB	;CB
-	dc.b	$D7	;D7
-	dc.b	$C4	;C4
-	dc.b	$90	;90
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$83	;83
-	dc.b	$9B	;9B
-	dc.b	$A0	;A0
-	dc.b	$98	;98
-	dc.b	$8E	;8E
-	dc.b	$8E	;8E
-	dc.b	$8F	;8F
-	dc.b	$95	;95
-	dc.b	$9F	;9F
-	dc.b	$AD	;AD
-	dc.b	$CB	;CB
-	dc.b	$F7	;F7
-	dc.b	$1B	;1B
-	dc.b	$20	;20
-	dc.b	$12	;12
-	dc.b	$04	;04
-	dc.b	$FC	;FC
-	dc.b	$0F	;0F
-	dc.b	$37	;37
-	dc.b	$4F	;4F
-	dc.b	$5C	;5C
-	dc.b	$58	;58
-	dc.b	$40	;40
-	dc.b	$22	;22
-	dc.b	$1F	;1F
-	dc.b	$2D	;2D
-	dc.b	$3B	;3B
-	dc.b	$4F	;4F
-	dc.b	$5F	;5F
-	dc.b	$5E	;5E
-	dc.b	$5E	;5E
-	dc.b	$5F	;5F
-	dc.b	$60	;60
-	dc.b	$60	;60
-	dc.b	$5D	;5D
-	dc.b	$5E	;5E
-	dc.b	$5E	;5E
-	dc.b	$5F	;5F
-	dc.b	$60	;60
-	dc.b	$60	;60
-	dc.b	$5B	;5B
-	dc.b	$57	;57
-	dc.b	$40	;40
-	dc.b	$D0	;D0
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$8B	;8B
-	dc.b	$A7	;A7
-	dc.b	$BF	;BF
-	dc.b	$CD	;CD
-	dc.b	$D3	;D3
-	dc.b	$D4	;D4
-	dc.b	$DF	;DF
-	dc.b	$FF	;FF
-	dc.b	$0F	;0F
-	dc.b	$08	;08
-	dc.b	$F8	;F8
-	dc.b	$D8	;D8
-	dc.b	$A8	;A8
-	dc.b	$8F	;8F
-	dc.b	$9F	;9F
-	dc.b	$BF	;BF
-	dc.b	$EF	;EF
-	dc.b	$2F	;2F
-	dc.b	$57	;57
-	dc.b	$5F	;5F
-	dc.b	$60	;60
-	dc.b	$60	;60
-	dc.b	$5E	;5E
-	dc.b	$5D	;5D
-	dc.b	$5E	;5E
-	dc.b	$5D	;5D
-	dc.b	$5D	;5D
-	dc.b	$5B	;5B
-	dc.b	$50	;50
-	dc.b	$00	;00
-	dc.b	$90	;90
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$8F	;8F
-	dc.b	$AF	;AF
-	dc.b	$CB	;CB
-	dc.b	$D8	;D8
-	dc.b	$D0	;D0
-	dc.b	$C1	;C1
-	dc.b	$B8	;B8
-	dc.b	$C5	;C5
-	dc.b	$CA	;CA
-	dc.b	$CA	;CA
-	dc.b	$D3	;D3
-	dc.b	$E3	;E3
-	dc.b	$E0	;E0
-	dc.b	$D9	;D9
-	dc.b	$EF	;EF
-	dc.b	$2F	;2F
-	dc.b	$5B	;5B
-	dc.b	$5F	;5F
-	dc.b	$5F	;5F
-	dc.b	$5F	;5F
-	dc.b	$60	;60
-	dc.b	$60	;60
-	dc.b	$60	;60
-	dc.b	$5D	;5D
-	dc.b	$5B	;5B
-	dc.b	$58	;58
-	dc.b	$50	;50
-	dc.b	$20	;20
-	dc.b	$00	;00
-	dc.b	$E8	;E8
-	dc.b	$C0	;C0
-	dc.b	$AA	;AA
-	dc.b	$B1	;B1
-	dc.b	$AE	;AE
-	dc.b	$AF	;AF
-	dc.b	$C7	;C7
-	dc.b	$DD	;DD
-	dc.b	$EE	;EE
-	dc.b	$E0	;E0
-	dc.b	$C0	;C0
-	dc.b	$A0	;A0
-	dc.b	$8E	;8E
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$9F	;9F
-	dc.b	$CF	;CF
-	dc.b	$D9	;D9
-	dc.b	$DD	;DD
-	dc.b	$0F	;0F
-	dc.b	$4F	;4F
-	dc.b	$55	;55
-	dc.b	$5F	;5F
-	dc.b	$5E	;5E
-	dc.b	$5E	;5E
-	dc.b	$5F	;5F
-	dc.b	$60	;60
-	dc.b	$60	;60
-	dc.b	$5D	;5D
-	dc.b	$58	;58
-	dc.b	$50	;50
-	dc.b	$34	;34
-	dc.b	$34	;34
-	dc.b	$18	;18
-	dc.b	$EA	;EA
-	dc.b	$FF	;FF
-	dc.b	$24	;24
-	dc.b	$E4	;E4
-	dc.b	$B4	;B4
-	dc.b	$DB	;DB
-	dc.b	$FF	;FF
-	dc.b	$D8	;D8
-	dc.b	$B3	;B3
-	dc.b	$BF	;BF
-	dc.b	$C0	;C0
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$9F	;9F
-	dc.b	$BB	;BB
-	dc.b	$CB	;CB
-	dc.b	$F7	;F7
-	dc.b	$1B	;1B
-	dc.b	$2F	;2F
-	dc.b	$47	;47
-	dc.b	$5D	;5D
-	dc.b	$5E	;5E
-	dc.b	$5F	;5F
-	dc.b	$5F	;5F
-	dc.b	$5D	;5D
-	dc.b	$5E	;5E
-	dc.b	$5C	;5C
-	dc.b	$52	;52
-	dc.b	$38	;38
-	dc.b	$33	;33
-	dc.b	$4F	;4F
-	dc.b	$54	;54
-	dc.b	$48	;48
-	dc.b	$42	;42
-	dc.b	$4B	;4B
-	dc.b	$4C	;4C
-	dc.b	$28	;28
-	dc.b	$00	;00
-	dc.b	$EE	;EE
-	dc.b	$E0	;E0
-	dc.b	$A0	;A0
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$93	;93
-	dc.b	$B7	;B7
-	dc.b	$DB	;DB
-	dc.b	$EB	;EB
-	dc.b	$F3	;F3
-	dc.b	$0F	;0F
-	dc.b	$25	;25
-	dc.b	$2F	;2F
-	dc.b	$3F	;3F
-	dc.b	$5E	;5E
-	dc.b	$5E	;5E
-	dc.b	$5E	;5E
-	dc.b	$5F	;5F
-	dc.b	$60	;60
-	dc.b	$60	;60
-	dc.b	$5D	;5D
-	dc.b	$5D	;5D
-	dc.b	$5E	;5E
-	dc.b	$5F	;5F
-	dc.b	$60	;60
-	dc.b	$60	;60
-	dc.b	$5D	;5D
-	dc.b	$5D	;5D
-	dc.b	$5E	;5E
-	dc.b	$5F	;5F
-	dc.b	$5F	;5F
-	dc.b	$5F	;5F
-	dc.b	$5A	;5A
-	dc.b	$54	;54
-	dc.b	$00	;00
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$87	;87
-	dc.b	$AF	;AF
-	dc.b	$DB	;DB
-	dc.b	$E8	;E8
-	dc.b	$E0	;E0
-	dc.b	$C8	;C8
-	dc.b	$BD	;BD
-	dc.b	$DF	;DF
-	dc.b	$37	;37
-	dc.b	$5B	;5B
-	dc.b	$5E	;5E
-	dc.b	$5E	;5E
-	dc.b	$5F	;5F
-	dc.b	$60	;60
-	dc.b	$60	;60
-	dc.b	$5E	;5E
-	dc.b	$5D	;5D
-	dc.b	$5D	;5D
-	dc.b	$5C	;5C
-	dc.b	$5B	;5B
-	dc.b	$5A	;5A
-	dc.b	$40	;40
-	dc.b	$D0	;D0
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$87	;87
-	dc.b	$8D	;8D
-	dc.b	$95	;95
-	dc.b	$9F	;9F
-	dc.b	$AB	;AB
-	dc.b	$BE	;BE
-	dc.b	$C7	;C7
-	dc.b	$C4	;C4
-	dc.b	$C6	;C6
-	dc.b	$CB	;CB
-	dc.b	$C5	;C5
-	dc.b	$B8	;B8
-	dc.b	$A2	;A2
-	dc.b	$99	;99
-	dc.b	$B7	;B7
-	dc.b	$FF	;FF
-	dc.b	$4F	;4F
-	dc.b	$5E	;5E
-	dc.b	$5E	;5E
-	dc.b	$5F	;5F
-	dc.b	$5F	;5F
-	dc.b	$60	;60
-	dc.b	$60	;60
-	dc.b	$5D	;5D
-	dc.b	$5D	;5D
-	dc.b	$5B	;5B
-	dc.b	$59	;59
-	dc.b	$50	;50
-	dc.b	$00	;00
-	dc.b	$B4	;B4
-	dc.b	$A4	;A4
-	dc.b	$A6	;A6
-	dc.b	$AB	;AB
-	dc.b	$CF	;CF
-	dc.b	$0F	;0F
-	dc.b	$2F	;2F
-	dc.b	$3D	;3D
-	dc.b	$3A	;3A
-	dc.b	$24	;24
-	dc.b	$F0	;F0
-	dc.b	$D0	;D0
-	dc.b	$C8	;C8
-	dc.b	$C0	;C0
-	dc.b	$B2	;B2
-	dc.b	$88	;88
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$9F	;9F
-	dc.b	$DF	;DF
-	dc.b	$1F	;1F
-	dc.b	$55	;55
-	dc.b	$5E	;5E
-	dc.b	$5D	;5D
-	dc.b	$5E	;5E
-	dc.b	$5F	;5F
-	dc.b	$5F	;5F
-	dc.b	$60	;60
-	dc.b	$5D	;5D
-	dc.b	$5D	;5D
-	dc.b	$5D	;5D
-	dc.b	$5B	;5B
-	dc.b	$5B	;5B
-	dc.b	$54	;54
-	dc.b	$40	;40
-	dc.b	$4F	;4F
-	dc.b	$58	;58
-	dc.b	$48	;48
-	dc.b	$47	;47
-	dc.b	$59	;59
-	dc.b	$50	;50
-	dc.b	$30	;30
-	dc.b	$18	;18
-	dc.b	$F0	;F0
-	dc.b	$A0	;A0
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$87	;87
-	dc.b	$B7	;B7
-	dc.b	$F7	;F7
-	dc.b	$1F	;1F
-	dc.b	$35	;35
-	dc.b	$3D	;3D
-	dc.b	$41	;41
-	dc.b	$38	;38
-	dc.b	$35	;35
-	dc.b	$3F	;3F
-	dc.b	$53	;53
-	dc.b	$5B	;5B
-	dc.b	$5E	;5E
-	dc.b	$5D	;5D
-	dc.b	$50	;50
-	dc.b	$38	;38
-	dc.b	$24	;24
-	dc.b	$18	;18
-	dc.b	$0A	;0A
-	dc.b	$00	;00
-	dc.b	$F5	;F5
-	dc.b	$EC	;EC
-	dc.b	$D0	;D0
-	dc.b	$A8	;A8
-	dc.b	$84	;84
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$8B	;8B
-	dc.b	$9F	;9F
-	dc.b	$B9	;B9
-	dc.b	$CB	;CB
-	dc.b	$EF	;EF
-	dc.b	$0D	;0D
-	dc.b	$1F	;1F
-	dc.b	$47	;47
-	dc.b	$5B	;5B
-	dc.b	$5E	;5E
-	dc.b	$5F	;5F
-	dc.b	$60	;60
-	dc.b	$5F	;5F
-	dc.b	$5E	;5E
-	dc.b	$5E	;5E
-	dc.b	$5E	;5E
-	dc.b	$5F	;5F
-	dc.b	$60	;60
-	dc.b	$60	;60
-	dc.b	$5D	;5D
-	dc.b	$5D	;5D
-	dc.b	$5E	;5E
-	dc.b	$5F	;5F
-	dc.b	$5F	;5F
-	dc.b	$60	;60
-	dc.b	$5C	;5C
-	dc.b	$58	;58
-	dc.b	$50	;50
-	dc.b	$E0	;E0
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$9F	;9F
-	dc.b	$B1	;B1
-	dc.b	$BB	;BB
-	dc.b	$C8	;C8
-	dc.b	$C6	;C6
-	dc.b	$C1	;C1
-	dc.b	$C3	;C3
-	dc.b	$C4	;C4
-	dc.b	$AC	;AC
-	dc.b	$88	;88
-	dc.b	$80	;80
-	dc.b	$81	;81
-	dc.b	$AF	;AF
-	dc.b	$E7	;E7
-	dc.b	$17	;17
-	dc.b	$3B	;3B
-	dc.b	$5B	;5B
-	dc.b	$5F	;5F
-	dc.b	$60	;60
-	dc.b	$5E	;5E
-	dc.b	$5E	;5E
-	dc.b	$5D	;5D
-	dc.b	$5C	;5C
-	dc.b	$5A	;5A
-	dc.b	$58	;58
-	dc.b	$20	;20
-	dc.b	$D0	;D0
-	dc.b	$90	;90
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$95	;95
-	dc.b	$AB	;AB
-	dc.b	$BF	;BF
-	dc.b	$DF	;DF
-	dc.b	$F6	;F6
-	dc.b	$03	;03
-	dc.b	$0B	;0B
-	dc.b	$06	;06
-	dc.b	$F8	;F8
-	dc.b	$EA	;EA
-	dc.b	$E0	;E0
-	dc.b	$DA	;DA
-	dc.b	$CC	;CC
-	dc.b	$C2	;C2
-	dc.b	$CB	;CB
-	dc.b	$DF	;DF
-	dc.b	$17	;17
-	dc.b	$4F	;4F
-	dc.b	$5F	;5F
-	dc.b	$5F	;5F
-	dc.b	$60	;60
-	dc.b	$60	;60
-	dc.b	$60	;60
-	dc.b	$5D	;5D
-	dc.b	$5D	;5D
-	dc.b	$5E	;5E
-	dc.b	$5D	;5D
-	dc.b	$5E	;5E
-	dc.b	$5F	;5F
-	dc.b	$5E	;5E
-	dc.b	$5A	;5A
-	dc.b	$57	;57
-	dc.b	$28	;28
-	dc.b	$C0	;C0
-	dc.b	$A7	;A7
-	dc.b	$C5	;C5
-	dc.b	$C5	;C5
-	dc.b	$CB	;CB
-	dc.b	$E7	;E7
-	dc.b	$D0	;D0
-	dc.b	$A0	;A0
-	dc.b	$8D	;8D
-	dc.b	$9B	;9B
-	dc.b	$A2	;A2
-	dc.b	$84	;84
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$8D	;8D
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$9F	;9F
-	dc.b	$A0	;A0
-	dc.b	$9C	;9C
-	dc.b	$BF	;BF
-	dc.b	$FF	;FF
-	dc.b	$4B	;4B
-	dc.b	$5B	;5B
-	dc.b	$5F	;5F
-	dc.b	$60	;60
-	dc.b	$5D	;5D
-	dc.b	$5D	;5D
-	dc.b	$5E	;5E
-	dc.b	$5F	;5F
-	dc.b	$5F	;5F
-	dc.b	$5C	;5C
-	dc.b	$5C	;5C
-	dc.b	$5A	;5A
-	dc.b	$50	;50
-	dc.b	$2A	;2A
-	dc.b	$04	;04
-	dc.b	$F9	;F9
-	dc.b	$FB	;FB
-	dc.b	$FF	;FF
-	dc.b	$03	;03
-	dc.b	$03	;03
-	dc.b	$00	;00
-	dc.b	$E8	;E8
-	dc.b	$C0	;C0
-	dc.b	$A1	;A1
-	dc.b	$A2	;A2
-	dc.b	$98	;98
-	dc.b	$84	;84
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$97	;97
-	dc.b	$CB	;CB
-	dc.b	$EF	;EF
-	dc.b	$1F	;1F
-	dc.b	$4F	;4F
-	dc.b	$5E	;5E
-	dc.b	$5F	;5F
-	dc.b	$5F	;5F
-	dc.b	$60	;60
-	dc.b	$5D	;5D
-	dc.b	$5B	;5B
-	dc.b	$5B	;5B
-	dc.b	$5C	;5C
-	dc.b	$5E	;5E
-	dc.b	$5E	;5E
-	dc.b	$54	;54
-	dc.b	$40	;40
-	dc.b	$4B	;4B
-	dc.b	$5B	;5B
-	dc.b	$5D	;5D
-	dc.b	$5F	;5F
-	dc.b	$5E	;5E
-	dc.b	$5E	;5E
-	dc.b	$5B	;5B
-	dc.b	$58	;58
-	dc.b	$30	;30
-	dc.b	$F0	;F0
-	dc.b	$B0	;B0
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$8F	;8F
-	dc.b	$BF	;BF
-	dc.b	$CB	;CB
-	dc.b	$CF	;CF
-	dc.b	$DF	;DF
-	dc.b	$EC	;EC
-	dc.b	$E8	;E8
-	dc.b	$D8	;D8
-	dc.b	$C6	;C6
-	dc.b	$BE	;BE
-	dc.b	$BF	;BF
-	dc.b	$CF	;CF
-	dc.b	$E7	;E7
-	dc.b	$FB	;FB
-	dc.b	$00	;00
-	dc.b	$F6	;F6
-	dc.b	$F0	;F0
-	dc.b	$FB	;FB
-	dc.b	$0F	;0F
-	dc.b	$22	;22
-	dc.b	$18	;18
-	dc.b	$00	;00
-	dc.b	$E8	;E8
-	dc.b	$D0	;D0
-	dc.b	$B8	;B8
-	dc.b	$A5	;A5
-	dc.b	$A7	;A7
-	dc.b	$B1	;B1
-	dc.b	$B9	;B9
-	dc.b	$C7	;C7
-	dc.b	$EB	;EB
-	dc.b	$15	;15
-	dc.b	$20	;20
-	dc.b	$21	;21
-	dc.b	$37	;37
-	dc.b	$4F	;4F
-	dc.b	$5B	;5B
-	dc.b	$61	;61
-	dc.b	$5F	;5F
-	dc.b	$5E	;5E
-	dc.b	$5E	;5E
-	dc.b	$5F	;5F
-	dc.b	$60	;60
-	dc.b	$60	;60
-	dc.b	$5E	;5E
-	dc.b	$5D	;5D
-	dc.b	$5E	;5E
-	dc.b	$5F	;5F
-	dc.b	$5F	;5F
-	dc.b	$60	;60
-	dc.b	$5E	;5E
-	dc.b	$5A	;5A
-	dc.b	$57	;57
-	dc.b	$40	;40
-	dc.b	$00	;00
-	dc.b	$EF	;EF
-	dc.b	$E8	;E8
-	dc.b	$C0	;C0
-	dc.b	$90	;90
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$97	;97
-	dc.b	$90	;90
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$9F	;9F
-	dc.b	$94	;94
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$BF	;BF
-	dc.b	$EF	;EF
-	dc.b	$0B	;0B
-	dc.b	$25	;25
-	dc.b	$3F	;3F
-	dc.b	$5B	;5B
-	dc.b	$60	;60
-	dc.b	$5D	;5D
-	dc.b	$5D	;5D
-	dc.b	$5E	;5E
-	dc.b	$5D	;5D
-	dc.b	$5C	;5C
-	dc.b	$5A	;5A
-	dc.b	$30	;30
-	dc.b	$E0	;E0
-	dc.b	$A4	;A4
-	dc.b	$92	;92
-	dc.b	$9F	;9F
-	dc.b	$BB	;BB
-	dc.b	$D7	;D7
-	dc.b	$F1	;F1
-	dc.b	$F0	;F0
-	dc.b	$E0	;E0
-	dc.b	$CE	;CE
-	dc.b	$CF	;CF
-	dc.b	$DB	;DB
-	dc.b	$DA	;DA
-	dc.b	$C2	;C2
-	dc.b	$B6	;B6
-	dc.b	$BC	;BC
-	dc.b	$BD	;BD
-	dc.b	$C1	;C1
-	dc.b	$CF	;CF
-	dc.b	$E7	;E7
-	dc.b	$FF	;FF
-	dc.b	$37	;37
-	dc.b	$5F	;5F
-	dc.b	$5F	;5F
-	dc.b	$5E	;5E
-	dc.b	$5E	;5E
-	dc.b	$5F	;5F
-	dc.b	$60	;60
-	dc.b	$60	;60
-	dc.b	$5E	;5E
-	dc.b	$5D	;5D
-	dc.b	$5D	;5D
-	dc.b	$5E	;5E
-	dc.b	$5F	;5F
-	dc.b	$5E	;5E
-	dc.b	$5C	;5C
-	dc.b	$58	;58
-	dc.b	$40	;40
-	dc.b	$F0	;F0
-	dc.b	$DB	;DB
-	dc.b	$F3	;F3
-	dc.b	$FF	;FF
-	dc.b	$F4	;F4
-	dc.b	$E4	;E4
-	dc.b	$C4	;C4
-	dc.b	$92	;92
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$84	;84
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$83	;83
-	dc.b	$89	;89
-	dc.b	$86	;86
-	dc.b	$80	;80
-	dc.b	$83	;83
-	dc.b	$9F	;9F
-	dc.b	$C7	;C7
-	dc.b	$F7	;F7
-	dc.b	$27	;27
-	dc.b	$46	;46
-	dc.b	$42	;42
-	dc.b	$30	;30
-	dc.b	$2D	;2D
-	dc.b	$3F	;3F
-	dc.b	$59	;59
-	dc.b	$5E	;5E
-	dc.b	$5F	;5F
-	dc.b	$5F	;5F
-	dc.b	$60	;60
-	dc.b	$5D	;5D
-	dc.b	$5C	;5C
-	dc.b	$5B	;5B
-	dc.b	$58	;58
-	dc.b	$4C	;4C
-	dc.b	$47	;47
-	dc.b	$53	;53
-	dc.b	$58	;58
-	dc.b	$40	;40
-	dc.b	$10	;10
-	dc.b	$F0	;F0
-	dc.b	$C0	;C0
-	dc.b	$92	;92
-	dc.b	$86	;86
-	dc.b	$8D	;8D
-	dc.b	$84	;84
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$87	;87
-	dc.b	$9F	;9F
-	dc.b	$BF	;BF
-	dc.b	$DF	;DF
-	dc.b	$FF	;FF
-	dc.b	$1B	;1B
-	dc.b	$31	;31
-	dc.b	$35	;35
-	dc.b	$32	;32
-	dc.b	$3F	;3F
-	dc.b	$4F	;4F
-	dc.b	$55	;55
-	dc.b	$5C	;5C
-	dc.b	$5D	;5D
-	dc.b	$5F	;5F
-	dc.b	$60	;60
-	dc.b	$5E	;5E
-	dc.b	$5D	;5D
-	dc.b	$5E	;5E
-	dc.b	$5F	;5F
-	dc.b	$60	;60
-	dc.b	$60	;60
-	dc.b	$5D	;5D
-	dc.b	$5D	;5D
-	dc.b	$5D	;5D
-	dc.b	$5A	;5A
-	dc.b	$58	;58
-	dc.b	$00	;00
-	dc.b	$90	;90
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$A7	;A7
-	dc.b	$DB	;DB
-	dc.b	$FF	;FF
-	dc.b	$14	;14
-	dc.b	$00	;00
-	dc.b	$C8	;C8
-	dc.b	$98	;98
-	dc.b	$8B	;8B
-	dc.b	$97	;97
-	dc.b	$8C	;8C
-	dc.b	$80	;80
-	dc.b	$8F	;8F
-	dc.b	$BF	;BF
-	dc.b	$EB	;EB
-	dc.b	$17	;17
-	dc.b	$3F	;3F
-	dc.b	$4C	;4C
-	dc.b	$38	;38
-	dc.b	$2B	;2B
-	dc.b	$33	;33
-	dc.b	$34	;34
-	dc.b	$14	;14
-	dc.b	$D4	;D4
-	dc.b	$90	;90
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$9B	;9B
-	dc.b	$BF	;BF
-	dc.b	$EB	;EB
-	dc.b	$0D	;0D
-	dc.b	$2D	;2D
-	dc.b	$2E	;2E
-	dc.b	$2D	;2D
-	dc.b	$3B	;3B
-	dc.b	$55	;55
-	dc.b	$5E	;5E
-	dc.b	$5E	;5E
-	dc.b	$5F	;5F
-	dc.b	$5F	;5F
-	dc.b	$60	;60
-	dc.b	$60	;60
-	dc.b	$5D	;5D
-	dc.b	$5E	;5E
-	dc.b	$5E	;5E
-	dc.b	$5F	;5F
-	dc.b	$60	;60
-	dc.b	$60	;60
-	dc.b	$5D	;5D
-	dc.b	$5D	;5D
-	dc.b	$5E	;5E
-	dc.b	$59	;59
-	dc.b	$50	;50
-	dc.b	$E0	;E0
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$97	;97
-	dc.b	$94	;94
-	dc.b	$82	;82
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$9F	;9F
-	dc.b	$CF	;CF
-	dc.b	$DA	;DA
-	dc.b	$D1	;D1
-	dc.b	$D0	;D0
-	dc.b	$C4	;C4
-	dc.b	$B0	;B0
-	dc.b	$98	;98
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$BB	;BB
-	dc.b	$FF	;FF
-	dc.b	$3F	;3F
-	dc.b	$59	;59
-	dc.b	$5D	;5D
-	dc.b	$5D	;5D
-	dc.b	$5D	;5D
-	dc.b	$5F	;5F
-	dc.b	$5F	;5F
-	dc.b	$60	;60
-	dc.b	$5A	;5A
-	dc.b	$54	;54
-	dc.b	$10	;10
-	dc.b	$C0	;C0
-	dc.b	$88	;88
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$97	;97
-	dc.b	$B7	;B7
-	dc.b	$CD	;CD
-	dc.b	$CE	;CE
-	dc.b	$C8	;C8
-	dc.b	$C9	;C9
-	dc.b	$DD	;DD
-	dc.b	$E8	;E8
-	dc.b	$D0	;D0
-	dc.b	$A8	;A8
-	dc.b	$93	;93
-	dc.b	$97	;97
-	dc.b	$92	;92
-	dc.b	$9F	;9F
-	dc.b	$BF	;BF
-	dc.b	$EF	;EF
-	dc.b	$2F	;2F
-	dc.b	$5B	;5B
-	dc.b	$5F	;5F
-	dc.b	$60	;60
-	dc.b	$60	;60
-	dc.b	$60	;60
-	dc.b	$5D	;5D
-	dc.b	$5D	;5D
-	dc.b	$5F	;5F
-	dc.b	$5F	;5F
-	dc.b	$60	;60
-	dc.b	$5D	;5D
-	dc.b	$58	;58
-	dc.b	$56	;56
-	dc.b	$10	;10
-	dc.b	$A8	;A8
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$86	;86
-	dc.b	$80	;80
-	dc.b	$9F	;9F
-	dc.b	$FB	;FB
-	dc.b	$F0	;F0
-	dc.b	$A0	;A0
-	dc.b	$8B	;8B
-	dc.b	$90	;90
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$8B	;8B
-	dc.b	$CF	;CF
-	dc.b	$27	;27
-	dc.b	$57	;57
-	dc.b	$5E	;5E
-	dc.b	$5F	;5F
-	dc.b	$60	;60
-	dc.b	$5D	;5D
-	dc.b	$5D	;5D
-	dc.b	$5C	;5C
-	dc.b	$5C	;5C
-	dc.b	$5B	;5B
-	dc.b	$5B	;5B
-	dc.b	$50	;50
-	dc.b	$10	;10
-	dc.b	$E4	;E4
-	dc.b	$E3	;E3
-	dc.b	$FF	;FF
-	dc.b	$17	;17
-	dc.b	$2B	;2B
-	dc.b	$3F	;3F
-	dc.b	$42	;42
-	dc.b	$3A	;3A
-	dc.b	$28	;28
-	dc.b	$10	;10
-	dc.b	$EC	;EC
-	dc.b	$B4	;B4
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$9F	;9F
-	dc.b	$DF	;DF
-	dc.b	$2F	;2F
-	dc.b	$53	;53
-	dc.b	$5D	;5D
-	dc.b	$5E	;5E
-	dc.b	$5F	;5F
-	dc.b	$5F	;5F
-	dc.b	$5E	;5E
-	dc.b	$5A	;5A
-	dc.b	$59	;59
-	dc.b	$4A	;4A
-	dc.b	$34	;34
-	dc.b	$3B	;3B
-	dc.b	$57	;57
-	dc.b	$5E	;5E
-	dc.b	$5E	;5E
-	dc.b	$5F	;5F
-	dc.b	$5F	;5F
-	dc.b	$60	;60
-	dc.b	$5E	;5E
-	dc.b	$5C	;5C
-	dc.b	$5A	;5A
-	dc.b	$59	;59
-	dc.b	$40	;40
-	dc.b	$20	;20
-	dc.b	$00	;00
-	dc.b	$EC	;EC
-	dc.b	$E0	;E0
-	dc.b	$D0	;D0
-	dc.b	$D5	;D5
-	dc.b	$DD	;DD
-	dc.b	$DC	;DC
-	dc.b	$D3	;D3
-	dc.b	$CD	;CD
-	dc.b	$CD	;CD
-	dc.b	$C8	;C8
-	dc.b	$C7	;C7
-	dc.b	$CF	;CF
-	dc.b	$D9	;D9
-	dc.b	$D0	;D0
-	dc.b	$CF	;CF
-	dc.b	$E5	;E5
-	dc.b	$E4	;E4
-	dc.b	$D2	;D2
-	dc.b	$CF	;CF
-	dc.b	$E3	;E3
-	dc.b	$FB	;FB
-	dc.b	$0D	;0D
-	dc.b	$1F	;1F
-	dc.b	$36	;36
-	dc.b	$32	;32
-	dc.b	$24	;24
-	dc.b	$1F	;1F
-	dc.b	$1C	;1C
-	dc.b	$0C	;0C
-	dc.b	$F8	;F8
-	dc.b	$EA	;EA
-	dc.b	$E5	;E5
-	dc.b	$D8	;D8
-	dc.b	$C8	;C8
-	dc.b	$C3	;C3
-	dc.b	$C4	;C4
-	dc.b	$B6	;B6
-	dc.b	$A9	;A9
-	dc.b	$A7	;A7
-	dc.b	$AF	;AF
-	dc.b	$BF	;BF
-	dc.b	$CA	;CA
-	dc.b	$C0	;C0
-	dc.b	$B0	;B0
-	dc.b	$A0	;A0
-	dc.b	$90	;90
-	dc.b	$88	;88
-	dc.b	$80	;80
-	dc.b	$87	;87
-	dc.b	$9A	;9A
-	dc.b	$9F	;9F
-	dc.b	$A3	;A3
-	dc.b	$B7	;B7
-	dc.b	$C9	;C9
-	dc.b	$CD	;CD
-	dc.b	$D5	;D5
-	dc.b	$E5	;E5
-	dc.b	$FF	;FF
-	dc.b	$1B	;1B
-	dc.b	$3F	;3F
-	dc.b	$56	;56
-	dc.b	$5E	;5E
-	dc.b	$5E	;5E
-	dc.b	$5F	;5F
-	dc.b	$60	;60
-	dc.b	$60	;60
-	dc.b	$5E	;5E
-	dc.b	$5D	;5D
-	dc.b	$5E	;5E
-	dc.b	$5F	;5F
-	dc.b	$60	;60
-	dc.b	$60	;60
-	dc.b	$5E	;5E
-	dc.b	$5D	;5D
-	dc.b	$5D	;5D
-	dc.b	$58	;58
-	dc.b	$50	;50
-	dc.b	$D0	;D0
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$BF	;BF
-	dc.b	$1F	;1F
-	dc.b	$42	;42
-	dc.b	$39	;39
-	dc.b	$37	;37
-	dc.b	$38	;38
-	dc.b	$14	;14
-	dc.b	$E0	;E0
-	dc.b	$A8	;A8
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$D7	;D7
-	dc.b	$1F	;1F
-	dc.b	$55	;55
-	dc.b	$5E	;5E
-	dc.b	$5D	;5D
-	dc.b	$5D	;5D
-	dc.b	$5F	;5F
-	dc.b	$5F	;5F
-	dc.b	$5F	;5F
-	dc.b	$5B	;5B
-	dc.b	$50	;50
-	dc.b	$D0	;D0
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$97	;97
-	dc.b	$CF	;CF
-	dc.b	$DF	;DF
-	dc.b	$F7	;F7
-	dc.b	$0F	;0F
-	dc.b	$14	;14
-	dc.b	$F4	;F4
-	dc.b	$C8	;C8
-	dc.b	$BA	;BA
-	dc.b	$BD	;BD
-	dc.b	$B2	;B2
-	dc.b	$CB	;CB
-	dc.b	$FF	;FF
-	dc.b	$4B	;4B
-	dc.b	$5F	;5F
-	dc.b	$5E	;5E
-	dc.b	$5E	;5E
-	dc.b	$5F	;5F
-	dc.b	$60	;60
-	dc.b	$60	;60
-	dc.b	$5E	;5E
-	dc.b	$5D	;5D
-	dc.b	$5E	;5E
-	dc.b	$5F	;5F
-	dc.b	$5F	;5F
-	dc.b	$60	;60
-	dc.b	$5A	;5A
-	dc.b	$55	;55
-	dc.b	$00	;00
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$87	;87
-	dc.b	$AB	;AB
-	dc.b	$AE	;AE
-	dc.b	$BF	;BF
-	dc.b	$D1	;D1
-	dc.b	$A8	;A8
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$87	;87
-	dc.b	$FF	;FF
-	dc.b	$4B	;4B
-	dc.b	$5B	;5B
-	dc.b	$5D	;5D
-	dc.b	$5F	;5F
-	dc.b	$5F	;5F
-	dc.b	$5F	;5F
-	dc.b	$5E	;5E
-	dc.b	$5D	;5D
-	dc.b	$59	;59
-	dc.b	$59	;59
-	dc.b	$30	;30
-	dc.b	$04	;04
-	dc.b	$F0	;F0
-	dc.b	$D8	;D8
-	dc.b	$C1	;C1
-	dc.b	$C3	;C3
-	dc.b	$D7	;D7
-	dc.b	$FF	;FF
-	dc.b	$2A	;2A
-	dc.b	$31	;31
-	dc.b	$20	;20
-	dc.b	$00	;00
-	dc.b	$E0	;E0
-	dc.b	$C4	;C4
-	dc.b	$A0	;A0
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$85	;85
-	dc.b	$AF	;AF
-	dc.b	$17	;17
-	dc.b	$4F	;4F
-	dc.b	$5C	;5C
-	dc.b	$5D	;5D
-	dc.b	$5F	;5F
-	dc.b	$5D	;5D
-	dc.b	$5C	;5C
-	dc.b	$5C	;5C
-	dc.b	$5C	;5C
-	dc.b	$5A	;5A
-	dc.b	$4A	;4A
-	dc.b	$39	;39
-	dc.b	$4F	;4F
-	dc.b	$5E	;5E
-	dc.b	$5E	;5E
-	dc.b	$5E	;5E
-	dc.b	$5F	;5F
-	dc.b	$60	;60
-	dc.b	$60	;60
-	dc.b	$5D	;5D
-	dc.b	$5D	;5D
-	dc.b	$5E	;5E
-	dc.b	$5D	;5D
-	dc.b	$5C	;5C
-	dc.b	$5C	;5C
-	dc.b	$5A	;5A
-	dc.b	$48	;48
-	dc.b	$E8	;E8
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$9B	;9B
-	dc.b	$98	;98
-	dc.b	$97	;97
-	dc.b	$CF	;CF
-	dc.b	$2F	;2F
-	dc.b	$38	;38
-	dc.b	$14	;14
-	dc.b	$13	;13
-	dc.b	$2A	;2A
-	dc.b	$20	;20
-	dc.b	$10	;10
-	dc.b	$0D	;0D
-	dc.b	$00	;00
-	dc.b	$C0	;C0
-	dc.b	$A7	;A7
-	dc.b	$CF	;CF
-	dc.b	$0F	;0F
-	dc.b	$2F	;2F
-	dc.b	$37	;37
-	dc.b	$3F	;3F
-	dc.b	$46	;46
-	dc.b	$3A	;3A
-	dc.b	$31	;31
-	dc.b	$3F	;3F
-	dc.b	$30	;30
-	dc.b	$E8	;E8
-	dc.b	$A0	;A0
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$81	;81
-	dc.b	$9F	;9F
-	dc.b	$A5	;A5
-	dc.b	$AD	;AD
-	dc.b	$BF	;BF
-	dc.b	$CF	;CF
-	dc.b	$DF	;DF
-	dc.b	$E6	;E6
-	dc.b	$E3	;E3
-	dc.b	$E5	;E5
-	dc.b	$E7	;E7
-	dc.b	$FB	;FB
-	dc.b	$1F	;1F
-	dc.b	$4F	;4F
-	dc.b	$5F	;5F
-	dc.b	$61	;61
-	dc.b	$60	;60
-	dc.b	$5E	;5E
-	dc.b	$5E	;5E
-	dc.b	$5E	;5E
-	dc.b	$5F	;5F
-	dc.b	$60	;60
-	dc.b	$60	;60
-	dc.b	$5D	;5D
-	dc.b	$5D	;5D
-	dc.b	$5E	;5E
-	dc.b	$5F	;5F
-	dc.b	$5F	;5F
-	dc.b	$60	;60
-	dc.b	$5E	;5E
-	dc.b	$5C	;5C
-	dc.b	$58	;58
-	dc.b	$56	;56
-	dc.b	$20	;20
-	dc.b	$B0	;B0
-	dc.b	$A5	;A5
-	dc.b	$B5	;B5
-	dc.b	$AE	;AE
-	dc.b	$AE	;AE
-	dc.b	$B0	;B0
-	dc.b	$9A	;9A
-	dc.b	$A7	;A7
-	dc.b	$CF	;CF
-	dc.b	$D8	;D8
-	dc.b	$C0	;C0
-	dc.b	$CB	;CB
-	dc.b	$E7	;E7
-	dc.b	$E8	;E8
-	dc.b	$E0	;E0
-	dc.b	$D4	;D4
-	dc.b	$C0	;C0
-	dc.b	$98	;98
-	dc.b	$8E	;8E
-	dc.b	$AF	;AF
-	dc.b	$EF	;EF
-	dc.b	$1F	;1F
-	dc.b	$3F	;3F
-	dc.b	$57	;57
-	dc.b	$5E	;5E
-	dc.b	$5A	;5A
-	dc.b	$59	;59
-	dc.b	$5B	;5B
-	dc.b	$5B	;5B
-	dc.b	$48	;48
-	dc.b	$24	;24
-	dc.b	$F4	;F4
-	dc.b	$D0	;D0
-	dc.b	$B8	;B8
-	dc.b	$98	;98
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$81	;81
-	dc.b	$9B	;9B
-	dc.b	$AF	;AF
-	dc.b	$C5	;C5
-	dc.b	$C9	;C9
-	dc.b	$CF	;CF
-	dc.b	$D1	;D1
-	dc.b	$CD	;CD
-	dc.b	$D1	;D1
-	dc.b	$D7	;D7
-	dc.b	$D5	;D5
-	dc.b	$E3	;E3
-	dc.b	$1F	;1F
-	dc.b	$57	;57
-	dc.b	$5F	;5F
-	dc.b	$60	;60
-	dc.b	$60	;60
-	dc.b	$60	;60
-	dc.b	$5D	;5D
-	dc.b	$5E	;5E
-	dc.b	$5F	;5F
-	dc.b	$5F	;5F
-	dc.b	$60	;60
-	dc.b	$60	;60
-	dc.b	$5D	;5D
-	dc.b	$5D	;5D
-	dc.b	$5F	;5F
-	dc.b	$5C	;5C
-	dc.b	$5A	;5A
-	dc.b	$5A	;5A
-	dc.b	$40	;40
-	dc.b	$F0	;F0
-	dc.b	$DD	;DD
-	dc.b	$EF	;EF
-	dc.b	$F2	;F2
-	dc.b	$E4	;E4
-	dc.b	$CC	;CC
-	dc.b	$A0	;A0
-	dc.b	$9B	;9B
-	dc.b	$A0	;A0
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$9F	;9F
-	dc.b	$DF	;DF
-	dc.b	$0B	;0B
-	dc.b	$37	;37
-	dc.b	$53	;53
-	dc.b	$56	;56
-	dc.b	$4C	;4C
-	dc.b	$49	;49
-	dc.b	$53	;53
-	dc.b	$4E	;4E
-	dc.b	$48	;48
-	dc.b	$49	;49
-	dc.b	$4E	;4E
-	dc.b	$40	;40
-	dc.b	$30	;30
-	dc.b	$20	;20
-	dc.b	$0A	;0A
-	dc.b	$F8	;F8
-	dc.b	$F9	;F9
-	dc.b	$FF	;FF
-	dc.b	$02	;02
-	dc.b	$F8	;F8
-	dc.b	$E0	;E0
-	dc.b	$B4	;B4
-	dc.b	$8A	;8A
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$A7	;A7
-	dc.b	$CF	;CF
-	dc.b	$EB	;EB
-	dc.b	$0F	;0F
-	dc.b	$1D	;1D
-	dc.b	$1F	;1F
-	dc.b	$35	;35
-	dc.b	$53	;53
-	dc.b	$60	;60
-	dc.b	$5E	;5E
-	dc.b	$5E	;5E
-	dc.b	$5E	;5E
-	dc.b	$5F	;5F
-	dc.b	$5F	;5F
-	dc.b	$60	;60
-	dc.b	$5F	;5F
-	dc.b	$5E	;5E
-	dc.b	$5E	;5E
-	dc.b	$5F	;5F
-	dc.b	$5F	;5F
-	dc.b	$60	;60
-	dc.b	$5F	;5F
-	dc.b	$5E	;5E
-	dc.b	$5E	;5E
-	dc.b	$5A	;5A
-	dc.b	$58	;58
-	dc.b	$40	;40
-	dc.b	$E0	;E0
-	dc.b	$98	;98
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$A7	;A7
-	dc.b	$DF	;DF
-	dc.b	$0B	;0B
-	dc.b	$F0	;F0
-	dc.b	$A8	;A8
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$93	;93
-	dc.b	$B7	;B7
-	dc.b	$E7	;E7
-	dc.b	$1B	;1B
-	dc.b	$47	;47
-	dc.b	$5D	;5D
-	dc.b	$5E	;5E
-	dc.b	$5E	;5E
-	dc.b	$5F	;5F
-	dc.b	$60	;60
-	dc.b	$5E	;5E
-	dc.b	$5A	;5A
-	dc.b	$50	;50
-	dc.b	$10	;10
-	dc.b	$A8	;A8
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$81	;81
-	dc.b	$8F	;8F
-	dc.b	$96	;96
-	dc.b	$9A	;9A
-	dc.b	$99	;99
-	dc.b	$9F	;9F
-	dc.b	$A9	;A9
-	dc.b	$A8	;A8
-	dc.b	$AA	;AA
-	dc.b	$AF	;AF
-	dc.b	$CF	;CF
-	dc.b	$FF	;FF
-	dc.b	$3F	;3F
-	dc.b	$5E	;5E
-	dc.b	$5F	;5F
-	dc.b	$60	;60
-	dc.b	$60	;60
-	dc.b	$5E	;5E
-	dc.b	$5D	;5D
-	dc.b	$5E	;5E
-	dc.b	$5F	;5F
-	dc.b	$5F	;5F
-	dc.b	$60	;60
-	dc.b	$5E	;5E
-	dc.b	$5E	;5E
-	dc.b	$5E	;5E
-	dc.b	$5F	;5F
-	dc.b	$5F	;5F
-	dc.b	$5E	;5E
-	dc.b	$5A	;5A
-	dc.b	$58	;58
-	dc.b	$28	;28
-	dc.b	$EC	;EC
-	dc.b	$E0	;E0
-	dc.b	$D6	;D6
-	dc.b	$C8	;C8
-	dc.b	$C6	;C6
-	dc.b	$B0	;B0
-	dc.b	$88	;88
-	dc.b	$87	;87
-	dc.b	$BB	;BB
-	dc.b	$C2	;C2
-	dc.b	$A4	;A4
-	dc.b	$88	;88
-	dc.b	$8F	;8F
-	dc.b	$A5	;A5
-	dc.b	$A1	;A1
-	dc.b	$98	;98
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$81	;81
-	dc.b	$AF	;AF
-	dc.b	$EF	;EF
-	dc.b	$1F	;1F
-	dc.b	$3F	;3F
-	dc.b	$4F	;4F
-	dc.b	$56	;56
-	dc.b	$5E	;5E
-	dc.b	$5F	;5F
-	dc.b	$5E	;5E
-	dc.b	$58	;58
-	dc.b	$40	;40
-	dc.b	$24	;24
-	dc.b	$10	;10
-	dc.b	$F4	;F4
-	dc.b	$CC	;CC
-	dc.b	$A8	;A8
-	dc.b	$88	;88
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$A7	;A7
-	dc.b	$D7	;D7
-	dc.b	$FB	;FB
-	dc.b	$27	;27
-	dc.b	$57	;57
-	dc.b	$5F	;5F
-	dc.b	$5E	;5E
-	dc.b	$5E	;5E
-	dc.b	$5E	;5E
-	dc.b	$5F	;5F
-	dc.b	$60	;60
-	dc.b	$60	;60
-	dc.b	$5E	;5E
-	dc.b	$5D	;5D
-	dc.b	$5E	;5E
-	dc.b	$5F	;5F
-	dc.b	$5F	;5F
-	dc.b	$60	;60
-	dc.b	$5E	;5E
-	dc.b	$5E	;5E
-	dc.b	$5B	;5B
-	dc.b	$5B	;5B
-	dc.b	$5A	;5A
-	dc.b	$58	;58
-	dc.b	$20	;20
-	dc.b	$D4	;D4
-	dc.b	$A6	;A6
-	dc.b	$A6	;A6
-	dc.b	$90	;90
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$87	;87
-	dc.b	$86	;86
-	dc.b	$87	;87
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$9F	;9F
-	dc.b	$DB	;DB
-	dc.b	$F7	;F7
-	dc.b	$1B	;1B
-	dc.b	$4B	;4B
-	dc.b	$5B	;5B
-	dc.b	$5F	;5F
-	dc.b	$5E	;5E
-	dc.b	$5E	;5E
-	dc.b	$5F	;5F
-	dc.b	$5E	;5E
-	dc.b	$5E	;5E
-	dc.b	$5E	;5E
-	dc.b	$5A	;5A
-	dc.b	$40	;40
-	dc.b	$2A	;2A
-	dc.b	$1C	;1C
-	dc.b	$08	;08
-	dc.b	$F2	;F2
-	dc.b	$F6	;F6
-	dc.b	$F8	;F8
-	dc.b	$D4	;D4
-	dc.b	$A8	;A8
-	dc.b	$8A	;8A
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$81	;81
-	dc.b	$9F	;9F
-	dc.b	$C7	;C7
-	dc.b	$E7	;E7
-	dc.b	$0F	;0F
-	dc.b	$3F	;3F
-	dc.b	$5D	;5D
-	dc.b	$5D	;5D
-	dc.b	$5E	;5E
-	dc.b	$5F	;5F
-	dc.b	$60	;60
-	dc.b	$60	;60
-	dc.b	$5D	;5D
-	dc.b	$5D	;5D
-	dc.b	$5E	;5E
-	dc.b	$5E	;5E
-	dc.b	$5F	;5F
-	dc.b	$5F	;5F
-	dc.b	$5E	;5E
-	dc.b	$5E	;5E
-	dc.b	$5E	;5E
-	dc.b	$5F	;5F
-	dc.b	$60	;60
-	dc.b	$60	;60
-	dc.b	$5E	;5E
-	dc.b	$5D	;5D
-	dc.b	$5E	;5E
-	dc.b	$5A	;5A
-	dc.b	$58	;58
-	dc.b	$30	;30
-	dc.b	$C4	;C4
-	dc.b	$90	;90
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$AF	;AF
-	dc.b	$E5	;E5
-	dc.b	$EA	;EA
-	dc.b	$FF	;FF
-	dc.b	$37	;37
-	dc.b	$40	;40
-	dc.b	$14	;14
-	dc.b	$F0	;F0
-	dc.b	$C4	;C4
-	dc.b	$A0	;A0
-	dc.b	$91	;91
-	dc.b	$A7	;A7
-	dc.b	$D7	;D7
-	dc.b	$FF	;FF
-	dc.b	$15	;15
-	dc.b	$27	;27
-	dc.b	$47	;47
-	dc.b	$5B	;5B
-	dc.b	$5F	;5F
-	dc.b	$60	;60
-	dc.b	$5C	;5C
-	dc.b	$50	;50
-	dc.b	$24	;24
-	dc.b	$F4	;F4
-	dc.b	$C8	;C8
-	dc.b	$94	;94
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$83	;83
-	dc.b	$9F	;9F
-	dc.b	$BB	;BB
-	dc.b	$D7	;D7
-	dc.b	$F3	;F3
-	dc.b	$1F	;1F
-	dc.b	$53	;53
-	dc.b	$5E	;5E
-	dc.b	$5F	;5F
-	dc.b	$60	;60
-	dc.b	$60	;60
-	dc.b	$5D	;5D
-	dc.b	$5D	;5D
-	dc.b	$5E	;5E
-	dc.b	$5F	;5F
-	dc.b	$60	;60
-	dc.b	$60	;60
-	dc.b	$5D	;5D
-	dc.b	$5D	;5D
-	dc.b	$5E	;5E
-	dc.b	$5F	;5F
-	dc.b	$5F	;5F
-	dc.b	$60	;60
-	dc.b	$5E	;5E
-	dc.b	$5E	;5E
-	dc.b	$5C	;5C
-	dc.b	$5B	;5B
-	dc.b	$5B	;5B
-	dc.b	$5A	;5A
-	dc.b	$20	;20
-	dc.b	$C0	;C0
-	dc.b	$90	;90
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$87	;87
-	dc.b	$BF	;BF
-	dc.b	$DB	;DB
-	dc.b	$EB	;EB
-	dc.b	$FF	;FF
-	dc.b	$27	;27
-	dc.b	$24	;24
-	dc.b	$10	;10
-	dc.b	$E8	;E8
-	dc.b	$C0	;C0
-	dc.b	$A0	;A0
-	dc.b	$9B	;9B
-	dc.b	$B7	;B7
-	dc.b	$DF	;DF
-	dc.b	$F3	;F3
-	dc.b	$F5	;F5
-	dc.b	$0B	;0B
-	dc.b	$3B	;3B
-	dc.b	$57	;57
-	dc.b	$5F	;5F
-	dc.b	$5F	;5F
-	dc.b	$5F	;5F
-	dc.b	$5E	;5E
-	dc.b	$58	;58
-	dc.b	$30	;30
-	dc.b	$E8	;E8
-	dc.b	$A8	;A8
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$88	;88
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$9F	;9F
-	dc.b	$D3	;D3
-	dc.b	$FB	;FB
-	dc.b	$1F	;1F
-	dc.b	$4F	;4F
-	dc.b	$5F	;5F
-	dc.b	$5F	;5F
-	dc.b	$60	;60
-	dc.b	$5D	;5D
-	dc.b	$5E	;5E
-	dc.b	$5E	;5E
-	dc.b	$5F	;5F
-	dc.b	$60	;60
-	dc.b	$60	;60
-	dc.b	$5D	;5D
-	dc.b	$5D	;5D
-	dc.b	$5E	;5E
-	dc.b	$5F	;5F
-	dc.b	$5F	;5F
-	dc.b	$60	;60
-	dc.b	$5E	;5E
-	dc.b	$5C	;5C
-	dc.b	$5B	;5B
-	dc.b	$59	;59
-	dc.b	$59	;59
-	dc.b	$30	;30
-	dc.b	$F0	;F0
-	dc.b	$D0	;D0
-	dc.b	$C0	;C0
-	dc.b	$A0	;A0
-	dc.b	$8A	;8A
-	dc.b	$8C	;8C
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$81	;81
-	dc.b	$97	;97
-	dc.b	$A5	;A5
-	dc.b	$BB	;BB
-	dc.b	$D7	;D7
-	dc.b	$E0	;E0
-	dc.b	$CA	;CA
-	dc.b	$B4	;B4
-	dc.b	$AF	;AF
-	dc.b	$BB	;BB
-	dc.b	$DB	;DB
-	dc.b	$E8	;E8
-	dc.b	$F3	;F3
-	dc.b	$0F	;0F
-	dc.b	$2F	;2F
-	dc.b	$41	;41
-	dc.b	$47	;47
-	dc.b	$49	;49
-	dc.b	$48	;48
-	dc.b	$57	;57
-	dc.b	$5C	;5C
-	dc.b	$50	;50
-	dc.b	$40	;40
-	dc.b	$35	;35
-	dc.b	$24	;24
-	dc.b	$04	;04
-	dc.b	$EA	;EA
-	dc.b	$D8	;D8
-	dc.b	$D0	;D0
-	dc.b	$C0	;C0
-	dc.b	$A4	;A4
-	dc.b	$88	;88
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$83	;83
-	dc.b	$9B	;9B
-	dc.b	$A3	;A3
-	dc.b	$A3	;A3
-	dc.b	$A9	;A9
-	dc.b	$BB	;BB
-	dc.b	$CB	;CB
-	dc.b	$D4	;D4
-	dc.b	$D7	;D7
-	dc.b	$EB	;EB
-	dc.b	$0F	;0F
-	dc.b	$37	;37
-	dc.b	$5B	;5B
-	dc.b	$5F	;5F
-	dc.b	$5F	;5F
-	dc.b	$60	;60
-	dc.b	$60	;60
-	dc.b	$60	;60
-	dc.b	$5D	;5D
-	dc.b	$5D	;5D
-	dc.b	$5F	;5F
-	dc.b	$5E	;5E
-	dc.b	$5F	;5F
-	dc.b	$5F	;5F
-	dc.b	$5E	;5E
-	dc.b	$5D	;5D
-	dc.b	$5E	;5E
-	dc.b	$5F	;5F
-	dc.b	$5F	;5F
-	dc.b	$60	;60
-	dc.b	$5D	;5D
-	dc.b	$5D	;5D
-	dc.b	$5E	;5E
-	dc.b	$5F	;5F
-	dc.b	$5D	;5D
-	dc.b	$5B	;5B
-	dc.b	$58	;58
-	dc.b	$20	;20
-	dc.b	$D0	;D0
-	dc.b	$88	;88
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$9B	;9B
-	dc.b	$BF	;BF
-	dc.b	$DF	;DF
-	dc.b	$F3	;F3
-	dc.b	$0B	;0B
-	dc.b	$2F	;2F
-	dc.b	$3D	;3D
-	dc.b	$3A	;3A
-	dc.b	$30	;30
-	dc.b	$00	;00
-	dc.b	$C0	;C0
-	dc.b	$A5	;A5
-	dc.b	$AF	;AF
-	dc.b	$C5	;C5
-	dc.b	$D6	;D6
-	dc.b	$DE	;DE
-	dc.b	$E7	;E7
-	dc.b	$FB	;FB
-	dc.b	$0B	;0B
-	dc.b	$10	;10
-	dc.b	$0A	;0A
-	dc.b	$07	;07
-	dc.b	$03	;03
-	dc.b	$F4	;F4
-	dc.b	$D8	;D8
-	dc.b	$B8	;B8
-	dc.b	$A0	;A0
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$83	;83
-	dc.b	$93	;93
-	dc.b	$9F	;9F
-	dc.b	$A4	;A4
-	dc.b	$98	;98
-	dc.b	$97	;97
-	dc.b	$AF	;AF
-	dc.b	$CB	;CB
-	dc.b	$DF	;DF
-	dc.b	$F3	;F3
-	dc.b	$07	;07
-	dc.b	$19	;19
-	dc.b	$37	;37
-	dc.b	$4F	;4F
-	dc.b	$61	;61
-	dc.b	$60	;60
-	dc.b	$5E	;5E
-	dc.b	$5E	;5E
-	dc.b	$5F	;5F
-	dc.b	$5F	;5F
-	dc.b	$60	;60
-	dc.b	$60	;60
-	dc.b	$5D	;5D
-	dc.b	$5D	;5D
-	dc.b	$5F	;5F
-	dc.b	$5F	;5F
-	dc.b	$60	;60
-	dc.b	$60	;60
-	dc.b	$5D	;5D
-	dc.b	$5D	;5D
-	dc.b	$5F	;5F
-	dc.b	$5F	;5F
-	dc.b	$5F	;5F
-	dc.b	$5F	;5F
-	dc.b	$5A	;5A
-	dc.b	$58	;58
-	dc.b	$40	;40
-	dc.b	$F0	;F0
-	dc.b	$D0	;D0
-	dc.b	$B4	;B4
-	dc.b	$98	;98
-	dc.b	$8D	;8D
-	dc.b	$8D	;8D
-	dc.b	$9B	;9B
-	dc.b	$BF	;BF
-	dc.b	$D0	;D0
-	dc.b	$CB	;CB
-	dc.b	$DF	;DF
-	dc.b	$F7	;F7
-	dc.b	$07	;07
-	dc.b	$10	;10
-	dc.b	$00	;00
-	dc.b	$DC	;DC
-	dc.b	$C4	;C4
-	dc.b	$B2	;B2
-	dc.b	$B7	;B7
-	dc.b	$DF	;DF
-	dc.b	$EA	;EA
-	dc.b	$E6	;E6
-	dc.b	$F5	;F5
-	dc.b	$0B	;0B
-	dc.b	$1F	;1F
-	dc.b	$3B	;3B
-	dc.b	$4C	;4C
-	dc.b	$45	;45
-	dc.b	$3A	;3A
-	dc.b	$33	;33
-	dc.b	$2C	;2C
-	dc.b	$08	;08
-	dc.b	$D8	;D8
-	dc.b	$B4	;B4
-	dc.b	$A0	;A0
-	dc.b	$90	;90
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$8F	;8F
-	dc.b	$A3	;A3
-	dc.b	$B7	;B7
-	dc.b	$D7	;D7
-	dc.b	$0F	;0F
-	dc.b	$4B	;4B
-	dc.b	$5D	;5D
-	dc.b	$5E	;5E
-	dc.b	$5F	;5F
-	dc.b	$60	;60
-	dc.b	$60	;60
-	dc.b	$5E	;5E
-	dc.b	$5D	;5D
-	dc.b	$5E	;5E
-	dc.b	$5F	;5F
-	dc.b	$5F	;5F
-	dc.b	$60	;60
-	dc.b	$5F	;5F
-	dc.b	$5E	;5E
-	dc.b	$5E	;5E
-	dc.b	$5F	;5F
-	dc.b	$5F	;5F
-	dc.b	$60	;60
-	dc.b	$5E	;5E
-	dc.b	$5B	;5B
-	dc.b	$58	;58
-	dc.b	$56	;56
-	dc.b	$20	;20
-	dc.b	$C8	;C8
-	dc.b	$A6	;A6
-	dc.b	$A9	;A9
-	dc.b	$A2	;A2
-	dc.b	$9D	;9D
-	dc.b	$B3	;B3
-	dc.b	$B4	;B4
-	dc.b	$A8	;A8
-	dc.b	$A2	;A2
-	dc.b	$AF	;AF
-	dc.b	$B8	;B8
-	dc.b	$BF	;BF
-	dc.b	$CD	;CD
-	dc.b	$C4	;C4
-	dc.b	$B4	;B4
-	dc.b	$AB	;AB
-	dc.b	$B4	;B4
-	dc.b	$BA	;BA
-	dc.b	$C1	;C1
-	dc.b	$C9	;C9
-	dc.b	$EF	;EF
-	dc.b	$27	;27
-	dc.b	$4F	;4F
-	dc.b	$5D	;5D
-	dc.b	$60	;60
-	dc.b	$60	;60
-	dc.b	$5D	;5D
-	dc.b	$5D	;5D
-	dc.b	$58	;58
-	dc.b	$40	;40
-	dc.b	$1D	;1D
-	dc.b	$17	;17
-	dc.b	$04	;04
-	dc.b	$EC	;EC
-	dc.b	$D4	;D4
-	dc.b	$C2	;C2
-	dc.b	$B0	;B0
-	dc.b	$A0	;A0
-	dc.b	$91	;91
-	dc.b	$8A	;8A
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$89	;89
-	dc.b	$93	;93
-	dc.b	$A7	;A7
-	dc.b	$BB	;BB
-	dc.b	$DF	;DF
-	dc.b	$FF	;FF
-	dc.b	$17	;17
-	dc.b	$37	;37
-	dc.b	$57	;57
-	dc.b	$5F	;5F
-	dc.b	$5E	;5E
-	dc.b	$5E	;5E
-	dc.b	$5F	;5F
-	dc.b	$60	;60
-	dc.b	$60	;60
-	dc.b	$5E	;5E
-	dc.b	$5D	;5D
-	dc.b	$5E	;5E
-	dc.b	$5F	;5F
-	dc.b	$5F	;5F
-	dc.b	$5F	;5F
-	dc.b	$5F	;5F
-	dc.b	$5E	;5E
-	dc.b	$5E	;5E
-	dc.b	$5E	;5E
-	dc.b	$5F	;5F
-	dc.b	$60	;60
-	dc.b	$5E	;5E
-	dc.b	$5D	;5D
-	dc.b	$5B	;5B
-	dc.b	$5A	;5A
-	dc.b	$5A	;5A
-	dc.b	$40	;40
-	dc.b	$F0	;F0
-	dc.b	$C8	;C8
-	dc.b	$A8	;A8
-	dc.b	$88	;88
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$87	;87
-	dc.b	$9D	;9D
-	dc.b	$9B	;9B
-	dc.b	$AF	;AF
-	dc.b	$DF	;DF
-	dc.b	$FF	;FF
-	dc.b	$0F	;0F
-	dc.b	$00	;00
-	dc.b	$E0	;E0
-	dc.b	$D7	;D7
-	dc.b	$E7	;E7
-	dc.b	$ED	;ED
-	dc.b	$EF	;EF
-	dc.b	$EA	;EA
-	dc.b	$EF	;EF
-	dc.b	$F7	;F7
-	dc.b	$07	;07
-	dc.b	$15	;15
-	dc.b	$1F	;1F
-	dc.b	$2F	;2F
-	dc.b	$37	;37
-	dc.b	$32	;32
-	dc.b	$22	;22
-	dc.b	$0C	;0C
-	dc.b	$F0	;F0
-	dc.b	$D4	;D4
-	dc.b	$B8	;B8
-	dc.b	$90	;90
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$85	;85
-	dc.b	$9F	;9F
-	dc.b	$BF	;BF
-	dc.b	$DB	;DB
-	dc.b	$F7	;F7
-	dc.b	$1F	;1F
-	dc.b	$4B	;4B
-	dc.b	$5D	;5D
-	dc.b	$5F	;5F
-	dc.b	$60	;60
-	dc.b	$5E	;5E
-	dc.b	$5D	;5D
-	dc.b	$5E	;5E
-	dc.b	$5F	;5F
-	dc.b	$60	;60
-	dc.b	$60	;60
-	dc.b	$5E	;5E
-	dc.b	$5D	;5D
-	dc.b	$5E	;5E
-	dc.b	$5F	;5F
-	dc.b	$5F	;5F
-	dc.b	$60	;60
-	dc.b	$5E	;5E
-	dc.b	$5E	;5E
-	dc.b	$5E	;5E
-	dc.b	$5F	;5F
-	dc.b	$5F	;5F
-	dc.b	$5F	;5F
-	dc.b	$5D	;5D
-	dc.b	$5A	;5A
-	dc.b	$58	;58
-	dc.b	$40	;40
-	dc.b	$E0	;E0
-	dc.b	$A0	;A0
-	dc.b	$80	;80
-	dc.b	$87	;87
-	dc.b	$9D	;9D
-	dc.b	$A1	;A1
-	dc.b	$B3	;B3
-	dc.b	$DF	;DF
-	dc.b	$DE	;DE
-	dc.b	$DE	;DE
-	dc.b	$EF	;EF
-	dc.b	$0F	;0F
-	dc.b	$20	;20
-	dc.b	$10	;10
-	dc.b	$F0	;F0
-	dc.b	$D0	;D0
-	dc.b	$C4	;C4
-	dc.b	$B4	;B4
-	dc.b	$A6	;A6
-	dc.b	$A9	;A9
-	dc.b	$B7	;B7
-	dc.b	$D7	;D7
-	dc.b	$0F	;0F
-	dc.b	$3F	;3F
-	dc.b	$46	;46
-	dc.b	$4B	;4B
-	dc.b	$57	;57
-	dc.b	$4A	;4A
-	dc.b	$3C	;3C
-	dc.b	$43	;43
-	dc.b	$34	;34
-	dc.b	$10	;10
-	dc.b	$E0	;E0
-	dc.b	$B8	;B8
-	dc.b	$A0	;A0
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$87	;87
-	dc.b	$9F	;9F
-	dc.b	$B7	;B7
-	dc.b	$EF	;EF
-	dc.b	$1F	;1F
-	dc.b	$4F	;4F
-	dc.b	$5D	;5D
-	dc.b	$5F	;5F
-	dc.b	$5F	;5F
-	dc.b	$60	;60
-	dc.b	$5D	;5D
-	dc.b	$5D	;5D
-	dc.b	$5E	;5E
-	dc.b	$5F	;5F
-	dc.b	$60	;60
-	dc.b	$60	;60
-	dc.b	$5E	;5E
-	dc.b	$5D	;5D
-	dc.b	$5E	;5E
-	dc.b	$5F	;5F
-	dc.b	$5F	;5F
-	dc.b	$60	;60
-	dc.b	$5E	;5E
-	dc.b	$5E	;5E
-	dc.b	$5E	;5E
-	dc.b	$5D	;5D
-	dc.b	$5D	;5D
-	dc.b	$5B	;5B
-	dc.b	$50	;50
-	dc.b	$00	;00
-	dc.b	$98	;98
-	dc.b	$93	;93
-	dc.b	$98	;98
-	dc.b	$9B	;9B
-	dc.b	$A7	;A7
-	dc.b	$B2	;B2
-	dc.b	$A8	;A8
-	dc.b	$A7	;A7
-	dc.b	$C3	;C3
-	dc.b	$C7	;C7
-	dc.b	$D7	;D7
-	dc.b	$FF	;FF
-	dc.b	$23	;23
-	dc.b	$18	;18
-	dc.b	$00	;00
-	dc.b	$E0	;E0
-	dc.b	$D6	;D6
-	dc.b	$C0	;C0
-	dc.b	$9A	;9A
-	dc.b	$AF	;AF
-	dc.b	$F7	;F7
-	dc.b	$13	;13
-	dc.b	$37	;37
-	dc.b	$57	;57
-	dc.b	$5A	;5A
-	dc.b	$4C	;4C
-	dc.b	$47	;47
-	dc.b	$57	;57
-	dc.b	$5A	;5A
-	dc.b	$44	;44
-	dc.b	$32	;32
-	dc.b	$32	;32
-	dc.b	$18	;18
-	dc.b	$E0	;E0
-	dc.b	$A0	;A0
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$86	;86
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$92	;92
-	dc.b	$94	;94
-	dc.b	$9D	;9D
-	dc.b	$BF	;BF
-	dc.b	$FF	;FF
-	dc.b	$1F	;1F
-	dc.b	$35	;35
-	dc.b	$4B	;4B
-	dc.b	$5C	;5C
-	dc.b	$5F	;5F
-	dc.b	$60	;60
-	dc.b	$5D	;5D
-	dc.b	$5D	;5D
-	dc.b	$5E	;5E
-	dc.b	$5F	;5F
-	dc.b	$60	;60
-	dc.b	$60	;60
-	dc.b	$5D	;5D
-	dc.b	$5D	;5D
-	dc.b	$5E	;5E
-	dc.b	$5F	;5F
-	dc.b	$5F	;5F
-	dc.b	$61	;61
-	dc.b	$5E	;5E
-	dc.b	$5E	;5E
-	dc.b	$5E	;5E
-	dc.b	$5E	;5E
-	dc.b	$5E	;5E
-	dc.b	$5F	;5F
-	dc.b	$5E	;5E
-	dc.b	$59	;59
-	dc.b	$54	;54
-	dc.b	$10	;10
-	dc.b	$C0	;C0
-	dc.b	$A4	;A4
-	dc.b	$A1	;A1
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$9B	;9B
-	dc.b	$DF	;DF
-	dc.b	$FE	;FE
-	dc.b	$00	;00
-	dc.b	$05	;05
-	dc.b	$1D	;1D
-	dc.b	$20	;20
-	dc.b	$04	;04
-	dc.b	$EC	;EC
-	dc.b	$E7	;E7
-	dc.b	$DA	;DA
-	dc.b	$C0	;C0
-	dc.b	$B1	;B1
-	dc.b	$B7	;B7
-	dc.b	$B7	;B7
-	dc.b	$BB	;BB
-	dc.b	$D3	;D3
-	dc.b	$E6	;E6
-	dc.b	$FB	;FB
-	dc.b	$17	;17
-	dc.b	$3F	;3F
-	dc.b	$3C	;3C
-	dc.b	$24	;24
-	dc.b	$0C	;0C
-	dc.b	$F8	;F8
-	dc.b	$E0	;E0
-	dc.b	$A8	;A8
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$97	;97
-	dc.b	$AB	;AB
-	dc.b	$C7	;C7
-	dc.b	$EF	;EF
-	dc.b	$0B	;0B
-	dc.b	$1B	;1B
-	dc.b	$22	;22
-	dc.b	$35	;35
-	dc.b	$53	;53
-	dc.b	$5F	;5F
-	dc.b	$5E	;5E
-	dc.b	$5E	;5E
-	dc.b	$5E	;5E
-	dc.b	$5F	;5F
-	dc.b	$60	;60
-	dc.b	$60	;60
-	dc.b	$5D	;5D
-	dc.b	$5D	;5D
-	dc.b	$5E	;5E
-	dc.b	$5F	;5F
-	dc.b	$60	;60
-	dc.b	$60	;60
-	dc.b	$5D	;5D
-	dc.b	$5D	;5D
-	dc.b	$5E	;5E
-	dc.b	$5E	;5E
-	dc.b	$5E	;5E
-	dc.b	$5E	;5E
-	dc.b	$5C	;5C
-	dc.b	$5A	;5A
-	dc.b	$58	;58
-	dc.b	$40	;40
-	dc.b	$F4	;F4
-	dc.b	$E0	;E0
-	dc.b	$DD	;DD
-	dc.b	$D0	;D0
-	dc.b	$B0	;B0
-	dc.b	$AD	;AD
-	dc.b	$B6	;B6
-	dc.b	$B4	;B4
-	dc.b	$BF	;BF
-	dc.b	$CD	;CD
-	dc.b	$D7	;D7
-	dc.b	$DF	;DF
-	dc.b	$E7	;E7
-	dc.b	$E1	;E1
-	dc.b	$D9	;D9
-	dc.b	$D3	;D3
-	dc.b	$DD	;DD
-	dc.b	$EB	;EB
-	dc.b	$E4	;E4
-	dc.b	$DD	;DD
-	dc.b	$E7	;E7
-	dc.b	$F5	;F5
-	dc.b	$FB	;FB
-	dc.b	$FD	;FD
-	dc.b	$07	;07
-	dc.b	$17	;17
-	dc.b	$1F	;1F
-	dc.b	$1E	;1E
-	dc.b	$1A	;1A
-	dc.b	$0C	;0C
-	dc.b	$F8	;F8
-	dc.b	$F9	;F9
-	dc.b	$F0	;F0
-	dc.b	$C8	;C8
-	dc.b	$B2	;B2
-	dc.b	$B1	;B1
-	dc.b	$AC	;AC
-	dc.b	$90	;90
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$87	;87
-	dc.b	$97	;97
-	dc.b	$A7	;A7
-	dc.b	$B7	;B7
-	dc.b	$C5	;C5
-	dc.b	$DF	;DF
-	dc.b	$F7	;F7
-	dc.b	$17	;17
-	dc.b	$3F	;3F
-	dc.b	$5B	;5B
-	dc.b	$5E	;5E
-	dc.b	$5E	;5E
-	dc.b	$5F	;5F
-	dc.b	$60	;60
-	dc.b	$60	;60
-	dc.b	$5E	;5E
-	dc.b	$5D	;5D
-	dc.b	$5E	;5E
-	dc.b	$5F	;5F
-	dc.b	$60	;60
-	dc.b	$60	;60
-	dc.b	$5D	;5D
-	dc.b	$5D	;5D
-	dc.b	$5E	;5E
-	dc.b	$5F	;5F
-	dc.b	$5F	;5F
-	dc.b	$5F	;5F
-	dc.b	$5E	;5E
-	dc.b	$5D	;5D
-	dc.b	$5A	;5A
-	dc.b	$59	;59
-	dc.b	$50	;50
-	dc.b	$20	;20
-	dc.b	$F8	;F8
-	dc.b	$E0	;E0
-	dc.b	$C8	;C8
-	dc.b	$B9	;B9
-	dc.b	$BB	;BB
-	dc.b	$BD	;BD
-	dc.b	$BF	;BF
-	dc.b	$CA	;CA
-	dc.b	$D3	;D3
-	dc.b	$E5	;E5
-	dc.b	$F5	;F5
-	dc.b	$F0	;F0
-	dc.b	$E0	;E0
-	dc.b	$CC	;CC
-	dc.b	$CB	;CB
-	dc.b	$DB	;DB
-	dc.b	$E4	;E4
-	dc.b	$E7	;E7
-	dc.b	$F3	;F3
-	dc.b	$FE	;FE
-	dc.b	$07	;07
-	dc.b	$1F	;1F
-	dc.b	$2F	;2F
-	dc.b	$30	;30
-	dc.b	$2D	;2D
-	dc.b	$35	;35
-	dc.b	$36	;36
-	dc.b	$2C	;2C
-	dc.b	$14	;14
-	dc.b	$00	;00
-	dc.b	$F9	;F9
-	dc.b	$F0	;F0
-	dc.b	$E0	;E0
-	dc.b	$CC	;CC
-	dc.b	$BC	;BC
-	dc.b	$AC	;AC
-	dc.b	$9A	;9A
-	dc.b	$90	;90
-	dc.b	$8C	;8C
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$87	;87
-	dc.b	$9B	;9B
-	dc.b	$A9	;A9
-	dc.b	$B5	;B5
-	dc.b	$BF	;BF
-	dc.b	$D7	;D7
-	dc.b	$EF	;EF
-	dc.b	$FF	;FF
-	dc.b	$0B	;0B
-	dc.b	$1F	;1F
-	dc.b	$3B	;3B
-	dc.b	$4B	;4B
-	dc.b	$5F	;5F
-	dc.b	$5F	;5F
-	dc.b	$60	;60
-	dc.b	$60	;60
-	dc.b	$5D	;5D
-	dc.b	$5E	;5E
-	dc.b	$5E	;5E
-	dc.b	$5F	;5F
-	dc.b	$60	;60
-	dc.b	$60	;60
-	dc.b	$5D	;5D
-	dc.b	$5D	;5D
-	dc.b	$5E	;5E
-	dc.b	$5F	;5F
-	dc.b	$5F	;5F
-	dc.b	$61	;61
-	dc.b	$5E	;5E
-	dc.b	$5E	;5E
-	dc.b	$5C	;5C
-	dc.b	$5D	;5D
-	dc.b	$5E	;5E
-	dc.b	$5D	;5D
-	dc.b	$59	;59
-	dc.b	$48	;48
-	dc.b	$20	;20
-	dc.b	$14	;14
-	dc.b	$00	;00
-	dc.b	$DC	;DC
-	dc.b	$DB	;DB
-	dc.b	$DA	;DA
-	dc.b	$C0	;C0
-	dc.b	$A9	;A9
-	dc.b	$BF	;BF
-	dc.b	$E7	;E7
-	dc.b	$F5	;F5
-	dc.b	$EC	;EC
-	dc.b	$D8	;D8
-	dc.b	$C0	;C0
-	dc.b	$B7	;B7
-	dc.b	$CB	;CB
-	dc.b	$EF	;EF
-	dc.b	$F6	;F6
-	dc.b	$E8	;E8
-	dc.b	$DA	;DA
-	dc.b	$DD	;DD
-	dc.b	$E9	;E9
-	dc.b	$F5	;F5
-	dc.b	$FD	;FD
-	dc.b	$F8	;F8
-	dc.b	$F1	;F1
-	dc.b	$F7	;F7
-	dc.b	$07	;07
-	dc.b	$09	;09
-	dc.b	$02	;02
-	dc.b	$F4	;F4
-	dc.b	$DA	;DA
-	dc.b	$C8	;C8
-	dc.b	$BE	;BE
-	dc.b	$CB	;CB
-	dc.b	$D0	;D0
-	dc.b	$C0	;C0
-	dc.b	$98	;98
-	dc.b	$88	;88
-	dc.b	$88	;88
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$93	;93
-	dc.b	$AB	;AB
-	dc.b	$BF	;BF
-	dc.b	$D3	;D3
-	dc.b	$DC	;DC
-	dc.b	$E7	;E7
-	dc.b	$F3	;F3
-	dc.b	$0B	;0B
-	dc.b	$1F	;1F
-	dc.b	$27	;27
-	dc.b	$3F	;3F
-	dc.b	$5F	;5F
-	dc.b	$5F	;5F
-	dc.b	$5E	;5E
-	dc.b	$5F	;5F
-	dc.b	$60	;60
-	dc.b	$60	;60
-	dc.b	$60	;60
-	dc.b	$5D	;5D
-	dc.b	$5D	;5D
-	dc.b	$5F	;5F
-	dc.b	$5F	;5F
-	dc.b	$60	;60
-	dc.b	$60	;60
-	dc.b	$5D	;5D
-	dc.b	$5D	;5D
-	dc.b	$5F	;5F
-	dc.b	$5E	;5E
-	dc.b	$5E	;5E
-	dc.b	$5E	;5E
-	dc.b	$5D	;5D
-	dc.b	$5C	;5C
-	dc.b	$59	;59
-	dc.b	$59	;59
-	dc.b	$40	;40
-	dc.b	$08	;08
-	dc.b	$07	;07
-	dc.b	$16	;16
-	dc.b	$0A	;0A
-	dc.b	$F8	;F8
-	dc.b	$E4	;E4
-	dc.b	$D0	;D0
-	dc.b	$C1	;C1
-	dc.b	$BE	;BE
-	dc.b	$C1	;C1
-	dc.b	$CF	;CF
-	dc.b	$DF	;DF
-	dc.b	$D9	;D9
-	dc.b	$D6	;D6
-	dc.b	$EB	;EB
-	dc.b	$FE	;FE
-	dc.b	$01	;01
-	dc.b	$0A	;0A
-	dc.b	$0D	;0D
-	dc.b	$0A	;0A
-	dc.b	$0B	;0B
-	dc.b	$13	;13
-	dc.b	$17	;17
-	dc.b	$0C	;0C
-	dc.b	$F8	;F8
-	dc.b	$E4	;E4
-	dc.b	$E6	;E6
-	dc.b	$E2	;E2
-	dc.b	$DF	;DF
-	dc.b	$E5	;E5
-	dc.b	$F3	;F3
-	dc.b	$F5	;F5
-	dc.b	$F7	;F7
-	dc.b	$02	;02
-	dc.b	$FA	;FA
-	dc.b	$E0	;E0
-	dc.b	$C2	;C2
-	dc.b	$B4	;B4
-	dc.b	$AC	;AC
-	dc.b	$98	;98
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$8E	;8E
-	dc.b	$9A	;9A
-	dc.b	$A7	;A7
-	dc.b	$B5	;B5
-	dc.b	$BA	;BA
-	dc.b	$C3	;C3
-	dc.b	$D3	;D3
-	dc.b	$E9	;E9
-	dc.b	$F9	;F9
-	dc.b	$03	;03
-	dc.b	$15	;15
-	dc.b	$2B	;2B
-	dc.b	$47	;47
-	dc.b	$5F	;5F
-	dc.b	$5F	;5F
-	dc.b	$60	;60
-	dc.b	$60	;60
-	dc.b	$60	;60
-	dc.b	$5D	;5D
-	dc.b	$5E	;5E
-	dc.b	$5F	;5F
-	dc.b	$5F	;5F
-	dc.b	$60	;60
-	dc.b	$60	;60
-	dc.b	$5D	;5D
-	dc.b	$5D	;5D
-	dc.b	$5F	;5F
-	dc.b	$5F	;5F
-	dc.b	$60	;60
-	dc.b	$60	;60
-	dc.b	$5D	;5D
-	dc.b	$5C	;5C
-	dc.b	$5C	;5C
-	dc.b	$5B	;5B
-	dc.b	$5B	;5B
-	dc.b	$5E	;5E
-	dc.b	$5C	;5C
-	dc.b	$5A	;5A
-	dc.b	$50	;50
-	dc.b	$28	;28
-	dc.b	$15	;15
-	dc.b	$10	;10
-	dc.b	$00	;00
-	dc.b	$D0	;D0
-	dc.b	$B2	;B2
-	dc.b	$BF	;BF
-	dc.b	$D5	;D5
-	dc.b	$E7	;E7
-	dc.b	$F1	;F1
-	dc.b	$EE	;EE
-	dc.b	$E6	;E6
-	dc.b	$DC	;DC
-	dc.b	$D4	;D4
-	dc.b	$DD	;DD
-	dc.b	$EB	;EB
-	dc.b	$F3	;F3
-	dc.b	$F3	;F3
-	dc.b	$ED	;ED
-	dc.b	$F5	;F5
-	dc.b	$09	;09
-	dc.b	$00	;00
-	dc.b	$E8	;E8
-	dc.b	$DE	;DE
-	dc.b	$E7	;E7
-	dc.b	$FB	;FB
-	dc.b	$02	;02
-	dc.b	$FA	;FA
-	dc.b	$F5	;F5
-	dc.b	$EC	;EC
-	dc.b	$E0	;E0
-	dc.b	$D2	;D2
-	dc.b	$C8	;C8
-	dc.b	$B6	;B6
-	dc.b	$A6	;A6
-	dc.b	$9F	;9F
-	dc.b	$A1	;A1
-	dc.b	$94	;94
-	dc.b	$82	;82
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$85	;85
-	dc.b	$9F	;9F
-	dc.b	$BB	;BB
-	dc.b	$D5	;D5
-	dc.b	$E1	;E1
-	dc.b	$ED	;ED
-	dc.b	$FD	;FD
-	dc.b	$09	;09
-	dc.b	$08	;08
-	dc.b	$07	;07
-	dc.b	$1F	;1F
-	dc.b	$4B	;4B
-	dc.b	$5E	;5E
-	dc.b	$5E	;5E
-	dc.b	$5F	;5F
-	dc.b	$60	;60
-	dc.b	$60	;60
-	dc.b	$5E	;5E
-	dc.b	$5E	;5E
-	dc.b	$5E	;5E
-	dc.b	$5F	;5F
-	dc.b	$5F	;5F
-	dc.b	$60	;60
-	dc.b	$5F	;5F
-	dc.b	$5E	;5E
-	dc.b	$5E	;5E
-	dc.b	$5F	;5F
-	dc.b	$5E	;5E
-	dc.b	$5F	;5F
-	dc.b	$5F	;5F
-	dc.b	$5E	;5E
-	dc.b	$5D	;5D
-	dc.b	$5E	;5E
-	dc.b	$5C	;5C
-	dc.b	$5B	;5B
-	dc.b	$5B	;5B
-	dc.b	$40	;40
-	dc.b	$14	;14
-	dc.b	$04	;04
-	dc.b	$F8	;F8
-	dc.b	$EC	;EC
-	dc.b	$E2	;E2
-	dc.b	$D2	;D2
-	dc.b	$C6	;C6
-	dc.b	$CB	;CB
-	dc.b	$D7	;D7
-	dc.b	$D8	;D8
-	dc.b	$CE	;CE
-	dc.b	$CA	;CA
-	dc.b	$CF	;CF
-	dc.b	$E7	;E7
-	dc.b	$F3	;F3
-	dc.b	$F4	;F4
-	dc.b	$EC	;EC
-	dc.b	$E2	;E2
-	dc.b	$DC	;DC
-	dc.b	$D9	;D9
-	dc.b	$E5	;E5
-	dc.b	$F5	;F5
-	dc.b	$FB	;FB
-	dc.b	$F8	;F8
-	dc.b	$F0	;F0
-	dc.b	$F1	;F1
-	dc.b	$F0	;F0
-	dc.b	$EA	;EA
-	dc.b	$E4	;E4
-	dc.b	$E2	;E2
-	dc.b	$E3	;E3
-	dc.b	$E0	;E0
-	dc.b	$D0	;D0
-	dc.b	$C2	;C2
-	dc.b	$BB	;BB
-	dc.b	$B6	;B6
-	dc.b	$A8	;A8
-	dc.b	$98	;98
-	dc.b	$94	;94
-	dc.b	$8E	;8E
-	dc.b	$84	;84
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$83	;83
-	dc.b	$9F	;9F
-	dc.b	$BB	;BB
-	dc.b	$CF	;CF
-	dc.b	$DD	;DD
-	dc.b	$ED	;ED
-	dc.b	$FF	;FF
-	dc.b	$13	;13
-	dc.b	$27	;27
-	dc.b	$2F	;2F
-	dc.b	$37	;37
-	dc.b	$4B	;4B
-	dc.b	$5B	;5B
-	dc.b	$5F	;5F
-	dc.b	$5F	;5F
-	dc.b	$5F	;5F
-	dc.b	$5F	;5F
-	dc.b	$60	;60
-	dc.b	$60	;60
-	dc.b	$5E	;5E
-	dc.b	$5E	;5E
-	dc.b	$5E	;5E
-	dc.b	$5F	;5F
-	dc.b	$5F	;5F
-	dc.b	$61	;61
-	dc.b	$5F	;5F
-	dc.b	$5E	;5E
-	dc.b	$5E	;5E
-	dc.b	$5E	;5E
-	dc.b	$5F	;5F
-	dc.b	$5F	;5F
-	dc.b	$5F	;5F
-	dc.b	$5E	;5E
-	dc.b	$5D	;5D
-	dc.b	$5C	;5C
-	dc.b	$5C	;5C
-	dc.b	$5D	;5D
-	dc.b	$5D	;5D
-	dc.b	$5A	;5A
-	dc.b	$40	;40
-	dc.b	$08	;08
-	dc.b	$F2	;F2
-	dc.b	$E0	;E0
-	dc.b	$A8	;A8
-	dc.b	$93	;93
-	dc.b	$A5	;A5
-	dc.b	$BD	;BD
-	dc.b	$C0	;C0
-	dc.b	$BA	;BA
-	dc.b	$CB	;CB
-	dc.b	$DB	;DB
-	dc.b	$D4	;D4
-	dc.b	$D1	;D1
-	dc.b	$DF	;DF
-	dc.b	$F2	;F2
-	dc.b	$FD	;FD
-	dc.b	$FC	;FC
-	dc.b	$EC	;EC
-	dc.b	$D8	;D8
-	dc.b	$D3	;D3
-	dc.b	$D5	;D5
-	dc.b	$CC	;CC
-	dc.b	$B8	;B8
-	dc.b	$B1	;B1
-	dc.b	$BF	;BF
-	dc.b	$CB	;CB
-	dc.b	$D1	;D1
-	dc.b	$D9	;D9
-	dc.b	$E7	;E7
-	dc.b	$E5	;E5
-	dc.b	$D8	;D8
-	dc.b	$C6	;C6
-	dc.b	$B4	;B4
-	dc.b	$A4	;A4
-	dc.b	$90	;90
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$8F	;8F
-	dc.b	$A1	;A1
-	dc.b	$A9	;A9
-	dc.b	$B5	;B5
-	dc.b	$C7	;C7
-	dc.b	$D7	;D7
-	dc.b	$E5	;E5
-	dc.b	$F3	;F3
-	dc.b	$0F	;0F
-	dc.b	$2F	;2F
-	dc.b	$4F	;4F
-	dc.b	$5F	;5F
-	dc.b	$5F	;5F
-	dc.b	$5E	;5E
-	dc.b	$5E	;5E
-	dc.b	$5F	;5F
-	dc.b	$60	;60
-	dc.b	$60	;60
-	dc.b	$5E	;5E
-	dc.b	$5D	;5D
-	dc.b	$5E	;5E
-	dc.b	$5F	;5F
-	dc.b	$60	;60
-	dc.b	$60	;60
-	dc.b	$5E	;5E
-	dc.b	$5D	;5D
-	dc.b	$5E	;5E
-	dc.b	$5E	;5E
-	dc.b	$5F	;5F
-	dc.b	$5F	;5F
-	dc.b	$5F	;5F
-	dc.b	$5E	;5E
-	dc.b	$5D	;5D
-	dc.b	$5B	;5B
-	dc.b	$5B	;5B
-	dc.b	$5B	;5B
-	dc.b	$40	;40
-	dc.b	$1B	;1B
-	dc.b	$27	;27
-	dc.b	$22	;22
-	dc.b	$04	;04
-	dc.b	$D8	;D8
-	dc.b	$C0	;C0
-	dc.b	$BF	;BF
-	dc.b	$CA	;CA
-	dc.b	$C1	;C1
-	dc.b	$B6	;B6
-	dc.b	$C7	;C7
-	dc.b	$D5	;D5
-	dc.b	$D5	;D5
-	dc.b	$D4	;D4
-	dc.b	$DE	;DE
-	dc.b	$D0	;D0
-	dc.b	$BC	;BC
-	dc.b	$BB	;BB
-	dc.b	$CB	;CB
-	dc.b	$D5	;D5
-	dc.b	$DA	;DA
-	dc.b	$DF	;DF
-	dc.b	$E7	;E7
-	dc.b	$EC	;EC
-	dc.b	$E0	;E0
-	dc.b	$D0	;D0
-	dc.b	$C6	;C6
-	dc.b	$C9	;C9
-	dc.b	$C5	;C5
-	dc.b	$CB	;CB
-	dc.b	$CA	;CA
-	dc.b	$B8	;B8
-	dc.b	$A8	;A8
-	dc.b	$A6	;A6
-	dc.b	$A3	;A3
-	dc.b	$98	;98
-	dc.b	$89	;89
-	dc.b	$82	;82
-	dc.b	$8B	;8B
-	dc.b	$9B	;9B
-	dc.b	$9E	;9E
-	dc.b	$88	;88
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$83	;83
-	dc.b	$9F	;9F
-	dc.b	$C7	;C7
-	dc.b	$E7	;E7
-	dc.b	$F9	;F9
-	dc.b	$FF	;FF
-	dc.b	$0F	;0F
-	dc.b	$1F	;1F
-	dc.b	$29	;29
-	dc.b	$27	;27
-	dc.b	$25	;25
-	dc.b	$2F	;2F
-	dc.b	$4F	;4F
-	dc.b	$5E	;5E
-	dc.b	$5F	;5F
-	dc.b	$5F	;5F
-	dc.b	$60	;60
-	dc.b	$60	;60
-	dc.b	$5E	;5E
-	dc.b	$5D	;5D
-	dc.b	$5E	;5E
-	dc.b	$5F	;5F
-	dc.b	$60	;60
-	dc.b	$60	;60
-	dc.b	$5E	;5E
-	dc.b	$5D	;5D
-	dc.b	$5D	;5D
-	dc.b	$5E	;5E
-	dc.b	$5F	;5F
-	dc.b	$60	;60
-	dc.b	$5E	;5E
-	dc.b	$5D	;5D
-	dc.b	$5D	;5D
-	dc.b	$5E	;5E
-	dc.b	$5E	;5E
-	dc.b	$5D	;5D
-	dc.b	$5C	;5C
-	dc.b	$5A	;5A
-	dc.b	$5A	;5A
-	dc.b	$50	;50
-	dc.b	$30	;30
-	dc.b	$18	;18
-	dc.b	$00	;00
-	dc.b	$E0	;E0
-	dc.b	$C0	;C0
-	dc.b	$AE	;AE
-	dc.b	$B3	;B3
-	dc.b	$CD	;CD
-	dc.b	$D4	;D4
-	dc.b	$D0	;D0
-	dc.b	$D1	;D1
-	dc.b	$DD	;DD
-	dc.b	$F3	;F3
-	dc.b	$F8	;F8
-	dc.b	$EA	;EA
-	dc.b	$DD	;DD
-	dc.b	$DC	;DC
-	dc.b	$DC	;DC
-	dc.b	$E3	;E3
-	dc.b	$E3	;E3
-	dc.b	$D4	;D4
-	dc.b	$BA	;BA
-	dc.b	$AC	;AC
-	dc.b	$AF	;AF
-	dc.b	$B8	;B8
-	dc.b	$B2	;B2
-	dc.b	$AB	;AB
-	dc.b	$B5	;B5
-	dc.b	$C2	;C2
-	dc.b	$C9	;C9
-	dc.b	$CA	;CA
-	dc.b	$C0	;C0
-	dc.b	$B0	;B0
-	dc.b	$9A	;9A
-	dc.b	$8C	;8C
-	dc.b	$8B	;8B
-	dc.b	$88	;88
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$82	;82
-	dc.b	$8B	;8B
-	dc.b	$9A	;9A
-	dc.b	$AD	;AD
-	dc.b	$BF	;BF
-	dc.b	$D3	;D3
-	dc.b	$DE	;DE
-	dc.b	$E7	;E7
-	dc.b	$FF	;FF
-	dc.b	$1F	;1F
-	dc.b	$37	;37
-	dc.b	$43	;43
-	dc.b	$49	;49
-	dc.b	$59	;59
-	dc.b	$60	;60
-	dc.b	$60	;60
-	dc.b	$5E	;5E
-	dc.b	$5D	;5D
-	dc.b	$5E	;5E
-	dc.b	$5F	;5F
-	dc.b	$60	;60
-	dc.b	$60	;60
-	dc.b	$5E	;5E
-	dc.b	$5D	;5D
-	dc.b	$5E	;5E
-	dc.b	$5F	;5F
-	dc.b	$5F	;5F
-	dc.b	$5F	;5F
-	dc.b	$5F	;5F
-	dc.b	$5E	;5E
-	dc.b	$5D	;5D
-	dc.b	$5D	;5D
-	dc.b	$5F	;5F
-	dc.b	$5F	;5F
-	dc.b	$5F	;5F
-	dc.b	$5B	;5B
-	dc.b	$5A	;5A
-	dc.b	$5A	;5A
-	dc.b	$51	;51
-	dc.b	$38	;38
-	dc.b	$1C	;1C
-	dc.b	$08	;08
-	dc.b	$F8	;F8
-	dc.b	$EA	;EA
-	dc.b	$D4	;D4
-	dc.b	$B8	;B8
-	dc.b	$AE	;AE
-	dc.b	$B3	;B3
-	dc.b	$B2	;B2
-	dc.b	$B9	;B9
-	dc.b	$BC	;BC
-	dc.b	$BB	;BB
-	dc.b	$CB	;CB
-	dc.b	$D7	;D7
-	dc.b	$D6	;D6
-	dc.b	$CC	;CC
-	dc.b	$C6	;C6
-	dc.b	$CB	;CB
-	dc.b	$D1	;D1
-	dc.b	$CA	;CA
-	dc.b	$C5	;C5
-	dc.b	$C0	;C0
-	dc.b	$A8	;A8
-	dc.b	$92	;92
-	dc.b	$8D	;8D
-	dc.b	$A3	;A3
-	dc.b	$A9	;A9
-	dc.b	$A0	;A0
-	dc.b	$98	;98
-	dc.b	$9D	;9D
-	dc.b	$A5	;A5
-	dc.b	$A2	;A2
-	dc.b	$9D	;9D
-	dc.b	$98	;98
-	dc.b	$88	;88
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$81	;81
-	dc.b	$97	;97
-	dc.b	$AB	;AB
-	dc.b	$BF	;BF
-	dc.b	$D3	;D3
-	dc.b	$E2	;E2
-	dc.b	$EF	;EF
-	dc.b	$FB	;FB
-	dc.b	$07	;07
-	dc.b	$16	;16
-	dc.b	$27	;27
-	dc.b	$3D	;3D
-	dc.b	$4B	;4B
-	dc.b	$54	;54
-	dc.b	$57	;57
-	dc.b	$5E	;5E
-	dc.b	$5F	;5F
-	dc.b	$60	;60
-	dc.b	$60	;60
-	dc.b	$5E	;5E
-	dc.b	$5D	;5D
-	dc.b	$5E	;5E
-	dc.b	$5F	;5F
-	dc.b	$60	;60
-	dc.b	$60	;60
-	dc.b	$5E	;5E
-	dc.b	$5D	;5D
-	dc.b	$5D	;5D
-	dc.b	$5E	;5E
-	dc.b	$5F	;5F
-	dc.b	$5F	;5F
-	dc.b	$5F	;5F
-	dc.b	$5E	;5E
-	dc.b	$5E	;5E
-	dc.b	$5D	;5D
-	dc.b	$5C	;5C
-	dc.b	$5D	;5D
-	dc.b	$5E	;5E
-	dc.b	$5C	;5C
-	dc.b	$5D	;5D
-	dc.b	$5E	;5E
-	dc.b	$5D	;5D
-	dc.b	$5C	;5C
-	dc.b	$40	;40
-	dc.b	$00	;00
-	dc.b	$E5	;E5
-	dc.b	$E4	;E4
-	dc.b	$E2	;E2
-	dc.b	$DC	;DC
-	dc.b	$D8	;D8
-	dc.b	$DC	;DC
-	dc.b	$ED	;ED
-	dc.b	$FF	;FF
-	dc.b	$FA	;FA
-	dc.b	$EC	;EC
-	dc.b	$E7	;E7
-	dc.b	$FB	;FB
-	dc.b	$03	;03
-	dc.b	$00	;00
-	dc.b	$F8	;F8
-	dc.b	$F4	;F4
-	dc.b	$E4	;E4
-	dc.b	$C8	;C8
-	dc.b	$AD	;AD
-	dc.b	$AA	;AA
-	dc.b	$AC	;AC
-	dc.b	$AA	;AA
-	dc.b	$AD	;AD
-	dc.b	$BF	;BF
-	dc.b	$CD	;CD
-	dc.b	$D0	;D0
-	dc.b	$D5	;D5
-	dc.b	$DB	;DB
-	dc.b	$D2	;D2
-	dc.b	$C4	;C4
-	dc.b	$B8	;B8
-	dc.b	$B9	;B9
-	dc.b	$B8	;B8
-	dc.b	$B0	;B0
-	dc.b	$A0	;A0
-	dc.b	$94	;94
-	dc.b	$8E	;8E
-	dc.b	$84	;84
-	dc.b	$80	;80
-	dc.b	$84	;84
-	dc.b	$8F	;8F
-	dc.b	$9E	;9E
-	dc.b	$A3	;A3
-	dc.b	$A7	;A7
-	dc.b	$AC	;AC
-	dc.b	$B1	;B1
-	dc.b	$B2	;B2
-	dc.b	$A8	;A8
-	dc.b	$9A	;9A
-	dc.b	$9F	;9F
-	dc.b	$BB	;BB
-	dc.b	$D5	;D5
-	dc.b	$E6	;E6
-	dc.b	$F3	;F3
-	dc.b	$FF	;FF
-	dc.b	$0B	;0B
-	dc.b	$1B	;1B
-	dc.b	$2B	;2B
-	dc.b	$3F	;3F
-	dc.b	$51	;51
-	dc.b	$5B	;5B
-	dc.b	$5F	;5F
-	dc.b	$5F	;5F
-	dc.b	$60	;60
-	dc.b	$60	;60
-	dc.b	$5D	;5D
-	dc.b	$5D	;5D
-	dc.b	$5E	;5E
-	dc.b	$5F	;5F
-	dc.b	$60	;60
-	dc.b	$60	;60
-	dc.b	$5E	;5E
-	dc.b	$5D	;5D
-	dc.b	$5E	;5E
-	dc.b	$5F	;5F
-	dc.b	$5F	;5F
-	dc.b	$60	;60
-	dc.b	$5E	;5E
-	dc.b	$5E	;5E
-	dc.b	$5E	;5E
-	dc.b	$5F	;5F
-	dc.b	$5F	;5F
-	dc.b	$60	;60
-	dc.b	$5E	;5E
-	dc.b	$5D	;5D
-	dc.b	$5D	;5D
-	dc.b	$5D	;5D
-	dc.b	$5F	;5F
-	dc.b	$5F	;5F
-	dc.b	$5F	;5F
-	dc.b	$5D	;5D
-	dc.b	$5C	;5C
-	dc.b	$5C	;5C
-	dc.b	$5A	;5A
-	dc.b	$54	;54
-	dc.b	$2C	;2C
-	dc.b	$1D	;1D
-	dc.b	$2F	;2F
-	dc.b	$3A	;3A
-	dc.b	$2E	;2E
-	dc.b	$25	;25
-	dc.b	$20	;20
-	dc.b	$15	;15
-	dc.b	$13	;13
-	dc.b	$14	;14
-	dc.b	$00	;00
-	dc.b	$EA	;EA
-	dc.b	$E6	;E6
-	dc.b	$F7	;F7
-	dc.b	$04	;04
-	dc.b	$08	;08
-	dc.b	$04	;04
-	dc.b	$FC	;FC
-	dc.b	$EC	;EC
-	dc.b	$DE	;DE
-	dc.b	$E1	;E1
-	dc.b	$D8	;D8
-	dc.b	$C8	;C8
-	dc.b	$C2	;C2
-	dc.b	$CA	;CA
-	dc.b	$C6	;C6
-	dc.b	$B8	;B8
-	dc.b	$AE	;AE
-	dc.b	$A8	;A8
-	dc.b	$AB	;AB
-	dc.b	$A8	;A8
-	dc.b	$AF	;AF
-	dc.b	$BF	;BF
-	dc.b	$C0	;C0
-	dc.b	$BA	;BA
-	dc.b	$B9	;B9
-	dc.b	$B5	;B5
-	dc.b	$B0	;B0
-	dc.b	$A1	;A1
-	dc.b	$94	;94
-	dc.b	$93	;93
-	dc.b	$99	;99
-	dc.b	$94	;94
-	dc.b	$88	;88
-	dc.b	$84	;84
-	dc.b	$8A	;8A
-	dc.b	$9B	;9B
-	dc.b	$A7	;A7
-	dc.b	$AD	;AD
-	dc.b	$B1	;B1
-	dc.b	$B5	;B5
-	dc.b	$BF	;BF
-	dc.b	$CF	;CF
-	dc.b	$D9	;D9
-	dc.b	$E6	;E6
-	dc.b	$EF	;EF
-	dc.b	$F7	;F7
-	dc.b	$FF	;FF
-	dc.b	$0B	;0B
-	dc.b	$16	;16
-	dc.b	$23	;23
-	dc.b	$35	;35
-	dc.b	$4B	;4B
-	dc.b	$5D	;5D
-	dc.b	$60	;60
-	dc.b	$5F	;5F
-	dc.b	$60	;60
-	dc.b	$5E	;5E
-	dc.b	$5E	;5E
-	dc.b	$5E	;5E
-	dc.b	$5F	;5F
-	dc.b	$60	;60
-	dc.b	$5F	;5F
-	dc.b	$5E	;5E
-	dc.b	$5E	;5E
-	dc.b	$5E	;5E
-	dc.b	$5F	;5F
-	dc.b	$5F	;5F
-	dc.b	$60	;60
-	dc.b	$5E	;5E
-	dc.b	$5D	;5D
-	dc.b	$5E	;5E
-	dc.b	$5E	;5E
-	dc.b	$5F	;5F
-	dc.b	$60	;60
-	dc.b	$5E	;5E
-	dc.b	$5D	;5D
-	dc.b	$5E	;5E
-	dc.b	$5D	;5D
-	dc.b	$5D	;5D
-	dc.b	$5D	;5D
-	dc.b	$5D	;5D
-	dc.b	$5C	;5C
-	dc.b	$5A	;5A
-	dc.b	$48	;48
-	dc.b	$30	;30
-	dc.b	$27	;27
-	dc.b	$26	;26
-	dc.b	$23	;23
-	dc.b	$27	;27
-	dc.b	$28	;28
-	dc.b	$26	;26
-	dc.b	$24	;24
-	dc.b	$1A	;1A
-	dc.b	$0C	;0C
-	dc.b	$F0	;F0
-	dc.b	$C8	;C8
-	dc.b	$B5	;B5
-	dc.b	$B9	;B9
-	dc.b	$CD	;CD
-	dc.b	$D1	;D1
-	dc.b	$C0	;C0
-	dc.b	$AA	;AA
-	dc.b	$9E	;9E
-	dc.b	$A3	;A3
-	dc.b	$AA	;AA
-	dc.b	$AC	;AC
-	dc.b	$AC	;AC
-	dc.b	$AE	;AE
-	dc.b	$B1	;B1
-	dc.b	$AA	;AA
-	dc.b	$A0	;A0
-	dc.b	$9A	;9A
-	dc.b	$88	;88
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$83	;83
-	dc.b	$87	;87
-	dc.b	$8F	;8F
-	dc.b	$96	;96
-	dc.b	$95	;95
-	dc.b	$8D	;8D
-	dc.b	$84	;84
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$93	;93
-	dc.b	$AF	;AF
-	dc.b	$C3	;C3
-	dc.b	$C6	;C6
-	dc.b	$C4	;C4
-	dc.b	$C4	;C4
-	dc.b	$C2	;C2
-	dc.b	$C5	;C5
-	dc.b	$CF	;CF
-	dc.b	$E7	;E7
-	dc.b	$FA	;FA
-	dc.b	$FF	;FF
-	dc.b	$13	;13
-	dc.b	$26	;26
-	dc.b	$32	;32
-	dc.b	$37	;37
-	dc.b	$3B	;3B
-	dc.b	$4B	;4B
-	dc.b	$5E	;5E
-	dc.b	$5F	;5F
-	dc.b	$5E	;5E
-	dc.b	$5F	;5F
-	dc.b	$60	;60
-	dc.b	$60	;60
-	dc.b	$5D	;5D
-	dc.b	$5D	;5D
-	dc.b	$5E	;5E
-	dc.b	$5F	;5F
-	dc.b	$5F	;5F
-	dc.b	$60	;60
-	dc.b	$5E	;5E
-	dc.b	$5D	;5D
-	dc.b	$5E	;5E
-	dc.b	$5F	;5F
-	dc.b	$5F	;5F
-	dc.b	$60	;60
-	dc.b	$5E	;5E
-	dc.b	$5D	;5D
-	dc.b	$5E	;5E
-	dc.b	$5E	;5E
-	dc.b	$5E	;5E
-	dc.b	$5F	;5F
-	dc.b	$5E	;5E
-	dc.b	$5B	;5B
-	dc.b	$59	;59
-	dc.b	$54	;54
-	dc.b	$30	;30
-	dc.b	$1B	;1B
-	dc.b	$2B	;2B
-	dc.b	$37	;37
-	dc.b	$35	;35
-	dc.b	$36	;36
-	dc.b	$2E	;2E
-	dc.b	$21	;21
-	dc.b	$10	;10
-	dc.b	$00	;00
-	dc.b	$F0	;F0
-	dc.b	$E0	;E0
-	dc.b	$C0	;C0
-	dc.b	$A8	;A8
-	dc.b	$A2	;A2
-	dc.b	$A9	;A9
-	dc.b	$AF	;AF
-	dc.b	$B7	;B7
-	dc.b	$BA	;BA
-	dc.b	$B0	;B0
-	dc.b	$A0	;A0
-	dc.b	$96	;96
-	dc.b	$A3	;A3
-	dc.b	$B1	;B1
-	dc.b	$AE	;AE
-	dc.b	$A0	;A0
-	dc.b	$8C	;8C
-	dc.b	$87	;87
-	dc.b	$86	;86
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$8F	;8F
-	dc.b	$9F	;9F
-	dc.b	$9E	;9E
-	dc.b	$96	;96
-	dc.b	$93	;93
-	dc.b	$92	;92
-	dc.b	$90	;90
-	dc.b	$92	;92
-	dc.b	$92	;92
-	dc.b	$8C	;8C
-	dc.b	$86	;86
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$87	;87
-	dc.b	$88	;88
-	dc.b	$8A	;8A
-	dc.b	$97	;97
-	dc.b	$A7	;A7
-	dc.b	$B3	;B3
-	dc.b	$BD	;BD
-	dc.b	$BF	;BF
-	dc.b	$C6	;C6
-	dc.b	$D7	;D7
-	dc.b	$E5	;E5
-	dc.b	$EA	;EA
-	dc.b	$E3	;E3
-	dc.b	$DF	;DF
-	dc.b	$EA	;EA
-	dc.b	$FB	;FB
-	dc.b	$0D	;0D
-	dc.b	$1D	;1D
-	dc.b	$26	;26
-	dc.b	$2D	;2D
-	dc.b	$3B	;3B
-	dc.b	$4F	;4F
-	dc.b	$5D	;5D
-	dc.b	$61	;61
-	dc.b	$61	;61
-	dc.b	$5F	;5F
-	dc.b	$5E	;5E
-	dc.b	$5E	;5E
-	dc.b	$5F	;5F
-	dc.b	$5F	;5F
-	dc.b	$60	;60
-	dc.b	$5E	;5E
-	dc.b	$5D	;5D
-	dc.b	$5E	;5E
-	dc.b	$5F	;5F
-	dc.b	$5F	;5F
-	dc.b	$60	;60
-	dc.b	$5E	;5E
-	dc.b	$5D	;5D
-	dc.b	$5E	;5E
-	dc.b	$5D	;5D
-	dc.b	$5E	;5E
-	dc.b	$5E	;5E
-	dc.b	$5C	;5C
-	dc.b	$5A	;5A
-	dc.b	$59	;59
-	dc.b	$54	;54
-	dc.b	$38	;38
-	dc.b	$20	;20
-	dc.b	$14	;14
-	dc.b	$15	;15
-	dc.b	$1F	;1F
-	dc.b	$28	;28
-	dc.b	$20	;20
-	dc.b	$19	;19
-	dc.b	$1F	;1F
-	dc.b	$1C	;1C
-	dc.b	$00	;00
-	dc.b	$D8	;D8
-	dc.b	$C0	;C0
-	dc.b	$B0	;B0
-	dc.b	$A2	;A2
-	dc.b	$92	;92
-	dc.b	$8D	;8D
-	dc.b	$9D	;9D
-	dc.b	$A9	;A9
-	dc.b	$AF	;AF
-	dc.b	$B1	;B1
-	dc.b	$B7	;B7
-	dc.b	$BD	;BD
-	dc.b	$BF	;BF
-	dc.b	$C7	;C7
-	dc.b	$D1	;D1
-	dc.b	$C8	;C8
-	dc.b	$B2	;B2
-	dc.b	$9C	;9C
-	dc.b	$88	;88
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$83	;83
-	dc.b	$97	;97
-	dc.b	$A7	;A7
-	dc.b	$AA	;AA
-	dc.b	$AC	;AC
-	dc.b	$AF	;AF
-	dc.b	$B4	;B4
-	dc.b	$AE	;AE
-	dc.b	$A6	;A6
-	dc.b	$9C	;9C
-	dc.b	$91	;91
-	dc.b	$89	;89
-	dc.b	$86	;86
-	dc.b	$84	;84
-	dc.b	$83	;83
-	dc.b	$89	;89
-	dc.b	$97	;97
-	dc.b	$A7	;A7
-	dc.b	$B5	;B5
-	dc.b	$C7	;C7
-	dc.b	$DB	;DB
-	dc.b	$E3	;E3
-	dc.b	$E4	;E4
-	dc.b	$E2	;E2
-	dc.b	$D8	;D8
-	dc.b	$D3	;D3
-	dc.b	$D4	;D4
-	dc.b	$D9	;D9
-	dc.b	$E2	;E2
-	dc.b	$EA	;EA
-	dc.b	$F3	;F3
-	dc.b	$FD	;FD
-	dc.b	$0B	;0B
-	dc.b	$1D	;1D
-	dc.b	$33	;33
-	dc.b	$4F	;4F
-	dc.b	$5D	;5D
-	dc.b	$5F	;5F
-	dc.b	$60	;60
-	dc.b	$60	;60
-	dc.b	$5E	;5E
-	dc.b	$5D	;5D
-	dc.b	$5E	;5E
-	dc.b	$5F	;5F
-	dc.b	$5F	;5F
-	dc.b	$60	;60
-	dc.b	$5E	;5E
-	dc.b	$5D	;5D
-	dc.b	$5D	;5D
-	dc.b	$5F	;5F
-	dc.b	$5F	;5F
-	dc.b	$60	;60
-	dc.b	$5E	;5E
-	dc.b	$5D	;5D
-	dc.b	$5E	;5E
-	dc.b	$5F	;5F
-	dc.b	$5F	;5F
-	dc.b	$60	;60
-	dc.b	$5E	;5E
-	dc.b	$5D	;5D
-	dc.b	$5D	;5D
-	dc.b	$5D	;5D
-	dc.b	$5E	;5E
-	dc.b	$5D	;5D
-	dc.b	$5D	;5D
-	dc.b	$5B	;5B
-	dc.b	$5C	;5C
-	dc.b	$5C	;5C
-	dc.b	$54	;54
-	dc.b	$40	;40
-	dc.b	$28	;28
-	dc.b	$19	;19
-	dc.b	$14	;14
-	dc.b	$11	;11
-	dc.b	$0B	;0B
-	dc.b	$05	;05
-	dc.b	$00	;00
-	dc.b	$F8	;F8
-	dc.b	$ED	;ED
-	dc.b	$E0	;E0
-	dc.b	$D0	;D0
-	dc.b	$C1	;C1
-	dc.b	$C1	;C1
-	dc.b	$C7	;C7
-	dc.b	$D1	;D1
-	dc.b	$CC	;CC
-	dc.b	$C2	;C2
-	dc.b	$B6	;B6
-	dc.b	$AE	;AE
-	dc.b	$B0	;B0
-	dc.b	$AD	;AD
-	dc.b	$A1	;A1
-	dc.b	$98	;98
-	dc.b	$99	;99
-	dc.b	$A3	;A3
-	dc.b	$AA	;AA
-	dc.b	$A6	;A6
-	dc.b	$9A	;9A
-	dc.b	$90	;90
-	dc.b	$86	;86
-	dc.b	$88	;88
-	dc.b	$8E	;8E
-	dc.b	$97	;97
-	dc.b	$9D	;9D
-	dc.b	$9C	;9C
-	dc.b	$96	;96
-	dc.b	$97	;97
-	dc.b	$9E	;9E
-	dc.b	$A3	;A3
-	dc.b	$9C	;9C
-	dc.b	$95	;95
-	dc.b	$9B	;9B
-	dc.b	$AB	;AB
-	dc.b	$B7	;B7
-	dc.b	$BF	;BF
-	dc.b	$C0	;C0
-	dc.b	$C1	;C1
-	dc.b	$C3	;C3
-	dc.b	$C4	;C4
-	dc.b	$C4	;C4
-	dc.b	$C3	;C3
-	dc.b	$C9	;C9
-	dc.b	$D5	;D5
-	dc.b	$DD	;DD
-	dc.b	$E5	;E5
-	dc.b	$E8	;E8
-	dc.b	$E7	;E7
-	dc.b	$E7	;E7
-	dc.b	$F3	;F3
-	dc.b	$07	;07
-	dc.b	$17	;17
-	dc.b	$1F	;1F
-	dc.b	$23	;23
-	dc.b	$33	;33
-	dc.b	$46	;46
-	dc.b	$48	;48
-	dc.b	$41	;41
-	dc.b	$43	;43
-	dc.b	$53	;53
-	dc.b	$5D	;5D
-	dc.b	$5F	;5F
-	dc.b	$60	;60
-	dc.b	$60	;60
-	dc.b	$5E	;5E
-	dc.b	$5D	;5D
-	dc.b	$5E	;5E
-	dc.b	$5F	;5F
-	dc.b	$5F	;5F
-	dc.b	$60	;60
-	dc.b	$5E	;5E
-	dc.b	$5D	;5D
-	dc.b	$5D	;5D
-	dc.b	$5F	;5F
-	dc.b	$5F	;5F
-	dc.b	$60	;60
-	dc.b	$5E	;5E
-	dc.b	$5D	;5D
-	dc.b	$5D	;5D
-	dc.b	$5D	;5D
-	dc.b	$5F	;5F
-	dc.b	$5F	;5F
-	dc.b	$5F	;5F
-	dc.b	$5E	;5E
-	dc.b	$5B	;5B
-	dc.b	$5B	;5B
-	dc.b	$5C	;5C
-	dc.b	$5D	;5D
-	dc.b	$54	;54
-	dc.b	$4B	;4B
-	dc.b	$49	;49
-	dc.b	$41	;41
-	dc.b	$39	;39
-	dc.b	$3B	;3B
-	dc.b	$32	;32
-	dc.b	$18	;18
-	dc.b	$00	;00
-	dc.b	$EA	;EA
-	dc.b	$ED	;ED
-	dc.b	$EC	;EC
-	dc.b	$D9	;D9
-	dc.b	$C4	;C4
-	dc.b	$BC	;BC
-	dc.b	$BF	;BF
-	dc.b	$BA	;BA
-	dc.b	$B0	;B0
-	dc.b	$AD	;AD
-	dc.b	$AE	;AE
-	dc.b	$A8	;A8
-	dc.b	$9C	;9C
-	dc.b	$99	;99
-	dc.b	$9A	;9A
-	dc.b	$96	;96
-	dc.b	$88	;88
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$8D	;8D
-	dc.b	$95	;95
-	dc.b	$97	;97
-	dc.b	$9F	;9F
-	dc.b	$A3	;A3
-	dc.b	$A3	;A3
-	dc.b	$A0	;A0
-	dc.b	$9E	;9E
-	dc.b	$9C	;9C
-	dc.b	$92	;92
-	dc.b	$8A	;8A
-	dc.b	$8F	;8F
-	dc.b	$99	;99
-	dc.b	$9E	;9E
-	dc.b	$9F	;9F
-	dc.b	$A7	;A7
-	dc.b	$B7	;B7
-	dc.b	$C5	;C5
-	dc.b	$CF	;CF
-	dc.b	$D5	;D5
-	dc.b	$D7	;D7
-	dc.b	$DC	;DC
-	dc.b	$DF	;DF
-	dc.b	$E1	;E1
-	dc.b	$E1	;E1
-	dc.b	$DE	;DE
-	dc.b	$DD	;DD
-	dc.b	$E2	;E2
-	dc.b	$ED	;ED
-	dc.b	$FD	;FD
-	dc.b	$03	;03
-	dc.b	$07	;07
-	dc.b	$13	;13
-	dc.b	$27	;27
-	dc.b	$36	;36
-	dc.b	$3D	;3D
-	dc.b	$41	;41
-	dc.b	$46	;46
-	dc.b	$4C	;4C
-	dc.b	$55	;55
-	dc.b	$5C	;5C
-	dc.b	$5E	;5E
-	dc.b	$5E	;5E
-	dc.b	$5F	;5F
-	dc.b	$5F	;5F
-	dc.b	$60	;60
-	dc.b	$5E	;5E
-	dc.b	$5D	;5D
-	dc.b	$5D	;5D
-	dc.b	$5F	;5F
-	dc.b	$5F	;5F
-	dc.b	$60	;60
-	dc.b	$5E	;5E
-	dc.b	$5D	;5D
-	dc.b	$5D	;5D
-	dc.b	$5E	;5E
-	dc.b	$5E	;5E
-	dc.b	$5F	;5F
-	dc.b	$5F	;5F
-	dc.b	$5E	;5E
-	dc.b	$5E	;5E
-	dc.b	$5F	;5F
-	dc.b	$5F	;5F
-	dc.b	$5F	;5F
-	dc.b	$5E	;5E
-	dc.b	$5B	;5B
-	dc.b	$5B	;5B
-	dc.b	$5D	;5D
-	dc.b	$5E	;5E
-	dc.b	$5D	;5D
-	dc.b	$5D	;5D
-	dc.b	$4C	;4C
-	dc.b	$38	;38
-	dc.b	$28	;28
-	dc.b	$1C	;1C
-	dc.b	$13	;13
-	dc.b	$12	;12
-	dc.b	$08	;08
-	dc.b	$FC	;FC
-	dc.b	$F5	;F5
-	dc.b	$FF	;FF
-	dc.b	$06	;06
-	dc.b	$F0	;F0
-	dc.b	$D0	;D0
-	dc.b	$BC	;BC
-	dc.b	$BF	;BF
-	dc.b	$C4	;C4
-	dc.b	$B4	;B4
-	dc.b	$A2	;A2
-	dc.b	$9F	;9F
-	dc.b	$AB	;AB
-	dc.b	$AE	;AE
-	dc.b	$AA	;AA
-	dc.b	$A5	;A5
-	dc.b	$9C	;9C
-	dc.b	$90	;90
-	dc.b	$8B	;8B
-	dc.b	$97	;97
-	dc.b	$A2	;A2
-	dc.b	$A0	;A0
-	dc.b	$92	;92
-	dc.b	$8F	;8F
-	dc.b	$99	;99
-	dc.b	$98	;98
-	dc.b	$90	;90
-	dc.b	$8C	;8C
-	dc.b	$95	;95
-	dc.b	$A2	;A2
-	dc.b	$A4	;A4
-	dc.b	$9C	;9C
-	dc.b	$99	;99
-	dc.b	$9F	;9F
-	dc.b	$A2	;A2
-	dc.b	$9E	;9E
-	dc.b	$94	;94
-	dc.b	$91	;91
-	dc.b	$99	;99
-	dc.b	$9F	;9F
-	dc.b	$A4	;A4
-	dc.b	$AB	;AB
-	dc.b	$B1	;B1
-	dc.b	$B4	;B4
-	dc.b	$B5	;B5
-	dc.b	$BB	;BB
-	dc.b	$C7	;C7
-	dc.b	$C7	;C7
-	dc.b	$C0	;C0
-	dc.b	$BE	;BE
-	dc.b	$CA	;CA
-	dc.b	$D3	;D3
-	dc.b	$D7	;D7
-	dc.b	$DC	;DC
-	dc.b	$E5	;E5
-	dc.b	$F1	;F1
-	dc.b	$FA	;FA
-	dc.b	$FF	;FF
-	dc.b	$0F	;0F
-	dc.b	$25	;25
-	dc.b	$2F	;2F
-	dc.b	$30	;30
-	dc.b	$35	;35
-	dc.b	$3F	;3F
-	dc.b	$4D	;4D
-	dc.b	$50	;50
-	dc.b	$4F	;4F
-	dc.b	$57	;57
-	dc.b	$5D	;5D
-	dc.b	$60	;60
-	dc.b	$60	;60
-	dc.b	$5E	;5E
-	dc.b	$5D	;5D
-	dc.b	$5D	;5D
-	dc.b	$5F	;5F
-	dc.b	$5F	;5F
-	dc.b	$60	;60
-	dc.b	$5E	;5E
-	dc.b	$5D	;5D
-	dc.b	$5D	;5D
-	dc.b	$5F	;5F
-	dc.b	$5F	;5F
-	dc.b	$5F	;5F
-	dc.b	$5F	;5F
-	dc.b	$5E	;5E
-	dc.b	$5D	;5D
-	dc.b	$5F	;5F
-	dc.b	$5E	;5E
-	dc.b	$5F	;5F
-	dc.b	$5F	;5F
-	dc.b	$5E	;5E
-	dc.b	$5D	;5D
-	dc.b	$5D	;5D
-	dc.b	$5D	;5D
-	dc.b	$5E	;5E
-	dc.b	$5E	;5E
-	dc.b	$5C	;5C
-	dc.b	$5B	;5B
-	dc.b	$5C	;5C
-	dc.b	$56	;56
-	dc.b	$4A	;4A
-	dc.b	$45	;45
-	dc.b	$47	;47
-	dc.b	$44	;44
-	dc.b	$38	;38
-	dc.b	$26	;26
-	dc.b	$16	;16
-	dc.b	$0D	;0D
-	dc.b	$04	;04
-	dc.b	$F4	;F4
-	dc.b	$E8	;E8
-	dc.b	$E0	;E0
-	dc.b	$DC	;DC
-	dc.b	$D5	;D5
-	dc.b	$D0	;D0
-	dc.b	$C8	;C8
-	dc.b	$C2	;C2
-	dc.b	$C0	;C0
-	dc.b	$C5	;C5
-	dc.b	$CA	;CA
-	dc.b	$D0	;D0
-	dc.b	$CB	;CB
-	dc.b	$C4	;C4
-	dc.b	$BA	;BA
-	dc.b	$B3	;B3
-	dc.b	$AC	;AC
-	dc.b	$A0	;A0
-	dc.b	$96	;96
-	dc.b	$99	;99
-	dc.b	$A5	;A5
-	dc.b	$AB	;AB
-	dc.b	$AC	;AC
-	dc.b	$A7	;A7
-	dc.b	$AA	;AA
-	dc.b	$B5	;B5
-	dc.b	$B9	;B9
-	dc.b	$B7	;B7
-	dc.b	$B7	;B7
-	dc.b	$B9	;B9
-	dc.b	$B5	;B5
-	dc.b	$B0	;B0
-	dc.b	$AF	;AF
-	dc.b	$B0	;B0
-	dc.b	$AA	;AA
-	dc.b	$A2	;A2
-	dc.b	$A1	;A1
-	dc.b	$A7	;A7
-	dc.b	$B2	;B2
-	dc.b	$BC	;BC
-	dc.b	$C3	;C3
-	dc.b	$C9	;C9
-	dc.b	$D2	;D2
-	dc.b	$DB	;DB
-	dc.b	$DF	;DF
-	dc.b	$DC	;DC
-	dc.b	$DA	;DA
-	dc.b	$DD	;DD
-	dc.b	$E7	;E7
-	dc.b	$EF	;EF
-	dc.b	$F3	;F3
-	dc.b	$F5	;F5
-	dc.b	$F7	;F7
-	dc.b	$FB	;FB
-	dc.b	$FF	;FF
-	dc.b	$0B	;0B
-	dc.b	$16	;16
-	dc.b	$1F	;1F
-	dc.b	$2B	;2B
-	dc.b	$3A	;3A
-	dc.b	$45	;45
-	dc.b	$44	;44
-	dc.b	$3E	;3E
-	dc.b	$3B	;3B
-	dc.b	$3F	;3F
-	dc.b	$4B	;4B
-	dc.b	$55	;55
-	dc.b	$5A	;5A
-	dc.b	$5F	;5F
-	dc.b	$60	;60
-	dc.b	$5F	;5F
-	dc.b	$5F	;5F
-	dc.b	$5E	;5E
-	dc.b	$5E	;5E
-	dc.b	$5E	;5E
-	dc.b	$5E	;5E
-	dc.b	$5F	;5F
-	dc.b	$5F	;5F
-	dc.b	$5E	;5E
-	dc.b	$5D	;5D
-	dc.b	$5F	;5F
-	dc.b	$5E	;5E
-	dc.b	$5E	;5E
-	dc.b	$5E	;5E
-	dc.b	$5D	;5D
-	dc.b	$5D	;5D
-	dc.b	$5D	;5D
-	dc.b	$5F	;5F
-	dc.b	$60	;60
-	dc.b	$5E	;5E
-	dc.b	$5D	;5D
-	dc.b	$5C	;5C
-	dc.b	$50	;50
-	dc.b	$41	;41
-	dc.b	$3D	;3D
-	dc.b	$44	;44
-	dc.b	$41	;41
-	dc.b	$3D	;3D
-	dc.b	$38	;38
-	dc.b	$2C	;2C
-	dc.b	$20	;20
-	dc.b	$12	;12
-	dc.b	$0C	;0C
-	dc.b	$0C	;0C
-	dc.b	$0B	;0B
-	dc.b	$0A	;0A
-	dc.b	$0A	;0A
-	dc.b	$05	;05
-	dc.b	$FA	;FA
-	dc.b	$E8	;E8
-	dc.b	$D8	;D8
-	dc.b	$D3	;D3
-	dc.b	$D1	;D1
-	dc.b	$C9	;C9
-	dc.b	$C5	;C5
-	dc.b	$C1	;C1
-	dc.b	$BE	;BE
-	dc.b	$BB	;BB
-	dc.b	$B4	;B4
-	dc.b	$B2	;B2
-	dc.b	$B2	;B2
-	dc.b	$B2	;B2
-	dc.b	$B6	;B6
-	dc.b	$B9	;B9
-	dc.b	$BD	;BD
-	dc.b	$BC	;BC
-	dc.b	$B7	;B7
-	dc.b	$B2	;B2
-	dc.b	$AE	;AE
-	dc.b	$AC	;AC
-	dc.b	$AE	;AE
-	dc.b	$AD	;AD
-	dc.b	$AB	;AB
-	dc.b	$AC	;AC
-	dc.b	$B3	;B3
-	dc.b	$BB	;BB
-	dc.b	$B9	;B9
-	dc.b	$B6	;B6
-	dc.b	$B5	;B5
-	dc.b	$B9	;B9
-	dc.b	$BD	;BD
-	dc.b	$C2	;C2
-	dc.b	$C7	;C7
-	dc.b	$CB	;CB
-	dc.b	$CD	;CD
-	dc.b	$CE	;CE
-	dc.b	$D1	;D1
-	dc.b	$D4	;D4
-	dc.b	$CE	;CE
-	dc.b	$CF	;CF
-	dc.b	$DB	;DB
-	dc.b	$E3	;E3
-	dc.b	$EB	;EB
-	dc.b	$ED	;ED
-	dc.b	$F3	;F3
-	dc.b	$F9	;F9
-	dc.b	$FB	;FB
-	dc.b	$FF	;FF
-	dc.b	$0B	;0B
-	dc.b	$16	;16
-	dc.b	$1D	;1D
-	dc.b	$1F	;1F
-	dc.b	$21	;21
-	dc.b	$29	;29
-	dc.b	$31	;31
-	dc.b	$37	;37
-	dc.b	$3D	;3D
-	dc.b	$49	;49
-	dc.b	$57	;57
-	dc.b	$5F	;5F
-	dc.b	$5F	;5F
-	dc.b	$5F	;5F
-	dc.b	$60	;60
-	dc.b	$5F	;5F
-	dc.b	$5F	;5F
-	dc.b	$5E	;5E
-	dc.b	$5D	;5D
-	dc.b	$5F	;5F
-	dc.b	$5F	;5F
-	dc.b	$60	;60
-	dc.b	$5E	;5E
-	dc.b	$5D	;5D
-	dc.b	$5D	;5D
-	dc.b	$5F	;5F
-	dc.b	$5F	;5F
-	dc.b	$5F	;5F
-	dc.b	$60	;60
-	dc.b	$5D	;5D
-	dc.b	$5D	;5D
-	dc.b	$5F	;5F
-	dc.b	$5F	;5F
-	dc.b	$5F	;5F
-	dc.b	$60	;60
-	dc.b	$5D	;5D
-	dc.b	$5D	;5D
-	dc.b	$5D	;5D
-	dc.b	$5E	;5E
-	dc.b	$5F	;5F
-	dc.b	$60	;60
-	dc.b	$5D	;5D
-	dc.b	$5C	;5C
-	dc.b	$5C	;5C
-	dc.b	$5C	;5C
-	dc.b	$5D	;5D
-	dc.b	$5D	;5D
-	dc.b	$5C	;5C
-	dc.b	$50	;50
-	dc.b	$42	;42
-	dc.b	$3F	;3F
-	dc.b	$42	;42
-	dc.b	$3B	;3B
-	dc.b	$34	;34
-	dc.b	$32	;32
-	dc.b	$31	;31
-	dc.b	$2E	;2E
-	dc.b	$22	;22
-	dc.b	$14	;14
-	dc.b	$0B	;0B
-	dc.b	$0A	;0A
-	dc.b	$00	;00
-	dc.b	$F0	;F0
-	dc.b	$EA	;EA
-	dc.b	$EB	;EB
-	dc.b	$E8	;E8
-	dc.b	$E0	;E0
-	dc.b	$D4	;D4
-	dc.b	$D5	;D5
-	dc.b	$DF	;DF
-	dc.b	$E9	;E9
+	INCBIN bw-sfx/sample3.sound
+
 AudioSample_4:
-	dc.b	'FORM'	;464F524D
-	dc.b	$00	;00
-	dc.b	$00	;00
-	dc.b	$17	;17
-	dc.b	$AE	;AE
-	dc.b	'8SVXVHDR'	;3853565856484452
-	dc.b	$00	;00
-	dc.b	$00	;00
-	dc.b	$00	;00
-	dc.b	$14	;14
-	dc.b	$00	;00
-	dc.b	$00	;00
-	dc.b	$17	;17
-	dc.b	$86	;86
-	dc.b	$00	;00
-	dc.b	$00	;00
-	dc.b	$00	;00
-	dc.b	$00	;00
-	dc.b	$00	;00
-	dc.b	$00	;00
-	dc.b	$00	;00
-	dc.b	$00	;00
-	dc.b	$20	;20
-	dc.b	$AB	;AB
-	dc.b	$01	;01
-	dc.b	$00	;00
-	dc.b	$00	;00
-	dc.b	$01	;01
-	dc.b	$00	;00
-	dc.b	$00	;00
-	dc.b	'BODY'	;424F4459
-	dc.b	$00	;00
-	dc.b	$00	;00
-	dc.b	$17	;17
-	dc.b	$86	;86
-	dc.b	$00	;00
-	dc.b	$00	;00
-	dc.b	$00	;00
-	dc.b	$00	;00
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$C4	;C4
-	dc.b	$2C	;2C
-	dc.b	$60	;60
-	dc.b	$62	;62
-	dc.b	$64	;64
-	dc.b	$66	;66
-	dc.b	$63	;63
-	dc.b	$64	;64
-	dc.b	$65	;65
-	dc.b	$62	;62
-	dc.b	$63	;63
-	dc.b	$64	;64
-	dc.b	$64	;64
-	dc.b	$63	;63
-	dc.b	$64	;64
-	dc.b	$64	;64
-	dc.b	$63	;63
-	dc.b	$64	;64
-	dc.b	$66	;66
-	dc.b	$63	;63
-	dc.b	$64	;64
-	dc.b	$65	;65
-	dc.b	$62	;62
-	dc.b	$64	;64
-	dc.b	$65	;65
-	dc.b	$62	;62
-	dc.b	$62	;62
-	dc.b	$63	;63
-	dc.b	$61	;61
-	dc.b	$55	;55
-	dc.b	$AD	;AD
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$B4	;B4
-	dc.b	$E4	;E4
-	dc.b	$24	;24
-	dc.b	$38	;38
-	dc.b	$60	;60
-	dc.b	$64	;64
-	dc.b	$64	;64
-	dc.b	$66	;66
-	dc.b	$63	;63
-	dc.b	$63	;63
-	dc.b	$65	;65
-	dc.b	$63	;63
-	dc.b	$62	;62
-	dc.b	$64	;64
-	dc.b	$65	;65
-	dc.b	$62	;62
-	dc.b	$64	;64
-	dc.b	$65	;65
-	dc.b	$62	;62
-	dc.b	$64	;64
-	dc.b	$65	;65
-	dc.b	$62	;62
-	dc.b	$64	;64
-	dc.b	$65	;65
-	dc.b	$62	;62
-	dc.b	$63	;63
-	dc.b	$64	;64
-	dc.b	$64	;64
-	dc.b	$63	;63
-	dc.b	$64	;64
-	dc.b	$65	;65
-	dc.b	$62	;62
-	dc.b	$64	;64
-	dc.b	$64	;64
-	dc.b	$62	;62
-	dc.b	$60	;60
-	dc.b	$63	;63
-	dc.b	$5D	;5D
-	dc.b	$35	;35
-	dc.b	$25	;25
-	dc.b	$07	;07
-	dc.b	$D1	;D1
-	dc.b	$A5	;A5
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$8A	;8A
-	dc.b	$C4	;C4
-	dc.b	$E4	;E4
-	dc.b	$EF	;EF
-	dc.b	$D1	;D1
-	dc.b	$A5	;A5
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$93	;93
-	dc.b	$92	;92
-	dc.b	$9C	;9C
-	dc.b	$BC	;BC
-	dc.b	$E0	;E0
-	dc.b	$1C	;1C
-	dc.b	$28	;28
-	dc.b	$3E	;3E
-	dc.b	$61	;61
-	dc.b	$65	;65
-	dc.b	$63	;63
-	dc.b	$62	;62
-	dc.b	$65	;65
-	dc.b	$63	;63
-	dc.b	$62	;62
-	dc.b	$64	;64
-	dc.b	$65	;65
-	dc.b	$62	;62
-	dc.b	$64	;64
-	dc.b	$65	;65
-	dc.b	$62	;62
-	dc.b	$64	;64
-	dc.b	$64	;64
-	dc.b	$64	;64
-	dc.b	$63	;63
-	dc.b	$64	;64
-	dc.b	$64	;64
-	dc.b	$63	;63
-	dc.b	$64	;64
-	dc.b	$65	;65
-	dc.b	$62	;62
-	dc.b	$64	;64
-	dc.b	$65	;65
-	dc.b	$62	;62
-	dc.b	$64	;64
-	dc.b	$65	;65
-	dc.b	$62	;62
-	dc.b	$63	;63
-	dc.b	$63	;63
-	dc.b	$61	;61
-	dc.b	$5D	;5D
-	dc.b	$E5	;E5
-	dc.b	$A5	;A5
-	dc.b	$9F	;9F
-	dc.b	$AA	;AA
-	dc.b	$9B	;9B
-	dc.b	$86	;86
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$A4	;A4
-	dc.b	$E4	;E4
-	dc.b	$2C	;2C
-	dc.b	$63	;63
-	dc.b	$64	;64
-	dc.b	$63	;63
-	dc.b	$63	;63
-	dc.b	$65	;65
-	dc.b	$62	;62
-	dc.b	$63	;63
-	dc.b	$64	;64
-	dc.b	$65	;65
-	dc.b	$62	;62
-	dc.b	$64	;64
-	dc.b	$65	;65
-	dc.b	$62	;62
-	dc.b	$63	;63
-	dc.b	$65	;65
-	dc.b	$62	;62
-	dc.b	$64	;64
-	dc.b	$65	;65
-	dc.b	$62	;62
-	dc.b	$63	;63
-	dc.b	$64	;64
-	dc.b	$64	;64
-	dc.b	$63	;63
-	dc.b	$64	;64
-	dc.b	$66	;66
-	dc.b	$63	;63
-	dc.b	$5F	;5F
-	dc.b	$45	;45
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$D0	;D0
-	dc.b	$44	;44
-	dc.b	$62	;62
-	dc.b	$64	;64
-	dc.b	$63	;63
-	dc.b	$64	;64
-	dc.b	$65	;65
-	dc.b	$62	;62
-	dc.b	$63	;63
-	dc.b	$64	;64
-	dc.b	$64	;64
-	dc.b	$63	;63
-	dc.b	$64	;64
-	dc.b	$66	;66
-	dc.b	$63	;63
-	dc.b	$64	;64
-	dc.b	$65	;65
-	dc.b	$62	;62
-	dc.b	$64	;64
-	dc.b	$64	;64
-	dc.b	$63	;63
-	dc.b	$62	;62
-	dc.b	$64	;64
-	dc.b	$64	;64
-	dc.b	$64	;64
-	dc.b	$65	;65
-	dc.b	$63	;63
-	dc.b	$62	;62
-	dc.b	$64	;64
-	dc.b	$66	;66
-	dc.b	$63	;63
-	dc.b	$64	;64
-	dc.b	$66	;66
-	dc.b	$63	;63
-	dc.b	$64	;64
-	dc.b	$65	;65
-	dc.b	$63	;63
-	dc.b	$63	;63
-	dc.b	$64	;64
-	dc.b	$64	;64
-	dc.b	$64	;64
-	dc.b	$65	;65
-	dc.b	$64	;64
-	dc.b	$63	;63
-	dc.b	$64	;64
-	dc.b	$66	;66
-	dc.b	$63	;63
-	dc.b	$64	;64
-	dc.b	$66	;66
-	dc.b	$63	;63
-	dc.b	$64	;64
-	dc.b	$65	;65
-	dc.b	$63	;63
-	dc.b	$63	;63
-	dc.b	$64	;64
-	dc.b	$64	;64
-	dc.b	$64	;64
-	dc.b	$65	;65
-	dc.b	$65	;65
-	dc.b	$62	;62
-	dc.b	$64	;64
-	dc.b	$62	;62
-	dc.b	$45	;45
-	dc.b	$A5	;A5
-	dc.b	$86	;86
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$A4	;A4
-	dc.b	$04	;04
-	dc.b	$5C	;5C
-	dc.b	$64	;64
-	dc.b	$63	;63
-	dc.b	$63	;63
-	dc.b	$65	;65
-	dc.b	$62	;62
-	dc.b	$63	;63
-	dc.b	$64	;64
-	dc.b	$65	;65
-	dc.b	$62	;62
-	dc.b	$64	;64
-	dc.b	$65	;65
-	dc.b	$62	;62
-	dc.b	$64	;64
-	dc.b	$65	;65
-	dc.b	$62	;62
-	dc.b	$64	;64
-	dc.b	$65	;65
-	dc.b	$62	;62
-	dc.b	$63	;63
-	dc.b	$64	;64
-	dc.b	$64	;64
-	dc.b	$64	;64
-	dc.b	$64	;64
-	dc.b	$65	;65
-	dc.b	$62	;62
-	dc.b	$64	;64
-	dc.b	$66	;66
-	dc.b	$63	;63
-	dc.b	$64	;64
-	dc.b	$65	;65
-	dc.b	$63	;63
-	dc.b	$64	;64
-	dc.b	$64	;64
-	dc.b	$63	;63
-	dc.b	$62	;62
-	dc.b	$62	;62
-	dc.b	$61	;61
-	dc.b	$2D	;2D
-	dc.b	$19	;19
-	dc.b	$FD	;FD
-	dc.b	$EB	;EB
-	dc.b	$DD	;DD
-	dc.b	$D3	;D3
-	dc.b	$BD	;BD
-	dc.b	$9D	;9D
-	dc.b	$8B	;8B
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$8A	;8A
-	dc.b	$A4	;A4
-	dc.b	$C2	;C2
-	dc.b	$C7	;C7
-	dc.b	$B5	;B5
-	dc.b	$91	;91
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$B4	;B4
-	dc.b	$F0	;F0
-	dc.b	$24	;24
-	dc.b	$3A	;3A
-	dc.b	$5F	;5F
-	dc.b	$63	;63
-	dc.b	$64	;64
-	dc.b	$65	;65
-	dc.b	$62	;62
-	dc.b	$64	;64
-	dc.b	$65	;65
-	dc.b	$62	;62
-	dc.b	$63	;63
-	dc.b	$65	;65
-	dc.b	$62	;62
-	dc.b	$63	;63
-	dc.b	$64	;64
-	dc.b	$64	;64
-	dc.b	$63	;63
-	dc.b	$64	;64
-	dc.b	$66	;66
-	dc.b	$63	;63
-	dc.b	$64	;64
-	dc.b	$64	;64
-	dc.b	$63	;63
-	dc.b	$63	;63
-	dc.b	$64	;64
-	dc.b	$64	;64
-	dc.b	$63	;63
-	dc.b	$64	;64
-	dc.b	$64	;64
-	dc.b	$63	;63
-	dc.b	$64	;64
-	dc.b	$65	;65
-	dc.b	$62	;62
-	dc.b	$64	;64
-	dc.b	$64	;64
-	dc.b	$5F	;5F
-	dc.b	$4D	;4D
-	dc.b	$D5	;D5
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$E4	;E4
-	dc.b	$2C	;2C
-	dc.b	$44	;44
-	dc.b	$62	;62
-	dc.b	$63	;63
-	dc.b	$63	;63
-	dc.b	$63	;63
-	dc.b	$65	;65
-	dc.b	$63	;63
-	dc.b	$62	;62
-	dc.b	$65	;65
-	dc.b	$63	;63
-	dc.b	$62	;62
-	dc.b	$64	;64
-	dc.b	$66	;66
-	dc.b	$63	;63
-	dc.b	$64	;64
-	dc.b	$65	;65
-	dc.b	$62	;62
-	dc.b	$64	;64
-	dc.b	$65	;65
-	dc.b	$62	;62
-	dc.b	$63	;63
-	dc.b	$64	;64
-	dc.b	$64	;64
-	dc.b	$63	;63
-	dc.b	$64	;64
-	dc.b	$65	;65
-	dc.b	$62	;62
-	dc.b	$64	;64
-	dc.b	$65	;65
-	dc.b	$62	;62
-	dc.b	$61	;61
-	dc.b	$5F	;5F
-	dc.b	$0D	;0D
-	dc.b	$DE	;DE
-	dc.b	$CD	;CD
-	dc.b	$95	;95
-	dc.b	$88	;88
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$C4	;C4
-	dc.b	$EC	;EC
-	dc.b	$24	;24
-	dc.b	$5C	;5C
-	dc.b	$63	;63
-	dc.b	$61	;61
-	dc.b	$55	;55
-	dc.b	$15	;15
-	dc.b	$F1	;F1
-	dc.b	$BD	;BD
-	dc.b	$BA	;BA
-	dc.b	$C9	;C9
-	dc.b	$B2	;B2
-	dc.b	$CC	;CC
-	dc.b	$DC	;DC
-	dc.b	$EB	;EB
-	dc.b	$FC	;FC
-	dc.b	$24	;24
-	dc.b	$44	;44
-	dc.b	$66	;66
-	dc.b	$64	;64
-	dc.b	$64	;64
-	dc.b	$66	;66
-	dc.b	$64	;64
-	dc.b	$63	;63
-	dc.b	$65	;65
-	dc.b	$63	;63
-	dc.b	$63	;63
-	dc.b	$63	;63
-	dc.b	$5F	;5F
-	dc.b	$E5	;E5
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$87	;87
-	dc.b	$9C	;9C
-	dc.b	$BC	;BC
-	dc.b	$DA	;DA
-	dc.b	$EA	;EA
-	dc.b	$FA	;FA
-	dc.b	$FD	;FD
-	dc.b	$0C	;0C
-	dc.b	$1C	;1C
-	dc.b	$2C	;2C
-	dc.b	$27	;27
-	dc.b	$F9	;F9
-	dc.b	$CF	;CF
-	dc.b	$AD	;AD
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$8C	;8C
-	dc.b	$EC	;EC
-	dc.b	$30	;30
-	dc.b	$60	;60
-	dc.b	$64	;64
-	dc.b	$65	;65
-	dc.b	$62	;62
-	dc.b	$63	;63
-	dc.b	$65	;65
-	dc.b	$62	;62
-	dc.b	$63	;63
-	dc.b	$65	;65
-	dc.b	$63	;63
-	dc.b	$62	;62
-	dc.b	$62	;62
-	dc.b	$61	;61
-	dc.b	$45	;45
-	dc.b	$C5	;C5
-	dc.b	$99	;99
-	dc.b	$A7	;A7
-	dc.b	$A4	;A4
-	dc.b	$D0	;D0
-	dc.b	$18	;18
-	dc.b	$5C	;5C
-	dc.b	$62	;62
-	dc.b	$37	;37
-	dc.b	$1E	;1E
-	dc.b	$19	;19
-	dc.b	$34	;34
-	dc.b	$64	;64
-	dc.b	$65	;65
-	dc.b	$64	;64
-	dc.b	$63	;63
-	dc.b	$64	;64
-	dc.b	$66	;66
-	dc.b	$63	;63
-	dc.b	$64	;64
-	dc.b	$65	;65
-	dc.b	$63	;63
-	dc.b	$63	;63
-	dc.b	$64	;64
-	dc.b	$64	;64
-	dc.b	$63	;63
-	dc.b	$64	;64
-	dc.b	$66	;66
-	dc.b	$63	;63
-	dc.b	$64	;64
-	dc.b	$65	;65
-	dc.b	$62	;62
-	dc.b	$64	;64
-	dc.b	$65	;65
-	dc.b	$63	;63
-	dc.b	$62	;62
-	dc.b	$64	;64
-	dc.b	$64	;64
-	dc.b	$5F	;5F
-	dc.b	$49	;49
-	dc.b	$D1	;D1
-	dc.b	$9D	;9D
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$C4	;C4
-	dc.b	$04	;04
-	dc.b	$50	;50
-	dc.b	$62	;62
-	dc.b	$64	;64
-	dc.b	$64	;64
-	dc.b	$63	;63
-	dc.b	$64	;64
-	dc.b	$65	;65
-	dc.b	$62	;62
-	dc.b	$64	;64
-	dc.b	$65	;65
-	dc.b	$62	;62
-	dc.b	$64	;64
-	dc.b	$65	;65
-	dc.b	$62	;62
-	dc.b	$64	;64
-	dc.b	$65	;65
-	dc.b	$62	;62
-	dc.b	$63	;63
-	dc.b	$64	;64
-	dc.b	$64	;64
-	dc.b	$63	;63
-	dc.b	$64	;64
-	dc.b	$61	;61
-	dc.b	$35	;35
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$A0	;A0
-	dc.b	$34	;34
-	dc.b	$62	;62
-	dc.b	$64	;64
-	dc.b	$64	;64
-	dc.b	$61	;61
-	dc.b	$64	;64
-	dc.b	$65	;65
-	dc.b	$62	;62
-	dc.b	$64	;64
-	dc.b	$66	;66
-	dc.b	$63	;63
-	dc.b	$64	;64
-	dc.b	$65	;65
-	dc.b	$62	;62
-	dc.b	$64	;64
-	dc.b	$65	;65
-	dc.b	$63	;63
-	dc.b	$63	;63
-	dc.b	$64	;64
-	dc.b	$64	;64
-	dc.b	$64	;64
-	dc.b	$64	;64
-	dc.b	$65	;65
-	dc.b	$63	;63
-	dc.b	$64	;64
-	dc.b	$65	;65
-	dc.b	$62	;62
-	dc.b	$64	;64
-	dc.b	$65	;65
-	dc.b	$62	;62
-	dc.b	$61	;61
-	dc.b	$61	;61
-	dc.b	$55	;55
-	dc.b	$E5	;E5
-	dc.b	$9F	;9F
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$86	;86
-	dc.b	$BF	;BF
-	dc.b	$D8	;D8
-	dc.b	$D8	;D8
-	dc.b	$D7	;D7
-	dc.b	$D9	;D9
-	dc.b	$BD	;BD
-	dc.b	$DC	;DC
-	dc.b	$0A	;0A
-	dc.b	$10	;10
-	dc.b	$19	;19
-	dc.b	$10	;10
-	dc.b	$13	;13
-	dc.b	$05	;05
-	dc.b	$24	;24
-	dc.b	$5E	;5E
-	dc.b	$60	;60
-	dc.b	$4C	;4C
-	dc.b	$62	;62
-	dc.b	$62	;62
-	dc.b	$60	;60
-	dc.b	$65	;65
-	dc.b	$62	;62
-	dc.b	$64	;64
-	dc.b	$65	;65
-	dc.b	$62	;62
-	dc.b	$64	;64
-	dc.b	$65	;65
-	dc.b	$62	;62
-	dc.b	$5F	;5F
-	dc.b	$5D	;5D
-	dc.b	$2A	;2A
-	dc.b	$62	;62
-	dc.b	$65	;65
-	dc.b	$63	;63
-	dc.b	$62	;62
-	dc.b	$64	;64
-	dc.b	$65	;65
-	dc.b	$62	;62
-	dc.b	$64	;64
-	dc.b	$65	;65
-	dc.b	$62	;62
-	dc.b	$64	;64
-	dc.b	$65	;65
-	dc.b	$62	;62
-	dc.b	$64	;64
-	dc.b	$65	;65
-	dc.b	$62	;62
-	dc.b	$63	;63
-	dc.b	$64	;64
-	dc.b	$64	;64
-	dc.b	$63	;63
-	dc.b	$64	;64
-	dc.b	$66	;66
-	dc.b	$63	;63
-	dc.b	$64	;64
-	dc.b	$65	;65
-	dc.b	$62	;62
-	dc.b	$64	;64
-	dc.b	$65	;65
-	dc.b	$62	;62
-	dc.b	$63	;63
-	dc.b	$64	;64
-	dc.b	$64	;64
-	dc.b	$64	;64
-	dc.b	$65	;65
-	dc.b	$64	;64
-	dc.b	$63	;63
-	dc.b	$63	;63
-	dc.b	$62	;62
-	dc.b	$5E	;5E
-	dc.b	$25	;25
-	dc.b	$B5	;B5
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$8C	;8C
-	dc.b	$C4	;C4
-	dc.b	$24	;24
-	dc.b	$61	;61
-	dc.b	$64	;64
-	dc.b	$65	;65
-	dc.b	$62	;62
-	dc.b	$64	;64
-	dc.b	$65	;65
-	dc.b	$62	;62
-	dc.b	$64	;64
-	dc.b	$65	;65
-	dc.b	$62	;62
-	dc.b	$63	;63
-	dc.b	$64	;64
-	dc.b	$64	;64
-	dc.b	$63	;63
-	dc.b	$64	;64
-	dc.b	$64	;64
-	dc.b	$62	;62
-	dc.b	$60	;60
-	dc.b	$61	;61
-	dc.b	$25	;25
-	dc.b	$20	;20
-	dc.b	$38	;38
-	dc.b	$5E	;5E
-	dc.b	$64	;64
-	dc.b	$65	;65
-	dc.b	$62	;62
-	dc.b	$60	;60
-	dc.b	$62	;62
-	dc.b	$57	;57
-	dc.b	$55	;55
-	dc.b	$55	;55
-	dc.b	$5B	;5B
-	dc.b	$62	;62
-	dc.b	$64	;64
-	dc.b	$65	;65
-	dc.b	$62	;62
-	dc.b	$63	;63
-	dc.b	$64	;64
-	dc.b	$63	;63
-	dc.b	$63	;63
-	dc.b	$64	;64
-	dc.b	$64	;64
-	dc.b	$63	;63
-	dc.b	$64	;64
-	dc.b	$65	;65
-	dc.b	$62	;62
-	dc.b	$64	;64
-	dc.b	$65	;65
-	dc.b	$62	;62
-	dc.b	$63	;63
-	dc.b	$64	;64
-	dc.b	$63	;63
-	dc.b	$62	;62
-	dc.b	$64	;64
-	dc.b	$64	;64
-	dc.b	$62	;62
-	dc.b	$62	;62
-	dc.b	$5F	;5F
-	dc.b	$38	;38
-	dc.b	$19	;19
-	dc.b	$E7	;E7
-	dc.b	$E4	;E4
-	dc.b	$DD	;DD
-	dc.b	$DB	;DB
-	dc.b	$F2	;F2
-	dc.b	$04	;04
-	dc.b	$24	;24
-	dc.b	$54	;54
-	dc.b	$64	;64
-	dc.b	$65	;65
-	dc.b	$61	;61
-	dc.b	$5D	;5D
-	dc.b	$ED	;ED
-	dc.b	$A7	;A7
-	dc.b	$8E	;8E
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$97	;97
-	dc.b	$93	;93
-	dc.b	$D8	;D8
-	dc.b	$E2	;E2
-	dc.b	$EC	;EC
-	dc.b	$14	;14
-	dc.b	$2C	;2C
-	dc.b	$4C	;4C
-	dc.b	$64	;64
-	dc.b	$64	;64
-	dc.b	$66	;66
-	dc.b	$63	;63
-	dc.b	$64	;64
-	dc.b	$65	;65
-	dc.b	$62	;62
-	dc.b	$63	;63
-	dc.b	$65	;65
-	dc.b	$62	;62
-	dc.b	$63	;63
-	dc.b	$64	;64
-	dc.b	$65	;65
-	dc.b	$62	;62
-	dc.b	$64	;64
-	dc.b	$65	;65
-	dc.b	$62	;62
-	dc.b	$64	;64
-	dc.b	$65	;65
-	dc.b	$62	;62
-	dc.b	$64	;64
-	dc.b	$65	;65
-	dc.b	$62	;62
-	dc.b	$63	;63
-	dc.b	$64	;64
-	dc.b	$64	;64
-	dc.b	$63	;63
-	dc.b	$64	;64
-	dc.b	$65	;65
-	dc.b	$62	;62
-	dc.b	$64	;64
-	dc.b	$65	;65
-	dc.b	$62	;62
-	dc.b	$64	;64
-	dc.b	$65	;65
-	dc.b	$62	;62
-	dc.b	$64	;64
-	dc.b	$65	;65
-	dc.b	$63	;63
-	dc.b	$63	;63
-	dc.b	$64	;64
-	dc.b	$64	;64
-	dc.b	$63	;63
-	dc.b	$62	;62
-	dc.b	$62	;62
-	dc.b	$61	;61
-	dc.b	$4D	;4D
-	dc.b	$09	;09
-	dc.b	$E5	;E5
-	dc.b	$C5	;C5
-	dc.b	$9D	;9D
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$88	;88
-	dc.b	$98	;98
-	dc.b	$C2	;C2
-	dc.b	$E4	;E4
-	dc.b	$F4	;F4
-	dc.b	$0C	;0C
-	dc.b	$44	;44
-	dc.b	$65	;65
-	dc.b	$62	;62
-	dc.b	$63	;63
-	dc.b	$65	;65
-	dc.b	$63	;63
-	dc.b	$62	;62
-	dc.b	$64	;64
-	dc.b	$66	;66
-	dc.b	$63	;63
-	dc.b	$64	;64
-	dc.b	$65	;65
-	dc.b	$62	;62
-	dc.b	$64	;64
-	dc.b	$65	;65
-	dc.b	$62	;62
-	dc.b	$63	;63
-	dc.b	$64	;64
-	dc.b	$64	;64
-	dc.b	$63	;63
-	dc.b	$64	;64
-	dc.b	$64	;64
-	dc.b	$63	;63
-	dc.b	$64	;64
-	dc.b	$66	;66
-	dc.b	$63	;63
-	dc.b	$64	;64
-	dc.b	$65	;65
-	dc.b	$62	;62
-	dc.b	$61	;61
-	dc.b	$60	;60
-	dc.b	$45	;45
-	dc.b	$B5	;B5
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$E0	;E0
-	dc.b	$4C	;4C
-	dc.b	$64	;64
-	dc.b	$63	;63
-	dc.b	$63	;63
-	dc.b	$64	;64
-	dc.b	$66	;66
-	dc.b	$63	;63
-	dc.b	$64	;64
-	dc.b	$65	;65
-	dc.b	$62	;62
-	dc.b	$64	;64
-	dc.b	$65	;65
-	dc.b	$62	;62
-	dc.b	$63	;63
-	dc.b	$64	;64
-	dc.b	$64	;64
-	dc.b	$63	;63
-	dc.b	$64	;64
-	dc.b	$65	;65
-	dc.b	$62	;62
-	dc.b	$64	;64
-	dc.b	$65	;65
-	dc.b	$62	;62
-	dc.b	$64	;64
-	dc.b	$65	;65
-	dc.b	$62	;62
-	dc.b	$64	;64
-	dc.b	$65	;65
-	dc.b	$62	;62
-	dc.b	$63	;63
-	dc.b	$64	;64
-	dc.b	$64	;64
-	dc.b	$64	;64
-	dc.b	$64	;64
-	dc.b	$65	;65
-	dc.b	$62	;62
-	dc.b	$62	;62
-	dc.b	$64	;64
-	dc.b	$62	;62
-	dc.b	$62	;62
-	dc.b	$66	;66
-	dc.b	$63	;63
-	dc.b	$62	;62
-	dc.b	$65	;65
-	dc.b	$63	;63
-	dc.b	$63	;63
-	dc.b	$64	;64
-	dc.b	$64	;64
-	dc.b	$63	;63
-	dc.b	$64	;64
-	dc.b	$65	;65
-	dc.b	$62	;62
-	dc.b	$64	;64
-	dc.b	$66	;66
-	dc.b	$63	;63
-	dc.b	$63	;63
-	dc.b	$65	;65
-	dc.b	$63	;63
-	dc.b	$63	;63
-	dc.b	$64	;64
-	dc.b	$64	;64
-	dc.b	$64	;64
-	dc.b	$64	;64
-	dc.b	$64	;64
-	dc.b	$64	;64
-	dc.b	$64	;64
-	dc.b	$66	;66
-	dc.b	$63	;63
-	dc.b	$64	;64
-	dc.b	$65	;65
-	dc.b	$62	;62
-	dc.b	$64	;64
-	dc.b	$66	;66
-	dc.b	$64	;64
-	dc.b	$64	;64
-	dc.b	$63	;63
-	dc.b	$5F	;5F
-	dc.b	$25	;25
-	dc.b	$E9	;E9
-	dc.b	$A5	;A5
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$9C	;9C
-	dc.b	$D4	;D4
-	dc.b	$F2	;F2
-	dc.b	$34	;34
-	dc.b	$5C	;5C
-	dc.b	$64	;64
-	dc.b	$66	;66
-	dc.b	$63	;63
-	dc.b	$64	;64
-	dc.b	$65	;65
-	dc.b	$62	;62
-	dc.b	$63	;63
-	dc.b	$65	;65
-	dc.b	$62	;62
-	dc.b	$63	;63
-	dc.b	$64	;64
-	dc.b	$64	;64
-	dc.b	$63	;63
-	dc.b	$64	;64
-	dc.b	$66	;66
-	dc.b	$63	;63
-	dc.b	$64	;64
-	dc.b	$65	;65
-	dc.b	$62	;62
-	dc.b	$62	;62
-	dc.b	$64	;64
-	dc.b	$64	;64
-	dc.b	$63	;63
-	dc.b	$64	;64
-	dc.b	$62	;62
-	dc.b	$60	;60
-	dc.b	$5D	;5D
-	dc.b	$35	;35
-	dc.b	$0D	;0D
-	dc.b	$F4	;F4
-	dc.b	$F1	;F1
-	dc.b	$C5	;C5
-	dc.b	$C4	;C4
-	dc.b	$BF	;BF
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$BC	;BC
-	dc.b	$34	;34
-	dc.b	$63	;63
-	dc.b	$64	;64
-	dc.b	$63	;63
-	dc.b	$64	;64
-	dc.b	$66	;66
-	dc.b	$63	;63
-	dc.b	$64	;64
-	dc.b	$65	;65
-	dc.b	$62	;62
-	dc.b	$63	;63
-	dc.b	$64	;64
-	dc.b	$64	;64
-	dc.b	$63	;63
-	dc.b	$64	;64
-	dc.b	$64	;64
-	dc.b	$63	;63
-	dc.b	$64	;64
-	dc.b	$66	;66
-	dc.b	$63	;63
-	dc.b	$64	;64
-	dc.b	$65	;65
-	dc.b	$62	;62
-	dc.b	$64	;64
-	dc.b	$65	;65
-	dc.b	$62	;62
-	dc.b	$63	;63
-	dc.b	$64	;64
-	dc.b	$64	;64
-	dc.b	$64	;64
-	dc.b	$65	;65
-	dc.b	$64	;64
-	dc.b	$63	;63
-	dc.b	$64	;64
-	dc.b	$66	;66
-	dc.b	$63	;63
-	dc.b	$64	;64
-	dc.b	$65	;65
-	dc.b	$62	;62
-	dc.b	$64	;64
-	dc.b	$65	;65
-	dc.b	$63	;63
-	dc.b	$63	;63
-	dc.b	$64	;64
-	dc.b	$64	;64
-	dc.b	$63	;63
-	dc.b	$62	;62
-	dc.b	$65	;65
-	dc.b	$62	;62
-	dc.b	$62	;62
-	dc.b	$62	;62
-	dc.b	$5D	;5D
-	dc.b	$45	;45
-	dc.b	$26	;26
-	dc.b	$28	;28
-	dc.b	$38	;38
-	dc.b	$44	;44
-	dc.b	$3A	;3A
-	dc.b	$44	;44
-	dc.b	$60	;60
-	dc.b	$54	;54
-	dc.b	$60	;60
-	dc.b	$66	;66
-	dc.b	$66	;66
-	dc.b	$63	;63
-	dc.b	$64	;64
-	dc.b	$65	;65
-	dc.b	$5D	;5D
-	dc.b	$05	;05
-	dc.b	$E4	;E4
-	dc.b	$D5	;D5
-	dc.b	$9D	;9D
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$AC	;AC
-	dc.b	$DC	;DC
-	dc.b	$14	;14
-	dc.b	$38	;38
-	dc.b	$53	;53
-	dc.b	$49	;49
-	dc.b	$25	;25
-	dc.b	$E7	;E7
-	dc.b	$BD	;BD
-	dc.b	$A4	;A4
-	dc.b	$DC	;DC
-	dc.b	$00	;00
-	dc.b	$E9	;E9
-	dc.b	$BD	;BD
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$A0	;A0
-	dc.b	$FC	;FC
-	dc.b	$3C	;3C
-	dc.b	$40	;40
-	dc.b	$4C	;4C
-	dc.b	$65	;65
-	dc.b	$62	;62
-	dc.b	$61	;61
-	dc.b	$63	;63
-	dc.b	$5F	;5F
-	dc.b	$19	;19
-	dc.b	$44	;44
-	dc.b	$63	;63
-	dc.b	$62	;62
-	dc.b	$64	;64
-	dc.b	$65	;65
-	dc.b	$61	;61
-	dc.b	$62	;62
-	dc.b	$64	;64
-	dc.b	$62	;62
-	dc.b	$60	;60
-	dc.b	$61	;61
-	dc.b	$37	;37
-	dc.b	$27	;27
-	dc.b	$D5	;D5
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$86	;86
-	dc.b	$C4	;C4
-	dc.b	$0C	;0C
-	dc.b	$24	;24
-	dc.b	$54	;54
-	dc.b	$65	;65
-	dc.b	$61	;61
-	dc.b	$63	;63
-	dc.b	$65	;65
-	dc.b	$61	;61
-	dc.b	$63	;63
-	dc.b	$64	;64
-	dc.b	$63	;63
-	dc.b	$63	;63
-	dc.b	$64	;64
-	dc.b	$63	;63
-	dc.b	$63	;63
-	dc.b	$64	;64
-	dc.b	$65	;65
-	dc.b	$62	;62
-	dc.b	$64	;64
-	dc.b	$65	;65
-	dc.b	$62	;62
-	dc.b	$63	;63
-	dc.b	$65	;65
-	dc.b	$62	;62
-	dc.b	$64	;64
-	dc.b	$64	;64
-	dc.b	$63	;63
-	dc.b	$63	;63
-	dc.b	$64	;64
-	dc.b	$64	;64
-	dc.b	$63	;63
-	dc.b	$64	;64
-	dc.b	$65	;65
-	dc.b	$62	;62
-	dc.b	$64	;64
-	dc.b	$65	;65
-	dc.b	$62	;62
-	dc.b	$64	;64
-	dc.b	$65	;65
-	dc.b	$62	;62
-	dc.b	$64	;64
-	dc.b	$65	;65
-	dc.b	$62	;62
-	dc.b	$63	;63
-	dc.b	$64	;64
-	dc.b	$64	;64
-	dc.b	$63	;63
-	dc.b	$60	;60
-	dc.b	$45	;45
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$9C	;9C
-	dc.b	$E4	;E4
-	dc.b	$50	;50
-	dc.b	$63	;63
-	dc.b	$65	;65
-	dc.b	$61	;61
-	dc.b	$63	;63
-	dc.b	$64	;64
-	dc.b	$63	;63
-	dc.b	$63	;63
-	dc.b	$64	;64
-	dc.b	$63	;63
-	dc.b	$63	;63
-	dc.b	$64	;64
-	dc.b	$64	;64
-	dc.b	$63	;63
-	dc.b	$64	;64
-	dc.b	$65	;65
-	dc.b	$62	;62
-	dc.b	$63	;63
-	dc.b	$65	;65
-	dc.b	$62	;62
-	dc.b	$64	;64
-	dc.b	$65	;65
-	dc.b	$62	;62
-	dc.b	$63	;63
-	dc.b	$64	;64
-	dc.b	$64	;64
-	dc.b	$63	;63
-	dc.b	$64	;64
-	dc.b	$64	;64
-	dc.b	$63	;63
-	dc.b	$64	;64
-	dc.b	$66	;66
-	dc.b	$63	;63
-	dc.b	$64	;64
-	dc.b	$65	;65
-	dc.b	$62	;62
-	dc.b	$64	;64
-	dc.b	$65	;65
-	dc.b	$62	;62
-	dc.b	$63	;63
-	dc.b	$63	;63
-	dc.b	$60	;60
-	dc.b	$4D	;4D
-	dc.b	$D9	;D9
-	dc.b	$AD	;AD
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$B2	;B2
-	dc.b	$EC	;EC
-	dc.b	$32	;32
-	dc.b	$60	;60
-	dc.b	$66	;66
-	dc.b	$63	;63
-	dc.b	$64	;64
-	dc.b	$66	;66
-	dc.b	$63	;63
-	dc.b	$62	;62
-	dc.b	$62	;62
-	dc.b	$5F	;5F
-	dc.b	$F5	;F5
-	dc.b	$AD	;AD
-	dc.b	$95	;95
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$A4	;A4
-	dc.b	$04	;04
-	dc.b	$5C	;5C
-	dc.b	$63	;63
-	dc.b	$65	;65
-	dc.b	$61	;61
-	dc.b	$63	;63
-	dc.b	$64	;64
-	dc.b	$63	;63
-	dc.b	$63	;63
-	dc.b	$64	;64
-	dc.b	$64	;64
-	dc.b	$63	;63
-	dc.b	$64	;64
-	dc.b	$64	;64
-	dc.b	$63	;63
-	dc.b	$64	;64
-	dc.b	$66	;66
-	dc.b	$63	;63
-	dc.b	$64	;64
-	dc.b	$65	;65
-	dc.b	$62	;62
-	dc.b	$64	;64
-	dc.b	$65	;65
-	dc.b	$62	;62
-	dc.b	$63	;63
-	dc.b	$64	;64
-	dc.b	$64	;64
-	dc.b	$63	;63
-	dc.b	$64	;64
-	dc.b	$65	;65
-	dc.b	$62	;62
-	dc.b	$64	;64
-	dc.b	$66	;66
-	dc.b	$63	;63
-	dc.b	$64	;64
-	dc.b	$63	;63
-	dc.b	$5E	;5E
-	dc.b	$15	;15
-	dc.b	$99	;99
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$D4	;D4
-	dc.b	$14	;14
-	dc.b	$44	;44
-	dc.b	$63	;63
-	dc.b	$62	;62
-	dc.b	$63	;63
-	dc.b	$65	;65
-	dc.b	$62	;62
-	dc.b	$63	;63
-	dc.b	$64	;64
-	dc.b	$64	;64
-	dc.b	$63	;63
-	dc.b	$64	;64
-	dc.b	$66	;66
-	dc.b	$63	;63
-	dc.b	$64	;64
-	dc.b	$65	;65
-	dc.b	$62	;62
-	dc.b	$64	;64
-	dc.b	$65	;65
-	dc.b	$62	;62
-	dc.b	$63	;63
-	dc.b	$64	;64
-	dc.b	$64	;64
-	dc.b	$63	;63
-	dc.b	$64	;64
-	dc.b	$65	;65
-	dc.b	$62	;62
-	dc.b	$64	;64
-	dc.b	$65	;65
-	dc.b	$62	;62
-	dc.b	$63	;63
-	dc.b	$62	;62
-	dc.b	$5E	;5E
-	dc.b	$05	;05
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$A4	;A4
-	dc.b	$EC	;EC
-	dc.b	$44	;44
-	dc.b	$64	;64
-	dc.b	$63	;63
-	dc.b	$63	;63
-	dc.b	$65	;65
-	dc.b	$63	;63
-	dc.b	$63	;63
-	dc.b	$64	;64
-	dc.b	$65	;65
-	dc.b	$62	;62
-	dc.b	$64	;64
-	dc.b	$65	;65
-	dc.b	$62	;62
-	dc.b	$64	;64
-	dc.b	$65	;65
-	dc.b	$62	;62
-	dc.b	$64	;64
-	dc.b	$65	;65
-	dc.b	$63	;63
-	dc.b	$63	;63
-	dc.b	$63	;63
-	dc.b	$64	;64
-	dc.b	$63	;63
-	dc.b	$60	;60
-	dc.b	$4D	;4D
-	dc.b	$FB	;FB
-	dc.b	$CD	;CD
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$90	;90
-	dc.b	$A6	;A6
-	dc.b	$BC	;BC
-	dc.b	$02	;02
-	dc.b	$24	;24
-	dc.b	$58	;58
-	dc.b	$64	;64
-	dc.b	$64	;64
-	dc.b	$65	;65
-	dc.b	$63	;63
-	dc.b	$63	;63
-	dc.b	$64	;64
-	dc.b	$66	;66
-	dc.b	$63	;63
-	dc.b	$64	;64
-	dc.b	$65	;65
-	dc.b	$62	;62
-	dc.b	$64	;64
-	dc.b	$61	;61
-	dc.b	$45	;45
-	dc.b	$89	;89
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$88	;88
-	dc.b	$DC	;DC
-	dc.b	$44	;44
-	dc.b	$63	;63
-	dc.b	$62	;62
-	dc.b	$64	;64
-	dc.b	$66	;66
-	dc.b	$63	;63
-	dc.b	$64	;64
-	dc.b	$65	;65
-	dc.b	$62	;62
-	dc.b	$64	;64
-	dc.b	$65	;65
-	dc.b	$62	;62
-	dc.b	$63	;63
-	dc.b	$64	;64
-	dc.b	$64	;64
-	dc.b	$63	;63
-	dc.b	$64	;64
-	dc.b	$64	;64
-	dc.b	$63	;63
-	dc.b	$64	;64
-	dc.b	$66	;66
-	dc.b	$63	;63
-	dc.b	$64	;64
-	dc.b	$65	;65
-	dc.b	$62	;62
-	dc.b	$64	;64
-	dc.b	$65	;65
-	dc.b	$62	;62
-	dc.b	$63	;63
-	dc.b	$64	;64
-	dc.b	$63	;63
-	dc.b	$5F	;5F
-	dc.b	$51	;51
-	dc.b	$1B	;1B
-	dc.b	$32	;32
-	dc.b	$62	;62
-	dc.b	$66	;66
-	dc.b	$64	;64
-	dc.b	$64	;64
-	dc.b	$66	;66
-	dc.b	$64	;64
-	dc.b	$64	;64
-	dc.b	$66	;66
-	dc.b	$64	;64
-	dc.b	$64	;64
-	dc.b	$65	;65
-	dc.b	$63	;63
-	dc.b	$63	;63
-	dc.b	$64	;64
-	dc.b	$66	;66
-	dc.b	$63	;63
-	dc.b	$64	;64
-	dc.b	$66	;66
-	dc.b	$63	;63
-	dc.b	$64	;64
-	dc.b	$64	;64
-	dc.b	$64	;64
-	dc.b	$63	;63
-	dc.b	$62	;62
-	dc.b	$61	;61
-	dc.b	$5D	;5D
-	dc.b	$45	;45
-	dc.b	$11	;11
-	dc.b	$E5	;E5
-	dc.b	$C7	;C7
-	dc.b	$99	;99
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$BC	;BC
-	dc.b	$3C	;3C
-	dc.b	$63	;63
-	dc.b	$62	;62
-	dc.b	$64	;64
-	dc.b	$66	;66
-	dc.b	$63	;63
-	dc.b	$64	;64
-	dc.b	$65	;65
-	dc.b	$62	;62
-	dc.b	$64	;64
-	dc.b	$65	;65
-	dc.b	$62	;62
-	dc.b	$63	;63
-	dc.b	$64	;64
-	dc.b	$64	;64
-	dc.b	$63	;63
-	dc.b	$64	;64
-	dc.b	$65	;65
-	dc.b	$62	;62
-	dc.b	$64	;64
-	dc.b	$65	;65
-	dc.b	$62	;62
-	dc.b	$64	;64
-	dc.b	$65	;65
-	dc.b	$62	;62
-	dc.b	$64	;64
-	dc.b	$65	;65
-	dc.b	$63	;63
-	dc.b	$63	;63
-	dc.b	$64	;64
-	dc.b	$64	;64
-	dc.b	$60	;60
-	dc.b	$59	;59
-	dc.b	$C5	;C5
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$B4	;B4
-	dc.b	$FC	;FC
-	dc.b	$4C	;4C
-	dc.b	$63	;63
-	dc.b	$63	;63
-	dc.b	$64	;64
-	dc.b	$65	;65
-	dc.b	$62	;62
-	dc.b	$64	;64
-	dc.b	$66	;66
-	dc.b	$63	;63
-	dc.b	$64	;64
-	dc.b	$64	;64
-	dc.b	$63	;63
-	dc.b	$60	;60
-	dc.b	$62	;62
-	dc.b	$61	;61
-	dc.b	$3D	;3D
-	dc.b	$19	;19
-	dc.b	$0A	;0A
-	dc.b	$1C	;1C
-	dc.b	$37	;37
-	dc.b	$64	;64
-	dc.b	$64	;64
-	dc.b	$65	;65
-	dc.b	$64	;64
-	dc.b	$63	;63
-	dc.b	$64	;64
-	dc.b	$65	;65
-	dc.b	$62	;62
-	dc.b	$63	;63
-	dc.b	$65	;65
-	dc.b	$62	;62
-	dc.b	$63	;63
-	dc.b	$64	;64
-	dc.b	$64	;64
-	dc.b	$63	;63
-	dc.b	$65	;65
-	dc.b	$64	;64
-	dc.b	$63	;63
-	dc.b	$64	;64
-	dc.b	$65	;65
-	dc.b	$62	;62
-	dc.b	$64	;64
-	dc.b	$65	;65
-	dc.b	$63	;63
-	dc.b	$63	;63
-	dc.b	$64	;64
-	dc.b	$64	;64
-	dc.b	$63	;63
-	dc.b	$64	;64
-	dc.b	$65	;65
-	dc.b	$62	;62
-	dc.b	$64	;64
-	dc.b	$66	;66
-	dc.b	$63	;63
-	dc.b	$64	;64
-	dc.b	$65	;65
-	dc.b	$62	;62
-	dc.b	$62	;62
-	dc.b	$62	;62
-	dc.b	$62	;62
-	dc.b	$61	;61
-	dc.b	$3D	;3D
-	dc.b	$22	;22
-	dc.b	$FD	;FD
-	dc.b	$DA	;DA
-	dc.b	$D0	;D0
-	dc.b	$D6	;D6
-	dc.b	$D5	;D5
-	dc.b	$C2	;C2
-	dc.b	$D8	;D8
-	dc.b	$EA	;EA
-	dc.b	$F4	;F4
-	dc.b	$0A	;0A
-	dc.b	$0B	;0B
-	dc.b	$05	;05
-	dc.b	$CD	;CD
-	dc.b	$B1	;B1
-	dc.b	$91	;91
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$94	;94
-	dc.b	$34	;34
-	dc.b	$62	;62
-	dc.b	$65	;65
-	dc.b	$62	;62
-	dc.b	$64	;64
-	dc.b	$65	;65
-	dc.b	$62	;62
-	dc.b	$63	;63
-	dc.b	$64	;64
-	dc.b	$64	;64
-	dc.b	$63	;63
-	dc.b	$64	;64
-	dc.b	$64	;64
-	dc.b	$63	;63
-	dc.b	$64	;64
-	dc.b	$66	;66
-	dc.b	$63	;63
-	dc.b	$63	;63
-	dc.b	$64	;64
-	dc.b	$5F	;5F
-	dc.b	$45	;45
-	dc.b	$A9	;A9
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$A4	;A4
-	dc.b	$C0	;C0
-	dc.b	$F4	;F4
-	dc.b	$18	;18
-	dc.b	$1C	;1C
-	dc.b	$40	;40
-	dc.b	$59	;59
-	dc.b	$47	;47
-	dc.b	$3A	;3A
-	dc.b	$31	;31
-	dc.b	$05	;05
-	dc.b	$DD	;DD
-	dc.b	$BD	;BD
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$A4	;A4
-	dc.b	$FC	;FC
-	dc.b	$54	;54
-	dc.b	$63	;63
-	dc.b	$62	;62
-	dc.b	$64	;64
-	dc.b	$66	;66
-	dc.b	$63	;63
-	dc.b	$64	;64
-	dc.b	$65	;65
-	dc.b	$62	;62
-	dc.b	$64	;64
-	dc.b	$65	;65
-	dc.b	$62	;62
-	dc.b	$63	;63
-	dc.b	$64	;64
-	dc.b	$64	;64
-	dc.b	$63	;63
-	dc.b	$64	;64
-	dc.b	$64	;64
-	dc.b	$63	;63
-	dc.b	$64	;64
-	dc.b	$66	;66
-	dc.b	$63	;63
-	dc.b	$64	;64
-	dc.b	$65	;65
-	dc.b	$62	;62
-	dc.b	$64	;64
-	dc.b	$65	;65
-	dc.b	$62	;62
-	dc.b	$63	;63
-	dc.b	$64	;64
-	dc.b	$64	;64
-	dc.b	$63	;63
-	dc.b	$64	;64
-	dc.b	$65	;65
-	dc.b	$62	;62
-	dc.b	$64	;64
-	dc.b	$65	;65
-	dc.b	$62	;62
-	dc.b	$64	;64
-	dc.b	$65	;65
-	dc.b	$62	;62
-	dc.b	$60	;60
-	dc.b	$5F	;5F
-	dc.b	$E5	;E5
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$E4	;E4
-	dc.b	$5C	;5C
-	dc.b	$62	;62
-	dc.b	$65	;65
-	dc.b	$62	;62
-	dc.b	$63	;63
-	dc.b	$64	;64
-	dc.b	$64	;64
-	dc.b	$63	;63
-	dc.b	$64	;64
-	dc.b	$64	;64
-	dc.b	$63	;63
-	dc.b	$64	;64
-	dc.b	$66	;66
-	dc.b	$63	;63
-	dc.b	$64	;64
-	dc.b	$65	;65
-	dc.b	$62	;62
-	dc.b	$64	;64
-	dc.b	$65	;65
-	dc.b	$62	;62
-	dc.b	$63	;63
-	dc.b	$64	;64
-	dc.b	$64	;64
-	dc.b	$64	;64
-	dc.b	$65	;65
-	dc.b	$65	;65
-	dc.b	$62	;62
-	dc.b	$64	;64
-	dc.b	$65	;65
-	dc.b	$62	;62
-	dc.b	$64	;64
-	dc.b	$65	;65
-	dc.b	$62	;62
-	dc.b	$62	;62
-	dc.b	$64	;64
-	dc.b	$64	;64
-	dc.b	$63	;63
-	dc.b	$64	;64
-	dc.b	$64	;64
-	dc.b	$63	;63
-	dc.b	$64	;64
-	dc.b	$65	;65
-	dc.b	$62	;62
-	dc.b	$64	;64
-	dc.b	$66	;66
-	dc.b	$63	;63
-	dc.b	$64	;64
-	dc.b	$65	;65
-	dc.b	$63	;63
-	dc.b	$64	;64
-	dc.b	$65	;65
-	dc.b	$63	;63
-	dc.b	$63	;63
-	dc.b	$64	;64
-	dc.b	$64	;64
-	dc.b	$64	;64
-	dc.b	$65	;65
-	dc.b	$65	;65
-	dc.b	$62	;62
-	dc.b	$64	;64
-	dc.b	$65	;65
-	dc.b	$63	;63
-	dc.b	$64	;64
-	dc.b	$65	;65
-	dc.b	$63	;63
-	dc.b	$63	;63
-	dc.b	$65	;65
-	dc.b	$63	;63
-	dc.b	$63	;63
-	dc.b	$63	;63
-	dc.b	$63	;63
-	dc.b	$5F	;5F
-	dc.b	$35	;35
-	dc.b	$DD	;DD
-	dc.b	$CA	;CA
-	dc.b	$B1	;B1
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$B0	;B0
-	dc.b	$CC	;CC
-	dc.b	$F4	;F4
-	dc.b	$14	;14
-	dc.b	$44	;44
-	dc.b	$64	;64
-	dc.b	$66	;66
-	dc.b	$63	;63
-	dc.b	$64	;64
-	dc.b	$66	;66
-	dc.b	$63	;63
-	dc.b	$64	;64
-	dc.b	$65	;65
-	dc.b	$62	;62
-	dc.b	$63	;63
-	dc.b	$64	;64
-	dc.b	$64	;64
-	dc.b	$63	;63
-	dc.b	$64	;64
-	dc.b	$65	;65
-	dc.b	$62	;62
-	dc.b	$64	;64
-	dc.b	$65	;65
-	dc.b	$62	;62
-	dc.b	$64	;64
-	dc.b	$64	;64
-	dc.b	$60	;60
-	dc.b	$55	;55
-	dc.b	$A5	;A5
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$9C	;9C
-	dc.b	$FC	;FC
-	dc.b	$50	;50
-	dc.b	$65	;65
-	dc.b	$62	;62
-	dc.b	$64	;64
-	dc.b	$66	;66
-	dc.b	$63	;63
-	dc.b	$64	;64
-	dc.b	$65	;65
-	dc.b	$62	;62
-	dc.b	$63	;63
-	dc.b	$64	;64
-	dc.b	$64	;64
-	dc.b	$63	;63
-	dc.b	$64	;64
-	dc.b	$64	;64
-	dc.b	$64	;64
-	dc.b	$64	;64
-	dc.b	$65	;65
-	dc.b	$62	;62
-	dc.b	$63	;63
-	dc.b	$64	;64
-	dc.b	$63	;63
-	dc.b	$63	;63
-	dc.b	$64	;64
-	dc.b	$61	;61
-	dc.b	$5E	;5E
-	dc.b	$1D	;1D
-	dc.b	$F6	;F6
-	dc.b	$C5	;C5
-	dc.b	$89	;89
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$B0	;B0
-	dc.b	$F4	;F4
-	dc.b	$2C	;2C
-	dc.b	$58	;58
-	dc.b	$65	;65
-	dc.b	$62	;62
-	dc.b	$64	;64
-	dc.b	$66	;66
-	dc.b	$63	;63
-	dc.b	$64	;64
-	dc.b	$65	;65
-	dc.b	$62	;62
-	dc.b	$63	;63
-	dc.b	$64	;64
-	dc.b	$64	;64
-	dc.b	$63	;63
-	dc.b	$64	;64
-	dc.b	$65	;65
-	dc.b	$62	;62
-	dc.b	$64	;64
-	dc.b	$65	;65
-	dc.b	$62	;62
-	dc.b	$64	;64
-	dc.b	$65	;65
-	dc.b	$62	;62
-	dc.b	$64	;64
-	dc.b	$65	;65
-	dc.b	$62	;62
-	dc.b	$63	;63
-	dc.b	$64	;64
-	dc.b	$64	;64
-	dc.b	$64	;64
-	dc.b	$64	;64
-	dc.b	$65	;65
-	dc.b	$62	;62
-	dc.b	$5F	;5F
-	dc.b	$45	;45
-	dc.b	$AD	;AD
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$A0	;A0
-	dc.b	$EC	;EC
-	dc.b	$44	;44
-	dc.b	$63	;63
-	dc.b	$62	;62
-	dc.b	$64	;64
-	dc.b	$66	;66
-	dc.b	$63	;63
-	dc.b	$64	;64
-	dc.b	$65	;65
-	dc.b	$62	;62
-	dc.b	$64	;64
-	dc.b	$65	;65
-	dc.b	$62	;62
-	dc.b	$63	;63
-	dc.b	$64	;64
-	dc.b	$64	;64
-	dc.b	$63	;63
-	dc.b	$64	;64
-	dc.b	$64	;64
-	dc.b	$63	;63
-	dc.b	$64	;64
-	dc.b	$66	;66
-	dc.b	$63	;63
-	dc.b	$64	;64
-	dc.b	$65	;65
-	dc.b	$62	;62
-	dc.b	$64	;64
-	dc.b	$65	;65
-	dc.b	$63	;63
-	dc.b	$63	;63
-	dc.b	$64	;64
-	dc.b	$64	;64
-	dc.b	$63	;63
-	dc.b	$63	;63
-	dc.b	$63	;63
-	dc.b	$5E	;5E
-	dc.b	$25	;25
-	dc.b	$D5	;D5
-	dc.b	$9D	;9D
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$94	;94
-	dc.b	$E0	;E0
-	dc.b	$34	;34
-	dc.b	$63	;63
-	dc.b	$64	;64
-	dc.b	$66	;66
-	dc.b	$63	;63
-	dc.b	$64	;64
-	dc.b	$66	;66
-	dc.b	$63	;63
-	dc.b	$64	;64
-	dc.b	$65	;65
-	dc.b	$62	;62
-	dc.b	$63	;63
-	dc.b	$64	;64
-	dc.b	$64	;64
-	dc.b	$63	;63
-	dc.b	$64	;64
-	dc.b	$65	;65
-	dc.b	$62	;62
-	dc.b	$64	;64
-	dc.b	$66	;66
-	dc.b	$63	;63
-	dc.b	$64	;64
-	dc.b	$65	;65
-	dc.b	$62	;62
-	dc.b	$64	;64
-	dc.b	$65	;65
-	dc.b	$63	;63
-	dc.b	$63	;63
-	dc.b	$64	;64
-	dc.b	$64	;64
-	dc.b	$63	;63
-	dc.b	$64	;64
-	dc.b	$64	;64
-	dc.b	$5F	;5F
-	dc.b	$35	;35
-	dc.b	$CD	;CD
-	dc.b	$99	;99
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$92	;92
-	dc.b	$A3	;A3
-	dc.b	$B0	;B0
-	dc.b	$C2	;C2
-	dc.b	$DC	;DC
-	dc.b	$EE	;EE
-	dc.b	$FE	;FE
-	dc.b	$0C	;0C
-	dc.b	$14	;14
-	dc.b	$22	;22
-	dc.b	$2A	;2A
-	dc.b	$34	;34
-	dc.b	$38	;38
-	dc.b	$33	;33
-	dc.b	$38	;38
-	dc.b	$40	;40
-	dc.b	$40	;40
-	dc.b	$48	;48
-	dc.b	$50	;50
-	dc.b	$4A	;4A
-	dc.b	$49	;49
-	dc.b	$3D	;3D
-	dc.b	$28	;28
-	dc.b	$16	;16
-	dc.b	$05	;05
-	dc.b	$F9	;F9
-	dc.b	$F2	;F2
-	dc.b	$E7	;E7
-	dc.b	$DA	;DA
-	dc.b	$BF	;BF
-	dc.b	$9D	;9D
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$9C	;9C
-	dc.b	$BC	;BC
-	dc.b	$D8	;D8
-	dc.b	$F0	;F0
-	dc.b	$F3	;F3
-	dc.b	$FC	;FC
-	dc.b	$14	;14
-	dc.b	$2E	;2E
-	dc.b	$48	;48
-	dc.b	$62	;62
-	dc.b	$64	;64
-	dc.b	$63	;63
-	dc.b	$65	;65
-	dc.b	$62	;62
-	dc.b	$62	;62
-	dc.b	$64	;64
-	dc.b	$65	;65
-	dc.b	$62	;62
-	dc.b	$64	;64
-	dc.b	$66	;66
-	dc.b	$63	;63
-	dc.b	$64	;64
-	dc.b	$65	;65
-	dc.b	$62	;62
-	dc.b	$63	;63
-	dc.b	$64	;64
-	dc.b	$63	;63
-	dc.b	$63	;63
-	dc.b	$64	;64
-	dc.b	$64	;64
-	dc.b	$63	;63
-	dc.b	$64	;64
-	dc.b	$66	;66
-	dc.b	$63	;63
-	dc.b	$64	;64
-	dc.b	$65	;65
-	dc.b	$62	;62
-	dc.b	$64	;64
-	dc.b	$65	;65
-	dc.b	$62	;62
-	dc.b	$63	;63
-	dc.b	$64	;64
-	dc.b	$64	;64
-	dc.b	$62	;62
-	dc.b	$62	;62
-	dc.b	$61	;61
-	dc.b	$45	;45
-	dc.b	$E9	;E9
-	dc.b	$B5	;B5
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$C4	;C4
-	dc.b	$04	;04
-	dc.b	$40	;40
-	dc.b	$62	;62
-	dc.b	$62	;62
-	dc.b	$64	;64
-	dc.b	$64	;64
-	dc.b	$63	;63
-	dc.b	$64	;64
-	dc.b	$65	;65
-	dc.b	$62	;62
-	dc.b	$64	;64
-	dc.b	$65	;65
-	dc.b	$62	;62
-	dc.b	$64	;64
-	dc.b	$65	;65
-	dc.b	$62	;62
-	dc.b	$64	;64
-	dc.b	$65	;65
-	dc.b	$62	;62
-	dc.b	$63	;63
-	dc.b	$64	;64
-	dc.b	$64	;64
-	dc.b	$63	;63
-	dc.b	$64	;64
-	dc.b	$65	;65
-	dc.b	$62	;62
-	dc.b	$64	;64
-	dc.b	$65	;65
-	dc.b	$62	;62
-	dc.b	$64	;64
-	dc.b	$64	;64
-	dc.b	$63	;63
-	dc.b	$62	;62
-	dc.b	$64	;64
-	dc.b	$64	;64
-	dc.b	$63	;63
-	dc.b	$64	;64
-	dc.b	$64	;64
-	dc.b	$63	;63
-	dc.b	$64	;64
-	dc.b	$65	;65
-	dc.b	$62	;62
-	dc.b	$64	;64
-	dc.b	$65	;65
-	dc.b	$62	;62
-	dc.b	$63	;63
-	dc.b	$62	;62
-	dc.b	$60	;60
-	dc.b	$57	;57
-	dc.b	$27	;27
-	dc.b	$26	;26
-	dc.b	$1E	;1E
-	dc.b	$1F	;1F
-	dc.b	$21	;21
-	dc.b	$11	;11
-	dc.b	$05	;05
-	dc.b	$F7	;F7
-	dc.b	$E9	;E9
-	dc.b	$DF	;DF
-	dc.b	$DB	;DB
-	dc.b	$D2	;D2
-	dc.b	$C1	;C1
-	dc.b	$9E	;9E
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$8C	;8C
-	dc.b	$B4	;B4
-	dc.b	$D8	;D8
-	dc.b	$F0	;F0
-	dc.b	$04	;04
-	dc.b	$04	;04
-	dc.b	$03	;03
-	dc.b	$08	;08
-	dc.b	$0C	;0C
-	dc.b	$05	;05
-	dc.b	$F5	;F5
-	dc.b	$DE	;DE
-	dc.b	$C5	;C5
-	dc.b	$A1	;A1
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$A4	;A4
-	dc.b	$E4	;E4
-	dc.b	$1C	;1C
-	dc.b	$54	;54
-	dc.b	$63	;63
-	dc.b	$64	;64
-	dc.b	$65	;65
-	dc.b	$62	;62
-	dc.b	$63	;63
-	dc.b	$65	;65
-	dc.b	$62	;62
-	dc.b	$63	;63
-	dc.b	$64	;64
-	dc.b	$64	;64
-	dc.b	$63	;63
-	dc.b	$64	;64
-	dc.b	$66	;66
-	dc.b	$63	;63
-	dc.b	$64	;64
-	dc.b	$65	;65
-	dc.b	$62	;62
-	dc.b	$64	;64
-	dc.b	$65	;65
-	dc.b	$62	;62
-	dc.b	$63	;63
-	dc.b	$64	;64
-	dc.b	$64	;64
-	dc.b	$63	;63
-	dc.b	$64	;64
-	dc.b	$64	;64
-	dc.b	$63	;63
-	dc.b	$63	;63
-	dc.b	$65	;65
-	dc.b	$62	;62
-	dc.b	$63	;63
-	dc.b	$64	;64
-	dc.b	$63	;63
-	dc.b	$63	;63
-	dc.b	$63	;63
-	dc.b	$61	;61
-	dc.b	$60	;60
-	dc.b	$51	;51
-	dc.b	$27	;27
-	dc.b	$15	;15
-	dc.b	$01	;01
-	dc.b	$ED	;ED
-	dc.b	$D6	;D6
-	dc.b	$C5	;C5
-	dc.b	$AD	;AD
-	dc.b	$97	;97
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$92	;92
-	dc.b	$A4	;A4
-	dc.b	$B4	;B4
-	dc.b	$C4	;C4
-	dc.b	$D4	;D4
-	dc.b	$DE	;DE
-	dc.b	$EC	;EC
-	dc.b	$00	;00
-	dc.b	$10	;10
-	dc.b	$22	;22
-	dc.b	$34	;34
-	dc.b	$44	;44
-	dc.b	$4E	;4E
-	dc.b	$60	;60
-	dc.b	$64	;64
-	dc.b	$66	;66
-	dc.b	$63	;63
-	dc.b	$63	;63
-	dc.b	$65	;65
-	dc.b	$62	;62
-	dc.b	$63	;63
-	dc.b	$64	;64
-	dc.b	$65	;65
-	dc.b	$62	;62
-	dc.b	$64	;64
-	dc.b	$65	;65
-	dc.b	$62	;62
-	dc.b	$64	;64
-	dc.b	$65	;65
-	dc.b	$62	;62
-	dc.b	$64	;64
-	dc.b	$65	;65
-	dc.b	$62	;62
-	dc.b	$63	;63
-	dc.b	$64	;64
-	dc.b	$64	;64
-	dc.b	$62	;62
-	dc.b	$64	;64
-	dc.b	$64	;64
-	dc.b	$61	;61
-	dc.b	$60	;60
-	dc.b	$4D	;4D
-	dc.b	$2D	;2D
-	dc.b	$0D	;0D
-	dc.b	$E7	;E7
-	dc.b	$BD	;BD
-	dc.b	$8F	;8F
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$86	;86
-	dc.b	$AA	;AA
-	dc.b	$C2	;C2
-	dc.b	$D4	;D4
-	dc.b	$E8	;E8
-	dc.b	$F7	;F7
-	dc.b	$14	;14
-	dc.b	$38	;38
-	dc.b	$54	;54
-	dc.b	$60	;60
-	dc.b	$5F	;5F
-	dc.b	$5A	;5A
-	dc.b	$62	;62
-	dc.b	$65	;65
-	dc.b	$64	;64
-	dc.b	$62	;62
-	dc.b	$64	;64
-	dc.b	$63	;63
-	dc.b	$62	;62
-	dc.b	$63	;63
-	dc.b	$64	;64
-	dc.b	$63	;63
-	dc.b	$62	;62
-	dc.b	$63	;63
-	dc.b	$63	;63
-	dc.b	$62	;62
-	dc.b	$64	;64
-	dc.b	$65	;65
-	dc.b	$61	;61
-	dc.b	$63	;63
-	dc.b	$63	;63
-	dc.b	$62	;62
-	dc.b	$64	;64
-	dc.b	$65	;65
-	dc.b	$62	;62
-	dc.b	$62	;62
-	dc.b	$65	;65
-	dc.b	$62	;62
-	dc.b	$63	;63
-	dc.b	$64	;64
-	dc.b	$66	;66
-	dc.b	$63	;63
-	dc.b	$64	;64
-	dc.b	$65	;65
-	dc.b	$62	;62
-	dc.b	$63	;63
-	dc.b	$64	;64
-	dc.b	$63	;63
-	dc.b	$62	;62
-	dc.b	$62	;62
-	dc.b	$61	;61
-	dc.b	$45	;45
-	dc.b	$0B	;0B
-	dc.b	$E9	;E9
-	dc.b	$CF	;CF
-	dc.b	$AD	;AD
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$88	;88
-	dc.b	$A4	;A4
-	dc.b	$BF	;BF
-	dc.b	$D0	;D0
-	dc.b	$D8	;D8
-	dc.b	$DA	;DA
-	dc.b	$D5	;D5
-	dc.b	$D0	;D0
-	dc.b	$D8	;D8
-	dc.b	$DE	;DE
-	dc.b	$EC	;EC
-	dc.b	$0C	;0C
-	dc.b	$28	;28
-	dc.b	$48	;48
-	dc.b	$64	;64
-	dc.b	$65	;65
-	dc.b	$63	;63
-	dc.b	$62	;62
-	dc.b	$64	;64
-	dc.b	$66	;66
-	dc.b	$63	;63
-	dc.b	$64	;64
-	dc.b	$65	;65
-	dc.b	$62	;62
-	dc.b	$63	;63
-	dc.b	$64	;64
-	dc.b	$64	;64
-	dc.b	$63	;63
-	dc.b	$64	;64
-	dc.b	$64	;64
-	dc.b	$63	;63
-	dc.b	$64	;64
-	dc.b	$66	;66
-	dc.b	$63	;63
-	dc.b	$64	;64
-	dc.b	$65	;65
-	dc.b	$62	;62
-	dc.b	$64	;64
-	dc.b	$65	;65
-	dc.b	$62	;62
-	dc.b	$63	;63
-	dc.b	$64	;64
-	dc.b	$64	;64
-	dc.b	$63	;63
-	dc.b	$64	;64
-	dc.b	$65	;65
-	dc.b	$62	;62
-	dc.b	$63	;63
-	dc.b	$65	;65
-	dc.b	$62	;62
-	dc.b	$63	;63
-	dc.b	$64	;64
-	dc.b	$63	;63
-	dc.b	$63	;63
-	dc.b	$64	;64
-	dc.b	$63	;63
-	dc.b	$63	;63
-	dc.b	$63	;63
-	dc.b	$62	;62
-	dc.b	$60	;60
-	dc.b	$45	;45
-	dc.b	$1F	;1F
-	dc.b	$09	;09
-	dc.b	$F1	;F1
-	dc.b	$DF	;DF
-	dc.b	$C6	;C6
-	dc.b	$AE	;AE
-	dc.b	$9B	;9B
-	dc.b	$87	;87
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$98	;98
-	dc.b	$B4	;B4
-	dc.b	$CB	;CB
-	dc.b	$E4	;E4
-	dc.b	$F3	;F3
-	dc.b	$01	;01
-	dc.b	$11	;11
-	dc.b	$1C	;1C
-	dc.b	$1A	;1A
-	dc.b	$12	;12
-	dc.b	$06	;06
-	dc.b	$F7	;F7
-	dc.b	$E5	;E5
-	dc.b	$CF	;CF
-	dc.b	$BB	;BB
-	dc.b	$A5	;A5
-	dc.b	$91	;91
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$90	;90
-	dc.b	$A4	;A4
-	dc.b	$B8	;B8
-	dc.b	$CE	;CE
-	dc.b	$EC	;EC
-	dc.b	$04	;04
-	dc.b	$1A	;1A
-	dc.b	$30	;30
-	dc.b	$43	;43
-	dc.b	$54	;54
-	dc.b	$63	;63
-	dc.b	$63	;63
-	dc.b	$65	;65
-	dc.b	$62	;62
-	dc.b	$62	;62
-	dc.b	$64	;64
-	dc.b	$64	;64
-	dc.b	$63	;63
-	dc.b	$64	;64
-	dc.b	$65	;65
-	dc.b	$61	;61
-	dc.b	$63	;63
-	dc.b	$64	;64
-	dc.b	$63	;63
-	dc.b	$64	;64
-	dc.b	$65	;65
-	dc.b	$62	;62
-	dc.b	$63	;63
-	dc.b	$64	;64
-	dc.b	$64	;64
-	dc.b	$63	;63
-	dc.b	$64	;64
-	dc.b	$65	;65
-	dc.b	$62	;62
-	dc.b	$64	;64
-	dc.b	$65	;65
-	dc.b	$62	;62
-	dc.b	$63	;63
-	dc.b	$65	;65
-	dc.b	$62	;62
-	dc.b	$64	;64
-	dc.b	$65	;65
-	dc.b	$62	;62
-	dc.b	$63	;63
-	dc.b	$64	;64
-	dc.b	$64	;64
-	dc.b	$63	;63
-	dc.b	$64	;64
-	dc.b	$65	;65
-	dc.b	$62	;62
-	dc.b	$64	;64
-	dc.b	$65	;65
-	dc.b	$62	;62
-	dc.b	$64	;64
-	dc.b	$65	;65
-	dc.b	$62	;62
-	dc.b	$64	;64
-	dc.b	$64	;64
-	dc.b	$64	;64
-	dc.b	$62	;62
-	dc.b	$63	;63
-	dc.b	$61	;61
-	dc.b	$55	;55
-	dc.b	$0D	;0D
-	dc.b	$DD	;DD
-	dc.b	$A5	;A5
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$90	;90
-	dc.b	$A4	;A4
-	dc.b	$BA	;BA
-	dc.b	$CC	;CC
-	dc.b	$E3	;E3
-	dc.b	$FF	;FF
-	dc.b	$17	;17
-	dc.b	$2C	;2C
-	dc.b	$40	;40
-	dc.b	$58	;58
-	dc.b	$65	;65
-	dc.b	$63	;63
-	dc.b	$62	;62
-	dc.b	$64	;64
-	dc.b	$66	;66
-	dc.b	$63	;63
-	dc.b	$64	;64
-	dc.b	$65	;65
-	dc.b	$62	;62
-	dc.b	$64	;64
-	dc.b	$65	;65
-	dc.b	$62	;62
-	dc.b	$63	;63
-	dc.b	$64	;64
-	dc.b	$64	;64
-	dc.b	$63	;63
-	dc.b	$64	;64
-	dc.b	$65	;65
-	dc.b	$62	;62
-	dc.b	$63	;63
-	dc.b	$64	;64
-	dc.b	$63	;63
-	dc.b	$63	;63
-	dc.b	$64	;64
-	dc.b	$63	;63
-	dc.b	$61	;61
-	dc.b	$61	;61
-	dc.b	$60	;60
-	dc.b	$47	;47
-	dc.b	$39	;39
-	dc.b	$2B	;2B
-	dc.b	$1A	;1A
-	dc.b	$07	;07
-	dc.b	$F3	;F3
-	dc.b	$E2	;E2
-	dc.b	$D9	;D9
-	dc.b	$D7	;D7
-	dc.b	$D5	;D5
-	dc.b	$D4	;D4
-	dc.b	$DE	;DE
-	dc.b	$E6	;E6
-	dc.b	$F4	;F4
-	dc.b	$14	;14
-	dc.b	$34	;34
-	dc.b	$5A	;5A
-	dc.b	$66	;66
-	dc.b	$65	;65
-	dc.b	$62	;62
-	dc.b	$64	;64
-	dc.b	$65	;65
-	dc.b	$62	;62
-	dc.b	$64	;64
-	dc.b	$65	;65
-	dc.b	$62	;62
-	dc.b	$63	;63
-	dc.b	$65	;65
-	dc.b	$62	;62
-	dc.b	$63	;63
-	dc.b	$64	;64
-	dc.b	$64	;64
-	dc.b	$63	;63
-	dc.b	$64	;64
-	dc.b	$66	;66
-	dc.b	$63	;63
-	dc.b	$64	;64
-	dc.b	$64	;64
-	dc.b	$63	;63
-	dc.b	$62	;62
-	dc.b	$63	;63
-	dc.b	$60	;60
-	dc.b	$55	;55
-	dc.b	$15	;15
-	dc.b	$F5	;F5
-	dc.b	$CD	;CD
-	dc.b	$A5	;A5
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$90	;90
-	dc.b	$B0	;B0
-	dc.b	$D0	;D0
-	dc.b	$F2	;F2
-	dc.b	$14	;14
-	dc.b	$38	;38
-	dc.b	$5B	;5B
-	dc.b	$65	;65
-	dc.b	$63	;63
-	dc.b	$62	;62
-	dc.b	$64	;64
-	dc.b	$66	;66
-	dc.b	$63	;63
-	dc.b	$64	;64
-	dc.b	$66	;66
-	dc.b	$63	;63
-	dc.b	$64	;64
-	dc.b	$65	;65
-	dc.b	$62	;62
-	dc.b	$63	;63
-	dc.b	$64	;64
-	dc.b	$64	;64
-	dc.b	$63	;63
-	dc.b	$64	;64
-	dc.b	$64	;64
-	dc.b	$63	;63
-	dc.b	$64	;64
-	dc.b	$66	;66
-	dc.b	$63	;63
-	dc.b	$64	;64
-	dc.b	$65	;65
-	dc.b	$62	;62
-	dc.b	$61	;61
-	dc.b	$61	;61
-	dc.b	$5D	;5D
-	dc.b	$05	;05
-	dc.b	$C5	;C5
-	dc.b	$8D	;8D
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$A0	;A0
-	dc.b	$CA	;CA
-	dc.b	$F4	;F4
-	dc.b	$1C	;1C
-	dc.b	$44	;44
-	dc.b	$63	;63
-	dc.b	$63	;63
-	dc.b	$65	;65
-	dc.b	$62	;62
-	dc.b	$63	;63
-	dc.b	$64	;64
-	dc.b	$64	;64
-	dc.b	$63	;63
-	dc.b	$64	;64
-	dc.b	$66	;66
-	dc.b	$63	;63
-	dc.b	$64	;64
-	dc.b	$65	;65
-	dc.b	$62	;62
-	dc.b	$64	;64
-	dc.b	$65	;65
-	dc.b	$62	;62
-	dc.b	$63	;63
-	dc.b	$64	;64
-	dc.b	$64	;64
-	dc.b	$63	;63
-	dc.b	$64	;64
-	dc.b	$64	;64
-	dc.b	$63	;63
-	dc.b	$63	;63
-	dc.b	$65	;65
-	dc.b	$62	;62
-	dc.b	$62	;62
-	dc.b	$62	;62
-	dc.b	$61	;61
-	dc.b	$51	;51
-	dc.b	$2E	;2E
-	dc.b	$21	;21
-	dc.b	$09	;09
-	dc.b	$F1	;F1
-	dc.b	$D9	;D9
-	dc.b	$C5	;C5
-	dc.b	$B7	;B7
-	dc.b	$AF	;AF
-	dc.b	$A1	;A1
-	dc.b	$96	;96
-	dc.b	$8A	;8A
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$A2	;A2
-	dc.b	$C3	;C3
-	dc.b	$E2	;E2
-	dc.b	$04	;04
-	dc.b	$34	;34
-	dc.b	$5C	;5C
-	dc.b	$65	;65
-	dc.b	$62	;62
-	dc.b	$63	;63
-	dc.b	$64	;64
-	dc.b	$64	;64
-	dc.b	$63	;63
-	dc.b	$64	;64
-	dc.b	$66	;66
-	dc.b	$63	;63
-	dc.b	$64	;64
-	dc.b	$65	;65
-	dc.b	$62	;62
-	dc.b	$63	;63
-	dc.b	$64	;64
-	dc.b	$63	;63
-	dc.b	$63	;63
-	dc.b	$64	;64
-	dc.b	$64	;64
-	dc.b	$63	;63
-	dc.b	$63	;63
-	dc.b	$63	;63
-	dc.b	$5F	;5F
-	dc.b	$59	;59
-	dc.b	$1D	;1D
-	dc.b	$F9	;F9
-	dc.b	$D1	;D1
-	dc.b	$AF	;AF
-	dc.b	$99	;99
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$94	;94
-	dc.b	$B4	;B4
-	dc.b	$E0	;E0
-	dc.b	$14	;14
-	dc.b	$52	;52
-	dc.b	$65	;65
-	dc.b	$62	;62
-	dc.b	$64	;64
-	dc.b	$66	;66
-	dc.b	$63	;63
-	dc.b	$64	;64
-	dc.b	$65	;65
-	dc.b	$62	;62
-	dc.b	$63	;63
-	dc.b	$64	;64
-	dc.b	$64	;64
-	dc.b	$63	;63
-	dc.b	$64	;64
-	dc.b	$64	;64
-	dc.b	$63	;63
-	dc.b	$64	;64
-	dc.b	$66	;66
-	dc.b	$63	;63
-	dc.b	$64	;64
-	dc.b	$65	;65
-	dc.b	$62	;62
-	dc.b	$64	;64
-	dc.b	$65	;65
-	dc.b	$62	;62
-	dc.b	$63	;63
-	dc.b	$64	;64
-	dc.b	$64	;64
-	dc.b	$64	;64
-	dc.b	$65	;65
-	dc.b	$64	;64
-	dc.b	$63	;63
-	dc.b	$62	;62
-	dc.b	$62	;62
-	dc.b	$59	;59
-	dc.b	$ED	;ED
-	dc.b	$95	;95
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$AC	;AC
-	dc.b	$E4	;E4
-	dc.b	$0C	;0C
-	dc.b	$1E	;1E
-	dc.b	$1D	;1D
-	dc.b	$1E	;1E
-	dc.b	$23	;23
-	dc.b	$2E	;2E
-	dc.b	$39	;39
-	dc.b	$32	;32
-	dc.b	$32	;32
-	dc.b	$21	;21
-	dc.b	$11	;11
-	dc.b	$0D	;0D
-	dc.b	$05	;05
-	dc.b	$04	;04
-	dc.b	$1A	;1A
-	dc.b	$1C	;1C
-	dc.b	$2E	;2E
-	dc.b	$30	;30
-	dc.b	$34	;34
-	dc.b	$40	;40
-	dc.b	$42	;42
-	dc.b	$54	;54
-	dc.b	$64	;64
-	dc.b	$63	;63
-	dc.b	$64	;64
-	dc.b	$65	;65
-	dc.b	$61	;61
-	dc.b	$61	;61
-	dc.b	$62	;62
-	dc.b	$63	;63
-	dc.b	$62	;62
-	dc.b	$5C	;5C
-	dc.b	$5A	;5A
-	dc.b	$56	;56
-	dc.b	$51	;51
-	dc.b	$57	;57
-	dc.b	$5E	;5E
-	dc.b	$5A	;5A
-	dc.b	$57	;57
-	dc.b	$53	;53
-	dc.b	$4E	;4E
-	dc.b	$58	;58
-	dc.b	$5D	;5D
-	dc.b	$62	;62
-	dc.b	$65	;65
-	dc.b	$62	;62
-	dc.b	$63	;63
-	dc.b	$64	;64
-	dc.b	$64	;64
-	dc.b	$63	;63
-	dc.b	$64	;64
-	dc.b	$65	;65
-	dc.b	$61	;61
-	dc.b	$63	;63
-	dc.b	$64	;64
-	dc.b	$63	;63
-	dc.b	$64	;64
-	dc.b	$65	;65
-	dc.b	$62	;62
-	dc.b	$63	;63
-	dc.b	$64	;64
-	dc.b	$64	;64
-	dc.b	$63	;63
-	dc.b	$64	;64
-	dc.b	$65	;65
-	dc.b	$62	;62
-	dc.b	$64	;64
-	dc.b	$65	;65
-	dc.b	$62	;62
-	dc.b	$64	;64
-	dc.b	$65	;65
-	dc.b	$62	;62
-	dc.b	$64	;64
-	dc.b	$65	;65
-	dc.b	$63	;63
-	dc.b	$63	;63
-	dc.b	$63	;63
-	dc.b	$64	;64
-	dc.b	$63	;63
-	dc.b	$64	;64
-	dc.b	$64	;64
-	dc.b	$60	;60
-	dc.b	$60	;60
-	dc.b	$31	;31
-	dc.b	$1E	;1E
-	dc.b	$0D	;0D
-	dc.b	$EF	;EF
-	dc.b	$CD	;CD
-	dc.b	$99	;99
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$86	;86
-	dc.b	$A4	;A4
-	dc.b	$C8	;C8
-	dc.b	$EC	;EC
-	dc.b	$0C	;0C
-	dc.b	$2C	;2C
-	dc.b	$50	;50
-	dc.b	$64	;64
-	dc.b	$64	;64
-	dc.b	$65	;65
-	dc.b	$62	;62
-	dc.b	$63	;63
-	dc.b	$64	;64
-	dc.b	$64	;64
-	dc.b	$63	;63
-	dc.b	$64	;64
-	dc.b	$65	;65
-	dc.b	$62	;62
-	dc.b	$63	;63
-	dc.b	$64	;64
-	dc.b	$62	;62
-	dc.b	$61	;61
-	dc.b	$61	;61
-	dc.b	$55	;55
-	dc.b	$39	;39
-	dc.b	$2D	;2D
-	dc.b	$1A	;1A
-	dc.b	$0B	;0B
-	dc.b	$F9	;F9
-	dc.b	$EB	;EB
-	dc.b	$E5	;E5
-	dc.b	$E3	;E3
-	dc.b	$D7	;D7
-	dc.b	$BD	;BD
-	dc.b	$9A	;9A
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$86	;86
-	dc.b	$86	;86
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$8B	;8B
-	dc.b	$A0	;A0
-	dc.b	$B3	;B3
-	dc.b	$C0	;C0
-	dc.b	$D0	;D0
-	dc.b	$EC	;EC
-	dc.b	$12	;12
-	dc.b	$38	;38
-	dc.b	$60	;60
-	dc.b	$64	;64
-	dc.b	$65	;65
-	dc.b	$65	;65
-	dc.b	$61	;61
-	dc.b	$64	;64
-	dc.b	$65	;65
-	dc.b	$62	;62
-	dc.b	$64	;64
-	dc.b	$65	;65
-	dc.b	$62	;62
-	dc.b	$63	;63
-	dc.b	$64	;64
-	dc.b	$64	;64
-	dc.b	$63	;63
-	dc.b	$64	;64
-	dc.b	$64	;64
-	dc.b	$63	;63
-	dc.b	$64	;64
-	dc.b	$66	;66
-	dc.b	$63	;63
-	dc.b	$64	;64
-	dc.b	$65	;65
-	dc.b	$62	;62
-	dc.b	$64	;64
-	dc.b	$62	;62
-	dc.b	$5E	;5E
-	dc.b	$ED	;ED
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$A4	;A4
-	dc.b	$CA	;CA
-	dc.b	$F0	;F0
-	dc.b	$14	;14
-	dc.b	$3A	;3A
-	dc.b	$5C	;5C
-	dc.b	$66	;66
-	dc.b	$63	;63
-	dc.b	$63	;63
-	dc.b	$64	;64
-	dc.b	$64	;64
-	dc.b	$63	;63
-	dc.b	$64	;64
-	dc.b	$65	;65
-	dc.b	$62	;62
-	dc.b	$64	;64
-	dc.b	$65	;65
-	dc.b	$62	;62
-	dc.b	$64	;64
-	dc.b	$65	;65
-	dc.b	$62	;62
-	dc.b	$63	;63
-	dc.b	$64	;64
-	dc.b	$64	;64
-	dc.b	$63	;63
-	dc.b	$64	;64
-	dc.b	$64	;64
-	dc.b	$63	;63
-	dc.b	$64	;64
-	dc.b	$66	;66
-	dc.b	$63	;63
-	dc.b	$64	;64
-	dc.b	$65	;65
-	dc.b	$62	;62
-	dc.b	$64	;64
-	dc.b	$65	;65
-	dc.b	$62	;62
-	dc.b	$63	;63
-	dc.b	$64	;64
-	dc.b	$64	;64
-	dc.b	$63	;63
-	dc.b	$64	;64
-	dc.b	$64	;64
-	dc.b	$64	;64
-	dc.b	$64	;64
-	dc.b	$66	;66
-	dc.b	$63	;63
-	dc.b	$64	;64
-	dc.b	$66	;66
-	dc.b	$63	;63
-	dc.b	$64	;64
-	dc.b	$65	;65
-	dc.b	$63	;63
-	dc.b	$62	;62
-	dc.b	$64	;64
-	dc.b	$64	;64
-	dc.b	$60	;60
-	dc.b	$5F	;5F
-	dc.b	$11	;11
-	dc.b	$DD	;DD
-	dc.b	$A5	;A5
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$94	;94
-	dc.b	$CC	;CC
-	dc.b	$00	;00
-	dc.b	$28	;28
-	dc.b	$44	;44
-	dc.b	$58	;58
-	dc.b	$63	;63
-	dc.b	$64	;64
-	dc.b	$65	;65
-	dc.b	$62	;62
-	dc.b	$61	;61
-	dc.b	$51	;51
-	dc.b	$39	;39
-	dc.b	$21	;21
-	dc.b	$FD	;FD
-	dc.b	$D5	;D5
-	dc.b	$97	;97
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$C4	;C4
-	dc.b	$10	;10
-	dc.b	$44	;44
-	dc.b	$62	;62
-	dc.b	$62	;62
-	dc.b	$64	;64
-	dc.b	$64	;64
-	dc.b	$63	;63
-	dc.b	$64	;64
-	dc.b	$66	;66
-	dc.b	$63	;63
-	dc.b	$64	;64
-	dc.b	$65	;65
-	dc.b	$62	;62
-	dc.b	$64	;64
-	dc.b	$65	;65
-	dc.b	$62	;62
-	dc.b	$63	;63
-	dc.b	$64	;64
-	dc.b	$64	;64
-	dc.b	$63	;63
-	dc.b	$64	;64
-	dc.b	$65	;65
-	dc.b	$62	;62
-	dc.b	$64	;64
-	dc.b	$65	;65
-	dc.b	$62	;62
-	dc.b	$64	;64
-	dc.b	$65	;65
-	dc.b	$62	;62
-	dc.b	$64	;64
-	dc.b	$65	;65
-	dc.b	$62	;62
-	dc.b	$63	;63
-	dc.b	$62	;62
-	dc.b	$5F	;5F
-	dc.b	$25	;25
-	dc.b	$C5	;C5
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$A4	;A4
-	dc.b	$EC	;EC
-	dc.b	$2A	;2A
-	dc.b	$5C	;5C
-	dc.b	$64	;64
-	dc.b	$65	;65
-	dc.b	$62	;62
-	dc.b	$64	;64
-	dc.b	$66	;66
-	dc.b	$63	;63
-	dc.b	$64	;64
-	dc.b	$65	;65
-	dc.b	$62	;62
-	dc.b	$64	;64
-	dc.b	$65	;65
-	dc.b	$62	;62
-	dc.b	$63	;63
-	dc.b	$64	;64
-	dc.b	$64	;64
-	dc.b	$63	;63
-	dc.b	$64	;64
-	dc.b	$65	;65
-	dc.b	$62	;62
-	dc.b	$64	;64
-	dc.b	$65	;65
-	dc.b	$62	;62
-	dc.b	$64	;64
-	dc.b	$65	;65
-	dc.b	$62	;62
-	dc.b	$64	;64
-	dc.b	$65	;65
-	dc.b	$62	;62
-	dc.b	$63	;63
-	dc.b	$64	;64
-	dc.b	$64	;64
-	dc.b	$64	;64
-	dc.b	$64	;64
-	dc.b	$66	;66
-	dc.b	$63	;63
-	dc.b	$64	;64
-	dc.b	$66	;66
-	dc.b	$63	;63
-	dc.b	$64	;64
-	dc.b	$65	;65
-	dc.b	$63	;63
-	dc.b	$63	;63
-	dc.b	$64	;64
-	dc.b	$64	;64
-	dc.b	$64	;64
-	dc.b	$65	;65
-	dc.b	$64	;64
-	dc.b	$63	;63
-	dc.b	$63	;63
-	dc.b	$65	;65
-	dc.b	$62	;62
-	dc.b	$63	;63
-	dc.b	$64	;64
-	dc.b	$63	;63
-	dc.b	$62	;62
-	dc.b	$63	;63
-	dc.b	$62	;62
-	dc.b	$61	;61
-	dc.b	$55	;55
-	dc.b	$3A	;3A
-	dc.b	$29	;29
-	dc.b	$15	;15
-	dc.b	$05	;05
-	dc.b	$F6	;F6
-	dc.b	$E5	;E5
-	dc.b	$CF	;CF
-	dc.b	$B5	;B5
-	dc.b	$9B	;9B
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$8F	;8F
-	dc.b	$A8	;A8
-	dc.b	$C4	;C4
-	dc.b	$E0	;E0
-	dc.b	$FC	;FC
-	dc.b	$14	;14
-	dc.b	$24	;24
-	dc.b	$34	;34
-	dc.b	$48	;48
-	dc.b	$5C	;5C
-	dc.b	$66	;66
-	dc.b	$63	;63
-	dc.b	$64	;64
-	dc.b	$65	;65
-	dc.b	$62	;62
-	dc.b	$63	;63
-	dc.b	$64	;64
-	dc.b	$63	;63
-	dc.b	$63	;63
-	dc.b	$64	;64
-	dc.b	$64	;64
-	dc.b	$63	;63
-	dc.b	$64	;64
-	dc.b	$66	;66
-	dc.b	$63	;63
-	dc.b	$64	;64
-	dc.b	$65	;65
-	dc.b	$62	;62
-	dc.b	$64	;64
-	dc.b	$65	;65
-	dc.b	$62	;62
-	dc.b	$63	;63
-	dc.b	$64	;64
-	dc.b	$64	;64
-	dc.b	$63	;63
-	dc.b	$64	;64
-	dc.b	$65	;65
-	dc.b	$62	;62
-	dc.b	$64	;64
-	dc.b	$66	;66
-	dc.b	$63	;63
-	dc.b	$64	;64
-	dc.b	$65	;65
-	dc.b	$62	;62
-	dc.b	$64	;64
-	dc.b	$65	;65
-	dc.b	$62	;62
-	dc.b	$63	;63
-	dc.b	$64	;64
-	dc.b	$64	;64
-	dc.b	$62	;62
-	dc.b	$61	;61
-	dc.b	$5D	;5D
-	dc.b	$E5	;E5
-	dc.b	$89	;89
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$AC	;AC
-	dc.b	$14	;14
-	dc.b	$62	;62
-	dc.b	$63	;63
-	dc.b	$63	;63
-	dc.b	$64	;64
-	dc.b	$66	;66
-	dc.b	$63	;63
-	dc.b	$64	;64
-	dc.b	$65	;65
-	dc.b	$62	;62
-	dc.b	$64	;64
-	dc.b	$65	;65
-	dc.b	$62	;62
-	dc.b	$63	;63
-	dc.b	$64	;64
-	dc.b	$64	;64
-	dc.b	$63	;63
-	dc.b	$64	;64
-	dc.b	$64	;64
-	dc.b	$63	;63
-	dc.b	$63	;63
-	dc.b	$64	;64
-	dc.b	$63	;63
-	dc.b	$63	;63
-	dc.b	$64	;64
-	dc.b	$62	;62
-	dc.b	$61	;61
-	dc.b	$62	;62
-	dc.b	$5D	;5D
-	dc.b	$45	;45
-	dc.b	$4C	;4C
-	dc.b	$52	;52
-	dc.b	$56	;56
-	dc.b	$5A	;5A
-	dc.b	$64	;64
-	dc.b	$64	;64
-	dc.b	$64	;64
-	dc.b	$66	;66
-	dc.b	$63	;63
-	dc.b	$64	;64
-	dc.b	$65	;65
-	dc.b	$62	;62
-	dc.b	$64	;64
-	dc.b	$65	;65
-	dc.b	$62	;62
-	dc.b	$63	;63
-	dc.b	$64	;64
-	dc.b	$64	;64
-	dc.b	$63	;63
-	dc.b	$65	;65
-	dc.b	$64	;64
-	dc.b	$63	;63
-	dc.b	$64	;64
-	dc.b	$66	;66
-	dc.b	$63	;63
-	dc.b	$64	;64
-	dc.b	$65	;65
-	dc.b	$63	;63
-	dc.b	$63	;63
-	dc.b	$65	;65
-	dc.b	$63	;63
-	dc.b	$63	;63
-	dc.b	$64	;64
-	dc.b	$64	;64
-	dc.b	$63	;63
-	dc.b	$64	;64
-	dc.b	$65	;65
-	dc.b	$62	;62
-	dc.b	$63	;63
-	dc.b	$64	;64
-	dc.b	$63	;63
-	dc.b	$62	;62
-	dc.b	$63	;63
-	dc.b	$61	;61
-	dc.b	$5F	;5F
-	dc.b	$45	;45
-	dc.b	$37	;37
-	dc.b	$31	;31
-	dc.b	$2D	;2D
-	dc.b	$2C	;2C
-	dc.b	$36	;36
-	dc.b	$3D	;3D
-	dc.b	$3E	;3E
-	dc.b	$48	;48
-	dc.b	$57	;57
-	dc.b	$62	;62
-	dc.b	$64	;64
-	dc.b	$64	;64
-	dc.b	$64	;64
-	dc.b	$62	;62
-	dc.b	$49	;49
-	dc.b	$2F	;2F
-	dc.b	$15	;15
-	dc.b	$ED	;ED
-	dc.b	$C9	;C9
-	dc.b	$A5	;A5
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$90	;90
-	dc.b	$B8	;B8
-	dc.b	$D8	;D8
-	dc.b	$FC	;FC
-	dc.b	$1C	;1C
-	dc.b	$3A	;3A
-	dc.b	$60	;60
-	dc.b	$64	;64
-	dc.b	$64	;64
-	dc.b	$66	;66
-	dc.b	$63	;63
-	dc.b	$63	;63
-	dc.b	$64	;64
-	dc.b	$64	;64
-	dc.b	$63	;63
-	dc.b	$64	;64
-	dc.b	$65	;65
-	dc.b	$61	;61
-	dc.b	$62	;62
-	dc.b	$64	;64
-	dc.b	$63	;63
-	dc.b	$63	;63
-	dc.b	$64	;64
-	dc.b	$63	;63
-	dc.b	$63	;63
-	dc.b	$64	;64
-	dc.b	$63	;63
-	dc.b	$63	;63
-	dc.b	$64	;64
-	dc.b	$64	;64
-	dc.b	$63	;63
-	dc.b	$64	;64
-	dc.b	$66	;66
-	dc.b	$63	;63
-	dc.b	$64	;64
-	dc.b	$66	;66
-	dc.b	$63	;63
-	dc.b	$64	;64
-	dc.b	$65	;65
-	dc.b	$62	;62
-	dc.b	$63	;63
-	dc.b	$65	;65
-	dc.b	$63	;63
-	dc.b	$63	;63
-	dc.b	$64	;64
-	dc.b	$65	;65
-	dc.b	$62	;62
-	dc.b	$64	;64
-	dc.b	$66	;66
-	dc.b	$63	;63
-	dc.b	$64	;64
-	dc.b	$65	;65
-	dc.b	$62	;62
-	dc.b	$64	;64
-	dc.b	$65	;65
-	dc.b	$63	;63
-	dc.b	$63	;63
-	dc.b	$64	;64
-	dc.b	$64	;64
-	dc.b	$64	;64
-	dc.b	$65	;65
-	dc.b	$64	;64
-	dc.b	$62	;62
-	dc.b	$61	;61
-	dc.b	$60	;60
-	dc.b	$0D	;0D
-	dc.b	$CF	;CF
-	dc.b	$91	;91
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$98	;98
-	dc.b	$B4	;B4
-	dc.b	$CF	;CF
-	dc.b	$EA	;EA
-	dc.b	$04	;04
-	dc.b	$18	;18
-	dc.b	$2A	;2A
-	dc.b	$37	;37
-	dc.b	$44	;44
-	dc.b	$52	;52
-	dc.b	$5E	;5E
-	dc.b	$65	;65
-	dc.b	$63	;63
-	dc.b	$62	;62
-	dc.b	$64	;64
-	dc.b	$65	;65
-	dc.b	$62	;62
-	dc.b	$64	;64
-	dc.b	$65	;65
-	dc.b	$62	;62
-	dc.b	$64	;64
-	dc.b	$65	;65
-	dc.b	$62	;62
-	dc.b	$63	;63
-	dc.b	$64	;64
-	dc.b	$63	;63
-	dc.b	$63	;63
-	dc.b	$64	;64
-	dc.b	$64	;64
-	dc.b	$63	;63
-	dc.b	$64	;64
-	dc.b	$65	;65
-	dc.b	$62	;62
-	dc.b	$64	;64
-	dc.b	$65	;65
-	dc.b	$62	;62
-	dc.b	$64	;64
-	dc.b	$65	;65
-	dc.b	$62	;62
-	dc.b	$63	;63
-	dc.b	$64	;64
-	dc.b	$64	;64
-	dc.b	$63	;63
-	dc.b	$64	;64
-	dc.b	$64	;64
-	dc.b	$63	;63
-	dc.b	$64	;64
-	dc.b	$65	;65
-	dc.b	$62	;62
-	dc.b	$62	;62
-	dc.b	$64	;64
-	dc.b	$62	;62
-	dc.b	$62	;62
-	dc.b	$64	;64
-	dc.b	$63	;63
-	dc.b	$55	;55
-	dc.b	$36	;36
-	dc.b	$21	;21
-	dc.b	$0B	;0B
-	dc.b	$FB	;FB
-	dc.b	$EF	;EF
-	dc.b	$E3	;E3
-	dc.b	$D3	;D3
-	dc.b	$C1	;C1
-	dc.b	$AD	;AD
-	dc.b	$95	;95
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$8E	;8E
-	dc.b	$B4	;B4
-	dc.b	$E0	;E0
-	dc.b	$10	;10
-	dc.b	$44	;44
-	dc.b	$64	;64
-	dc.b	$65	;65
-	dc.b	$62	;62
-	dc.b	$64	;64
-	dc.b	$65	;65
-	dc.b	$62	;62
-	dc.b	$63	;63
-	dc.b	$65	;65
-	dc.b	$62	;62
-	dc.b	$63	;63
-	dc.b	$64	;64
-	dc.b	$65	;65
-	dc.b	$62	;62
-	dc.b	$64	;64
-	dc.b	$65	;65
-	dc.b	$62	;62
-	dc.b	$63	;63
-	dc.b	$64	;64
-	dc.b	$63	;63
-	dc.b	$61	;61
-	dc.b	$60	;60
-	dc.b	$51	;51
-	dc.b	$05	;05
-	dc.b	$D5	;D5
-	dc.b	$A5	;A5
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$98	;98
-	dc.b	$BE	;BE
-	dc.b	$E2	;E2
-	dc.b	$04	;04
-	dc.b	$24	;24
-	dc.b	$44	;44
-	dc.b	$62	;62
-	dc.b	$65	;65
-	dc.b	$62	;62
-	dc.b	$64	;64
-	dc.b	$65	;65
-	dc.b	$62	;62
-	dc.b	$63	;63
-	dc.b	$65	;65
-	dc.b	$62	;62
-	dc.b	$63	;63
-	dc.b	$64	;64
-	dc.b	$64	;64
-	dc.b	$63	;63
-	dc.b	$64	;64
-	dc.b	$66	;66
-	dc.b	$63	;63
-	dc.b	$64	;64
-	dc.b	$65	;65
-	dc.b	$62	;62
-	dc.b	$64	;64
-	dc.b	$65	;65
-	dc.b	$62	;62
-	dc.b	$63	;63
-	dc.b	$64	;64
-	dc.b	$64	;64
-	dc.b	$63	;63
-	dc.b	$64	;64
-	dc.b	$64	;64
-	dc.b	$63	;63
-	dc.b	$64	;64
-	dc.b	$66	;66
-	dc.b	$63	;63
-	dc.b	$64	;64
-	dc.b	$65	;65
-	dc.b	$62	;62
-	dc.b	$64	;64
-	dc.b	$65	;65
-	dc.b	$63	;63
-	dc.b	$63	;63
-	dc.b	$64	;64
-	dc.b	$64	;64
-	dc.b	$64	;64
-	dc.b	$65	;65
-	dc.b	$65	;65
-	dc.b	$62	;62
-	dc.b	$63	;63
-	dc.b	$64	;64
-	dc.b	$63	;63
-	dc.b	$62	;62
-	dc.b	$62	;62
-	dc.b	$57	;57
-	dc.b	$09	;09
-	dc.b	$D5	;D5
-	dc.b	$95	;95
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$9A	;9A
-	dc.b	$BA	;BA
-	dc.b	$D4	;D4
-	dc.b	$F2	;F2
-	dc.b	$0C	;0C
-	dc.b	$28	;28
-	dc.b	$44	;44
-	dc.b	$60	;60
-	dc.b	$64	;64
-	dc.b	$64	;64
-	dc.b	$65	;65
-	dc.b	$62	;62
-	dc.b	$63	;63
-	dc.b	$64	;64
-	dc.b	$64	;64
-	dc.b	$63	;63
-	dc.b	$64	;64
-	dc.b	$66	;66
-	dc.b	$63	;63
-	dc.b	$64	;64
-	dc.b	$65	;65
-	dc.b	$62	;62
-	dc.b	$64	;64
-	dc.b	$65	;65
-	dc.b	$62	;62
-	dc.b	$63	;63
-	dc.b	$64	;64
-	dc.b	$64	;64
-	dc.b	$63	;63
-	dc.b	$64	;64
-	dc.b	$65	;65
-	dc.b	$62	;62
-	dc.b	$64	;64
-	dc.b	$66	;66
-	dc.b	$63	;63
-	dc.b	$64	;64
-	dc.b	$65	;65
-	dc.b	$62	;62
-	dc.b	$62	;62
-	dc.b	$64	;64
-	dc.b	$64	;64
-	dc.b	$61	;61
-	dc.b	$61	;61
-	dc.b	$61	;61
-	dc.b	$37	;37
-	dc.b	$1D	;1D
-	dc.b	$01	;01
-	dc.b	$E5	;E5
-	dc.b	$CD	;CD
-	dc.b	$B3	;B3
-	dc.b	$9A	;9A
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$8A	;8A
-	dc.b	$9C	;9C
-	dc.b	$B4	;B4
-	dc.b	$C7	;C7
-	dc.b	$DA	;DA
-	dc.b	$F0	;F0
-	dc.b	$04	;04
-	dc.b	$1C	;1C
-	dc.b	$34	;34
-	dc.b	$52	;52
-	dc.b	$64	;64
-	dc.b	$64	;64
-	dc.b	$65	;65
-	dc.b	$62	;62
-	dc.b	$63	;63
-	dc.b	$64	;64
-	dc.b	$63	;63
-	dc.b	$63	;63
-	dc.b	$64	;64
-	dc.b	$65	;65
-	dc.b	$62	;62
-	dc.b	$64	;64
-	dc.b	$65	;65
-	dc.b	$62	;62
-	dc.b	$64	;64
-	dc.b	$65	;65
-	dc.b	$62	;62
-	dc.b	$64	;64
-	dc.b	$65	;65
-	dc.b	$62	;62
-	dc.b	$63	;63
-	dc.b	$64	;64
-	dc.b	$64	;64
-	dc.b	$63	;63
-	dc.b	$64	;64
-	dc.b	$66	;66
-	dc.b	$63	;63
-	dc.b	$64	;64
-	dc.b	$65	;65
-	dc.b	$62	;62
-	dc.b	$64	;64
-	dc.b	$65	;65
-	dc.b	$62	;62
-	dc.b	$63	;63
-	dc.b	$64	;64
-	dc.b	$64	;64
-	dc.b	$64	;64
-	dc.b	$64	;64
-	dc.b	$64	;64
-	dc.b	$63	;63
-	dc.b	$64	;64
-	dc.b	$65	;65
-	dc.b	$62	;62
-	dc.b	$63	;63
-	dc.b	$64	;64
-	dc.b	$63	;63
-	dc.b	$63	;63
-	dc.b	$64	;64
-	dc.b	$62	;62
-	dc.b	$61	;61
-	dc.b	$62	;62
-	dc.b	$63	;63
-	dc.b	$4D	;4D
-	dc.b	$3D	;3D
-	dc.b	$29	;29
-	dc.b	$19	;19
-	dc.b	$09	;09
-	dc.b	$F9	;F9
-	dc.b	$EB	;EB
-	dc.b	$D9	;D9
-	dc.b	$C7	;C7
-	dc.b	$B7	;B7
-	dc.b	$AA	;AA
-	dc.b	$A2	;A2
-	dc.b	$9A	;9A
-	dc.b	$8E	;8E
-	dc.b	$87	;87
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$8A	;8A
-	dc.b	$8E	;8E
-	dc.b	$8E	;8E
-	dc.b	$8D	;8D
-	dc.b	$8B	;8B
-	dc.b	$89	;89
-	dc.b	$87	;87
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$88	;88
-	dc.b	$90	;90
-	dc.b	$9B	;9B
-	dc.b	$A3	;A3
-	dc.b	$AC	;AC
-	dc.b	$BA	;BA
-	dc.b	$C4	;C4
-	dc.b	$CE	;CE
-	dc.b	$DA	;DA
-	dc.b	$E1	;E1
-	dc.b	$E7	;E7
-	dc.b	$F1	;F1
-	dc.b	$FC	;FC
-	dc.b	$04	;04
-	dc.b	$0D	;0D
-	dc.b	$14	;14
-	dc.b	$1A	;1A
-	dc.b	$23	;23
-	dc.b	$2D	;2D
-	dc.b	$3A	;3A
-	dc.b	$44	;44
-	dc.b	$4F	;4F
-	dc.b	$5C	;5C
-	dc.b	$66	;66
-	dc.b	$63	;63
-	dc.b	$64	;64
-	dc.b	$65	;65
-	dc.b	$62	;62
-	dc.b	$63	;63
-	dc.b	$64	;64
-	dc.b	$63	;63
-	dc.b	$63	;63
-	dc.b	$64	;64
-	dc.b	$64	;64
-	dc.b	$63	;63
-	dc.b	$64	;64
-	dc.b	$65	;65
-	dc.b	$62	;62
-	dc.b	$64	;64
-	dc.b	$65	;65
-	dc.b	$62	;62
-	dc.b	$63	;63
-	dc.b	$64	;64
-	dc.b	$63	;63
-	dc.b	$63	;63
-	dc.b	$64	;64
-	dc.b	$63	;63
-	dc.b	$63	;63
-	dc.b	$64	;64
-	dc.b	$64	;64
-	dc.b	$63	;63
-	dc.b	$63	;63
-	dc.b	$62	;62
-	dc.b	$60	;60
-	dc.b	$61	;61
-	dc.b	$45	;45
-	dc.b	$37	;37
-	dc.b	$29	;29
-	dc.b	$1B	;1B
-	dc.b	$0C	;0C
-	dc.b	$FF	;FF
-	dc.b	$F8	;F8
-	dc.b	$F4	;F4
-	dc.b	$EF	;EF
-	dc.b	$ED	;ED
-	dc.b	$F2	;F2
-	dc.b	$FC	;FC
-	dc.b	$06	;06
-	dc.b	$13	;13
-	dc.b	$24	;24
-	dc.b	$34	;34
-	dc.b	$48	;48
-	dc.b	$60	;60
-	dc.b	$64	;64
-	dc.b	$66	;66
-	dc.b	$64	;64
-	dc.b	$63	;63
-	dc.b	$65	;65
-	dc.b	$63	;63
-	dc.b	$62	;62
-	dc.b	$64	;64
-	dc.b	$65	;65
-	dc.b	$62	;62
-	dc.b	$60	;60
-	dc.b	$61	;61
-	dc.b	$3D	;3D
-	dc.b	$13	;13
-	dc.b	$FE	;FE
-	dc.b	$E5	;E5
-	dc.b	$CD	;CD
-	dc.b	$C1	;C1
-	dc.b	$B7	;B7
-	dc.b	$B4	;B4
-	dc.b	$B8	;B8
-	dc.b	$BB	;BB
-	dc.b	$B6	;B6
-	dc.b	$A8	;A8
-	dc.b	$97	;97
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$98	;98
-	dc.b	$C4	;C4
-	dc.b	$EC	;EC
-	dc.b	$12	;12
-	dc.b	$38	;38
-	dc.b	$60	;60
-	dc.b	$66	;66
-	dc.b	$63	;63
-	dc.b	$63	;63
-	dc.b	$65	;65
-	dc.b	$62	;62
-	dc.b	$63	;63
-	dc.b	$64	;64
-	dc.b	$65	;65
-	dc.b	$62	;62
-	dc.b	$64	;64
-	dc.b	$65	;65
-	dc.b	$62	;62
-	dc.b	$64	;64
-	dc.b	$65	;65
-	dc.b	$62	;62
-	dc.b	$63	;63
-	dc.b	$64	;64
-	dc.b	$63	;63
-	dc.b	$63	;63
-	dc.b	$64	;64
-	dc.b	$64	;64
-	dc.b	$63	;63
-	dc.b	$63	;63
-	dc.b	$63	;63
-	dc.b	$60	;60
-	dc.b	$60	;60
-	dc.b	$51	;51
-	dc.b	$40	;40
-	dc.b	$3B	;3B
-	dc.b	$32	;32
-	dc.b	$2C	;2C
-	dc.b	$2C	;2C
-	dc.b	$2C	;2C
-	dc.b	$34	;34
-	dc.b	$4A	;4A
-	dc.b	$5E	;5E
-	dc.b	$65	;65
-	dc.b	$62	;62
-	dc.b	$64	;64
-	dc.b	$65	;65
-	dc.b	$62	;62
-	dc.b	$64	;64
-	dc.b	$65	;65
-	dc.b	$61	;61
-	dc.b	$62	;62
-	dc.b	$64	;64
-	dc.b	$63	;63
-	dc.b	$61	;61
-	dc.b	$61	;61
-	dc.b	$61	;61
-	dc.b	$4D	;4D
-	dc.b	$2A	;2A
-	dc.b	$12	;12
-	dc.b	$F1	;F1
-	dc.b	$D5	;D5
-	dc.b	$BF	;BF
-	dc.b	$AF	;AF
-	dc.b	$9A	;9A
-	dc.b	$8C	;8C
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$90	;90
-	dc.b	$A2	;A2
-	dc.b	$BC	;BC
-	dc.b	$E0	;E0
-	dc.b	$04	;04
-	dc.b	$40	;40
-	dc.b	$64	;64
-	dc.b	$63	;63
-	dc.b	$64	;64
-	dc.b	$66	;66
-	dc.b	$63	;63
-	dc.b	$64	;64
-	dc.b	$65	;65
-	dc.b	$62	;62
-	dc.b	$63	;63
-	dc.b	$64	;64
-	dc.b	$64	;64
-	dc.b	$63	;63
-	dc.b	$64	;64
-	dc.b	$66	;66
-	dc.b	$63	;63
-	dc.b	$64	;64
-	dc.b	$64	;64
-	dc.b	$63	;63
-	dc.b	$62	;62
-	dc.b	$63	;63
-	dc.b	$5F	;5F
-	dc.b	$45	;45
-	dc.b	$ED	;ED
-	dc.b	$AD	;AD
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$8C	;8C
-	dc.b	$A0	;A0
-	dc.b	$BA	;BA
-	dc.b	$D8	;D8
-	dc.b	$F2	;F2
-	dc.b	$04	;04
-	dc.b	$1A	;1A
-	dc.b	$28	;28
-	dc.b	$33	;33
-	dc.b	$40	;40
-	dc.b	$4F	;4F
-	dc.b	$5E	;5E
-	dc.b	$66	;66
-	dc.b	$63	;63
-	dc.b	$64	;64
-	dc.b	$65	;65
-	dc.b	$62	;62
-	dc.b	$63	;63
-	dc.b	$64	;64
-	dc.b	$63	;63
-	dc.b	$63	;63
-	dc.b	$64	;64
-	dc.b	$63	;63
-	dc.b	$63	;63
-	dc.b	$64	;64
-	dc.b	$65	;65
-	dc.b	$62	;62
-	dc.b	$64	;64
-	dc.b	$65	;65
-	dc.b	$62	;62
-	dc.b	$64	;64
-	dc.b	$65	;65
-	dc.b	$62	;62
-	dc.b	$64	;64
-	dc.b	$65	;65
-	dc.b	$62	;62
-	dc.b	$63	;63
-	dc.b	$64	;64
-	dc.b	$64	;64
-	dc.b	$63	;63
-	dc.b	$64	;64
-	dc.b	$65	;65
-	dc.b	$62	;62
-	dc.b	$64	;64
-	dc.b	$65	;65
-	dc.b	$62	;62
-	dc.b	$64	;64
-	dc.b	$65	;65
-	dc.b	$62	;62
-	dc.b	$64	;64
-	dc.b	$65	;65
-	dc.b	$63	;63
-	dc.b	$63	;63
-	dc.b	$63	;63
-	dc.b	$64	;64
-	dc.b	$62	;62
-	dc.b	$63	;63
-	dc.b	$63	;63
-	dc.b	$60	;60
-	dc.b	$4D	;4D
-	dc.b	$21	;21
-	dc.b	$09	;09
-	dc.b	$EA	;EA
-	dc.b	$D1	;D1
-	dc.b	$B7	;B7
-	dc.b	$9D	;9D
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$90	;90
-	dc.b	$A8	;A8
-	dc.b	$C4	;C4
-	dc.b	$E0	;E0
-	dc.b	$F8	;F8
-	dc.b	$0E	;0E
-	dc.b	$20	;20
-	dc.b	$32	;32
-	dc.b	$44	;44
-	dc.b	$57	;57
-	dc.b	$64	;64
-	dc.b	$63	;63
-	dc.b	$65	;65
-	dc.b	$62	;62
-	dc.b	$63	;63
-	dc.b	$64	;64
-	dc.b	$65	;65
-	dc.b	$61	;61
-	dc.b	$63	;63
-	dc.b	$64	;64
-	dc.b	$63	;63
-	dc.b	$64	;64
-	dc.b	$65	;65
-	dc.b	$62	;62
-	dc.b	$63	;63
-	dc.b	$64	;64
-	dc.b	$63	;63
-	dc.b	$63	;63
-	dc.b	$64	;64
-	dc.b	$64	;64
-	dc.b	$63	;63
-	dc.b	$64	;64
-	dc.b	$65	;65
-	dc.b	$62	;62
-	dc.b	$63	;63
-	dc.b	$65	;65
-	dc.b	$62	;62
-	dc.b	$64	;64
-	dc.b	$64	;64
-	dc.b	$63	;63
-	dc.b	$63	;63
-	dc.b	$64	;64
-	dc.b	$64	;64
-	dc.b	$63	;63
-	dc.b	$64	;64
-	dc.b	$64	;64
-	dc.b	$63	;63
-	dc.b	$64	;64
-	dc.b	$65	;65
-	dc.b	$62	;62
-	dc.b	$63	;63
-	dc.b	$64	;64
-	dc.b	$63	;63
-	dc.b	$62	;62
-	dc.b	$63	;63
-	dc.b	$63	;63
-	dc.b	$61	;61
-	dc.b	$62	;62
-	dc.b	$53	;53
-	dc.b	$48	;48
-	dc.b	$3F	;3F
-	dc.b	$3A	;3A
-	dc.b	$33	;33
-	dc.b	$29	;29
-	dc.b	$1F	;1F
-	dc.b	$18	;18
-	dc.b	$10	;10
-	dc.b	$07	;07
-	dc.b	$01	;01
-	dc.b	$FA	;FA
-	dc.b	$F2	;F2
-	dc.b	$ED	;ED
-	dc.b	$EA	;EA
-	dc.b	$E4	;E4
-	dc.b	$DC	;DC
-	dc.b	$D5	;D5
-	dc.b	$D1	;D1
-	dc.b	$CD	;CD
-	dc.b	$C8	;C8
-	dc.b	$C2	;C2
-	dc.b	$BB	;BB
-	dc.b	$B1	;B1
-	dc.b	$AA	;AA
-	dc.b	$A6	;A6
-	dc.b	$A6	;A6
-	dc.b	$A3	;A3
-	dc.b	$9E	;9E
-	dc.b	$95	;95
-	dc.b	$89	;89
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$91	;91
-	dc.b	$9C	;9C
-	dc.b	$A3	;A3
-	dc.b	$B0	;B0
-	dc.b	$C1	;C1
-	dc.b	$D0	;D0
-	dc.b	$E4	;E4
-	dc.b	$00	;00
-	dc.b	$14	;14
-	dc.b	$26	;26
-	dc.b	$3C	;3C
-	dc.b	$4C	;4C
-	dc.b	$58	;58
-	dc.b	$64	;64
-	dc.b	$65	;65
-	dc.b	$63	;63
-	dc.b	$62	;62
-	dc.b	$64	;64
-	dc.b	$65	;65
-	dc.b	$61	;61
-	dc.b	$62	;62
-	dc.b	$64	;64
-	dc.b	$63	;63
-	dc.b	$63	;63
-	dc.b	$64	;64
-	dc.b	$63	;63
-	dc.b	$62	;62
-	dc.b	$64	;64
-	dc.b	$63	;63
-	dc.b	$62	;62
-	dc.b	$62	;62
-	dc.b	$64	;64
-	dc.b	$62	;62
-	dc.b	$62	;62
-	dc.b	$61	;61
-	dc.b	$41	;41
-	dc.b	$2B	;2B
-	dc.b	$0D	;0D
-	dc.b	$F9	;F9
-	dc.b	$EC	;EC
-	dc.b	$E7	;E7
-	dc.b	$E5	;E5
-	dc.b	$DD	;DD
-	dc.b	$C9	;C9
-	dc.b	$AD	;AD
-	dc.b	$8D	;8D
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$90	;90
-	dc.b	$AA	;AA
-	dc.b	$C4	;C4
-	dc.b	$E4	;E4
-	dc.b	$00	;00
-	dc.b	$1C	;1C
-	dc.b	$34	;34
-	dc.b	$4C	;4C
-	dc.b	$5E	;5E
-	dc.b	$64	;64
-	dc.b	$63	;63
-	dc.b	$65	;65
-	dc.b	$62	;62
-	dc.b	$62	;62
-	dc.b	$64	;64
-	dc.b	$65	;65
-	dc.b	$62	;62
-	dc.b	$64	;64
-	dc.b	$65	;65
-	dc.b	$61	;61
-	dc.b	$63	;63
-	dc.b	$64	;64
-	dc.b	$63	;63
-	dc.b	$63	;63
-	dc.b	$64	;64
-	dc.b	$63	;63
-	dc.b	$63	;63
-	dc.b	$64	;64
-	dc.b	$64	;64
-	dc.b	$63	;63
-	dc.b	$64	;64
-	dc.b	$65	;65
-	dc.b	$61	;61
-	dc.b	$62	;62
-	dc.b	$64	;64
-	dc.b	$61	;61
-	dc.b	$5F	;5F
-	dc.b	$5F	;5F
-	dc.b	$29	;29
-	dc.b	$05	;05
-	dc.b	$CF	;CF
-	dc.b	$9D	;9D
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$B0	;B0
-	dc.b	$CC	;CC
-	dc.b	$DE	;DE
-	dc.b	$EE	;EE
-	dc.b	$0B	;0B
-	dc.b	$30	;30
-	dc.b	$50	;50
-	dc.b	$63	;63
-	dc.b	$64	;64
-	dc.b	$65	;65
-	dc.b	$62	;62
-	dc.b	$62	;62
-	dc.b	$64	;64
-	dc.b	$64	;64
-	dc.b	$63	;63
-	dc.b	$64	;64
-	dc.b	$65	;65
-	dc.b	$61	;61
-	dc.b	$62	;62
-	dc.b	$64	;64
-	dc.b	$63	;63
-	dc.b	$64	;64
-	dc.b	$65	;65
-	dc.b	$62	;62
-	dc.b	$63	;63
-	dc.b	$64	;64
-	dc.b	$64	;64
-	dc.b	$63	;63
-	dc.b	$64	;64
-	dc.b	$65	;65
-	dc.b	$62	;62
-	dc.b	$64	;64
-	dc.b	$65	;65
-	dc.b	$62	;62
-	dc.b	$64	;64
-	dc.b	$65	;65
-	dc.b	$62	;62
-	dc.b	$64	;64
-	dc.b	$65	;65
-	dc.b	$62	;62
-	dc.b	$63	;63
-	dc.b	$64	;64
-	dc.b	$64	;64
-	dc.b	$63	;63
-	dc.b	$64	;64
-	dc.b	$65	;65
-	dc.b	$62	;62
-	dc.b	$64	;64
-	dc.b	$65	;65
-	dc.b	$62	;62
-	dc.b	$64	;64
-	dc.b	$65	;65
-	dc.b	$62	;62
-	dc.b	$64	;64
-	dc.b	$65	;65
-	dc.b	$63	;63
-	dc.b	$62	;62
-	dc.b	$64	;64
-	dc.b	$64	;64
-	dc.b	$63	;63
-	dc.b	$64	;64
-	dc.b	$65	;65
-	dc.b	$62	;62
-	dc.b	$63	;63
-	dc.b	$64	;64
-	dc.b	$63	;63
-	dc.b	$63	;63
-	dc.b	$64	;64
-	dc.b	$63	;63
-	dc.b	$62	;62
-	dc.b	$63	;63
-	dc.b	$63	;63
-	dc.b	$61	;61
-	dc.b	$5F	;5F
-	dc.b	$4B	;4B
-	dc.b	$3F	;3F
-	dc.b	$31	;31
-	dc.b	$25	;25
-	dc.b	$16	;16
-	dc.b	$09	;09
-	dc.b	$FB	;FB
-	dc.b	$EB	;EB
-	dc.b	$D9	;D9
-	dc.b	$C7	;C7
-	dc.b	$B5	;B5
-	dc.b	$A2	;A2
-	dc.b	$91	;91
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$85	;85
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$89	;89
-	dc.b	$9C	;9C
-	dc.b	$AD	;AD
-	dc.b	$BE	;BE
-	dc.b	$CF	;CF
-	dc.b	$DF	;DF
-	dc.b	$EF	;EF
-	dc.b	$FF	;FF
-	dc.b	$0B	;0B
-	dc.b	$17	;17
-	dc.b	$25	;25
-	dc.b	$33	;33
-	dc.b	$41	;41
-	dc.b	$4D	;4D
-	dc.b	$57	;57
-	dc.b	$5F	;5F
-	dc.b	$5F	;5F
-	dc.b	$61	;61
-	dc.b	$5E	;5E
-	dc.b	$5F	;5F
-	dc.b	$60	;60
-	dc.b	$5C	;5C
-	dc.b	$5D	;5D
-	dc.b	$5F	;5F
-	dc.b	$5E	;5E
-	dc.b	$5E	;5E
-	dc.b	$5F	;5F
-	dc.b	$5E	;5E
-	dc.b	$5D	;5D
-	dc.b	$5E	;5E
-	dc.b	$5E	;5E
-	dc.b	$5D	;5D
-	dc.b	$5D	;5D
-	dc.b	$56	;56
-	dc.b	$50	;50
-	dc.b	$4A	;4A
-	dc.b	$44	;44
-	dc.b	$40	;40
-	dc.b	$38	;38
-	dc.b	$2A	;2A
-	dc.b	$1E	;1E
-	dc.b	$14	;14
-	dc.b	$0A	;0A
-	dc.b	$01	;01
-	dc.b	$F6	;F6
-	dc.b	$EA	;EA
-	dc.b	$D9	;D9
-	dc.b	$CC	;CC
-	dc.b	$C3	;C3
-	dc.b	$BA	;BA
-	dc.b	$B2	;B2
-	dc.b	$AA	;AA
-	dc.b	$A0	;A0
-	dc.b	$95	;95
-	dc.b	$88	;88
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$80	;80
-	dc.b	$83	;83
-	dc.b	$8E	;8E
-	dc.b	$95	;95
-	dc.b	$A2	;A2
-	dc.b	$B4	;B4
-	dc.b	$BD	;BD
-	dc.b	$C4	;C4
-	dc.b	$D1	;D1
-	dc.b	$DE	;DE
-	dc.b	$EA	;EA
-	dc.b	$FE	;FE
-	dc.b	$13	;13
-	dc.b	$25	;25
-	dc.b	$37	;37
+	INCBIN bw-sfx/sample4.sound
+
 AudioSample_5:
 	dc.b	'FORM'	;464F524D
 	dc.b	$00	;00
@@ -183228,7 +169267,7 @@ AudioSample_5:
 	dc.b	$15	;15
 	dc.b	$15	;15
 	dc.b	$0C	;0C
-adrEA058828:
+ReserveSpace_1:
 	dc.b	$00	;00
 	dc.b	$00	;00
 	dc.b	$00	;00
@@ -184229,7 +170268,7 @@ adrEA058828:
 	dc.b	$00	;00
 	dc.b	$00	;00
 	dc.b	$00	;00
-adrEA058C10:
+ReserveSpace_2:
 	dc.b	$00	;00
 	dc.b	$00	;00
 	dc.b	$00	;00
@@ -186236,3 +172275,4 @@ adrEA058C10:
 	dc.b	$00	;00
 GameEnd:
 	end
+
