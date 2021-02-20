@@ -3227,7 +3227,7 @@ adrEA002680:
 adrCd002684:
 	move.w	d0,-(sp)		;3F00
 	move.l	#$000D000C,adrW_00D92A.l	;23FC000D000C0000D92A
-	lea	_Temp_GFX_Pockets_14.l,a1	;43F900053D8A
+	lea	_GFX_Pockets+$7688.l,a1	;43F900053D8A
 	move.b	#$07,$5A(a5,d7.w)	;1BBC0007705A
 	move.w	d7,d0			;3007
 	move.l	#$1000A,d7		;2E3C0001000A
@@ -6412,7 +6412,7 @@ adrCd004994:
 	rts	;4E75
 
 adrCd004996:
-	lea	adrEA00685E.l,a0	;41F90000685E
+	lea	SpellsCostTable.l,a0	;41F90000685E
 	moveq	#$00,d7	;7E00
 	move.b	$0044(a5),d7	;1E2D0044
 	move.b	$00(a0,d7.w),d0	;10307000
@@ -6916,7 +6916,7 @@ adrCd004EFA:
 	bsr	adrCd006778	;61001878
 	moveq	#$00,d0	;7000
 	move.b	$0013(a4),d0	;102C0013
-	lea	adrEA00685E.l,a6	;4DF90000685E
+	lea	SpellsCostTable.l,a6	;4DF90000685E
 	move.b	$00(a6,d0.w),d1	;12360000
 	addq.b	#$05,d1	;5A01
 	add.b	$0015(a4),d1	;D22C0015
@@ -6941,7 +6941,7 @@ adrCd004F20:
 	bne.s	adrCd004F5E	;660C
 	move.b	$00(a6,d0.w),d1	;12360000
 	and.w	#$0003,d1	;02410003
-	beq	adrCd004FEE	;67000092
+	beq	Pad_Fizzle	;67000092
 adrCd004F5E:
 	move.l	a4,-(sp)	;2F0C
 	jsr	(a0)	;4E90
@@ -6994,7 +6994,7 @@ Spells_NotEnoughSP:
 	moveq	#$01,d0	;7001
 	rts	;4E75
 
-adrCd004FEE:
+Pad_Fizzle:
 	lea	SpellFizzledMsg.l,a6	;4DF900004FFE
 	move.w	#$0008,adrW_00D92A.l	;33FC00080000D92A
 	bra.s	adrCd004FBE	;60C0
@@ -7674,7 +7674,7 @@ adrCd0055F6:
 	bsr	adrCd006778	;6100117E
 	addq.b	#$03,d7	;5607
 	bmi.s	adrCd00561A	;6B1A
-	lea	adrEA00685E.l,a0	;41F90000685E
+	lea	SpellsCostTable.l,a0	;41F90000685E
 	move.b	$00(a0,d6.w),d0	;10306000
 	add.w	d0,d0	;D040
 	addq.b	#$01,d0	;5200
@@ -8732,7 +8732,7 @@ adrCd005FA6:
 	bra	adrCd007B50	;60001B8E
 
 adrCd005FC4:
-	lea	_Temp_GFX_Pockets_09.l,a1	;43F900052C0A
+	lea	_GFX_Pockets+$6508.l,a1	;43F900052C0A
 	move.l	screen_ptr.l,a0	;207900008D36
 	add.w	$000A(a5),a0	;D0ED000A
 	moveq	#$00,d0	;7000
@@ -9626,10 +9626,10 @@ adrCd00681C:
 	moveq	#$00,d0	;7000
 adrCd006836:
 	add.b	d0,d7	;DE00
-	sub.b	adrB_00683E(pc,d6.w),d7	;9E3B6004
+	sub.b	SpellsDifficultyTable(pc,d6.w),d7	;9E3B6004
 	rts	;4E75
 
-adrB_00683E:
+SpellsDifficultyTable:
 	dc.b	$0E	;0E
 	dc.b	$0F	;0F
 	dc.b	$0E	;0E
@@ -9662,7 +9662,7 @@ adrB_00683E:
 	dc.b	$13	;13
 	dc.b	$12	;12
 	dc.b	$10	;10
-adrEA00685E:
+SpellsCostTable:
 	dc.b	$01	;01
 	dc.b	$02	;02
 	dc.b	$02	;02
@@ -9744,7 +9744,7 @@ adrCd0068D0:
 adrCd0068DC:
 	moveq	#$00,d0	;7000
 	move.b	$0013(a4),d0	;102C0013
-	lea	adrEA00685E.w,a0	;41F8685E	;Short Absolute converted to symbol!
+	lea	SpellsCostTable.w,a0	;41F8685E	;Short Absolute converted to symbol!
 	move.b	$00(a0,d0.w),d0	;10300000
 	addq.w	#$01,d0	;5240
 	add.w	d0,d0	;D040
@@ -10165,7 +10165,7 @@ adrCd006D44:
 	move.l	screen_ptr.l,a0	;207900008D36
 	add.w	$000A(a5),a0	;D0ED000A
 	add.w	#$097C,a0	;D0FC097C
-	lea	_Temp_GFX_Pockets_12.l,a1	;43F900053162
+	lea	_GFX_Pockets+$6A60.l,a1	;43F900053162
 	btst	#$00,(a5)	;08150000
 	bne.s	adrCd006D6E	;6604
 	lea	$0020(a1),a1	;43E90020
@@ -11645,7 +11645,7 @@ adrCd007BC0:
 	bcs.s	adrCd007BC0	;65D8
 adrCd007BE8:
 	bsr	adrCd007D6C	;61000182
-	lea	_Temp_GFX_Pockets_04.l,a1	;43F900050362
+	lea	_GFX_Pockets+$3C60.l,a1	;43F900050362
 	move.l	#$00050006,d5	;2A3C00050006	;Long Addr replaced with Symbol
 	move.l	screen_ptr.l,a0	;207900008D36
 	add.w	#$0DE8,a0	;D0FC0DE8
@@ -11985,7 +11985,7 @@ adrL_007E22:	equ	*-2
 adrCd007E4A:
 	add.l	screen_ptr.l,a0	;D1F900008D36
 	add.w	$000A(a5),a0	;D0ED000A
-	lea	_Temp_GFX_Pockets_08.l,a1	;43F900052C02
+	lea	_GFX_Pockets+$6500.l,a1	;43F900052C02
 	move.l	#$00000024,-(sp)	;2F3C00000024
 	moveq	#$00,d3	;7600
 adrCd007E62:
@@ -12041,7 +12041,7 @@ adrLp007EC2:
 	dbra	d7,adrLp007EC2	;51CFFFF6
 	bsr	adrCd007FF8	;61000128
 adrCd007ED2:
-	lea	_Temp_GFX_Pockets_03.l,a1	;43F900050332
+	lea	_GFX_Pockets+$3C30.l,a1	;43F900050332
 	move.l	#$00050006,d5	;2A3C00050006	;Long Addr replaced with Symbol
 	move.l	screen_ptr.l,a0	;207900008D36
 	add.w	#$0DE8,a0	;D0FC0DE8
@@ -12107,7 +12107,7 @@ adrCd007F86:
 	btst	#$06,d7	;08070006
 	bne.s	adrCd007FDE	;6646
 	move.w	d0,-(sp)	;3F00
-	lea	_Temp_GFX_Pockets_07.l,a1	;43F900051772
+	lea	_GFX_Pockets+$5070.l,a1	;43F900051772
 	move.l	#$00010028,d5	;2A3C00010028	;Long Addr replaced with Symbol
 	move.l	#$00000090,a3	;267C00000090
 	bsr	adrCd00CCB8	;61004D0A
@@ -12195,7 +12195,7 @@ adrCd007FF8:
 	move.l	#$00260035,d4	;283C00260035
 	moveq	#$02,d3	;7602
 	bsr	BW_draw_bar	;610059C4
-	lea	_Temp_GFX_Pockets_13.l,a1	;43F900053C82
+	lea	_GFX_Pockets+$7580.l,a1	;43F900053C82
 	move.l	#$00000088,a3	;267C00000088
 	move.l	screen_ptr.l,a0	;207900008D36
 	add.w	$000A(a5),a0	;D0ED000A
@@ -12398,12 +12398,12 @@ adrCd0082BA:
 	move.l	screen_ptr.l,a0	;207900008D36
 	add.w	#$0544,a0	;D0FC0544
 	add.w	$000A(a5),a0	;D0ED000A
-	lea	_Temp_GFX_Pockets_10.l,a1	;43F900052EC2
+	lea	_GFX_Pockets+$67C0.l,a1	;43F900052EC2
 	move.l	#$00000080,a3	;267C00000080
 	move.l	#$00030015,d5	;2A3C00030015	;Long Addr replaced with Symbol
 	bsr	adrCd00CCB8	;610049C6
 	add.w	#$0028,a0	;D0FC0028
-	lea	_Temp_GFX_Pockets_11.l,a1	;43F900052EE2
+	lea	_GFX_Pockets+$67E0.l,a1	;43F900052EE2
 	btst	#$00,(a5)	;08150000
 	bne.s	adrCd008308	;6604
 	add.w	#$0020,a1	;D2FC0020
@@ -12433,7 +12433,7 @@ adrCd00833C:
 	move.l	#$00000E04,a0	;207C00000E04	;Long Addr replaced with Symbol
 adrCd008358:
 	move.l	#$00000070,a3	;267C00000070
-	lea	_Temp_GFX_Pockets_02.l,a1	;43F900050302
+	lea	_GFX_Pockets+$3C00.l,a1	;43F900050302
 	move.l	#$00050006,d5	;2A3C00050006	;Long Addr replaced with Symbol
 	add.l	screen_ptr.l,a0	;D1F900008D36
 	add.w	$000A(a5),a0	;D0ED000A
@@ -14250,7 +14250,7 @@ adrCd00956A:
 	beq.s	adrCd0095A0	;6724
 	lea	adrEA018B2C.l,a0	;41F900018B2C
 	lea	adrEA00BC9E.l,a2	;45F90000BC9E
-	lea	adrEA028C28.l,a1	;43F900028C28
+	lea	_GFX_Bed.l,a1	;43F900028C28
 	move.w	d0,d6	;3C00
 adrCd009590:
 	bsr	adrCd00B486	;61001EF4
@@ -14264,7 +14264,7 @@ adrCd00959E:
 adrCd0095A0:
 	lea	adrEA018B16.l,a0	;41F900018B16
 	lea	adrEA00BC06.l,a2	;45F90000BC06
-	lea	adrEA0296A0.l,a1	;43F9000296A0
+	lea	_GFX_Pillar.l,a1	;43F9000296A0
 	move.w	d0,d6	;3C00
 adrCd0095B4:
 	moveq	#$00,d0	;7000
@@ -14471,20 +14471,20 @@ adrCd0096BE:
 adrCd009722:
 	cmpi.b	#$80,d4	;0C040080
 	beq	adrCd009680	;6700FF58
-	lea	adrEA00E770.l,a6	;4DF90000E770
+	lea	ObjectColourSets.l,a6	;4DF90000E770
 	moveq	#$00,d3	;7600
 	move.b	$00(a6,d2.w),d3	;16362000
 	asl.w	#$02,d3	;E543
-	lea	adrEA00E7DE.l,a6	;4DF90000E7DE
+	lea	FloorObjectPalettes.l,a6	;4DF90000E7DE
 	move.l	$00(a6,d3.w),adrEA00B4C0.l	;23F630000000B4C0
-	lea	ObjectFloorTable.l,a0	;41F90000E67A
+	lea	ObjectFloorShapeTable.l,a0	;41F90000E67A
 	move.b	$00(a0,d2.w),d3	;16302000
 	move.w	d3,d6	;3C03
 	asl.w	#$02,d6	;E546
 	add.w	d3,d6	;DC43
 	add.w	d0,d6	;DC40
 	add.w	d6,d6	;DC46
-	lea	adrEA00E88A.l,a0	;41F90000E88A
+	lea	FloorObjectGraphicOffsets.l,a0	;41F90000E88A
 	lea	_GFX_ObjectsOnFloor.l,a1	;43F900032F60
 	add.w	$00(a0,d6.w),a1	;D2F06000
 	cmpi.b	#$12,d3	;0C030012
@@ -14498,7 +14498,7 @@ adrCd009774:
 adrCd009780:
 	swap	d7	;4847
 	lsr.w	#$01,d6	;E24E
-	lea	adrEA00E6E8.l,a0	;41F90000E6E8
+	lea	FloorObjectShapeHeights.l,a0	;41F90000E6E8
 	move.b	$00(a0,d6.w),d7	;1E306000
 	lea	adrEA00981C.l,a0	;41F90000981C
 	add.b	$00(a0,d6.w),d5	;DA306000
@@ -19972,7 +19972,7 @@ adrCd00C3DE:
 	move.l	screen_ptr.l,a0	;207900008D36
 	add.w	#$0186,a0	;D0FC0186
 	add.w	$000A(a5),a0	;D0ED000A
-	lea	_Temp_GFX_Pockets_06.l,a1	;43F900050832
+	lea	_GFX_Pockets+$4130.l,a1	;43F900050832
 	add.w	d0,d0	;D040
 	add.w	d0,a0	;D0C0
 	asl.w	#$03,d0	;E740
@@ -20320,7 +20320,7 @@ adrCd00C7C8:
 	add.w	$000A(a5),a0	;D0ED000A
 	move.l	#$00000070,a3	;267C00000070
 	move.l	#$0005003D,d5	;2A3C0005003D	;Long Addr replaced with Symbol
-	lea	_Temp_GFX_Pockets_05.l,a1	;43F900050802
+	lea	_GFX_Pockets+$4100.l,a1	;43F900050802
 	bsr	adrCd00CCB8	;610004CA
 	asl.w	#$05,d7	;EB47
 	lea	CharacterStats.l,a4	;49F90000EB2A
@@ -23425,7 +23425,7 @@ ObjectDefinitionsTable:
 	dc.w	$0D3F	;0D3F
 	dc.w	$6000	;6000
 	dc.w	$3455	;3455
-ObjectFloorTable:
+ObjectFloorShapeTable:
 	dc.w	$FF02	;FF02
 	dc.w	$0116	;0116
 	dc.w	$160A	;160A
@@ -23481,7 +23481,7 @@ ObjectFloorTable:
 	dc.w	$0C0C	;0C0C
 	dc.w	$0C0C	;0C0C
 	dc.w	$0C10	;0C10
-adrEA00E6E8:
+FloorObjectShapeHeights:
 	dc.w	$0806	;0806
 	dc.w	$0503	;0503
 	dc.w	$0204	;0204
@@ -23550,7 +23550,7 @@ adrEA00E6E8:
 	dc.w	$0605	;0605
 	dc.w	$0403	;0403
 	dc.w	$0200	;0200
-adrEA00E770:
+ObjectColourSets:
 	dc.w	$0000	;0000
 	dc.w	$0B24	;0B24
 	dc.w	$1C00	;1C00
@@ -23606,7 +23606,7 @@ adrEA00E770:
 	dc.w	$0008	;0008
 	dc.w	$0D0C	;0D0C
 	dc.w	$0900	;0900
-adrEA00E7DE:
+FloorObjectPalettes:
 	dc.w	$0004	;0004
 	dc.w	$080C	;080C
 	dc.w	$0004	;0004
@@ -23693,7 +23693,7 @@ adrEA00E7DE:
 	dc.w	$040E	;040E
 	dc.w	$0C03	;0C03
 	dc.w	$040E	;040E
-adrEA00E88A:
+FloorObjectGraphicOffsets:
 	dc.w	$0000	;0000
 	dc.w	$0048	;0048
 	dc.w	$0080	;0080
@@ -76733,7 +76733,7 @@ adrEA0287A0:
 	dc.w	$FFFE	;FFFE
 	dc.w	$FFFE	;FFFE
 	dc.w	$FFFE	;FFFE
-adrEA028C28:
+_GFX_Bed:
 	dc.w	$FFFF	;FFFF
 	dc.w	$FFFF	;FFFF
 	dc.w	$FFFF	;FFFF
@@ -78074,7 +78074,7 @@ adrEA028C28:
 	dc.w	$03FF	;03FF
 	dc.w	$03FF	;03FF
 	dc.w	$7BFF	;7BFF
-adrEA0296A0:
+_GFX_Pillar:
 	dc.w	$07FF	;07FF
 	dc.w	$07FF	;07FF
 	dc.w	$07FF	;07FF
@@ -147224,6 +147224,8 @@ _GFX_Dragon:
 	dc.w	$C0FF	;C0FF
 	dc.w	$CAFF	;CAFF
 	dc.w	$C1FF	;C1FF
+
+;entropy here
 	dc.w	$FFFF	;FFFF
 	dc.w	$FEFD	;FEFD
 	dc.w	$FEFD	;FEFD
@@ -157522,7 +157524,7 @@ _GFX_Pockets:
 	dc.w	$0000	;0000
 	dc.w	$0000	;0000
 	dc.w	$0000	;0000
-_Temp_GFX_Pockets_02:
+
 	dc.w	$0000	;0000
 	dc.w	$0000	;0000
 	dc.w	$0000	;0000
@@ -157547,7 +157549,7 @@ _Temp_GFX_Pockets_02:
 	dc.w	$0000	;0000
 	dc.w	$0000	;0000
 	dc.w	$0000	;0000
-_Temp_GFX_Pockets_03:
+
 	dc.w	$0000	;0000
 	dc.w	$0000	;0000
 	dc.w	$0000	;0000
@@ -157572,7 +157574,7 @@ _Temp_GFX_Pockets_03:
 	dc.w	$0000	;0000
 	dc.w	$0000	;0000
 	dc.w	$0000	;0000
-_Temp_GFX_Pockets_04:
+
 	dc.w	$0000	;0000
 	dc.w	$0000	;0000
 	dc.w	$0000	;0000
@@ -158165,7 +158167,7 @@ _Temp_GFX_Pockets_04:
 	dc.w	$0000	;0000
 	dc.w	$0000	;0000
 	dc.w	$0000	;0000
-_Temp_GFX_Pockets_05:
+
 	dc.w	$0003	;0003
 	dc.w	$0003	;0003
 	dc.w	$0000	;0000
@@ -158190,7 +158192,7 @@ _Temp_GFX_Pockets_05:
 	dc.w	$C000	;C000
 	dc.w	$0000	;0000
 	dc.w	$C000	;C000
-_Temp_GFX_Pockets_06:
+
 	dc.w	$FFFF	;FFFF
 	dc.w	$FFFF	;FFFF
 	dc.w	$FFFF	;FFFF
@@ -160143,7 +160145,7 @@ _Temp_GFX_Pockets_06:
 	dc.w	$1FFF	;1FFF
 	dc.w	$8FFF	;8FFF
 	dc.w	$0FFF	;0FFF
-_Temp_GFX_Pockets_07:
+
 	dc.w	$0000	;0000
 	dc.w	$0000	;0000
 	dc.w	$01FF	;01FF
@@ -162776,12 +162778,12 @@ _Temp_GFX_Pockets_07:
 	dc.w	$0000	;0000
 	dc.w	$0000	;0000
 	dc.w	$0000	;0000
-_Temp_GFX_Pockets_08:
+
 	dc.w	$E9FF	;E9FF
 	dc.w	$FDFF	;FDFF
 	dc.w	$E7FF	;E7FF
 	dc.w	$E5FF	;E5FF
-_Temp_GFX_Pockets_09:
+
 	dc.w	$0800	;0800
 	dc.w	$0800	;0800
 	dc.w	$0800	;0800
@@ -163130,7 +163132,7 @@ _Temp_GFX_Pockets_09:
 	dc.w	$0000	;0000
 	dc.w	$0000	;0000
 	dc.w	$0000	;0000
-_Temp_GFX_Pockets_10:
+
 	dc.w	$0000	;0000
 	dc.w	$0007	;0007
 	dc.w	$0007	;0007
@@ -163147,7 +163149,7 @@ _Temp_GFX_Pockets_10:
 	dc.w	$0018	;0018
 	dc.w	$03E0	;03E0
 	dc.w	$0000	;0000
-_Temp_GFX_Pockets_11:
+
 	dc.w	$3FFF	;3FFF
 	dc.w	$0000	;0000
 	dc.w	$0000	;0000
@@ -163468,7 +163470,7 @@ _Temp_GFX_Pockets_11:
 	dc.w	$001C	;001C
 	dc.w	$0000	;0000
 	dc.w	$0000	;0000
-_Temp_GFX_Pockets_12:
+
 	dc.w	$0FFF	;0FFF
 	dc.w	$07FE	;07FE
 	dc.w	$0000	;0000
@@ -164893,7 +164895,7 @@ _Temp_GFX_Pockets_12:
 	dc.w	$0000	;0000
 	dc.w	$0000	;0000
 	dc.w	$0000	;0000
-_Temp_GFX_Pockets_13:
+
 	dc.w	$0800	;0800
 	dc.w	$07FF	;07FF
 	dc.w	$0000	;0000
@@ -165026,7 +165028,7 @@ _Temp_GFX_Pockets_13:
 	dc.w	$FFFF	;FFFF
 	dc.w	$F7FF	;F7FF
 	dc.w	$F7FF	;F7FF
-_Temp_GFX_Pockets_14:
+
 	dc.w	$FFFF	;FFFF
 	dc.w	$FDDD	;FDDD
 	dc.w	$FDDD	;FDDD

@@ -147224,6 +147224,8 @@ _GFX_Dragon:
 	dc.w	$C0FF	;C0FF
 	dc.w	$CAFF	;CAFF
 	dc.w	$C1FF	;C1FF
+
+;entropy here
 	dc.w	$FFFF	;FFFF
 	dc.w	$FEFD	;FEFD
 	dc.w	$FEFD	;FEFD
