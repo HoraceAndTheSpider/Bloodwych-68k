@@ -563,7 +563,7 @@ adrLp000A08:
 	bmi	Trigger_00_t00_Null	;6B0065D8
 	add.w	d1,d0	;D041
 	asl.w	#$08,d0	;E140
-	lea	TheMonsterBlock.l,a3	;47F900017584
+	lea	MonsterData_1.l,a3	;47F900017584
 	add.w	d0,a3	;D6C0
 	moveq	#$00,d4	;7800
 .FillMonstersLoop:
@@ -1694,7 +1694,7 @@ adrCd0016A0:
 	tst.w	d2	;4A42
 	bmi.s	adrCd0016BE	;6B18
 	move.l	a4,d0	;200C
-	sub.l	#TheMonsterBlock,d0	;048000017584
+	sub.l	#MonsterData_1,d0	;048000017584
 	lsr.w	#$04,d0	;E848
 	add.b	$000B(a4),d0	;D02C000B
 	add.b	$0006(a4),d0	;D02C0006
@@ -10213,7 +10213,7 @@ adrCd006DA2:
 	add.w	#$08DC,a0	;D0FC08DC
 	add.w	d0,d0	;D040
 	add.w	adrW_006D8A(pc,d0.w),a0	;D0FB00C2
-	lea	adrEA018EFE.l,a1	;43F900018EFE
+	lea	_GFX_ButtonHighlights.l,a1	;43F900018EFE
 	add.w	adrW_006D7E(pc,d0.w),a1	;D2FB00AC
 	moveq	#$00,d5	;7A00
 	moveq	#$00,d3	;7600
@@ -11402,7 +11402,7 @@ adrCd007974:
 	add.w	d0,d0	;D040
 	add.w	d0,d1	;D240
 	asl.w	#$08,d1	;E141
-	lea	TheMonsterBlock.l,a3	;47F900017584
+	lea	MonsterData_1.l,a3	;47F900017584
 	add.w	d1,a3	;D6C1
 	lea	UnpackedMonsters.l,a4	;49F900016B7E
 	move.w	-$0002(a4),d1	;322CFFFE
@@ -14212,7 +14212,7 @@ adrCd0094F8:
 	btst	#$02,d1	;08010002
 	beq.s	adrCd009522	;671E
 	movem.l	d1/d6,-(sp)	;48E74200
-	lea	adrEA031F68.l,a1	;43F900031F68
+	lea	_GFX_Pad.l,a1	;43F900031F68
 	lea	adrEA00BF62.l,a2	;45F90000BF62
 	lea	adrEA018C66.l,a0	;41F900018C66
 	bsr	adrCd0095B4	;61000098
@@ -14220,14 +14220,14 @@ adrCd0094F8:
 adrCd009522:
 	lea	adrEA018C4E.l,a0	;41F900018C4E
 	lea	adrEA00BF16.l,a2	;45F90000BF16
-	lea	adrEA031AD8.l,a1	;43F900031AD8
+	lea	_GFX_PitLow.l,a1	;43F900031AD8
 	and.w	#$0003,d1	;02410003
 	beq.s	adrCd009560	;6726
 	cmpi.w	#$0003,d1	;0C410003
 	beq.s	adrCd009560	;6720
 	btst	#$00,d1	;08010000
 	bne.s	adrCd00955E	;6618
-	lea	adrEA031D20.l,a1	;43F900031D20
+	lea	_GFX_PitHigh.l,a1	;43F900031D20
 	move.w	#$FFFF,adrW_00B4BE.l	;33FCFFFF0000B4BE
 	bsr.s	adrCd0095B4	;615E
 	clr.w	adrW_00B4BE.l	;42790000B4BE
@@ -17809,7 +17809,7 @@ adrCd00B08C:
 	beq.s	adrCd00B0EE	;6746
 	lea	adrEA00B224.l,a0	;41F90000B224
 	lea	adrEA00BE36.l,a2	;45F90000BE36
-	lea	adrEA0287A0.l,a1	;43F9000287A0
+	lea	_GFX_Slots.l,a1	;43F9000287A0
 	lea	adrEA00B204.l,a6	;4DF90000B204
 	move.b	-$0012(a3),d1	;122BFFEE
 	lsr.w	#$03,d1	;E649
@@ -17827,7 +17827,7 @@ adrCd00B0D4:
 adrCd00B0EE:
 	lea	adrEA018C2E.l,a0	;41F900018C2E
 	lea	adrEA00BEA6.l,a2	;45F90000BEA6
-	lea	adrEA0284E8.l,a1	;43F9000284E8
+	lea	_GFX_Switches.l,a1	;43F9000284E8
 	moveq	#$00,d0	;7000
 	move.b	-$0012(a3),d1	;122BFFEE
 	and.w	#$00F8,d1	;024100F8
@@ -17849,7 +17849,7 @@ adrCd00B13C:
 	move.w	d6,-(sp)	;3F06
 	lea	adrEA018BB0.l,a0	;41F900018BB0
 	lea	adrEA00BD56.l,a2	;45F90000BD56
-	lea	adrEA025CD8.l,a1	;43F900025CD8
+	lea	_GFX_Sign.l,a1	;43F900025CD8
 	lea	adrEA00B264.l,a6	;4DF90000B264
 	move.b	-$0012(a3),d1	;122BFFEE
 	lsr.b	#$02,d1	;E409
@@ -17883,7 +17883,7 @@ adrCd00B19A:
 adrCd00B1A4:
 	and.w	#$0003,d1	;02410003
 	mulu	#$0610,d1	;C2FC0610
-	lea	adrEA026CA8.l,a1	;43F900026CA8
+	lea	_GFX_SignOverlay.l,a1	;43F900026CA8
 	add.w	d1,a1	;D2C1
 	lea	adrEA00BDC6.l,a2	;45F90000BDC6
 	lea	adrEA00B284.l,a0	;41F90000B284
@@ -17910,7 +17910,7 @@ adrCd00B1E0:
 adrCd00B1EE:
 	lea	adrEA018B90.l,a0	;41F900018B90
 	lea	adrEA00BCE6.l,a2	;45F90000BCE6
-	lea	adrEA025490.l,a1	;43F900025490
+	lea	_GFX_Shelf.l,a1	;43F900025490
 	bra	adrCd00B410	;6000020E
 
 adrEA00B204:
@@ -18062,13 +18062,13 @@ adrCd00B2DE:
 adrCd00B312:
 	lea	adrEA018C14.l,a0	;41F900018C14
 	lea	adrEA00BC4E.l,a2	;45F90000BC4E
-	lea	adrEA02D660.l,a1	;43F90002D660
+	lea	_GFX_LargeOpenDoor.l,a1	;43F90002D660
 	btst	#$00,-$0012(a3)	;082B0000FFEE
 	beq.s	adrCd00B340	;6714
-	lea	adrEA02F1C8.l,a1	;43F90002F1C8
+	lea	_GFX_LargeMetalDoor.l,a1	;43F90002F1C8
 	btst	#$01,-$0012(a3)	;082B0001FFEE
 	beq.s	adrCd00B340	;6706
-	lea	adrEA030650.l,a1	;43F900030650
+	lea	_GFX_PortCullis.l,a1	;43F900030650
 adrCd00B340:
 	move.b	-$0016(a3),d6	;1C2BFFEA
 	cmpi.b	#$0E,d6	;0C06000E
@@ -18097,12 +18097,12 @@ adrCd00B374:
 	rts	;4E75
 
 adrCd00B384:
-	lea	adrEA02AB38.l,a1	;43F90002AB38
+	lea	_GFX_StairsUp.l,a1	;43F90002AB38
 	lea	adrEA018BD0.l,a0	;41F900018BD0
 	lea	adrEA00BB1E.l,a2	;45F90000BB1E
 	btst	#$00,-$0012(a3)	;082B0000FFEE
 	beq.s	adrCd00B3B0	;6712
-	lea	adrEA02C9E0.l,a1	;43F90002C9E0
+	lea	_GFX_StairsDown.l,a1	;43F90002C9E0
 	lea	adrEA018BF2.l,a0	;41F900018BF2
 	lea	adrEA00BB92.l,a2	;45F90000BB92
 adrCd00B3B0:
@@ -18124,7 +18124,7 @@ adrCd00B3CE:
 	rts	;4E75
 
 adrCd00B3D8:
-	lea	adrEA01F980.l,a1	;43F90001F980
+	lea	_GFX_WoodWall.l,a1	;43F90001F980
 	lea	adrEA018B70.l,a0	;41F900018B70
 	lea	adrEA00BAAE.l,a2	;45F90000BAAE
 	tst.b	-$0014(a3)	;4A2BFFEC
@@ -18135,7 +18135,7 @@ adrCd00B3D8:
 	beq.s	adrCd00B42C	;6730
 	lea	adrEA018B50.l,a0	;41F900018B50
 	lea	adrEA00BFAE.l,a2	;45F90000BFAE
-	lea	adrEA0242B0.l,a1	;43F9000242B0
+	lea	_GFX_WoodDoors.l,a1	;43F9000242B0
 adrCd00B40E:
 	nop	;4E71
 adrCd00B410:
@@ -18203,7 +18203,7 @@ adrCd00B458:
 adrCd00B474:
 	lea	adrEA00BA3E.l,a2	;45F90000BA3E
 	lea	adrEA018ADE.l,a0	;41F900018ADE
-	lea	adrEA01B050.l,a1	;43F90001B050
+	lea	_GFX_MainWalls.l,a1	;43F90001B050
 adrCd00B486:
 	add.w	d0,d0	;D040
 	add.w	$00(a0,d0.w),a1	;D2F00000
@@ -22078,7 +22078,7 @@ Print_LineEnd:
 	rts	;4E75
 
 Print_item_name:
-	lea	adrEA00E21E.l,a3	;47F90000E21E
+	lea	ObjectsText.l,a3	;47F90000E21E
 Print_word:
 	bsr.s	Proceed_in_stringtable	;61E8
 	bra.s	Print_nchars	;6002
@@ -23019,7 +23019,7 @@ WordsText:
 	dc.b	'TOKEN'	;544F4B454E
 	dc.b	$01	;01
 	dc.b	'I'	;49
-adrEA00E21E:
+ObjectsText:
 	dc.b	$05	;05
 	dc.b	'EMPTY'	;454D505459
 	dc.b	$04	;04
@@ -41881,7 +41881,7 @@ MonsterTotalsCounts:
 	dc.w	$0043	;0043
 	dc.w	$004F	;004F
 	dc.w	$004D	;004D
-TheMonsterBlock:
+MonsterData_1:
 	dc.w	$040B	;040B
 	dc.w	$0F00	;0F00
 	dc.w	$15FF	;15FF
@@ -45109,7 +45109,7 @@ GameFont:
 	dc.w	$0008	;0008
 	dc.w	$103F	;103F
 	dc.w	$1008	;1008
-adrEA018EFE:
+_GFX_ButtonHighlights:
 	dc.w	$F801	;F801
 	dc.w	$F7FE	;F7FE
 	dc.w	$F7FE	;F7FE
@@ -48598,7 +48598,7 @@ ScrollTexts:
 	dc.b	$09	;09
 	dc.b	'RESTORED'	;524553544F524544
 	dc.b	$FF	;FF
-adrEA01B050:
+_GFX_MainWalls:
 	dc.w	$000F	;000F
 	dc.w	$000F	;000F
 	dc.w	$000F	;000F
@@ -57967,7 +57967,7 @@ adrEA01B050:
 	dc.w	$7FFF	;7FFF
 	dc.w	$7FFF	;7FFF
 	dc.w	$7FFF	;7FFF
-adrEA01F980:
+_GFX_WoodWall:
 	dc.w	$000F	;000F
 	dc.w	$000F	;000F
 	dc.w	$000F	;000F
@@ -67336,7 +67336,7 @@ adrEA01F980:
 	dc.w	$FFFF	;FFFF
 	dc.w	$FFFF	;FFFF
 	dc.w	$FFFF	;FFFF
-adrEA0242B0:
+_GFX_WoodDoors:
 	dc.w	$0FFF	;0FFF
 	dc.w	$0FFF	;0FFF
 	dc.w	$0FFF	;0FFF
@@ -69625,7 +69625,7 @@ adrEA0242B0:
 	dc.w	$0000	;0000
 	dc.w	$0000	;0000
 	dc.w	$0000	;0000
-adrEA025490:
+_GFX_Shelf:
 	dc.w	$07FF	;07FF
 	dc.w	$07FF	;07FF
 	dc.w	$07FF	;07FF
@@ -70686,7 +70686,7 @@ adrEA025490:
 	dc.w	$64EF	;64EF
 	dc.w	$FFDF	;FFDF
 	dc.w	$64CF	;64CF
-adrEA025CD8:
+_GFX_Sign:
 	dc.w	$03FF	;03FF
 	dc.w	$03FF	;03FF
 	dc.w	$0BFF	;0BFF
@@ -72711,7 +72711,7 @@ adrEA025CD8:
 	dc.w	$FFFE	;FFFE
 	dc.w	$FFFE	;FFFE
 	dc.w	$FFFE	;FFFE
-adrEA026CA8:
+_GFX_SignOverlay:
 	dc.w	$3FFF	;3FFF
 	dc.w	$FFFF	;FFFF
 	dc.w	$3FFF	;3FFF
@@ -75816,7 +75816,7 @@ adrEA026CA8:
 	dc.w	$CCCC	;CCCC
 	dc.w	$3333	;3333
 	dc.w	$CCCC	;CCCC
-adrEA0284E8:
+_GFX_Switches:
 	dc.w	$FFFF	;FFFF
 	dc.w	$FFFF	;FFFF
 	dc.w	$FFFF	;FFFF
@@ -76165,7 +76165,7 @@ adrEA0284E8:
 	dc.w	$FFFE	;FFFE
 	dc.w	$FFFE	;FFFE
 	dc.w	$FFFE	;FFFE
-adrEA0287A0:
+_GFX_Slots:
 	dc.w	$FFFF	;FFFF
 	dc.w	$FFFF	;FFFF
 	dc.w	$FFFF	;FFFF
@@ -80724,7 +80724,7 @@ _GFX_Pillar:
 	dc.w	$01FF	;01FF
 	dc.w	$01FF	;01FF
 	dc.w	$01FF	;01FF
-adrEA02AB38:
+_GFX_StairsUp:
 	dc.w	$FFFF	;FFFF
 	dc.w	$FFFF	;FFFF
 	dc.w	$FFFF	;FFFF
@@ -84649,7 +84649,7 @@ adrEA02AB38:
 	dc.w	$0BFF	;0BFF
 	dc.w	$F3FF	;F3FF
 	dc.w	$03FF	;03FF
-adrEA02C9E0:
+_GFX_StairsDown:
 	dc.w	$FFFF	;FFFF
 	dc.w	$FFFF	;FFFF
 	dc.w	$FFFF	;FFFF
@@ -86250,7 +86250,7 @@ adrEA02C9E0:
 	dc.w	$0BFF	;0BFF
 	dc.w	$F3FF	;F3FF
 	dc.w	$03FF	;03FF
-adrEA02D660:
+_GFX_LargeOpenDoor:
 	dc.w	$FFFF	;FFFF
 	dc.w	$FFFF	;FFFF
 	dc.w	$FFFF	;FFFF
@@ -89759,7 +89759,7 @@ adrEA02D660:
 	dc.w	$0000	;0000
 	dc.w	$0000	;0000
 	dc.w	$0000	;0000
-adrEA02F1C8:
+_GFX_LargeMetalDoor:
 	dc.w	$FFFF	;FFFF
 	dc.w	$FFFF	;FFFF
 	dc.w	$FFFF	;FFFF
@@ -92388,7 +92388,7 @@ adrEA02F1C8:
 	dc.w	$FFFF	;FFFF
 	dc.w	$FFFF	;FFFF
 	dc.w	$FFFF	;FFFF
-adrEA030650:
+_GFX_PortCullis:
 	dc.w	$FFFF	;FFFF
 	dc.w	$FFFF	;FFFF
 	dc.w	$FFFF	;FFFF
@@ -95017,7 +95017,7 @@ adrEA030650:
 	dc.w	$FFFF	;FFFF
 	dc.w	$FFFF	;FFFF
 	dc.w	$FFFF	;FFFF
-adrEA031AD8:
+_GFX_PitLow:
 	dc.w	$007F	;007F
 	dc.w	$007F	;007F
 	dc.w	$007F	;007F
@@ -95310,7 +95310,7 @@ adrEA031AD8:
 	dc.w	$DF9F	;DF9F
 	dc.w	$000F	;000F
 	dc.w	$000F	;000F
-adrEA031D20:
+_GFX_PitHigh:
 	dc.w	$B7FF	;B7FF
 	dc.w	$07FF	;07FF
 	dc.w	$47FF	;47FF
@@ -95603,7 +95603,7 @@ adrEA031D20:
 	dc.w	$0007	;0007
 	dc.w	$9FE7	;9FE7
 	dc.w	$74E7	;74E7
-adrEA031F68:
+_GFX_Pad:
 	dc.w	$007F	;007F
 	dc.w	$007F	;007F
 	dc.w	$007F	;007F
