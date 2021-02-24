@@ -1513,7 +1513,7 @@ adrCd001498:
 	bsr	adrCd001842	;6100037E
 	bpl	adrCd001BCE	;6A000706
 	tst.w	adrW_0013C4.w	;4A7813C4	;Short Absolute converted to symbol!
-	beq	adrJA00175A	;6700028A
+	beq	AttackType_Drone	;6700028A
 	lea	ReserveSpace_1.l,a6	;4DF900058828
 	btst	#$00,(a5)	;08150000
 	beq.s	adrCd0014E4	;6706
@@ -1562,7 +1562,7 @@ adrCd00153A:
 	beq	adrCd001BD4	;6700067C
 	move.b	$0005(a4),d1	;122C0005
 	and.w	#$0060,d1	;02410060
-	bne	adrJA00175A	;660001F6
+	bne	AttackType_Drone	;660001F6
 	move.b	$0006(a4),d0	;102C0006
 	move.b	$0007(a4),d1	;122C0007
 	and.w	#$007F,d1	;0241007F
@@ -1580,25 +1580,25 @@ adrCd00153A:
 adrCd001596:
 	move.b	$000A(a4),d1	;122C000A
 	add.w	d1,d1	;D241
-	lea	adrJB00166A.l,a1	;43F90000166A
-	lea	adrJT0015AE.l,a0	;41F9000015AE
+	lea	AttackType_NoSpells.l,a1	;43F90000166A
+	lea	MonsterAttackTypeTable.l,a0	;41F9000015AE
 	add.w	$00(a0,d1.w),a1	;D2F01000
 	jmp	(a1)	;4ED1
 
-adrJT0015AE:
-	dc.w	adrJB00166A-adrJB00166A	;0000
-	dc.w	adrJA0015D6-adrJB00166A	;FF6C
-	dc.w	adrJA00175A-adrJB00166A	;00F0
-	dc.w	adrJA0015B8-adrJB00166A	;FF4E
-	dc.w	adrJA001664-adrJB00166A	;FFFA
+MonsterAttackTypeTable:
+	dc.w	AttackType_NoSpells-AttackType_NoSpells	;0000
+	dc.w	AttackType_Spells-AttackType_NoSpells	;FF6C
+	dc.w	AttackType_Drone-AttackType_NoSpells	;00F0
+	dc.w	AttackType_DroneSpells-AttackType_NoSpells	;FF4E
+	dc.w	AttackType_ArcBoltMachine-AttackType_NoSpells	;FFFA
 
-adrJA0015B8:
+AttackType_DroneSpells:
 	bsr	RandomGen_BytewithOffset	;61003FF2
 	and.w	#$000F,d0	;0240000F
-	bne	adrJA00175A	;66000198
+	bne	AttackType_Drone	;66000198
 	bra.s	adrCd0015E0	;601A
 
-adrB_0015C6:
+MonsterAttackSpells:
 	dc.b	$0A	;0A
 	dc.b	$0A	;0A
 	dc.b	$00	;00
@@ -1616,10 +1616,10 @@ adrB_0015C6:
 	dc.b	$00	;00
 	dc.b	$83	;83
 
-adrJA0015D6:
+AttackType_Spells:
 	bsr	adrCd005556	;61003F7E
 	subq.b	#$02,d0	;5500
-	bcc	adrJB00166A	;6400008C
+	bcc	AttackType_NoSpells	;6400008C
 adrCd0015E0:
 	bsr	RandomGen_BytewithOffset	;61003FCA
 	and.w	#$000F,d0	;0240000F
@@ -1635,7 +1635,7 @@ adrCd0015E0:
 	bcc.s	adrCd001608	;6402
 	lsr.w	#$01,d0	;E248
 adrCd001608:
-	move.b	adrB_0015C6(pc,d0.w),d0	;103B00BC
+	move.b	MonsterAttackSpells(pc,d0.w),d0	;103B00BC
 	move.w	d0,d4	;3800
 	or.w	#$0080,d4	;00440080
 	move.w	d3,d6	;3C03
@@ -1667,12 +1667,12 @@ adrCd00162C:
 	move.l	(sp)+,a4	;285F
 	rts	;4E75
 
-adrJA001664:
+AttackType_ArcBoltMachine:
 	moveq	#$0C,d3	;760C
 	moveq	#$0B,d0	;700B
 	bra.s	adrCd001608	;609E
 
-adrJB00166A:
+AttackType_NoSpells:
 	moveq	#-$01,d2	;74FF
 	move.b	$0004(a4),d1	;122C0004
 	cmp.b	adrB_00EED5.l,d1	;B2390000EED5
@@ -1712,14 +1712,14 @@ adrCd0016CE:
 	add.w	d7,d0					;D047
 	swap	d7					;4847
 	move.b	$00(a6,d0.w),d0				;10360000
-	beq.s	adrJA00175A				;6778
+	beq.s	AttackType_Drone				;6778
 	cmpi.b	#$FF,d0					;0C0000FF
-	beq.s	adrJA00175A				;6772
+	beq.s	AttackType_Drone				;6772
 	and.w	#$0003,d0				;02400003
 	move.b	$02(a4,d4.w),d6				;1C344002
 	and.w	#$0003,d6				;02460003
 	cmp.w	d0,d6					;BC40
-	beq.s	adrJA00175A				;6762
+	beq.s	AttackType_Drone				;6762
 	eor.w	d0,d6					;B146
 	subq.w	#$02,d6					;5546
 	beq	adrCd001BB8				;670004BA
@@ -1728,18 +1728,18 @@ adrCd0016CE:
 
 adrCd001708:
 	sub.b	#$84,d2					;04020084
-	bcs.s	adrJA00175A				;654C
+	bcs.s	AttackType_Drone				;654C
 	beq.s	adrCd001714				;6704
 	subq.b	#$03,d2					;5702
-	bne.s	adrJA00175A				;6646
+	bne.s	AttackType_Drone				;6646
 adrCd001714:
 	not.w	d1					;4641
 	and.w	#$0007,d1				;02410007
 	beq.s	adrCd001728				;670C
 	cmpi.w	#$0007,d1				;0C410007
-	bne.s	adrJA00175A				;6638
+	bne.s	AttackType_Drone				;6638
 	tst.b	$00(a6,d0.w)				;4A360000
-	bne.s	adrJA00175A				;6632
+	bne.s	AttackType_Drone				;6632
 adrCd001728:
 	or.b	#$07,$01(a6,d0.w)			;003600070001
 	moveq	#$00,d1					;7200
@@ -1757,7 +1757,7 @@ adrCd001746:
 	move.w	#$0100,d1	;323C0100
 	move.b	$000C(a4),d1	;122C000C
 	bsr	adrCd0054BE	;61003D66
-adrJA00175A:
+AttackType_Drone:
 	move.b	$02(a4,d4.w),d6	;1C344002
 	and.w	#$0003,d6	;02460003
 	bsr	adrCd007A44	;610062E0
@@ -12093,7 +12093,7 @@ adrCd007F54:
 	add.w	d7,a0	;D0C7
 	move.b	$18(a5,d0.w),d7	;1E350018
 	bpl.s	adrCd007F86	;6A16
-	lea	adrEA019BFE.l,a1	;43F900019BFE
+	lea	_GFX_Shield_Clicked.l,a1	;43F900019BFE
 	sub.l	a3,a3	;97CB
 	move.l	#$00010028,d5	;2A3C00010028	;Long Addr replaced with Symbol
 	move.w	$0012(a5),d3	;362D0012
@@ -20795,7 +20795,7 @@ adrCd00CC3A:
 	moveq	#$03,d3	;7603
 	bsr	BW_draw_bar	;61000E14
 	sub.l	a3,a3	;97CB
-	lea	adrEA01975E.l,a1	;43F90001975E
+	lea	_GFX_Scroll_Edge_Left.l,a1	;43F90001975E
 	move.l	screen_ptr.l,a0	;207900008D36
 	add.w	#$03DC,a0	;D0FC03DC
 	add.w	$000A(a5),a0	;D0ED000A
@@ -20804,16 +20804,16 @@ adrCd00CC3A:
 	move.l	d5,-(sp)	;2F05
 	bsr.s	adrCd00CCB8	;6144
 	move.l	(sp)+,d5	;2A1F
-	lea	adrEA01992E.l,a1	;43F90001992E
+	lea	_GFX_Scroll_Edge_Right2.l,a1	;43F90001992E
 	move.l	screen_ptr.l,a0	;207900008D36
 	add.w	#$03E6,a0	;D0FC03E6
 	add.w	$000A(a5),a0	;D0ED000A
 	bsr.s	adrCd00CCB8	;612C
 	sub.w	#$000A,a0	;90FC000A
-	lea	adrEA01948E.l,a1	;43F90001948E
+	lea	_GFX_Scroll_Edge_Bottom.l,a1	;43F90001948E
 	move.l	#$0005000E,d5	;2A3C0005000E	;Long Addr replaced with Symbol
 	bsr.s	adrCd00CCB8	;611A
-	lea	adrEA0191BE.l,a1	;43F9000191BE
+	lea	_GFX_Scroll_Edge_Top.l,a1	;43F9000191BE
 	move.l	screen_ptr.l,a0	;207900008D36
 	add.w	#$0184,a0	;D0FC0184
 	add.w	$000A(a5),a0	;D0ED000A
@@ -20897,7 +20897,7 @@ adrCd00CD4A:
 	rts	;4E75
 
 adrCd00CD78:
-	lea	adrEA019BFE.l,a1	;43F900019BFE
+	lea	_GFX_Shield_Clicked.l,a1	;43F900019BFE
 	sub.l	a3,a3	;97CB
 	bsr.s	adrCd00CD4A	;61C8
 	move.l	#$00010028,d5	;2A3C00010028	;Long Addr replaced with Symbol
@@ -45462,7 +45462,7 @@ _GFX_ButtonHighlights:
 	dc.w	$EDFF	;EDFF
 	dc.w	$EDFF	;EDFF
 	dc.w	$EDFF	;EDFF
-adrEA0191BE:
+_GFX_Scroll_Edge_Top:
 	dc.w	$000F	;000F
 	dc.w	$000F	;000F
 	dc.w	$0000	;0000
@@ -45823,7 +45823,7 @@ adrEA0191BE:
 	dc.w	$FFEC	;FFEC
 	dc.w	$0010	;0010
 	dc.w	$0000	;0000
-adrEA01948E:
+_GFX_Scroll_Edge_Bottom:
 	dc.w	$0037	;0037
 	dc.w	$0017	;0017
 	dc.w	$0008	;0008
@@ -46184,7 +46184,7 @@ adrEA01948E:
 	dc.w	$0000	;0000
 	dc.w	$0000	;0000
 	dc.w	$0000	;0000
-adrEA01975E:
+_GFX_Scroll_Edge_Left:
 	dc.w	$0057	;0057
 	dc.w	$0037	;0037
 	dc.w	$0008	;0008
@@ -46417,7 +46417,7 @@ adrEA01975E:
 	dc.w	$0037	;0037
 	dc.w	$0008	;0008
 	dc.w	$0000	;0000
-adrEA01992E:
+_GFX_Scroll_Edge_Right2:
 	dc.w	$FF2A	;FF2A
 	dc.w	$FFEC	;FFEC
 	dc.w	$0010	;0010
@@ -46778,7 +46778,7 @@ adrEA01992E:
 	dc.w	$FCFF	;FCFF
 	dc.w	$FCFF	;FCFF
 	dc.w	$FCFF	;FCFF
-adrEA019BFE:
+_GFX_Shield_Clicked:
 	dc.w	$01FF	;01FF
 	dc.w	$0000	;0000
 	dc.w	$0000	;0000
