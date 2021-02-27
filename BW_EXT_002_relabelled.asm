@@ -123,12 +123,12 @@ GameStart:	move.w	#$7FFF,_custom+intena.l	;33FC7FFF00DFF09A
 	clr.b	adrB_00F989.l	;42390000F989
 	clr.w	adrB_0099EE.l	;4279000099EE
 	bsr	adrCd000946	;61000518
-	bsr	adrCd0006F0	;610002BE
+	bsr	MainMenu	;610002BE
 	jsr	adrCd009B74.l	;4EB900009B74
 	jsr	adrCd009B6C.l	;4EB900009B6C
 	moveq	#$00,d0	;7000
-	jsr	adrCd00968E.l	;4EB90000968E
-	tst.w	MainMenuText.l	;4A7900000626
+	jsr	PlaySound.l	;4EB90000968E
+	tst.w	MainMenuBuffer.l	;4A7900000626
 	beq	adrCd000F0A	;67000ABA
 	bra	adrCd000F0E	;60000ABA
 
@@ -164,7 +164,7 @@ adrLp0004D2:	moveq	#$00,d0	;7000
 	moveq	#$07,d1	;7207
 adrLp0004FE:	move.l	d0,(a0)+	;20C0
 	dbra	d1,adrLp0004FE	;51C9FFFC
-	move.l	#Level_3_Interrupt,tv_Lev3IntVect.l	;23FC000099F00000006C
+	move.l	#VerticalBlankInterupt,tv_Lev3IntVect.l	;23FC000099F00000006C
 	move.l	#Level_2_Interrupt,tv_Lev2IntVect.l	;23FC0000059A00000068
 	move.l	#Level_4_Interrupt,tv_Lev4IntVect.l	;23FC0000967400000070
 	move.w	#$7FFF,_custom+intena.l	;33FC7FFF00DFF09A
@@ -189,14 +189,14 @@ adrEA000576:	dc.b	$04	;04
 	dc.b	$01	;01
 	dc.b	$00	;00
 adrEA00057E:	
-	dc.l	adrEA009C50	;00009C50
-	dc.l	adrEA009CE0	;00009CE0
-	dc.l	adrEA009C98	;00009C98
-	dc.l	adrEA009D28	;00009D28
+	dc.l	SpritePosition_00	;00009C50
+	dc.l	SpritePosition_01	;00009CE0
+	dc.l	SpritePosition_04	;00009C98
+	dc.l	SpritePosition_02	;00009D28
 	dc.l	adrEA009C94	;00009C94
 	dc.w	$0000	;0000
 adrB_000594:	dc.b	$00	;00
-adrB_000595:	dc.b	$00	;00
+KeyboardKeyCode:	dc.b	$00	;00
 	dc.b	$00	;00
 	dc.b	$00	;00
 	dc.b	$00	;00
@@ -207,11 +207,11 @@ Level_2_Interrupt:	movem.l	d0/d1/a0,-(sp)	;48E7C080
 	move.b	$0C00(a0),d0	;10280C00
 	ror.b	#$01,d0	;E218
 	not.b	d0	;4600
-	move.b	d0,adrB_000595.l	;13C000000595
+	move.b	d0,KeyboardKeyCode.l	;13C000000595
 	or.b	#$40,$0E00(a0)	;002800400E00
 	clr.b	$0C00(a0)	;42280C00
 	move.b	$0100(a0),d1	;12280100
-	bsr.s	adrCd0005EC	;612A
+	bsr.s	CheckKeyboard	;612A
 	moveq	#$2D,d0	;702D
 adrLp0005C4:	dbra	d0,adrLp0005C4	;51C8FFFE
 	lea	_ciaa.l,a0	;41F900BFE001
@@ -222,19 +222,19 @@ adrLp0005C4:	dbra	d0,adrLp0005C4	;51C8FFFE
 	move.w	#$0008,_custom+intreq.l	;33FC000800DFF09C
 	rte	;4E73
 
-adrCd0005EC:	lea	RawKeyCodes.l,a0	;41F90000061A
+CheckKeyboard:	lea	RawKeyCodes.l,a0	;41F90000061A
 	moveq	#$0B,d1	;720B
-adrLp0005F4:	cmp.b	(a0)+,d0	;B018
-	beq.s	adrCd0005FE	;6706
-	dbra	d1,adrLp0005F4	;51C9FFFA
+.keyboardloop:	cmp.b	(a0)+,d0	;B018
+	beq.s	KeyboardAction	;6706
+	dbra	d1,.keyboardloop	;51C9FFFA
 	rts	;4E75
 
-adrCd0005FE:	lea	adrEA00F9D8.l,a0	;41F90000F9D8
+KeyboardAction:	lea	Player1_Data.l,a0	;41F90000F9D8
 	subq.w	#$06,d1	;5D41
-	bcc.s	adrCd000610	;6408
+	bcc.s	.skipPlayer2	;6408
 	addq.w	#$06,d1	;5C41
-	lea	adrEA00FA3A.l,a0	;41F90000FA3A
-adrCd000610:	add.w	#$000A,d1	;0641000A
+	lea	Player2_Data.l,a0	;41F90000FA3A
+.skipPlayer2:	add.w	#$000A,d1	;0641000A
 	move.b	d1,$0056(a0)	;11410056
 	rts	;4E75
 
@@ -250,13 +250,13 @@ RawKeyCodes:	dc.b	$5F	;5F
 	dc.b	$20	;20
 	dc.b	$21	;21
 	dc.b	$11	;11
-MainMenuText:	
+MainMenuBuffer:	
 	dc.w	$0000	;0000
-adrW_000628:	
+MainMenuInitColours:	
 	dc.w	$0000	;0000
 	dc.w	$FD00	;FD00
 	dc.b	$F0	;F0
-adrEA00062D:	dc.b	$FE	;FE
+MainMenuText:	dc.b	$FE	;FE
 	dc.b	$0C	;0C
 	dc.b	$FC	;FC
 	dc.b	$04	;04
@@ -290,64 +290,64 @@ adrEA00062D:	dc.b	$FE	;FE
 	dc.b	$06	;06
 	dc.b	$FF	;FF
 
-adrCd0006F0:	
+MainMenu:	
 	clr.w	Multiplayer.l		;42790000F98C
 	jsr	adrCd009B74.l		;4EB900009B74
 	jsr	adrCd009B6C.l		;4EB900009B6C
-	lea	adrEA00062D.l,a6	;4DF90000062D
-	tst.w	adrW_000628.l		;4A7900000628
-	bne.s	adrCd000712		;6602
+	lea	MainMenuText.l,a6	;4DF90000062D
+	tst.w	MainMenuInitColours.l		;4A7900000628
+	bne.s	.menuscreen		;6602
 	subq.w	#$03,a6	;574E
-adrCd000712:	
-	lea	adrEA00F9D8.l,a5	;4BF90000F9D8
+.menuscreen:	
+	lea	Player1_Data.l,a5	;4BF90000F9D8
 	jsr	adrCd00DAA6.l		;4EB90000DAA6
 	jsr	adrCd009A9A.l		;4EB900009A9A
-	tst.w	adrW_000628.l		;4A7900000628
+	tst.w	MainMenuInitColours.l		;4A7900000628
 	bne.s	MenuKeyboard		;660E
-	move.w	#$FFFF,adrW_000628.l	;33FCFFFF00000628
+	move.w	#$FFFF,MainMenuInitColours.l	;33FCFFFF00000628
 	jsr	adrCd009648.l		;4EB900009648
 MenuKeyboard:	
-	clr.b	adrB_000595.l		;423900000595
+	clr.b	KeyboardKeyCode.l		;423900000595
 MenuKeyboardLoop:	
-	move.b	adrB_000595.l,d0	;103900000595
+	move.b	KeyboardKeyCode.l,d0	;103900000595
 	sub.b	#$50,d0			;04000050
-	beq	adrCd000762		;67000016
+	beq	Ply2_ImportGame		;67000016
 	subq.b	#$01,d0			;5300
-	beq	LoadGameFromMenu	;67000018
+	beq	Ply1_ImportGame	;67000018
 	subq.b	#$01,d0			;5300
 	subq.b	#$01,d0			;5300
 	subq.b	#$05,d0			;5B00
 	beq.s	Ply1_Start		;6772
 	subq.b	#$01,d0			;5300
-	beq.s	adrCd0007D8		;6778
+	beq.s	Ply1_LoadGame		;6778
 	bra.s	MenuKeyboardLoop	;60DE
 
-adrCd000762:	
+Ply2_ImportGame:	
 	move.w	#$FFFF,Multiplayer.l	;33FCFFFF0000F98C
-LoadGameFromMenu:	
+Ply1_ImportGame:	
 	move.l	#$00067D00,screen_ptr.l	;23FC00067D0000009B06
 	move.l	#$00060000,framebuffer_ptr.l	;23FC0006000000009B0A
 	jsr	adrCd009B74.l	;4EB900009B74
 	move.l	screen_ptr.l,a0	;207900009B06
 	add.w	#$0E10,a0	;D0FC0E10
-	lea	adrEA004C87.l,a6	;4DF900004C87
+	lea	InsertLoadDiskMsg.l,a6	;4DF900004C87
 	jsr	adrCd00DAA6.l	;4EB90000DAA6
 	jsr	adrCd009A9A.l	;4EB900009A9A
-	clr.b	adrB_000595.l	;423900000595
+	clr.b	KeyboardKeyCode.l	;423900000595
 	bsr	adrCd004BA2	;610043FA
-	bcs	adrCd0006F0	;6500FF44
+	bcs	MainMenu	;6500FF44
 	bsr	adrCd004BC0	;61004410
 	bsr	adrCd004BDE	;6100442A
-	cmp.b	#$FF,adrB_00F59B.l	;0C3900FF0000F59B
-	beq	adrCd0006F0	;6700FF30
-	move.w	#$FFFF,MainMenuText.l	;33FCFFFF00000626
+	cmp.b	#$FF,CharacterStats+$15.l	;0C3900FF0000F59B
+	beq	MainMenu	;6700FF30
+	move.w	#$FFFF,MainMenuBuffer.l	;33FCFFFF00000626
 	bra	adrCd000ED4	;60000708
 
 Ply1_Start:	
 	move.w	#$FFFF,Multiplayer.l	;33FCFFFF0000F98C
 	bra.s	adrCd0007DE	;6006
 
-adrCd0007D8:	
+Ply1_LoadGame:	
 	clr.w	Multiplayer.l	;42790000F98C
 adrCd0007DE:	
 	move.l	#$00067D00,screen_ptr.l	;23FC00067D0000009B06
@@ -355,14 +355,14 @@ adrCd0007DE:
 	jsr	adrCd009B74.l	;4EB900009B74
 	move.l	screen_ptr.l,a0	;207900009B06
 	add.w	#$0E10,a0	;D0FC0E10
-	lea	adrEA004C87.l,a6	;4DF900004C87
+	lea	InsertLoadDiskMsg.l,a6	;4DF900004C87
 	jsr	adrCd00DAA6.l	;4EB90000DAA6
 	jsr	adrCd009A9A.l	;4EB900009A9A
-	clr.b	adrB_000595.l	;423900000595
+	clr.b	KeyboardKeyCode.l	;423900000595
 	bsr	adrCd004BA2	;61004386
-	bcs	adrCd0006F0	;6500FED0
+	bcs	MainMenu	;6500FED0
 	jsr	adrCd004BC0.l	;4EB900004BC0
-	jsr	adrCd00DB18.l	;4EB90000DB18
+	jsr	CopyProtection.l	;4EB90000DB18
 	tst.l	d0	;4A80
 	beq	adrCd004BD4	;670043A2
 	move.l	screen_ptr.l,adrL_0092F0.l	;23F900009B06000092F0
@@ -382,12 +382,12 @@ adrCd0007DE:
 adrLp000888:	
 	move.b	(a2)+,(a1)+	;12DA
 	dbra	d0,adrLp000888	;51C8FFFC
-	lea	adrEA00F9D8.l,a5	;4BF90000F9D8
+	lea	Player1_Data.l,a5	;4BF90000F9D8
 	move.w	#$0116,d5	;3A3C0116
 	bsr.s	adrCd0008AE	;6114
 	tst.w	Multiplayer.l	;4A790000F98C
 	bmi	adrCd000924	;6B000082
-	lea	adrEA00FA3A.l,a5	;4BF90000FA3A
+	lea	Player2_Data.l,a5	;4BF90000FA3A
 	move.w	#$1516,d5	;3A3C1516
 adrCd0008AE:		
 	tst.b	$0018(a5)	;4A2D0018
@@ -565,9 +565,9 @@ adrCd000A34:	lea	adrEA014ED4.l,a6	;4DF900014ED4
 adrLp000A3C:	move.b	#$FF,$00(a6,d0.w)	;1DBC00FF0000
 	dbra	d0,adrLp000A3C	;51C8FFF8
 	moveq	#$00,d0	;7000
-	lea	adrEA00F9D8.l,a5	;4BF90000F9D8
+	lea	Player1_Data.l,a5	;4BF90000F9D8
 	bsr.s	adrCd000A56	;6106
-	lea	adrEA00FA3A.l,a5	;4BF90000FA3A
+	lea	Player2_Data.l,a5	;4BF90000FA3A
 adrCd000A56:	moveq	#$03,d7	;7E03
 adrLp000A58:	move.b	$18(a5,d7.w),d0	;10357018
 	bmi.s	adrCd000A66	;6B08
@@ -778,7 +778,7 @@ adrEA000CB2:	dc.b	$32	;32
 
 adrCd000CCE:	bsr	adrCd000A34	;6100FD64
 	bsr	adrCd000ED4	;61000200
-	lea	adrEA00F586.l,a4	;49F90000F586
+	lea	CharacterStats.l,a4	;49F90000F586
 	moveq	#$0F,d6	;7C0F
 adrLp000CDE:	clr.b	$0015(a4)	;422C0015
 	clr.b	$0025(a4)	;422C0025
@@ -805,7 +805,7 @@ adrLp000CDE:	clr.b	$0015(a4)	;422C0015
 adrCd000D3A:	lea	$0040(a4),a4	;49EC0040
 	dbra	d6,adrLp000CDE	;51CEFF9E
 adrCd000D42:	bsr	adrCd0009FE	;6100FCBA
-	lea	adrEA016568.l,a2	;45F900016568
+	lea	DroppedObjects.l,a2	;45F900016568
 	move.w	adrW_00F98A.l,d0	;30390000F98A
 	add.w	d0,d0	;D040
 	move.w	$00(a2,d0.w),d0	;30320000
@@ -816,18 +816,18 @@ adrCd000D42:	bsr	adrCd0009FE	;6100FCBA
 	moveq	#$18,d0	;7018
 adrLp000D6A:	move.l	d6,(a4)+	;28C6
 	dbra	d0,adrLp000D6A	;51C8FFFC
-	lea	adrEA014EE6.l,a4	;49F900014EE6
+	lea	UnpackedMonsters.l,a4	;49F900014EE6
 	move.w	#$01FF,d0	;303C01FF
 adrLp000D7A:	move.l	d6,(a4)+	;28C6
 	dbra	d0,adrLp000D7A	;51C8FFFC
 	move.w	adrW_00F98A.l,d0	;30390000F98A
 	move.w	d0,d1	;3200
 	add.w	d0,d0	;D040
-	lea	monstersex.totals.l,a4	;49F900015960
+	lea	MonsterTotalsCounts.l,a4	;49F900015960
 	move.w	$00(a4,d0.w),d6	;3C340000
-	lea	adrEA014EE6.l,a4	;49F900014EE6
+	lea	UnpackedMonsters.l,a4	;49F900014EE6
 	move.w	d6,-$0002(a4)	;3946FFFE
-	bmi	adrJB007CF0	;6B006F50
+	bmi	Trigger_00_t00_Null	;6B006F50
 	add.w	d1,d0	;D041
 	asl.w	#$08,d0	;E140
 	lea	serpex.monsters.l,a3	;47F900015968
@@ -943,7 +943,7 @@ adrCd000ED2:	rts	;4E75
 adrCd000ED4:	move.w	adrW_00F98A.l,d0	;30390000F98A
 	add.w	d0,d0	;D040
 	lea	adrEA000F02.l,a0	;41F900000F02
-	lea	serpex.map.l,a6	;4DF90000FA9C
+	lea	MapData1.l,a6	;4DF90000FA9C
 	add.w	$00(a0,d0.w),a6	;DCF00000
 	lea	adrEA00F99C.l,a0	;41F90000F99C
 	moveq	#$0D,d0	;700D
@@ -953,17 +953,17 @@ adrLp000EF4:	move.l	(a6)+,(a0)+	;20DE
 	rts	;4E75
 
 adrEA000F02:
-	dc.w	serpex.map-serpex.map	;0000
-	dc.w	chaosex.map-serpex.map	;1402
-	dc.w	moonex.map-serpex.map	;2804
-	dc.w	dragex.map-serpex.map	;3C06
+	dc.w	MapData1-MapData1	;0000
+	dc.w	MapData2-MapData1	;1402
+	dc.w	MaoData3-MapData1	;2804
+	dc.w	MapData4-MapData1	;3C06
 
 adrCd000F0A:
 	bsr	adrCd000CCE			;6100FDC2
 adrCd000F0E:
 	clr.w	adrB_0099EE.l			;4279000099EE
 	move.b	#$FF,adrB_00F988.l		;13FC00FF0000F988
-	lea	adrEA00F9D8.l,a5		;4BF90000F9D8
+	lea	Player1_Data.l,a5		;4BF90000F9D8
 	move.l	#$00F00020,$0002(a5)		;2B7C00F000200002
 	move.w	#$5601,$003A(a5)		;3B7C5601003A
 	tst.w	Multiplayer.l			;4A790000F98C
@@ -976,7 +976,7 @@ adrCd000F0E:
 	moveq	#$00,d7				;7E00
 	bra.s	adrLp000F80			;6022
 
-adrCd000F5E:	lea	adrEA00FA3A.l,a5	;4BF90000FA3A
+adrCd000F5E:	lea	Player2_Data.l,a5	;4BF90000FA3A
 	move.l	#$00F00088,$0002(a5)		;2B7C00F000880002
 	move.w	#$BE68,$003A(a5)		;3B7CBE68003A
 	move.w	#$0068,$0008(a5)		;3B7C00680008
@@ -987,25 +987,25 @@ adrLp000F80:	clr.w	$0014(a5)		;426D0014
 	move.w	#$FFFF,$0040(a5)		;3B7CFFFF0040
 	bsr	adrCd000E9E			;6100FF0C
 	bset	#$04,$0018(a5)			;08ED00040018
-	lea	adrEA00F9D8.l,a5		;4BF90000F9D8
+	lea	Player1_Data.l,a5		;4BF90000F9D8
 	dbra	d7,adrLp000F80			;51CFFFDE
 	bsr	adrCd004A4E			;61003AA8
 	move.w	#$FFFF,adrB_0099EE.l		;33FCFFFF000099EE
 adrCd000FB0:	tst.b	adrB_0099EE.l		;4A39000099EE
 	bne.s	adrCd000FB0			;66F8
 adrCd000FB8:	
-	lea	adrEA00F9D8.l,a5	;4BF90000F9D8
+	lea	Player1_Data.l,a5	;4BF90000F9D8
 	jsr	adrCd0092A6.l	;4EB9000092A6
 	bsr	adrCd00564C	;61004686
 	bsr	adrCd00644C	;61005482
 	tst.w	Multiplayer.l	;4A790000F98C
 	bne.s	adrCd000FF4	;6620
-	lea	adrEA00FA3A.l,a5	;4BF90000FA3A
+	lea	Player2_Data.l,a5	;4BF90000FA3A
 	jsr	adrCd0092A6.l	;4EB9000092A6
 	bsr	adrCd00564C	;6100466A
 	bsr	adrCd00644C	;61005466
 	jsr	adrCd009D84.l	;4EB900009D84
-	lea	adrEA00F9D8.l,a5	;4BF90000F9D8
+	lea	Player1_Data.l,a5	;4BF90000F9D8
 adrCd000FF4:	jsr	adrCd009D84.l	;4EB900009D84
 	move.b	#$FF,adrB_0099EE.l	;13FC00FF000099EE
 adrCd001002:	tst.b	adrB_0099EE.l	;4A39000099EE
@@ -1032,11 +1032,11 @@ adrLp001036:	dbra	d1,adrLp001036	;51C9FFFE
 	moveq	#$14,d0	;7014
 adrLp001064:	dbra	d1,adrLp001064	;51C9FFFE
 	dbra	d0,adrLp001064	;51C8FFFA
-	bra	adrCd004B3E	;60003AD0
+	bra	LoadGame	;60003AD0
 
-adrCd001070:	lea	adrEA00F9D8.l,a5	;4BF90000F9D8
+adrCd001070:	lea	Player1_Data.l,a5	;4BF90000F9D8
 	bsr.s	adrCd00107E	;6106
-	lea	adrEA00FA3A.l,a5	;4BF90000FA3A
+	lea	Player2_Data.l,a5	;4BF90000FA3A
 adrCd00107E:	and.b	#$7F,$0052(a5)	;022D007F0052
 	move.b	$0054(a5),d3	;162D0054
 	clr.b	$0054(a5)	;422D0054
@@ -1142,7 +1142,7 @@ adrLp00115C:	lea	$5DC0(a1),a3	;47E95DC0
 	rts	;4E75
 
 adrCd0011A2:	move.l	a4,d0	;200C
-	sub.l	#adrEA00F586,d0	;04800000F586
+	sub.l	#CharacterStats,d0	;04800000F586
 	lsr.w	#$06,d0	;EC48
 	move.w	d0,d7	;3E00
 	movem.l	d0/d1/d7/a5,-(sp)	;48E7C104
@@ -1205,7 +1205,7 @@ adrCd00124C:	lsr.b	#$06,d0	;EC08
 adrCd00125E:	move.b	d0,$000A(a4)	;1940000A
 adrCd001262:	rts	;4E75
 
-adrCd001264:	lea	adrEA00F586.l,a4	;49F90000F586
+adrCd001264:	lea	CharacterStats.l,a4	;49F90000F586
 	moveq	#$0F,d7	;7E0F
 adrLp00126C:	movem.l	d7/a4,-(sp)	;48E70108
 	bsr	adrCd0011A2	;6100FF30
@@ -1213,9 +1213,9 @@ adrLp00126C:	movem.l	d7/a4,-(sp)	;48E70108
 	lea	$0040(a4),a4	;49EC0040
 	dbra	d7,adrLp00126C	;51CFFFEE
 	subq.b	#$01,adrB_00F998.l	;53390000F998
-	lea	adrEA00F9D8.l,a5	;4BF90000F9D8
+	lea	Player1_Data.l,a5	;4BF90000F9D8
 	bsr	adrCd0012AA	;6100001C
-	lea	adrEA00FA3A.l,a5	;4BF90000FA3A
+	lea	Player2_Data.l,a5	;4BF90000FA3A
 	bsr	adrCd0012AA	;61000012
 	tst.b	adrB_00F998.l	;4A390000F998
 	bpl.s	adrCd0012A8	;6A06
@@ -1324,7 +1324,7 @@ adrCd0013D8:	subq.b	#$01,adrB_00F999.l	;53390000F999
 	bpl.s	adrCd001402	;6A22
 	move.b	#$07,adrB_00F999.l	;13FC00070000F999
 	moveq	#$0F,d7	;7E0F
-	lea	adrEA00F586.l,a4	;49F90000F586
+	lea	CharacterStats.l,a4	;49F90000F586
 adrLp0013F0:	subq.b	#$01,$0019(a4)	;532C0019
 	bcc.s	adrCd0013FA	;6404
 	clr.b	$0019(a4)	;422C0019
@@ -1333,7 +1333,7 @@ adrCd0013FA:	lea	$0040(a4),a4	;49EC0040
 adrCd001402:	rts	;4E75
 
 adrCd001404:	moveq	#$00,d6	;7C00
-	lea	adrEA014EE6.l,a3	;47F900014EE6
+	lea	UnpackedMonsters.l,a3	;47F900014EE6
 	lea	adrEA0156F8.l,a0	;41F9000156F8
 	move.w	-$0002(a0),d7	;3E28FFFE
 	bmi.s	adrCd001402	;6BEA
@@ -1476,13 +1476,13 @@ adrCd0015AA:	tst.w	adrEA00F992.l	;4A790000F992
 	bne.s	adrCd0015F8	;6646
 	move.w	#$012C,adrEA00F992.l	;33FC012C0000F992
 	bsr	adrCd0014E8	;6100FF2C
-	lea	adrEA00F9D8.l,a5	;4BF90000F9D8
+	lea	Player1_Data.l,a5	;4BF90000F9D8
 	bsr	adrCd001348	;6100FD82
-	lea	adrEA055E88.l,a6	;4DF900055E88
+	lea	ReserveSpace_1.l,a6	;4DF900055E88
 	bsr	adrCd006334	;61004D64
-	lea	adrEA00FA3A.l,a5	;4BF90000FA3A
+	lea	Player2_Data.l,a5	;4BF90000FA3A
 	bsr	adrCd001348	;6100FD6E
-	lea	adrEA056270.l,a6	;4DF900056270
+	lea	ReserveSpace_2.l,a6	;4DF900056270
 	bsr	adrCd006334	;61004D50
 	bsr	adrCd001404	;6100FE1C
 	bchg	#$01,adrB_00F99B.l	;087900010000F99B
@@ -1515,15 +1515,15 @@ adrLp001644:	move.l	(a3)+,(a2)+	;24DB
 adrCd001646:	dbra	d1,adrLp001644	;51C9FFFC
 	subq.w	#$01,(a1)	;5351
 adrCd00164C:	dbra	d7,adrLp001624	;51CFFFD6
-	lea	adrEA00F9D8.l,a5	;4BF90000F9D8
+	lea	Player1_Data.l,a5	;4BF90000F9D8
 	bsr	adrCd002E0A	;610017B2
-	lea	adrEA00FA3A.l,a5	;4BF90000FA3A
+	lea	Player2_Data.l,a5	;4BF90000FA3A
 	bsr	adrCd002E0A	;610017A8
 	subq.w	#$01,adrW_00A936.l	;53790000A936
 	moveq	#$00,d7	;7E00
 	move.w	#$FFFF,adrW_00173A.l	;33FCFFFF0000173A
 	clr.w	adrW_00173C.l	;42790000173C
-	lea	adrEA00F586.l,a4	;49F90000F586
+	lea	CharacterStats.l,a4	;49F90000F586
 adrCd001680:	move.w	d7,-(sp)	;3F07
 	move.w	d7,d0	;3007
 	move.w	d7,adrW_00173A.l	;33C70000173A
@@ -1537,7 +1537,7 @@ adrCd001698:	lea	$0040(a4),a4	;49EC0040
 	addq.w	#$01,d7	;5247
 	cmp.w	#$0010,d7	;0C470010
 	bcs.s	adrCd001680	;65DA
-	lea	adrEA014EE6.l,a4	;49F900014EE6
+	lea	UnpackedMonsters.l,a4	;49F900014EE6
 	move.w	-$0002(a4),d7	;3E2CFFFE
 	bmi.s	adrCd0016CA	;6B18
 adrLp0016B2:	move.w	d7,-(sp)	;3F07
@@ -1547,9 +1547,9 @@ adrLp0016B2:	move.w	d7,-(sp)	;3F07
 	lea	$0010(a4),a4	;49EC0010
 	move.w	(sp)+,d7	;3E1F
 	dbra	d7,adrLp0016B2	;51CFFFEA
-adrCd0016CA:	lea	adrEA00F9D8.l,a5	;4BF90000F9D8
+adrCd0016CA:	lea	Player1_Data.l,a5	;4BF90000F9D8
 	bsr.s	adrCd0016D8	;6106
-	lea	adrEA00FA3A.l,a5	;4BF90000FA3A
+	lea	Player2_Data.l,a5	;4BF90000FA3A
 adrCd0016D8:	moveq	#$03,d7	;7E03
 	moveq	#$00,d6	;7C00
 adrLp0016DC:	tst.b	$5A(a5,d7.w)	;4A35705A
@@ -1665,24 +1665,24 @@ adrCd001810:	moveq	#$00,d7	;7E00
 	bsr	adrCd001C5A	;6100041E
 	bpl	adrCd002000	;6A0007C0
 	tst.w	adrW_00173C.l	;4A790000173C
-	beq	adrJC001B72	;67000328
-	lea	adrEA055E88.l,a6	;4DF900055E88
+	beq	AttackType_Drone	;67000328
+	lea	ReserveSpace_1.l,a6	;4DF900055E88
 	btst	#$00,(a5)	;08150000
 	beq.s	adrCd00185E	;6706
-	lea	adrEA056270.l,a6	;4DF900056270
+	lea	ReserveSpace_2.l,a6	;4DF900056270
 adrCd00185E:	bra	adrCd001A58	;600001F8
 
 adrCd001862:	move.l	a4,a1	;224C
 	move.l	a1,d0	;2009
 	cmp.w	#$0000,d4	;0C440000
 	bne.s	adrCd00187A	;660E
-	sub.l	#adrEA014EE6,d0	;048000014EE6
+	sub.l	#UnpackedMonsters,d0	;048000014EE6
 	lsr.w	#$04,d0	;E848
 	add.w	#$0010,d0	;06400010
 	bra.s	adrCd001882	;6008
 
 adrCd00187A:
-	sub.l	#adrEA00F586,d0	;04800000F586
+	sub.l	#CharacterStats,d0	;04800000F586
 	lsr.w	#$06,d0	;EC48
 adrCd001882:
 	bra	adrCd0025AA	;60000D26
@@ -1710,7 +1710,7 @@ adrCd0018AE:
 	beq	adrCd002006	;67000738
 	move.b	$0005(a4),d1	;122C0005
 	and.w	#$0060,d1	;02410060
-	bne	adrJC001B72	;66000298
+	bne	AttackType_Drone	;66000298
 	move.b	$0006(a4),d0	;102C0006
 	move.b	$0007(a4),d1	;122C0007
 	and.w	#$007F,d1	;0241007F
@@ -1736,14 +1736,14 @@ adrCd00190C:	move.b	$000A(a4),d1	;122C000A
 adrJT001928:
 	dc.w	adrJB0019F4-adrJB0019F4	;0000
 	dc.w	adrJC001958-adrJB0019F4	;FF64
-	dc.w	adrJC001B72-adrJB0019F4	;017E
+	dc.w	AttackType_Drone-adrJB0019F4	;017E
 	dc.w	adrJC001932-adrJB0019F4	;FF3E
 	dc.w	adrJC0019E6-adrJB0019F4	;FFF2
 
 adrJC001932:
 	bsr	adrCd0061E0	;610048AC
 	and.w	#$000F,d0	;0240000F
-	bne	adrJC001B72	;66000236
+	bne	AttackType_Drone	;66000236
 	move.b	#$FF,adrB_00F99A.l	;13FC00FF0000F99A
 	bra.s	adrCd00196A	;6022
 
@@ -1843,24 +1843,24 @@ adrCd001A2A:	moveq	#$00,d4	;7800
 	add.b	$0006(a4),d0	;D02C0006
 	and.w	#$0001,d0	;02400001
 	add.w	d0,d2	;D440
-adrCd001A48:	lea	adrEA055E88.l,a6	;4DF900055E88
+adrCd001A48:	lea	ReserveSpace_1.l,a6	;4DF900055E88
 	cmp.w	d2,d3	;B642
 	bcs.s	adrCd001A58	;6506
-	lea	adrEA056270.l,a6	;4DF900056270
+	lea	ReserveSpace_2.l,a6	;4DF900056270
 adrCd001A58:	move.w	d7,d0	;3007
 	mulu	adrW_00F9CC.l,d0	;C0F90000F9CC
 	swap	d7	;4847
 	add.w	d7,d0	;D047
 	swap	d7	;4847
 	move.b	$00(a6,d0.w),d0	;10360000
-	beq	adrJC001B72	;67000106
+	beq	AttackType_Drone	;67000106
 	cmp.b	#$FF,d0	;0C0000FF
-	beq	adrJC001B72	;670000FE
+	beq	AttackType_Drone	;670000FE
 	and.w	#$0003,d0	;02400003
 	move.b	$02(a4,d4.w),d6	;1C344002
 	and.w	#$0003,d6	;02460003
 	cmp.w	d0,d6	;BC40
-	beq	adrJC001B72	;670000EC
+	beq	AttackType_Drone	;670000EC
 	eor.w	d0,d6	;B146
 	subq.w	#$02,d6	;5546
 	beq	adrCd001FEA	;6700055C
@@ -1913,26 +1913,26 @@ adrCd001B02:	cmp.b	#$96,d2	;0C020096
 	bne.s	adrCd001B1A	;6612
 	not.w	d1	;4641
 	and.w	#$0007,d1	;02410007
-	bne.s	adrJC001B72	;6662
+	bne.s	AttackType_Drone	;6662
 	move.w	d0,-(sp)	;3F00
 	bsr	adrCd005D10	;610041FC
 	move.w	(sp)+,d0	;301F
-	bra.s	adrJC001B72	;6058
+	bra.s	AttackType_Drone	;6058
 
 adrCd001B1A:	sub.b	#$84,d2	;04020084
-	bcs.s	adrJC001B72	;6552
+	bcs.s	AttackType_Drone	;6552
 	beq.s	adrCd001B2C	;670A
 	cmp.b	#$14,d2	;0C020014
 	beq.s	adrCd001B2C	;6704
 	subq.b	#$03,d2	;5702
-	bne.s	adrJC001B72	;6646
+	bne.s	AttackType_Drone	;6646
 adrCd001B2C:	not.w	d1	;4641
 	and.w	#$0007,d1	;02410007
 	beq.s	adrCd001B40	;670C
 	cmp.w	#$0007,d1	;0C410007
-	bne.s	adrJC001B72	;6638
+	bne.s	AttackType_Drone	;6638
 	tst.b	$00(a6,d0.w)	;4A360000
-	bne.s	adrJC001B72	;6632
+	bne.s	AttackType_Drone	;6632
 adrCd001B40:	or.b	#$07,$01(a6,d0.w)	;003600070001
 	moveq	#$00,d1	;7200
 	move.b	$0006(a4),d1	;122C0006
@@ -1948,7 +1948,7 @@ adrCd001B5E:	asl.b	#$02,d1	;E501
 	move.w	#$0100,d1	;323C0100
 	move.b	$000C(a4),d1	;122C000C
 	bsr	adrCd005F30	;610043C0
-adrJC001B72:	move.b	$02(a4,d4.w),d6	;1C344002
+AttackType_Drone:	move.b	$02(a4,d4.w),d6	;1C344002
 	and.w	#$0003,d6	;02460003
 	bsr	adrCd0086F6	;61006B7A
 	bcs	adrCd001F1E	;6500039E
@@ -2110,7 +2110,7 @@ adrLp001D56:	tst.b	$00(a0,d2.w)	;4A302000
 	bra	adrCd001FEA	;60000288
 
 adrCd001D64:	move.l	a4,d0	;200C
-	sub.l	#adrEA014EE6,d0	;048000014EE6
+	sub.l	#UnpackedMonsters,d0	;048000014EE6
 	lsr.w	#$04,d0	;E848
 	move.b	d0,$00(a0,d2.w)	;11802000
 	moveq	#$00,d7	;7E00
@@ -2214,7 +2214,7 @@ adrLp001E8E:	moveq	#$00,d3	;7600
 	move.b	$00(a0,d0.w),d3	;16300000
 	bmi.s	adrCd001EAA	;6B14
 	movem.l	d0/d1/a0,-(sp)	;48E7C080
-	lea	adrEA014EE6.l,a4	;49F900014EE6
+	lea	UnpackedMonsters.l,a4	;49F900014EE6
 	asl.w	#$04,d3	;E943
 	add.w	d3,a4	;D8C3
 	bsr.s	adrCd001EB2	;610C
@@ -2224,7 +2224,7 @@ adrCd001EAA:	dbra	d0,adrLp001E8E	;51C8FFE2
 	rts	;4E75
 
 adrCd001EB2:	move.l	a4,d3	;260C
-	sub.l	#adrEA014EE6,d3	;048300014EE6
+	sub.l	#UnpackedMonsters,d3	;048300014EE6
 	lsr.w	#$04,d3		;E84B
 	add.w	#$0010,d3	;06430010
 	move.b	#$07,$0005(a4)	;197C00070005
@@ -2274,7 +2274,7 @@ adrCd001F1E:
 	bne	adrCd001FEA	;6600008C
 	bclr	#$07,$01(a6,d2.w)	;08B600072001
 	move.l	a4,d0	;200C
-	sub.l	#adrEA00F586,d0	;04800000F586
+	sub.l	#CharacterStats,d0	;04800000F586
 	lsr.w	#$06,d0	;EC48
 	bsr	adrCd00480C	;6100289A
 	bclr	#$05,$18(a5,d1.w)	;08B500051018
@@ -2495,7 +2495,7 @@ adrCd0021E2:	moveq	#$00,d1	;7200
 	cmp.b	#$98,d7	;0C070098
 	beq.s	adrCd00220E	;6702
 adrCd00220C:	moveq	#$05,d0	;7005
-adrCd00220E:	jsr	adrCd00968E.l	;4EB90000968E
+adrCd00220E:	jsr	PlaySound.l	;4EB90000968E
 	movem.l	(sp)+,d0/a0	;4CDF0101
 adrCd002218:	bsr	adrCd002CE6	;61000ACC
 	move.w	d4,d0	;3004
@@ -2543,7 +2543,7 @@ adrCd002276:	tst.b	d0	;4A00
 	cmp.b	#$0B,d5	;0C05000B
 	bcc.s	adrCd00229C	;6408
 adrCd002294:	moveq	#$04,d0	;7004
-	jsr	adrCd00968E.l	;4EB90000968E
+	jsr	PlaySound.l	;4EB90000968E
 adrCd00229C:	movem.l	(sp)+,d0-d7/a0-a6	;4CDF7FFF
 	move.b	d7,d5	;1A07
 	and.w	#$007F,d5	;0245007F
@@ -2644,7 +2644,7 @@ adrCd0023C8:	move.b	d1,$0019(a1)	;13410019
 
 adrCd0023CE:	moveq	#$03,d7	;7E03
 	moveq	#$05,d0	;7005
-	jsr	adrCd00968E.l	;4EB90000968E
+	jsr	PlaySound.l	;4EB90000968E
 adrLp0023D8:	moveq	#$00,d0	;7000
 	move.b	$18(a1,d7.w),d0	;10317018
 	move.w	d0,d1	;3200
@@ -2697,7 +2697,7 @@ adrCd002462:	rts	;4E75
 
 adrCd002464:	moveq	#$03,d7	;7E03
 	moveq	#$05,d0	;7005
-	jsr	adrCd00968E.l	;4EB90000968E
+	jsr	PlaySound.l	;4EB90000968E
 adrLp00246E:	moveq	#$00,d0	;7000
 	move.b	$18(a1,d7.w),d0	;10317018
 	move.w	d0,d1	;3200
@@ -2753,7 +2753,7 @@ adrCd0024EC:	clr.w	d5	;4245
 	rts	;4E75
 
 adrCd0024F6:	moveq	#$05,d0	;7005
-	jsr	adrCd00968E.l	;4EB90000968E
+	jsr	PlaySound.l	;4EB90000968E
 	moveq	#$01,d2	;7401
 	lea	adrEA002B82.l,a0	;41F900002B82
 	clr.l	(a0)	;4290
@@ -2808,7 +2808,7 @@ adrCd002588:
 adrCd00258A:
 	bsr	adrCd0072D0	;61004D44
 	moveq	#$05,d0	;7005
-	jsr	adrCd00968E.l	;4EB90000968E
+	jsr	PlaySound.l	;4EB90000968E
 	exg	a1,a4	;C34C
 	move.w	$0006(a4),d0	;302C0006
 	move.w	$0020(a4),d7	;3E2C0020
@@ -3001,7 +3001,7 @@ adrCd00278A:
 	move.w	d0,d1		;3200
 	sub.w	#$0010,d0	;04400010
 	asl.w	#$04,d0		;E940
-	lea	adrEA014EE6.l,a1	;43F900014EE6
+	lea	UnpackedMonsters.l,a1	;43F900014EE6
 	add.w	d0,a1		;D2C0
 	moveq	#$00,d7		;7E00
 	move.b	$0000(a1),d7	;1E290000
@@ -3065,7 +3065,7 @@ adrLp002838:	moveq	#$00,d1	;7200
 	move.w	d1,d0	;3001
 	add.w	#$0010,d0	;06400010
 	asl.w	#$04,d1	;E941
-	lea	adrEA014EE6.l,a1	;43F900014EE6
+	lea	UnpackedMonsters.l,a1	;43F900014EE6
 	add.w	d1,a1	;D2C1
 	movem.l	d4/d5/d7/a0/a6,-(sp)	;48E70D82
 	bsr.s	adrCd00286E	;6118
@@ -3177,7 +3177,7 @@ adrCd002958:	move.l	(sp)+,a5	;2A5F
 	move.w	d4,d0	;3004
 	bclr	#$07,$01(a6,d0.w)	;08B600070001
 	move.l	a1,d5	;2A09
-	sub.l	#adrEA00F586,d5	;04850000F586	;Long Addr replaced with Symbol NOT - now fixed
+	sub.l	#CharacterStats,d5	;04850000F586	;Long Addr replaced with Symbol NOT - now fixed
 	lsr.w	#$06,d5	;EC4D
 	add.l	#$00010040,d5	;068500010040	;Long Addr replaced with Symbol
 	moveq	#$00,d6	;7C00
@@ -3211,7 +3211,7 @@ adrCd0029BA:	move.b	$18(a1,d1.w),d0	;10311018
 	move.b	#$FF,$0017(a4)	;197C00FF0017
 	move.l	a0,-(sp)	;2F08
 	moveq	#$03,d0	;7003
-	jsr	adrCd00968E.l	;4EB90000968E
+	jsr	PlaySound.l	;4EB90000968E
 	move.l	(sp)+,a0	;205F
 	moveq	#$00,d0	;7000
 adrCd0029EA:	move.w	d0,$0006(a4)	;39400006
@@ -3342,7 +3342,7 @@ adrEA002B82:	dc.w	$0000	;0000
 
 adrCd002B8A:	move.w	d0,-(sp)	;3F00
 	move.l	#$000D000C,adrW_00E3FA.l	;23FC000D000C0000E3FA
-	lea	adrEA050B3A.l,a1	;43F900050B3A
+	lea	_GFX_Pockets+$7688.l,a1	;43F900050B3A
 	move.b	#$07,$5A(a5,d7.w)	;1BBC0007705A
 	move.w	d7,d0	;3007
 	move.l	#$0001000A,d7	;2E3C0001000A	;Long Addr replaced with Symbol
@@ -3429,7 +3429,7 @@ adrCd002C66:	movem.l	d2-d5,-(sp)	;48E73C00
 	rts	;4E75
 
 adrCd002C84:	movem.l	d0-d7/a0-a6,-(sp)	;48E7FFFE
-	lea	adrEA014EE6.l,a4	;49F900014EE6
+	lea	UnpackedMonsters.l,a4	;49F900014EE6
 	move.w	-$0002(a4),d6	;3C2CFFFE
 adrLp002C92:	move.w	d6,d0	;3006
 	asl.w	#$04,d0	;E940
@@ -3461,14 +3461,14 @@ adrCd002CCC:	dbra	d6,adrLp002C92	;51CEFFC4
 	rts	;4E75
 
 adrCd002CE6:	move.l	a4,d0	;200C
-	sub.l	#adrEA014EE6,d0	;048000014EE6
+	sub.l	#UnpackedMonsters,d0	;048000014EE6
 	lsr.w	#$04,d0	;E848
 	add.w	#$0010,d0	;06400010
 	bra.s	adrCd002CFC	;6006
 
 adrCd002CF6:	bclr	#$07,$01(a6,d4.w)	;08B600074001
 adrCd002CFC:	bsr.s	adrCd002D4E	;6150
-	lea	adrEA014EE6.l,a2	;45F900014EE6
+	lea	UnpackedMonsters.l,a2	;45F900014EE6
 	move.w	-$0002(a2),d2	;342AFFFE
 	subq.w	#$01,-$0002(a2)	;536AFFFE
 	sub.w	d0,d2	;9440
@@ -3500,9 +3500,9 @@ adrCd002D46:	bcc.s	adrCd002D30	;64E8
 	subq.b	#$01,$0035(a0)	;53280035
 	rts	;4E75
 
-adrCd002D4E:	lea	adrEA00F9D8.l,a0	;41F90000F9D8
+adrCd002D4E:	lea	Player1_Data.l,a0	;41F90000F9D8
 	bsr.s	adrCd002D32	;61DC
-	lea	adrEA00FA3A.l,a0	;41F90000FA3A
+	lea	Player2_Data.l,a0	;41F90000FA3A
 	bsr.s	adrCd002D32	;61D4
 	sub.w	#$0010,d0	;04400010
 	lea	adrEA0156F8.l,a0	;41F9000156F8
@@ -3529,7 +3529,7 @@ adrCd002D98:	subq.b	#$01,$00(a0,d3.w)	;53303000
 adrCd002D9C:	dbra	d3,adrLp002D86	;51CBFFE8
 	tst.w	d2	;4A42
 	beq.s	adrCd002DBE	;671A
-	lea	adrEA014EE6.l,a2	;45F900014EE6
+	lea	UnpackedMonsters.l,a2	;45F900014EE6
 	asl.w	#$04,d0	;E940
 	tst.b	$0D(a2,d0.w)	;4A32000D
 	bmi.s	adrCd002DBE	;6B0C
@@ -4060,7 +4060,7 @@ adrJC0033D8:	cmp.b	#$10,d0	;0C000010
 	bra.s	adrCd003400	;600C
 
 adrCd0033F4:	asl.w	#$06,d0	;ED40
-	lea	adrEA00F586.l,a1	;43F90000F586
+	lea	CharacterStats.l,a1	;43F90000F586
 	move.b	$01(a1,d0.w),d0	;10310001
 adrCd003400:	bsr	adrCd0075DC	;610041DA
 	lea	Quote_0.l,a6	;4DF9000037A4
@@ -4082,7 +4082,7 @@ adrJC003422:	cmp.b	#$10,d0	;0C000010
 	bra.s	adrCd003442	;600C
 
 adrCd003436:	asl.w	#$06,d0	;ED40
-	lea	adrEA00F586.l,a1	;43F90000F586
+	lea	CharacterStats.l,a1	;43F90000F586
 	move.b	$30(a1,d0.w),d0	;10310030
 adrCd003442:	lea	adrEA0044C2.l,a6	;4DF9000044C2
 	move.b	#$33,(a6)	;1CBC0033
@@ -4837,7 +4837,7 @@ adrCd003DA4:	move.b	#$99,(a6)+	;1CFC0099
 	btst	#$06,d0	;08000006
 	beq.s	adrCd003DD6	;6724
 	and.w	#$000F,d0	;0240000F
-	lea	adrEA00F586.l,a1	;43F90000F586
+	lea	CharacterStats.l,a1	;43F90000F586
 	asl.w	#$06,d0	;ED40
 	move.b	$01(a1,d0.w),d1	;12310001
 	bsr	adrCd0009E0	;6100CC1C
@@ -4889,7 +4889,7 @@ adrJC003E56:	lea	adrEA0044AC.l,a6	;4DF9000044AC
 	move.b	d1,$0004(a6)	;1D410004
 	add.b	#$64,$0004(a6)	;062E00640004
 	asl.w	#$06,d1	;ED41
-	lea	adrEA00F586.l,a1	;43F90000F586
+	lea	CharacterStats.l,a1	;43F90000F586
 	add.w	d1,a1	;D2C1
 	cmp.b	#$10,$0001(a1)	;0C2900100001
 	bcc.s	adrCd003E90	;6406
@@ -4915,7 +4915,7 @@ adrJC003EC2:	lea	adrEA004505.l,a6	;4DF900004505
 	or.b	#$40,$0003(a4)	;002C00400003
 	and.w	#$000F,d0	;0240000F
 	move.b	#$9E,$0006(a6)	;1D7C009E0006
-	lea	adrEA00F586.l,a1	;43F90000F586
+	lea	CharacterStats.l,a1	;43F90000F586
 	asl.w	#$06,d0	;ED40
 	move.b	$01(a1,d0.w),d1	;12310001
 	bsr	adrCd0009E0	;6100CAF6
@@ -5420,10 +5420,10 @@ adrEA004585:	dc.b	'COME JOIN MY MERRY BAND'	;434F4D45204A4F494E204D59204D4552525
 adrJC00459E:	lea	adrEA004968.l,a6	;4DF900004968
 	jsr	adrCd00E33A.l	;4EB90000E33A
 	move.b	#$FF,$0050(a5)	;1B7C00FF0050
-	lea	adrEA00F9D8.l,a1	;43F90000F9D8
+	lea	Player1_Data.l,a1	;43F90000F9D8
 	btst	#$00,(a5)	;08150000
 	bne.s	adrCd0045C2	;6606
-	lea	adrEA00FA3A.l,a1	;43F90000FA3A
+	lea	Player2_Data.l,a1	;43F90000FA3A
 adrCd0045C2:	btst	#$06,$0018(a1)	;082900060018
 	bne	adrCd00465E	;66000094
 	move.b	(a1),d0	;1011
@@ -5517,7 +5517,7 @@ adrCd0046D6:	moveq	#$00,d0	;7000
 	lea	adrEA014ED4.l,a0	;41F900014ED4
 	move.b	#$FF,$00(a0,d2.w)	;11BC00FF2000
 	lea	(a4),a0	;41D4
-adrCd004702:	lea	adrEA014EE6.l,a4	;49F900014EE6
+adrCd004702:	lea	UnpackedMonsters.l,a4	;49F900014EE6
 	addq.w	#$01,-$0002(a4)	;526CFFFE
 	move.w	-$0002(a4),d1	;322CFFFE
 	cmp.w	#$007D,d1	;0C41007D
@@ -5587,11 +5587,11 @@ adrCd0047EA:	tst.b	$18(a5,d1.w)	;4A351018
 	bcs.s	adrCd0047EA	;65F2
 adrCd0047F8:	rts	;4E75
 
-adrCd0047FA:	lea	adrEA00F9D8.l,a5	;4BF90000F9D8
+adrCd0047FA:	lea	Player1_Data.l,a5	;4BF90000F9D8
 	bsr.s	adrCd00480C	;610A
 	tst.w	d1	;4A41
 	bpl.s	adrCd0047F8	;6AF2
-	lea	adrEA00FA3A.l,a5	;4BF90000FA3A
+	lea	Player2_Data.l,a5	;4BF90000FA3A
 adrCd00480C:	move.w	d2,-(sp)	;3F02
 	moveq	#$03,d1	;7203
 adrLp004810:	move.b	$18(a5,d1.w),d2	;14351018
@@ -5809,7 +5809,7 @@ adrCd0049C8:	moveq	#$00,d1	;7200
 	bra	adrCd008894	;60003EA4
 
 adrJC0049F2:	move.l	adrEA00F992.l,d1	;22390000F992
-	move.w	#$FFFF,adrW_0099EC.l	;33FCFFFF000099EC
+	move.w	#$FFFF,Paused_Marker.l	;33FCFFFF000099EC
 	lea	_custom+color.l,a0	;41F900DFF180
 	move.w	#$0400,(a0)	;30BC0400
 	move.w	#$0400,$001E(a0)	;317C0400001E
@@ -5823,10 +5823,10 @@ adrCd004A10:	move.b	adrB_00F9D9.l,d0	;10390000F9D9
 	and.b	#$7F,adrB_00FA3B.l	;0239007F0000FA3B
 	clr.b	adrB_00FA2E.l	;42390000FA2E
 	clr.b	adrB_00FA90.l	;42390000FA90
-	clr.w	adrW_0099EC.l	;4279000099EC
+	clr.w	Paused_Marker.l	;4279000099EC
 adrCd004A4C:	rts	;4E75
 
-adrCd004A4E:	lea	adrEA00F9D8.l,a5	;4BF90000F9D8
+adrCd004A4E:	lea	Player1_Data.l,a5	;4BF90000F9D8
 	bsr	adrCd004A9E	;61000048
 	bsr	adrCd00884C	;61003DF2
 	btst	#$06,$0018(a5)	;082D00060018
@@ -5834,7 +5834,7 @@ adrCd004A4E:	lea	adrEA00F9D8.l,a5	;4BF90000F9D8
 	bsr	adrCd002C14	;6100E1AE
 adrCd004A68:	tst.w	Multiplayer.l	;4A790000F98C
 	bmi.s	adrCd004A8A	;6B1A
-	lea	adrEA00FA3A.l,a5	;4BF90000FA3A
+	lea	Player2_Data.l,a5	;4BF90000FA3A
 	bsr	adrCd004A9E	;61000026
 	bsr	adrCd008866	;61003DEA
 	btst	#$06,$0018(a5)	;082D00060018
@@ -5854,75 +5854,75 @@ adrCd004A9E:	and.b	#$01,(a5)	;02150001
 	move.w	#$FFFF,$000C(a5)	;3B7CFFFF000C
 	rts	;4E75
 
-adrJC004ABE:
+Click_LoadSaveGame:
 	move.l	adrEA00F992.l,-(sp)	;2F390000F992
 	clr.w	adrB_0099EE.l	;4279000099EE
 	move.l	#$00067D00,screen_ptr.l	;23FC00067D0000009B06
 	move.l	#$00060000,framebuffer_ptr.l	;23FC0006000000009B0A
-	lea	adrEA00F9D8.l,a5	;4BF90000F9D8
-	lea	adrEA004C66.l,a6	;4DF900004C66
+	lea	Player1_Data.l,a5	;4BF90000F9D8
+	lea	F1_F2_F10_Msg.l,a6	;4DF900004C66
 	jsr	adrCd00DA6E.l	;4EB90000DA6E
 	tst.w	Multiplayer.l	;4A790000F98C
-	bne.s	adrCd004B0A	;6612
-	lea	adrEA00FA3A.l,a5	;4BF90000FA3A
-	lea	adrEA004C66.l,a6	;4DF900004C66
+	bne.s	.skipPlayer2	;6612
+	lea	Player2_Data.l,a5	;4BF90000FA3A
+	lea	F1_F2_F10_Msg.l,a6	;4DF900004C66
 	jsr	adrCd00DA6E.l	;4EB90000DA6E
-adrCd004B0A:
-	clr.b	adrB_000595.l	;423900000595
+.skipPlayer2:
+	clr.b	KeyboardKeyCode.l	;423900000595
 	bsr	adrCd009A9A	;61004F88
-adrCd004B14:
-	move.b	adrB_000595.l,d0	;103900000595
+.PickLoadSaveGame_Loop:
+	move.b	KeyboardKeyCode.l,d0	;103900000595
 	cmp.b	#$50,d0	;0C000050
-	beq.s	adrCd004B3E	;671E
+	beq.s	LoadGame	;671E
 	cmp.b	#$51,d0	;0C000051
-	beq	adrCd004B54	;6700002E
+	beq	SaveGame	;6700002E
 	cmp.b	#$59,d0	;0C000059
-	bne.s	adrCd004B14	;66E6
+	bne.s	.PickLoadSaveGame_Loop	;66E6
 adrCd004B2E:
 	move.l	(sp)+,adrEA00F992.l	;23DF0000F992
-	clr.b	adrB_000595.l	;423900000595
+	clr.b	KeyboardKeyCode.l	;423900000595
 	bra	adrCd004A4E	;6000FF12
 
-adrCd004B3E:
+LoadGame:
 	moveq	#$00,d0	;7000
 	bsr	adrCd004B7C	;6100003A
 	bcs.s	adrCd004B2E	;65E8
 	bsr	adrCd004BDE	;61000096
 	tst.l	d0	;4A80
-	bmi.s	adrCd004B3E	;6BF0
+	bmi.s	LoadGame	;6BF0
 	bsr	adrCd000ED4	;6100C384
 	bra.s	adrCd004B2E	;60DA
 
-adrCd004B54:	moveq	#$01,d0	;7001
+SaveGame:	moveq	#$01,d0	;7001
 	bsr	adrCd004B7C	;61000024
 	bcs.s	adrCd004B2E	;65D2
 	bsr	adrCd004C1E	;610000C0
 	tst.l	d0	;4A80
-	bmi.s	adrCd004B54	;6BF0
+	bmi.s	SaveGame	;6BF0
 	bra.s	adrCd004B2E	;60C8
 
-adrCd004B66:
-	lea	adrEA004C87.l,a6	;4DF900004C87
+AwaitDisk:
+	lea	InsertLoadDiskMsg.l,a6	;4DF900004C87
 	tst.w	d0	;4A40
-	beq.s	adrCd004B76	;6706
-	lea	adrEA004CAF.l,a6	;4DF900004CAF
-adrCd004B76:
+	beq.s	.PickLoadSaveMessage	;6706
+	lea	InsertSaveDiskMsg.l,a6	;4DF900004CAF
+.PickLoadSaveMessage:
 	jmp	adrCd00DA6E.l	;4EF90000DA6E
 
 adrCd004B7C:
-	lea	adrEA00F9D8.l,a5	;4BF90000F9D8
+	lea	Player1_Data.l,a5	;4BF90000F9D8
 	tst.w	Multiplayer.l	;4A790000F98C
 	bne.s	adrCd004B96	;660C
 	move.w	d0,-(sp)	;3F00
-	bsr.s	adrCd004B66	;61D8
+	bsr.s	AwaitDisk	;61D8
 	move.w	(sp)+,d0	;301F
-	lea	adrEA00FA3A.l,a5	;4BF90000FA3A
+	lea	Player2_Data.l,a5	;4BF90000FA3A
 adrCd004B96:
-	bsr.s	adrCd004B66	;61CE
-	clr.b	adrB_000595.l	;423900000595
+	bsr.s	AwaitDisk	;61CE
+	clr.b	KeyboardKeyCode.l	;423900000595
 	bsr	adrCd009A9A	;61004EFA
 adrCd004BA2:
-	move.b	adrB_000595.l,d0	;103900000595
+	move.b	KeyboardKeyCode.l,d0	;103900000595
 	cmp.b	#$44,d0	;0C000044
 	beq.s	adrCd004BC0	;6712
 	cmp.b	#$43,d0	;0C000043
@@ -5947,14 +5947,14 @@ adrCd004BD4:
 	rts	;4E75
 
 adrCd004BDE:
-	jsr	adrCd00DB18.l	;4EB90000DB18
+	jsr	CopyProtection.l	;4EB90000DB18
 	tst.l	d0	;4A80
 	beq.s	adrCd004BD4	;67EC
 	move.l	screen_ptr.l,adrL_0092F0.l	;23F900009B06000092F0
 	jsr	adrCd0094AE.l	;4EB9000094AE
 	move.w	adrW_004C1C.l,d7	;3E3900004C1C
 	jsr	adrCd00965E.l	;4EB90000965E
-	lea	adrEA00F586.l,a0	;41F90000F586
+	lea	CharacterStats.l,a0	;41F90000F586
 	moveq	#$08,d0	;7008
 	jsr	adrCd009490.l	;4EB900009490
 	jsr	adrCd009648.l	;4EB900009648
@@ -5965,14 +5965,14 @@ adrW_004C1C:
 	dc.w	$0000	;0000
 
 adrCd004C1E:
-	jsr	adrCd00DB18.l			;4EB90000DB18
+	jsr	CopyProtection.l			;4EB90000DB18
 	tst.l	d0				;4A80
 	beq.s	adrCd004BD4			;67AC
 	move.l	screen_ptr.l,adrL_0092F0.l	;23F900009B06000092F0
 	jsr	adrCd0094AE.l			;4EB9000094AE
 	move.w	adrW_004C1C.l,d7		;3E3900004C1C
 	jsr	adrCd00965E.l			;4EB90000965E
-	lea	adrEA00F586.l,a0		;41F90000F586
+	lea	CharacterStats.l,a0		;41F90000F586
 	moveq	#$00,d0				;7000
 	move.w	adrW_004C1C.l,d0		;303900004C1C
 	moveq	#$00,d1				;7200
@@ -5982,15 +5982,15 @@ adrCd004C1E:
 	moveq	#$00,d0				;7000
 	rts					;4E75
 
-adrEA004C66:	dc.b	'F1 - LOAD, F2 - SAVE, F10 - EXIT'	;4631202D204C4F41442C204632202D20534156452C20463130202D2045584954
+F1_F2_F10_Msg:	dc.b	'F1 - LOAD, F2 - SAVE, F10 - EXIT'	;4631202D204C4F41442C204632202D20534156452C20463130202D2045584954
 	dc.b	$FF	;FF
-adrEA004C87:	dc.b	'INSERT LOAD DISK AND RETURN, F10 - EXIT'	;494E53455254204C4F4144204449534B20414E442052455455524E2C20463130202D2045584954
+InsertLoadDiskMsg:	dc.b	'INSERT LOAD DISK AND RETURN, F10 - EXIT'	;494E53455254204C4F4144204449534B20414E442052455455524E2C20463130202D2045584954
 	dc.b	$FF	;FF
-adrEA004CAF:	dc.b	'INSERT SAVE DISK AND RETURN, F10 - EXIT'	;494E534552542053415645204449534B20414E442052455455524E2C20463130202D2045584954
+InsertSaveDiskMsg:	dc.b	'INSERT SAVE DISK AND RETURN, F10 - EXIT'	;494E534552542053415645204449534B20414E442052455455524E2C20463130202D2045584954
 	dc.b	$FF	;FF
 	dc.b	$00	;00
 
-adrJC004CD8:	move.b	#$03,$004F(a5)	;1B7C0003004F
+Click_SleepParty:	move.b	#$03,$004F(a5)	;1B7C0003004F
 	clr.w	$0014(a5)	;426D0014
 	move.w	#$FFFF,$0042(a5)	;3B7CFFFF0042
 	move.w	#$FFFF,$0040(a5)	;3B7CFFFF0040
@@ -6046,13 +6046,13 @@ adrCd004D80:	move.l	a4,-(sp)	;2F0C
 	add.w	$000A(a5),a0	;D0ED000A
 	add.w	#$01EC,a0	;D0FC01EC
 	move.l	a0,-$0008(a3)	;2748FFF8
-	lea	adrEA041C80.l,a1	;43F900041C80
+	lea	_GFX_Fairy.l,a1	;43F900041C80
 	moveq	#$08,d4	;7808
 	moveq	#$05,d5	;7A05
 	moveq	#$28,d7	;7E28
 	moveq	#$00,d6	;7C00
 	bsr	adrCd00BBCA	;61006E18
-	lea	adrEA041C80.l,a1	;43F900041C80
+	lea	_GFX_Fairy.l,a1	;43F900041C80
 	moveq	#$17,d4	;7817
 	moveq	#$05,d5	;7A05
 	moveq	#$28,d7	;7E28
@@ -6995,7 +6995,7 @@ adrCd00596E:	move.w	$0006(a5),d7	;3E2D0006
 	bsr	adrCd00D66A	;61007CF6
 adrCd005976:	move.l	(sp)+,a4	;285F
 	move.l	a4,d0	;200C
-	sub.l	#adrEA00F586,d0	;04800000F586
+	sub.l	#CharacterStats,d0	;04800000F586
 	lsr.w	#$01,d0	;E248
 	lea	adrEA014CA4.l,a0	;41F900014CA4
 	add.w	d0,a0	;D0C0
@@ -7202,7 +7202,7 @@ adrJC005BC4:	move.w	#$008C,d4	;383C008C
 adrJC005BCC:	moveq	#$00,d0	;7000
 	move.b	adrB_00F99A.l,d0	;10390000F99A
 	asl.w	#$06,d0	;ED40
-	lea	adrEA00F586.l,a0	;41F90000F586
+	lea	CharacterStats.l,a0	;41F90000F586
 	add.w	d0,a0	;D0C0
 	moveq	#$00,d0	;7000
 	move.b	$0030(a0),d1	;12280030
@@ -7242,7 +7242,7 @@ adrJC005C3C:	moveq	#$06,d4	;7806
 adrJC005C42:	moveq	#$00,d0	;7000
 	move.b	adrB_00F99A.l,d0	;10390000F99A
 	asl.w	#$06,d0	;ED40
-	lea	adrEA00F586.l,a0	;41F90000F586
+	lea	CharacterStats.l,a0	;41F90000F586
 	add.w	d0,a0	;D0C0
 	moveq	#$00,d0	;7000
 	move.b	$0030(a0),d0	;10280030
@@ -7384,7 +7384,7 @@ adrCd005DB6:
 adrCd005DBE:
 	bset	#$07,$01(a6,d2.w)	;08F600072001
 adrCd005DC4:
-	lea	adrEA014EE6.l,a4	;49F900014EE6
+	lea	UnpackedMonsters.l,a4	;49F900014EE6
 	addq.w	#$01,-$0002(a4)	;526CFFFE
 	move.w	-$0002(a4),d1	;322CFFFE
 	cmp.w	#$007D,d1	;0C41007D
@@ -7630,7 +7630,7 @@ adrCd00607A:	bsr	adrCd009268	;610031EC
 	moveq	#$10,d7	;7E10
 	bsr	adrCd00222A	;6100C1A2
 	moveq	#$05,d0	;7005
-	bra	adrCd00968E	;60003600
+	bra	PlaySound	;60003600
 
 adrJC006090:	move.w	#$0098,d4	;383C0098
 	add.w	#$000A,d7	;0647000A
@@ -8041,8 +8041,8 @@ adrJC00647A:
 	dc.l	adrJC0049A0	;000049A0
 	dc.l	adrJC006502	;00006502
 	dc.l	adrJC0049F2	;000049F2
-	dc.l	adrJC004ABE	;00004ABE
-	dc.l	adrJC004CD8	;00004CD8
+	dc.l	Click_LoadSaveGame	;00004ABE
+	dc.l	Click_SleepParty	;00004CD8
 	dc.l	adrJC0039F2	;000039F2
 	dc.l	adrJC0055CC	;000055CC
 	dc.l	adrJC003A7E	;00003A7E
@@ -8173,7 +8173,7 @@ adrCd006626:	lsr.w	#$03,d1	;E649
 	add.w	adrW_00665E(pc,d1.w),a0	;D0FB100A
 	jsr	(a0)	;4E90
 	moveq	#$05,d0	;7005
-	bra	adrCd00968E	;60003032
+	bra	PlaySound	;60003032
 
 adrW_00665E:	dc.w	Actions_0-Actions_0	;0000
 	dc.w	Actions_1-Actions_0	;0024
@@ -8307,7 +8307,7 @@ adrJC0067B2:	moveq	#$00,d1	;7200
 	add.w	adrJT0067F0(pc,d0.w),a0	;D0FB000C
 	jsr	(a0)	;4E90
 	moveq	#$00,d0	;7000
-	bra	adrCd00968E	;60002EA2
+	bra	PlaySound	;60002EA2
 
 adrJB0067EE:	rts	;4E75
 
@@ -8723,7 +8723,7 @@ adrCd006BC8:	moveq	#$03,d1	;7203
 	bsr	adrCd008F3E	;6100235E
 	bra	adrCd008894	;60001CB0
 
-adrCd006BE6:	lea	adrEA04F9BA.l,a1	;43F90004F9BA
+adrCd006BE6:	lea	_GFX_Pockets+$6508.l,a1	;43F90004F9BA
 	moveq	#$00,d0	;7000
 	move.b	$18(a5,d7.w),d0	;10357018
 	move.w	d0,d1	;3200
@@ -8732,7 +8732,7 @@ adrCd006BE6:	lea	adrEA04F9BA.l,a1	;43F90004F9BA
 	bne.s	adrCd006BB4	;66B6
 	move.w	d1,d0	;3001
 	asl.w	#$06,d0	;ED40
-	lea	adrEA00F586.l,a0	;41F90000F586
+	lea	CharacterStats.l,a0	;41F90000F586
 	add.w	d0,a0	;D0C0
 	move.b	$0001(a0),d1	;12280001
 	move.w	d1,d0	;3001
@@ -8915,9 +8915,9 @@ adrCd006DFE:	move.b	d0,$00(a6,d2.w)	;1D802000
 	rts	;4E75
 
 adrCd006E0A:	movem.l	d1/d3/a5,-(sp)	;48E75004
-	lea	adrEA00F9D8.l,a5	;4BF90000F9D8
+	lea	Player1_Data.l,a5	;4BF90000F9D8
 	bsr.s	adrCd006E24	;610E
-	lea	adrEA00FA3A.l,a5	;4BF90000FA3A
+	lea	Player2_Data.l,a5	;4BF90000FA3A
 	bsr.s	adrCd006E24	;6106
 	movem.l	(sp)+,d1/d3/a5	;4CDF200A
 	rts	;4E75
@@ -8928,7 +8928,7 @@ adrCd006E24:	cmp.b	$0035(a5),d1	;B22D0035
 
 adrCd006E2E:
 	moveq	#$02,d0	;7002
-	bsr	adrCd00968E	;6100285C
+	bsr	PlaySound	;6100285C
 	bsr.s	adrCd006E0A	;61D4
 	bsr	adrCd00708A	;61000252
 	clr.w	$0000(a6)	;426E0000
@@ -9007,7 +9007,7 @@ adrCd006EEC:	moveq	#$00,d4	;7800
 	bcs.s	adrCd006F28	;652E
 	sub.w	#$0010,d0	;04400010
 	asl.w	#$04,d0	;E940
-	lea	adrEA014EE6.l,a4	;49F900014EE6
+	lea	UnpackedMonsters.l,a4	;49F900014EE6
 	add.w	d0,a4	;D8C0
 	moveq	#$1E,d1	;721E
 	moveq	#$14,d2	;7414
@@ -9329,7 +9329,7 @@ adrCd0071EC:	subq.w	#$01,d2	;5342
 	bne.s	adrCd007204	;660E
 	bchg	d2,$00(a6,d0.w)	;05760000
 	moveq	#$01,d0	;7001
-	bsr	adrCd00968E	;61002490
+	bsr	PlaySound	;61002490
 	bra	adrCd00D9B4	;600067B2
 
 adrCd007204:	lea	adrEA00720E.l,a6	;4DF90000720E
@@ -9377,7 +9377,7 @@ adrJC007288:	move.w	#$0001,$0014(a5)	;3B7C00010014
 	bsr	adrCd00DAA6	;6100680C
 	move.w	$0006(a5),d7	;3E2D0006
 	asl.w	#$06,d7	;ED47
-	lea	adrEA00F586.l,a6	;4DF90000F586
+	lea	CharacterStats.l,a6	;4DF90000F586
 	moveq	#$00,d0	;7000
 	move.b	$14(a6,d7.w),d0	;10367014
 	beq.s	adrCd0072E2	;6732
@@ -9393,7 +9393,7 @@ adrJC007288:	move.w	#$0001,$0014(a5)	;3B7C00010014
 adrCd0072D0:	move.w	$0006(a5),d0	;302D0006
 adrCd0072D4:	and.w	#$000F,d0	;0240000F
 	asl.w	#$06,d0	;ED40
-	lea	adrEA00F586.l,a4	;49F90000F586
+	lea	CharacterStats.l,a4	;49F90000F586
 	add.w	d0,a4	;D8C0
 adrCd0072E2:	rts	;4E75
 
@@ -9510,7 +9510,7 @@ adrCd007416:	move.b	$0017(a4),d0	;102C0017
 	bsr	adrCd0075DC	;610001C0
 	move.w	d0,-(sp)	;3F00
 	move.l	a4,d0	;200C
-	sub.l	#adrEA00F586,d0	;04800000F586
+	sub.l	#CharacterStats,d0	;04800000F586
 	lsr.w	#$01,d0	;E248
 	lea	adrEA014CA4.l,a1	;43F900014CA4
 	add.w	d0,a1	;D2C0
@@ -9834,7 +9834,7 @@ adrCd0076F0:	moveq	#$00,d7	;7E00
 	move.b	$18(a5,d7.w),d7	;1E357018
 	and.w	#$000F,d7	;0247000F
 	asl.w	#$06,d7	;ED47
-	lea	adrEA00F586.l,a6	;4DF90000F586
+	lea	CharacterStats.l,a6	;4DF90000F586
 	add.w	d7,a6	;DCC7
 	subq.b	#$01,$3B(a6,d0.w)	;5336003B
 	bcc.s	adrCd007714	;6406
@@ -9994,7 +9994,7 @@ adrJC0078D6:	move.w	$000E(a5),d7	;3E2D000E
 	move.w	#$0003,$0014(a5)	;3B7C00030014
 adrCd007900:	bsr	adrCd0079A0	;6100009E
 	cmp.b	#$03,$0015(a5)	;0C2D00030015
-	bne	adrJB007CF0	;660003E4
+	bne	Trigger_00_t00_Null	;660003E4
 adrCd00790E:	or.b	#$04,$0054(a5)	;002D00040054
 	move.l	screen_ptr.l,a0	;207900009B06
 	lea	$0B5C(a0),a0	;41E80B5C
@@ -10079,7 +10079,7 @@ adrCd007A12:	tst.b	$0015(a5)	;4A2D0015
 	move.l	screen_ptr.l,a0	;207900009B06
 	add.w	$000A(a5),a0	;D0ED000A
 	add.w	#$097C,a0	;D0FC097C
-	lea	adrEA04FF12.l,a1	;43F90004FF12
+	lea	_GFX_Pockets+$6A60.l,a1	;43F90004FF12
 	btst	#$00,(a5)	;08150000
 	bne.s	adrCd007A3C	;6604
 	lea	$0020(a1),a1	;43E90020
@@ -10307,49 +10307,49 @@ adrCd007C96:	move.b	$00(a6,d0.w),d1	;12360000
 	cmp.b	#$2A,d2	;0C02002A
 	bne.s	adrCd007CD0	;6608
 adrCd007CC8:	move.w	#$0005,adrW_007C7A.l	;33FC000500007C7A
-adrCd007CD0:	lea	adrJB007CF0.l,a0	;41F900007CF0
-	add.w	adrJT007CF2(pc,d2.w),a0	;D0FB201A
+adrCd007CD0:	lea	Trigger_00_t00_Null.l,a0	;41F900007CF0
+	add.w	TriggerOffsets(pc,d2.w),a0	;D0FB201A
 	movem.l	d0/d7/a6,-(sp)	;48E78102
 	jsr	(a0)	;4E90
 	move.w	adrW_007C7A.l,d0	;303900007C7A
 	bmi.s	adrCd007CEC	;6B04
-	bsr	adrCd00968E	;610019A4
+	bsr	PlaySound	;610019A4
 adrCd007CEC:	movem.l	(sp)+,d0/d7/a6	;4CDF4081
-adrJB007CF0:	rts	;4E75
+Trigger_00_t00_Null:	rts	;4E75
 
-adrJT007CF2:	dc.w	adrJB007CF0-adrJB007CF0	;0000
-	dc.w	adrJC00839E-adrJB007CF0	;06AE
-	dc.w	adrJC0083A6-adrJB007CF0	;06B6
-	dc.w	adrJC0083D4-adrJB007CF0	;06E4
-	dc.w	adrJC00849E-adrJB007CF0	;07AE
-	dc.w	adrJC00858E-adrJB007CF0	;089E
-	dc.w	adrJC00835E-adrJB007CF0	;066E
-	dc.w	adrJC008376-adrJB007CF0	;0686
-	dc.w	adrJC00838E-adrJB007CF0	;069E
-	dc.w	adrJC0080C0-adrJB007CF0	;03D0
-	dc.w	adrJC00803E-adrJB007CF0	;034E
-	dc.w	adrJC006934-adrJB007CF0	;EC44
-	dc.w	adrJC0083C0-adrJB007CF0	;06D0
-	dc.w	adrJC0083FC-adrJB007CF0	;070C
-	dc.w	adrJC00840E-adrJB007CF0	;071E
-	dc.w	adrJC00691A-adrJB007CF0	;EC2A
-	dc.w	adrJC008432-adrJB007CF0	;0742
-	dc.w	adrJC008474-adrJB007CF0	;0784
-	dc.w	adrJC0083F8-adrJB007CF0	;0708
-	dc.w	adrJC00803C-adrJB007CF0	;034C
-	dc.w	adrJC00803C-adrJB007CF0	;034C
-	dc.w	adrJC008312-adrJB007CF0	;0622
-	dc.w	adrJC008340-adrJB007CF0	;0650
-	dc.w	adrJC00691E-adrJB007CF0	;EC2E
-	dc.w	adrJC0083B4-adrJB007CF0	;06C4
-	dc.w	adrJC0082C8-adrJB007CF0	;05D8
-	dc.w	adrJC008426-adrJB007CF0	;0736
-	dc.w	adrJC0083E8-adrJB007CF0	;06F8
-	dc.w	adrJC0082BC-adrJB007CF0	;05CC
-	dc.w	adrJC0081A2-adrJB007CF0	;04B2
-	dc.w	adrJC00818A-adrJB007CF0	;049A
-	dc.w	adrJC007F34-adrJB007CF0	;0244
-	dc.w	adrJC008002-adrJB007CF0	;0312
+TriggerOffsets:	dc.w	Trigger_00_t00_Null-Trigger_00_t00_Null	;0000
+	dc.w	TriggerAction_02_Spinner-Trigger_00_t00_Null	;06AE
+	dc.w	adrJC0083A6-Trigger_00_t00_Null	;06B6
+	dc.w	adrJC0083D4-Trigger_00_t00_Null	;06E4
+	dc.w	adrJC00849E-Trigger_00_t00_Null	;07AE
+	dc.w	adrJC00858E-Trigger_00_t00_Null	;089E
+	dc.w	adrJC00835E-Trigger_00_t00_Null	;066E
+	dc.w	adrJC008376-Trigger_00_t00_Null	;0686
+	dc.w	adrJC00838E-Trigger_00_t00_Null	;069E
+	dc.w	adrJC0080C0-Trigger_00_t00_Null	;03D0
+	dc.w	adrJC00803E-Trigger_00_t00_Null	;034E
+	dc.w	adrJC006934-Trigger_00_t00_Null	;EC44
+	dc.w	adrJC0083C0-Trigger_00_t00_Null	;06D0
+	dc.w	adrJC0083FC-Trigger_00_t00_Null	;070C
+	dc.w	adrJC00840E-Trigger_00_t00_Null	;071E
+	dc.w	adrJC00691A-Trigger_00_t00_Null	;EC2A
+	dc.w	adrJC008432-Trigger_00_t00_Null	;0742
+	dc.w	adrJC008474-Trigger_00_t00_Null	;0784
+	dc.w	adrJC0083F8-Trigger_00_t00_Null	;0708
+	dc.w	adrJC00803C-Trigger_00_t00_Null	;034C
+	dc.w	adrJC00803C-Trigger_00_t00_Null	;034C
+	dc.w	adrJC008312-Trigger_00_t00_Null	;0622
+	dc.w	adrJC008340-Trigger_00_t00_Null	;0650
+	dc.w	adrJC00691E-Trigger_00_t00_Null	;EC2E
+	dc.w	adrJC0083B4-Trigger_00_t00_Null	;06C4
+	dc.w	adrJC0082C8-Trigger_00_t00_Null	;05D8
+	dc.w	adrJC008426-Trigger_00_t00_Null	;0736
+	dc.w	adrJC0083E8-Trigger_00_t00_Null	;06F8
+	dc.w	adrJC0082BC-Trigger_00_t00_Null	;05CC
+	dc.w	adrJC0081A2-Trigger_00_t00_Null	;04B2
+	dc.w	adrJC00818A-Trigger_00_t00_Null	;049A
+	dc.w	adrJC007F34-Trigger_00_t00_Null	;0244
+	dc.w	adrJC008002-Trigger_00_t00_Null	;0312
 serpex.triggers:	dc.w	$0000	;0000
 	dc.w	$0000	;0000
 	dc.w	$0400	;0400
@@ -10633,7 +10633,7 @@ adrCd007F4C:	lea	adrEA006434.l,a0	;41F900006434
 	subq.w	#$06,d2	;5D42
 	bne.s	adrCd007F4A	;66C8
 adrCd007F82:	bset	#$07,$01(a6,d0.w)	;08F600070001
-	lea	adrEA014EE6.l,a4	;49F900014EE6
+	lea	UnpackedMonsters.l,a4	;49F900014EE6
 	addq.w	#$01,-$0002(a4)	;526CFFFE
 	move.w	-$0002(a4),d2	;342CFFFE
 	cmp.w	#$007D,d2	;0C42007D
@@ -10804,13 +10804,13 @@ adrJC0081A2:	move.l	a5,-(sp)	;2F0D
 	moveq	#$4B,d0	;704B
 adrLp0081B6:	dbra	d1,adrLp0081B6	;51C9FFFE
 	dbra	d0,adrLp0081B6	;51C8FFFA
-	lea	adrEA00F9D8.l,a5	;4BF90000F9D8
+	lea	Player1_Data.l,a5	;4BF90000F9D8
 	bsr	adrCd00D9B4	;610057EE
 	lea	adrEA00D3DD.l,a6	;4DF90000D3DD
 	bsr	adrCd00DA6E	;6100589E
 	tst.w	Multiplayer.l	;4A790000F98C
 	bne.s	adrCd0081EE	;6614
-	lea	adrEA00FA3A.l,a5	;4BF90000FA3A
+	lea	Player2_Data.l,a5	;4BF90000FA3A
 	bsr	adrCd00D9B4	;610057D2
 	lea	adrEA00D3DD.l,a6	;4DF90000D3DD
 	bsr	adrCd00DA6E	;61005882
@@ -10822,11 +10822,11 @@ adrCd0081FE:	tst.b	adrB_0099EE.l	;4A39000099EE
 	move.l	(sp)+,a5	;2A5F
 	rts	;4E75
 
-adrCd00820A:	lea	adrEA00F9D8.l,a5	;4BF90000F9D8
+adrCd00820A:	lea	Player1_Data.l,a5	;4BF90000F9D8
 	tst.w	Multiplayer.l	;4A790000F98C
 	bne.s	adrCd008220	;6608
 	bsr.s	adrCd008220	;6106
-	lea	adrEA00FA3A.l,a5	;4BF90000FA3A
+	lea	Player2_Data.l,a5	;4BF90000FA3A
 adrCd008220:	clr.w	$0014(a5)	;426D0014
 	move.w	#$FFFF,$0042(a5)	;3B7CFFFF0042
 	bsr	adrCd008894	;61000668
@@ -10844,18 +10844,18 @@ adrCd008220:	clr.w	$0014(a5)	;426D0014
 	moveq	#$00,d1	;7200
 	moveq	#$28,d5	;7A28
 	moveq	#$36,d4	;7836
-	bsr	adrJC00B374	;61003112
+	bsr	Draw_Entropy	;61003112
 	unlk	a3	;4E5B
-	lea	adrEA008280.l,a6	;4DF900008280
+	lea	CompletionText1.l,a6	;4DF900008280
 	bsr	adrCd00DA6E	;61005800
-	lea	adrEA0082A8.l,a6	;4DF9000082A8
+	lea	CompletionText2.l,a6	;4DF9000082A8
 	bsr	adrCd00D9D6	;6100575E
 	movem.l	(sp)+,d0-d7/a0-a6	;4CDF7FFF
 	rts	;4E75
 
-adrEA008280:	dc.b	'THOU ART VICTORIOUS! I SHALL NOT RETURN'	;54484F552041525420564943544F52494F5553212049205348414C4C204E4F542052455455524E
+CompletionText1:	dc.b	'THOU ART VICTORIOUS! I SHALL NOT RETURN'	;54484F552041525420564943544F52494F5553212049205348414C4C204E4F542052455455524E
 	dc.b	$FF	;FF
-adrEA0082A8:	dc.b	$FE	;FE
+CompletionText2:	dc.b	$FE	;FE
 	dc.b	$0B	;0B
 	dc.b	'CONGRATULATIONS!'	;434F4E47524154554C4154494F4E5321
 	dc.b	$FF	;FF
@@ -10939,7 +10939,7 @@ adrJC00838E:	subq.w	#$02,d0	;5540
 	bset	#$00,$00(a6,d0.w)	;08F600000000
 adrCd00839C:	rts	;4E75
 
-adrJC00839E:	eor.w	#$0002,$0020(a5)	;0A6D00020020
+TriggerAction_02_Spinner:	eor.w	#$0002,$0020(a5)	;0A6D00020020
 	rts	;4E75
 
 adrJC0083A6:	bsr	adrCd0061E0	;6100DE38
@@ -11018,7 +11018,7 @@ adrJC008474:	bsr	adrCd0092CC	;61000E56
 adrJC00849E:
 	addq.w	#$02,d0	;5440
 	tst.b	$01(a6,d0.w)	;4A360001
-	bmi	adrJB007CF0	;6B00F84A
+	bmi	Trigger_00_t00_Null	;6B00F84A
 	bset	#$00,$00(a6,d0.w)	;08F600000000
 	addq.w	#$02,d0	;5440
 adrCd0084B0:
@@ -11100,7 +11100,7 @@ adrCd008598:
 	move.w	#$0086,d7	;3E3C0086
 	bsr	adrCd00222A	;61009C8C
 	moveq	#$05,d0	;7005
-	bsr	adrCd00968E	;610010EA
+	bsr	PlaySound	;610010EA
 	move.w	#$FFFF,adrW_007C7A.l	;33FCFFFF00007C7A
 	moveq	#$03,d0	;7003
 adrLp0085B0:
@@ -11138,9 +11138,9 @@ adrCd008614:	bsr	adrCd001404	;61008DEE
 	asl.w	#$08,d1	;E141
 	lea	serpex.monsters.l,a3	;47F900015968
 	add.w	d1,a3	;D6C1
-	lea	adrEA014EE6.l,a4	;49F900014EE6
+	lea	UnpackedMonsters.l,a4	;49F900014EE6
 	move.w	-$0002(a4),d1	;322CFFFE
-	lea	monstersex.totals.l,a0	;41F900015960
+	lea	MonsterTotalsCounts.l,a0	;41F900015960
 	move.w	d1,$00(a0,d0.w)	;31810000
 	bmi	adrCd0086CE	;6B00008A
 	move.l	a3,a0	;204B
@@ -11149,7 +11149,7 @@ adrCd008614:	bsr	adrCd001404	;61008DEE
 adrLp00864E:	move.l	d2,(a0)+	;20C2
 	dbra	d0,adrLp00864E	;51C8FFFC
 	move.l	a3,a0	;204B
-	lea	adrEA016568.l,a2	;45F900016568
+	lea	DroppedObjects.l,a2	;45F900016568
 	move.w	adrW_00F98A.l,d0	;30390000F98A
 	add.w	d0,d0	;D040
 	move.w	$00(a2,d0.w),d0	;30320000
@@ -11282,18 +11282,18 @@ adrCd0087B6:	swap	d1	;4841
 
 adrCd0087BA:	bsr	adrCd0092CC	;61000B10
 adrCd0087BE:	move.w	#$0080,d0	;303C0080
-	lea	adrEA00F9D8.l,a1	;43F90000F9D8
+	lea	Player1_Data.l,a1	;43F90000F9D8
 	cmp.w	$0058(a1),d1	;B2690058
 	bne.s	adrCd0087D4	;6606
 	cmp.l	$001C(a1),d2	;B4A9001C
 	beq.s	adrCd008846	;6772
 adrCd0087D4:	addq.b	#$01,d0	;5200
-	lea	adrEA00FA3A.l,a1	;43F90000FA3A
+	lea	Player2_Data.l,a1	;43F90000FA3A
 	cmp.w	$0058(a1),d1	;B2690058
 	bne.s	adrCd0087E8	;6606
 	cmp.l	$001C(a1),d2	;B4A9001C
 	beq.s	adrCd008846	;675E
-adrCd0087E8:	lea	adrEA00F586.l,a1	;43F90000F586
+adrCd0087E8:	lea	CharacterStats.l,a1	;43F90000F586
 	move.b	d2,d0	;1002
 	swap	d2	;4842
 	rol.w	#$08,d2	;E15A
@@ -11309,7 +11309,7 @@ adrLp0087FE:	cmp.b	$0023(a1),d3	;B6290023
 adrCd008810:	lea	$0040(a1),a1	;43E90040
 	dbra	d0,adrLp0087FE	;51C8FFE8
 	moveq	#$10,d0	;7010
-	lea	adrEA014EE6.l,a1	;43F900014EE6
+	lea	UnpackedMonsters.l,a1	;43F900014EE6
 	move.w	-$0002(a1),d3	;3629FFFE
 	bmi.s	adrCd00883C	;6B16
 adrLp008826:	cmp.b	$0004(a1),d1	;B2290004
@@ -11395,7 +11395,7 @@ adrCd008906:	move.w	d7,d0	;3007
 	cmp.w	#$0077,d7	;0C470077
 	bcs.s	adrCd008906	;65D8
 adrCd00892E:	bsr	adrCd008AC4	;61000194
-	lea	adrEA04D112.l,a1	;43F90004D112
+	lea	_GFX_Pockets+$3C60.l,a1	;43F90004D112
 	move.l	#$00050006,d5	;2A3C00050006	;Long Addr replaced with Symbol
 	move.l	screen_ptr.l,a0	;207900009B06
 	add.w	#$0DE8,a0	;D0FC0DE8
@@ -11711,7 +11711,7 @@ adrCd008B6A:	move.l	a0,-(sp)	;2F08
 
 adrCd008BA2:	add.l	screen_ptr.l,a0	;D1F900009B06
 	add.w	$000A(a5),a0	;D0ED000A
-	lea	adrEA04F9B2.l,a1	;43F90004F9B2
+	lea	_GFX_Pockets+$6500.l,a1	;43F90004F9B2
 	move.l	#$00000024,-(sp)	;2F3C00000024
 	moveq	#$00,d3	;7600
 adrCd008BBA:	lea	$00000098.l,a3	;47F900000098
@@ -11736,7 +11736,7 @@ adrCd008BDC:	move.b	d0,-$0017(a3)	;1740FFE9
 	move.w	adrW_008C06(pc,d7.w),d1	;323B7014
 	moveq	#$00,d0	;7000
 	move.w	#$FFFF,adrW_00BBFA.l	;33FCFFFF0000BBFA
-	bra	adrCd00B596	;60002996
+	bra	Draw_Characters	;60002996
 
 adrW_008C02:	dc.w	$0011	;0011
 adrW_008C04:	dc.w	$001C	;001C
@@ -11757,7 +11757,7 @@ adrLp008C1C:	move.w	d7,-(sp)	;3F07
 	move.w	(sp)+,d7	;3E1F
 	dbra	d7,adrLp008C1C	;51CFFFF6
 	bsr	adrCd008D52	;61000128
-adrCd008C2C:	lea	adrEA04D0E2.l,a1	;43F90004D0E2
+adrCd008C2C:	lea	_GFX_Pockets+$3C30.l,a1	;43F90004D0E2
 	move.l	#$00050006,d5	;2A3C00050006	;Long Addr replaced with Symbol
 	move.l	screen_ptr.l,a0	;207900009B06
 	lea	$0DE8(a0),a0	;41E80DE8
@@ -11817,7 +11817,7 @@ adrCd008CE0:	btst	d0,$003E(a5)	;012D003E
 	btst	#$06,d7	;08070006
 	bne.s	adrCd008D38	;6646
 	move.w	d0,-(sp)	;3F00
-	lea	adrEA04E522.l,a1	;43F90004E522
+	lea	_GFX_Pockets+$5070.l,a1	;43F90004E522
 	move.l	#$00010028,d5	;2A3C00010028	;Long Addr replaced with Symbol
 	move.l	#$00000090,a3	;267C00000090
 	bsr	adrCd00D60C	;61004904
@@ -11899,7 +11899,7 @@ adrCd008D52:	tst.w	$0042(a5)	;4A6D0042
 	move.l	#$00260035,d4	;283C00260035
 	moveq	#$02,d3	;7602
 	bsr	adrCd00E538	;6100573A
-	lea	adrEA050A32.l,a1	;43F900050A32
+	lea	_GFX_Pockets+$7580.l,a1	;43F900050A32
 	move.l	#$00000088,a3	;267C00000088
 	move.l	screen_ptr.l,a0	;207900009B06
 	add.w	$000A(a5),a0	;D0ED000A
@@ -11918,7 +11918,7 @@ adrCd008E24:	tst.w	$0042(a5)	;4A6D0042
 	bne	adrCd008EBE	;6600006E
 	move.w	$0006(a5),d7	;3E2D0006
 	asl.w	#$06,d7	;ED47
-	lea	adrEA00F586.l,a6	;4DF90000F586
+	lea	CharacterStats.l,a6	;4DF90000F586
 	lea	$06(a6,d7.w),a6	;4DF67006
 	move.l	#$00040019,d5	;2A3C00040019	;Long Addr replaced with Symbol
 	add.w	$0008(a5),d5	;DA6D0008
@@ -11959,7 +11959,7 @@ adrCd008EAE:	swap	d4	;4844
 adrCd008EBA:	swap	d4	;4844
 	rts	;4E75
 
-adrCd008EBE:	lea	adrEA00F586.l,a6	;4DF90000F586
+adrCd008EBE:	lea	CharacterStats.l,a6	;4DF90000F586
 	moveq	#$03,d6	;7C03
 	move.l	#$00060052,d5	;2A3C00060052
 adrLp008ECC:	move.b	$18(a5,d6.w),d0	;10356018
@@ -12101,12 +12101,12 @@ adrCd00903E:	addq.w	#$01,d5	;5245
 	move.l	screen_ptr.l,a0	;207900009B06
 	lea	$0544(a0),a0	;41E80544
 	add.w	$000A(a5),a0	;D0ED000A
-	lea	adrEA04FC72.l,a1	;43F90004FC72
+	lea	_GFX_Pockets+$67C0.l,a1	;43F90004FC72
 	move.l	#$00000080,a3	;267C00000080
 	move.l	#$00030015,d5	;2A3C00030015	;Long Addr replaced with Symbol
 	bsr	adrCd00D60C	;61004596
 	lea	$0028(a0),a0	;41E80028
-	lea	adrEA04FC92.l,a1	;43F90004FC92
+	lea	_GFX_Pockets+$67E0.l,a1	;43F90004FC92
 	btst	#$00,(a5)	;08150000
 	bne.s	adrCd00908C	;6604
 	lea	$0020(a1),a1	;43E90020
@@ -12136,7 +12136,7 @@ adrCd0090C0:	bsr	adrCd00E654	;61005592
 
 adrCd0090DC:	
 	move.l	#$00000070,a3	;267C00000070
-	lea	adrEA04D0B2.l,a1	;43F90004D0B2
+	lea	_GFX_Pockets+$3C00.l,a1	;43F90004D0B2
 	move.l	#$00050006,d5	;2A3C00050006	;Long Addr replaced with Symbol
 	add.l	screen_ptr.l,a0	;D1F900009B06
 	add.w	$000A(a5),a0	;D0ED000A
@@ -12202,7 +12202,7 @@ adrCd00919C:	moveq	#$00,d6	;7C00
 adrCd0091A0:	and.w	#$000F,d0	;0240000F
 	move.w	d0,d1	;3200
 	asl.w	#$06,d0	;ED40
-	lea	adrEA00F586.l,a6	;4DF90000F586
+	lea	CharacterStats.l,a6	;4DF90000F586
 	move.b	$01(a6,d0.w),d0	;10360001
 	bsr	adrCd0075DC	;6100E428
 	move.w	d0,d6	;3C00
@@ -12230,7 +12230,7 @@ adrCd0091F4:	move.w	#$003B,d0	;303C003B
 adrCd0091FC:	and.w	#$000F,d0	;0240000F
 	move.w	d0,d1	;3200
 	asl.w	#$06,d0	;ED40
-	lea	adrEA00F586.l,a6	;4DF90000F586
+	lea	CharacterStats.l,a6	;4DF90000F586
 	add.w	d0,a6	;DCC0
 	move.b	$0001(a6),d1	;122E0001
 	move.w	d1,d2	;3401
@@ -12243,7 +12243,7 @@ adrCd0091FC:	and.w	#$000F,d0	;0240000F
 adrEA009228:
 	dc.w	$0004	;0004
 	dc.w	$030E	;030E
-adrEA00922C:
+ClassColours:
 	dc.w	$0006	;0006
 	dc.w	$050E	;050E
 	dc.w	$000D	;000D
@@ -12589,14 +12589,14 @@ Level_4_Interrupt:
 	move.w	#$0080,_custom+intreq.l	;33FC008000DFF09C
 	rte	;4E73
 
-adrCd00968E:
+PlaySound:
 	move.w	d1,-(sp)	;3F01
 	move.w	#$0001,_custom+dmacon.l	;33FC000100DFF096
 	move.w	#$0080,_custom+intena.l	;33FC008000DFF09A
 	asl.w	#$02,d0	;E540
 	lea	AudioSample_1.l,a0	;41F900051A82
 	add.w	AudioSampleOffsets(pc,d0.w),a0	;D0FB005E
-	move.w	adrW_00970A(pc,d0.w),d0	;303B005C
+	move.w	AudioSampleOffsets+2(pc,d0.w),d0	;303B005C
 	lea	$0030(a0),a0	;41E80030
 	move.w	-$0002(a0),d1	;3228FFFE
 	lsr.w	#$01,d1	;E249
@@ -12607,12 +12607,12 @@ adrCd00968E:
 	move.w	d0,_custom+aud0+ac_per.l	;33C000DFF0A6
 	move.w	(a0),_custom+aud0+ac_dat.l	;33D000DFF0AA
 	move.w	#$0078,d1	;323C0078
-adrLp0096E0:
-	dbra	d1,adrLp0096E0	;51C9FFFE
+.soundloop1:
+	dbra	d1,.soundloop1	;51C9FFFE
 	move.w	#$8001,_custom+dmacon.l	;33FC800100DFF096
 	move.w	#$0078,d1	;323C0078
-adrLp0096F0:
-	dbra	d1,adrLp0096F0	;51C9FFFE
+.soundloop2:
+	dbra	d1,.soundloop2	;51C9FFFE
 	move.w	#$0080,_custom+intreq.l	;33FC008000DFF09C
 	move.w	#$8080,_custom+intena.l	;33FC808000DFF09A
 	move.w	(sp)+,d1	;321F
@@ -12621,7 +12621,7 @@ adrLp0096F0:
 
 AudioSampleOffsets:
 	dc.w	AudioSample_1-AudioSample_1	;0000
-adrW_00970A:
+
 	dc.w	$0028				;0028
 	dc.w	AudioSample_1-AudioSample_1	;0000
 	dc.w	$009B				;009B
@@ -12637,14 +12637,14 @@ adrW_00970A:
 adrW_009720:
 	dc.w	$0000	;0000
 
-adrCd009722:	move.w	_custom+joy0dat.l,d0	;303900DFF00A
+MouseControl:	move.w	_custom+joy0dat.l,d0	;303900DFF00A
 	move.w	adrW_009720.l,d1	;323900009720
 	move.w	d0,adrW_009720.l	;33C000009720
 	bsr	adrCd0097DA	;610000A4
 	ror.w	#$08,d0	;E058
 	ror.w	#$08,d1	;E059
 	bsr	adrCd0097DA	;6100009C
-	lea	adrEA00F9D8.l,a5	;4BF90000F9D8
+	lea	Player1_Data.l,a5	;4BF90000F9D8
 	move.w	$0004(a5),d1	;322D0004
 	moveq	#$00,d2	;7400
 	move.b	d0,d2	;1400
@@ -12670,9 +12670,9 @@ adrCd00977E:	cmp.w	#$0140,d1	;0C410140
 	sub.w	#$0140,d1	;04410140
 adrCd009788:	move.w	d1,$0002(a5)	;3B410002
 	move.l	$0002(a5),d1	;222D0002
-	lea	adrEA009C50.l,a0	;41F900009C50
+	lea	SpritePosition_00.l,a0	;41F900009C50
 	bsr	adrCd009820	;61000088
-	lea	adrEA009CE0.l,a0	;41F900009CE0
+	lea	SpritePosition_01.l,a0	;41F900009CE0
 	move.l	#$FF81FFC9,d1	;223CFF81FFC9
 	bsr	adrCd009820	;61000078
 	move.b	_ciaa.l,d1	;123900BFE001
@@ -12703,18 +12703,18 @@ adrCd0097E4:	tst.b	d0	;4A00
 adrCd0097E8:	neg.b	d0	;4400
 adrCd0097EA:	rts	;4E75
 
-adrCd0097EC:	tst.w	Multiplayer.l	;4A790000F98C
-	bne	adrCd009722	;6600FF2E
-	bsr	adrCd0098CE	;610000D6
+InputControls:	tst.w	Multiplayer.l	;4A790000F98C
+	bne	MouseControl	;6600FF2E
+	bsr	JoystickControl	;610000D6
 	move.w	(a0),d0	;3010
-	lea	adrEA00FA3A.l,a5	;4BF90000FA3A
+	lea	Player2_Data.l,a5	;4BF90000FA3A
 	bsr	adrCd009868	;61000064
-	lea	adrEA009CE0.l,a0	;41F900009CE0
+	lea	SpritePosition_01.l,a0	;41F900009CE0
 	bsr.s	adrCd009820	;6112
 	lsr.w	#$08,d0	;E048
-	lea	adrEA00F9D8.l,a5	;4BF90000F9D8
+	lea	Player1_Data.l,a5	;4BF90000F9D8
 	bsr	adrCd009868	;61000050
-	lea	adrEA009C50.l,a0	;41F900009C50
+	lea	SpritePosition_00.l,a0	;41F900009C50
 adrCd009820:	add.w	#$0037,d1	;06410037
 	move.b	d1,(a0)	;1081
 	move.b	d1,$0048(a0)	;11410048
@@ -12788,7 +12788,7 @@ adrEA0098CA:	dc.b	$00	;00
 adrEA0098CC:	dc.b	$00	;00
 	dc.b	$00	;00
 
-adrCd0098CE:	move.w	_custom+joy0dat.l,d0	;303900DFF00A
+JoystickControl:	move.w	_custom+joy0dat.l,d0	;303900DFF00A
 	bsr.s	adrCd0098AE	;61D8
 	move.b	_ciaa.l,d1	;123900BFE001
 	not.b	d1	;4601
@@ -12803,7 +12803,7 @@ adrCd0098CE:	move.w	_custom+joy0dat.l,d0	;303900DFF00A
 	and.b	#$80,d1	;02010080
 	or.b	d1,d0	;8001
 	lea	adrEA0098CA.l,a0	;41F9000098CA
-	lea	adrEA00FA3A.l,a5	;4BF90000FA3A
+	lea	Player2_Data.l,a5	;4BF90000FA3A
 	moveq	#$01,d1	;7201
 adrLp00990C:	tst.b	$02(a0,d1.w)	;4A301002
 	bpl.s	adrCd00991C	;6A0A
@@ -12818,12 +12818,12 @@ adrCd009920:	move.b	d0,$00(a0,d1.w)	;11801000
 	tst.b	$0001(a5)	;4A2D0001
 	bmi.s	adrCd009934	;6B06
 	bset	#$07,$0001(a5)	;08ED00070001
-adrCd009934:	lea	adrEA00F9D8.l,a5	;4BF90000F9D8
+adrCd009934:	lea	Player1_Data.l,a5	;4BF90000F9D8
 	swap	d0	;4840
 	dbra	d1,adrLp00990C	;51C9FFCE
 	rts	;4E75
 
-adrCd009942:	tst.w	adrW_0099EC.l	;4A79000099EC
+adrCd009942:	tst.w	Paused_Marker.l	;4A79000099EC
 	bne.s	adrCd0099B8	;666E
 	tst.b	$0052(a5)	;4A2D0052
 	bmi.s	adrCd0099B0	;6B60
@@ -12887,25 +12887,25 @@ adrCd0099B8:	rts	;4E75
 	dc.w	$0400	;0400
 	dc.w	$0200	;0200
 	dc.w	$0000	;0000
-adrW_0099EA:	dc.w	$0000	;0000
-adrW_0099EC:	dc.w	$0000	;0000
+VBI_Marker:	dc.w	$0000	;0000
+Paused_Marker:	dc.w	$0000	;0000
 adrB_0099EE:	dc.b	$00	;00
 adrB_0099EF:	dc.b	$FF	;FF
 
-Level_3_Interrupt:	move.w	d0,-(sp)	;3F00
+VerticalBlankInterupt:	move.w	d0,-(sp)	;3F00
 	move.w	_custom+intreqr.l,d0	;303900DFF01E
 	and.w	#$0020,d0	;02400020
 	beq.s	adrCd009A10	;6712
 	move.w	(sp)+,d0	;301F
 	move.w	#$0020,_custom+intreq.l	;33FC002000DFF09C
-	clr.w	adrW_0099EA.l	;4279000099EA
+	clr.w	VBI_Marker.l	;4279000099EA
 	rte	;4E73
 
 adrCd009A10:	move.w	(sp)+,d0	;301F
-	eor.w	#$0001,adrW_0099EA.l	;0A790001000099EA
+	eor.w	#$0001,VBI_Marker.l	;0A790001000099EA
 	beq.s	adrCd009A32	;6716
 	movem.l	d0/a5,-(sp)	;48E78004
-	lea	adrEA00FA3A.l,a5	;4BF90000FA3A
+	lea	Player2_Data.l,a5	;4BF90000FA3A
 	bsr	adrCd009942	;6100FF1A
 	movem.l	(sp)+,d0/a5	;4CDF2001
 	bra	adrCd009A90	;60000060
@@ -12923,11 +12923,11 @@ adrLp009A5A:	subq.w	#$01,(a0)+	;5358
 	bcc.s	adrCd009A62	;6404
 	clr.w	-$0002(a0)	;4268FFFE
 adrCd009A62:	dbra	d0,adrLp009A5A	;51C8FFF6
-	lea	adrEA00F9D8.l,a5	;4BF90000F9D8
+	lea	Player1_Data.l,a5	;4BF90000F9D8
 	bsr	adrCd009942	;6100FED4
 	tst.b	adrB_0099EF.l	;4A39000099EF
 	beq.s	adrCd009A8C	;6714
-	bsr	adrCd0097EC	;6100FD72
+	bsr	InputControls	;6100FD72
 	tst.b	adrB_0099EE.l	;4A39000099EE
 	beq.s	adrCd009A8C	;6708
 	clr.b	adrB_0099EE.l	;4239000099EE
@@ -13061,7 +13061,7 @@ CopperList001:
 	dc.l	$FF01FF00	;FF01FF00
 	dc.l	$009C8010	;009C8010
 	dc.l	$FFFFFFFE	;FFFFFFFE
-adrEA009C50:	dc.w	$0000	;0000
+SpritePosition_00:	dc.w	$0000	;0000
 	dc.w	$0000	;0000
 	dc.w	$C000	;C000
 	dc.w	$0000	;0000
@@ -13097,7 +13097,7 @@ adrEA009C50:	dc.w	$0000	;0000
 	dc.w	$0000	;0000
 adrEA009C94:	dc.w	$0000	;0000
 	dc.w	$0000	;0000
-adrEA009C98:	dc.w	$0000	;0000
+SpritePosition_04:	dc.w	$0000	;0000
 	dc.w	$0000	;0000
 	dc.w	$0000	;0000
 	dc.w	$0000	;0000
@@ -13133,7 +13133,7 @@ adrEA009C98:	dc.w	$0000	;0000
 	dc.w	$0000	;0000
 	dc.w	$0000	;0000
 	dc.w	$0000	;0000
-adrEA009CE0:	dc.w	$0000	;0000
+SpritePosition_01:	dc.w	$0000	;0000
 	dc.w	$0000	;0000
 	dc.w	$C000	;C000
 	dc.w	$0000	;0000
@@ -13169,7 +13169,7 @@ adrEA009CE0:	dc.w	$0000	;0000
 	dc.w	$0000	;0000
 	dc.w	$0000	;0000
 	dc.w	$0000	;0000
-adrEA009D28:	dc.w	$0000	;0000
+SpritePosition_02:	dc.w	$0000	;0000
 	dc.w	$0000	;0000
 	dc.w	$0000	;0000
 	dc.w	$0000	;0000
@@ -13532,7 +13532,7 @@ adrCd00A0B8:	and.w	#$00FC,d1	;024100FC
 	subq.b	#$01,d1	;5301
 	move.b	adrB_00A12A(pc,d1.w),d1	;123B1058
 	add.w	d1,d1	;D241
-	lea	adrEA031418.l,a1	;43F900031418
+	lea	_GFX_AirbourneSpells.l,a1	;43F900031418
 	add.w	adrW_00A130(pc,d1.w),a1	;D2FB1052
 	add.w	d1,d1	;D241
 	add.b	adrB_00A138(pc,d1.w),d4	;D83B1054
@@ -13718,21 +13718,21 @@ adrCd00A2C8:	move.b	-$0012(a3),d1	;122BFFEE
 	btst	#$02,d1	;08010002
 	beq.s	adrCd00A2F2	;671E
 	movem.l	d1/d6,-(sp)	;48E74200
-	lea	adrEA02E950.l,a1	;43F90002E950
+	lea	_GFX_Pad.l,a1	;43F90002E950
 	lea	adrEA00CDF8.l,a2	;45F90000CDF8
 	lea	adrEA016AB4.l,a0	;41F900016AB4
 	bsr	adrCd00A384	;61000098
 	movem.l	(sp)+,d1/d6	;4CDF0042
 adrCd00A2F2:	lea	adrEA016A9C.l,a0	;41F900016A9C
 	lea	adrEA00CDAC.l,a2	;45F90000CDAC
-	lea	adrEA02E4C0.l,a1	;43F90002E4C0
+	lea	_GFX_PitLow.l,a1	;43F90002E4C0
 	and.w	#$0003,d1	;02410003
 	beq.s	adrCd00A330	;6726
 	cmp.w	#$0003,d1	;0C410003
 	beq.s	adrCd00A330	;6720
 	btst	#$00,d1	;08010000
 	bne.s	adrCd00A32E	;6618
-	lea	adrEA02E708.l,a1	;43F90002E708
+	lea	_GFX_PitHigh.l,a1	;43F90002E708
 	move.w	#$FFFF,adrW_00C354.l	;33FCFFFF0000C354
 	bsr.s	adrCd00A384	;615E
 	clr.w	adrW_00C354.l	;42790000C354
@@ -13751,7 +13751,7 @@ adrCd00A33A:	bsr	adrCd00A71A	;610003DE
 	beq.s	adrCd00A370	;6724
 	lea	adrEA01697A.l,a0	;41F90001697A
 	lea	adrEA00CB34.l,a2	;45F90000CB34
-	lea	adrEA025610.l,a1	;43F900025610
+	lea	_GFX_Bed.l,a1	;43F900025610
 	move.w	d0,d6	;3C00
 adrCd00A360:	bsr	adrCd00C31C	;61001FBA
 	swap	d3	;4843
@@ -13762,7 +13762,7 @@ adrCd00A36E:	rts	;4E75
 
 adrCd00A370:	lea	adrEA016964.l,a0	;41F900016964
 	lea	adrEA00CA9C.l,a2	;45F90000CA9C
-	lea	adrEA026088.l,a1	;43F900026088
+	lea	_GFX_Pillar.l,a1	;43F900026088
 	move.w	d0,d6	;3C00
 adrCd00A384:	moveq	#$00,d0	;7000
 	move.b	adrB_00A390(pc,d6.w),d0	;103B6008
@@ -13961,7 +13961,7 @@ adrCd00A4F2:	cmp.b	#$80,d4	;0C040080
 	add.w	d0,d6	;DC40
 	add.w	d6,d6	;DC46
 	lea	adrEA00F326.l,a0	;41F90000F326
-	lea	adrEA02F948.l,a1	;43F90002F948
+	lea	_GFX_ObjectsOnFloor.l,a1	;43F90002F948
 	add.w	$00(a0,d6.w),a1	;D2F06000
 	cmp.b	#$12,d3	;0C030012
 	bcs.s	adrCd00A544	;6504
@@ -14245,7 +14245,7 @@ adrLp00A784:	move.w	d1,d3	;3601
 	bmi.s	adrCd00A7BA	;6B20
 	movem.l	d1/d2/a1,-(sp)	;48E76040
 	asl.w	#$04,d0	;E940
-	lea	adrEA014EE6.l,a1	;43F900014EE6
+	lea	UnpackedMonsters.l,a1	;43F900014EE6
 	add.w	d0,a1	;D2C0
 	add.w	d2,d3	;D642
 	and.w	#$0003,d3	;02430003
@@ -14456,7 +14456,7 @@ adrCd00A9A2:	move.b	adrB_00A9CC(pc,d1.w),d7	;1E3B1028
 	add.b	adrB_00A9D8(pc,d2.w),d5	;DA3B202A
 	move.w	d1,d2	;3401
 	add.w	d2,d2	;D442
-	lea	adrEA031BB0.l,a1	;43F900031BB0
+	lea	_GFX_AirbourneBall.l,a1	;43F900031BB0
 	add.w	adrW_00A9E4(pc,d2.w),a1	;D2FB2028
 	bra	adrCd00B0DE	;6000071E
 
@@ -14501,14 +14501,14 @@ adrW_00A9E4:	dc.w	$0000	;0000
 	dc.w	$01F0	;01F0
 	dc.w	$0238	;0238
 
-adrCd00A9F0:	cmp.b	#$94,d0	;0C000094
+DrawSpells:	cmp.b	#$94,d0	;0C000094
 	beq	adrCd00A938	;6700FF42
 	cmp.b	#$95,d0	;0C000095
 	beq	adrCd00A938	;6700FF3A
 	lea	adrEA00AA7E.l,a1	;43F90000AA7E
 	move.b	$00(a1,d1.w),d1	;12311000
 	add.w	d1,d1	;D241
-	lea	adrEA031160.l,a1	;43F900031160
+	lea	_GFX_FireBall.l,a1	;43F900031160
 	lea	adrEA00AA84.l,a2	;45F90000AA84
 	cmp.b	#$86,d0	;0C000086
 	bcs.s	adrCd00AA2E	;6510
@@ -14590,11 +14590,11 @@ adrCd00AAC8:	and.w	#$007F,d3	;0243007F
 	move.b	$06(a0,d1.w),d7	;1E301006
 	rts	;4E75
 
-adrCd00AAE8:	lea	adrEA00ACD6.l,a2	;45F90000ACD6
+Draw_Summon:	lea	adrEA00ACD6.l,a2	;45F90000ACD6
 	lea	adrEA00ABD6.l,a0	;41F90000ABD6
-	lea	adrEA041DC8.l,a1	;43F900041DC8
+	lea	_GFX_Summon.l,a1	;43F900041DC8
 	bsr.s	adrCd00AAB8	;61BC
-	lea	monsters.colours.l,a6	;4DF90000AC72
+	lea	illusion.colours.l,a6	;4DF90000AC72
 	tst.b	-$0018(a3)	;4A2BFFE8
 	bmi.s	adrCd00AB14	;6B0C
 	lea	summons.colours.l,a0	;41F90000ABCE
@@ -14642,7 +14642,7 @@ adrCd00AB80:	move.w	d1,d2	;3401
 	move.b	$00(a0,d2.w),d7	;1E302000
 	add.w	d2,d2	;D442
 	lea	adrEA00ACFA.l,a0	;41F90000ACFA
-	lea	adrEA041DC8.l,a1	;43F900041DC8
+	lea	_GFX_Summon.l,a1	;43F900041DC8
 	add.w	$00(a0,d2.w),a1	;D2F02000
 	move.w	d1,d2	;3401
 	asl.w	#$02,d2	;E542
@@ -14741,9 +14741,9 @@ adrEA00AC12:	dc.w	$FAF9	;FAF9
 	dc.w	$0401	;0401
 	dc.w	$0901	;0901
 	dc.w	$FFFF	;FFFF
-monsters.colours:	dc.w	$0000	;0000
+illusion.colours:	dc.w	$0000	;0000
 	dc.w	$0708	;0708
-adrEA00AC76:	dc.w	$0003	;0003
+monsters.colours:	dc.w	$0003	;0003
 	dc.w	$040E	;040E
 	dc.w	$0008	;0008
 	dc.w	$040E	;040E
@@ -14781,7 +14781,7 @@ adrCd00ACB6:	lsr.w	#$01,d2	;E24A
 	moveq	#$07,d2	;7407
 adrCd00ACC0:	move.b	$00(a0,d2.w),d2	;14302000
 	asl.w	#$02,d2	;E542
-	lea	adrEA00AC76.l,a6	;4DF90000AC76
+	lea	monsters.colours.l,a6	;4DF90000AC76
 	add.w	d2,a6	;DCC2
 	move.l	(a6),adrEA00C356.l	;23D60000C356
 	rts	;4E75
@@ -14817,7 +14817,7 @@ adrEA00ACFA:	dc.w	$1140	;1140
 	dc.w	$1610	;1610
 	dc.w	$1670	;1670
 
-adrJC00AD12:	move.w	#$FFFF,adrW_00C354.l	;33FCFFFF0000C354
+Draw_Crab:	move.w	#$FFFF,adrW_00C354.l	;33FCFFFF0000C354
 	lea	crab.colours.l,a0	;41F90000AD38
 	moveq	#$0C,d3	;760C
 	bsr.s	adrCd00ACAA	;6186
@@ -14890,7 +14890,7 @@ adrCd00ADA4:	moveq	#$00,d7	;7E00
 	moveq	#$01,d2	;7401
 	moveq	#-$01,d6	;7CFF
 adrCd00ADB6:	lea	adrEA00B512.l,a2	;45F90000B512
-	lea	adrEA043480.l,a1	;43F900043480
+	lea	_GFX_Behemoth.l,a1	;43F900043480
 	movem.w	d0/d1/d4/d5/d7,-(sp)	;48A7CD00
 	add.w	d1,d1	;D241
 	move.w	d1,d3	;3601
@@ -14995,7 +14995,7 @@ adrCd00AE9E:	cmp.b	#$02,d0	;0C000002
 	beq.s	adrCd00AECC	;6728
 	tst.b	d1	;4A01
 	bne.s	adrCd00AE9C	;66F4
-	lea	adrEA044CC0.l,a1	;43F900044CC0
+	lea	_GFX_CrabClaw.l,a1	;43F900044CC0
 	movem.w	d0/d1/d4/d5,-(sp)	;48A7CC00
 	moveq	#$07,d7	;7E07
 	subq.b	#$03,d5	;5705
@@ -15039,7 +15039,7 @@ adrCd00AEEA:	btst	d2,-$0015(a3)	;052BFFEB
 	movem.w	(sp)+,d0/d1/d4/d5/d7	;4C9F00B3
 adrCd00AF0C:	rts	;4E75
 
-adrCd00AF0E:	lea	adrEA044868.l,a1	;43F900044868
+adrCd00AF0E:	lea	_GFX_Crab.l,a1	;43F900044868
 	move.w	d1,d2	;3401
 	add.w	d2,d2	;D442
 	add.w	$00(a2,d2.w),a1	;D2F22000
@@ -15104,7 +15104,7 @@ beholder.colours:	dc.w	$040A	;040A
 	dc.w	$0308	;0308
 	dc.w	$0509	;0509
 
-adrCd00AFAA:	moveq	#$0D,d3	;760D
+Draw_Beholder:	moveq	#$0D,d3	;760D
 	lea	beholder.colours.l,a0	;41F90000AFA2
 	bsr	adrCd00ACAA	;6100FCF6
 	bsr	adrCd00B086	;610000CE
@@ -15134,7 +15134,7 @@ adrCd00AFD4:	cmp.b	#$04,d1	;0C010004
 	beq.s	adrCd00AFF4	;6702
 	addq.w	#$01,d2	;5242
 adrCd00AFF4:	add.w	d2,d2	;D442
-	lea	adrEA045010.l,a1	;43F900045010
+	lea	_GFX_Beholder.l,a1	;43F900045010
 	tst.b	d0	;4A00
 	bne.s	adrCd00B018	;6618
 	move.b	adrB_00AFCC(pc,d1.w),d7	;1E3B10CA
@@ -15184,7 +15184,7 @@ adrCd00B03E:	lea	adrEA00B140.l,a2	;45F90000B140
 	moveq	#-$01,d6	;7CFF
 	add.b	adrB_00B03C(pc,d1.w),d4	;D83B10DE
 adrCd00B060:	add.w	d2,d2	;D442
-	lea	adrEA045010.l,a1	;43F900045010
+	lea	_GFX_Beholder.l,a1	;43F900045010
 	add.w	$00(a2,d2.w),a1	;D2F22000
 	bra	adrCd00BBCA	;60000B5C
 
@@ -15236,7 +15236,7 @@ adrCd00B0CC:	rts	;4E75
 
 adrCd00B0CE:	move.w	d1,d2	;3401
 	add.w	d2,d2	;D442
-	lea	adrEA045010.l,a1	;43F900045010
+	lea	_GFX_Beholder.l,a1	;43F900045010
 	add.w	$00(a2,d2.w),a1	;D2F22000
 	rts	;4E75
 
@@ -15288,7 +15288,7 @@ adrEA00B140:	dc.w	$06A0	;06A0
 	dc.w	$06D0	;06D0
 	dc.w	$06E8	;06E8
 
-adrJC00B148:	moveq	#$01,d2	;7401
+Draw_LittleDragon:	moveq	#$01,d2	;7401
 	lea	adrEA00B154.l,a2	;45F90000B154
 	moveq	#$0E,d3	;760E
 	bra.s	adrCd00B16E	;601A
@@ -15302,7 +15302,7 @@ adrEA00B15C:	dc.w	$E8EE	;E8EE
 	dc.w	$F0F8	;F0F8
 	dc.w	$0909	;0909
 
-adrJC00B164:	moveq	#$00,d2	;7400
+Draw_BigDragon:	moveq	#$00,d2	;7400
 	lea	adrEA00B15C.l,a2	;45F90000B15C
 	moveq	#$10,d3	;7610
 adrCd00B16E:	lea	adrEA00B36E.l,a0	;41F90000B36E
@@ -15371,7 +15371,7 @@ adrCd00B200:	moveq	#$00,d7	;7E00
 	add.b	adrB_00B248(pc,d3.w),d5	;DA3B303A
 	add.w	d3,d3	;D643
 	lea	adrEA00B30A.l,a2	;45F90000B30A
-	lea	adrEA045710.l,a1	;43F900045710
+	lea	_GFX_Dragon.l,a1	;43F900045710
 	add.w	$00(a2,d3.w),a1	;D2F23000
 	tst.w	d6	;4A46
 	bpl.s	adrCd00B228	;6A02
@@ -15489,7 +15489,7 @@ adrCd00B2A0:	add.b	d3,d2	;D403
 	move.b	adrB_00B27F(pc,d2.w),d7	;1E3B20D3
 	add.w	d2,d2	;D442
 	lea	adrEA00B2EC.l,a2	;45F90000B2EC
-	lea	adrEA045710.l,a1	;43F900045710
+	lea	_GFX_Dragon.l,a1	;43F900045710
 	add.w	$00(a2,d2.w),a1	;D2F22000
 	movem.l	d0/d1/d4/d5/d7/a1,-(sp)	;48E7CD40
 	bsr	adrCd00B51A	;61000254
@@ -15537,7 +15537,7 @@ adrEA00B30A:	dc.w	$21A0	;21A0
 	dc.w	$2888	;2888
 	dc.w	$28D8	;28D8
 
-adrJC00B322:	lea	behemoth.colours.l,a0	;41F90000B346
+Draw_Behemoth:	lea	behemoth.colours.l,a0	;41F90000B346
 	moveq	#$0E,d3	;760E
 	bsr	adrCd00ACAA	;6100F97E
 	lea	adrEA00B4B8.l,a0	;41F90000B4B8
@@ -15570,7 +15570,7 @@ adrEA00B36E:	dc.w	$0000	;0000
 	dc.w	$0101	;0101
 	dc.w	$0203	;0203
 
-adrJC00B374:	move.w	adrW_00F98A.l,d2	;34390000F98A
+Draw_Entropy:	move.w	adrW_00F98A.l,d2	;34390000F98A
 	asl.w	#$03,d2	;E742
 	btst	#$00,-$0017(a3)	;082B0000FFE9
 	bne.s	adrCd00B386	;6602
@@ -15771,11 +15771,11 @@ adrCd00B538:	move.l	(sp)+,a3	;265F
 
 adrCd00B53C:	bsr	adrCd00A69C	;6100F15E
 	tst.b	d1	;4A01
-	bpl.s	adrCd00B546	;6A02
+	bpl.s	NPC_DrawingSelection	;6A02
 	rts	;4E75
 
-adrCd00B546:	move.b	-$0017(a3),d0	;102BFFE9
-	bmi	adrCd00A9F0	;6B00F4A4
+NPC_DrawingSelection:	move.b	-$0017(a3),d0	;102BFFE9
+	bmi	DrawSpells	;6B00F4A4
 	move.w	-$000A(a3),d0	;302BFFF6
 	btst	#$00,d0	;08000000
 	bne.s	adrCd00B55A	;6602
@@ -15785,30 +15785,30 @@ adrCd00B55A:	add.b	-$001B(a3),d0	;D02BFFE5
 	moveq	#$00,d2	;7400
 	move.b	-$0017(a3),d2	;142BFFE9
 	sub.b	#$64,d2	;04020064
-	bcs.s	adrCd00B596	;6528
+	bcs.s	Draw_Characters	;6528
 	cmp.b	#$02,d2	;0C020002
-	beq	adrCd00AFAA	;6700FA36
-	bcs	adrCd00AAE8	;6500F570
+	beq	Draw_Beholder	;6700FA36
+	bcs	Draw_Summon	;6500F570
 	subq.b	#$03,d2	;5702
 	lea	adrJT00B58A.l,a1	;43F90000B58A
 	add.w	d2,d2	;D442
 	add.w	$00(a1,d2.w),a1	;D2F12000
 	jmp	(a1)	;4ED1
 
-adrJT00B58A:	dc.w	adrJC00B322-adrJT00B58A	;FD98
-	dc.w	adrJC00AD12-adrJT00B58A	;F788
-	dc.w	adrJC00B164-adrJT00B58A	;FBDA
-	dc.w	adrJC00B148-adrJT00B58A	;FBBE
-	dc.w	adrJC00B374-adrJT00B58A	;FDEA
-	dc.w	adrJC00B374-adrJT00B58A	;FDEA
+adrJT00B58A:	dc.w	Draw_Behemoth-adrJT00B58A	;FD98
+	dc.w	Draw_Crab-adrJT00B58A	;F788
+	dc.w	Draw_BigDragon-adrJT00B58A	;FBDA
+	dc.w	Draw_LittleDragon-adrJT00B58A	;FBBE
+	dc.w	Draw_Entropy-adrJT00B58A	;FDEA
+	dc.w	Draw_Entropy-adrJT00B58A	;FDEA
 
-adrCd00B596:	moveq	#$00,d2	;7400
+Draw_Characters:	moveq	#$00,d2	;7400
 	move.b	-$0017(a3),d2	;142BFFE9
 	cmp.b	#$10,d2	;0C020010
 	bcc.s	adrCd00B5B0	;640E
 	move.w	d2,d7	;3E02
 	asl.w	#$06,d7	;ED47
-	lea	adrEA00F586.l,a1	;43F90000F586
+	lea	CharacterStats.l,a1	;43F90000F586
 	move.b	$01(a1,d7.w),d2	;14317001
 adrCd00B5B0:	lea	characters.heads.l,a0	;41F90000B788
 	move.b	$00(a0,d2.w),-$0018(a3)	;17702000FFE8
@@ -16302,7 +16302,7 @@ adrCd00B94C:	moveq	#$00,d1	;7200
 	cmp.b	#$10,d1	;0C010010
 	bcc.s	adrCd00B968	;640E
 	asl.w	#$06,d1	;ED41
-	lea	adrEA00F586.l,a6	;4DF90000F586
+	lea	CharacterStats.l,a6	;4DF90000F586
 	move.b	$01(a6,d1.w),d2	;14361001
 	move.w	d2,d1	;3202
 adrCd00B968:	asl.w	#$02,d1	;E541
@@ -16310,7 +16310,7 @@ adrCd00B968:	asl.w	#$02,d1	;E541
 	add.w	d2,d1	;D242
 	asl.w	#$02,d1	;E541
 	add.w	d1,d0	;D041
-	lea	characters.colours.l,a6	;4DF900031E20
+	lea	CharacterColours.l,a6	;4DF900031E20
 	add.w	d0,a6	;DCC0
 adrCd00B97A:	bra	adrCd00BBC4	;60000248
 
@@ -16542,7 +16542,7 @@ adrCd00BB90:	move.b	-$0017(a3),d1	;122BFFE9
 	cmp.b	#$10,d1	;0C010010
 	bcc.s	adrCd00BBAA	;6410
 	asl.w	#$06,d1	;ED41
-	lea	adrEA00F586.l,a6	;4DF90000F586
+	lea	CharacterStats.l,a6	;4DF90000F586
 	add.w	d1,a6	;DCC1
 	moveq	#$00,d1	;7200
 	move.b	$0001(a6),d1	;122E0001
@@ -16551,7 +16551,7 @@ adrCd00BBAA:	move.w	d1,d0	;3001
 	add.w	d0,d1	;D240
 	add.w	d0,d1	;D240
 	asl.w	#$02,d1	;E541
-	lea	adrEA031E30.l,a6	;4DF900031E30
+	lea	CharacterColours+$10.l,a6	;4DF900031E30
 	add.w	d1,a6	;DCC1
 adrCd00BBBC:	bsr.s	adrCd00BBC4	;6106
 	add.w	#$0014,sp	;DEFC0014
@@ -16941,7 +16941,7 @@ adrCd00BF22:	tst.b	-$0015(a3)	;4A2BFFEB
 	beq.s	adrCd00BF84	;6746
 	lea	adrEA00C0BA.l,a0	;41F90000C0BA
 	lea	adrEA00CCCC.l,a2	;45F90000CCCC
-	lea	adrEA025188.l,a1	;43F900025188
+	lea	_GFX_Slots.l,a1	;43F900025188
 	lea	adrEA00C09A.l,a6	;4DF90000C09A
 	move.b	-$0012(a3),d1	;122BFFEE
 	lsr.w	#$03,d1	;E649
@@ -16957,7 +16957,7 @@ adrCd00BF6A:	move.l	d0,adrEA00C356.l	;23C00000C356
 
 adrCd00BF84:	lea	adrEA016A7C.l,a0	;41F900016A7C
 	lea	adrEA00CD3C.l,a2	;45F90000CD3C
-	lea	adrEA024ED0.l,a1	;43F900024ED0
+	lea	_GFX_Switches.l,a1	;43F900024ED0
 	moveq	#$00,d0	;7000
 	move.b	-$0012(a3),d1	;122BFFEE
 	and.w	#$00F8,d1	;024100F8
@@ -16977,7 +16977,7 @@ adrCd00BFB8:	move.l	d0,adrEA00C356.l	;23C00000C356
 adrCd00BFD2:	move.w	d6,-(sp)	;3F06
 	lea	adrEA0169FE.l,a0	;41F9000169FE
 	lea	adrEA00CBEC.l,a2	;45F90000CBEC
-	lea	adrEA0226C0.l,a1	;43F9000226C0
+	lea	_GFX_Sign.l,a1	;43F9000226C0
 	lea	adrEA00C0FA.l,a6	;4DF90000C0FA
 	move.b	-$0012(a3),d1	;122BFFEE
 	lsr.b	#$02,d1	;E409
@@ -17007,7 +17007,7 @@ adrCd00C030:	move.b	-$0019(a3),d1	;122BFFE7
 	sub.b	-$001A(a3),d1	;922BFFE6
 adrCd00C03A:	and.w	#$0003,d1	;02410003
 	mulu	#$0610,d1	;C2FC0610
-	lea	adrEA023690.l,a1	;43F900023690
+	lea	_GFX_SignOverlay.l,a1	;43F900023690
 	add.w	d1,a1	;D2C1
 	lea	adrEA00CC5C.l,a2	;45F90000CC5C
 	lea	adrEA00C11A.l,a0	;41F90000C11A
@@ -17028,7 +17028,7 @@ adrCd00C076:	tst.b	-$001F(a3)	;4A2BFFE1
 	bne.s	adrCd00C05A	;66D6
 adrCd00C084:	lea	adrEA0169DE.l,a0	;41F9000169DE
 	lea	adrEA00CB7C.l,a2	;45F90000CB7C
-	lea	adrEA021E78.l,a1	;43F900021E78
+	lea	_GFX_Shelf.l,a1	;43F900021E78
 	bra	adrCd00C2A6	;6000020E
 
 adrEA00C09A:	dc.w	$0004	;0004
@@ -17170,13 +17170,13 @@ adrCd00C174:	cmp.b	#$01,-$0013(a3)	;0C2B0001FFED
 	move.b	d0,adrB_00C358.l	;13C00000C358
 adrCd00C1A8:	lea	adrEA016A62.l,a0	;41F900016A62
 	lea	adrEA00CAE4.l,a2	;45F90000CAE4
-	lea	adrEA02A048.l,a1	;43F90002A048
+	lea	_GFX_LargeOpenDoor.l,a1	;43F90002A048
 	btst	#$00,-$0012(a3)	;082B0000FFEE
 	beq.s	adrCd00C1D6	;6714
-	lea	adrEA02BBB0.l,a1	;43F90002BBB0
+	lea	_GFX_LargeMetalDoor.l,a1	;43F90002BBB0
 	btst	#$01,-$0012(a3)	;082B0001FFEE
 	beq.s	adrCd00C1D6	;6706
-	lea	adrEA02D038.l,a1	;43F90002D038
+	lea	_GFX_PortCullis.l,a1	;43F90002D038
 adrCd00C1D6:	move.b	-$0016(a3),d6	;1C2BFFEA
 	cmp.b	#$0E,d6	;0C06000E
 	bcc.s	adrCd00C1E6	;6406
@@ -17200,12 +17200,12 @@ adrCd00C20A:	clr.w	adrW_00C354.l	;42790000C354
 	bmi	adrCd00A72E	;6B00E518
 	rts	;4E75
 
-adrCd00C21A:	lea	adrEA027520.l,a1	;43F900027520
+adrCd00C21A:	lea	_GFX_StairsUp.l,a1	;43F900027520
 	lea	adrEA016A1E.l,a0	;41F900016A1E
 	lea	adrEA00C9B4.l,a2	;45F90000C9B4
 	btst	#$00,-$0012(a3)	;082B0000FFEE
 	beq.s	adrCd00C246	;6712
-	lea	adrEA0293C8.l,a1	;43F9000293C8
+	lea	_GFX_StairsDown.l,a1	;43F9000293C8
 	lea	adrEA016A40.l,a0	;41F900016A40
 	lea	adrEA00CA28.l,a2	;45F90000CA28
 adrCd00C246:	cmp.b	#$0E,-$0016(a3)	;0C2B000EFFEA
@@ -17223,7 +17223,7 @@ adrCd00C264:	tst.b	-$0011(a3)	;4A2BFFEF
 	bmi	adrCd00A72E	;6B00E4C4
 	rts	;4E75
 
-adrCd00C26E:	lea	adrEA01C368.l,a1	;43F90001C368
+adrCd00C26E:	lea	_GFX_WoodWall.l,a1	;43F90001C368
 	lea	adrEA0169BE.l,a0	;41F9000169BE
 	lea	adrEA00C944.l,a2	;45F90000C944
 	tst.b	-$0014(a3)	;4A2BFFEC
@@ -17234,7 +17234,7 @@ adrCd00C26E:	lea	adrEA01C368.l,a1	;43F90001C368
 	beq.s	adrCd00C2C2	;6730
 	lea	adrEA01699E.l,a0	;41F90001699E
 	lea	adrEA00CE44.l,a2	;45F90000CE44
-	lea	adrEA020C98.l,a1	;43F900020C98
+	lea	_GFX_WoodDoors.l,a1	;43F900020C98
 adrCd00C2A4:	nop	;4E71
 adrCd00C2A6:	moveq	#$00,d0	;7000
 	move.b	adrB_00C2D2(pc,d6.w),d0	;103B6028
@@ -17295,7 +17295,7 @@ adrCd00C2EE:	bsr.s	adrCd00C31C	;612C
 
 adrCd00C30A:	lea	adrEA00C8D4.l,a2	;45F90000C8D4
 	lea	adrEA01692C.l,a0	;41F90001692C
-	lea	adrEA017A38.l,a1	;43F900017A38
+	lea	_GFX_MainWalls.l,a1	;43F900017A38
 adrCd00C31C:	add.w	d0,d0	;D040
 	add.w	$00(a0,d0.w),a1	;D2F00000
 	move.w	d6,d0	;3006
@@ -17670,7 +17670,7 @@ adrCd00C674:	dbra	d3,adrLp00C608	;51CBFF92
 	dbra	d5,adrLp00C604	;51CDFF7E
 	rts	;4E75
 
-adrCd00C68A:	lea	adrEA02EB08.l,a1	;43F90002EB08
+adrCd00C68A:	lea	_GFX_FloorCeiling.l,a1	;43F90002EB08
 	move.l	-$0008(a3),a0	;206BFFF8
 	tst.w	-$000C(a3)	;4A6BFFF4
 	beq.s	adrCd00C6FA	;6760
@@ -18723,7 +18723,7 @@ adrCd00CF04:	and.w	#$0003,d1	;02410003
 	and.w	#$0007,d0	;02400007
 	move.w	d0,d7	;3E00
 	asl.w	#$04,d0	;E940
-	lea	adrEA0165D5.l,a6	;4DF9000165D5
+	lea	SpellBook_Runes+$3.l,a6	;4DF9000165D5
 	add.w	d0,a6	;DCC0
 	move.l	screen_ptr.l,a0	;207900009B06
 	add.w	#$0436,a0	;D0FC0436
@@ -18770,7 +18770,7 @@ adrCd00CFAA:	and.w	#$0003,d0	;02400003
 	move.l	screen_ptr.l,a0	;207900009B06
 	add.w	#$0186,a0	;D0FC0186
 	add.w	$000A(a5),a0	;D0ED000A
-	lea	adrEA04D5E2.l,a1	;43F90004D5E2
+	lea	_GFX_Pockets+$4130.l,a1	;43F90004D5E2
 	add.w	d0,d0	;D040
 	add.w	d0,a0	;D0C0
 	asl.w	#$03,d0	;E740
@@ -18858,10 +18858,10 @@ adrCd00D0C0:	move.w	$0006(a5),d7	;3E2D0006
 	add.w	$000A(a5),a0	;D0ED000A
 	move.l	#$00000070,a3	;267C00000070
 	move.l	#$0005003D,d5	;2A3C0005003D	;Long Addr replaced with Symbol
-	lea	adrEA04D5B2.l,a1	;43F90004D5B2
+	lea	_GFX_Pockets+$4100.l,a1	;43F90004D5B2
 	bsr	adrCd00D60C	;61000526
 	asl.w	#$06,d7	;ED47
-	lea	adrEA00F586.l,a4	;49F90000F586
+	lea	CharacterStats.l,a4	;49F90000F586
 	add.w	d7,a4	;D8C7
 	rts	;4E75
 
@@ -18899,7 +18899,7 @@ adrCd00D156:	move.w	$002A(a5),d0	;302D002A
 adrCd00D162:	or.b	#$04,$0054(a5)	;002D00040054
 	move.w	d0,d7	;3E00
 	asl.w	#$04,d0	;E940
-	lea	adrEA0165D2.l,a6	;4DF9000165D2
+	lea	SpellBook_Runes.l,a6	;4DF9000165D2
 	add.w	d0,a6	;DCC0
 	move.l	screen_ptr.l,a0	;207900009B06
 	lea	$042D(a0),a0	;41E8042D
@@ -19015,7 +19015,7 @@ adrCd00D2BE:	move.l	a4,-(sp)	;2F0C
 	add.w	$000A(a5),a0	;D0ED000A
 	move.w	d7,d0	;3007
 	asl.w	#$06,d0	;ED40
-	lea	adrEA00F586.l,a4	;49F90000F586
+	lea	CharacterStats.l,a4	;49F90000F586
 	add.w	d0,a4	;D8C0
 	swap	d7	;4847
 	clr.w	d7	;4247
@@ -19111,7 +19111,7 @@ adrEA00D3DA:	dc.b	$FF	;FF
 adrEA00D3DD:	dc.b	$FF	;FF
 
 adrCd00D3DE:	move.l	#$00000098,a3	;267C00000098
-	lea	adrEA0494B2.l,a1	;43F9000494B2
+	lea	_GFX_Pockets.l,a1	;43F9000494B2
 	and.w	#$00FF,d0	;024000FF
 adrCd00D3EE:	cmp.b	#$14,d0	;0C000014
 	bcs.s	adrCd00D3FE	;650A
@@ -19133,7 +19133,7 @@ adrCd00D410:	move.l	#$0000000F,-(sp)	;2F3C0000000F
 adrCd00D41C:	bsr	adrCd00D58C	;6100016E
 	move.w	$0006(a5),d0	;302D0006
 	asl.w	#$06,d0	;ED40
-	lea	adrEA00F586.l,a0	;41F90000F586
+	lea	CharacterStats.l,a0	;41F90000F586
 	add.w	d0,a0	;D0C0
 	lea	adrEA00D512.l,a2	;45F90000D512
 	lea	adrEA00D51C.l,a6	;4DF90000D51C
@@ -19279,7 +19279,7 @@ adrCd00D58C:	or.b	#$0C,$0054(a5)	;002D000C0054
 	moveq	#$03,d3	;7603
 	bsr	adrCd00E538	;61000F90
 	sub.l	a3,a3	;97CB
-	lea	adrEA0516B2.l,a1	;43F9000516B2
+	lea	_GFX_Scroll_Edge_Left.l,a1	;43F9000516B2
 	move.l	screen_ptr.l,a0	;207900009B06
 	lea	$03B4(a0),a0	;41E803B4
 	add.w	$000A(a5),a0	;D0ED000A
@@ -19288,16 +19288,16 @@ adrCd00D58C:	or.b	#$0C,$0054(a5)	;002D000C0054
 	move.l	d5,-(sp)	;2F05
 	bsr.s	adrCd00D60C	;6144
 	move.l	(sp)+,d5	;2A1F
-	lea	adrEA05189A.l,a1	;43F90005189A
+	lea	_GFX_Scroll_Edge_Right.l,a1	;43F90005189A
 	move.l	screen_ptr.l,a0	;207900009B06
 	lea	$03BE(a0),a0	;41E803BE
 	add.w	$000A(a5),a0	;D0ED000A
 	bsr.s	adrCd00D60C	;612C
 	sub.w	#$000A,a0	;90FC000A
 	move.l	#$0005000B,d5	;2A3C0005000B	;Long Addr replaced with Symbol
-	lea	adrEA051472.l,a1	;43F900051472
+	lea	_GFX_Scroll_Edge_Bottom.l,a1	;43F900051472
 	bsr.s	adrCd00D60C	;611A
-	lea	adrEA0511D2.l,a1	;43F9000511D2
+	lea	_GFX_Scroll_Edge_Top.l,a1	;43F9000511D2
 	move.l	screen_ptr.l,a0	;207900009B06
 	lea	$0184(a0),a0	;41E80184
 	add.w	$000A(a5),a0	;D0ED000A
@@ -19390,7 +19390,7 @@ adrEA00D6B6:
 adrCd00D6C8:	
 	add.l	screen_ptr.l,a0	;D1F900009B06
 	add.w	$000A(a5),a0	;D0ED000A
-	lea	adrEA00F586.l,a6	;4DF90000F586
+	lea	CharacterStats.l,a6	;4DF90000F586
 	move.w	d7,d0	;3007
 	asl.w	#$06,d0	;ED40
 	add.w	d0,a6	;DCC0
@@ -19400,7 +19400,7 @@ adrCd00D6C8:
 	lea	characters.heads.l,a6	;4DF90000B788
 	move.b	$00(a6,d0.w),d0	;10360000
 	move.b	adrEA00D6B6(pc,d0.w),d0	;103B00C4
-	lea	adrEA03EAE0.l,a1	;43F90003EAE0
+	lea	_GFX_Avatars.l,a1	;43F90003EAE0
 	move.w	d0,d1	;3200
 	asl.w	#$05,d0	;EB40
 	sub.w	d1,d0	;9041
@@ -19434,7 +19434,7 @@ adrCd00D73E:
 	beq.s	adrCd00D772		;672A
 	move.w	d7,d1			;3207
 	asl.w	#$06,d1			;ED41
-	lea	adrEA00F586.l,a6	;4DF90000F586
+	lea	CharacterStats.l,a6	;4DF90000F586
 	moveq	#$00,d0			;7000
 	move.b	$01(a6,d1.w),d0		;10361001
 	move.w	d0,d2			;3400
@@ -19444,17 +19444,17 @@ adrCd00D73E:
 	addq.w	#$04,d0	;5840
 adrCd00D766:	
 	asl.w	#$02,d0	;E540
-	lea	adrEA00922C.l,a6	;4DF90000922C
+	lea	ClassColours.l,a6	;4DF90000922C
 	move.l	$00(a6,d0.w),d0		;20360000
 adrCd00D772:	
 	move.l	d0,adrEA00C356.l	;23C00000C356
 	sub.l	a3,a3	;97CB
-	lea	adrEA0418E0.l,a1	;43F9000418E0
+	lea	_GFX_ShieldTop.l,a1	;43F9000418E0
 	move.l	#$00010004,d5		;2A3C00010004	;Long Addr replaced with Symbol
 	bsr	adrCd00D81A		;61000092
 	move.w	d7,d0			;3007
 	asl.w	#$06,d0			;ED40
-	lea	adrEA00F586.l,a6	;4DF90000F586
+	lea	CharacterStats.l,a6	;4DF90000F586
 	add.w	d0,a6			;DCC0
 	moveq	#$00,d0			;7000
 	move.b	$0001(a6),d0		;102E0001
@@ -19465,7 +19465,7 @@ adrCd00D772:
 	move.b	$00(a6,d0.w),d0		;10360000
 	move.w	d0,-(sp)		;3F00
 	asl.w	#$08,d0			;E140
-	lea	adrEA0408E0.l,a1	;43F9000408E0
+	lea	_GFX_ShieldAvatars.l,a1	;43F9000408E0
 	add.w	d0,a1			;D2C0
 	move.l	#$0001000F,d5		;2A3C0001000F	;Long Addr replaced with Symbol
 	move.w	d1,d0			;3001
@@ -19477,7 +19477,7 @@ adrCd00D772:
 	add.w	d0,a6			;DCC0
 	move.w	#$FFFF,adrW_00C354.l	;33FCFFFF0000C354
 	bsr.s	adrCd00D81A		;613A
-	lea	adrEA0419C0.l,a1	;43F9000419C0
+	lea	_GFX_ShieldClasses.l,a1	;43F9000419C0
 	move.w	(sp)+,d0		;301F
 	and.w	#$0003,d0		;02400003
 	move.w	d0,d1			;3200
@@ -19491,7 +19491,7 @@ adrCd00D772:
 	lea	adrEA00C356.l,a6	;4DF90000C356
 	bsr.s	adrCd00D81A		;6112
 	clr.w	adrW_00C354.l		;42790000C354
-	lea	adrEA041930.l,a1	;43F900041930
+	lea	_GFX_ShieldBottom.l,a1	;43F900041930
 	move.l	#$00010008,d5		;2A3C00010008	;Long Addr replaced with Symbol
 adrCd00D81A:	
 	move.l	d5,-(sp)	;2F05
@@ -19702,10 +19702,10 @@ adrCd00DA20:
 	movem.l	d2/a6,-(sp)	;48E72002
 	bsr.s	adrCd00DA70	;6144
 	movem.l	(sp)+,d2/a6	;4CDF4004
-	lea	adrEA00F9D8.l,a0	;41F90000F9D8
+	lea	Player1_Data.l,a0	;41F90000F9D8
 	btst	#$00,(a5)	;08150000
 	bne.s	adrCd00DA42	;6606
-	lea	adrEA00FA3A.l,a0	;41F90000FA3A
+	lea	Player2_Data.l,a0	;41F90000FA3A
 adrCd00DA42:	movem.l	a4/a5,-(sp)	;48E7000C
 	move.l	a0,a5	;2A48
 	move.b	$0001(a4),d0	;102C0001
@@ -19780,13 +19780,13 @@ adrCd00DB06:	rts	;4E75
 adrCd00DB08:
 	moveq	#$00,d0	;7000
 	rts				; uncomment this to apply the DEFJAM crack
-	;bsr.s	adrCd00DB18	;610C	; comment this out to retain the same size with DEFJAM
+	;bsr.s	CopyProtection	;610C	; comment this out to retain the same size with DEFJAM
 
 	beq.s	adrCd00DB06	;67F8
 	lea	adrCd000FB8.l,a0	;41F900000FB8
 	bra	adrCd009B7A	;6000C064
 
-adrCd00DB18:	
+CopyProtection:	
 	movem.l	a4-a6,-(sp)	;48E7000E	; comment this out to apply the WHDLoad Crack
 	bra	adrCd00DB8C	;6000006E	; comment this out to apply the WHDLoad Crack
 
@@ -20516,7 +20516,7 @@ adrCd00E120:	cmp.b	#$FF,d0	;0C0000FF
 	move.w	#$000E,adrW_00E3FA.l	;33FC000E0000E3FA
 	bra.s	adrCd00E108	;60A8
 
-adrCd00E160:	lea	adrEA00F586.l,a1	;43F90000F586
+adrCd00E160:	lea	CharacterStats.l,a1	;43F90000F586
 	moveq	#$00,d5	;7A00
 	move.b	d0,d5	;1A00
 	asl.w	#$06,d5	;ED45
@@ -20686,10 +20686,10 @@ adrCd00E2F2:	tst.b	$0005(a4)	;4A2C0005
 	movem.l	d2/a6,-(sp)	;48E72002
 	bsr.s	adrCd00E342	;6144
 	movem.l	(sp)+,d2/a6	;4CDF4004
-	lea	adrEA00F9D8.l,a0	;41F90000F9D8
+	lea	Player1_Data.l,a0	;41F90000F9D8
 	btst	#$00,(a5)	;08150000
 	bne.s	adrCd00E314	;6606
-	lea	adrEA00FA3A.l,a0	;41F90000FA3A
+	lea	Player2_Data.l,a0	;41F90000FA3A
 adrCd00E314:	movem.l	a4/a5,-(sp)	;48E7000C
 	move.l	a0,a5	;2A48
 	move.b	$0001(a4),d0	;102C0001
@@ -22495,7 +22495,7 @@ adrEA00F556:	dc.w	$0038	;0038
 	dc.w	$005D	;005D
 	dc.w	$003A	;003A
 	dc.w	$0057	;0057
-adrEA00F586:	dc.w	$0100	;0100
+CharacterStats:	dc.w	$0100	;0100
 	dc.w	$2311	;2311
 	dc.w	$0D0D	;0D0D
 	dc.w	$0023	;0023
@@ -22506,7 +22506,7 @@ adrEA00F586:	dc.w	$0100	;0100
 	dc.w	$8000	;8000
 	dc.w	$0000	;0000
 	dc.b	$C7	;C7
-adrB_00F59B:	dc.b	$FF	;FF
+	dc.b	$FF	;FF
 	dc.b	$00	;00
 	dc.b	$00	;00
 	dc.b	$00	;00
@@ -23556,7 +23556,7 @@ adrB_00F9CF:	dc.b	$00	;00
 	dc.b	$00	;00
 adrW_00F9D2:	dc.w	$0000	;0000
 adrL_00F9D4:	dc.l	AdrEA00FAD4	;0000FAD4
-adrEA00F9D8:	dc.b	$00	;00
+Player1_Data:	dc.b	$00	;00
 adrB_00F9D9:	dc.b	$00	;00
 	dc.b	$00	;00
 	dc.b	$00	;00
@@ -23635,7 +23635,7 @@ adrB_00FA2E:	dc.b	$00	;00
 adrB_00FA31:	dc.b	$00	;00
 adrL_00FA32:	dc.l	$FFFFFFFF	;FFFFFFFF
 	dc.l	$FFFFFFFF	;FFFFFFFF
-adrEA00FA3A:	dc.b	$01	;01
+Player2_Data:	dc.b	$01	;01
 adrB_00FA3B:	dc.b	$00	;00
 adrL_00FA3C:	dc.l	$00000000	;00000000
 	dc.l	$00000060	;00000060
@@ -23698,7 +23698,7 @@ adrB_00FA90:	dc.b	$00	;00
 adrB_00FA93:	dc.b	$00	;00
 adrL_00FA94:	dc.l	$FFFFFFFF	;FFFFFFFF
 	dc.l	$FFFFFFFF	;FFFFFFFF
-serpex.map:	dc.w	$0711	;0711
+MapData1:	dc.w	$0711	;0711
 	dc.w	$1111	;1111
 	dc.w	$1713	;1713
 	dc.w	$0F00	;0F00
@@ -25746,7 +25746,7 @@ AdrEA00FAD4:	dc.w	$0001	;0001
 	dc.w	$0000	;0000
 	dc.w	$0000	;0000
 	dc.w	$0000	;0000
-serpex.ob:	dc.w	$0252	;0252
+ObjectData_1:	dc.w	$0252	;0252
 	dc.w	$4B02	;4B02
 	dc.w	$0032	;0032
 	dc.w	$014B	;014B
@@ -26259,7 +26259,7 @@ serpex.ob:	dc.w	$0252	;0252
 	dc.w	$0000	;0000
 	dc.w	$0000	;0000
 	dc.w	$0000	;0000
-chaosex.map:	dc.w	$1515	;1515
+MapData2:	dc.w	$1515	;1515
 	dc.w	$1515	;1515
 	dc.w	$0F00	;0F00
 	dc.w	$0000	;0000
@@ -28307,7 +28307,7 @@ chaosex.map:	dc.w	$1515	;1515
 	dc.w	$0000	;0000
 	dc.w	$0000	;0000
 	dc.w	$0000	;0000
-chaosex.ob:	dc.w	$023A	;023A
+ObjectData_2:	dc.w	$023A	;023A
 	dc.w	$0030	;0030
 	dc.w	$0204	;0204
 	dc.w	$0A02	;0A02
@@ -28820,7 +28820,7 @@ chaosex.ob:	dc.w	$023A	;023A
 	dc.w	$0000	;0000
 	dc.w	$0000	;0000
 	dc.w	$0000	;0000
-moonex.map:	dc.w	$0711	;0711
+MaoData3:	dc.w	$0711	;0711
 	dc.w	$1111	;1111
 	dc.w	$1111	;1111
 	dc.w	$0F0F	;0F0F
@@ -30868,7 +30868,7 @@ moonex.map:	dc.w	$0711	;0711
 	dc.w	$5281	;5281
 	dc.w	$0000	;0000
 	dc.w	$0000	;0000
-moonex.ob:	dc.w	$0129	;0129
+ObjectData_3:	dc.w	$0129	;0129
 	dc.w	$4074	;4074
 	dc.w	$0055	;0055
 	dc.w	$01C0	;01C0
@@ -31381,7 +31381,7 @@ moonex.ob:	dc.w	$0129	;0129
 	dc.w	$0000	;0000
 	dc.w	$0000	;0000
 	dc.w	$0000	;0000
-dragex.map:	dc.w	$1511	;1511
+MapData4:	dc.w	$1511	;1511
 	dc.w	$0F0F	;0F0F
 	dc.w	$0C0C	;0C0C
 	dc.w	$0C0C	;0C0C
@@ -33429,7 +33429,7 @@ dragex.map:	dc.w	$1511	;1511
 	dc.w	$0000	;0000
 	dc.w	$0000	;0000
 	dc.w	$0000	;0000
-dragex.ob:	dc.w	$014C	;014C
+ObjectData_4:	dc.w	$014C	;014C
 	dc.w	$430E	;430E
 	dc.w	$0018	;0018
 	dc.w	$0103	;0103
@@ -34416,7 +34416,7 @@ adrEA014ED4:	dc.b	$FF	;FF
 	dc.b	$FF	;FF
 	dc.b	$FF	;FF
 	dc.b	$FF	;FF
-adrEA014EE6:	dc.w	$0000	;0000
+UnpackedMonsters:	dc.w	$0000	;0000
 	dc.w	$0000	;0000
 	dc.w	$0000	;0000
 	dc.w	$0000	;0000
@@ -35765,7 +35765,7 @@ adrEA015860:	dc.w	$0000	;0000
 	dc.w	$0000	;0000
 	dc.w	$0000	;0000
 	dc.w	$0000	;0000
-monstersex.totals:	dc.w	$004C	;004C
+MonsterTotalsCounts:	dc.w	$004C	;004C
 	dc.w	$0046	;0046
 	dc.w	$0053	;0053
 	dc.w	$0049	;0049
@@ -37305,7 +37305,7 @@ dragex.monsters:	dc.w	$010A	;010A
 	dc.w	$0000	;0000
 	dc.w	$0000	;0000
 	dc.w	$0000	;0000
-adrEA016568:	dc.w	$0000	;0000
+DroppedObjects:	dc.w	$0000	;0000
 	dc.w	$000E	;000E
 	dc.w	$0020	;0020
 	dc.w	$0045	;0045
@@ -37358,8 +37358,8 @@ adrEA016568:	dc.w	$0000	;0000
 	dc.w	$1A18	;1A18
 	dc.w	$1A18	;1A18
 	dc.w	$6200	;6200
-adrEA0165D2:	dc.b	'mar'	;6D6172
-adrEA0165D5:	dc.b	'yhadalittlelaaneeitwerraguddutnerewanzednowtecozzitwerawuddunwhyamistillhavintotypethiscrapwhithoughtidfinishacoupleoflinesq'	;79686164616C6974746C656C61616E6565697477657272616775646475746E65726577616E7A65646E6F777465636F7A7A69747765726177756464756E776879616D697374696C6C686176696E746F74797065746869736372617077686974686F75676874696466696E69736861636F75706C656F666C696E657371
+SpellBook_Runes:	dc.b	'mar'	;6D6172
+	dc.b	'yhadalittlelaaneeitwerraguddutnerewanzednowtecozzitwerawuddunwhyamistillhavintotypethiscrapwhithoughtidfinishacoupleoflinesq'	;79686164616C6974746C656C61616E6565697477657272616775646475746E65726577616E7A65646E6F777465636F7A7A69747765726177756464756E776879616D697374696C6C686176696E746F74797065746869736372617077686974686F75676874696466696E69736861636F75706C656F666C696E657371
 	dc.b	'x'	;78
 adrEA016652:	dc.w	$0000	;0000
 	dc.w	$01F2	;01F2
@@ -39240,7 +39240,7 @@ adrEA017952:	dc.b	$00	;00
 	dc.b	$08	;08
 	dc.b	'BROTH  15'	;42524F544820203135
 	dc.b	$FF	;FF
-adrEA017A38:
+_GFX_MainWalls:
 	dc.b	$00	;00
 	dc.b	$0F	;0F
 	dc.w	$000F	;000F
@@ -48610,7 +48610,7 @@ adrEA017A38:
 	dc.w	$7FFF	;7FFF
 	dc.w	$7FFF	;7FFF
 	dc.w	$7FFF	;7FFF
-adrEA01C368:	dc.w	$000F	;000F
+_GFX_WoodWall:	dc.w	$000F	;000F
 	dc.w	$000F	;000F
 	dc.w	$000F	;000F
 	dc.w	$000F	;000F
@@ -57978,7 +57978,7 @@ adrEA01C368:	dc.w	$000F	;000F
 	dc.w	$FFFF	;FFFF
 	dc.w	$FFFF	;FFFF
 	dc.w	$FFFF	;FFFF
-adrEA020C98:	dc.w	$0FFF	;0FFF
+_GFX_WoodDoors:	dc.w	$0FFF	;0FFF
 	dc.w	$0FFF	;0FFF
 	dc.w	$0FFF	;0FFF
 	dc.w	$0FFF	;0FFF
@@ -60266,7 +60266,7 @@ adrEA020C98:	dc.w	$0FFF	;0FFF
 	dc.w	$0000	;0000
 	dc.w	$0000	;0000
 	dc.w	$0000	;0000
-adrEA021E78:	dc.w	$07FF	;07FF
+_GFX_Shelf:	dc.w	$07FF	;07FF
 	dc.w	$07FF	;07FF
 	dc.w	$07FF	;07FF
 	dc.w	$07FF	;07FF
@@ -61326,7 +61326,7 @@ adrEA021E78:	dc.w	$07FF	;07FF
 	dc.w	$64EF	;64EF
 	dc.w	$FFDF	;FFDF
 	dc.w	$64CF	;64CF
-adrEA0226C0:	dc.w	$03FF	;03FF
+_GFX_Sign:	dc.w	$03FF	;03FF
 	dc.w	$03FF	;03FF
 	dc.w	$0BFF	;0BFF
 	dc.w	$03FF	;03FF
@@ -63350,7 +63350,7 @@ adrEA0226C0:	dc.w	$03FF	;03FF
 	dc.w	$FFFE	;FFFE
 	dc.w	$FFFE	;FFFE
 	dc.w	$FFFE	;FFFE
-adrEA023690:	dc.w	$3FFF	;3FFF
+_GFX_SignOverlay:	dc.w	$3FFF	;3FFF
 	dc.w	$FFFF	;FFFF
 	dc.w	$3FFF	;3FFF
 	dc.w	$3FFF	;3FFF
@@ -66454,7 +66454,7 @@ adrEA023690:	dc.w	$3FFF	;3FFF
 	dc.w	$CCCC	;CCCC
 	dc.w	$3333	;3333
 	dc.w	$CCCC	;CCCC
-adrEA024ED0:	dc.w	$FFFF	;FFFF
+_GFX_Switches:	dc.w	$FFFF	;FFFF
 	dc.w	$FFFF	;FFFF
 	dc.w	$FFFF	;FFFF
 	dc.w	$FFFF	;FFFF
@@ -66802,7 +66802,7 @@ adrEA024ED0:	dc.w	$FFFF	;FFFF
 	dc.w	$FFFE	;FFFE
 	dc.w	$FFFE	;FFFE
 	dc.w	$FFFE	;FFFE
-adrEA025188:	dc.w	$FFFF	;FFFF
+_GFX_Slots:	dc.w	$FFFF	;FFFF
 	dc.w	$FFFF	;FFFF
 	dc.w	$FFFF	;FFFF
 	dc.w	$FFFF	;FFFF
@@ -67382,7 +67382,7 @@ adrEA025188:	dc.w	$FFFF	;FFFF
 	dc.w	$FFFE	;FFFE
 	dc.w	$FFFE	;FFFE
 	dc.w	$FFFE	;FFFE
-adrEA025610:	dc.w	$FFFF	;FFFF
+_GFX_Bed:	dc.w	$FFFF	;FFFF
 	dc.w	$FFFF	;FFFF
 	dc.w	$FFFF	;FFFF
 	dc.w	$FFFF	;FFFF
@@ -68722,7 +68722,7 @@ adrEA025610:	dc.w	$FFFF	;FFFF
 	dc.w	$03FF	;03FF
 	dc.w	$03FF	;03FF
 	dc.w	$7BFF	;7BFF
-adrEA026088:	dc.w	$07FF	;07FF
+_GFX_Pillar:	dc.w	$07FF	;07FF
 	dc.w	$07FF	;07FF
 	dc.w	$07FF	;07FF
 	dc.w	$07FF	;07FF
@@ -71358,7 +71358,7 @@ adrEA026088:	dc.w	$07FF	;07FF
 	dc.w	$01FF	;01FF
 	dc.w	$01FF	;01FF
 	dc.w	$01FF	;01FF
-adrEA027520:	dc.w	$FFFF	;FFFF
+_GFX_StairsUp:	dc.w	$FFFF	;FFFF
 	dc.w	$FFFF	;FFFF
 	dc.w	$FFFF	;FFFF
 	dc.w	$FFFF	;FFFF
@@ -75282,7 +75282,7 @@ adrEA027520:	dc.w	$FFFF	;FFFF
 	dc.w	$0BFF	;0BFF
 	dc.w	$F3FF	;F3FF
 	dc.w	$03FF	;03FF
-adrEA0293C8:	dc.w	$FFFF	;FFFF
+_GFX_StairsDown:	dc.w	$FFFF	;FFFF
 	dc.w	$FFFF	;FFFF
 	dc.w	$FFFF	;FFFF
 	dc.w	$FFFF	;FFFF
@@ -76882,7 +76882,7 @@ adrEA0293C8:	dc.w	$FFFF	;FFFF
 	dc.w	$0BFF	;0BFF
 	dc.w	$F3FF	;F3FF
 	dc.w	$03FF	;03FF
-adrEA02A048:	dc.w	$FFFF	;FFFF
+_GFX_LargeOpenDoor:	dc.w	$FFFF	;FFFF
 	dc.w	$FFFF	;FFFF
 	dc.w	$FFFF	;FFFF
 	dc.w	$FFFF	;FFFF
@@ -80390,7 +80390,7 @@ adrEA02A048:	dc.w	$FFFF	;FFFF
 	dc.w	$0000	;0000
 	dc.w	$0000	;0000
 	dc.w	$0000	;0000
-adrEA02BBB0:	dc.w	$FFFF	;FFFF
+_GFX_LargeMetalDoor:	dc.w	$FFFF	;FFFF
 	dc.w	$FFFF	;FFFF
 	dc.w	$FFFF	;FFFF
 	dc.w	$FFFF	;FFFF
@@ -83018,7 +83018,7 @@ adrEA02BBB0:	dc.w	$FFFF	;FFFF
 	dc.w	$FFFF	;FFFF
 	dc.w	$FFFF	;FFFF
 	dc.w	$FFFF	;FFFF
-adrEA02D038:	dc.w	$FFFF	;FFFF
+_GFX_PortCullis:	dc.w	$FFFF	;FFFF
 	dc.w	$FFFF	;FFFF
 	dc.w	$FFFF	;FFFF
 	dc.w	$FFFF	;FFFF
@@ -85646,7 +85646,7 @@ adrEA02D038:	dc.w	$FFFF	;FFFF
 	dc.w	$FFFF	;FFFF
 	dc.w	$FFFF	;FFFF
 	dc.w	$FFFF	;FFFF
-adrEA02E4C0:	dc.w	$007F	;007F
+_GFX_PitLow:	dc.w	$007F	;007F
 	dc.w	$007F	;007F
 	dc.w	$007F	;007F
 	dc.w	$007F	;007F
@@ -85938,7 +85938,7 @@ adrEA02E4C0:	dc.w	$007F	;007F
 	dc.w	$DF9F	;DF9F
 	dc.w	$000F	;000F
 	dc.w	$000F	;000F
-adrEA02E708:	dc.w	$B7FF	;B7FF
+_GFX_PitHigh:	dc.w	$B7FF	;B7FF
 	dc.w	$07FF	;07FF
 	dc.w	$47FF	;47FF
 	dc.w	$07FF	;07FF
@@ -86230,7 +86230,7 @@ adrEA02E708:	dc.w	$B7FF	;B7FF
 	dc.w	$0007	;0007
 	dc.w	$9FE7	;9FE7
 	dc.w	$74E7	;74E7
-adrEA02E950:	dc.w	$007F	;007F
+_GFX_Pad:	dc.w	$007F	;007F
 	dc.w	$007F	;007F
 	dc.w	$007F	;007F
 	dc.w	$007F	;007F
@@ -86450,7 +86450,7 @@ adrEA02E950:	dc.w	$007F	;007F
 	dc.w	$FFFF	;FFFF
 	dc.w	$FFFF	;FFFF
 	dc.w	$FFFF	;FFFF
-adrEA02EB08:	dc.w	$6EA5	;6EA5
+_GFX_FloorCeiling:	dc.w	$6EA5	;6EA5
 	dc.w	$DFFF	;DFFF
 	dc.w	$0000	;0000
 	dc.w	$0000	;0000
@@ -88274,7 +88274,7 @@ adrEA02EB08:	dc.w	$6EA5	;6EA5
 	dc.w	$FEBF	;FEBF
 	dc.w	$0140	;0140
 	dc.w	$0000	;0000
-adrEA02F948:	dc.w	$FFFF	;FFFF
+_GFX_ObjectsOnFloor:	dc.w	$FFFF	;FFFF
 	dc.w	$FFC7	;FFC7
 	dc.w	$FFC7	;FFC7
 	dc.w	$FFC7	;FFC7
@@ -91358,7 +91358,7 @@ adrEA02F948:	dc.w	$FFFF	;FFFF
 	dc.w	$E1FF	;E1FF
 	dc.w	$E1FF	;E1FF
 	dc.w	$E1FF	;E1FF
-adrEA031160:	dc.w	$FFFF	;FFFF
+_GFX_FireBall:	dc.w	$FFFF	;FFFF
 	dc.w	$FFFE	;FFFE
 	dc.w	$FFFE	;FFFE
 	dc.w	$FFFE	;FFFE
@@ -91706,7 +91706,7 @@ adrEA031160:	dc.w	$FFFF	;FFFF
 	dc.w	$EFFF	;EFFF
 	dc.w	$FFFF	;FFFF
 	dc.w	$FFFF	;FFFF
-adrEA031418:
+_GFX_AirbourneSpells:
 	dc.w	$FFFD	;FFFD
 	dc.w	$FFF9	;FFF9
 	dc.w	$FFFB	;FFFB
@@ -92679,7 +92679,7 @@ adrEA031418:
 	dc.w	$EFFF	;EFFF
 	dc.w	$EFFF	;EFFF
 	dc.w	$EFFF	;EFFF
-adrEA031BB0:
+_GFX_AirbourneBall:
 	dc.w	$FFFF	;FFFF
 	dc.w	$FF0F	;FF0F
 	dc.w	$FF0F	;FF0F
@@ -92992,7 +92992,7 @@ adrEA031BB0:
 	dc.w	$C7FF	;C7FF
 	dc.w	$C7FF	;C7FF
 	dc.w	$C7FF	;C7FF
-characters.colours:
+CharacterColours:
 	dc.w	$0004	;0004
 	dc.w	$0800	;0800
 	dc.w	$0E04	;0E04
@@ -93001,7 +93001,7 @@ characters.colours:
 	dc.w	$0803	;0803
 	dc.w	$0408	;0408
 	dc.w	$040E	;040E
-adrEA031E30:
+
 	dc.w	$0808	;0808
 	dc.w	$0404	;0404
 adrEA031E34:
@@ -119207,7 +119207,7 @@ _GFX_Bodies:
 	dc.w	$FFFF	;FFFF
 	dc.w	$FFFF	;FFFF
 	dc.w	$FFFF	;FFFF
-adrEA03EAE0:
+_GFX_Avatars:
 	dc.w	$FFFF	;FFFF
 	dc.w	$0000	;0000
 	dc.w	$0000	;0000
@@ -123048,7 +123048,7 @@ adrEA03EAE0:
 	dc.w	$0000	;0000
 	dc.w	$0000	;0000
 	dc.w	$0000	;0000
-adrEA0408E0:
+_GFX_ShieldAvatars:
 	dc.w	$B000	;B000
 	dc.w	$7FF8	;7FF8
 	dc.w	$1000	;1000
@@ -125097,7 +125097,7 @@ adrEA0408E0:
 	dc.w	$03F0	;03F0
 	dc.w	$9040	;9040
 	dc.w	$9040	;9040
-adrEA0418E0:
+_GFX_ShieldTop:
 	dc.w	$01FF	;01FF
 	dc.w	$0000	;0000
 	dc.w	$0000	;0000
@@ -125138,7 +125138,7 @@ adrEA0418E0:
 	dc.w	$FFF8	;FFF8
 	dc.w	$07E0	;07E0
 	dc.w	$07E0	;07E0
-adrEA041930:
+_GFX_ShieldBottom:
 	dc.w	$0580	;0580
 	dc.w	$03FF	;03FF
 	dc.w	$0080	;0080
@@ -125211,7 +125211,7 @@ adrEA041930:
 	dc.w	$0000	;0000
 	dc.w	$0000	;0000
 	dc.w	$0000	;0000
-adrEA0419C0:
+_GFX_ShieldClasses:
 	dc.w	$5800	;5800
 	dc.w	$3FFF	;3FFF
 	dc.w	$0800	;0800
@@ -125564,7 +125564,7 @@ adrEA0419C0:
 	dc.w	$FF00	;FF00
 	dc.w	$0400	;0400
 	dc.w	$0400	;0400
-adrEA041C80:
+_GFX_Fairy:
 	dc.w	$FFFF	;FFFF
 	dc.w	$FFFE	;FFFE
 	dc.w	$FFFE	;FFFE
@@ -125729,7 +125729,7 @@ adrEA041C80:
 	dc.w	$FFFB	;FFFB
 	dc.w	$FFFB	;FFFB
 	dc.w	$FFFB	;FFFB
-adrEA041DC8:
+_GFX_Summon:
 	dc.w	$FFFF	;FFFF
 	dc.w	$FE3F	;FE3F
 	dc.w	$FE3F	;FE3F
@@ -128638,7 +128638,7 @@ adrEA041DC8:
 	dc.w	$F3FF	;F3FF
 	dc.w	$F3FF	;F3FF
 	dc.w	$F3FF	;F3FF
-adrEA043480:
+_GFX_Behemoth:
 	dc.w	$FFFF	;FFFF
 	dc.w	$FFFF	;FFFF
 	dc.w	$FFFF	;FFFF
@@ -131187,7 +131187,7 @@ adrEA043480:
 	dc.w	$F8FF	;F8FF
 	dc.w	$F8FF	;F8FF
 	dc.w	$F8FF	;F8FF
-adrEA044868:
+_GFX_Crab:
 	dc.w	$FFFF	;FFFF
 	dc.w	$FFE7	;FFE7
 	dc.w	$FFE7	;FFE7
@@ -131744,7 +131744,7 @@ adrEA044868:
 	dc.w	$DEFF	;DEFF
 	dc.w	$DEFF	;DEFF
 	dc.w	$DEFF	;DEFF
-adrEA044CC0:
+_GFX_CrabClaw:
 	dc.w	$2FFF	;2FFF
 	dc.w	$03FF	;03FF
 	dc.w	$53FF	;53FF
@@ -132169,7 +132169,7 @@ adrEA044CC0:
 	dc.w	$FDFF	;FDFF
 	dc.w	$FDFF	;FDFF
 	dc.w	$FDFF	;FDFF
-adrEA045010:
+_GFX_Beholder:
 	dc.w	$FEDF	;FEDF
 	dc.w	$FD3F	;FD3F
 	dc.w	$FC0F	;FC0F
@@ -133066,7 +133066,7 @@ adrEA045010:
 	dc.w	$01FF	;01FF
 	dc.w	$13FF	;13FF
 	dc.w	$3DFF	;3DFF
-adrEA045710:
+_GFX_Dragon:
 	dc.w	$FFFF	;FFFF
 	dc.w	$FFFF	;FFFF
 	dc.w	$FFFF	;FFFF
@@ -140958,7 +140958,7 @@ _GFX_Entropy:
 	dc.w	$0760	;0760
 	dc.w	$0777	;0777
 	dc.w	$0706	;0706
-adrEA0494B2:	dc.w	$0000	;0000
+_GFX_Pockets:	dc.w	$0000	;0000
 	dc.w	$0000	;0000
 	dc.w	$0000	;0000
 	dc.w	$0000	;0000
@@ -148638,7 +148638,6 @@ adrEA0494B2:	dc.w	$0000	;0000
 	dc.w	$0000	;0000
 	dc.w	$0000	;0000
 	dc.w	$0000	;0000
-adrEA04D0B2:	dc.w	$0000	;0000
 	dc.w	$0000	;0000
 	dc.w	$0000	;0000
 	dc.w	$0000	;0000
@@ -148662,7 +148661,6 @@ adrEA04D0B2:	dc.w	$0000	;0000
 	dc.w	$0000	;0000
 	dc.w	$0000	;0000
 	dc.w	$0000	;0000
-adrEA04D0E2:	dc.w	$0000	;0000
 	dc.w	$0000	;0000
 	dc.w	$0000	;0000
 	dc.w	$0000	;0000
@@ -148686,7 +148684,9 @@ adrEA04D0E2:	dc.w	$0000	;0000
 	dc.w	$0000	;0000
 	dc.w	$0000	;0000
 	dc.w	$0000	;0000
-adrEA04D112:	dc.w	$0000	;0000
+	dc.w	$0000	;0000
+	dc.w	$0000	;0000
+	dc.w	$0000	;0000
 	dc.w	$0000	;0000
 	dc.w	$0000	;0000
 	dc.w	$0000	;0000
@@ -149278,7 +149278,7 @@ adrEA04D112:	dc.w	$0000	;0000
 	dc.w	$0000	;0000
 	dc.w	$0000	;0000
 	dc.w	$0000	;0000
-adrEA04D5B2:	dc.w	$0003	;0003
+	dc.w	$0003	;0003
 	dc.w	$0003	;0003
 	dc.w	$0000	;0000
 	dc.w	$0003	;0003
@@ -149302,7 +149302,7 @@ adrEA04D5B2:	dc.w	$0003	;0003
 	dc.w	$C000	;C000
 	dc.w	$0000	;0000
 	dc.w	$C000	;C000
-adrEA04D5E2:	dc.w	$FFFF	;FFFF
+	dc.w	$FFFF	;FFFF
 	dc.w	$FFFF	;FFFF
 	dc.w	$FFFF	;FFFF
 	dc.w	$FFFF	;FFFF
@@ -151254,7 +151254,7 @@ adrEA04D5E2:	dc.w	$FFFF	;FFFF
 	dc.w	$1FFF	;1FFF
 	dc.w	$8FFF	;8FFF
 	dc.w	$0FFF	;0FFF
-adrEA04E522:	dc.w	$0000	;0000
+	dc.w	$0000	;0000
 	dc.w	$0000	;0000
 	dc.w	$01FF	;01FF
 	dc.w	$0000	;0000
@@ -153886,11 +153886,11 @@ adrEA04E522:	dc.w	$0000	;0000
 	dc.w	$0000	;0000
 	dc.w	$0000	;0000
 	dc.w	$0000	;0000
-adrEA04F9B2:	dc.w	$E9FF	;E9FF
+	dc.w	$E9FF	;E9FF
 	dc.w	$FDFF	;FDFF
 	dc.w	$E7FF	;E7FF
 	dc.w	$E5FF	;E5FF
-adrEA04F9BA:	dc.w	$0800	;0800
+	dc.w	$0800	;0800
 	dc.w	$0800	;0800
 	dc.w	$0800	;0800
 	dc.w	$0800	;0800
@@ -154238,7 +154238,7 @@ adrEA04F9BA:	dc.w	$0800	;0800
 	dc.w	$0000	;0000
 	dc.w	$0000	;0000
 	dc.w	$0000	;0000
-adrEA04FC72:	dc.w	$0000	;0000
+	dc.w	$0000	;0000
 	dc.w	$0007	;0007
 	dc.w	$0007	;0007
 	dc.w	$0007	;0007
@@ -154254,7 +154254,7 @@ adrEA04FC72:	dc.w	$0000	;0000
 	dc.w	$0018	;0018
 	dc.w	$03E0	;03E0
 	dc.w	$0000	;0000
-adrEA04FC92:	dc.w	$3FFF	;3FFF
+	dc.w	$3FFF	;3FFF
 	dc.w	$0000	;0000
 	dc.w	$0000	;0000
 	dc.w	$0000	;0000
@@ -154574,7 +154574,7 @@ adrEA04FC92:	dc.w	$3FFF	;3FFF
 	dc.w	$001C	;001C
 	dc.w	$0000	;0000
 	dc.w	$0000	;0000
-adrEA04FF12:	dc.w	$0FFF	;0FFF
+	dc.w	$0FFF	;0FFF
 	dc.w	$07FE	;07FE
 	dc.w	$0000	;0000
 	dc.w	$0000	;0000
@@ -155998,7 +155998,7 @@ adrEA04FF12:	dc.w	$0FFF	;0FFF
 	dc.w	$0000	;0000
 	dc.w	$0000	;0000
 	dc.w	$0000	;0000
-adrEA050A32:	dc.w	$0800	;0800
+	dc.w	$0800	;0800
 	dc.w	$07FF	;07FF
 	dc.w	$0000	;0000
 	dc.w	$0000	;0000
@@ -156130,7 +156130,7 @@ adrEA050A32:	dc.w	$0800	;0800
 	dc.w	$FFFF	;FFFF
 	dc.w	$F7FF	;F7FF
 	dc.w	$F7FF	;F7FF
-adrEA050B3A:	dc.w	$FFFF	;FFFF
+	dc.w	$FFFF	;FFFF
 	dc.w	$FDDD	;FDDD
 	dc.w	$FDDD	;FDDD
 	dc.w	$FFFF	;FFFF
@@ -156974,7 +156974,7 @@ adrEA050B3A:	dc.w	$FFFF	;FFFF
 	dc.w	$0054	;0054
 	dc.w	$002A	;002A
 	dc.w	$0000	;0000
-adrEA0511D2:	dc.w	$001F	;001F
+_GFX_Scroll_Edge_Top:	dc.w	$001F	;001F
 	dc.w	$001F	;001F
 	dc.w	$0000	;0000
 	dc.w	$0000	;0000
@@ -157310,7 +157310,7 @@ adrEA0511D2:	dc.w	$001F	;001F
 	dc.w	$FFFF	;FFFF
 	dc.w	$0000	;0000
 	dc.w	$0000	;0000
-adrEA051472:	dc.w	$0020	;0020
+_GFX_Scroll_Edge_Bottom:	dc.w	$0020	;0020
 	dc.w	$001F	;001F
 	dc.w	$0000	;0000
 	dc.w	$0000	;0000
@@ -157598,7 +157598,7 @@ adrEA051472:	dc.w	$0020	;0020
 	dc.w	$0000	;0000
 	dc.w	$0000	;0000
 	dc.w	$0000	;0000
-adrEA0516B2:	dc.w	$013F	;013F
+_GFX_Scroll_Edge_Left:	dc.w	$013F	;013F
 	dc.w	$00FF	;00FF
 	dc.w	$0000	;0000
 	dc.w	$0000	;0000
@@ -157842,7 +157842,7 @@ adrEA0516B2:	dc.w	$013F	;013F
 	dc.w	$002F	;002F
 	dc.w	$0010	;0010
 	dc.w	$0000	;0000
-adrEA05189A:
+_GFX_Scroll_Edge_Right:
 	dc.w	$FFF0	;FFF0
 	dc.w	$FFFB	;FFFB
 	dc.w	$0000	;0000
@@ -166784,7 +166784,7 @@ AudioSample_5:
 	dc.w	$000E	;000E
 	dc.w	$1515	;1515
 	dc.w	$150C	;150C
-adrEA055E88:	dc.w	$0000	;0000
+ReserveSpace_1:	dc.w	$0000	;0000
 	dc.w	$0000	;0000
 	dc.w	$0000	;0000
 	dc.w	$0000	;0000
@@ -167284,7 +167284,7 @@ adrEA055E88:	dc.w	$0000	;0000
 	dc.w	$0000	;0000
 	dc.w	$0000	;0000
 	dc.w	$0000	;0000
-adrEA056270:	dc.w	$0000	;0000
+ReserveSpace_2:	dc.w	$0000	;0000
 	dc.w	$0000	;0000
 	dc.w	$0000	;0000
 	dc.w	$0000	;0000
@@ -167788,3 +167788,4 @@ adrEA056270:	dc.w	$0000	;0000
 	dc.w	$0000	;0000
 
 	end
+
