@@ -16322,8 +16322,8 @@ adrCd00A54C:
 	lea	$0042(a0),a2	;45E80042
 
 	; makes entropy gx relocatable
-	;move.l	$003E(a0),a1	;2268003E
-	lea	_GFX_Entropy.l,a1	;43F900048960
+	;move.l	$003E(a0),a1	;2268003E    *Fix stored address **
+	lea	_GFX_Entropy.l,a1	;43F900048960    
 
 	bsr	adrCd009CA2	;6100F748
 	add.b	$16(a0,d1.w),d4	;D8301016
@@ -16358,7 +16358,7 @@ adrCd00A58A:
 	moveq	#-$01,d6	;7CFF
 adrCd00A5AE:
 	movem.w	d0/d1/d4/d5,-(sp)	;48A7CC00
-	; makes entropy gfx relocatable
+	; makes entropy gfx relocatable   *Fix stored address **
 	;move.l	$003E(a0),a1	;2268003E
 	lea	_GFX_Entropy.l,a1	;43F900048960
 	add.w	d1,d1	;D241
@@ -24519,7 +24519,7 @@ adrB_00EE73:
 adrW_00EE76:
 	dc.w	$0000	;0000
 adrL_00EE78:
-	dc.l	$0000EF78	;0000EF78	;Long Addr replaced with Symbol
+	dc.l	$0000EF78	;0000EF78	;Long Addr replaced with Symbol *Fix stored address **
 Player1_Data:
 	dc.b	$00	;00
 adrB_00EE7D:

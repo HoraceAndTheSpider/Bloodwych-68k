@@ -16322,8 +16322,8 @@ adrCd00A54C:
 	lea	$0042(a0),a2	;45E80042
 
 	; makes entropy gx relocatable
-	;move.l	$003E(a0),a1	;2268003E
-	lea	_GFX_Entropy.l,a1	;43F900048960
+	;move.l	$003E(a0),a1	;2268003E    *Fix stored address **
+	lea	_GFX_Entropy.l,a1	;43F900048960    
 
 	bsr	adrCd009CA2	;6100F748
 	add.b	$16(a0,d1.w),d4	;D8301016
@@ -16358,7 +16358,7 @@ adrCd00A58A:
 	moveq	#-$01,d6	;7CFF
 adrCd00A5AE:
 	movem.w	d0/d1/d4/d5,-(sp)	;48A7CC00
-	; makes entropy gfx relocatable
+	; makes entropy gfx relocatable   *Fix stored address **
 	;move.l	$003E(a0),a1	;2268003E
 	lea	_GFX_Entropy.l,a1	;43F900048960
 	add.w	d1,d1	;D241
@@ -20804,7 +20804,7 @@ adrCd00CC3A:
 	move.l	d5,-(sp)	;2F05
 	bsr.s	adrCd00CCB8	;6144
 	move.l	(sp)+,d5	;2A1F
-	lea	_GFX_Scroll_Edge_Right2.l,a1	;43F90001992E
+	lea	_GFX_Scroll_Edge_Right.l,a1	;43F90001992E
 	move.l	screen_ptr.l,a0	;207900008D36
 	add.w	#$03E6,a0	;D0FC03E6
 	add.w	$000A(a5),a0	;D0ED000A
@@ -24519,7 +24519,7 @@ adrB_00EE73:
 adrW_00EE76:
 	dc.w	$0000	;0000
 adrL_00EE78:
-	dc.l	$0000EF78	;0000EF78	;Long Addr replaced with Symbol
+	dc.l	$0000EF78	;0000EF78	;Long Addr replaced with Symbol *Fix stored address **
 Player1_Data:
 	dc.b	$00	;00
 adrB_00EE7D:
@@ -46417,7 +46417,7 @@ _GFX_Scroll_Edge_Left:
 	dc.w	$0037	;0037
 	dc.w	$0008	;0008
 	dc.w	$0000	;0000
-_GFX_Scroll_Edge_Right2:
+_GFX_Scroll_Edge_Right:
 	dc.w	$FF2A	;FF2A
 	dc.w	$FFEC	;FFEC
 	dc.w	$0010	;0010
