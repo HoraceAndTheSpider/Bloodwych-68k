@@ -1178,7 +1178,7 @@ adrCd00120A:	move.w	d0,$0006(a4)	;39400006
 adrCd00120E:	tst.b	$000A(a4)	;4A2C000A
 	bne.s	adrCd00123A	;6626
 	movem.l	d7/a4/a5,-(sp)	;48E7010C
-	bsr	adrCd0061E0	;61004FC6
+	bsr	RandomGen_BytewithOffset	;61004FC6
 	and.w	#$0007,d0	;02400007
 	add.b	(a4),d0	;D014
 	cmp.w	$0006(a4),d0	;B06C0006
@@ -1242,7 +1242,8 @@ adrLp0012B8:	move.b	$18(a5,d7.w),d0	;10357018
 	subq.b	#$01,$0014(a4)	;532C0014
 	bcc.s	adrCd0012EC	;6404
 	clr.b	$0014(a4)	;422C0014
-adrCd0012EC:	move.b	$0015(a4),d0	;102C0015
+adrCd0012EC:
+	move.b	$0015(a4),d0	;102C0015
 	and.w	#$0007,d0	;02400007
 	beq.s	adrCd001324	;672E
 	subq.b	#$08,$0015(a4)	;512C0015
@@ -1313,7 +1314,7 @@ adrCd0013BE:
 	bsr	adrCd008E24	;61007A64
 	move.w	$0014(a5),d1	;322D0014
 	subq.w	#$01,d1	;5341
-	beq	adrJC007288	;67005EBE
+	beq	Click_ShowStats	;67005EBE
 	subq.b	#$01,d1	;5301
 	bne.s	adrCd001402	;6632
 	jmp	adrCd00D10A.l	;4EF90000D10A
@@ -1725,29 +1726,31 @@ adrCd0018AE:
 	bchg	#$07,$0007(a4)	;086C00070007
 	beq.s	adrCd00190C	;6704
 	addq.b	#$01,$0007(a4)	;522C0007
-adrCd00190C:	move.b	$000A(a4),d1	;122C000A
-	and.w	#$0007,d1	;02410007
-	add.w	d1,d1	;D241
-	lea	adrJB0019F4.l,a1	;43F9000019F4
+adrCd00190C:
+	move.b	$000A(a4),d1		;122C000A
+	and.w	#$0007,d1		;02410007
+	add.w	d1,d1			;D241
+	lea	AttackType_NoSpells.l,a1	;43F9000019F4
 	lea	adrJT001928.l,a0	;41F900001928
-	add.w	$00(a0,d1.w),a1	;D2F01000
-	jmp	(a1)	;4ED1
+	add.w	$00(a0,d1.w),a1		;D2F01000
+	jmp	(a1)			;4ED1
 
 adrJT001928:
-	dc.w	adrJB0019F4-adrJB0019F4	;0000
-	dc.w	adrJC001958-adrJB0019F4	;FF64
-	dc.w	AttackType_Drone-adrJB0019F4	;017E
-	dc.w	adrJC001932-adrJB0019F4	;FF3E
-	dc.w	adrJC0019E6-adrJB0019F4	;FFF2
+	dc.w	AttackType_NoSpells-AttackType_NoSpells	;0000
+	dc.w	AttackType_Spells-AttackType_NoSpells	;FF64
+	dc.w	AttackType_Drone-AttackType_NoSpells	;017E
+	dc.w	AttackType_DroneSpells-AttackType_NoSpells	;FF3E
+	dc.w	AttackType_ArcBoltMachine-AttackType_NoSpells	;FFF2
 
-adrJC001932:
-	bsr	adrCd0061E0	;610048AC
+AttackType_DroneSpells:
+	bsr	RandomGen_BytewithOffset	;610048AC
 	and.w	#$000F,d0	;0240000F
 	bne	AttackType_Drone	;66000236
 	move.b	#$FF,adrB_00F99A.l	;13FC00FF0000F99A
 	bra.s	adrCd00196A	;6022
 
-adrB_001948:	dc.b	$0A	;0A
+MonsterAttackSpells:
+	dc.b	$0A	;0A
 	dc.b	$0A	;0A
 	dc.b	$00	;00
 	dc.b	$8B	;8B
@@ -1764,13 +1767,13 @@ adrB_001948:	dc.b	$0A	;0A
 	dc.b	$00	;00
 	dc.b	$83	;83
 
-adrJC001958:
+AttackType_Spells:
 	bsr	adrCd00618A	;61004830
 	subq.b	#$02,d0	;5500
-	bcc	adrJB0019F4	;64000094
+	bcc	AttackType_NoSpells	;64000094
 	move.b	#$FF,adrB_00F99A.l	;13FC00FF0000F99A
 adrCd00196A:
-	bsr	adrCd0061E0	;61004874
+	bsr	RandomGen_BytewithOffset	;61004874
 	and.w	#$000F,d0	;0240000F
 	move.b	$0007(a4),d3	;162C0007
 	and.w	#$007F,d3	;0243007F
@@ -1783,7 +1786,7 @@ adrCd00196A:
 	cmp.b	#$04,d3	;0C030004
 	bcc.s	adrCd001992	;6402
 	lsr.w	#$01,d0	;E248
-adrCd001992:	move.b	adrB_001948(pc,d0.w),d0	;103B00B4
+adrCd001992:	move.b	MonsterAttackSpells(pc,d0.w),d0	;103B00B4
 	move.w	d0,d4	;3800
 	or.w	#$0080,d4	;00440080
 	move.w	d3,d6	;3C03
@@ -1813,12 +1816,12 @@ adrCd0019BE:	move.w	d0,d6	;3C00
 	move.l	(sp)+,a4	;285F
 	rts	;4E75
 
-adrJC0019E6:	moveq	#$0C,d3	;760C
+AttackType_ArcBoltMachine:	moveq	#$0C,d3	;760C
 	moveq	#$0B,d0	;700B
 	move.b	#$FF,adrB_00F99A.l	;13FC00FF0000F99A
 	bra.s	adrCd001992	;609E
 
-adrJB0019F4:	moveq	#-$01,d2	;74FF
+AttackType_NoSpells:	moveq	#-$01,d2	;74FF
 	move.b	$0004(a4),d1	;122C0004
 	cmp.b	adrB_00FA31.l,d1	;B2390000FA31
 	bne.s	adrCd001A0E	;660C
@@ -1875,13 +1878,13 @@ adrCd001A98:	cmp.b	#$94,d2	;0C020094
 	moveq	#$00,d4	;7800
 	moveq	#$00,d3	;7600
 	move.b	$0006(a4),d3	;162C0006
-	bsr	adrCd0061E0	;6100472A
+	bsr	RandomGen_BytewithOffset	;6100472A
 	and.w	#$000F,d0	;0240000F
 	move.b	adrB_001AF2(pc,d0.w),d4	;183B0034
 	bpl.s	adrCd001AC6	;6A04
 	bset	#$08,d3	;08C30008
 adrCd001AC6:	bset	#$07,d4	;08C40007
-	bsr	adrCd0061E0	;61004714
+	bsr	RandomGen_BytewithOffset	;61004714
 	and.w	#$0003,d0	;02400003
 	cmp.w	#$0002,d0	;0C400002
 	bne.s	adrCd001ADA	;6602
@@ -2238,7 +2241,7 @@ adrCd001EB2:	move.l	a4,d3	;260C
 	move.l	(sp)+,a4	;285F
 	rts	;4E75
 
-adrCd001EE4:	bsr	adrCd0061E0	;610042FA
+adrCd001EE4:	bsr	RandomGen_BytewithOffset	;610042FA
 	move.w	d0,d2	;3400
 	and.w	#$0001,d2	;02420001
 	moveq	#$00,d0	;7000
@@ -2316,7 +2319,7 @@ adrCd001FD2:
 	subq.w	#$01,d2	;5342
 	bne	adrCd001C74	;6600FC8C
 adrCd001FEA:
-	bsr	adrCd0061E0	;610041F4
+	bsr	RandomGen_BytewithOffset	;610041F4
 	or.w	#$0001,d0	;00400001
 	move.b	$02(a4,d4.w),d6	;1C344002
 	add.w	d6,d0	;D046
@@ -2557,7 +2560,7 @@ adrCd0022B6:	move.w	#$FFFF,adrW_002802.l	;33FCFFFF00002802
 	move.w	d0,-(sp)	;3F00
 	move.w	d7,d5	;3A07
 	addq.w	#$01,d5	;5245
-adrLp0022C4:	bsr	adrCd0061E0	;61003F1A
+adrLp0022C4:	bsr	RandomGen_BytewithOffset	;61003F1A
 	and.w	#$0007,d0	;02400007
 	add.w	d0,d5	;DA40
 	dbra	d7,adrLp0022C4	;51CFFFF4
@@ -2837,7 +2840,7 @@ adrCd0025BE:
 	bpl.s	adrCd0025D2		;6A02
 	moveq	#$0A,d2			;740A
 adrCd0025D2:
-	bsr	adrCd0061E0	;61003C0C
+	bsr	RandomGen_BytewithOffset	;61003C0C
 	cmp.w	d0,d2			;B440
 	bcs.s	adrCd0025DC		;6502
 	lsr.w	#$01,d5			;E24D
@@ -3115,7 +3118,7 @@ adrCd0028C6:	move.w	d4,d0	;3004
 	moveq	#$00,d6	;7C00
 	bra	adrCd006AAA	;600041D8
 
-adrCd0028D4:	bsr	adrCd0061E0	;6100390A
+adrCd0028D4:	bsr	RandomGen_BytewithOffset	;6100390A
 	and.l	#$0000000F,d0	;02800000000F
 	moveq	#$01,d5	;7A01
 	swap	d5	;4845
@@ -3123,7 +3126,7 @@ adrCd0028D4:	bsr	adrCd0061E0	;6100390A
 	beq.s	adrCd0028FC	;6714
 	cmp.w	#$0005,d5	;0C450005
 	bcc.s	adrCd0028FC	;640E
-	bsr	adrCd0061E0	;610038F0
+	bsr	RandomGen_BytewithOffset	;610038F0
 	and.l	#$00000007,d0	;028000000007
 	swap	d0	;4840
 	add.l	d0,d5	;DA80
@@ -3387,10 +3390,10 @@ adrW_002C06:	dc.w	$0013	;0013
 	dc.w	$0040	;0040
 
 adrCd002C14:	bsr.s	adrCd002C3A	;6124
-	lea	adrEA002C22.l,a6	;4DF900002C22
+	lea	ThouArtDead.l,a6	;4DF900002C22
 	jmp	adrCd00DAA6.l	;4EF90000DAA6
 
-adrEA002C22:	dc.b	$FC	;FC
+ThouArtDead:	dc.b	$FC	;FC
 	dc.b	$12	;12
 	dc.b	$04	;04
 	dc.b	$FE	;FE
@@ -3891,9 +3894,9 @@ adrJT0031D6:	dc.w	adrJB00320C-adrJB00320C	;0000
 	dc.w	adrJC00331A-adrJB00320C	;010E
 	dc.w	adrJC00331A-adrJB00320C	;010E
 	dc.w	adrJC003320-adrJB00320C	;0114
-	dc.w	adrJC003332-adrJB00320C	;0126
+	dc.w	CharacterName-adrJB00320C	;0126
 	dc.w	adrJC00337E-adrJB00320C	;0172
-	dc.w	adrJC003332-adrJB00320C	;0126
+	dc.w	CharacterName-adrJB00320C	;0126
 	dc.w	adrJC00337E-adrJB00320C	;0172
 	dc.w	adrJC0033D8-adrJB00320C	;01CC
 	dc.w	adrJC00331A-adrJB00320C	;010E
@@ -3909,13 +3912,15 @@ adrJT0031D6:	dc.w	adrJB00320C-adrJB00320C	;0000
 	dc.w	adrJC00331A-adrJB00320C	;010E
 	dc.w	adrJC003776-adrJB00320C	;056A
 
-adrJB00320C:	tst.b	$0007(a4)	;4A2C0007
+adrJB00320C:
+	tst.b	$0007(a4)	;4A2C0007
 	bmi	adrJC00331A	;6B000108
 	cmp.b	#$10,d0	;0C000010
 	bcs.s	adrCd003278	;655E
 	cmp.b	#$07,$0006(a4)	;0C2C00070006
 	bcs	adrJC00331A	;650000F8
-adrCd003224:	cmp.b	#$0C,$0006(a4)	;0C2C000C0006
+adrCd003224:
+	cmp.b	#$0C,$0006(a4)	;0C2C000C0006
 	bcs.s	adrCd003268	;653C
 	lea	adrEA014DE6.l,a0	;41F900014DE6
 	move.w	d0,d1	;3200
@@ -3999,7 +4004,8 @@ adrJC003320:	moveq	#$09,d1	;7209
 	bcs.s	adrCd00331C	;65EC
 	bra.s	adrJC00331A	;60E8
 
-adrJC003332:	moveq	#$0C,d1	;720C
+CharacterName:
+	moveq	#$0C,d1	;720C
 	cmp.b	#$10,d0	;0C000010
 	bcs.s	adrCd00331C	;65E2
 	cmp.b	#$05,$0006(a4)	;0C2C00050006
@@ -4007,14 +4013,19 @@ adrJC003332:	moveq	#$0C,d1	;720C
 	lea	adrEA014DE6.l,a1	;43F900014DE6
 	asl.w	#$04,d0	;E940
 	add.w	d0,a1	;D2C0
+
+; ** insert naming code here
+
 	lea	adrEA0044C2.l,a6	;4DF9000044C2
 	lea	adrEA0038DD.l,a0	;41F9000038DD
-adrCd003358:	move.b	(a0)+,d0	;1018
+adrCd003358:
+	move.b	(a0)+,d0	;1018
 	bmi.s	adrCd003360	;6B04
 	move.b	d0,(a6)+	;1CC0
 	bra.s	adrCd003358	;60F8
 
-adrCd003360:	moveq	#$00,d0	;7000
+adrCd003360:
+	moveq	#$00,d0	;7000
 	move.b	$000B(a1),d0	;1029000B
 	move.b	$0006(a1),d2	;14290006
 	move.b	$000A(a1),d1	;1229000A
@@ -4044,7 +4055,7 @@ adrJC0033BA:	moveq	#-$02,d0	;70FE
 	bcs.s	adrCd0033C8	;6504
 	bra	adrJC0040A4	;60000CDE
 
-adrCd0033C8:	bsr	adrCd0061E0	;61002E16
+adrCd0033C8:	bsr	RandomGen_BytewithOffset	;61002E16
 	moveq	#$18,d1	;7218
 	tst.b	d0	;4A00
 	bmi	adrCd00331C	;6B00FF4A
@@ -4096,7 +4107,7 @@ adrCd003442:	lea	adrEA0044C2.l,a6	;4DF9000044C2
 	addq.w	#$01,d2	;5242
 	bra.s	adrCd00348C	;6022
 
-adrCd00346A:	lea	adrEA00EF4C.l,a0	;41F90000EF4C
+adrCd00346A:	lea	ObjectDefinitionsTable+$2.l,a0	;41F90000EF4C
 	add.w	d1,d1	;D241
 	add.w	d1,d1	;D241
 	add.w	d1,a0	;D0C1
@@ -4108,7 +4119,7 @@ adrCd00346A:	lea	adrEA00EF4C.l,a0	;41F90000EF4C
 	move.b	d0,$01(a6,d2.w)	;1D802001
 	addq.w	#$02,d2	;5442
 adrCd00348C:	move.b	#$35,$00(a6,d2.w)	;1DBC00352000
-	bsr	adrCd0061E0	;61002D4C
+	bsr	RandomGen_BytewithOffset	;61002D4C
 	and.w	#$0007,d0	;02400007
 	add.w	#$007C,d0	;0640007C
 	move.b	d0,$01(a6,d2.w)	;1D802001
@@ -4348,7 +4359,7 @@ adrJC003776:	cmp.b	#$02,$0006(a4)	;0C2C00020006
 	bcs.s	adrJC00373E	;65B6
 	cmp.b	#$08,$0006(a4)	;0C2C00080006
 	bcs	adrJC00331A	;6500FB8A
-	bsr	adrCd0061E0	;61002A4C
+	bsr	RandomGen_BytewithOffset	;61002A4C
 	moveq	#$0A,d1	;720A
 	tst.b	d0	;4A00
 	bmi	adrCd00331C	;6B00FB80
@@ -4441,7 +4452,8 @@ adrEA0038E9:	dc.b	$04	;04
 	dc.b	$08	;08
 	dc.b	$0F	;0F
 	dc.b	$FF	;FF
-adrEA003915:	dc.b	$3D	;3D
+adrEA003915:
+	dc.b	$3D	;3D
 	dc.b	$33	;33
 	dc.b	$24	;24
 	dc.b	$25	;25
@@ -4500,7 +4512,7 @@ adrCd003970:	ror.w	#$08,d1	;E059
 
 adrCd003982:	movem.w	d0/d1,-(sp)	;48A7C000
 	move.b	#$03,$0006(a4)	;197C00030006
-	bsr	adrCd0061E0	;61002852
+	bsr	RandomGen_BytewithOffset	;61002852
 	cmp.b	#$16,$000B(a1)	;0C290016000B
 	bne.s	adrCd0039B4	;661C
 	tst.b	$000C(a4)	;4A2C000C
@@ -4661,7 +4673,7 @@ adrCd003B7C:	move.b	$0007(a5),$0003(a4)	;196D00070003
 	bsr	adrCd0072D0	;61003742
 	move.b	$0005(a4),d2	;142C0005
 	move.l	(sp)+,a4	;285F
-	bsr	adrCd0061E0	;61002648
+	bsr	RandomGen_BytewithOffset	;61002648
 	and.w	#$0007,d0	;02400007
 	addq.w	#$02,d0	;5440
 	sub.b	#$14,d2	;04020014
@@ -4673,7 +4685,7 @@ adrCd003BA8:	lsr.b	#$02,d2	;E40A
 	bpl.s	adrCd003BB4	;6A02
 	moveq	#$00,d0	;7000
 adrCd003BB4:	move.b	d0,$0006(a4)	;19400006
-	bsr	adrCd0061E0	;61002626
+	bsr	RandomGen_BytewithOffset	;61002626
 	and.w	#$0007,d0	;02400007
 	addq.w	#$08,d0	;5040
 	move.b	d0,$0007(a4)	;19400007
@@ -4712,7 +4724,7 @@ adrCd003C34:	move.b	d1,$0001(a4)	;19410001
 	add.w	d1,d1	;D241
 	lea	adrJB003C80.l,a0	;41F900003C80
 	add.w	adrJT003C4A(pc,d1.w),a0	;D0FB1008
-	bsr	adrCd0061E0	;6100259A
+	bsr	RandomGen_BytewithOffset	;6100259A
 	jmp	(a0)	;4ED0
 
 adrJT003C4A:
@@ -4851,14 +4863,14 @@ adrCd003DD6:	move.b	d1,(a6)+	;1CC1
 	bra.s	adrCd003E08	;602E
 
 adrCd003DDA:	move.b	#$62,(a6)+	;1CFC0062
-	bsr	adrCd0061E0	;61002400
+	bsr	RandomGen_BytewithOffset	;61002400
 	and.w	#$0003,d0	;02400003
 	lea	adrEA0044F0.l,a3	;47F9000044F0
 	bsr.s	adrCd003E18	;612A
 	cmp.b	#$06,$0006(a4)	;0C2C00060006
 	bcc.s	adrCd003D96	;64A0
 	move.b	#$1A,(a6)+	;1CFC001A
-	bsr	adrCd0061E0	;610023E4
+	bsr	RandomGen_BytewithOffset	;610023E4
 	and.w	#$0007,d0	;02400007
 	add.b	#$B6,d0	;060000B6
 	move.b	d0,(a6)+	;1CC0
@@ -5001,7 +5013,7 @@ adrCd004068:	move.b	#$FA,$00(a6,d2.w)	;1DBC00FA2000
 	move.b	#$FF,$02(a6,d2.w)	;1DBC00FF2002
 	jmp	adrCd00E2EA.l	;4EF90000E2EA
 
-adrCd004080:	lea	adrEA00EF4C.l,a0	;41F90000EF4C
+adrCd004080:	lea	ObjectDefinitionsTable+$2.l,a0	;41F90000EF4C
 	add.w	d0,d0	;D040
 	add.w	d0,d0	;D040
 	add.w	d0,a0	;D0C0
@@ -5032,7 +5044,7 @@ adrCd0040CA:	addq.w	#$02,a0	;5448
 	move.b	#$FF,$00(a6,d2.w)	;1DBC00FF2000
 	jmp	adrCd00E2EA.l	;4EF90000E2EA
 
-adrCd0040DC:	bsr	adrCd0061E0	;61002102
+adrCd0040DC:	bsr	RandomGen_BytewithOffset	;61002102
 	and.w	#$0007,d0	;02400007
 	tst.w	d7	;4A47
 	bpl.s	adrCd0040FE	;6A16
@@ -5066,7 +5078,7 @@ adrCd00411A:	move.b	adrB_004183(pc,d7.w),d7	;1E3B7067
 	addq.w	#$02,d0	;5440
 	bra.s	adrCd004146	;6008
 
-adrCd00413E:	bsr	adrCd0061E0	;610020A0
+adrCd00413E:	bsr	RandomGen_BytewithOffset	;610020A0
 	and.w	#$0007,d0	;02400007
 adrCd004146:	move.w	#$0084,d1	;323C0084
 	add.w	d0,d1	;D240
@@ -5110,7 +5122,7 @@ adrJC00419A:	lea	adrEA0044BC.l,a6	;4DF9000044BC
 	and.w	#$0007,d0	;02400007
 	add.w	#$0074,d0	;06400074
 	move.b	d0,$0002(a6)	;1D400002
-	bsr	adrCd0061E0	;61002032
+	bsr	RandomGen_BytewithOffset	;61002032
 	and.w	#$0007,d0	;02400007
 	add.w	#$007C,d0	;0640007C
 	move.b	d0,$0004(a6)	;1D400004
@@ -5154,7 +5166,7 @@ adrJC0041DE:	moveq	#$00,d0	;7000
 	tst.b	(a6)	;4A16
 	bpl.s	adrCd00420A	;6A12
 	lea	Reply1_0.l,a6	;4DF900004246
-	bsr	adrCd0061E0	;61001FE0
+	bsr	RandomGen_BytewithOffset	;61001FE0
 	and.w	#$0006,d0	;02400006
 	add.w	adrW_004210(pc,d0.w),a6	;DCFB0008
 adrCd00420A:	jmp	adrCd00DA18.l	;4EF90000DA18
@@ -5571,7 +5583,7 @@ adrCd0047B4:	move.b	$19(a5,d1.w),$18(a5,d1.w)	;1BB510191018
 	cmp.b	$000F(a5),d3	;B62D000F
 	bne.s	adrCd0047E0	;660A
 	move.l	d7,-(sp)	;2F07
-	bsr	adrJC0078BC	;610030E2
+	bsr	Click_OpenInventory	;610030E2
 	move.l	(sp)+,d7	;2E1F
 	rts	;4E75
 
@@ -5990,7 +6002,8 @@ InsertSaveDiskMsg:	dc.b	'INSERT SAVE DISK AND RETURN, F10 - EXIT'	;494E534552542
 	dc.b	$FF	;FF
 	dc.b	$00	;00
 
-Click_SleepParty:	move.b	#$03,$004F(a5)	;1B7C0003004F
+Click_SleepParty:
+	move.b	#$03,$004F(a5)	;1B7C0003004F
 	clr.w	$0014(a5)	;426D0014
 	move.w	#$FFFF,$0042(a5)	;3B7CFFFF0042
 	move.w	#$FFFF,$0040(a5)	;3B7CFFFF0040
@@ -6018,11 +6031,11 @@ adrCd004D22:	bsr	adrCd002C3A	;6100DF16
 	tst.b	$004B(a5)	;4A2D004B
 	bmi.s	adrCd004D54	;6B06
 	move.w	#$00FF,$004A(a5)	;3B7C00FF004A
-adrCd004D54:	lea	adrEA004D66.l,a6	;4DF900004D66
+adrCd004D54:	lea	ThouArtAsleep.l,a6	;4DF900004D66
 	jsr	adrCd00DAA6.l	;4EB90000DAA6
 	jmp	adrCd00D9B4.l	;4EF90000D9B4
 
-adrEA004D66:	dc.b	$FC	;FC
+ThouArtAsleep:	dc.b	$FC	;FC
 	dc.b	$10	;10
 	dc.b	$04	;04
 	dc.b	$FE	;FE
@@ -6622,7 +6635,7 @@ adrCd0054C0:	cmp.b	#$10,$0001(a4)	;0C2C00100001
 	move.b	#$FF,$000F(a4)	;197C00FF000F
 adrCd0054DA:	move.b	adrEA0054A0(pc,d1.w),$0020(a4)	;197B10C40020
 	move.w	d0,d4	;3800
-	bsr	adrCd0061E0	;61000CFC
+	bsr	RandomGen_BytewithOffset	;61000CFC
 	and.w	#$003F,d0	;0240003F
 	move.w	d4,d1	;3204
 	and.w	#$0001,d1	;02410001
@@ -6631,7 +6644,7 @@ adrCd0054DA:	move.b	adrEA0054A0(pc,d1.w),$0020(a4)	;197B10C40020
 adrCd0054F4:	add.w	#$001E,d0	;0640001E
 	add.w	$0008(a4),d0	;D06C0008
 	move.w	d0,$0008(a4)	;39400008
-	bsr	adrCd0061E0	;61000CDE
+	bsr	RandomGen_BytewithOffset	;61000CDE
 	and.w	#$0007,d0	;02400007
 	addq.w	#$01,d0	;5240
 	add.b	$000B(a4),d0	;D02C000B
@@ -6647,7 +6660,7 @@ adrLp005526:	cmp.b	#$06,(a2)+	;0C1A0006
 	bsr	adrCd00618A	;61000C5C
 	bra.s	adrCd005544	;6012
 
-adrCd005532:	bsr	adrCd0061E0	;61000CAC
+adrCd005532:	bsr	RandomGen_BytewithOffset	;61000CAC
 	and.w	#$0007,d0	;02400007
 	cmp.b	#$04,-$0001(a2)	;0C2A0004FFFF
 	bne.s	adrCd005544	;6602
@@ -6797,7 +6810,7 @@ adrCd0056EE:	moveq	#$00,d0	;7000
 	clr.b	$0056(a5)	;422D0056
 	cmp.w	#$0004,$0014(a5)	;0C6D00040014
 	bne.s	adrCd00570A	;6604
-	bsr	adrJC006444	;61000D3C
+	bsr	Click_CloseSpellBook	;61000D3C
 adrCd00570A:	cmp.w	#$005E,$0002(a5)	;0C6D005E0002
 	bcs	adrCd0055E6	;6500FED4
 	moveq	#-$01,d0	;70FF
@@ -6812,10 +6825,10 @@ adrCd00570A:	cmp.w	#$005E,$0002(a5)	;0C6D005E0002
 	jmp	(a0)	;4ED0
 
 adrJT005734:	dc.l	adrJC005768	;00005768
-	dc.l	adrJC006444	;00006444
+	dc.l	Click_CloseSpellBook	;00006444
 	dc.l	adrJC0057A8	;000057A8
 	dc.l	adrJC0062CA	;000062CA
-	dc.l	adrJC006444	;00006444
+	dc.l	Click_CloseSpellBook	;00006444
 
 adrCd005748:	bclr	#$07,$0001(a5)	;08AD00070001
 	beq.s	adrCd005766	;6716
@@ -6901,12 +6914,15 @@ adrCd00580C:	swap	d1	;4841
 adrCd005830:	subq.b	#$01,$0018(a4)	;532C0018
 	bra	adrCd007392	;60001B5C
 
-adrJC005838:	bsr.s	adrCd00584C	;6112
+Click_LaunchSpellFromBook:
+	bsr.s	adrCd00584C	;6112
 	bne.s	adrCd005844	;6608
 	bsr	adrCd00730C	;61001ACE
 	bsr	adrCd00D156	;61007914
-adrCd005844:	move.w	#$0002,$0014(a5)	;3B7C00020014
-adrCd00584A:	rts	;4E75
+adrCd005844:
+	move.w	#$0002,$0014(a5)	;3B7C00020014
+adrCd00584A:
+	rts	;4E75
 
 adrCd00584C:	bsr	adrCd0072D0	;61001A82
 	clr.w	adrB_005A5C.l	;427900005A5C
@@ -7093,7 +7109,7 @@ adrJC005A86:	move.w	#$008F,d4	;383C008F
 
 adrJC005A8E:	lsr.w	#$02,d7	;E44F
 	move.w	d7,d5	;3A07
-adrLp005A92:	bsr	adrCd0061E0	;6100074C
+adrLp005A92:	bsr	RandomGen_BytewithOffset	;6100074C
 	and.w	#$0007,d0	;02400007
 	add.w	d0,d5	;DA40
 	dbra	d7,adrLp005A92	;51CFFFF4
@@ -7269,7 +7285,7 @@ adrJC005C8E:	move.w	d7,d4	;3807
 	add.w	d4,d7	;DE44
 	lsr.w	#$03,d7	;E64F
 	move.w	d7,d5	;3A07
-adrLp005C98:	bsr	adrCd0061E0	;61000546
+adrLp005C98:	bsr	RandomGen_BytewithOffset	;61000546
 	and.w	#$0007,d0	;02400007
 	add.w	d0,d5	;DA40
 	dbra	d7,adrLp005C98	;51CFFFF4
@@ -7763,7 +7779,7 @@ adrCd0061DA:	swap	d0	;4840
 adrW_0061DE:	dc.b	$03	;03
 adrB_0061DF:	dc.b	$E1	;E1
 
-adrCd0061E0:	moveq	#$01,d1	;7201
+RandomGen_BytewithOffset:	moveq	#$01,d1	;7201
 	bsr.s	adrCd0061F0	;610C
 	swap	d0	;4840
 	add.b	adrB_0061DF(pc),d0	;D03AFFF7
@@ -7811,7 +7827,8 @@ adrCd006246:	asl.w	#$03,d0	;E740
 	add.w	d0,a6	;DCC0
 	rts	;4E75
 
-adrJC006252:	move.w	#$0002,$0014(a5)	;3B7C00020014
+Click_ViewSpell:
+	move.w	#$0002,$0014(a5)	;3B7C00020014
 	bsr.s	adrCd006214	;61BA
 	bpl.s	adrCd006266	;6A0A
 	bsr	adrCd00730C	;610010AE
@@ -7869,7 +7886,7 @@ adrJC0062CA:	move.w	$000E(a5),d7	;3E2D000E
 	bcs.s	adrCd006316	;6524
 	lsr.w	#$04,d1	;E849
 	cmp.w	#$0005,d1	;0C410005
-	beq	adrJC006444	;6700014A
+	beq	Click_CloseSpellBook	;6700014A
 	cmp.w	#$0004,d1	;0C410004
 	beq.s	adrCd006318	;6716
 	move.b	$18(a5,d1.w),d0	;10351018
@@ -7997,7 +8014,7 @@ adrEA006434:	dc.w	$0001	;0001
 	dc.w	$FF01	;FF01
 	dc.w	$01FF	;01FF
 
-adrJC006444:	clr.w	$0014(a5)	;426D0014
+Click_CloseSpellBook:	clr.w	$0014(a5)	;426D0014
 	bra	adrCd008FFC	;60002BB2
 
 adrCd00644C:	btst	#$06,$0018(a5)	;082D00060018
@@ -8012,32 +8029,32 @@ adrCd00645A:	move.w	$000C(a5),d0	;302D000C
 
 adrJT00646E:	
 	dc.l	adrJC0072F8	;000072F8
-	dc.l	adrJC007288	;00007288
-	dc.l	adrJC00711A	;0000711A
+	dc.l	Click_ShowStats	;00007288
+	dc.l	Click_MultiFunctionButton	;0000711A
 adrJC00647A:	
-	dc.l	adrJC0078BC	;000078BC
+	dc.l	Click_OpenInventory	;000078BC
 	dc.l	adrJC006BC0	;00006BC0
-	dc.l	adrJC006BB6	;00006BB6
-	dc.l	adrJC007222	;00007222
-	dc.l	adrJC007222	;00007222
-	dc.l	adrJC007222	;00007222
-	dc.l	adrJC007222	;00007222
-	dc.l	adrJC007ABC	;00007ABC
-	dc.l	adrJC007AC0	;00007AC0
-	dc.l	adrJC007AC4	;00007AC4
-	dc.l	adrJC007AC8	;00007AC8
-	dc.l	adrJC007C2C	;00007C2C
-	dc.l	adrJC007C3A	;00007C3A
-	dc.l	adrJC006530	;00006530
+	dc.l	Click_Display_Centre	;00006BB6
+	dc.l	Click_PartyMember	;00007222
+	dc.l	Click_PartyMember	;00007222
+	dc.l	Click_PartyMember	;00007222
+	dc.l	Click_PartyMember	;00007222
+	dc.l	Click_MoveForwards	;00007ABC
+	dc.l	Click_MoveBackwards	;00007AC0
+	dc.l	Click_MoveLeft	;00007AC4
+	dc.l	Click_MoveRight	;00007AC8
+	dc.l	Click_RotateLeft	;00007C2C
+	dc.l	Click_RotateRight	;00007C3A
+	dc.l	Click_Display	;00006530
 	dc.l	adrJC0078D6	;000078D6
 	dc.l	adrJC007724	;00007724
-	dc.l	adrJC0075F0	;000075F0
+	dc.l	Click_Item_17_to_1A_Potions	;000075F0
 	dc.l	adrJC006502	;00006502
-	dc.l	adrJC005838	;00005838
-	dc.l	adrJC006252	;00006252
-	dc.l	adrJC00CEB4	;0000CEB4
-	dc.l	adrJC006444	;00006444
-	dc.l	adrJC00CEB4	;0000CEB4
+	dc.l	Click_LaunchSpellFromBook	;00005838
+	dc.l	Click_ViewSpell	;00006252
+	dc.l	Click_TurnSpellBookPage	;0000CEB4
+	dc.l	Click_CloseSpellBook	;00006444
+	dc.l	Click_TurnSpellBookPage	;0000CEB4
 	dc.l	adrJC0049A0	;000049A0
 	dc.l	adrJC006502	;00006502
 	dc.l	adrJC0049F2	;000049F2
@@ -8065,13 +8082,14 @@ adrEA006504:	dc.w	$0074	;0074
 	dc.w	$001C	;001C
 	dc.w	$0048	;0048
 
-adrCd00651C:	moveq	#$22,d0	;7022
+adrCd00651C:
+	moveq	#$22,d0	;7022
 	moveq	#$26,d2	;7426
 	lea	adrEA006504.l,a6	;4DF900006504
 	move.w	#$FFFF,$000C(a5)	;3B7CFFFF000C
 	bra	adrCd005772	;6000F244
 
-adrJC006530:	bsr.s	adrCd00651C	;61EA
+Click_Display:	bsr.s	adrCd00651C	;61EA
 	bra	adrCd00645A	;6000FF26
 
 adrJC006536:	bsr	adrCd00924C	;61002D14
@@ -8097,18 +8115,20 @@ adrJC006536:	bsr	adrCd00924C	;61002D14
 	move.b	$00(a6,d0.w),d3	;16360000
 	and.w	#$0003,d3	;02430003
 	add.w	d3,d3	;D643
-	lea	adrJB006596.l,a0	;41F900006596
+	lea	MainWall_Action_01.l,a0	;41F900006596
 	add.w	adrJT00658E(pc,d3.w),a0	;D0FB3006
 	jmp	(a0)	;4ED0
 
 adrCd00658C:	rts	;4E75
 
-adrJT00658E:	dc.w	adrJB006596-adrJB006596	;0000
-	dc.w	adrJC0065AE-adrJB006596	;0018
-	dc.w	adrJC0067B2-adrJB006596	;021C
-	dc.w	adrJC0065F8-adrJB006596	;0062
+adrJT00658E:
+	dc.w	MainWall_Action_01-MainWall_Action_01	;0000
+	dc.w	MainWall_Action_02-MainWall_Action_01	;0018
+	dc.w	MainWall_Action_03-MainWall_Action_01	;021C
+	dc.w	MainWall_Action_04-MainWall_Action_01	;0062
 
-adrJB006596:	move.w	$0004(a5),d1	;322D0004
+MainWall_Action_01:
+	move.w	$0004(a5),d1	;322D0004
 	sub.w	$0008(a5),d1	;926D0008
 	moveq	#$02,d6	;7C02
 	cmp.w	#$0033,d1	;0C410033
@@ -8116,7 +8136,7 @@ adrJB006596:	move.w	$0004(a5),d1	;322D0004
 	moveq	#$03,d6	;7C03
 	bra	adrCd006970	;600003C4
 
-adrJC0065AE:	moveq	#$00,d1	;7200
+MainWall_Action_02:	moveq	#$00,d1	;7200
 	move.b	$00(a6,d0.w),d1	;12360000
 	lsr.b	#$02,d1	;E409
 	subq.b	#$05,d1	;5B01
@@ -8127,7 +8147,7 @@ adrCd0065BC:	move.w	d1,-(sp)	;3F01
 	bsr	adrCd00D58C	;61006FCC
 	move.w	(sp)+,d1	;321F
 	move.w	adrW_00F98A.l,d0	;30390000F98A
-	add.b	adrB_0065F2(pc,d0.w),d1	;D23B0026
+	add.b	ScrollTowerOffsets(pc,d0.w),d1	;D23B0026
 	lea	adrEA017952.l,a0	;41F900017952
 	lea	$0092(a0),a6	;4DE80092
 	add.w	d1,d1	;D241
@@ -8136,14 +8156,15 @@ adrCd0065BC:	move.w	d1,-(sp)	;3F01
 	move.l	#$00000003,adrW_00E3FA.l	;23FC000000030000E3FA
 	bra	adrCd00DAA6	;600074B6
 
-adrB_0065F2:	dc.b	$00	;00
+ScrollTowerOffsets:
+	dc.b	$00	;00
 	dc.b	$15	;15
 	dc.b	$21	;21
 	dc.b	$29	;29
 	dc.b	$31	;31
 	dc.b	$3B	;3B
 
-adrJC0065F8:	moveq	#$00,d1	;7200
+MainWall_Action_04:	moveq	#$00,d1	;7200
 	move.b	$00(a6,d0.w),d1	;12360000
 	btst	#$02,d1	;08010002
 	bne.s	adrCd006626	;6622
@@ -8169,62 +8190,64 @@ adrCd006626:	lsr.w	#$03,d1	;E649
 	move.b	$00(a6,d0.w),d1	;12360000
 	lsr.w	#$02,d1	;E449
 	and.w	#$000E,d1	;0241000E
-	lea	Actions_0.l,a0	;41F90000666E
-	add.w	adrW_00665E(pc,d1.w),a0	;D0FB100A
+	lea	SocketActions_SerpentCrystal.l,a0	;41F90000666E
+	add.w	Sockets_LookupTable(pc,d1.w),a0	;D0FB100A
 	jsr	(a0)	;4E90
 	moveq	#$05,d0	;7005
 	bra	PlaySound	;60003032
 
-adrW_00665E:	dc.w	Actions_0-Actions_0	;0000
-	dc.w	Actions_1-Actions_0	;0024
-	dc.w	Actions_2-Actions_0	;0056
-	dc.w	Actions_3-Actions_0	;0076
-	dc.w	Actions_X-Actions_0	;0022
-	dc.w	Actions_4-Actions_0	;00D8
-	dc.w	Actions_X-Actions_0	;0022
-	dc.w	Actions_5-Actions_0	;00D0
+Sockets_LookupTable:
+	dc.w	SocketActions_SerpentCrystal-SocketActions_SerpentCrystal	;0000
+	dc.w	SocketActions_ChaosCrystal-SocketActions_SerpentCrystal	;0024
+	dc.w	SocketActions_DragonCrystal-SocketActions_SerpentCrystal	;0056
+	dc.w	SocketActions_MoonCrystal-SocketActions_SerpentCrystal	;0076
+	dc.w	Exit_SocketAction-SocketActions_SerpentCrystal	;0022
+	dc.w	Actions_4-SocketActions_SerpentCrystal	;00D8
+	dc.w	Exit_SocketAction-SocketActions_SerpentCrystal	;0022
+	dc.w	Actions_5-SocketActions_SerpentCrystal	;00D0
 
-Actions_0:	moveq	#$06,d4	;7806
+SocketActions_SerpentCrystal:	moveq	#$06,d4	;7806
 	moveq	#$12,d6	;7C12
 	bsr	adrCd0066FC	;61000088
 	cmp.w	#$0003,adrW_00F98A.l	;0C7900030000F98A
-	bne.s	adrCd0066BA	;663A
+	bne.s	.EntropySummoned	;663A
 	move.l	#$00070004,d7	;2E3C00070004
-adrCd006686:	bsr	adrCd00926C	;61002BE4
+Last_CrystalAction:
+	bsr	adrCd00926C	;61002BE4
 	and.w	#$00F8,$00(a6,d0.w)	;027600F80000
-Actions_X:	rts	;4E75
+Exit_SocketAction:	rts	;4E75
 
-Actions_1:	bclr	#$02,$00(a6,d0.w)	;08B600020000
+SocketActions_ChaosCrystal:	bclr	#$02,$00(a6,d0.w)	;08B600020000
 	movem.l	d0/a6,-(sp)	;48E78002
 	bsr	adrCd009268	;61002BCA
 	bsr	adrCd008598	;61001EF6
 	movem.l	(sp)+,d0/a6	;4CDF4001
 	cmp.w	#$0003,adrW_00F98A.l	;0C7900030000F98A
-	bne.s	adrCd0066BA	;6608
+	bne.s	.EntropySummoned	;6608
 	move.l	#$00070003,d7	;2E3C00070003
-	bra.s	adrCd006686	;60CC
+	bra.s	Last_CrystalAction	;60CC
 
-adrCd0066BA:	addq.w	#$02,d0	;5440
+.EntropySummoned:	addq.w	#$02,d0	;5440
 	bclr	#$00,$00(a6,d0.w)	;08B600000000
 	rts	;4E75
 
-Actions_2:	moveq	#$0A,d4	;780A
+SocketActions_DragonCrystal:	moveq	#$0A,d4	;780A
 	moveq	#$11,d6	;7C11
 	bsr.s	adrCd0066FC	;6132
 	cmp.w	#$0003,adrW_00F98A.l	;0C7900030000F98A
-	bne.s	adrCd0066BA	;66E6
+	bne.s	.EntropySummoned	;66E6
 	move.l	#$00070001,d7	;2E3C00070001
-	bsr.s	adrCd006686	;61AA
+	bsr.s	Last_CrystalAction	;61AA
 	or.w	#$D206,$00(a6,d0.w)	;0076D2060000
 	rts	;4E75
 
-Actions_3:	moveq	#$0C,d4	;780C
+SocketActions_MoonCrystal:	moveq	#$0C,d4	;780C
 	moveq	#$13,d6	;7C13
 	bsr.s	adrCd0066FC	;6112
 	cmp.w	#$0003,adrW_00F98A.l	;0C7900030000F98A
-	bne.s	adrCd0066BA	;66C6
+	bne.s	.EntropySummoned	;66C6
 	move.l	#$00070002,d7	;2E3C00070002
-	bra.s	adrCd006686	;608A
+	bra.s	Last_CrystalAction	;608A
 
 adrCd0066FC:	movem.l	d0/a6,-(sp)	;48E78002
 	bclr	#$02,$00(a6,d0.w)	;08B600020000
@@ -8246,11 +8269,11 @@ adrCd006726:	dbra	d7,adrLp006708	;51CFFFE0
 	movem.l	(sp)+,d0/a6	;4CDF4001
 	rts	;4E75
 
-Actions_5:	lea	gem_tanex.locations.l,a0	;41F900006792
-	bra.s	adrCd00674C	;6006
+Actions_5:	lea	TanGemLocs.l,a0	;41F900006792
+	bra.s	TeleportGem	;6006
 
-Actions_4:	lea	gem_bluex.locations.l,a0	;41F9000067A2
-adrCd00674C:	move.w	adrW_00F98A.l,d1	;32390000F98A
+Actions_4:	lea	BlueGemLocs.l,a0	;41F9000067A2
+TeleportGem:	move.w	adrW_00F98A.l,d1	;32390000F98A
 	asl.w	#$02,d1	;E541
 	add.w	d1,a0	;D0C1
 	moveq	#$00,d6	;7C00
@@ -8272,7 +8295,7 @@ adrCd00676A:	bsr	adrCd009268	;61002AFC
 	moveq	#$10,d7	;7E10
 	bra	adrCd00222A	;6000BA9A
 
-gem_tanex.locations:
+TanGemLocs:
 	dc.w	$0000	;0000
 	dc.w	$0000	;0000
 	dc.w	$0B0B	;0B0B
@@ -8281,7 +8304,7 @@ gem_tanex.locations:
 	dc.w	$020F	;020F
 	dc.w	$0D0D	;0D0D
 	dc.w	$0D02	;0D02
-gem_bluex.locations:
+BlueGemLocs:
 	dc.w	$0000	;0000
 	dc.w	$0000	;0000
 	dc.w	$090B	;090B
@@ -8291,7 +8314,8 @@ gem_bluex.locations:
 	dc.w	$010D	;010D
 	dc.w	$0102	;0102
 
-adrJC0067B2:	moveq	#$00,d1	;7200
+MainWall_Action_03:
+	moveq	#$00,d1	;7200
 	move.b	$00(a6,d0.w),d1	;12360000
 	and.w	#$00F8,d1	;024100F8
 	beq.s	adrJB0067EE	;6730
@@ -8299,31 +8323,33 @@ adrJC0067B2:	moveq	#$00,d1	;7200
 	lsr.b	#$01,d1	;E209
 	move.w	adrW_00F98A.l,d0	;30390000F98A
 	asl.w	#$06,d0	;ED40
-	lea	serpex.switches.l,a1	;43F900006808
+	lea	SwitchData_1.l,a1	;43F900006808
 	add.w	d0,a1	;D2C0
 	moveq	#$00,d0	;7000
 	move.b	$00(a1,d1.w),d0	;10311000
 	lea	adrJB0067EE.l,a0	;41F9000067EE
-	add.w	adrJT0067F0(pc,d0.w),a0	;D0FB000C
+	add.w	Switch_00_s00_Null(pc,d0.w),a0	;D0FB000C
 	jsr	(a0)	;4E90
 	moveq	#$00,d0	;7000
 	bra	PlaySound	;60002EA2
 
 adrJB0067EE:	rts	;4E75
 
-adrJT0067F0:	dc.w	adrJB0067EE-adrJB0067EE	;0000
-	dc.w	adrJC006934-adrJB0067EE	;0146
-	dc.w	adrJC00691E-adrJB0067EE	;0130
-	dc.w	adrJC0083D4-adrJB0067EE	;1BE6
-	dc.w	adrJC008340-adrJB0067EE	;1B52
-	dc.w	adrJC0083FC-adrJB0067EE	;1C0E
-	dc.w	adrJC0083F8-adrJB0067EE	;1C0A
-	dc.w	adrJC0083E8-adrJB0067EE	;1BFA
-	dc.w	adrJC0083D4-adrJB0067EE	;1BE6
+Switch_00_s00_Null:
+	dc.w	adrJB0067EE-adrJB0067EE	;0000
+	dc.w	Switch_01_s02_Trigger_11_t16_RemoveXY-adrJB0067EE	;0146
+	dc.w	Switch_02_s04_Trigger_23_t2E-adrJB0067EE	;0130
+	dc.w	Switch_03_s06_Trigger_03_t06_OpenLockedDoorXY-adrJB0067EE	;1BE6
+	dc.w	Switch_04_s08_Trigger_22_t2C_RotateWallXY-adrJB0067EE	;1B52
+	dc.w	Switch05_s0A_Trigger_13_t1A_TogglePillarXY-adrJB0067EE	;1C0E
+	dc.w	Switch06_s0C_Trigger_18_t24_CreatePillarXY-adrJB0067EE	;1C0A
+	dc.w	Switch_07_s0E_Trigger_26_t34_RotateWoodXY-adrJB0067EE	;1BFA
+	dc.w	Switch_03_s06_Trigger_03_t06_OpenLockedDoorXY-adrJB0067EE	;1BE6
 	dc.w	adrJC006908-adrJB0067EE	;011A
-	dc.w	adrJC00840E-adrJB0067EE	;1C20
-	dc.w	adrJC008426-adrJB0067EE	;1C38
-serpex.switches:	dc.w	$0000	;0000
+	dc.w	Trigger_14_t1C-adrJB0067EE	;1C20
+	dc.w	Trigger_25_t32-adrJB0067EE	;1C38
+SwitchData_1:
+	dc.w	$0000	;0000
 	dc.w	$0000	;0000
 	dc.w	$0200	;0200
 	dc.w	$0711	;0711
@@ -8355,7 +8381,7 @@ serpex.switches:	dc.w	$0000	;0000
 	dc.w	$0804	;0804
 	dc.w	$0200	;0200
 	dc.w	$0105	;0105
-chaosex.switches:	dc.w	$0000	;0000
+SwitchData_2:	dc.w	$0000	;0000
 	dc.w	$0000	;0000
 	dc.w	$0200	;0200
 	dc.w	$0411	;0411
@@ -8387,7 +8413,7 @@ chaosex.switches:	dc.w	$0000	;0000
 	dc.w	$0803	;0803
 	dc.w	$0200	;0200
 	dc.w	$1202	;1202
-moonex.switches:	dc.w	$0000	;0000
+SwitchData_3:	dc.w	$0000	;0000
 	dc.w	$0000	;0000
 	dc.w	$0200	;0200
 	dc.w	$0306	;0306
@@ -8419,7 +8445,7 @@ moonex.switches:	dc.w	$0000	;0000
 	dc.w	$0000	;0000
 	dc.w	$0000	;0000
 	dc.w	$0000	;0000
-dragex.switches:	dc.w	$0000	;0000
+SwitchData_4:	dc.w	$0000	;0000
 	dc.w	$0000	;0000
 	dc.w	$0200	;0200
 	dc.w	$0504	;0504
@@ -8452,26 +8478,32 @@ dragex.switches:	dc.w	$0000	;0000
 	dc.w	$0000	;0000
 	dc.w	$0000	;0000
 
-adrJC006908:	bsr	adrCd00924C	;61002942
+adrJC006908:
+	bsr	adrCd00924C	;61002942
 	and.w	#$0040,$00(a6,d0.w)	;027600400000
 	or.w	#$6306,$00(a6,d0.w)	;007663060000
 	rts	;4E75
 
-adrJC00691A:	bsr	adrJC006934	;61000018
-adrJC00691E:	bsr.s	adrCd006950	;6130
+Switch_00_s00_Trigger_15_t1E_ToggleWallXY:
+	bsr	Switch_01_s02_Trigger_11_t16_RemoveXY	;61000018
+Switch_02_s04_Trigger_23_t2E:
+	bsr.s	adrCd006950	;6130
 	tst.b	$01(a6,d0.w)	;4A360001
 	bmi.s	adrCd006932	;6B0C
 	and.w	#$00F9,$00(a6,d0.w)	;027600F90000
 	eor.b	#$01,$01(a6,d0.w)	;0A3600010001
-adrCd006932:	rts	;4E75
+adrCd006932:
+	rts	;4E75
 
-adrJC006934:	bsr.s	adrCd006950	;611A
+Switch_01_s02_Trigger_11_t16_RemoveXY:
+	bsr.s	adrCd006950	;611A
 	move.b	$01(a6,d0.w),d2	;14360001
 	and.w	#$0007,d2	;02420007
 	subq.w	#$01,d2	;5342
 	bne.s	adrCd006948	;6606
 	and.b	#$4F,$01(a6,d0.w)	;0236004F0001
-adrCd006948:	and.b	#$F8,$01(a6,d0.w)	;023600F80001
+adrCd006948:
+	and.b	#$F8,$01(a6,d0.w)	;023600F80001
 	rts	;4E75
 
 adrCd006950:	moveq	#$00,d7	;7E00
@@ -8706,7 +8738,8 @@ adrCd006BA6:	move.b	$02(a0,d7.w),d2	;14307002
 adrCd006BB2:	moveq	#$01,d1	;7201
 adrCd006BB4:	rts	;4E75
 
-adrJC006BB6:	and.b	#$01,(a5)	;02150001
+Click_Display_Centre:
+	and.b	#$01,(a5)	;02150001
 	bset	#$03,(a5)	;08D50003
 	bra.s	adrCd006BC8	;6008
 
@@ -9258,7 +9291,8 @@ adrCd0070FA:	lsr.w	#$04,d2	;E84A
 adrCd007114:	move.w	d0,$0002(a6)	;3D400002
 	rts	;4E75
 
-adrJC00711A:	bsr	adrCd0072D0	;610001B4
+Click_MultiFunctionButton:
+	bsr	adrCd0072D0	;610001B4
 	tst.b	$0015(a4)	;4A2C0015
 	beq.s	adrCd007132	;670E
 	clr.b	$0015(a4)	;422C0015
@@ -9339,7 +9373,8 @@ adrEA00720E:	dc.b	'THE DOOR IS LOCKED'	;54484520444F4F52204953204C4F434B4544
 	dc.b	$FF	;FF
 	dc.b	$00	;00
 
-adrJC007222:	lsr.w	#$02,d0	;E448
+Click_PartyMember:
+	lsr.w	#$02,d0	;E448
 	sub.w	#$0006,d0	;04400006
 	tst.w	$0016(a5)	;4A6D0016
 	bpl.s	adrCd00723E	;6A10
@@ -9371,7 +9406,8 @@ adrCd00727A:	move.w	#$FFFF,$0016(a5)	;3B7CFFFF0016
 	bsr	adrCd008FFC	;61001D7A
 	bra	adrCd008894	;6000160E
 
-adrJC007288:	move.w	#$0001,$0014(a5)	;3B7C00010014
+Click_ShowStats:
+	move.w	#$0001,$0014(a5)	;3B7C00010014
 	bsr	adrCd00D41C	;6100618C
 	lea	adrEA00F444.l,a6	;4DF90000F444
 	bsr	adrCd00DAA6	;6100680C
@@ -9741,7 +9777,8 @@ adrCd0075E6:	lsr.w	#$02,d0	;E448
 	and.w	#$0003,d0	;02400003
 adrCd0075EE:	rts	;4E75
 
-adrJC0075F0:	move.w	$002E(a5),d0	;302D002E
+Click_Item_17_to_1A_Potions:
+	move.w	$002E(a5),d0	;302D002E
 	beq.s	adrCd0075EE	;67F8
 	cmp.w	#$001B,d0	;0C40001B
 	bcc.s	adrCd0075EE	;64F2
@@ -9753,30 +9790,31 @@ adrJC0075F0:	move.w	$002E(a5),d0	;302D002E
 	move.b	$000F(a5),d0	;102D000F
 	move.b	$18(a5,d0.w),d0	;10350018
 	bsr	adrCd0072D4	;6100FCBE
-	lea	adrJB007636.l,a0	;41F900007636
+	lea	Potion_1_SerpentSlime.l,a0	;41F900007636
 	add.w	d1,d1	;D241
-	add.w	adrJT00762E(pc,d1.w),a0	;D0FB100C
+	add.w	Potion_LookupTable(pc,d1.w),a0	;D0FB100C
 	jsr	(a0)	;4E90
 	bsr	adrCd008D52	;6100172A
 	bra	adrCd007900	;600002D4
 
-adrJT00762E:	dc.w	adrJB007636-adrJB007636	;0000
-	dc.w	adrJC007652-adrJB007636	;001C
-	dc.w	adrJC00763E-adrJB007636	;0008
-	dc.w	adrJC007646-adrJB007636	;0010
+Potion_LookupTable:
+	dc.w	Potion_1_SerpentSlime-Potion_1_SerpentSlime	;0000
+	dc.w	Potion_2_BrimstoneBroth-Potion_1_SerpentSlime	;001C
+	dc.w	Potion_3_DragonAle-Potion_1_SerpentSlime	;0008
+	dc.w	Potion_4_MoonElixir-Potion_1_SerpentSlime	;0010
 
-adrJB007636:	move.w	$0008(a4),$0006(a4)	;396C00080006
+Potion_1_SerpentSlime:	move.w	$0008(a4),$0006(a4)	;396C00080006
 	rts	;4E75
 
-adrJC00763E:	move.b	$000B(a4),$000A(a4)	;196C000B000A
+Potion_3_DragonAle:	move.b	$000B(a4),$000A(a4)	;196C000B000A
 	rts	;4E75
 
-adrJC007646:	move.b	$000D(a4),$000C(a4)	;196C000D000C
+Potion_4_MoonElixir:	move.b	$000D(a4),$000C(a4)	;196C000D000C
 	clr.b	$0019(a4)	;422C0019
 	rts	;4E75
 
-adrJC007652:	clr.b	$0019(a4)	;422C0019
-	bsr.s	adrJB007636	;61DE
+Potion_2_BrimstoneBroth:	clr.b	$0019(a4)	;422C0019
+	bsr.s	Potion_1_SerpentSlime	;61DE
 	moveq	#$0A,d4	;780A
 	bsr.s	adrCd00765E	;6102
 	moveq	#$0C,d4	;780C
@@ -9977,13 +10015,15 @@ adrCd0078A4:	move.w	d7,$000E(a5)	;3B47000E
 adrCd0078B4:	move.w	#$0001,$002C(a5)	;3B7C0001002C
 	bra.s	adrJC0078D6	;601A
 
-adrJC0078BC:	clr.w	$000E(a5)	;426D000E
+Click_OpenInventory:
+	clr.w	$000E(a5)	;426D000E
 	move.l	#$005E00E1,d4	;283C005E00E1
 	move.l	#$00070040,d5	;2A3C00070040
 	add.w	$0008(a5),d5	;DA6D0008
 	moveq	#$03,d3	;7603
 	bsr	adrCd00E538	;61006C64
-adrJC0078D6:	move.w	$000E(a5),d7	;3E2D000E
+adrJC0078D6:
+	move.w	$000E(a5),d7	;3E2D000E
 	move.b	$18(a5,d7.w),d7	;1E357018
 	and.w	#$000F,d7	;0247000F
 	bsr	adrCd00D2BE	;610059DA
@@ -10019,9 +10059,11 @@ adrCd007924:	bsr	adrCd009186	;61001860
 	bcs.s	adrCd00795E	;6502
 adrCd00795C:	rts	;4E75
 
-adrCd00795E:	lea	adrEA00F434.l,a6	;4DF90000F434
+adrCd00795E:
+	lea	adrEA00F434.l,a6	;4DF90000F434
 	bsr	adrCd00DAA6	;61006140
-adrCd007968:	or.b	#$14,$0054(a5)	;002D00140054
+adrCd007968:
+	or.b	#$14,$0054(a5)	;002D00140054
 	move.w	$000E(a5),d0	;302D000E
 	move.b	$18(a5,d0.w),d0	;10350018
 	bsr	adrCd0072D4	;6100F95C
@@ -10053,7 +10095,7 @@ adrCd0079B0:	move.w	d0,d1	;3200
 	bmi.s	adrCd0079D6	;6B0A
 	bclr	#$05,$18(a5,d1.w)	;08B500051018
 	clr.l	$002C(a5)	;42AD002C
-adrCd0079D6:	lea	adrEA00EF4C.l,a6	;4DF90000EF4C
+adrCd0079D6:	lea	ObjectDefinitionsTable+$2.l,a6	;4DF90000EF4C
 	asl.w	#$02,d0	;E540
 	add.w	d0,a6	;DCC0
 	move.w	#$0006,adrW_00E3FA.l	;33FC00060000E3FA
@@ -10135,17 +10177,17 @@ adrCd007A70:	tst.b	$0015(a5)	;4A2D0015
 	swap	d3	;4843
 	bra	adrCd00C460	;600049A6
 
-adrJC007ABC:	moveq	#$00,d0	;7000
-	bra.s	adrCd007ACA	;600A
+Click_MoveForwards:	moveq	#$00,d0	;7000
+	bra.s	MoveParty	;600A
 
-adrJC007AC0:	moveq	#$02,d0	;7002
-	bra.s	adrCd007ACA	;6006
+Click_MoveBackwards:	moveq	#$02,d0	;7002
+	bra.s	MoveParty	;6006
 
-adrJC007AC4:	moveq	#$03,d0	;7003
-	bra.s	adrCd007ACA	;6002
+Click_MoveLeft:	moveq	#$03,d0	;7003
+	bra.s	MoveParty	;6002
 
-adrJC007AC8:	moveq	#$01,d0	;7001
-adrCd007ACA:	and.b	#$01,(a5)	;02150001
+Click_MoveRight:	moveq	#$01,d0	;7001
+MoveParty:	and.b	#$01,(a5)	;02150001
 	move.w	d0,-(sp)	;3F00
 	bsr.s	adrCd007A70	;619E
 	move.w	(sp)+,d6	;3C1F
@@ -10258,12 +10300,14 @@ adrCd007C1C:	move.w	$0042(a5),d0	;302D0042
 	bcc	adrJC0039F2	;6400BDCA
 adrCd007C2A:	rts	;4E75
 
-adrJC007C2C:	subq.w	#$01,$0020(a5)	;536D0020
+Click_RotateLeft:
+	subq.w	#$01,$0020(a5)	;536D0020
 	and.w	#$0003,$0020(a5)	;026D00030020
 	moveq	#$04,d0	;7004
 	bra.s	adrCd007C46	;600C
 
-adrJC007C3A:	addq.w	#$01,$0020(a5)	;526D0020
+Click_RotateRight:
+	addq.w	#$01,$0020(a5)	;526D0020
 	and.w	#$0003,$0020(a5)	;026D00030020
 	moveq	#$05,d0	;7005
 adrCd007C46:	bsr	adrCd007A70	;6100FE28
@@ -10285,7 +10329,8 @@ adrCd007C6C:	dbra	d7,adrLp007C58	;51CFFFEA
 
 adrW_007C7A:	dc.w	$FFFF	;FFFF
 
-adrCd007C7C:	move.w	#$FFFF,adrW_007C7A.l	;33FCFFFF00007C7A
+adrCd007C7C:
+	move.w	#$FFFF,adrW_007C7A.l	;33FCFFFF00007C7A
 	move.b	$00(a6,d0.w),d1	;12360000
 	and.w	#$0003,d1	;02410003
 	subq.w	#$02,d1	;5541
@@ -10306,9 +10351,11 @@ adrCd007C96:	move.b	$00(a6,d0.w),d1	;12360000
 	beq.s	adrCd007CC8	;6706
 	cmp.b	#$2A,d2	;0C02002A
 	bne.s	adrCd007CD0	;6608
-adrCd007CC8:	move.w	#$0005,adrW_007C7A.l	;33FC000500007C7A
-adrCd007CD0:	lea	Trigger_00_t00_Null.l,a0	;41F900007CF0
-	add.w	TriggerOffsets(pc,d2.w),a0	;D0FB201A
+adrCd007CC8:
+	move.w	#$0005,adrW_007C7A.l	;33FC000500007C7A
+adrCd007CD0:
+	lea	Trigger_00_t00_Null.l,a0	;41F900007CF0
+	add.w	Triggers_LookupTable(pc,d2.w),a0	;D0FB201A
 	movem.l	d0/d7/a6,-(sp)	;48E78102
 	jsr	(a0)	;4E90
 	move.w	adrW_007C7A.l,d0	;303900007C7A
@@ -10317,36 +10364,37 @@ adrCd007CD0:	lea	Trigger_00_t00_Null.l,a0	;41F900007CF0
 adrCd007CEC:	movem.l	(sp)+,d0/d7/a6	;4CDF4081
 Trigger_00_t00_Null:	rts	;4E75
 
-TriggerOffsets:	dc.w	Trigger_00_t00_Null-Trigger_00_t00_Null	;0000
+Triggers_LookupTable:
+	dc.w	Trigger_00_t00_Null-Trigger_00_t00_Null	;0000
 	dc.w	TriggerAction_02_Spinner-Trigger_00_t00_Null	;06AE
-	dc.w	adrJC0083A6-Trigger_00_t00_Null	;06B6
-	dc.w	adrJC0083D4-Trigger_00_t00_Null	;06E4
-	dc.w	adrJC00849E-Trigger_00_t00_Null	;07AE
-	dc.w	adrJC00858E-Trigger_00_t00_Null	;089E
-	dc.w	adrJC00835E-Trigger_00_t00_Null	;066E
-	dc.w	adrJC008376-Trigger_00_t00_Null	;0686
-	dc.w	adrJC00838E-Trigger_00_t00_Null	;069E
-	dc.w	adrJC0080C0-Trigger_00_t00_Null	;03D0
-	dc.w	adrJC00803E-Trigger_00_t00_Null	;034E
-	dc.w	adrJC006934-Trigger_00_t00_Null	;EC44
-	dc.w	adrJC0083C0-Trigger_00_t00_Null	;06D0
-	dc.w	adrJC0083FC-Trigger_00_t00_Null	;070C
-	dc.w	adrJC00840E-Trigger_00_t00_Null	;071E
-	dc.w	adrJC00691A-Trigger_00_t00_Null	;EC2A
-	dc.w	adrJC008432-Trigger_00_t00_Null	;0742
-	dc.w	adrJC008474-Trigger_00_t00_Null	;0784
-	dc.w	adrJC0083F8-Trigger_00_t00_Null	;0708
+	dc.w	Trigger_02_t04_SpinnerRandom-Trigger_00_t00_Null	;06B6
+	dc.w	Switch_03_s06_Trigger_03_t06_OpenLockedDoorXY-Trigger_00_t00_Null	;06E4
+	dc.w	Trigger_04_t08-Trigger_00_t00_Null	;07AE
+	dc.w	Trigger_05_t0A-Trigger_00_t00_Null	;089E
+	dc.w	Trigger_06_t0C_WoodTrap1-Trigger_00_t00_Null	;066E
+	dc.w	Trigger_07_t0E_WoodTrap2-Trigger_00_t00_Null	;0686
+	dc.w	Trigger_08_t10-Trigger_00_t00_Null	;069E
+	dc.w	Trigger_09_t12-Trigger_00_t00_Null	;03D0
+	dc.w	Trigger_10_t14-Trigger_00_t00_Null	;034E
+	dc.w	Switch_01_s02_Trigger_11_t16_RemoveXY-Trigger_00_t00_Null	;EC44
+	dc.w	Trigger_12_t18-Trigger_00_t00_Null	;06D0
+	dc.w	Switch05_s0A_Trigger_13_t1A_TogglePillarXY-Trigger_00_t00_Null	;070C
+	dc.w	Trigger_14_t1C-Trigger_00_t00_Null	;071E
+	dc.w	Switch_00_s00_Trigger_15_t1E_ToggleWallXY-Trigger_00_t00_Null	;EC2A
+	dc.w	Trigger_16_t20-Trigger_00_t00_Null	;0742
+	dc.w	Trigger_17_t22-Trigger_00_t00_Null	;0784
+	dc.w	Switch06_s0C_Trigger_18_t24_CreatePillarXY-Trigger_00_t00_Null	;0708
 	dc.w	adrJC00803C-Trigger_00_t00_Null	;034C
 	dc.w	adrJC00803C-Trigger_00_t00_Null	;034C
-	dc.w	adrJC008312-Trigger_00_t00_Null	;0622
-	dc.w	adrJC008340-Trigger_00_t00_Null	;0650
-	dc.w	adrJC00691E-Trigger_00_t00_Null	;EC2E
+	dc.w	Trigger_21_t2A-Trigger_00_t00_Null	;0622
+	dc.w	Switch_04_s08_Trigger_22_t2C_RotateWallXY-Trigger_00_t00_Null	;0650
+	dc.w	Switch_02_s04_Trigger_23_t2E-Trigger_00_t00_Null	;EC2E
 	dc.w	adrJC0083B4-Trigger_00_t00_Null	;06C4
-	dc.w	adrJC0082C8-Trigger_00_t00_Null	;05D8
-	dc.w	adrJC008426-Trigger_00_t00_Null	;0736
-	dc.w	adrJC0083E8-Trigger_00_t00_Null	;06F8
-	dc.w	adrJC0082BC-Trigger_00_t00_Null	;05CC
-	dc.w	adrJC0081A2-Trigger_00_t00_Null	;04B2
+	dc.w	Trigger_24_t30_Spinner3-Trigger_00_t00_Null	;05D8
+	dc.w	Trigger_25_t32-Trigger_00_t00_Null	;0736
+	dc.w	Switch_07_s0E_Trigger_26_t34_RotateWoodXY-Trigger_00_t00_Null	;06F8
+	dc.w	Trigger_27_t36-Trigger_00_t00_Null	;05CC
+	dc.w	Trigger_28_t38_GameCompletion-Trigger_00_t00_Null	;04B2
 	dc.w	adrJC00818A-Trigger_00_t00_Null	;049A
 	dc.w	adrJC007F34-Trigger_00_t00_Null	;0244
 	dc.w	adrJC008002-Trigger_00_t00_Null	;0312
@@ -10690,7 +10738,8 @@ adrB_008038:	dc.b	$00	;00
 
 adrJC00803C:	rts	;4E75
 
-adrJC00803E:	tst.w	Multiplayer.l	;4A790000F98C
+Trigger_10_t14:
+	tst.w	Multiplayer.l	;4A790000F98C
 	beq.s	adrJC00803C	;67F6
 	pea	$00(a1,d1.w)	;48711000
 	bsr	adrCd008614	;610005C8
@@ -10725,7 +10774,8 @@ adrCd008068:	add.w	d0,d0	;D040
 	bset	#$07,$01(a6,d0.w)	;08F600070001
 	bra	adrCd000D42	;60008C84
 
-adrJC0080C0:	tst.w	Multiplayer.l	;4A790000F98C
+Trigger_09_t12:
+	tst.w	Multiplayer.l	;4A790000F98C
 	bmi.s	adrCd0080DC	;6B14
 	pea	$00(a1,d1.w)	;48711000
 	bsr	adrCd006950	;6100E882
@@ -10793,41 +10843,47 @@ adrJC00818A:	move.l	adrL_00F9D4.l,a6	;2C790000F9D4
 	move.b	$0014(a6),d0	;102E0014
 	and.b	$001C(a6),d0	;C02E001C
 	btst	#$00,d0	;08000000
-	bne	adrJC006934	;6600E796
+	bne	Switch_01_s02_Trigger_11_t16_RemoveXY	;6600E796
 	rts	;4E75
 
-adrJC0081A2:	move.l	a5,-(sp)	;2F0D
-	bsr.s	adrCd00820A	;6164
+Trigger_28_t38_GameCompletion:
+	move.l	a5,-(sp)	;2F0D
+	bsr.s	GameEndPicture	;6164
 	clr.w	adrB_0099EE.l	;4279000099EE
 	bsr	adrCd009A9A	;610018EC
 	bsr	adrCd009B54	;610019A2
 	moveq	#$4B,d0	;704B
-adrLp0081B6:	dbra	d1,adrLp0081B6	;51C9FFFE
-	dbra	d0,adrLp0081B6	;51C8FFFA
+DBFWait1d:
+	dbra	d1,DBFWait1d	;51C9FFFE
+	dbra	d0,DBFWait1d	;51C8FFFA
 	lea	Player1_Data.l,a5	;4BF90000F9D8
 	bsr	adrCd00D9B4	;610057EE
 	lea	adrEA00D3DD.l,a6	;4DF90000D3DD
 	bsr	adrCd00DA6E	;6100589E
 	tst.w	Multiplayer.l	;4A790000F98C
-	bne.s	adrCd0081EE	;6614
+	bne.s	.Player2Skip	;6614
 	lea	Player2_Data.l,a5	;4BF90000FA3A
 	bsr	adrCd00D9B4	;610057D2
 	lea	adrEA00D3DD.l,a6	;4DF90000D3DD
 	bsr	adrCd00DA6E	;61005882
-adrCd0081EE:	bsr	adrCd009A9A	;610018AA
+.Player2Skip:
+	bsr	adrCd009A9A	;610018AA
 	bsr	adrCd009B54	;61001960
 	move.w	#$FFFF,adrB_0099EE.l	;33FCFFFF000099EE
-adrCd0081FE:	tst.b	adrB_0099EE.l	;4A39000099EE
+adrCd0081FE:
+	tst.b	adrB_0099EE.l	;4A39000099EE
 	bne.s	adrCd0081FE	;66F8
 	move.l	(sp)+,a5	;2A5F
 	rts	;4E75
 
-adrCd00820A:	lea	Player1_Data.l,a5	;4BF90000F9D8
+GameEndPicture:
+	lea	Player1_Data.l,a5	;4BF90000F9D8
 	tst.w	Multiplayer.l	;4A790000F98C
-	bne.s	adrCd008220	;6608
-	bsr.s	adrCd008220	;6106
+	bne.s	.GameEnd_repeat	;6608
+	bsr.s	.GameEnd_repeat	;6106
 	lea	Player2_Data.l,a5	;4BF90000FA3A
-adrCd008220:	clr.w	$0014(a5)	;426D0014
+.GameEnd_repeat:
+	clr.w	$0014(a5)	;426D0014
 	move.w	#$FFFF,$0042(a5)	;3B7CFFFF0042
 	bsr	adrCd008894	;61000668
 	bsr	adrCd008FFC	;61000DCC
@@ -10846,26 +10902,27 @@ adrCd008220:	clr.w	$0014(a5)	;426D0014
 	moveq	#$36,d4	;7836
 	bsr	Draw_Entropy	;61003112
 	unlk	a3	;4E5B
-	lea	CompletionText1.l,a6	;4DF900008280
+	lea	VictoriousText.l,a6	;4DF900008280
 	bsr	adrCd00DA6E	;61005800
-	lea	CompletionText2.l,a6	;4DF9000082A8
+	lea	CongratsText.l,a6	;4DF9000082A8
 	bsr	adrCd00D9D6	;6100575E
 	movem.l	(sp)+,d0-d7/a0-a6	;4CDF7FFF
 	rts	;4E75
 
-CompletionText1:	dc.b	'THOU ART VICTORIOUS! I SHALL NOT RETURN'	;54484F552041525420564943544F52494F5553212049205348414C4C204E4F542052455455524E
+VictoriousText:	dc.b	'THOU ART VICTORIOUS! I SHALL NOT RETURN'	;54484F552041525420564943544F52494F5553212049205348414C4C204E4F542052455455524E
 	dc.b	$FF	;FF
-CompletionText2:	dc.b	$FE	;FE
+CongratsText:	dc.b	$FE	;FE
 	dc.b	$0B	;0B
 	dc.b	'CONGRATULATIONS!'	;434F4E47524154554C4154494F4E5321
 	dc.b	$FF	;FF
 	dc.b	$00	;00
 
-adrJC0082BC:	bsr	adrCd006950	;6100E692
+Trigger_27_t36:	bsr	adrCd006950	;6100E692
 	eor.b	#$03,$00(a6,d0.w)	;0A3600030000
 	rts	;4E75
 
-adrJC0082C8:	moveq	#$00,d0	;7000
+Trigger_24_t30_Spinner3:
+	moveq	#$00,d0	;7000
 	move.b	$01(a1,d1.w),d0	;10311001
 	move.w	d0,d6	;3C00
 	bsr	adrCd0092AA	;61000FD8
@@ -10890,7 +10947,7 @@ adrCd0082F0:	bset	#$07,$01(a6,d0.w)	;08F600070001
 	move.l	d0,$0008(sp)	;2F400008
 	rts	;4E75
 
-adrJC008312:	moveq	#$00,d0	;7000
+Trigger_21_t2A:	moveq	#$00,d0	;7000
 	move.b	$01(a1,d1.w),d0	;10311001
 	move.w	d0,d6	;3C00
 	bsr	adrCd0092AA	;61000F8E
@@ -10909,7 +10966,7 @@ adrCd008338:	bsr.s	adrCd0082F0	;61B6
 	moveq	#$10,d7	;7E10
 	bra	adrCd00222A	;60009EEC
 
-adrJC008340:	bsr	adrCd006950	;6100E60E
+Switch_04_s08_Trigger_22_t2C_RotateWallXY:	bsr	adrCd006950	;6100E60E
 	move.b	$01(a6,d0.w),d1	;12360001
 	move.w	d1,d2	;3401
 	and.b	#$CF,d2	;020200CF
@@ -10919,21 +10976,21 @@ adrJC008340:	bsr	adrCd006950	;6100E60E
 	move.b	d2,$01(a6,d0.w)	;1D820001
 	rts	;4E75
 
-adrJC00835E:	
+Trigger_06_t0C_WoodTrap1:	
 	move.l	#$000D000C,d7		;2E3C000D000C
 	bsr	adrCd00926C		;61000F06
 	bset	#$02,$00(a6,d0.w)	;08F600020000
 	bclr	#$06,$02(a6,d0.w)	;08B600060002
 	rts	;4E75
 
-adrJC008376:	
+Trigger_07_t0E_WoodTrap2:	
 	move.l	#$00030000,d7			;2E3C00030000	;Long Addr replaced with Symbol
 	bsr	adrCd00926C		;61000EEE
 	bclr	#$02,$00(a6,d0.w)	;08B600020000
 	bset	#$06,$02(a6,d0.w)	;08F600060002
 	rts				;4E75
 
-adrJC00838E:	subq.w	#$02,d0	;5540
+Trigger_08_t10:	subq.w	#$02,d0	;5540
 	tst.b	$01(a6,d0.w)	;4A360001
 	bmi.s	adrCd00839C	;6B06
 	bset	#$00,$00(a6,d0.w)	;08F600000000
@@ -10942,7 +10999,7 @@ adrCd00839C:	rts	;4E75
 TriggerAction_02_Spinner:	eor.w	#$0002,$0020(a5)	;0A6D00020020
 	rts	;4E75
 
-adrJC0083A6:	bsr	adrCd0061E0	;6100DE38
+Trigger_02_t04_SpinnerRandom:	bsr	RandomGen_BytewithOffset	;6100DE38
 	and.w	#$0003,d0	;02400003
 	move.w	d0,$0020(a5)	;3B400020
 	rts	;4E75
@@ -10951,39 +11008,46 @@ adrJC0083B4:	addq.w	#$01,$0020(a5)	;526D0020
 	and.w	#$0003,$0020(a5)	;026D00030020
 	rts	;4E75
 
-adrJC0083C0:	bsr	adrCd006950	;6100E58E
+Trigger_12_t18:
+	bsr	adrCd006950	;6100E58E
 	bset	#$00,$00(a6,d0.w)	;08F600000000
 	move.w	#$0001,adrW_007C7A.l	;33FC000100007C7A
 	rts	;4E75
 
-adrJC0083D4:	bsr	adrCd006950	;6100E57A
+Switch_03_s06_Trigger_03_t06_OpenLockedDoorXY:
+	bsr	adrCd006950	;6100E57A
 	bclr	#$00,$00(a6,d0.w)	;08B600000000
 	move.w	#$0001,adrW_007C7A.l	;33FC000100007C7A
 	rts	;4E75
 
-adrJC0083E8:	bsr	adrCd006950	;6100E566
+Switch_07_s0E_Trigger_26_t34_RotateWoodXY:
+	bsr	adrCd006950	;6100E566
 	move.b	$00(a6,d0.w),d1	;12360000
 	ror.b	#$02,d1	;E419
 	move.b	d1,$00(a6,d0.w)	;1D810000
 	rts	;4E75
 
-adrJC0083F8:	bsr	adrJC006934	;6100E53A
-adrJC0083FC:	bsr	adrCd006950	;6100E552
+Switch06_s0C_Trigger_18_t24_CreatePillarXY:
+	bsr	Switch_01_s02_Trigger_11_t16_RemoveXY	;6100E53A
+Switch05_s0A_Trigger_13_t1A_TogglePillarXY:
+	bsr	adrCd006950	;6100E552
 	move.b	#$01,$00(a6,d0.w)	;1DBC00010000
 	eor.b	#$03,$01(a6,d0.w)	;0A3600030001
 	rts	;4E75
 
-adrJC00840E:	bsr	adrCd006950	;6100E540
+Trigger_14_t1C:
+	bsr	adrCd006950	;6100E540
 	move.b	$01(a1,d1.w),$00(a6,d0.w)	;1DB110010000
 	and.b	#$F8,$01(a6,d0.w)	;023600F80001
 	or.b	#$06,$01(a6,d0.w)	;003600060001
 	rts	;4E75
 
-adrJC008426:	bsr	adrCd006950	;6100E528
+Trigger_25_t32:
+	bsr	adrCd006950	;6100E528
 	eor.b	#$06,$01(a6,d0.w)	;0A3600060001
 	rts	;4E75
 
-adrJC008432:	moveq	#$00,d6	;7C00
+Trigger_16_t20:	moveq	#$00,d6	;7C00
 	move.b	$01(a1,d1.w),d6	;1C311001
 	move.w	d1,-(sp)	;3F01
 	bsr	adrCd0092CC	;61000E90
@@ -10992,17 +11056,17 @@ adrJC008432:	moveq	#$00,d6	;7C00
 	lea	adrEA006434.l,a0	;41F900006434
 	add.b	$08(a0,d6.w),d7	;DE306008
 	cmp.w	adrW_00F9CE.l,d7	;BE790000F9CE
-	bcc	adrJC006934	;6400E4E0
+	bcc	Switch_01_s02_Trigger_11_t16_RemoveXY	;6400E4E0
 	swap	d7	;4847
 	add.b	$00(a0,d6.w),d7	;DE306000
 	cmp.w	adrW_00F9CC.l,d7	;BE790000F9CC
-	bcc	adrJC006934	;6400E4D0
+	bcc	Switch_01_s02_Trigger_11_t16_RemoveXY	;6400E4D0
 	swap	d7	;4847
 	bsr	adrCd00926C	;61000E02
 	eor.b	#$06,$01(a6,d0.w)	;0A3600060001
 	rts	;4E75
 
-adrJC008474:	bsr	adrCd0092CC	;61000E56
+Trigger_17_t22:	bsr	adrCd0092CC	;61000E56
 	move.l	d2,d7	;2E02
 	subq.b	#$01,d7	;5307
 	bsr	adrCd00926C	;61000DEE
@@ -11015,7 +11079,7 @@ adrJC008474:	bsr	adrCd0092CC	;61000E56
 	and.w	#$00F8,$00(a6,d0.w)	;027600F80000
 	rts	;4E75
 
-adrJC00849E:
+Trigger_04_t08:
 	addq.w	#$02,d0	;5440
 	tst.b	$01(a6,d0.w)	;4A360001
 	bmi	Trigger_00_t00_Null	;6B00F84A
@@ -11092,7 +11156,7 @@ adrCd008582:	bsr	adrCd008894	;61000310
 	move.l	(sp)+,a5	;2A5F
 	rts	;4E75
 
-adrJC00858E:
+Trigger_05_t0A:
 	subq.w	#$02,d0	;5540
 	bset	#$00,$00(a6,d0.w)	;08F600000000
 	addq.w	#$02,d0	;5440
@@ -11117,13 +11181,16 @@ adrLp0085B0:
 	move.w	#$0005,$0006(a4)	;397C00050006
 	move.w	(sp)+,d0	;301F
 	moveq	#$03,d1	;7203
-adrLp0085E0:	tst.b	$26(a5,d1.w)	;4A351026
+adrLp0085E0:
+	tst.b	$26(a5,d1.w)	;4A351026
 	bmi.s	adrCd0085EC	;6B06
 	dbra	d1,adrLp0085E0	;51C9FFF8
 	moveq	#$00,d1	;7200
-adrCd0085EC:	and.b	#$0F,$18(a5,d0.w)	;0235000F0018
+adrCd0085EC:
+	and.b	#$0F,$18(a5,d0.w)	;0235000F0018
 	move.b	$18(a5,d0.w),$26(a5,d1.w)	;1BB500181026
-adrCd0085F8:	dbra	d0,adrLp0085B0	;51C8FFB6
+adrCd0085F8:
+	dbra	d0,adrLp0085B0	;51C8FFB6
 	move.w	#$FFFF,$0042(a5)	;3B7CFFFF0042
 	move.w	#$FFFF,$0040(a5)	;3B7CFFFF0040
 	clr.b	$003E(a5)	;422D003E
@@ -11173,7 +11240,8 @@ adrCd008686:	move.b	$0000(a4),(a3)+	;16EC0000
 	asl.w	#$02,d3	;E543
 	add.w	d3,a6	;DCC3
 	moveq	#$03,d2	;7403
-adrLp0086A8:	moveq	#$00,d0	;7000
+adrLp0086A8:
+	moveq	#$00,d0	;7000
 	move.b	$00(a6,d2.w),d0	;10362000
 	bmi.s	adrCd0086C0	;6B10
 	add.b	d0,d0	;D000
@@ -13243,7 +13311,7 @@ adrCd009DCC:	move.b	$0015(a4),d0	;102C0015
 	not.w	d2	;4642
 	and.w	#$0003,d2	;02420003
 	bne.s	adrCd009DFC	;6612
-	bsr	adrCd0061E0	;6100C3F4
+	bsr	RandomGen_BytewithOffset	;6100C3F4
 	move.b	(a4),d2	;1414
 	asl.b	#$03,d2	;E702
 	moveq	#$00,d1	;7200
@@ -13696,7 +13764,7 @@ adrCd00A284:	lsr.w	#$01,d6	;E24E
 	moveq	#$01,d1	;7201
 	bra	adrCd00A03C	;6000FDB2
 
-adrCd00A28C:	bsr	adrCd0061E0	;6100BF52
+adrCd00A28C:	bsr	RandomGen_BytewithOffset	;6100BF52
 	and.w	#$0004,d0	;02400004
 	move.l	adrL_00A2A4(pc,d0.w),adrEA00C356.l	;23FB000E0000C356
 	move.b	#$02,-$0012(a3)	;177C0002FFEE
@@ -13947,20 +14015,20 @@ adrCd00A48E:	move.w	-$000A(a3),d0	;302BFFF6
 	move.b	$00(a0,d3.w),d4	;18303000
 adrCd00A4F2:	cmp.b	#$80,d4	;0C040080
 	beq	adrCd00A450	;6700FF58
-	lea	adrEA00F1F8.l,a6	;4DF90000F1F8
+	lea	ObjectColourSets.l,a6	;4DF90000F1F8
 	moveq	#$00,d3	;7600
 	move.b	$00(a6,d2.w),d3	;16362000
 	asl.w	#$02,d3	;E543
-	lea	adrEA00F266.l,a6	;4DF90000F266
+	lea	FloorObjectPalettes.l,a6	;4DF90000F266
 	move.l	$00(a6,d3.w),adrEA00C356.l	;23F630000000C356
-	lea	adrEA00F102.l,a0	;41F90000F102
+	lea	ObjectFloorShapeTable.l,a0	;41F90000F102
 	move.b	$00(a0,d2.w),d3	;16302000
 	move.w	d3,d6	;3C03
 	asl.w	#$02,d6	;E546
 	add.w	d3,d6	;DC43
 	add.w	d0,d6	;DC40
 	add.w	d6,d6	;DC46
-	lea	adrEA00F326.l,a0	;41F90000F326
+	lea	FloorObjectGraphicOffsets.l,a0	;41F90000F326
 	lea	_GFX_ObjectsOnFloor.l,a1	;43F90002F948
 	add.w	$00(a0,d6.w),a1	;D2F06000
 	cmp.b	#$12,d3	;0C030012
@@ -13972,7 +14040,7 @@ adrCd00A544:	moveq	#$00,d7	;7E00
 	move.b	adrB_00A586(pc,d0.w),d7	;1E3B0038
 adrCd00A550:	swap	d7	;4847
 	lsr.w	#$01,d6	;E24E
-	lea	adrEA00F170.l,a0	;41F90000F170
+	lea	FloorObjectShapeHeights.l,a0	;41F90000F170
 	move.b	$00(a0,d6.w),d7	;1E306000
 	lea	adrEA00A5EC.l,a0	;41F90000A5EC
 	add.b	$00(a0,d6.w),d5	;DA306000
@@ -14262,7 +14330,7 @@ adrCd00A7C4:	move.b	$000B(a1),-$0017(a3)	;1769000BFFE9
 	cmp.b	#$1A,-$0017(a3)	;0C2B001AFFE9
 	bne.s	adrCd00A7E6	;6614
 	move.w	d1,d3	;3601
-	bsr	adrCd0061E0	;6100BA0A
+	bsr	RandomGen_BytewithOffset	;6100BA0A
 	move.w	d3,d1	;3203
 	and.w	#$0001,d0	;02400001
 	add.w	#$001A,d0	;0640001A
@@ -15977,7 +16045,7 @@ adrCd00B69E:	move.l	a0,-(sp)	;2F08
 	bmi.s	adrCd00B6E4	;6B22
 	cmp.w	#$0003,d1	;0C410003
 	bcc.s	adrCd00B6E4	;641C
-	bsr	adrCd0061E0	;6100AB16
+	bsr	RandomGen_BytewithOffset	;6100AB16
 	move.b	d0,d1	;1200
 	and.w	#$000C,d1	;0241000C
 	bne.s	adrCd00B6E4	;6610
@@ -18691,7 +18759,7 @@ adrEA00CE44:	dc.w	$0018	;0018
 	dc.w	$100F	;100F
 	dc.w	$0135	;0135
 
-adrJC00CEB4:	tst.w	$0024(a5)	;4A6D0024
+Click_TurnSpellBookPage:	tst.w	$0024(a5)	;4A6D0024
 	bne	adrCd006244	;6600938A
 	tst.b	$000F(a5)	;4A2D000F
 	bpl.s	adrCd00CEEE	;6A2C
@@ -19026,7 +19094,7 @@ adrCd00D2DE:	moveq	#$00,d0	;7000
 	bcc.s	adrCd00D304	;6418
 	move.b	$0016(a4),d0	;102C0016
 	beq.s	adrCd00D304	;6712
-	lea	adrEA00EF4B.l,a1	;43F90000EF4B
+	lea	ObjectDefinitionsTable+$1.l,a1	;43F90000EF4B
 	asl.w	#$02,d0	;E540
 	move.b	$00(a1,d0.w),d3	;16310000
 	moveq	#$1A,d0	;701A
@@ -19080,7 +19148,7 @@ adrCd00D35A:	tst.w	d0	;4A40
 	bpl.s	adrCd00D386	;6A02
 	moveq	#$68,d0	;7068
 adrCd00D386:	asl.w	#$02,d0	;E540
-	lea	adrEA00EF4A.l,a1	;43F90000EF4A
+	lea	ObjectDefinitionsTable.l,a1	;43F90000EF4A
 	moveq	#$00,d3	;7600
 	move.b	$01(a1,d0.w),d3	;16310001
 	move.b	$00(a1,d0.w),d0	;10310000
@@ -20642,7 +20710,7 @@ adrLp00E28A:	add.w	d5,a3	;D6C5
 	dbra	d0,adrLp00E28A	;51C8FFFA
 	rts	;4E75
 
-adrCd00E294:	lea	adrEA00ECEE.l,a3	;47F90000ECEE
+adrCd00E294:	lea	ObjectsDictionary.l,a3	;47F90000ECEE
 	cmp.b	#$45,d0	;0C000045
 	bcs.s	adrCd00E2AE	;650E
 	cmp.b	#$55,d0	;0C000055
@@ -21511,7 +21579,8 @@ adrEA00E734:	dc.b	$07	;07
 	dc.b	'TOKEN'	;544F4B454E
 	dc.b	$01	;01
 	dc.b	'I'	;49
-adrEA00ECEE:	dc.b	$05	;05
+ObjectsDictionary:
+	dc.b	$05	;05
 	dc.b	'EMPTY'	;454D505459
 	dc.b	$04	;04
 	dc.b	'SLOT'	;534C4F54
@@ -21687,9 +21756,9 @@ adrEA00ECEE:	dc.b	$05	;05
 	dc.b	'TAN'	;54414E
 	dc.b	$03	;03
 	dc.b	'GEM',0	;47454D00
-adrEA00EF4A:	dc.b	$00	;00
-adrEA00EF4B:	dc.b	$00	;00
-adrEA00EF4C:	dc.w	$0001	;0001
+ObjectDefinitionsTable:	dc.b	$00	;00
+	dc.b	$00	;00
+	dc.w	$0001	;0001
 	dc.w	$0100	;0100
 	dc.w	$02FF	;02FF
 	dc.w	$0200	;0200
@@ -21908,7 +21977,7 @@ adrEA00EF4C:	dc.w	$0001	;0001
 	dc.w	$0D3F	;0D3F
 	dc.w	$6000	;6000
 	dc.w	$3455	;3455
-adrEA00F102:	dc.w	$FF02	;FF02
+ObjectFloorShapeTable:	dc.w	$FF02	;FF02
 	dc.w	$0116	;0116
 	dc.w	$160A	;160A
 	dc.w	$0A03	;0A03
@@ -21963,7 +22032,7 @@ adrEA00F102:	dc.w	$FF02	;FF02
 	dc.w	$0C0C	;0C0C
 	dc.w	$0C0C	;0C0C
 	dc.w	$0C10	;0C10
-adrEA00F170:	dc.w	$0806	;0806
+FloorObjectShapeHeights:	dc.w	$0806	;0806
 	dc.w	$0503	;0503
 	dc.w	$0204	;0204
 	dc.w	$0302	;0302
@@ -22031,7 +22100,7 @@ adrEA00F170:	dc.w	$0806	;0806
 	dc.w	$0605	;0605
 	dc.w	$0403	;0403
 	dc.w	$0200	;0200
-adrEA00F1F8:	dc.w	$0000	;0000
+ObjectColourSets:	dc.w	$0000	;0000
 	dc.w	$0B24	;0B24
 	dc.w	$1C00	;1C00
 	dc.w	$0000	;0000
@@ -22086,7 +22155,7 @@ adrEA00F1F8:	dc.w	$0000	;0000
 	dc.w	$0008	;0008
 	dc.w	$0D0C	;0D0C
 	dc.w	$0900	;0900
-adrEA00F266:	dc.w	$0004	;0004
+FloorObjectPalettes:	dc.w	$0004	;0004
 	dc.w	$080C	;080C
 	dc.w	$0004	;0004
 	dc.w	$0805	;0805
@@ -22182,7 +22251,7 @@ adrEA00F266:	dc.w	$0004	;0004
 	dc.w	$0203	;0203
 	dc.w	$000C	;000C
 	dc.w	$090C	;090C
-adrEA00F326:	dc.w	$0000	;0000
+FloorObjectGraphicOffsets:	dc.w	$0000	;0000
 	dc.w	$0048	;0048
 	dc.w	$0080	;0080
 	dc.w	$00B0	;00B0
@@ -167786,6 +167855,6 @@ ReserveSpace_2:	dc.w	$0000	;0000
 	dc.w	$0000	;0000
 	dc.w	$0000	;0000
 	dc.w	$0000	;0000
-
+GameEnd:
 	end
 
