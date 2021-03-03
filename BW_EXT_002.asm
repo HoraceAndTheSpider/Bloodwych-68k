@@ -940,7 +940,8 @@ adrCd000E9E:	bsr	adrCd0072D0	;61006430
 	move.w	d0,$0058(a5)	;3B400058
 adrCd000ED2:	rts	;4E75
 
-adrCd000ED4:	move.w	adrW_00F98A.l,d0	;30390000F98A
+adrCd000ED4:
+	move.w	adrW_00F98A.l,d0	;30390000F98A
 	add.w	d0,d0	;D040
 	lea	adrEA000F02.l,a0	;41F900000F02
 	lea	serpex.map.l,a6	;4DF90000FA9C
@@ -8206,7 +8207,8 @@ adrW_00665E:
 	dc.w	Actions_X-Actions_0	;0022
 	dc.w	Actions_5-Actions_0	;00D0
 
-Actions_0:	moveq	#$06,d4	;7806
+Actions_0:
+	moveq	#$06,d4	;7806
 	moveq	#$12,d6	;7C12
 	bsr	adrCd0066FC	;61000088
 	cmp.w	#$0003,adrW_00F98A.l	;0C7900030000F98A
@@ -14607,10 +14609,12 @@ adrCd00AA2E:	add.w	$00(a2,d1.w),a1	;D2F21000
 	move.l	(sp)+,a3	;265F
 	rts	;4E75
 
-adrEA00AA7E:	dc.w	$0000	;0000
+adrEA00AA7E:
+	dc.w	$0000	;0000
 	dc.w	$0101	;0101
 	dc.w	$0203	;0203
-adrEA00AA84:	dc.w	$0000	;0000
+adrEA00AA84:
+	dc.w	$0000	;0000
 	dc.w	$01A0	;01A0
 	dc.w	$0220	;0220
 	dc.w	$0278	;0278
@@ -14622,7 +14626,9 @@ adrEA00AA84:	dc.w	$0000	;0000
 	dc.w	$000A	;000A
 	dc.w	$020D	;020D
 	dc.w	$0007	;0007
-adrEA00AA9C:	dc.w	$0000	;0000
+
+adrEA00AA9C:
+	dc.w	$0000	;0000
 	dc.w	$01B0	;01B0
 	dc.w	$0228	;0228
 	dc.w	$0280	;0280
@@ -14634,12 +14640,15 @@ adrEA00AA9C:	dc.w	$0000	;0000
 	dc.w	$000A	;000A
 	dc.w	$010E	;010E
 	dc.w	$0006	;0006
-adrB_00AAB4:	dc.b	$00	;00
+
+adrB_00AAB4:
+	dc.b	$00	;00
 	dc.b	$01	;01
 	dc.b	$02	;02
 	dc.b	$81	;81
 
-adrCd00AAB8:	move.w	d1,d2	;3401
+adrCd00AAB8:
+	move.w	d1,d2	;3401
 	add.w	d2,d2	;D442
 	add.w	d1,d2	;D441
 	moveq	#$00,d6	;7C00
@@ -14658,7 +14667,8 @@ adrCd00AAC8:	and.w	#$007F,d3	;0243007F
 	move.b	$06(a0,d1.w),d7	;1E301006
 	rts	;4E75
 
-adrCd00AAE8:	lea	adrEA00ACD6.l,a2	;45F90000ACD6
+adrCd00AAE8:
+	lea	adrEA00ACD6.l,a2	;45F90000ACD6
 	lea	adrEA00ABD6.l,a0	;41F90000ABD6
 	lea	adrEA041DC8.l,a1	;43F900041DC8
 	bsr.s	adrCd00AAB8	;61BC
@@ -15550,7 +15560,8 @@ adrCd00B28E:	move.w	d1,d2	;3401
 	bpl.s	adrCd00B2A0	;6A04
 	moveq	#-$01,d6	;7CFF
 	moveq	#$01,d3	;7601
-adrCd00B2A0:	add.b	d3,d2	;D403
+adrCd00B2A0:
+	add.b	d3,d2	;D403
 	moveq	#$00,d7	;7E00
 	move.b	adrB_00B26C(pc,d2.w),d7	;1E3B20C6
 	swap	d7	;4847
@@ -15571,13 +15582,15 @@ adrCd00B2A0:	add.b	d3,d2	;D403
 	movem.w	(sp)+,d0/d1/d4/d5	;4C9F0033
 adrCd00B2E4:	rts	;4E75
 
-adrB_00B2E6:	dc.b	$20	;20
+adrB_00B2E6:
+	dc.b	$20	;20
 	dc.b	$0E	;0E
 	dc.b	$10	;10
 	dc.b	$07	;07
 	dc.b	$04	;04
 	dc.b	$00	;00
-adrEA00B2EC:	dc.w	$0000	;0000
+adrEA00B2EC:
+	dc.w	$0000	;0000
 	dc.w	$0320	;0320
 	dc.w	$0BB8	;0BB8
 	dc.w	$0F18	;0F18
@@ -15592,7 +15605,8 @@ adrEA00B2EC:	dc.w	$0000	;0000
 	dc.w	$1FA0	;1FA0
 	dc.w	$2020	;2020
 	dc.w	$2120	;2120
-adrEA00B30A:	dc.w	$21A0	;21A0
+adrEA00B30A:
+	dc.w	$21A0	;21A0
 	dc.w	$2248	;2248
 	dc.w	$2300	;2300
 	dc.w	$2430	;2430
@@ -15605,20 +15619,24 @@ adrEA00B30A:	dc.w	$21A0	;21A0
 	dc.w	$2888	;2888
 	dc.w	$28D8	;28D8
 
-adrJC00B322:	lea	behemoth.colours.l,a0	;41F90000B346
+adrJC00B322:
+	lea	behemoth.colours.l,a0	;41F90000B346
 	moveq	#$0E,d3	;760E
 	bsr	adrCd00ACAA	;6100F97E
 	lea	adrEA00B4B8.l,a0	;41F90000B4B8
-adrCd00B334:	move.w	#$FFFF,adrW_00C354.l	;33FCFFFF0000C354
+adrCd00B334:
+	move.w	#$FFFF,adrW_00C354.l	;33FCFFFF0000C354
 	bsr.s	adrCd00B39C	;615E
 	clr.w	adrW_00C354.l	;42790000C354
 	rts	;4E75
 
-behemoth.colours:	dc.w	$090B	;090B
+behemoth.colours:
+	dc.w	$090B	;090B
 	dc.w	$0A08	;0A08
 	dc.w	$0304	;0304
 	dc.w	$0507	;0507
-adrEA00B34E:	dc.w	$0002	;0002
+adrEA00B34E:
+	dc.w	$0002	;0002
 	dc.w	$0506	;0506
 	dc.w	$0005	;0005
 	dc.w	$060D	;060D
@@ -15634,26 +15652,29 @@ adrEA00B34E:	dc.w	$0002	;0002
 	dc.w	$0C0B	;0C0B
 	dc.w	$000C	;000C
 	dc.w	$0B0D	;0B0D
-adrEA00B36E:	dc.w	$0000	;0000
+adrEA00B36E:
+	dc.w	$0000	;0000
 	dc.w	$0101	;0101
 	dc.w	$0203	;0203
 
-adrJC00B374:	move.w	adrW_00F98A.l,d2	;34390000F98A
+adrJC00B374:
+	move.w	adrW_00F98A.l,d2	;34390000F98A
 	asl.w	#$03,d2	;E742
 	btst	#$00,-$0017(a3)	;082B0000FFE9
 	bne.s	adrCd00B386	;6602
 	addq.w	#$04,d2	;5842
-adrCd00B386:	lea	adrEA00B34E.l,a6	;4DF90000B34E
+adrCd00B386:
+	lea	adrEA00B34E.l,a6	;4DF90000B34E
 	add.w	d2,a6	;DCC2
 	move.l	(a6),adrEA00C356.l	;23D60000C356
 	lea	adrEA00B454.l,a0	;41F90000B454
 	bra.s	adrCd00B334	;6098
 
-adrCd00B39C:	move.b	adrEA00B36E(pc,d1.w),d1	;123B10D0
+adrCd00B39C:
+	move.b	adrEA00B36E(pc,d1.w),d1	;123B10D0
 	lea	$0042(a0),a2	;45E80042
 
-	; Entropy
-	; lea	_GFX_Entropy.l,a1
+	; Entropy fix
 	move.l	$003E(a0),a1	;2268003E
 	bsr	adrCd00AAB8	;6100F70E
 	add.b	$16(a0,d1.w),d4	;D8301016
@@ -15663,7 +15684,8 @@ adrCd00B39C:	move.b	adrEA00B36E(pc,d1.w),d1	;123B10D0
 	add.w	d1,d2	;D441
 	add.w	d1,d2	;D441
 	add.b	$1A(a0,d2.w),d4	;D830201A
-adrCd00B3BE:	movem.l	d0/d1/d4/d5/d7/a0/a1,-(sp)	;48E7CDC0
+adrCd00B3BE:
+	movem.l	d0/d1/d4/d5/d7/a0/a1,-(sp)	;48E7CDC0
 	bsr	adrCd00B51A	;61000156
 	movem.l	(sp),d0/d1/d4/d5/d7/a0/a1	;4CD703B3
 	btst	#$00,d0	;08000000
@@ -15671,7 +15693,8 @@ adrCd00B3BE:	movem.l	d0/d1/d4/d5/d7/a0/a1,-(sp)	;48E7CDC0
 	moveq	#-$01,d6	;7CFF
 	add.b	$22(a0,d1.w),d4	;D8301022
 	bsr	adrCd00B51A	;61000142
-adrCd00B3DA:	movem.l	(sp)+,d0/d1/d4/d5/d7/a0/a1	;4CDF03B3
+adrCd00B3DA:
+	movem.l	(sp)+,d0/d1/d4/d5/d7/a0/a1	;4CDF03B3
 	cmp.b	#$02,d1	;0C010002
 	bcc.s	adrCd00B450	;646C
 	lea	adrEA00C356.l,a6	;4DF90000C356
@@ -15722,7 +15745,8 @@ adrCd00B450:	rts	;4E75
 
 ;fiX Label expected
 	dc.w	$FFFF	;FFFF
-adrEA00B454:	dc.w	$1008	;1008
+adrEA00B454:
+	dc.w	$1008	;1008
 	dc.w	$F8F8	;F8F8
 	dc.w	$0000	;0000
 	dc.w	$3223	;3223
@@ -15753,8 +15777,12 @@ adrEA00B454:	dc.w	$1008	;1008
 	dc.w	$0B05	;0B05
 	dc.w	$F80B	;F80B
 	dc.w	$040C	;040C
-	dc.w	$0004	;0004
-	dc.w	$8040	;8040
+
+;	dc.w	$0004	;0004
+;	dc.w	$8040	;8040
+	; proper entropy gfx fix
+	dc.l	_GFX_Entropy
+
 	dc.w	$0000	;0000
 	dc.w	$0198	;0198
 	dc.w	$0660	;0660
@@ -23580,10 +23608,14 @@ adrB_00F59B:	dc.b	$FF	;FF
 	dc.b	$00	;00
 adrW_00F986:	dc.w	$0000	;0000
 adrB_00F988:	dc.b	$00	;00
-adrB_00F989:	dc.b	$00	;00
-adrW_00F98A:	dc.b	$00	;00
-adrB_00F98B:	dc.b	$00	;00
-Multiplayer:	dc.w	$FFFF	;FFFF
+adrB_00F989:
+	dc.b	$00	;00
+adrW_00F98A:
+	dc.b	$00	;00
+adrB_00F98B:
+	dc.b	$00	;00
+Multiplayer:
+	dc.w	$FFFF	;FFFF
 adrEA00F98E:	dc.w	$0102	;0102
 	dc.w	$0303	;0303
 adrEA00F992:	dc.w	$0000	;0000
@@ -23617,16 +23649,24 @@ adrEA00F9BC:	dc.w	$0000	;0000
 	dc.w	$0000	;0000
 	dc.w	$0000	;0000
 	dc.w	$0000	;0000
-adrW_00F9CC:	dc.b	$00	;00
-adrB_00F9CD:	dc.b	$00	;00
-adrW_00F9CE:	dc.b	$00	;00
-adrB_00F9CF:	dc.b	$00	;00
+adrW_00F9CC:	
+	dc.b	$00	;00
+adrB_00F9CD:	
+	dc.b	$00	;00
+adrW_00F9CE:	
+	dc.b	$00	;00
+adrB_00F9CF:	
 	dc.b	$00	;00
 	dc.b	$00	;00
-adrW_00F9D2:	dc.w	$0000	;0000
-adrL_00F9D4:	dc.l	AdrEA00FAD4	;0000FAD4
-adrEA00F9D8:	dc.b	$00	;00
-adrB_00F9D9:	dc.b	$00	;00
+	dc.b	$00	;00
+adrW_00F9D2:	
+	dc.w	$0000	;0000
+adrL_00F9D4:	
+	dc.l	AdrEA00FAD4	;0000FAD4
+adrEA00F9D8:	
+	dc.b	$00	;00
+adrB_00F9D9:	
+	dc.b	$00	;00
 	dc.b	$00	;00
 	dc.b	$00	;00
 	dc.b	$00	;00
@@ -166853,7 +166893,8 @@ AudioSample_5:
 	dc.w	$000E	;000E
 	dc.w	$1515	;1515
 	dc.w	$150C	;150C
-adrEA055E88:	dc.w	$0000	;0000
+adrEA055E88:
+	dc.w	$0000	;0000
 	dc.w	$0000	;0000
 	dc.w	$0000	;0000
 	dc.w	$0000	;0000

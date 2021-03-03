@@ -630,7 +630,7 @@ adrCd000AD6:	moveq	#$00,d2	;7400
 	move.b	$000A(a0),$0024(a4)	;1968000A0024
 	and.b	#$07,$0024(a4)	;022C00070024
 	move.b	#$C7,$0014(a4)	;197C00C70014
-	move.b	adrB_00F98B.l,$0023(a4)	;19790000F98B0023
+	move.b	CurrentTower+$1.l,$0023(a4)	;19790000F98B0023
 	move.b	(a4),d2	;1414
 	add.w	d2,d2	;D442
 	add.b	(a4),d2	;D414
@@ -806,7 +806,7 @@ adrCd000D3A:	lea	$0040(a4),a4	;49EC0040
 	dbra	d6,adrLp000CDE	;51CEFF9E
 adrCd000D42:	bsr	adrCd0009FE	;6100FCBA
 	lea	DroppedObjects.l,a2	;45F900016568
-	move.w	adrW_00F98A.l,d0	;30390000F98A
+	move.w	CurrentTower.l,d0	;30390000F98A
 	add.w	d0,d0	;D040
 	move.w	$00(a2,d0.w),d0	;30320000
 	lea	$08(a2,d0.w),a2	;45F20008
@@ -820,7 +820,7 @@ adrLp000D6A:	move.l	d6,(a4)+	;28C6
 	move.w	#$01FF,d0	;303C01FF
 adrLp000D7A:	move.l	d6,(a4)+	;28C6
 	dbra	d0,adrLp000D7A	;51C8FFFC
-	move.w	adrW_00F98A.l,d0	;30390000F98A
+	move.w	CurrentTower.l,d0	;30390000F98A
 	move.w	d0,d1	;3200
 	add.w	d0,d0	;D040
 	lea	MonsterTotalsCounts.l,a4	;49F900015960
@@ -940,7 +940,8 @@ adrCd000E9E:	bsr	adrCd0072D0	;61006430
 	move.w	d0,$0058(a5)	;3B400058
 adrCd000ED2:	rts	;4E75
 
-adrCd000ED4:	move.w	adrW_00F98A.l,d0	;30390000F98A
+adrCd000ED4:
+	move.w	CurrentTower.l,d0	;30390000F98A
 	add.w	d0,d0	;D040
 	lea	adrEA000F02.l,a0	;41F900000F02
 	lea	MapData1.l,a6	;4DF90000FA9C
@@ -1593,7 +1594,7 @@ adrCd001738:	rts	;4E75
 adrW_00173A:	dc.w	$0000	;0000
 adrW_00173C:	dc.w	$0000	;0000
 
-adrCd00173E:	move.w	adrW_00F98A.l,d0	;30390000F98A
+adrCd00173E:	move.w	CurrentTower.l,d0	;30390000F98A
 	cmp.b	$0023(a4),d0	;B02C0023
 	bne.s	adrCd001738	;66EE
 	bsr	adrCd002E92	;61001746
@@ -5561,7 +5562,7 @@ adrCd00476C:	move.b	d7,$001B(a4)	;1947001B
 	move.b	d7,$001A(a4)	;1947001A
 	move.b	$0059(a5),$001E(a4)	;196D0059001E
 	move.b	$0021(a5),$001C(a4)	;196D0021001C
-	move.b	adrB_00F98B.l,$0023(a4)	;19790000F98B0023
+	move.b	CurrentTower+$1.l,$0023(a4)	;19790000F98B0023
 adrCd00478A:	jsr	adrCd00E33A.l	;4EB90000E33A
 	bsr	adrCd008FCA	;61004838
 	bra	adrCd003A3E	;6000F2A8
@@ -8146,7 +8147,7 @@ MainWall_Action_02:	moveq	#$00,d1	;7200
 adrCd0065BC:	move.w	d1,-(sp)	;3F01
 	bsr	adrCd00D58C	;61006FCC
 	move.w	(sp)+,d1	;321F
-	move.w	adrW_00F98A.l,d0	;30390000F98A
+	move.w	CurrentTower.l,d0	;30390000F98A
 	add.b	ScrollTowerOffsets(pc,d0.w),d1	;D23B0026
 	lea	adrEA017952.l,a0	;41F900017952
 	lea	$0092(a0),a6	;4DE80092
@@ -8206,10 +8207,11 @@ Sockets_LookupTable:
 	dc.w	Exit_SocketAction-SocketActions_SerpentCrystal	;0022
 	dc.w	Actions_5-SocketActions_SerpentCrystal	;00D0
 
-SocketActions_SerpentCrystal:	moveq	#$06,d4	;7806
+SocketActions_SerpentCrystal:
+	moveq	#$06,d4	;7806
 	moveq	#$12,d6	;7C12
 	bsr	adrCd0066FC	;61000088
-	cmp.w	#$0003,adrW_00F98A.l	;0C7900030000F98A
+	cmp.w	#$0003,CurrentTower.l	;0C7900030000F98A
 	bne.s	.EntropySummoned	;663A
 	move.l	#$00070004,d7	;2E3C00070004
 Last_CrystalAction:
@@ -8222,7 +8224,7 @@ SocketActions_ChaosCrystal:	bclr	#$02,$00(a6,d0.w)	;08B600020000
 	bsr	adrCd009268	;61002BCA
 	bsr	adrCd008598	;61001EF6
 	movem.l	(sp)+,d0/a6	;4CDF4001
-	cmp.w	#$0003,adrW_00F98A.l	;0C7900030000F98A
+	cmp.w	#$0003,CurrentTower.l	;0C7900030000F98A
 	bne.s	.EntropySummoned	;6608
 	move.l	#$00070003,d7	;2E3C00070003
 	bra.s	Last_CrystalAction	;60CC
@@ -8234,7 +8236,7 @@ SocketActions_ChaosCrystal:	bclr	#$02,$00(a6,d0.w)	;08B600020000
 SocketActions_DragonCrystal:	moveq	#$0A,d4	;780A
 	moveq	#$11,d6	;7C11
 	bsr.s	adrCd0066FC	;6132
-	cmp.w	#$0003,adrW_00F98A.l	;0C7900030000F98A
+	cmp.w	#$0003,CurrentTower.l	;0C7900030000F98A
 	bne.s	.EntropySummoned	;66E6
 	move.l	#$00070001,d7	;2E3C00070001
 	bsr.s	Last_CrystalAction	;61AA
@@ -8244,7 +8246,7 @@ SocketActions_DragonCrystal:	moveq	#$0A,d4	;780A
 SocketActions_MoonCrystal:	moveq	#$0C,d4	;780C
 	moveq	#$13,d6	;7C13
 	bsr.s	adrCd0066FC	;6112
-	cmp.w	#$0003,adrW_00F98A.l	;0C7900030000F98A
+	cmp.w	#$0003,CurrentTower.l	;0C7900030000F98A
 	bne.s	.EntropySummoned	;66C6
 	move.l	#$00070002,d7	;2E3C00070002
 	bra.s	Last_CrystalAction	;608A
@@ -8273,7 +8275,7 @@ Actions_5:	lea	TanGemLocs.l,a0	;41F900006792
 	bra.s	TeleportGem	;6006
 
 Actions_4:	lea	BlueGemLocs.l,a0	;41F9000067A2
-TeleportGem:	move.w	adrW_00F98A.l,d1	;32390000F98A
+TeleportGem:	move.w	CurrentTower.l,d1	;32390000F98A
 	asl.w	#$02,d1	;E541
 	add.w	d1,a0	;D0C1
 	moveq	#$00,d6	;7C00
@@ -8321,7 +8323,7 @@ MainWall_Action_03:
 	beq.s	adrJB0067EE	;6730
 	bchg	#$02,$00(a6,d0.w)	;087600020000
 	lsr.b	#$01,d1	;E209
-	move.w	adrW_00F98A.l,d0	;30390000F98A
+	move.w	CurrentTower.l,d0	;30390000F98A
 	asl.w	#$06,d0	;ED40
 	lea	SwitchData_1.l,a1	;43F900006808
 	add.w	d0,a1	;D2C0
@@ -10340,7 +10342,7 @@ adrCd007C96:	move.b	$00(a6,d0.w),d1	;12360000
 	and.w	#$00F8,d1	;024100F8
 	lsr.b	#$01,d1	;E209
 	lea	serpex.triggers.l,a1	;43F900007D34
-	move.w	adrW_00F98A.l,d2	;34390000F98A
+	move.w	CurrentTower.l,d2	;34390000F98A
 	asl.w	#$07,d2	;EF42
 	add.w	d2,a1	;D2C2
 	moveq	#$00,d2	;7400
@@ -10744,11 +10746,11 @@ Trigger_10_t14:
 	pea	$00(a1,d1.w)	;48711000
 	bsr	adrCd008614	;610005C8
 	move.l	(sp)+,a2	;245F
-	move.w	adrW_00F98A.l,d0	;30390000F98A
-	addq.w	#$01,adrW_00F98A.l	;52790000F98A
+	move.w	CurrentTower.l,d0	;30390000F98A
+	addq.w	#$01,CurrentTower.l	;52790000F98A
 	tst.b	$0001(a2)	;4A2A0001
 	bne.s	adrCd008068	;6606
-	subq.w	#$02,adrW_00F98A.l	;55790000F98A
+	subq.w	#$02,CurrentTower.l	;55790000F98A
 adrCd008068:	add.w	d0,d0	;D040
 	add.b	$0001(a2),d0	;D02A0001
 	lea	dungeonex.entrances.l,a0	;41F900008166
@@ -10789,11 +10791,11 @@ adrCd0080DC:	rts	;4E75
 adrCd0080DE:	move.l	a1,-(sp)	;2F09
 	bsr	adrCd008614	;61000532
 	movem.l	(sp)+,a1/a2	;4CDF0600
-	move.w	adrW_00F98A.l,d0	;30390000F98A
-	addq.w	#$01,adrW_00F98A.l	;52790000F98A
+	move.w	CurrentTower.l,d0	;30390000F98A
+	addq.w	#$01,CurrentTower.l	;52790000F98A
 	tst.b	$0001(a2)	;4A2A0001
 	bne.s	adrCd008100	;6606
-	subq.w	#$02,adrW_00F98A.l	;55790000F98A
+	subq.w	#$02,CurrentTower.l	;55790000F98A
 adrCd008100:	add.w	d0,d0	;D040
 	add.b	$0001(a2),d0	;D02A0001
 	lea	dungeonex.entrances.l,a0	;41F900008166
@@ -11130,7 +11132,7 @@ adrCd00851C:	bsr	adrCd0072D4	;6100EDB6
 	move.b	d2,$001A(a4)	;1942001A
 	move.b	d3,$001E(a4)	;1943001E
 	move.b	#$03,$001C(a4)	;197C0003001C
-	move.b	adrB_00F98B.l,$0023(a4)	;19790000F98B0023
+	move.b	CurrentTower+$1.l,$0023(a4)	;19790000F98B0023
 	rts	;4E75
 
 adrCd00853E:	bclr	#$06,$18(a5,d1.w)	;08B500061018
@@ -11198,7 +11200,7 @@ adrCd0085F8:
 	bra	adrCd008FCA	;600009B8
 
 adrCd008614:	bsr	adrCd001404	;61008DEE
-	move.w	adrW_00F98A.l,d0	;30390000F98A
+	move.w	CurrentTower.l,d0	;30390000F98A
 	move.w	d0,d1	;3200
 	add.w	d0,d0	;D040
 	add.w	d0,d1	;D240
@@ -11217,7 +11219,7 @@ adrLp00864E:	move.l	d2,(a0)+	;20C2
 	dbra	d0,adrLp00864E	;51C8FFFC
 	move.l	a3,a0	;204B
 	lea	DroppedObjects.l,a2	;45F900016568
-	move.w	adrW_00F98A.l,d0	;30390000F98A
+	move.w	CurrentTower.l,d0	;30390000F98A
 	add.w	d0,d0	;D040
 	move.w	$00(a2,d0.w),d0	;30320000
 	lea	$08(a2,d0.w),a2	;45F20008
@@ -11366,7 +11368,7 @@ adrCd0087E8:	lea	CharacterStats.l,a1	;43F90000F586
 	swap	d2	;4842
 	rol.w	#$08,d2	;E15A
 	move.b	d0,d2	;1400
-	move.w	adrW_00F98A.l,d3	;36390000F98A
+	move.w	CurrentTower.l,d3	;36390000F98A
 	moveq	#$0F,d0	;700F
 adrLp0087FE:	cmp.b	$0023(a1),d3	;B6290023
 	bne.s	adrCd008810	;660C
@@ -14607,10 +14609,12 @@ adrCd00AA2E:	add.w	$00(a2,d1.w),a1	;D2F21000
 	move.l	(sp)+,a3	;265F
 	rts	;4E75
 
-adrEA00AA7E:	dc.w	$0000	;0000
+adrEA00AA7E:
+	dc.w	$0000	;0000
 	dc.w	$0101	;0101
 	dc.w	$0203	;0203
-adrEA00AA84:	dc.w	$0000	;0000
+adrEA00AA84:
+	dc.w	$0000	;0000
 	dc.w	$01A0	;01A0
 	dc.w	$0220	;0220
 	dc.w	$0278	;0278
@@ -14622,7 +14626,9 @@ adrEA00AA84:	dc.w	$0000	;0000
 	dc.w	$000A	;000A
 	dc.w	$020D	;020D
 	dc.w	$0007	;0007
-adrEA00AA9C:	dc.w	$0000	;0000
+
+adrEA00AA9C:
+	dc.w	$0000	;0000
 	dc.w	$01B0	;01B0
 	dc.w	$0228	;0228
 	dc.w	$0280	;0280
@@ -14634,12 +14640,15 @@ adrEA00AA9C:	dc.w	$0000	;0000
 	dc.w	$000A	;000A
 	dc.w	$010E	;010E
 	dc.w	$0006	;0006
-adrB_00AAB4:	dc.b	$00	;00
+
+adrB_00AAB4:
+	dc.b	$00	;00
 	dc.b	$01	;01
 	dc.b	$02	;02
 	dc.b	$81	;81
 
-adrCd00AAB8:	move.w	d1,d2	;3401
+adrCd00AAB8:
+	move.w	d1,d2	;3401
 	add.w	d2,d2	;D442
 	add.w	d1,d2	;D441
 	moveq	#$00,d6	;7C00
@@ -14658,7 +14667,8 @@ adrCd00AAC8:	and.w	#$007F,d3	;0243007F
 	move.b	$06(a0,d1.w),d7	;1E301006
 	rts	;4E75
 
-Draw_Summon:	lea	adrEA00ACD6.l,a2	;45F90000ACD6
+Draw_Summon:
+	lea	adrEA00ACD6.l,a2	;45F90000ACD6
 	lea	adrEA00ABD6.l,a0	;41F90000ABD6
 	lea	_GFX_Summon.l,a1	;43F900041DC8
 	bsr.s	adrCd00AAB8	;61BC
@@ -15550,7 +15560,8 @@ adrCd00B28E:	move.w	d1,d2	;3401
 	bpl.s	adrCd00B2A0	;6A04
 	moveq	#-$01,d6	;7CFF
 	moveq	#$01,d3	;7601
-adrCd00B2A0:	add.b	d3,d2	;D403
+adrCd00B2A0:
+	add.b	d3,d2	;D403
 	moveq	#$00,d7	;7E00
 	move.b	adrB_00B26C(pc,d2.w),d7	;1E3B20C6
 	swap	d7	;4847
@@ -15571,13 +15582,15 @@ adrCd00B2A0:	add.b	d3,d2	;D403
 	movem.w	(sp)+,d0/d1/d4/d5	;4C9F0033
 adrCd00B2E4:	rts	;4E75
 
-adrB_00B2E6:	dc.b	$20	;20
+adrB_00B2E6:
+	dc.b	$20	;20
 	dc.b	$0E	;0E
 	dc.b	$10	;10
 	dc.b	$07	;07
 	dc.b	$04	;04
 	dc.b	$00	;00
-adrEA00B2EC:	dc.w	$0000	;0000
+adrEA00B2EC:
+	dc.w	$0000	;0000
 	dc.w	$0320	;0320
 	dc.w	$0BB8	;0BB8
 	dc.w	$0F18	;0F18
@@ -15592,7 +15605,8 @@ adrEA00B2EC:	dc.w	$0000	;0000
 	dc.w	$1FA0	;1FA0
 	dc.w	$2020	;2020
 	dc.w	$2120	;2120
-adrEA00B30A:	dc.w	$21A0	;21A0
+adrEA00B30A:
+	dc.w	$21A0	;21A0
 	dc.w	$2248	;2248
 	dc.w	$2300	;2300
 	dc.w	$2430	;2430
@@ -15605,20 +15619,24 @@ adrEA00B30A:	dc.w	$21A0	;21A0
 	dc.w	$2888	;2888
 	dc.w	$28D8	;28D8
 
-Draw_Behemoth:	lea	behemoth.colours.l,a0	;41F90000B346
+Draw_Behemoth:
+	lea	behemoth.colours.l,a0	;41F90000B346
 	moveq	#$0E,d3	;760E
 	bsr	adrCd00ACAA	;6100F97E
 	lea	adrEA00B4B8.l,a0	;41F90000B4B8
-adrCd00B334:	move.w	#$FFFF,adrW_00C354.l	;33FCFFFF0000C354
+adrCd00B334:
+	move.w	#$FFFF,adrW_00C354.l	;33FCFFFF0000C354
 	bsr.s	adrCd00B39C	;615E
 	clr.w	adrW_00C354.l	;42790000C354
 	rts	;4E75
 
-behemoth.colours:	dc.w	$090B	;090B
+behemoth.colours:
+	dc.w	$090B	;090B
 	dc.w	$0A08	;0A08
 	dc.w	$0304	;0304
 	dc.w	$0507	;0507
-adrEA00B34E:	dc.w	$0002	;0002
+MonsterColours_Entropy:
+	dc.w	$0002	;0002
 	dc.w	$0506	;0506
 	dc.w	$0005	;0005
 	dc.w	$060D	;060D
@@ -15634,26 +15652,29 @@ adrEA00B34E:	dc.w	$0002	;0002
 	dc.w	$0C0B	;0C0B
 	dc.w	$000C	;000C
 	dc.w	$0B0D	;0B0D
-adrEA00B36E:	dc.w	$0000	;0000
+adrEA00B36E:
+	dc.w	$0000	;0000
 	dc.w	$0101	;0101
 	dc.w	$0203	;0203
 
-Draw_Entropy:	move.w	adrW_00F98A.l,d2	;34390000F98A
+Draw_Entropy:
+	move.w	CurrentTower.l,d2	;34390000F98A
 	asl.w	#$03,d2	;E742
 	btst	#$00,-$0017(a3)	;082B0000FFE9
 	bne.s	adrCd00B386	;6602
 	addq.w	#$04,d2	;5842
-adrCd00B386:	lea	adrEA00B34E.l,a6	;4DF90000B34E
+adrCd00B386:
+	lea	MonsterColours_Entropy.l,a6	;4DF90000B34E
 	add.w	d2,a6	;DCC2
 	move.l	(a6),adrEA00C356.l	;23D60000C356
 	lea	adrEA00B454.l,a0	;41F90000B454
 	bra.s	adrCd00B334	;6098
 
-adrCd00B39C:	move.b	adrEA00B36E(pc,d1.w),d1	;123B10D0
+adrCd00B39C:
+	move.b	adrEA00B36E(pc,d1.w),d1	;123B10D0
 	lea	$0042(a0),a2	;45E80042
 
-	; Entropy
-	; lea	_GFX_Entropy.l,a1
+	; Entropy fix
 	move.l	$003E(a0),a1	;2268003E
 	bsr	adrCd00AAB8	;6100F70E
 	add.b	$16(a0,d1.w),d4	;D8301016
@@ -15663,7 +15684,8 @@ adrCd00B39C:	move.b	adrEA00B36E(pc,d1.w),d1	;123B10D0
 	add.w	d1,d2	;D441
 	add.w	d1,d2	;D441
 	add.b	$1A(a0,d2.w),d4	;D830201A
-adrCd00B3BE:	movem.l	d0/d1/d4/d5/d7/a0/a1,-(sp)	;48E7CDC0
+adrCd00B3BE:
+	movem.l	d0/d1/d4/d5/d7/a0/a1,-(sp)	;48E7CDC0
 	bsr	adrCd00B51A	;61000156
 	movem.l	(sp),d0/d1/d4/d5/d7/a0/a1	;4CD703B3
 	btst	#$00,d0	;08000000
@@ -15671,7 +15693,8 @@ adrCd00B3BE:	movem.l	d0/d1/d4/d5/d7/a0/a1,-(sp)	;48E7CDC0
 	moveq	#-$01,d6	;7CFF
 	add.b	$22(a0,d1.w),d4	;D8301022
 	bsr	adrCd00B51A	;61000142
-adrCd00B3DA:	movem.l	(sp)+,d0/d1/d4/d5/d7/a0/a1	;4CDF03B3
+adrCd00B3DA:
+	movem.l	(sp)+,d0/d1/d4/d5/d7/a0/a1	;4CDF03B3
 	cmp.b	#$02,d1	;0C010002
 	bcc.s	adrCd00B450	;646C
 	lea	adrEA00C356.l,a6	;4DF90000C356
@@ -15722,7 +15745,8 @@ adrCd00B450:	rts	;4E75
 
 ;fiX Label expected
 	dc.w	$FFFF	;FFFF
-adrEA00B454:	dc.w	$1008	;1008
+adrEA00B454:
+	dc.w	$1008	;1008
 	dc.w	$F8F8	;F8F8
 	dc.w	$0000	;0000
 	dc.w	$3223	;3223
@@ -15753,8 +15777,12 @@ adrEA00B454:	dc.w	$1008	;1008
 	dc.w	$0B05	;0B05
 	dc.w	$F80B	;F80B
 	dc.w	$040C	;040C
-	dc.w	$0004	;0004
-	dc.w	$8040	;8040
+
+;	dc.w	$0004	;0004
+;	dc.w	$8040	;8040
+	; proper entropy gfx fix
+	dc.l	_GFX_Entropy
+
 	dc.w	$0000	;0000
 	dc.w	$0198	;0198
 	dc.w	$0660	;0660
@@ -23580,10 +23608,14 @@ CharacterStats:	dc.w	$0100	;0100
 	dc.b	$00	;00
 adrW_00F986:	dc.w	$0000	;0000
 adrB_00F988:	dc.b	$00	;00
-adrB_00F989:	dc.b	$00	;00
-adrW_00F98A:	dc.b	$00	;00
-adrB_00F98B:	dc.b	$00	;00
-Multiplayer:	dc.w	$FFFF	;FFFF
+adrB_00F989:
+	dc.b	$00	;00
+CurrentTower:
+	dc.b	$00	;00
+
+	dc.b	$00	;00
+Multiplayer:
+	dc.w	$FFFF	;FFFF
 adrEA00F98E:	dc.w	$0102	;0102
 	dc.w	$0303	;0303
 adrEA00F992:	dc.w	$0000	;0000
@@ -23617,16 +23649,24 @@ adrEA00F9BC:	dc.w	$0000	;0000
 	dc.w	$0000	;0000
 	dc.w	$0000	;0000
 	dc.w	$0000	;0000
-adrW_00F9CC:	dc.b	$00	;00
-adrB_00F9CD:	dc.b	$00	;00
-adrW_00F9CE:	dc.b	$00	;00
-adrB_00F9CF:	dc.b	$00	;00
+adrW_00F9CC:	
+	dc.b	$00	;00
+adrB_00F9CD:	
+	dc.b	$00	;00
+adrW_00F9CE:	
+	dc.b	$00	;00
+adrB_00F9CF:	
 	dc.b	$00	;00
 	dc.b	$00	;00
-adrW_00F9D2:	dc.w	$0000	;0000
-adrL_00F9D4:	dc.l	AdrEA00FAD4	;0000FAD4
-Player1_Data:	dc.b	$00	;00
-adrB_00F9D9:	dc.b	$00	;00
+	dc.b	$00	;00
+adrW_00F9D2:	
+	dc.w	$0000	;0000
+adrL_00F9D4:	
+	dc.l	MapData1+$38	;0000FAD4
+Player1_Data:	
+	dc.b	$00	;00
+adrB_00F9D9:	
+	dc.b	$00	;00
 	dc.b	$00	;00
 	dc.b	$00	;00
 	dc.b	$00	;00
@@ -23795,7 +23835,7 @@ MapData1:	dc.w	$0711	;0711
 	dc.w	$0005	;0005
 	dc.w	$0000	;0000
 	dc.w	$0006	;0006
-AdrEA00FAD4:	dc.w	$0001	;0001
+	dc.w	$0001	;0001
 	dc.w	$0204	;0204
 	dc.w	$0000	;0000
 	dc.w	$0001	;0001
@@ -166853,7 +166893,8 @@ AudioSample_5:
 	dc.w	$000E	;000E
 	dc.w	$1515	;1515
 	dc.w	$150C	;150C
-ReserveSpace_1:	dc.w	$0000	;0000
+ReserveSpace_1:
+	dc.w	$0000	;0000
 	dc.w	$0000	;0000
 	dc.w	$0000	;0000
 	dc.w	$0000	;0000
