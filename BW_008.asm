@@ -306,10 +306,15 @@ adrEA00065D:
 	dc.b	$0A	;0A
 	dc.b	$18	;18
 	dc.b	'(C) MIRRORSOFT 1989'	;284329204D4952524F52534F46542031393839
+
+	; USED TO CHECK IF GAME IS RELOCATABLE
+	dc.b	'TEST'	
+
 	dc.b	$FE	;FE
 	dc.b	$06	;06
 	dc.b	$FF	;FF
 
+	EVEN
 adrCd000746:
 	clr.w	MainMenuText.w	;42780656	;Short Absolute converted to symbol!
 	clr.w	MultiPlayer.l	;42790000EE30
@@ -16321,9 +16326,7 @@ adrCd00A54C:
 	move.b	adrEA00A536(pc,d1.w),d1	;123B10E8
 	lea	$0042(a0),a2	;45E80042
 
-	; makes entropy gx relocatable
-	;move.l	$003E(a0),a1	;2268003E    *Fix stored address **
-	lea	_GFX_Entropy.l,a1	;43F900048960    
+	move.l	$003E(a0),a1	;2268003E    *Fix stored address **  
 
 	bsr	adrCd009CA2	;6100F748
 	add.b	$16(a0,d1.w),d4	;D8301016
@@ -16358,9 +16361,7 @@ adrCd00A58A:
 	moveq	#-$01,d6	;7CFF
 adrCd00A5AE:
 	movem.w	d0/d1/d4/d5,-(sp)	;48A7CC00
-	; makes entropy gfx relocatable   *Fix stored address **
-	;move.l	$003E(a0),a1	;2268003E
-	lea	_GFX_Entropy.l,a1	;43F900048960
+	move.l	$003E(a0),a1	;2268003E
 	add.w	d1,d1	;D241
 	moveq	#$00,d3	;7600
 	btst	d2,-$0015(a3)	;052BFFEB
@@ -16431,8 +16432,12 @@ adrEA00A604:
 	dc.w	$0B05	;0B05
 	dc.w	$F80B	;F80B
 	dc.w	$040C	;040C
-	dc.w	$0004	;0004
-	dc.w	$B290	;B290
+
+
+	;dc.w	$0004	;0004
+	;dc.w	$B290	;B290
+	dc.l	_GFX_Entropy
+	
 	dc.w	$0000	;0000
 	dc.w	$0198	;0198
 	dc.w	$0660	;0660

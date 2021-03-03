@@ -306,10 +306,15 @@ MainMenuText:
 	dc.b	$0A	;0A
 	dc.b	$18	;18
 	dc.b	'(C) MIRRORSOFT 1989'	;284329204D4952524F52534F46542031393839
+
+	; USED TO CHECK IF GAME IS RELOCATABLE
+	dc.b	'TEST'	
+
 	dc.b	$FE	;FE
 	dc.b	$06	;06
 	dc.b	$FF	;FF
 
+	EVEN
 MainMenu:
 	clr.w	MainMenuBuffer.w	;42780656	;Short Absolute converted to symbol!
 	clr.w	MultiPlayer.l	;42790000EE30
@@ -3842,9 +3847,9 @@ adrJT002CAE:
 	dc.w	adrJA002DA6-adrJA002CE4	;00C2
 	dc.w	adrJA002DA6-adrJA002CE4	;00C2
 	dc.w	adrJA002DAC-adrJA002CE4	;00C8
-	dc.w	adrJA002DBE-adrJA002CE4	;00DA
+	dc.w	CharacterName-adrJA002CE4	;00DA
 	dc.w	adrJA002DEE-adrJA002CE4	;010A
-	dc.w	adrJA002DBE-adrJA002CE4	;00DA
+	dc.w	CharacterName-adrJA002CE4	;00DA
 	dc.w	adrJA002DEE-adrJA002CE4	;010A
 	dc.w	adrJA002DA6-adrJA002CE4	;00C2
 	dc.w	adrJA002DA6-adrJA002CE4	;00C2
@@ -3939,7 +3944,7 @@ adrJA002DAC:
 	bcs.s	adrCd002DA8	;65EC
 	bra.s	adrJA002DA6	;60E8
 
-adrJA002DBE:
+CharacterName:
 	moveq	#$0C,d1	;720C
 	cmpi.b	#$10,d0	;0C000010
 	bcs.s	adrCd002DA8	;65E2
@@ -5557,7 +5562,7 @@ adrCd003FCE:
 	move.b	d7,$0016(a4)	;19470016
 	move.b	$0059(a5),$001A(a4)	;196D0059001A
 	move.b	$0021(a5),$0018(a4)	;196D00210018
-	move.b	adrB_00EE2F.l,$001F(a4)	;19790000EE2F001F
+	move.b	CurrentTower+$1.l,$001F(a4)	;19790000EE2F001F
 	jsr	Print_timed_message.l	;4EB90000D86A
 	bsr	adrCd008246	;61004248
 	bra	adrCd00332A	;6000F328
@@ -10738,7 +10743,7 @@ adrCd00787E:
 	move.b	d2,$0016(a4)	;19420016
 	move.b	d3,$001A(a4)	;1943001A
 	move.b	#$03,$0018(a4)	;197C00030018
-	move.b	adrB_00EE2F.l,$001F(a4)	;19790000EE2F001F
+	move.b	CurrentTower+$1.l,$001F(a4)	;19790000EE2F001F
 	rts	;4E75
 
 adrCd0078A0:
@@ -15732,9 +15737,7 @@ adrCd00A54C:
 	move.b	LargeMonsterSizeScales(pc,d1.w),d1	;123B10E8
 	lea	$0042(a0),a2	;45E80042
 
-	; makes entropy gx relocatable
-	;move.l	$003E(a0),a1	;2268003E    *Fix stored address **
-	lea	_GFX_Entropy.l,a1	;43F900048960    
+	move.l	$003E(a0),a1	;2268003E    *Fix stored address **  
 
 	bsr	adrCd009CA2	;6100F748
 	add.b	$16(a0,d1.w),d4	;D8301016
@@ -15769,9 +15772,7 @@ adrCd00A58A:
 	moveq	#-$01,d6	;7CFF
 adrCd00A5AE:
 	movem.w	d0/d1/d4/d5,-(sp)	;48A7CC00
-	; makes entropy gfx relocatable   *Fix stored address **
-	;move.l	$003E(a0),a1	;2268003E
-	lea	_GFX_Entropy.l,a1	;43F900048960
+	move.l	$003E(a0),a1	;2268003E
 	add.w	d1,d1	;D241
 	moveq	#$00,d3	;7600
 	btst	d2,-$0015(a3)	;052BFFEB
@@ -15842,8 +15843,12 @@ adrEA00A604:
 	dc.w	$0B05	;0B05
 	dc.w	$F80B	;F80B
 	dc.w	$040C	;040C
-	dc.w	$0004	;0004
-	dc.w	$B290	;B290
+
+
+	;dc.w	$0004	;0004
+	;dc.w	$B290	;B290
+	dc.l	_GFX_Entropy
+	
 	dc.w	$0000	;0000
 	dc.w	$0198	;0198
 	dc.w	$0660	;0660
@@ -19211,7 +19216,7 @@ adrCd00C338:
 	and.w	#$0007,d0	;02400007
 	move.w	d0,d7	;3E00
 	asl.w	#$04,d0	;E940
-	lea	Temp_SpellRunesMsg_2.l,a6	;4DF900018787
+	lea	SpellBookRunes+$3.l,a6	;4DF900018787
 	add.w	d0,a6	;DCC0
 	move.l	screen_ptr.l,a0	;207900008D36
 	add.w	#$0436,a0	;D0FC0436
@@ -21363,7 +21368,7 @@ Print_LineEnd:
 	rts	;4E75
 
 Print_item_name:
-	lea	ObjectsText.l,a3	;47F90000E21E
+	lea	ObjectsDictionary.l,a3	;47F90000E21E
 Print_word:
 	bsr.s	Proceed_in_stringtable	;61E8
 	bra.s	Print_nchars	;6002
@@ -22304,7 +22309,7 @@ WordsText:
 	dc.b	'TOKEN'	;544F4B454E
 	dc.b	$01	;01
 	dc.b	'I'	;49
-ObjectsText:
+ObjectsDictionary:
 	dc.b	$05	;05
 	dc.b	'EMPTY'	;454D505459
 	dc.b	$04	;04
@@ -23474,7 +23479,7 @@ adrB_00EE2D:
 	dc.b	$00	;00
 CurrentTower:
 	dc.b	$00	;00
-adrB_00EE2F:
+
 	dc.b	$00	;00
 MultiPlayer:
 	dc.w	$FFFF	;FFFF
@@ -41153,7 +41158,7 @@ adrL_0186A0:
 	dc.w	$0000	;0000
 SpellBookRunes:
 	dc.b	'mar'	;6D6172
-Temp_SpellRunesMsg_2:
+
 	dc.b	'yhadalittlelaaneeitwerraguddutnerewanzednowtecozzitwerawuddunwhyamistillhavintotypethiscrapwhithoughtidfinishacoupleoflinesq'	;79686164616C6974746C656C61616E6565697477657272616775646475746E65726577616E7A65646E6F777465636F7A7A6974776572617775646
 *56E776879616D697374696C6C686176696E746F74797065746869736372617077686974686F75676874696466696E69736861636F75706C656F666C696E657371
 	dc.b	'x'	;78
