@@ -15898,8 +15898,12 @@ adrEA00A668:
 	dc.w	$050B	;050B
 	dc.w	$F817	;F817
 	dc.w	$050B	;050B
-	dc.w	$0004	;0004
-	dc.w	$66D0	;66D0
+
+	;dc.w	$0004	;0004
+	;dc.w	$66D0	;66D0
+	; Behemoth Graphic Fix
+	dc.l	_GFX_Behemoth
+
 	dc.w	$0000	;0000
 	dc.w	$02C0	;02C0
 	dc.w	$06E0	;06E0
