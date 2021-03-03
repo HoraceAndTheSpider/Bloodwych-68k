@@ -15800,7 +15800,8 @@ adrEA00B454:
 	dc.w	$1348	;1348
 	dc.w	$13D8	;13D8
 	dc.w	$0000	;0000
-adrEA00B4B8:	dc.w	$0C05	;0C05
+adrEA00B4B8:
+	dc.w	$0C05	;0C05
 	dc.w	$F6F6	;F6F6
 	dc.w	$0000	;0000
 	dc.w	$2B1E	;2B1E
@@ -15831,8 +15832,13 @@ adrEA00B4B8:	dc.w	$0C05	;0C05
 	dc.w	$050B	;050B
 	dc.w	$F817	;F817
 	dc.w	$050B	;050B
-	dc.w	$0004	;0004
-	dc.w	$3480	;3480
+
+	
+	;dc.w	$0004	;0004
+	;dc.w	$3480	;3480
+	; Behemoth Graphic Fix
+	dc.l	_GFX_Behemoth
+
 	dc.w	$0000	;0000
 	dc.w	$02C0	;02C0
 	dc.w	$06E0	;06E0
@@ -15845,12 +15851,14 @@ adrEA00B4B8:	dc.w	$0C05	;0C05
 	dc.w	$1020	;1020
 	dc.w	$10A8	;10A8
 	dc.w	$1130	;1130
-adrEA00B512:	dc.w	$11B8	;11B8
+adrEA00B512:
+	dc.w	$11B8	;11B8
 	dc.w	$1260	;1260
 	dc.w	$1308	;1308
 	dc.w	$1378	;1378
 
-adrCd00B51A:	add.w	$0008(a5),d5	;DA6D0008
+adrCd00B51A:
+	add.w	$0008(a5),d5	;DA6D0008
 	move.b	d4,d6	;1C04
 	add.b	#$60,d4	;06040060
 	ext.w	d6	;4886
@@ -167394,7 +167402,8 @@ adrEA055E88:
 	dc.w	$0000	;0000
 	dc.w	$0000	;0000
 	dc.w	$0000	;0000
-adrEA056270:	dc.w	$0000	;0000
+adrEA056270:
+	dc.w	$0000	;0000
 	dc.w	$0000	;0000
 	dc.w	$0000	;0000
 	dc.w	$0000	;0000

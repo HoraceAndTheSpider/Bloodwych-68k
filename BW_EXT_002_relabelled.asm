@@ -800,7 +800,7 @@ adrLp000CDE:	clr.b	$0015(a4)	;422C0015
 	bmi.s	adrCd000D3A	;6B12
 	swap	d7	;4847
 	move.b	$001B(a4),d7	;1E2C001B
-	jsr	adrCd00926C.l	;4EB90000926C
+	jsr	CoordToMap.l	;4EB90000926C
 	bset	#$07,$01(a6,d0.w)	;08F600070001
 adrCd000D3A:	lea	$0040(a4),a4	;49EC0040
 	dbra	d6,adrLp000CDE	;51CEFF9E
@@ -854,7 +854,7 @@ adrCd000DCA:	lsr.b	#$04,d1	;E809
 	move.b	d7,$0001(a4)	;19470001
 	btst	#$17,d7	;08070017
 	bne.s	adrCd000E00	;660C
-	jsr	adrCd00926C.l	;4EB90000926C
+	jsr	CoordToMap.l	;4EB90000926C
 	bset	#$07,$01(a6,d0.w)	;08F600070001
 adrCd000E00:	moveq	#$00,d0	;7000
 	move.b	(a3)+,d0	;101B
@@ -1659,7 +1659,7 @@ adrCd001810:	moveq	#$00,d7	;7E00
 	moveq	#$00,d0	;7000
 	move.b	$04(a4,d4.w),d0	;10344004
 	bsr	adrCd0092AA	;61007A82
-	bsr	adrCd00926C	;61007A40
+	bsr	CoordToMap	;61007A40
 	move.b	$01(a6,d0.w),d1	;12360001
 	bpl.s	adrCd00180E	;6ADA
 	cmp.w	#$0000,d4	;0C440000
@@ -1971,7 +1971,7 @@ adrCd001B90:	move.b	d7,$01(a4,d4.w)	;19874001
 	bne.s	adrCd001BB4	;6606
 	tst.b	$000B(a4)	;4A2C000B
 	bmi.s	adrCd001C04	;6B50
-adrCd001BB4:	bsr	adrCd00926C	;610076B6
+adrCd001BB4:	bsr	CoordToMap	;610076B6
 	move.w	$00(a6,d0.w),d1	;32360000
 	not.w	d1	;4641
 	and.w	#$0007,d1	;02410007
@@ -2072,7 +2072,7 @@ adrCd001CAA:	cmp.b	#$64,$000B(a1)	;0C290064000B
 	move.b	$0000(a4),d7	;1E2C0000
 	swap	d7	;4847
 	move.b	$0001(a4),d7	;1E2C0001
-	bsr	adrCd00926C	;61007592
+	bsr	CoordToMap	;61007592
 	bclr	#$07,$01(a6,d0.w)	;08B600070001
 	moveq	#$00,d7	;7E00
 	move.b	$0000(a1),d7	;1E290000
@@ -2080,7 +2080,7 @@ adrCd001CAA:	cmp.b	#$64,$000B(a1)	;0C290064000B
 	swap	d7	;4847
 	move.b	$0001(a1),d7	;1E290001
 	move.b	d7,$0001(a4)	;19470001
-	bsr	adrCd00926C	;61007574
+	bsr	CoordToMap	;61007574
 	move.l	a1,a4	;2849
 	bsr	adrCd0021C0	;610004C2
 	move.l	(sp)+,a4	;285F
@@ -2122,7 +2122,7 @@ adrCd001D64:	move.l	a4,d0	;200C
 	swap	d7	;4847
 	move.b	$0001(a4),d7	;1E2C0001
 	move.b	#$FF,$0000(a4)	;197C00FF0000
-	bsr	adrCd00926C	;610074E6
+	bsr	CoordToMap	;610074E6
 	bclr	#$07,$01(a6,d0.w)	;08B600070001
 	rts	;4E75
 
@@ -2177,7 +2177,7 @@ adrCd001E10:	moveq	#$00,d7	;7E00
 	move.b	$0000(a4),d7	;1E2C0000
 	swap	d7	;4847
 	move.b	$0001(a4),d7	;1E2C0001
-	bsr	adrCd00926C	;6100744E
+	bsr	CoordToMap	;6100744E
 	tst.b	$01(a6,d0.w)	;4A360001
 	bpl.s	adrCd001E34	;6A0E
 	move.w	d1,-(sp)	;3F01
@@ -3011,7 +3011,7 @@ adrCd00278A:
 	move.b	$0000(a1),d7	;1E290000
 	swap	d7		;4847
 	move.b	$0001(a1),d7	;1E290001
-	bsr	adrCd00926C	;61006AB8
+	bsr	CoordToMap	;61006AB8
 	move.w	d0,d4		;3800
 	move.w	d1,d0		;3001
 	bra.s	adrCd00281C	;6060
@@ -3036,7 +3036,7 @@ adrCd0027BC:	move.w	d0,d3	;3600
 
 adrCd0027F0:	swap	d7	;4847
 	move.b	$001B(a1),d7	;1E29001B
-	bsr	adrCd00926C	;61006A74
+	bsr	CoordToMap	;61006A74
 	move.w	d0,d4	;3800
 	move.w	d3,d0	;3003
 	bra	adrCd00290E	;6000010E
@@ -3450,7 +3450,7 @@ adrCd002CA6:	moveq	#$00,d0	;7000
 	bmi.s	adrCd002CCC	;6B14
 	swap	d7	;4847
 	move.b	$0001(a3),d7	;1E2B0001
-	bsr	adrCd00926C	;610065AC
+	bsr	CoordToMap	;610065AC
 	move.w	d0,d4	;3800
 	move.w	d6,d0	;3006
 	add.w	#$0010,d0	;06400010
@@ -3982,7 +3982,7 @@ adrCd0032AE:	bsr	adrCd0047E8	;61001538
 	move.b	$001A(a4),d7	;1E2C001A
 	swap	d7	;4847
 	move.b	$001B(a4),d7	;1E2C001B
-	bsr	adrCd00926C	;61005F80
+	bsr	CoordToMap	;61005F80
 	bclr	#$07,$01(a6,d0.w)	;08B600070001
 adrCd0032F4:	move.b	#$FF,$001A(a4)	;197C00FF001A
 	bsr	adrCd0047E8	;610014EC
@@ -8212,10 +8212,10 @@ SocketActions_SerpentCrystal:
 	moveq	#$12,d6	;7C12
 	bsr	adrCd0066FC	;61000088
 	cmp.w	#$0003,CurrentTower.l	;0C7900030000F98A
-	bne.s	.EntropySummoned	;663A
+	bne.s	OpenDoor_SocketAction	;663A
 	move.l	#$00070004,d7	;2E3C00070004
 Last_CrystalAction:
-	bsr	adrCd00926C	;61002BE4
+	bsr	CoordToMap	;61002BE4
 	and.w	#$00F8,$00(a6,d0.w)	;027600F80000
 Exit_SocketAction:	rts	;4E75
 
@@ -8225,11 +8225,11 @@ SocketActions_ChaosCrystal:	bclr	#$02,$00(a6,d0.w)	;08B600020000
 	bsr	adrCd008598	;61001EF6
 	movem.l	(sp)+,d0/a6	;4CDF4001
 	cmp.w	#$0003,CurrentTower.l	;0C7900030000F98A
-	bne.s	.EntropySummoned	;6608
+	bne.s	OpenDoor_SocketAction	;6608
 	move.l	#$00070003,d7	;2E3C00070003
 	bra.s	Last_CrystalAction	;60CC
 
-.EntropySummoned:	addq.w	#$02,d0	;5440
+OpenDoor_SocketAction:	addq.w	#$02,d0	;5440
 	bclr	#$00,$00(a6,d0.w)	;08B600000000
 	rts	;4E75
 
@@ -8237,7 +8237,7 @@ SocketActions_DragonCrystal:	moveq	#$0A,d4	;780A
 	moveq	#$11,d6	;7C11
 	bsr.s	adrCd0066FC	;6132
 	cmp.w	#$0003,CurrentTower.l	;0C7900030000F98A
-	bne.s	.EntropySummoned	;66E6
+	bne.s	OpenDoor_SocketAction	;66E6
 	move.l	#$00070001,d7	;2E3C00070001
 	bsr.s	Last_CrystalAction	;61AA
 	or.w	#$D206,$00(a6,d0.w)	;0076D2060000
@@ -8247,7 +8247,7 @@ SocketActions_MoonCrystal:	moveq	#$0C,d4	;780C
 	moveq	#$13,d6	;7C13
 	bsr.s	adrCd0066FC	;6112
 	cmp.w	#$0003,CurrentTower.l	;0C7900030000F98A
-	bne.s	.EntropySummoned	;66C6
+	bne.s	OpenDoor_SocketAction	;66C6
 	move.l	#$00070002,d7	;2E3C00070002
 	bra.s	Last_CrystalAction	;608A
 
@@ -8512,7 +8512,7 @@ adrCd006950:	moveq	#$00,d7	;7E00
 	move.b	$02(a1,d1.w),d7	;1E311002
 	swap	d7	;4847
 	move.b	$03(a1,d1.w),d7	;1E311003
-	bra	adrCd00926C	;6000290E
+	bra	CoordToMap	;6000290E
 
 adrJC006960:	bsr.s	adrCd006974	;6112
 adrCd006962:	cmp.w	#$0003,$0014(a5)	;0C6D00030014
@@ -8535,7 +8535,7 @@ adrCd006986:	swap	d1	;4841
 adrCd006990:	move.l	$001C(a5),d7	;2E2D001C
 	cmp.w	#$0002,d6	;0C460002
 	bcc.s	adrCd0069A0	;6406
-	bsr	adrCd00926C	;610028D0
+	bsr	CoordToMap	;610028D0
 	bra.s	adrCd0069C0	;6020
 
 adrCd0069A0:	bsr	adrCd009250	;610028AE
@@ -10278,7 +10278,7 @@ adrCd007BB8:	bsr	adrCd00928A	;610016D0
 	add.b	$00(a0,d6.w),d7	;DE306000
 	add.b	$00(a0,d6.w),d7	;DE306000
 	swap	d7	;4847
-	bsr	adrCd00926C	;6100168E
+	bsr	CoordToMap	;6100168E
 	tst.b	$01(a6,d0.w)	;4A360001
 	bpl.s	adrCd007BF6	;6A10
 	bsr	adrCd0092A6	;610016BE
@@ -10675,7 +10675,7 @@ adrCd007F4C:	lea	adrEA006434.l,a0	;41F900006434
 	swap	d7	;4847
 	cmp.w	adrW_00F9CE.l,d7	;BE790000F9CE
 	bcc.s	adrCd007F4A	;64DC
-	bsr	adrCd00926C	;610012FC
+	bsr	CoordToMap	;610012FC
 	move.b	$01(a6,d0.w),d2	;14360001
 	bmi.s	adrCd007F4A	;6BD2
 	and.w	#$0007,d2	;02420007
@@ -10932,7 +10932,7 @@ Trigger_24_t30_Spinner3:
 	tst.b	$01(a6,d0.w)	;4A360001
 	bpl.s	adrCd0082EC	;6A0E
 	subq.w	#$01,d7	;5347
-	bsr	adrCd00926C	;61000F8A
+	bsr	CoordToMap	;61000F8A
 	tst.b	$01(a6,d0.w)	;4A360001
 	bpl.s	adrCd0082EC	;6A02
 	rts	;4E75
@@ -10980,14 +10980,14 @@ Switch_04_s08_Trigger_22_t2C_RotateWallXY:	bsr	adrCd006950	;6100E60E
 
 Trigger_06_t0C_WoodTrap1:	
 	move.l	#$000D000C,d7		;2E3C000D000C
-	bsr	adrCd00926C		;61000F06
+	bsr	CoordToMap		;61000F06
 	bset	#$02,$00(a6,d0.w)	;08F600020000
 	bclr	#$06,$02(a6,d0.w)	;08B600060002
 	rts	;4E75
 
 Trigger_07_t0E_WoodTrap2:	
 	move.l	#$00030000,d7			;2E3C00030000	;Long Addr replaced with Symbol
-	bsr	adrCd00926C		;61000EEE
+	bsr	CoordToMap		;61000EEE
 	bclr	#$02,$00(a6,d0.w)	;08B600020000
 	bset	#$06,$02(a6,d0.w)	;08F600060002
 	rts				;4E75
@@ -11064,20 +11064,20 @@ Trigger_16_t20:	moveq	#$00,d6	;7C00
 	cmp.w	adrW_00F9CC.l,d7	;BE790000F9CC
 	bcc	Switch_01_s02_Trigger_11_t16_RemoveXY	;6400E4D0
 	swap	d7	;4847
-	bsr	adrCd00926C	;61000E02
+	bsr	CoordToMap	;61000E02
 	eor.b	#$06,$01(a6,d0.w)	;0A3600060001
 	rts	;4E75
 
 Trigger_17_t22:	bsr	adrCd0092CC	;61000E56
 	move.l	d2,d7	;2E02
 	subq.b	#$01,d7	;5307
-	bsr	adrCd00926C	;61000DEE
+	bsr	CoordToMap	;61000DEE
 	and.w	#$00F8,$00(a6,d0.w)	;027600F80000
 	or.w	#$0103,$00(a6,d0.w)	;007601030000
 	swap	d7	;4847
 	subq.b	#$01,d7	;5307
 	swap	d7	;4847
-	bsr	adrCd00926C	;61000DD8
+	bsr	CoordToMap	;61000DD8
 	and.w	#$00F8,$00(a6,d0.w)	;027600F80000
 	rts	;4E75
 
@@ -11269,7 +11269,7 @@ adrCd0086EE:	dbra	d7,adrLp0086E4	;51CFFFF4
 	bra	adrCd005F60	;6000D86C
 
 adrCd0086F6:	move.l	d7,d5	;2A07
-	bsr	adrCd00926C	;61000B72
+	bsr	CoordToMap	;61000B72
 	move.w	d0,d2	;3400
 	bsr	adrCd008798	;61000098
 	bcs	adrCd008790	;6500008C
@@ -12341,10 +12341,10 @@ adrCd009254:
 	swap	d7	;4847
 	add.b	$00(a0,d0.w),d7	;DE300000
 	swap	d7	;4847
-	bra.s	adrCd00926C	;6004
+	bra.s	CoordToMap	;6004
 
 adrCd009268:	move.l	$001C(a5),d7	;2E2D001C
-adrCd00926C:	move.l	adrL_00F9D4.l,a6	;2C790000F9D4
+CoordToMap:	move.l	adrL_00F9D4.l,a6	;2C790000F9D4
 adrCd009272:	move.w	d7,d0	;3007
 	mulu	adrW_00F9CC.l,d0	;C0F90000F9CC
 	swap	d7	;4847
@@ -13338,7 +13338,7 @@ adrCd009E22:	move.w	d0,-$001E(a3)	;3740FFE2
 	move.b	d1,-$001F(a3)	;1741FFE1
 	bsr	adrCd0092AA	;6100F47E
 	move.l	-$0004(a3),d7	;2E2BFFFC
-	bsr	adrCd00926C	;6100F438
+	bsr	CoordToMap	;6100F438
 	btst	#$05,$01(a6,d0.w)	;083600050001
 	beq.s	adrCd009EA4	;6766
 	bsr	adrCd006B70	;6100CD30
@@ -13552,7 +13552,7 @@ adrCd00A018:	swap	d5	;4845
 	rts	;4E75
 
 adrCd00A030:	exg	d5,d7	;CB47
-	bsr	adrCd00926C	;6100F238
+	bsr	CoordToMap	;6100F238
 	exg	d5,d7	;CB47
 	move.w	$00(a6,d0.w),d1	;32360000
 adrCd00A03C:	clr.b	-$0013(a3)	;422BFFED
@@ -15800,7 +15800,8 @@ adrEA00B454:
 	dc.w	$1348	;1348
 	dc.w	$13D8	;13D8
 	dc.w	$0000	;0000
-adrEA00B4B8:	dc.w	$0C05	;0C05
+adrEA00B4B8:
+	dc.w	$0C05	;0C05
 	dc.w	$F6F6	;F6F6
 	dc.w	$0000	;0000
 	dc.w	$2B1E	;2B1E
@@ -15831,8 +15832,13 @@ adrEA00B4B8:	dc.w	$0C05	;0C05
 	dc.w	$050B	;050B
 	dc.w	$F817	;F817
 	dc.w	$050B	;050B
-	dc.w	$0004	;0004
-	dc.w	$3480	;3480
+
+	
+	;dc.w	$0004	;0004
+	;dc.w	$3480	;3480
+	; Behemoth Graphic Fix
+	dc.l	_GFX_Behemoth
+
 	dc.w	$0000	;0000
 	dc.w	$02C0	;02C0
 	dc.w	$06E0	;06E0
@@ -15845,12 +15851,14 @@ adrEA00B4B8:	dc.w	$0C05	;0C05
 	dc.w	$1020	;1020
 	dc.w	$10A8	;10A8
 	dc.w	$1130	;1130
-adrEA00B512:	dc.w	$11B8	;11B8
+adrEA00B512:
+	dc.w	$11B8	;11B8
 	dc.w	$1260	;1260
 	dc.w	$1308	;1308
 	dc.w	$1378	;1378
 
-adrCd00B51A:	add.w	$0008(a5),d5	;DA6D0008
+adrCd00B51A:
+	add.w	$0008(a5),d5	;DA6D0008
 	move.b	d4,d6	;1C04
 	add.b	#$60,d4	;06040060
 	ext.w	d6	;4886
@@ -167394,7 +167402,8 @@ ReserveSpace_1:
 	dc.w	$0000	;0000
 	dc.w	$0000	;0000
 	dc.w	$0000	;0000
-ReserveSpace_2:	dc.w	$0000	;0000
+ReserveSpace_2:
+	dc.w	$0000	;0000
 	dc.w	$0000	;0000
 	dc.w	$0000	;0000
 	dc.w	$0000	;0000
