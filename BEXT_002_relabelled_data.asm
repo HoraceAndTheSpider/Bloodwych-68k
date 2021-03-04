@@ -6954,7 +6954,7 @@ adrCd00588E:	move.b	#$0F,$001F(a4)	;197C000F001F
 	bne.s	adrCd0058C4	;6612
 	move.b	$0017(a4),d0	;102C0017
 	bsr	adrCd0075DC	;61001D24
-	lea	adrEA00F98E.l,a0	;41F90000F98E
+	lea	RingUses.l,a0	;41F90000F98E
 	subq.b	#$01,$00(a0,d0.w)	;53300000
 adrCd0058C4:	bsr	adrCd008E24	;6100355E
 	bsr	adrCd007416	;61001B4C
@@ -6977,7 +6977,7 @@ adrCd0058F0:	lea	adrEA007524.l,a6	;4DF900007524
 	moveq	#$64,d1	;7264
 adrCd005908:	move.b	d1,$0019(a4)	;19410019
 	add.w	d0,d0	;D040
-	lea	adrJB005A64.l,a0	;41F900005A64
+	lea	Spells_01_Armour.l,a0	;41F900005A64
 	lea	adrJT005A0C.l,a6	;4DF900005A0C
 	add.w	$00(a6,d0.w),a0	;D0F60000
 	bsr	adrCd00617A	;6100085A
@@ -7049,51 +7049,51 @@ adrEA0059F0:	dc.b	'SPELL FIZZLED'	;5350454C4C2046495A5A4C4544
 adrEA0059FE:	dc.b	'SPELL FAILED'	;5350454C4C204641494C4544
 	dc.b	$FF	;FF
 	dc.b	$00	;00
-adrJT005A0C:	dc.w	adrJB005A64-adrJB005A64	;0000
-	dc.w	adrJC005A86-adrJB005A64	;0022
-	dc.w	adrJC005A8E-adrJB005A64	;002A
-	dc.w	adrJC005ADC-adrJB005A64	;0078
-	dc.w	adrJC005B0C-adrJB005A64	;00A8
-	dc.w	adrJC005B12-adrJB005A64	;00AE
-	dc.w	adrJC005B86-adrJB005A64	;0122
-	dc.w	adrJC005BAE-adrJB005A64	;014A
-	dc.w	adrJC005BB4-adrJB005A64	;0150
-	dc.w	adrJC005BBE-adrJB005A64	;015A
-	dc.w	adrJC005BC4-adrJB005A64	;0160
-	dc.w	adrJC005BCC-adrJB005A64	;0168
-	dc.w	adrJC005C2E-adrJB005A64	;01CA
-	dc.w	adrJC005C36-adrJB005A64	;01D2
-	dc.w	adrJC005C3C-adrJB005A64	;01D8
-	dc.w	adrJC005C42-adrJB005A64	;01DE
-	dc.w	adrJC005C88-adrJB005A64	;0224
-	dc.w	adrJC005C8E-adrJB005A64	;022A
-	dc.w	adrJC005CD6-adrJB005A64	;0272
-	dc.w	adrJC005D0C-adrJB005A64	;02A8
-	dc.w	adrJC005D4C-adrJB005A64	;02E8
-	dc.w	adrJC005D54-adrJB005A64	;02F0
-	dc.w	adrJC005D5A-adrJB005A64	;02F6
-	dc.w	adrJC005D60-adrJB005A64	;02FC
-	dc.w	adrJC005D66-adrJB005A64	;0302
-	dc.w	adrJC005D74-adrJB005A64	;0310
-	dc.w	adrJC005E86-adrJB005A64	;0422
-	dc.w	adrJC005EE0-adrJB005A64	;047C
-	dc.w	adrJC005EE8-adrJB005A64	;0484
-	dc.w	adrJC005F8E-adrJB005A64	;052A
-	dc.w	adrJC005F94-adrJB005A64	;0530
-	dc.w	adrJC005FA2-adrJB005A64	;053E
-	dc.w	adrJC005A5E-adrJB005A64	;FFFA
-	dc.w	adrJC005FA8-adrJB005A64	;0544
-	dc.w	adrJC005BA2-adrJB005A64	;013E
-	dc.w	adrJC006090-adrJB005A64	;062C
-	dc.w	adrJC0060A6-adrJB005A64	;0642
-	dc.w	adrJC0060B0-adrJB005A64	;064C
-	dc.w	adrJC0060E2-adrJB005A64	;067E
-	dc.w	adrJC00611E-adrJB005A64	;06BA
+adrJT005A0C:	dc.w	Spells_01_Armour-Spells_01_Armour	;0000
+	dc.w	Spells_02_Terror-Spells_01_Armour	;0022
+	dc.w	Spells_03_Vitalise-Spells_01_Armour	;002A
+	dc.w	Spells_04_Biguile-Spells_01_Armour	;0078
+	dc.w	adrJC005B0C-Spells_01_Armour	;00A8
+	dc.w	Spells_06_Magelock-Spells_01_Armour	;00AE
+	dc.w	Spells_07_Conceal-Spells_01_Armour	;0122
+	dc.w	Spells_08_Warpower-Spells_01_Armour	;014A
+	dc.w	Spells_09_Missle-Spells_01_Armour	;0150
+	dc.w	Spells_10_Vanish-Spells_01_Armour	;015A
+	dc.w	Spells_11_Paralyze-Spells_01_Armour	;0160
+	dc.w	Spells_12_Alchemy-Spells_01_Armour	;0168
+	dc.w	Spells_13_Confuse-Spells_01_Armour	;01CA
+	dc.w	Spells_14_Levitate-Spells_01_Armour	;01D2
+	dc.w	Spells_15_Antimage-Spells_01_Armour	;01D8
+	dc.w	Spells_16_Recharge-Spells_01_Armour	;01DE
+	dc.w	Spells_17_Trueview-Spells_01_Armour	;0224
+	dc.w	Spells_18_Renew-Spells_01_Armour	;022A
+	dc.w	Spells_19_Vivify-Spells_01_Armour	;0272
+	dc.w	Spells_20_Dispell-Spells_01_Armour	;02A8
+	dc.w	Spells_21_Firepath-Spells_01_Armour	;02E8
+	dc.w	Spells_22_Illusion-Spells_01_Armour	;02F0
+	dc.w	Spells_23_Compass-Spells_01_Armour	;02F6
+	dc.w	Spells_24_Spelltap-Spells_01_Armour	;02FC
+	dc.w	Spells_25_Disrupt-Spells_01_Armour	;0302
+	dc.w	Spells_26_Fireball-Spells_01_Armour	;0310
+	dc.w	Spells_27_Wychwind-Spells_01_Armour	;0422
+	dc.w	Spells_28_ArcBolt-Spells_01_Armour	;047C
+	dc.w	Spells_29_Formwall-Spells_01_Armour	;0484
+	dc.w	Spells_30_Summon-Spells_01_Armour	;052A
+	dc.w	Spells_31_Blaze-Spells_01_Armour	;0530
+	dc.w	Spells_32_Mindrock-Spells_01_Armour	;053E
+	dc.w	Spells_33_Protect-Spells_01_Armour	;FFFA
+	dc.w	Spells_34-Spells_01_Armour	;0544
+	dc.w	Spells_35_Enhance-Spells_01_Armour	;013E
+	dc.w	Spells_36_Inferno-Spells_01_Armour	;062C
+	dc.w	Spells_37_Nullify-Spells_01_Armour	;0642
+	dc.w	Spells_38-Spells_01_Armour	;064C
+	dc.w	Spells_39-Spells_01_Armour	;067E
+	dc.w	Spells_40_Vortex-Spells_01_Armour	;06BA
 adrB_005A5C:	dc.b	$00	;00
 adrB_005A5D:	dc.b	$00	;00
 
-adrJC005A5E:	move.b	#$08,$0025(a4)	;197C00080025
-adrJB005A64:	moveq	#$00,d4	;7800
+Spells_33_Protect:	move.b	#$08,$0025(a4)	;197C00080025
+Spells_01_Armour:	moveq	#$00,d4	;7800
 	addq.w	#$02,d7	;5447
 adrCd005A68:	cmp.w	#$0040,d7	;0C470040
 	bcs.s	adrCd005A70	;6502
@@ -7105,10 +7105,10 @@ adrCd005A70:	asl.w	#$02,d7	;E547
 	move.b	#$02,adrB_00F998.l	;13FC00020000F998
 	rts	;4E75
 
-adrJC005A86:	move.w	#$008F,d4	;383C008F
+Spells_02_Terror:	move.w	#$008F,d4	;383C008F
 	bra	adrCd005D6E	;600002E2
 
-adrJC005A8E:	lsr.w	#$02,d7	;E44F
+Spells_03_Vitalise:	lsr.w	#$02,d7	;E44F
 	move.w	d7,d5	;3A07
 adrLp005A92:	bsr	RandomGen_BytewithOffset	;6100074C
 	and.w	#$0007,d0	;02400007
@@ -7134,7 +7134,7 @@ adrCd005AD0:	move.b	d0,$000A(a4)	;1940000A
 adrCd005AD4:	dbra	d1,adrLp005AAA	;51C9FFD4
 	bra	adrCd008E24	;6000334A
 
-adrJC005ADC:	cmp.w	#$0008,$0042(a5)	;0C6D00080042
+Spells_04_Biguile:	cmp.w	#$0008,$0042(a5)	;0C6D00080042
 	bne.s	adrCd005B0A	;6626
 	lsr.b	#$02,d7	;E40F
 	addq.w	#$01,d7	;5247
@@ -7153,7 +7153,7 @@ adrCd005B0A:	rts	;4E75
 adrJC005B0C:	moveq	#$01,d4	;7801
 	bra	adrCd005A68	;6000FF58
 
-adrJC005B12:	bsr	adrCd009268	;61003754
+Spells_06_Magelock:	bsr	adrCd009268	;61003754
 	move.b	$01(a6,d0.w),d1	;12360001
 	and.w	#$0007,d1	;02410007
 	subq.w	#$02,d1	;5541
@@ -7192,7 +7192,7 @@ adrCd005B6C:	move.w	$0020(a5),d2	;342D0020
 adrCd005B7E:	bchg	#$04,$01(a6,d0.w)	;087600040001
 adrCd005B84:	rts	;4E75
 
-adrJC005B86:	bsr	adrCd00924C	;610036C4
+Spells_07_Conceal:	bsr	adrCd00924C	;610036C4
 	cmp.w	adrW_00F9CE.l,d7	;BE790000F9CE
 	bcc.s	adrCd005BA0	;640E
 	cmp.w	adrW_00F9CC.l,d7	;BE790000F9CC
@@ -7200,23 +7200,23 @@ adrJC005B86:	bsr	adrCd00924C	;610036C4
 	bset	#$03,$01(a6,d0.w)	;08F600030001
 adrCd005BA0:	rts	;4E75
 
-adrJC005BA2:	clr.b	$0019(a4)	;422C0019
+Spells_35_Enhance:	clr.b	$0019(a4)	;422C0019
 	move.b	#$08,$0025(a4)	;197C00080025
 	add.w	d7,d7	;DE47
-adrJC005BAE:	moveq	#$02,d4	;7802
+Spells_08_Warpower:	moveq	#$02,d4	;7802
 	bra	adrCd005A68	;6000FEB6
 
-adrJC005BB4:	move.w	#$008A,d4	;383C008A
+Spells_09_Missle:	move.w	#$008A,d4	;383C008A
 	lsr.w	#$01,d7	;E24F
 	bra	adrCd005D80	;600001C4
 
-adrJC005BBE:	moveq	#$03,d4	;7803
+Spells_10_Vanish:	moveq	#$03,d4	;7803
 	bra	adrCd005A68	;6000FEA6
 
-adrJC005BC4:	move.w	#$008C,d4	;383C008C
+Spells_11_Paralyze:	move.w	#$008C,d4	;383C008C
 	bra	adrCd005D6E	;600001A4
 
-adrJC005BCC:	moveq	#$00,d0	;7000
+Spells_12_Alchemy:	moveq	#$00,d0	;7000
 	move.b	adrB_00F99A.l,d0	;10390000F99A
 	asl.w	#$06,d0	;ED40
 	lea	CharacterStats.l,a0	;41F90000F586
@@ -7247,16 +7247,16 @@ adrCd005C22:	dbra	d2,adrLp005C16	;51CAFFF2
 	move.b	#$01,$30(a0,d0.w)	;11BC00010030
 adrCd005C2C:	rts	;4E75
 
-adrJC005C2E:	move.w	#$008B,d4	;383C008B
+Spells_13_Confuse:	move.w	#$008B,d4	;383C008B
 	bra	adrCd005D6E	;6000013A
 
-adrJC005C36:	moveq	#$05,d4	;7805
+Spells_14_Levitate:	moveq	#$05,d4	;7805
 	bra	adrCd005A68	;6000FE2E
 
-adrJC005C3C:	moveq	#$06,d4	;7806
+Spells_15_Antimage:	moveq	#$06,d4	;7806
 	bra	adrCd005A68	;6000FE28
 
-adrJC005C42:	moveq	#$00,d0	;7000
+Spells_16_Recharge:	moveq	#$00,d0	;7000
 	move.b	adrB_00F99A.l,d0	;10390000F99A
 	asl.w	#$06,d0	;ED40
 	lea	CharacterStats.l,a0	;41F90000F586
@@ -7273,15 +7273,15 @@ adrCd005C66:	move.b	$0031(a0),d0	;10280031
 	cmp.b	#$6D,d0	;0C00006D
 	bcc.s	adrCd005C86	;6410
 adrCd005C76:	sub.w	#$0069,d0	;04400069
-	lea	adrEA00F98E.l,a0	;41F90000F98E
+	lea	RingUses.l,a0	;41F90000F98E
 	lsr.w	#$03,d7	;E64F
 	move.b	d7,$00(a0,d0.w)	;11870000
 adrCd005C86:	rts	;4E75
 
-adrJC005C88:	moveq	#$07,d4	;7807
+Spells_17_Trueview:	moveq	#$07,d4	;7807
 	bra	adrCd005A68	;6000FDDC
 
-adrJC005C8E:	move.w	d7,d4	;3807
+Spells_18_Renew:	move.w	d7,d4	;3807
 	add.w	d7,d7	;DE47
 	add.w	d4,d7	;DE44
 	lsr.w	#$03,d7	;E64F
@@ -7305,7 +7305,7 @@ adrCd005CCA:	move.w	d0,$0006(a4)	;39400006
 adrCd005CCE:	dbra	d1,adrLp005CA8	;51C9FFD8
 	bra	adrCd008E24	;60003150
 
-adrJC005CD6:	bsr	adrCd009268	;61003590
+Spells_19_Vivify:	bsr	adrCd009268	;61003590
 	bsr	adrCd008598	;610028BC
 	bsr	adrCd003AD2	;6100DDF2
 	bcc.s	adrCd005CF8	;6414
@@ -7325,7 +7325,7 @@ adrCd005CF8:	bsr	adrCd00924C	;61003552
 	beq.s	adrCd005CF6	;67EE
 	bra	adrCd0084B0	;600027A6
 
-adrJC005D0C:	bsr	adrCd00924C	;6100353E
+Spells_20_Dispell:	bsr	adrCd00924C	;6100353E
 adrCd005D10:	bclr	#$03,$01(a6,d0.w)	;08B600030001
 	move.b	$01(a6,d0.w),d1	;12360001
 	not.b	d1	;4601
@@ -7345,20 +7345,20 @@ adrCd005D3A:	addq.w	#$04,d1	;5841
 	bne.s	adrCd005D3A	;66F2
 	bra	adrCd001584	;6000B83A
 
-adrJC005D4C:	move.w	#$0087,d4	;383C0087
+Spells_21_Firepath:	move.w	#$0087,d4	;383C0087
 	addq.w	#$02,d7	;5447
 	bra.s	adrCd005D6E	;601A
 
-adrJC005D54:	moveq	#$65,d4	;7865
+Spells_22_Illusion:	moveq	#$65,d4	;7865
 	bra	adrCd005D80	;60000028
 
-adrJC005D5A:	moveq	#$04,d4	;7804
+Spells_23_Compass:	moveq	#$04,d4	;7804
 	bra	adrCd005A68	;6000FD0A
 
-adrJC005D60:	move.w	#$008E,d4	;383C008E
+Spells_24_Spelltap:	move.w	#$008E,d4	;383C008E
 	bra.s	adrCd005D6E	;6008
 
-adrJC005D66:
+Spells_25_Disrupt:
 	move.w	#$0083,d4	;383C0083
 	addq.w	#$05,d7	;5A47
 	add.w	d7,d7	;DE47
@@ -7366,7 +7366,7 @@ adrCd005D6E:
 	bset	#$08,d7	;08C70008
 	bra.s	adrCd005D80	;600C
 
-adrJC005D74:
+Spells_26_Fireball:
 	move.w	#$0080,d4	;383C0080
 adrCd005D78:
 	move.w	d7,d3	;3607
@@ -7456,35 +7456,35 @@ adrCd005E7A:	tst.b	adrB_005A5C.l	;4A3900005A5C
 	bne	adrCd0021C0	;6600C33E
 	rts	;4E75
 
-adrJC005E86:	add.w	#$000A,d7	;0647000A
+Spells_27_Wychwind:	add.w	#$000A,d7	;0647000A
 	add.w	d7,d7	;DE47
 	cmp.w	#$0080,d7	;0C470080
 	bcs.s	adrCd005E94	;6502
 	moveq	#$7F,d7	;7E7F
 adrCd005E94:	moveq	#$07,d5	;7A07
-adrLp005E96:	movem.w	d5/d7,-(sp)	;48A70500
+.wychwind_loop:	movem.w	d5/d7,-(sp)	;48A70500
 	move.w	#$0081,d4	;383C0081
 	move.w	$0020(a5),d6	;3C2D0020
-	add.b	adrB_005ED8(pc,d5.w),d6	;DC3B5034
+	add.b	.wychwind_data(pc,d5.w),d6	;DC3B5034
 	and.w	#$0003,d6	;02460003
 	swap	d6	;4846
 	move.w	d5,d6	;3C05
 	cmp.w	#$0004,d6	;0C460004
-	bcc.s	adrCd005EBE	;640A
+	bcc.s	.wychwind_skip1	;640A
 	add.w	$0020(a5),d6	;DC6D0020
 	and.w	#$0003,d6	;02460003
-	bra.s	adrCd005ECA	;600C
+	bra.s	.wychwind_skip2	;600C
 
-adrCd005EBE:	subq.w	#$04,d6	;5946
+.wychwind_skip1:	subq.w	#$04,d6	;5946
 	add.w	$0020(a5),d6	;DC6D0020
 	and.w	#$0003,d6	;02460003
 	addq.w	#$04,d6	;5846
-adrCd005ECA:	bsr	adrCd005D8A	;6100FEBE
+.wychwind_skip2:	bsr	adrCd005D8A	;6100FEBE
 	movem.w	(sp)+,d5/d7	;4C9F00A0
-	dbra	d5,adrLp005E96	;51CDFFC2
+	dbra	d5,.wychwind_loop	;51CDFFC2
 	rts	;4E75
 
-adrB_005ED8:	dc.b	$00	;00
+.wychwind_data:	dc.b	$00	;00
 	dc.b	$01	;01
 	dc.b	$02	;02
 	dc.b	$03	;03
@@ -7493,10 +7493,10 @@ adrB_005ED8:	dc.b	$00	;00
 	dc.b	$02	;02
 	dc.b	$00	;00
 
-adrJC005EE0:	move.w	#$0082,d4	;383C0082
+Spells_28_ArcBolt:	move.w	#$0082,d4	;383C0082
 	bra	adrCd005D78	;6000FE92
 
-adrJC005EE8:	moveq	#$03,d4	;7803
+Spells_29_Formwall:	moveq	#$03,d4	;7803
 adrCd005EEA:	move.w	d7,d3	;3607
 	addq.w	#$02,d3	;5443
 	asl.w	#$02,d3	;E543
@@ -7551,18 +7551,18 @@ adrCd005F84:	clr.w	-$0002(a0)	;4268FFFE
 	movem.l	(sp)+,d0/a6	;4CDF4001
 	rts	;4E75
 
-adrJC005F8E:	moveq	#$64,d4	;7864
+Spells_30_Summon:	moveq	#$64,d4	;7864
 	bra	adrCd005D80	;6000FDEE
 
-adrJC005F94:	move.w	#$0084,d4	;383C0084
+Spells_31_Blaze:	move.w	#$0084,d4	;383C0084
 	add.w	#$000A,d7	;0647000A
 	lsr.w	#$01,d7	;E24F
 	bra	adrCd005D80	;6000FDE0
 
-adrJC005FA2:	moveq	#$02,d4	;7802
+Spells_32_Mindrock:	moveq	#$02,d4	;7802
 	bra	adrCd005EEA	;6000FF44
 
-adrJC005FA8:	moveq	#$00,d0	;7000
+Spells_34:	moveq	#$00,d0	;7000
 	move.b	adrB_00F99A.l,d0	;10390000F99A
 	bsr	adrCd0047FA	;6100E848
 	tst.w	d1	;4A41
@@ -7649,7 +7649,7 @@ adrCd00607A:	bsr	adrCd009268	;610031EC
 	moveq	#$05,d0	;7005
 	bra	PlaySound	;60003600
 
-adrJC006090:	move.w	#$0098,d4	;383C0098
+Spells_36_Inferno:	move.w	#$0098,d4	;383C0098
 	add.w	#$000A,d7	;0647000A
 	add.w	d7,d7	;DE47
 	cmp.w	#$0080,d7	;0C470080
@@ -7657,11 +7657,11 @@ adrJC006090:	move.w	#$0098,d4	;383C0098
 	moveq	#$7F,d7	;7E7F
 adrCd0060A2:	bra	adrCd005D80	;6000FCDC
 
-adrJC0060A6:	move.w	#$0096,d4	;383C0096
+Spells_37_Nullify:	move.w	#$0096,d4	;383C0096
 	moveq	#$00,d7	;7E00
 	bra	adrCd005D6E	;6000FCC0
 
-adrJC0060B0:	bsr	adrJC005CD6	;6100FC24
+Spells_38:	bsr	Spells_19_Vivify	;6100FC24
 	moveq	#$03,d7	;7E03
 adrLp0060B6:	move.b	$18(a5,d7.w),d0	;10357018
 	move.w	d0,d1	;3200
@@ -7675,7 +7675,7 @@ adrLp0060B6:	move.b	$18(a5,d7.w),d0	;10357018
 adrCd0060DA:	dbra	d7,adrLp0060B6	;51CFFFDA
 	bra	adrCd008E24	;60002D44
 
-adrJC0060E2:	add.w	d7,d7	;DE47
+Spells_39:	add.w	d7,d7	;DE47
 	add.w	#$001E,d7	;0647001E
 	move.w	$0020(a5),d6	;3C2D0020
 	swap	d6	;4846
@@ -7695,7 +7695,7 @@ adrCd00610A:	addq.b	#$01,d7	;5207
 	movem.l	(sp)+,d4/d6/d7	;4CDF00D0
 	rts	;4E75
 
-adrJC00611E:	move.w	#$0094,d4	;383C0094
+Spells_40_Vortex:	move.w	#$0094,d4	;383C0094
 	add.w	d7,d7	;DE47
 	bra	adrCd005D80	;6000FC5A
 
@@ -9732,7 +9732,7 @@ adrCd00755A:	moveq	#$00,d0	;7000
 	cmp.b	$0031(a4),d0	;B02C0031
 	bne.s	adrCd007598	;661C
 adrCd00757C:	sub.w	#$0069,d0	;04400069
-	lea	adrEA00F98E.l,a0	;41F90000F98E
+	lea	RingUses.l,a0	;41F90000F98E
 	tst.b	$00(a0,d0.w)	;4A300000
 	bmi.s	adrCd007598	;6B0C
 	moveq	#$00,d0	;7000
@@ -12279,7 +12279,7 @@ adrCd0091BE:	bsr	adrCd0091FC	;6100003C
 	cmp.w	#$0010,d2	;0C420010
 	bcs.s	adrCd0091D0	;6504
 	add.w	#$0010,d6	;06460010
-adrCd0091D0:	lea	adrEA009228.l,a6	;4DF900009228
+adrCd0091D0:	lea	ClickedClassColours.l,a6	;4DF900009228
 	add.w	d6,a6	;DCC6
 	and.w	#$0003,d0	;02400003
 	add.w	#$004B,d0	;0640004B
@@ -12304,7 +12304,7 @@ adrCd0091FC:	and.w	#$000F,d0	;0240000F
 	move.b	$00(a6,d1.w),d0	;10361000
 	rts	;4E75
 
-adrEA009228:
+ClickedClassColours:
 	dc.w	$0004	;0004
 	dc.w	$030E	;030E
 ClassColours:
@@ -17040,7 +17040,7 @@ adrCd00BF22:	tst.b	-$0015(a3)	;4A2BFFEB
 	lea	adrEA00C0BA.l,a0	;41F90000C0BA
 	lea	adrEA00CCCC.l,a2	;45F90000CCCC
 	lea	_GFX_Slots.l,a1	;43F900025188
-	lea	adrEA00C09A.l,a6	;4DF90000C09A
+	lea	SlotsColour.l,a6	;4DF90000C09A
 	move.b	-$0012(a3),d1	;122BFFEE
 	lsr.w	#$03,d1	;E649
 	bsr	adrCd00C06A	;6100010C
@@ -17129,23 +17129,18 @@ adrCd00C084:	lea	adrEA0169DE.l,a0	;41F9000169DE
 	lea	_GFX_Shelf.l,a1	;43F900021E78
 	bra	adrCd00C2A6	;6000020E
 
-adrEA00C09A:	dc.w	$0004	;0004
-	dc.w	$0506	;0506
-	dc.w	$0004	;0004
-	dc.w	$0B0D	;0B0D
-	dc.w	$0004	;0004
-	dc.w	$090C	;090C
-	dc.w	$0004	;0004
-	dc.w	$0708	;0708
-	dc.w	$0004	;0004
-	dc.w	$0304	;0304
-	dc.w	$0004	;0004
-	dc.w	$0806	;0806
-	dc.w	$0004	;0004
-	dc.w	$090A	;090A
-	dc.w	$0004	;0004
-	dc.w	$0A0B	;0A0B
-adrEA00C0BA:	dc.w	$0000	;0000
+SlotsColour:
+	dc.l	$00040506	;0004 0506
+	dc.l	$00040B0D	;0004 0B0D
+	dc.l	$0004090C	;0004 090C
+	dc.l	$00040708	;0004 0708
+	dc.l	$00040304	;0004 0304
+	dc.l	$00040806	;0004 0806
+	dc.l	$0004090A	;0004 090A
+	dc.l	$00040A0B	;0004 0A0B
+
+adrEA00C0BA:
+	dc.w	$0000	;0000
 	dc.w	$0008	;0008
 	dc.w	$0038	;0038
 	dc.w	$0068	;0068
@@ -19173,7 +19168,7 @@ adrCd00D35A:	tst.w	d0	;4A40
 	bcc.s	adrCd00D386	;6414
 	move.w	d0,d3	;3600
 	sub.w	#$0069,d3	;04430069
-	lea	adrEA00F98E.l,a1	;43F90000F98E
+	lea	RingUses.l,a1	;43F90000F98E
 	tst.b	$00(a1,d3.w)	;4A313000
 	bpl.s	adrCd00D386	;6A02
 	moveq	#$68,d0	;7068
@@ -23618,7 +23613,7 @@ CurrentTower:
 	dc.b	$00	;00
 Multiplayer:
 	dc.w	$FFFF	;FFFF
-adrEA00F98E:	dc.w	$0102	;0102
+RingUses:	dc.w	$0102	;0102
 	dc.w	$0303	;0303
 adrEA00F992:	dc.w	$0000	;0000
 adrW_00F994:	dc.w	$0000	;0000
