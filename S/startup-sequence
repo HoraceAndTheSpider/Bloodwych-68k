@@ -1,0 +1,2 @@
+;Whdload slave=:bloodwych.slave custom=binaries/BLOODWYCH439-modified data="" CUSTOM2=3
+Whdload slave=:bloodwych.slave custom=asm/BLOODWYCH439_relabel_data data="" CUSTOM2=3

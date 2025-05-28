@@ -26,7 +26,7 @@ The source code can be compiled using DevPac 3.18 on the Amiga, or a suitable em
 
 By default, DevPac will have enabled "Line Debug" and "Debug Symbols" in its Compiling Optioms (Settings: Assembler : Control) and these should be set to "None"
 
-The nature of re-sourcing has produced some minor differences in the compiled code (particularly on BEXT) which are slowly being rectified as part of this project. However, a functioning compile is possible for bothe Bloodwych and the Entended Levels. 
+The nature of re-sourcing has produced some minor differences in the compiled code (particularly on BEXT) which are slowly being rectified as part of this project. However, a functioning compile is possible for both Bloodwych and the Extended Levels. 
 
  
 **Tools Used**
