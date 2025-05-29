@@ -1,5 +1,6 @@
 ~$Data Mapper.xlsm
 _ignore
+*.uaem
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
