@@ -399,7 +399,7 @@ QkPly2_Start:
 	move.l	#$04060D0F,Player2_ChampionPointer.l	;23FC04060D0F0000EEF6
 	move.l	#$04060D0F,adrL_00EF04.l	;23FC04060D0F0000EF04
 	move.w	#$0004,adrW_00EEE4.l	;33FC00040000EEE4
-	lea	adrEA00EBAA.l,a0	;41F90000EBAA
+	lea	CharacterStats+$80.l,a0	;41F90000EBAA
 	move.b	#$0E,$0016(a0)	;117C000E0016
 	move.b	#$17,$0017(a0)	;117C00170017
 	clr.b	$0018(a0)	;42280018
@@ -913,7 +913,7 @@ adrCd000E34:
 	move.l	a4,d0	;200C
 	sub.l	#CharacterStats,d0	;04800000EB2A
 	lsr.w	#$01,d0	;E248
-	lea	PocketContents.l,a0	;41F90000ED2A
+	lea	Character_Pockets_DataTable.l,a0	;41F90000ED2A
 	add.w	d0,a0	;D0C0
 	lsr.w	#$04,d0	;E848
 	move.w	d0,d7	;3E00
@@ -1603,7 +1603,7 @@ adrJA0015B8:
 	bne	adrJA00175A	;66000198
 	bra.s	adrCd0015E0	;601A
 
-adrB_0015C6:
+MonsterAttackSpells:
 	dc.b	$0A	;0A
 	dc.b	$0A	;0A
 	dc.b	$00	;00
@@ -1640,7 +1640,7 @@ adrCd0015E0:
 	bcc.s	adrCd001608	;6402
 	lsr.w	#$01,d0	;E248
 adrCd001608:
-	move.b	adrB_0015C6(pc,d0.w),d0	;103B00BC
+	move.b	MonsterAttackSpells(pc,d0.w),d0	;103B00BC
 	move.w	d0,d4	;3800
 	or.w	#$0080,d4	;00440080
 	move.w	d3,d6	;3C03
@@ -3691,7 +3691,7 @@ adrCd002B26:
 	move.w	d3,d1	;3203
 	move.w	d1,d2	;3401
 	bsr	adrCd00094C	;6100DE20
-	lea	PocketContents.l,a0	;41F90000ED2A
+	lea	Character_Pockets_DataTable.l,a0	;41F90000ED2A
 	asl.w	#$04,d2	;E942
 	add.w	d2,a0	;D0C2
 	moveq	#-$01,d4	;78FF
@@ -5257,7 +5257,7 @@ AnswerList_22:
 	moveq	#$03,d2	;7403
 	move.w	$0006(a5),d1	;322D0006
 	asl.w	#$04,d1	;E941
-	lea	PocketContents.l,a0	;41F90000ED2A
+	lea	Character_Pockets_DataTable.l,a0	;41F90000ED2A
 	move.b	$00(a0,d1.w),d1	;12301000
 	bne.s	adrCd003D52	;660A
 	move.b	#$44,$00(a6,d2.w)	;1DBC00442000
@@ -6417,7 +6417,7 @@ adrCd004994:
 	rts	;4E75
 
 adrCd004996:
-	lea	adrEA00685E.l,a0	;41F90000685E
+	lea	SpellCost_DataTable.l,a0	;41F90000685E
 	moveq	#$00,d7	;7E00
 	move.b	$0044(a5),d7	;1E2D0044
 	move.b	$00(a0,d7.w),d0	;10307000
@@ -6465,7 +6465,7 @@ adrCd004A10:
 	move.b	$18(a5,d1.w),d0	;10351018
 	move.b	d0,d1	;1200
 	asl.b	#$04,d1	;E901
-	lea	PocketContents.l,a4	;49F90000ED2A
+	lea	Character_Pockets_DataTable.l,a4	;49F90000ED2A
 	add.w	d1,a4	;D8C1
 	move.b	$000C(a4),d3	;162C000C
 	sub.b	d2,d3	;9602
@@ -6921,7 +6921,7 @@ adrCd004EFA:
 	bsr	adrCd006778	;61001878
 	moveq	#$00,d0	;7000
 	move.b	$0013(a4),d0	;102C0013
-	lea	adrEA00685E.l,a6	;4DF90000685E
+	lea	SpellCost_DataTable.l,a6	;4DF90000685E
 	move.b	$00(a6,d0.w),d1	;12360000
 	addq.b	#$05,d1	;5A01
 	add.b	$0015(a4),d1	;D22C0015
@@ -7170,7 +7170,7 @@ Spells_12_Alchemy:
 	moveq	#$00,d0	;7000
 	move.b	adrB_00EE3E.l,d0	;10390000EE3E
 	asl.w	#$04,d0	;E940
-	lea	PocketContents.l,a0	;41F90000ED2A
+	lea	Character_Pockets_DataTable.l,a0	;41F90000ED2A
 	add.w	d0,a0	;D0C0
 	moveq	#$00,d0	;7000
 	move.b	(a0),d1	;1210
@@ -7220,7 +7220,7 @@ Spells_16_Recharge:
 	moveq	#$00,d0			;7000
 	move.b	adrB_00EE3E.l,d0	;10390000EE3E
 	asl.w	#$04,d0			;E940
-	lea	PocketContents.l,a0	;41F90000ED2A
+	lea	Character_Pockets_DataTable.l,a0	;41F90000ED2A
 	add.w	d0,a0			;D0C0
 	move.b	(a0),d0			;1010
 	cmpi.b	#$69,d0			;0C000069
@@ -7679,7 +7679,7 @@ adrCd0055F6:
 	bsr	adrCd006778	;6100117E
 	addq.b	#$03,d7	;5607
 	bmi.s	adrCd00561A	;6B1A
-	lea	adrEA00685E.l,a0	;41F90000685E
+	lea	SpellCost_DataTable.l,a0	;41F90000685E
 	move.b	$00(a0,d6.w),d0	;10306000
 	add.w	d0,d0	;D040
 	addq.b	#$01,d0	;5200
@@ -9098,7 +9098,7 @@ adrCd006312:
 	rts	;4E75
 
 adrCd00631E:
-	lea	PocketContents.l,a1	;43F90000ED2A
+	lea	Character_Pockets_DataTable.l,a1	;43F90000ED2A
 	asl.w	#$04,d0	;E940
 	add.w	d0,a1	;D2C0
 	move.b	$0011(a4),d3	;162C0011
@@ -9551,7 +9551,7 @@ adrCd006778:
 	move.w	d0,-(sp)	;3F00
 	move.l	a4,d0	;200C
 	sub.l	#CharacterStats,d0	;04800000EB2A
-	lea	PocketContents.l,a0	;41F90000ED2A
+	lea	Character_Pockets_DataTable.l,a0	;41F90000ED2A
 	lsr.w	#$01,d0	;E248
 	add.w	d0,a0	;D0C0
 	lsr.w	#$04,d0	;E848
@@ -9667,7 +9667,7 @@ adrB_00683E:
 	dc.b	$13	;13
 	dc.b	$12	;12
 	dc.b	$10	;10
-adrEA00685E:
+SpellCost_DataTable:
 	dc.b	$01	;01
 	dc.b	$02	;02
 	dc.b	$02	;02
@@ -9720,7 +9720,7 @@ adrCd00688C:
 	move.l	a4,d0	;200C
 	sub.l	#CharacterStats,d0	;04800000EB2A
 	lsr.w	#$01,d0	;E248
-	lea	PocketContents.l,a0	;41F90000ED2A
+	lea	Character_Pockets_DataTable.l,a0	;41F90000ED2A
 	add.w	d0,a0	;D0C0
 	moveq	#$00,d0	;7000
 	move.b	$0013(a4),d0	;102C0013
@@ -9749,7 +9749,7 @@ adrCd0068D0:
 adrCd0068DC:
 	moveq	#$00,d0	;7000
 	move.b	$0013(a4),d0	;102C0013
-	lea	adrEA00685E.w,a0	;41F8685E	;Short Absolute converted to symbol!
+	lea	SpellCost_DataTable.w,a0	;41F8685E	;Short Absolute converted to symbol!
 	move.b	$00(a0,d0.w),d0	;10300000
 	addq.w	#$01,d0	;5240
 	add.w	d0,d0	;D040
@@ -9883,7 +9883,7 @@ adrCd006A16:
 	move.b	$000F(a5),d7	;1E2D000F
 	move.b	$18(a5,d7.w),d7	;1E357018
 	asl.b	#$04,d7	;E907
-	lea	PocketContents.l,a6	;4DF90000ED2A
+	lea	Character_Pockets_DataTable.l,a6	;4DF90000ED2A
 	add.w	d7,a6	;DCC7
 	subq.b	#$01,$0B(a6,d0.w)	;5336000B
 	bcc.s	adrCd006A36	;6406
@@ -9905,7 +9905,7 @@ adrJA006A46:
 	move.w	d0,d2	;3400
 	and.w	#$000F,d2	;0242000F
 	asl.b	#$04,d0	;E900
-	lea	PocketContents.l,a6	;4DF90000ED2A
+	lea	Character_Pockets_DataTable.l,a6	;4DF90000ED2A
 	add.w	d0,a6	;DCC0
 	lea	CharacterStats.l,a4	;49F90000EB2A
 	add.w	d0,d0	;D040
@@ -12535,9 +12535,9 @@ adrCd00843E:
 	add.w	d6,a6	;DCC6
 	and.w	#$0003,d0	;02400003
 	add.w	#$004B,d0	;0640004B
-	move.w	#$FFFF,adrW_00B4BE.l	;33FCFFFF0000B4BE
+	move.w	#$FFFF,Buffer_Colour_Mask_Toggle.l	;33FCFFFF0000B4BE
 	bsr	adrCd00CAEA	;61004692
-	clr.w	adrW_00B4BE.l	;42790000B4BE
+	clr.w	Buffer_Colour_Mask_Toggle.l	;42790000B4BE
 	rts	;4E75
 
 adrCd008462:
@@ -14016,13 +14016,13 @@ adrCd0092E8:
 	add.b	#$60,d4	;06040060
 	ext.w	d6	;4886
 	asr.w	#$04,d6	;E846
-	move.w	#$FFFF,adrW_00B4BE.l	;33FCFFFF0000B4BE
+	move.w	#$FFFF,Buffer_Colour_Mask_Toggle.l	;33FCFFFF0000B4BE
 	lea	SpellStars_Colours.l,a0	;41F900009B70
-	move.l	$00(a0,d0.w),adrEA00B4C0.l	;23F000000000B4C0
+	move.l	$00(a0,d0.w),Buffer_Colour_Mask.l	;23F000000000B4C0
 	move.l	a3,-(sp)	;2F0B
 	bsr	adrCd00AE5E	;61001B10
 	move.l	(sp)+,a3	;265F
-	clr.w	adrW_00B4BE.l	;42790000B4BE
+	clr.w	Buffer_Colour_Mask_Toggle.l	;42790000B4BE
 adrCd009358:
 	rts	;4E75
 
@@ -14192,7 +14192,7 @@ adrCd0094B4:
 adrCd0094BC:
 	bsr	RandomGen_BytewithOffset	;6100C0EE
 	and.w	#$0004,d0	;02400004
-	move.l	adrL_0094D4(pc,d0.w),adrEA00B4C0.l	;23FB000E0000B4C0
+	move.l	adrL_0094D4(pc,d0.w),Buffer_Colour_Mask.l	;23FB000E0000B4C0
 	move.b	#$02,-$0012(a3)	;177C0002FFEE
 	bra.s	adrCd0094E6	;6012
 
@@ -14201,7 +14201,7 @@ adrL_0094D4:
 	dc.l	$090A0B0D	;090A0B0D
 
 adrCd0094DC:
-	move.l	#$01050406,adrEA00B4C0.l	;23FC010504060000B4C0
+	move.l	#$01050406,Buffer_Colour_Mask.l	;23FC010504060000B4C0
 adrCd0094E6:
 	bsr	adrCd0099DC	;610004F4
 	cmpi.w	#$0012,d0	;0C400012
@@ -14232,9 +14232,9 @@ adrCd009522:
 	btst	#$00,d1	;08010000
 	bne.s	adrCd00955E	;6618
 	lea	GFX_Pit_High.l,a1	;43F900031D20
-	move.w	#$FFFF,adrW_00B4BE.l	;33FCFFFF0000B4BE
+	move.w	#$FFFF,Buffer_Colour_Mask_Toggle.l	;33FCFFFF0000B4BE
 	bsr.s	adrCd0095B4	;615E
-	clr.w	adrW_00B4BE.l	;42790000B4BE
+	clr.w	Buffer_Colour_Mask_Toggle.l	;42790000B4BE
 	bra.s	adrCd009560	;6002
 
 adrCd00955E:
@@ -14480,7 +14480,7 @@ adrCd009722:
 	move.b	$00(a6,d2.w),d3	;16362000
 	asl.w	#$02,d3	;E543
 	lea	Object_Floor_Palettes.l,a6	;4DF90000E7DE
-	move.l	$00(a6,d3.w),adrEA00B4C0.l	;23F630000000B4C0
+	move.l	$00(a6,d3.w),Buffer_Colour_Mask.l	;23F630000000B4C0
 	lea	Object_Floor_DataTable.l,a0	;41F90000E67A
 	move.b	$00(a0,d2.w),d3	;16302000
 	move.w	d3,d6	;3C03
@@ -14498,7 +14498,7 @@ adrCd009774:
 	moveq	#$00,d7	;7E00
 	cmpi.b	#$12,d3	;0C030012
 	bcs.s	adrCd009780	;6504
-	move.b	adrB_0097B6(pc,d0.w),d7	;1E3B0038
+	move.b	GFX_ObjectsOnFloor_Widths(pc,d0.w),d7	;1E3B0038
 adrCd009780:
 	swap	d7	;4847
 	lsr.w	#$01,d6	;E24E
@@ -14510,12 +14510,12 @@ adrCd009780:
 	add.b	#$60,d4	;06040060
 	ext.w	d6	;4886
 	asr.w	#$04,d6	;E846
-	move.w	#$FFFF,adrW_00B4BE.l	;33FCFFFF0000B4BE
+	move.w	#$FFFF,Buffer_Colour_Mask_Toggle.l	;33FCFFFF0000B4BE
 	bsr	adrCd00AE5E	;610016B2
-	clr.w	adrW_00B4BE.l	;42790000B4BE
+	clr.w	Buffer_Colour_Mask_Toggle.l	;42790000B4BE
 	rts	;4E75
 
-adrB_0097B6:
+GFX_ObjectsOnFloor_Widths:
 	dc.b	$01	;01
 	dc.b	$01	;01
 	dc.b	$01	;01
@@ -15159,12 +15159,12 @@ adrCd009C18:
 	ext.w	d6				;4886
 	asr.w	#$04,d6	;			E846
 	move.l	a3,-(sp)			;2F0B
-	move.w	#$FFFF,adrW_00B4BE.l		;33FCFFFF0000B4BE
+	move.w	#$FFFF,Buffer_Colour_Mask_Toggle.l		;33FCFFFF0000B4BE
 	lea	SpellStars_Colours.l,a0		;41F900009B70
 	asl.b	#$02,d0	;E500
-	move.l	$00(a0,d0.w),adrEA00B4C0.l	;23F000000000B4C0
+	move.l	$00(a0,d0.w),Buffer_Colour_Mask.l	;23F000000000B4C0
 	bsr	adrCd00AE5E	;61001202
-	clr.w	adrW_00B4BE.l	;42790000B4BE
+	clr.w	Buffer_Colour_Mask_Toggle.l	;42790000B4BE
 	move.l	(sp)+,a3	;265F
 	rts	;4E75
 
@@ -15439,7 +15439,7 @@ MonsterColourGrading:
 	asl.w	#$02,d2	;E542
 	lea	Monster_Palettes.l,a6	;4DF900009E60
 	add.w	d2,a6	;DCC2
-	move.l	(a6),adrEA00B4C0.l	;23D60000B4C0
+	move.l	(a6),Buffer_Colour_Mask.l	;23D60000B4C0
 	rts	;4E75
 
 adrEA009EBE:
@@ -15476,14 +15476,14 @@ adrEA009EE2:
 	dc.w	$1670	;1670
 
 Draw_Crab:
-	move.w	#$FFFF,adrW_00B4BE.l	;33FCFFFF0000B4BE
+	move.w	#$FFFF,Buffer_Colour_Mask_Toggle.l	;33FCFFFF0000B4BE
 	lea	Monster_Crabs_Colours.l,a0	;41F900009F20
 	moveq	#$02,d3	;7602
 	bsr.s	MonsterColourGrading	;6188
 	bsr	adrCd00A106	;610001F8
-	lea	adrEA00B4C0.l,a6	;4DF90000B4C0
+	lea	Buffer_Colour_Mask.l,a6	;4DF90000B4C0
 	bsr.s	adrCd009F28	;6110
-	clr.w	adrW_00B4BE.l	;42790000B4BE
+	clr.w	Buffer_Colour_Mask_Toggle.l	;42790000B4BE
 	rts	;4E75
 
 Monster_Crabs_Colours:
@@ -15814,7 +15814,7 @@ Draw_Beholder:
 	beq.s	adrCd00A1A4	;6704
 	bsr	adrCd00A1BC	;6100001A
 adrCd00A1A4:
-	clr.w	adrW_00B4BE.l	;42790000B4BE
+	clr.w	Buffer_Colour_Mask_Toggle.l	;42790000B4BE
 	rts	;4E75
 
 Monster_Beholder_Colours:
@@ -16024,16 +16024,16 @@ adrEA00A328:
 
 Draw_LittleDragon:
 	moveq	#$01,d2	;7401
-	lea	adrEA00A33C.l,a2	;45F90000A33C
+	lea	LittleDragon_Table_Unknown.l,a2	;45F90000A33C
 	moveq	#$03,d3	;7603
 	bra.s	adrCd00A356	;601A
 
-adrEA00A33C:
+LittleDragon_Table_Unknown:
 	dc.w	$F1F5	;F1F5
 	dc.w	$FBFA	;FBFA
 	dc.w	$FD01	;FD01
 	dc.w	$0E0D	;0E0D
-adrEA00A344:
+BigDragon_Table_Unknown:
 	dc.w	$E8EE	;E8EE
 	dc.w	$F6F9	;F6F9
 	dc.w	$F0F8	;F0F8
@@ -16041,7 +16041,7 @@ adrEA00A344:
 
 Draw_BigDragon:
 	moveq	#$00,d2	;7400
-	lea	adrEA00A344.l,a2	;45F90000A344
+	lea	BigDragon_Table_Unknown.l,a2	;45F90000A344
 	moveq	#$09,d3	;7609
 adrCd00A356:
 	lea	adrEA00A536.l,a0	;41F90000A536
@@ -16059,10 +16059,10 @@ adrCd00A356:
 adrCd00A37C:
 	lea	Monster_Dragon_Colours.l,a0	;41F90000A3A6
 	bsr	MonsterColourGrading	;6100FB10
-	move.w	#$FFFF,adrW_00B4BE.l	;33FCFFFF0000B4BE
+	move.w	#$FFFF,Buffer_Colour_Mask_Toggle.l	;33FCFFFF0000B4BE
 	bsr	adrCd00A476	;610000E6
 	bsr.s	adrCd00A3AE	;611A
-	clr.w	adrW_00B4BE.l	;42790000B4BE
+	clr.w	Buffer_Colour_Mask_Toggle.l	;42790000B4BE
 adrCd00A39A:
 	rts	;4E75
 
@@ -16299,13 +16299,13 @@ adrEA00A4F2:
 	dc.w	$28D8	;28D8
 
 Draw_Behemoth:
-	move.w	#$FFFF,adrW_00B4BE.l	;33FCFFFF0000B4BE
+	move.w	#$FFFF,Buffer_Colour_Mask_Toggle.l	;33FCFFFF0000B4BE
 	lea	Monster_Behemoth_Colours.l,a0	;41F90000A52E
 	moveq	#$06,d3	;7606
 	bsr	MonsterColourGrading	;6100F978
 	lea	adrEA00A668.l,a0	;41F90000A668
 	bsr.s	adrCd00A54C	;6126
-	clr.w	adrW_00B4BE.l	;42790000B4BE
+	clr.w	Buffer_Colour_Mask_Toggle.l	;42790000B4BE
 	rts	;4E75
 
 Monster_Behemoth_Colours:
@@ -16319,7 +16319,7 @@ adrEA00A536:
 	dc.w	$0203	;0203
 
 Draw_Entropy:
-	move.l	#$04080C,adrEA00B4C0.l	;23FC0004080C0000B4C0
+	move.l	#$04080C,Buffer_Colour_Mask.l	;23FC0004080C0000B4C0
 	lea	adrEA00A604.l,a0	;41F90000A604
 adrCd00A54C:
 	move.b	adrEA00A536(pc,d1.w),d1	;123B10E8
@@ -16348,7 +16348,7 @@ adrCd00A58A:
 	movem.l	(sp)+,d0/d1/d4/d5/d7/a0/a1	;4CDF03B3
 	cmpi.b	#$02,d1	;0C010002
 	bcc.s	adrCd00A600	;646C
-	lea	adrEA00B4C0.l,a6	;4DF90000B4C0
+	lea	Buffer_Colour_Mask.l,a6	;4DF90000B4C0
 	moveq	#$00,d2	;7400
 	moveq	#$00,d6	;7C00
 	move.l	a0,-(sp)	;2F08
@@ -17075,7 +17075,7 @@ adrEA00AAFC:
 	dc.w	$FE00	;FE00
 
 adrCd00AB44:
-	lea	adrEA00B4C0.l,a6	;4DF90000B4C0
+	lea	Buffer_Colour_Mask.l,a6	;4DF90000B4C0
 	move.l	$00(a0,d1.w),(a6)	;2CB01000
 	move.b	-$001C(a3),d1	;122BFFE4
 	rol.b	#$02,d1	;E519
@@ -17565,7 +17565,7 @@ adrCd00AE6E:
 	swap	d5	;4845
 	move.w	d0,d5	;3A00
 	not.l	d5	;4685
-	lea	adrEA00B4C0.l,a6	;4DF90000B4C0
+	lea	Buffer_Colour_Mask.l,a6	;4DF90000B4C0
 adrLp00AE98:
 	swap	d7	;4847
 	move.w	d6,-(sp)	;3F06
@@ -17575,7 +17575,7 @@ adrLp00AE98:
 adrLp00AEA2:
 	move.l	(a1)+,d0	;2019
 	move.l	(a1)+,d1	;2219
-	tst.w	adrW_00B4BE.l	;4A790000B4BE
+	tst.w	Buffer_Colour_Mask_Toggle.l	;4A790000B4BE
 	beq.s	adrCd00AEB2	;6704
 	bsr	adrCd00AFD0	;61000120
 adrCd00AEB2:
@@ -17662,7 +17662,7 @@ adrLp00AF54:
 	move.l	-(a1),d0	;2021
 	bsr	adrCd00AD6C	;6100FE0A
 	move.l	a2,d2	;240A
-	lea	adrEA00B4C0.l,a6	;4DF90000B4C0
+	lea	Buffer_Colour_Mask.l,a6	;4DF90000B4C0
 	bsr	adrCd00AFD0	;61000062
 	ror.l	d4,d0	;E8B8
 	ror.l	d4,d1	;E8B9
@@ -17826,10 +17826,10 @@ adrCd00B08C:
 	beq.s	adrCd00B0D4	;6702
 	clr.b	d0	;4200
 adrCd00B0D4:
-	move.l	d0,adrEA00B4C0.l	;23C00000B4C0
-	move.w	#$FFFF,adrW_00B4BE.l	;33FCFFFF0000B4BE
+	move.l	d0,Buffer_Colour_Mask.l	;23C00000B4C0
+	move.w	#$FFFF,Buffer_Colour_Mask_Toggle.l	;33FCFFFF0000B4BE
 	bsr	adrCd00B410	;6100032C
-	clr.w	adrW_00B4BE.l	;42790000B4BE
+	clr.w	Buffer_Colour_Mask_Toggle.l	;42790000B4BE
 	rts	;4E75
 
 adrCd00B0EE:
@@ -17847,10 +17847,10 @@ adrCd00B0EE:
 	swap	d0	;4840
 	move.b	$02(a6,d1.w),d0	;10361002
 adrCd00B122:
-	move.l	d0,adrEA00B4C0.l	;23C00000B4C0
-	move.w	#$FFFF,adrW_00B4BE.l	;33FCFFFF0000B4BE
+	move.l	d0,Buffer_Colour_Mask.l	;23C00000B4C0
+	move.w	#$FFFF,Buffer_Colour_Mask_Toggle.l	;33FCFFFF0000B4BE
 	bsr	adrCd00B410	;610002DE
-	clr.w	adrW_00B4BE.l	;42790000B4BE
+	clr.w	Buffer_Colour_Mask_Toggle.l	;42790000B4BE
 	rts	;4E75
 
 adrCd00B13C:
@@ -17871,10 +17871,10 @@ adrCd00B13C:
 adrCd00B16C:
 	bsr.s	adrCd00B1CC	;615E
 adrCd00B16E:
-	move.l	d0,adrEA00B4C0.l	;23C00000B4C0
-	move.w	#$FFFF,adrW_00B4BE.l	;33FCFFFF0000B4BE
+	move.l	d0,Buffer_Colour_Mask.l	;23C00000B4C0
+	move.w	#$FFFF,Buffer_Colour_Mask_Toggle.l	;33FCFFFF0000B4BE
 	bsr	adrCd00B410	;61000292
-	clr.w	adrW_00B4BE.l	;42790000B4BE
+	clr.w	Buffer_Colour_Mask_Toggle.l	;42790000B4BE
 	move.w	(sp)+,d6	;3C1F
 	move.b	-$0012(a3),d1	;122BFFEE
 	lsr.b	#$02,d1	;E409
@@ -18045,7 +18045,7 @@ adrB_00B2BA:
 	dc.b	$19	;19
 	dc.b	$1A	;1A
 	dc.b	$1B	;1B
-adrB_00B2D6:
+Door_Lock_Colours:
 	dc.b	$01	;01
 	dc.b	$09	;09
 	dc.b	$04	;04
@@ -18058,15 +18058,15 @@ adrB_00B2D6:
 adrCd00B2DE:
 	cmp.b	#$01,-$0013(a3)	;0C2B0001FFED
 	beq	adrCd00B384	;6700009E
-	move.w	#$FFFF,adrW_00B4BE.l	;33FCFFFF0000B4BE
-	move.l	#$0004000C,adrEA00B4C0.l	;23FC0004000C0000B4C0	;Long Addr replaced with Symbol
+	move.w	#$FFFF,Buffer_Colour_Mask_Toggle.l	;33FCFFFF0000B4BE
+	move.l	#$0004000C,Buffer_Colour_Mask.l	;23FC0004000C0000B4C0	;Long Addr replaced with Symbol
 	moveq	#$00,d0	;7000
 	move.b	-$0012(a3),d0	;102BFFEE
 	btst	#$03,d0	;08000003
 	bne.s	adrCd00B312	;660C
 	lsr.b	#$04,d0	;E808
-	move.b	adrB_00B2D6(pc,d0.w),d0	;103B00CC
-	move.b	d0,adrB_00B4C2.l	;13C00000B4C2
+	move.b	Door_Lock_Colours(pc,d0.w),d0	;103B00CC
+	move.b	d0,Buffer_Colour_Mask+$02.l	;13C00000B4C2
 adrCd00B312:
 	lea	GFX_Door_Offsets.l,a0	;41F900018C14
 	lea	GFX_Door_Positions.l,a2	;45F90000BC4E
@@ -18099,7 +18099,7 @@ adrCd00B350:
 adrCd00B370:
 	bsr	adrCd00B458	;610000E6
 adrCd00B374:
-	clr.w	adrW_00B4BE.l	;42790000B4BE
+	clr.w	Buffer_Colour_Mask_Toggle.l	;42790000B4BE
 	tst.b	-$0011(a3)	;4A2BFFEF
 	bmi	adrCd0099F0	;6B00E670
 	rts	;4E75
@@ -18240,11 +18240,10 @@ adrCd00B486:
 	add.w	d3,d3	;D643
 	rts	;4E75
 
-adrW_00B4BE:
+Buffer_Colour_Mask_Toggle:
 	dc.w	$0000	;0000
-adrEA00B4C0:
+Buffer_Colour_Mask:
 	dc.w	$0004	;0004
-adrB_00B4C2:
 	dc.b	$08	;08
 	dc.b	$0C	;0C
 adrEA00B4C4:
@@ -18392,9 +18391,9 @@ adrLp00B5CC:
 adrLp00B5D0:
 	move.l	(a1)+,d0	;2019
 	move.l	(a1)+,d1	;2219
-	tst.w	adrW_00B4BE.l	;4A790000B4BE
+	tst.w	Buffer_Colour_Mask_Toggle.l	;4A790000B4BE
 	beq.s	adrCd00B5E6	;670A
-	lea	adrEA00B4C0.l,a6	;4DF90000B4C0
+	lea	Buffer_Colour_Mask.l,a6	;4DF90000B4C0
 	bsr	adrCd00AFD0	;6100F9EC
 adrCd00B5E6:
 	move.l	d1,d2	;2401
@@ -18584,9 +18583,9 @@ adrLp00B772:
 	bsr	adrCd00AD66	;6100F5EE
 	exg	d0,d1	;C141
 	bsr	adrCd00AD66	;6100F5E8
-	tst.w	adrW_00B4BE.l	;4A790000B4BE
+	tst.w	Buffer_Colour_Mask_Toggle.l	;4A790000B4BE
 	beq.s	adrCd00B792	;670A
-	lea	adrEA00B4C0.l,a6	;4DF90000B4C0
+	lea	Buffer_Colour_Mask.l,a6	;4DF90000B4C0
 	bsr	adrCd00AFD0	;6100F840
 adrCd00B792:
 	move.l	d1,d2	;2401
@@ -19971,7 +19970,7 @@ adrCd00C3A6:
 	asl.w	#$02,d7	;E547
 	swap	d7	;4847
 	move.w	#$0007,d7	;3E3C0007
-	lea	adrEA00B4C0.l,a6	;4DF90000B4C0
+	lea	Buffer_Colour_Mask.l,a6	;4DF90000B4C0
 	moveq	#$03,d5	;7A03
 adrLp00C3C8:
 	bsr	adrCd00C906	;6100053C
@@ -19995,9 +19994,9 @@ adrCd00C3DE:
 	move.w	#$0004,d3	;363C0004
 	swap	d3	;4843
 	move.l	#$00000090,a3	;267C00000090
-	move.w	#$FFFF,adrW_00B4BE.l	;33FCFFFF0000B4BE
+	move.w	#$FFFF,Buffer_Colour_Mask_Toggle.l	;33FCFFFF0000B4BE
 	bsr	adrLp00B5CC	;6100F1B2
-	clr.w	adrW_00B4BE.l	;42790000B4BE
+	clr.w	Buffer_Colour_Mask_Toggle.l	;42790000B4BE
 	tst.b	adrB_00EE2C.l	;4A390000EE2C
 	beq.s	adrCd00C434	;670A
 	subq.b	#$01,$000F(a5)	;532D000F
@@ -20076,7 +20075,7 @@ adrW_00C514:
 Click_ViewObject:
 	move.w	$0006(a5),d0	;302D0006
 	asl.w	#$04,d0	;E940
-	lea	PocketContents.l,a6	;4DF90000ED2A
+	lea	Character_Pockets_DataTable.l,a6	;4DF90000ED2A
 	add.w	d0,a6	;DCC0
 	move.w	$000E(a5),d0	;302D000E
 	move.b	$00(a6,d0.w),d0	;10360000
@@ -20503,7 +20502,7 @@ adrCd00C9BC:
 	add.w	$000A(a5),a0	;D0ED000A
 	move.w	d7,d0	;3007
 	asl.w	#$04,d0	;E940
-	lea	PocketContents.l,a4	;49F90000ED2A
+	lea	Character_Pockets_DataTable.l,a4	;49F90000ED2A
 	add.w	d0,a4	;D8C0
 	swap	d7	;4847
 	clr.w	d7	;4247
@@ -20934,7 +20933,7 @@ Draw_ShieldAvatar:
 	asl.w	#$02,d0	;E540
 	move.l	$00(a6,d0.w),d0	;20360000
 adrCd00CDBC:
-	lea	adrEA00B4C0.l,a6	;4DF90000B4C0
+	lea	Buffer_Colour_Mask.l,a6	;4DF90000B4C0
 	move.l	d0,(a6)	;2C80
 	sub.l	a3,a3	;97CB
 	lea	GFX_Shield_Top.l,a1	;43F900044B30
@@ -20957,9 +20956,9 @@ adrCd00CDBC:
 	asl.w	#$04,d0	;E940
 	add.w	d0,a1	;D2C0
 	move.l	#$1000A,d5	;2A3C0001000A
-	move.w	#$FFFF,adrW_00B4BE.l	;33FCFFFF0000B4BE
+	move.w	#$FFFF,Buffer_Colour_Mask_Toggle.l	;33FCFFFF0000B4BE
 	bsr.s	adrCd00CE26	;6112
-	clr.w	adrW_00B4BE.l	;42790000B4BE
+	clr.w	Buffer_Colour_Mask_Toggle.l	;42790000B4BE
 	lea	GFX_Shield_Bottom.l,a1	;43F900044B80
 	move.l	#$00010008,d5	;2A3C00010008	;Long Addr replaced with Symbol
 adrCd00CE26:
@@ -20972,7 +20971,7 @@ adrLp00CE2A:
 adrLp00CE2E:
 	move.l	(a1)+,d0	;2019
 	move.l	(a1)+,d1	;2219
-	tst.w	adrW_00B4BE.l	;4A790000B4BE
+	tst.w	Buffer_Colour_Mask_Toggle.l	;4A790000B4BE
 	beq.s	adrCd00CE3E	;6704
 	bsr	adrCd00AFD0	;6100E194
 adrCd00CE3E:
@@ -24134,7 +24133,6 @@ CharacterStats:
 	dc.w	$0300	;0300
 	dc.w	$0000	;0000
 	dc.w	$0000	;0000
-adrEA00EBAA:
 	dc.w	$0122	;0122
 	dc.w	$150F	;150F
 	dc.w	$0F25	;0F25
@@ -24327,7 +24325,7 @@ adrEA00EBAA:
 	dc.w	$0300	;0300
 	dc.w	$0000	;0000
 	dc.w	$0000	;0000
-PocketContents:
+Character_Pockets_DataTable:
 	dc.w	$3300	;3300
 	dc.w	$0000	;0000
 	dc.w	$0001	;0001

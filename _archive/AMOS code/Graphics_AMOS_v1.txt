@@ -1,0 +1,598 @@
+'Screen Close 0
+'Load Iff "bw:editor/graphics/graphics",2 : Screen Hide 2
+' Load Iff "dh1:tools/amiga editor/editor/graphics/graphics",2 : Screen Hide 2 
+
+Load Iff "dh1:bloodwych mods/bloodwych editor drive/editor/graphics/graphics",2 : Screen Hide 2
+
+
+_IFFPATH$=Dir$+"Iffs/"
+_RAWPATH$=Dir$+"Rips/"
+_MODPATH$=Dir$+"Modified/"
+
+
+'
+' automatic
+'  
+' 1=load iff version 
+'
+
+'Goto OSIRIS 
+'
+'Stop  
+
+RECYCLE:
+
+
+If Exist("T:LastFile")=False or Mouse Key<>0
+
+      FILE$=Fsel$(Dir$)
+      If FILE$="" : End : End If 
+      Reserve As Work 1,Len(FILE$)
+      For A=1 To Length(1)
+         Poke Start(1)+A-1,Asc(Mid$(FILE$,A,1))
+      Next 
+
+      Wsave "T:LastFile",1
+
+Else 
+
+
+  If Exist("T:LastFile")
+
+      Wload "T:LastFile",1
+      For A=1 To Length(1)
+         FILE$=FILE$+Chr$((Peek(Start(1)+A-1)))
+      Next 
+
+  End If 
+
+End If 
+
+
+
+   Wload FILE$,1
+
+ '  PATHDATA$=Itemstr$(FILE$,1,"_") 
+
+    X=Len(FILE$)
+    For Z=0 To X-1
+     If Mid$(FILE$,X-Z,1)="/" or Mid$(FILE$,X-Z,1)=":" Then Exit 
+    Next Z
+
+    PATHDATA$=Right$(FILE$,Z)
+    PATHDATA$=Replacestr$(PATHDATA$," " To "_")
+
+
+
+
+ _GRAPHICSEDITOR[PATHDATA$,0,0]
+
+
+
+
+
+Goto RECYCLE : 
+
+
+
+OSIRIS:
+
+
+
+End 
+
+
+Procedure _GRAPHICSEDITOR[PATHDATA$,_OFFSET,AUTOMATIC]
+
+Screen Open 3,300,200,16,Lowres
+
+
+Restore _FILETYPES
+
+' check if ive got it on the list
+    For COUNT=0 To $50
+      Read FISH$
+
+    '   Print "A: "+FISH$ : Wait 5 
+    '   Print PATHDATA$
+
+    If Lower$(FISH$)=Lower$(PATHDATA$) and FISH$<>""
+
+      'Screen Open 0,320,256,16,Lowres 
+      'Cls 6 
+       'Print "    ---"+PATHDATA$ 
+
+      'Print FISH$ 
+
+      Restore "_"+PATHDATA$
+      Read WIDTH,HEIGHT
+
+      If WIDTH=0 and HEIGHT=0 : PATHDATA$="Unknown" : End If 
+
+
+      Goto _DONE
+      End If 
+    Next 
+
+   PATHDATA$="Unknown"
+
+
+
+
+_DONE:
+
+'========
+
+  Dim _PLANE(3),PX(16)
+  WRITE=False
+
+
+
+RESTART:
+
+
+
+Screen Open 1,640,320,16,Lowres
+Flash Off : Get Palette 2
+Curs Off 
+
+Cls 0 : Ink 10,15 : Paper 0
+'Print PATHDATA$ 
+'Wait 200
+
+
+_RESET:
+
+STRIPS=Length(1)/8
+WIDTH=1
+
+
+Restore "_"+PATHDATA$
+
+
+
+_REDRAW:
+
+For A=0 To 3 : _PLANE(A)=0 : Next 
+For A=0 To $F : PX(A)=0 : Next 
+
+
+If PATHDATA$<>"Unknown" Then Read WIDTH,HEIGHT
+If PATHDATA$="Unknown" Then HEIGHT=9999
+
+
+WIDTHCOUNT=0
+HEIGHTCOUNT=0
+OUTPUTWIDTH=0
+WIDTHMAX=0
+XX=0
+YY=0
+XSET=0
+XCOL=0
+
+
+
+For STRIPCOUNT=0 To STRIPS-1
+
+    If WIDTH<0.1 : WIDTH=1 : End If 
+    If HEIGHT<0 : HEIGHT=9999 : End If 
+
+    OUTPUTWIDTH=16*WIDTH
+
+
+If WRITE=False : Rem ------ READ DATA 
+
+
+     ' read the planes out from the data block
+
+      _PLANE(0)=Deek(Start(1)+(STRIPCOUNT*8)+$0)
+      _PLANE(1)=Deek(Start(1)+(STRIPCOUNT*8)+$2)
+      _PLANE(2)=Deek(Start(1)+(STRIPCOUNT*8)+$4)
+      _PLANE(3)=Deek(Start(1)+(STRIPCOUNT*8)+$6)
+
+       '  Print Hex$(_PLANE(0),4),Hex$(_PLANE(1),4),Hex$(_PLANE(2),4),Hex$(_PLANE(3),4) 
+       '  Wait Key  
+
+   ' make the palette entries from the planes 
+     For NUMB=0 To $F
+
+       PX($-NUMB)=0
+       PX($-NUMB)=PX($-NUMB)-(Btst(NUMB,_PLANE(3))*8)
+       PX($-NUMB)=PX($-NUMB)-(Btst(NUMB,_PLANE(2))*4)
+       PX($-NUMB)=PX($-NUMB)-(Btst(NUMB,_PLANE(1))*2)
+       PX($-NUMB)=PX($-NUMB)-(Btst(NUMB,_PLANE(0))*1)
+
+
+      Next NUMB
+
+   ' draw the 16 palette entrie 
+      For NUMB=0 To $F
+          F Plot XX+2+NUMB+XSET+XCOL,YY,PX(NUMB)
+      Next 
+
+   Else : Rem --------- WRITE DATA 
+
+
+   ' get the 16 palette entrie
+      For NUMB=0 To $F
+          PX(NUMB)=F Point(XX+2+NUMB+XSET+XCOL,YY)
+      Next 
+
+  _PLANE(0)=0 : _PLANE(1)=0
+  _PLANE(2)=0 : _PLANE(3)=0
+
+
+   ' make the planes from the palette entries 
+     For NUMB=0 To $F
+
+      ' numb = the colour i am using, and the "bit" used on each plane 
+
+            If Btst(0,PX(NUMB))=True : Bset $F-NUMB,_PLANE(0) : End If 
+            If Btst(1,PX(NUMB))=True : Bset $F-NUMB,_PLANE(1) : End If 
+            If Btst(2,PX(NUMB))=True : Bset $F-NUMB,_PLANE(2) : End If 
+            If Btst(3,PX(NUMB))=True : Bset $F-NUMB,_PLANE(3) : End If 
+
+      Next NUMB
+
+
+  '    Text 40,230,Hex$(_PLANE(0),4) 
+  '    Text 80,230,Hex$(_PLANE(1),4) 
+  '    Text 120,230,Hex$(_PLANE(2),4)
+  '    Text 160,230,Hex$(_PLANE(3),4)
+
+     ' write the planes back to the data block
+       Doke Start(1)+(STRIPCOUNT*8)+$0,_PLANE(0)
+       Doke Start(1)+(STRIPCOUNT*8)+$2,_PLANE(1)
+       Doke Start(1)+(STRIPCOUNT*8)+$4,_PLANE(2)
+       Doke Start(1)+(STRIPCOUNT*8)+$6,_PLANE(3)
+
+
+   End If 
+
+
+ If WIDTHCOUNT<(OUTPUTWIDTH-1) : XSET=XSET+16 : Else : XSET=0 : End If 
+
+ If OUTPUTWIDTH>WIDTHMAX : WIDTHMAX=OUTPUTWIDTH : End If 
+
+ WIDTHCOUNT=WIDTHCOUNT+16
+ HEIGHTCOUNT=HEIGHTCOUNT+1
+
+
+If WIDTHCOUNT=>OUTPUTWIDTH
+ YY=YY+1
+ WIDTHCOUNT=0
+ XSET=0
+End If 
+
+
+If HEIGHTCOUNT=HEIGHT or HEIGHT=0
+   HEIGHTCOUNT=0
+
+    Read WIDTH,HEIGHT
+    If WIDTH<0.1 : WIDTH=1 : End If 
+    If HEIGHT<0 : HEIGHT=9999 : End If 
+
+   ' page break, if needed? 
+
+    If YY+(HEIGHT/WIDTH)>255 : XCOL=XCOL+WIDTHMAX+2 : WIDTHMAX=0 : YY=0 : End If 
+
+End If 
+
+Next 
+
+
+'flash if we competed a write cycle
+
+If WRITE=True
+
+   Wsave _MODPATH$+""+PATHDATA$+"",1
+   Colour 0,$FF
+   Wait 5
+   Colour 0,0
+
+End If 
+
+
+   WRITE=False
+
+
+   If AUTOMATIC=4
+    Pop Proc
+
+   End If 
+
+
+
+' holding loop 
+
+MOUSEHELD=False
+
+MENULOOP:
+Repeat 
+
+' ==== mouse 
+
+      If MOUSEHELD=False and Mouse Key<>0
+         MOUSEHELD=True
+         MOUSEOFFY=Y Mouse
+         MOUSEOFFX=X Mouse
+      End If 
+
+
+         CALCY=Y Mouse-MOUSEOFFY
+         CALCX=X Mouse-MOUSEOFFX
+
+      If MOUSEHELD=True : Rem and(CALCY<>OLDCALCY) 
+         Text 300,20,Lzstr$(CALCY,4)
+         OLDCALY=CALCY
+      End If 
+
+      If Mouse Key=0
+         MOUSEHELD=False
+      End If 
+
+' keys to use
+' $61 0 left shift - redraw
+' $1 - width -   
+' $2 - width +   
+' $45 - Esc - Quit 
+' $40 - Space
+' $18 - O - open IFF   
+' $21 - S - Save IFF 
+' P patch
+'  
+
+' ===== keyboard 
+ If Key State($61)=True and KEYCLEAR=True
+  KEYCLEAR=False
+   Cls 0
+  Goto _REDRAW
+
+
+ Else If Key State($1)=True and KEYCLEAR=True and PATHDATA$="Unknown"
+  KEYCLEAR=False
+  WIDTH=WIDTH-1
+   Cls 0
+  If WIDTH=0 : WIDTH=1 : End If 
+  Goto _REDRAW
+
+ Else If Key State($2)=True and KEYCLEAR=True and PATHDATA$="Unknown"
+  KEYCLEAR=False
+   Cls 0
+  WIDTH=WIDTH+1
+  Goto _REDRAW
+
+ Else If Key State($45)=True
+
+   Exec "C:DELETE T:LastFile"
+   Pop Proc
+
+ Else If Key State($40)=True
+
+   Exit 
+
+ Else If Key State($18)=True : Rem 0 O .... Open IFF
+
+   AFILE$=Fsel$(Dir$)
+   Print AFILE$
+   Load Iff AFILE$
+
+
+ Else If AUTOMATIC=2 : Rem 0 O .... Open IFF
+
+    Load Iff Fsel$(Dir$),1
+    AUTOMATIC=3
+
+
+ Else If Key State($19)=True : Rem - P  ... Patch data
+
+   WRITE=True
+   Goto _RESET : 
+
+
+ Else If AUTOMATIC=3 : Rem -   ... Patch data 
+
+   AUTOMATIC=4
+   WRITE=True
+   Goto _RESET : 
+
+
+ Else If Key State($21)=True
+
+
+
+ Save Iff Replacestr$(""+PATHDATA$,"Rips" To "IFFs")+".iff",1
+
+
+ Print Replacestr$(""+PATHDATA$,"Rips" To "IFFs")+".iff"
+Rem Stop 
+'   Save Iff "IFFs/"+PATHDATA$+".iff",1
+'   Save Iff "IFFs/"+PATHDATA$+".iff",1
+
+
+   Colour 0,$F0
+   Wait 5
+   Colour 0,0
+
+
+ Else If Key State($1)=False and Key State($2)=False and Key State($40)=False
+  KEYCLEAR=True
+
+ Clear Key 
+
+
+'===== 
+ Else If AUTOMATIC=1
+ '  Load Iff(Replacestr$(PATHDATA$,"Rips" To "IFFs")+".iff"),1  
+    Load Iff "/IFFs/"+PATHDATA$+".iff",1
+    AUTOMATIC=2
+
+
+End If 
+
+Rem KEYCLEAR=True
+
+Rem Wait Vbl 
+
+Until 1=0
+
+
+
+
+Goto RESTART
+
+_UNKNOWN:
+Data 1,9999
+
+
+_MAINWALLS:
+Data 1,23,2,46,3,69,2,44,1,28,1,33,3,93,1,42,2,84,2,126,1,62,1,77
+Data 1,23,2,46,3,69,2,46,1,28,1,31,3,92,1,43,2,82,2,128,1,63,1,76
+Data 4,80,4,136,4,168,8,640,1,9999
+
+_WOODWALL:
+Data 1,23,2,46,3,69,2,44,1,28,1,33,3,93,1,42,2,84,2,126,1,62,1,79
+Data 2,42,2,62,2,86,4,252,1,23,2,46,3,69,2,46,1,28,1,31,3,90,1,45
+Data 2,84,2,126,1,64,1,75,2,44,2,62,2,86,4,252
+
+_WOODDOOR:
+Data 1,20,1,18,2,40,1,19,1,22,1,26,2,54,1,32,1,37,1,47,1,66,1,20
+Data 1,26,1,37,2,108
+
+_SHELF:
+Data 1,8,1,9,2,18,1,22,2,24,1,16,1,17,1,22,1,37,1,9,1,12,1,17,2,54
+
+_SIGN:
+Data 1,14,2,24,2,30,2,26,1,17,1,18,2,37,1,25,2,58,1,32,1,52,1,15,1,18,2,58,2,82
+
+_SIGN_OVERLAY:
+Data 1,6,1,6,2,16,1,10,2,18,1,16,1,20,1,28,1,7,1,9,1,14,2,44
+Data 1,6,1,6,2,16,1,10,2,18,1,16,1,20,1,28,1,7,1,9,1,14,2,44
+Data 1,6,1,6,2,16,1,10,2,18,1,16,1,20,1,28,1,7,1,9,1,14,2,44
+Data 1,6,1,6,2,16,1,10,2,18,1,16,1,20,1,28,1,7,1,9,1,14,2,44
+
+_EMPTY_SLOTS:
+Data 1,7,1,7,1,7,1,9,2,16,1,9,1,11,1,14,1,22,1,6,1,8,1,10,1,18
+
+_FULL_SLOTS:
+Data 1,7,1,7,1,7,1,9,2,16,1,9,1,11,1,14,1,22,1,6,1,8,1,10,1,19
+
+_BED:
+Data 1,1,2,22,1,16,2,22,1,16,4,84,6,174
+
+_PILLARS:
+Data 1,22,2,44,1,1,2,56,2,80,1,56,2,44,2,58,2,78,4,220,2,9999
+'22,,28,38 
+
+_STAIRS_UP:
+Data 1,106,3,93,1,41,2,80,2,130,1,20,1,49,1,69,2,60,2,84,3,189,2,60
+
+_STAIRS_DOWN:
+Data 1,106,3,93,1,41,2,80,2,130,1,20,1,49,1,69,2,60,2,84,3,189,2,60
+
+_LARGE_DOORWAY:
+Data 3,66,1,28,3,84,2,78,1,56,2,42,2,58,2,80,3,162,1,79,2,144
+
+_LARGE_DOOR_SHUT:
+Data 1,1,3,64,1,24,3,90,2,79,1,54,2,180,3,172
+Data 1,9999
+
+_PORTCULLIS:
+Data 3,66,1,25,3,87,2,78,1,57,2,42,2,58,2,78
+Data 3,180
+
+_PIT:
+Data 1,6,2,9999
+
+_PAD:
+Data 0,0
+
+_FLOOR_CEILING:
+Data 8,456
+
+_OBJECTS_ON_FLOOR:
+Data 0,221,1,184,2,36,1,8,2,34,1,8,2,42,1,7,2,32,1,8,2,16,1,8,2,18,1,6,2,28,1,8,2,52,1,12,2,36,1,10
+
+_AIRBOURNE_FIREBALL:
+Data 2,52,1,200
+
+_AIRBOURNE_SPELLS:
+Data 3,99,2,36,1,12,1,11,2,52,1,16,1,9999
+
+_HEAD_PARTS:
+Data 1,111,1,111,1,111,1,111,1,111,1,111,1,111,1,111,1,111,1,111,1,111,1,111,1,111,1,111,1,111,1,111,1,111,1,111
+
+_BODY_PARTS:
+Data 1,270,1,270,1,135,1,243,1,243,1,243,1,243,1,150+150,1,139+139
+Data 1,187,1,345,1,182,1,55,1,60,1,60,1,60,1,60,1,60
+Data 1,187,1,120,1,60,1,60,1,60,1,60,1,60,1,60,1,2060
+
+_AVATARS_LARGE:
+Data 2,60,2,60,2,60,2,60
+Data 2,60,2,60,2,60,2,60
+Data 2,60,2,60,2,60,2,60
+Data 2,60,2,60,2,60,2,60
+Data 2,9999
+
+_SHIELD_AVATARS:
+Data 2,1000
+
+_SHIELD_TOP:
+Data 2,1000
+
+_SHIELD_BOTTOM:
+Data 2,10000
+
+_SHIELD_CLASSES:
+Data 2,9999
+
+_SHIELD_CLICKED:
+Data 2,9999
+
+
+_FAIRY:
+Data 1,9999
+
+_SUMMON:
+Data 1,100,2,21,1,100,1,100,2,200
+
+_BEHEMOTH:
+Data 1,9999
+
+_CRAB:
+Data 1,9999
+
+_BEHOLDER:
+Data 1,9999
+
+_DRAGON:
+Data 2,100,5,275,2,108,2,76,4,152,2,76,1,30,3,84,1,26,1,23,2,42,2,9999
+
+_DRAGON_CLAW:
+Data 2,100,5,275,2,108,2,76,4,152,2,76,1,30,3,84,1,26,1,23,2,42,2,9999
+
+_ENTROPY:
+Data 1,51,3,153,1,52,1,35,2,72,1,36,1,27,2,54,1,26,1,22,1,21,1,21,1,26,1,21,1,18,1,15,1,9999
+
+_POCKETS:
+Data 20,9999
+
+_TILES:
+Data 20,9999
+
+_SWITCHES:
+Data 1,8,2,9,1,200
+
+_SLOTS:
+Data 0,14,1,16,2,16,1,200
+
+_FILETYPES:
+Data "MainWalls","WoodWall","WoodDoor","Shelf","Sign","Sign_Overlay","Empty_Slots","Full_Slots"
+Data "Bed","Pillar","Stairs_Up","Stairs_Down","Large_Doorway","Pad","Portcullis","Pit"
+Data "Floor_Ceiling","Objects_On_Floor","Airbourne_Fireball","Airbourne_Spells"
+Data "Head_Parts","Body_Parts","Avatars_Large","Summon","Dragon_Entropy"
+Data ,"Pockets","Entropy","Dragon","Dragon_Claw","Tiles","Switches","Slots",,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
+Data ,"Shield_Avatars","Sheild_Top","Shield_Bottom","Shild_Clicked",,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
+Data ,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
+
+End Proc
