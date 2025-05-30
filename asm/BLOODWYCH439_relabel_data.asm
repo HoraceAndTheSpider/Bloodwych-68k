@@ -383,7 +383,7 @@ QkPly1_Start:
 	move.l	#$000E0503,$0018(a5)	;2B7C000E05030018
 	move.l	$0018(a5),$0026(a5)	;2B6D00180026
 	clr.w	$0006(a5)	;426D0006
-	lea	CharacterStats.l,a0	;41F90000EB2A
+	lea	Character_Stats_DataTable.l,a0	;41F90000EB2A
 	move.b	#$0C,$0016(a0)	;117C000C0016
 	move.b	#$17,$0017(a0)	;117C00170017
 	clr.b	$0018(a0)	;42280018
@@ -421,7 +421,7 @@ adrLp0008D2:
 	dbra	d6,adrLp0008D2	;51CEFFFA
 	move.b	d1,$00(a0,d7.w)	;11817000
 	dbra	d7,adrLp0008CE	;51CFFFEE
-	lea	adrEA01694C.l,a0	;41F90001694C
+	lea	Spells_Practiced_DataTable.l,a0	;41F90001694C
 	moveq	#$7F,d0	;707F
 adrLp0008EA:
 	clr.l	(a0)+	;4298
@@ -519,7 +519,7 @@ adrCd000994:
 
 PrepareCharacters:
 	bsr	adrCd000B68	;610001D0
-	lea	CharacterStats.l,a4	;49F90000EB2A
+	lea	Character_Stats_DataTable.l,a4	;49F90000EB2A
 	moveq	#$0F,d6	;7C0F
 CharacterFillLoop:
 	clr.b	$0011(a4)	;422C0011
@@ -699,7 +699,7 @@ adrLp000B88:
 LevelData_LookupTable:
 	dc.w	MapData1-MapData1	;0000
 	dc.w	MapData2-MapData1	;1402
-	dc.w	MaoData3-MapData1	;2804
+	dc.w	MapData3-MapData1	;2804
 	dc.w	MapData4-MapData1	;3C06
 	dc.w	MapData5-MapData1	;5008
 	dc.w	MapData6-MapData1	;640A
@@ -911,7 +911,7 @@ adrLp000DEE:
 
 adrCd000E34:
 	move.l	a4,d0	;200C
-	sub.l	#CharacterStats,d0	;04800000EB2A
+	sub.l	#Character_Stats_DataTable,d0	;04800000EB2A
 	lsr.w	#$01,d0	;E248
 	lea	Character_Pockets_DataTable.l,a0	;41F90000ED2A
 	add.w	d0,a0	;D0C0
@@ -988,7 +988,7 @@ adrCd000EF6:
 	rts	;4E75
 
 adrCd000EF8:
-	lea	CharacterStats.l,a4	;49F90000EB2A
+	lea	Character_Stats_DataTable.l,a4	;49F90000EB2A
 	moveq	#$0F,d7	;7E0F
 adrLp000F00:
 	movem.l	d7/a4,-(sp)	;48E70108
@@ -1118,7 +1118,7 @@ adrCd001064:
 	bpl.s	adrCd00108E	;6A22
 	move.b	#$07,adrB_00EE3D.l	;13FC00070000EE3D
 	moveq	#$0F,d7	;7E0F
-	lea	CharacterStats.l,a4	;49F90000EB2A
+	lea	Character_Stats_DataTable.l,a4	;49F90000EB2A
 adrLp00107C:
 	subq.b	#$01,$0015(a4)	;532C0015
 	bcc.s	adrCd001086	;6404
@@ -1350,7 +1350,7 @@ adrCd0012DA:
 	moveq	#$00,d7	;7E00
 	move.w	#$FFFF,adrW_0013C2.l	;33FCFFFF000013C2
 	clr.w	adrW_0013C4.l	;4279000013C4
-	lea	CharacterStats.l,a4	;49F90000EB2A
+	lea	Character_Stats_DataTable.l,a4	;49F90000EB2A
 adrCd001308:
 	move.w	d7,-(sp)	;3F07
 	move.w	d7,d0	;3007
@@ -1537,7 +1537,7 @@ adrCd0014E8:
 	bra.s	adrCd001508	;6008
 
 adrCd001500:
-	sub.l	#CharacterStats,d0	;04800000EB2A
+	sub.l	#Character_Stats_DataTable,d0	;04800000EB2A
 	lsr.w	#$05,d0	;EA48
 adrCd001508:
 	bra	adrCd0020F6	;60000BEC
@@ -2090,7 +2090,7 @@ adrCd001AF0:
 	bne	adrCd001BB8	;6600008C
 	bclr	#$07,$01(a6,d2.w)	;08B600072001
 	move.l	a4,d0	;200C
-	sub.l	#CharacterStats,d0	;04800000EB2A
+	sub.l	#Character_Stats_DataTable,d0	;04800000EB2A
 	lsr.w	#$05,d0	;EA48
 	bsr	adrCd004078	;61002538
 	bclr	#$05,$18(a5,d1.w)	;08B500051018
@@ -2818,7 +2818,7 @@ adrCd002258:
 	cmp.b	$001C(a4),d3	;B62C001C
 	bcs.s	adrCd002296	;6522
 	move.l	a4,d3	;260C
-	sub.l	#CharacterStats,d3	;04830000EB2A
+	sub.l	#Character_Stats_DataTable,d3	;04830000EB2A
 	lsr.b	#$05,d3	;EA0B
 	and.w	#$0003,d3	;02430003
 	beq.s	adrCd00228A	;6706
@@ -3032,7 +3032,7 @@ adrCd002460:
 	move.w	d4,d0	;3004
 	bclr	#$07,$01(a6,d0.w)	;08B600070001
 	move.l	a1,d5	;2A09
-	sub.l	#CharacterStats,d5	;04850000EB2A
+	sub.l	#Character_Stats_DataTable,d5	;04850000EB2A
 	lsr.w	#$05,d5	;EA4D
 	add.l	#$10040,d5	;068500010040
 	moveq	#$00,d6	;7C00
@@ -6008,7 +6008,7 @@ adrCd004440:
 	jsr	adrCd008702.l	;4EB900008702
 	move.w	adrW_00447E.l,d7	;3E390000447E
 	jsr	adrCd00888E.l	;4EB90000888E
-	lea	CharacterStats.l,a0	;41F90000EB2A
+	lea	Character_Stats_DataTable.l,a0	;41F90000EB2A
 	moveq	#$08,d0	;7008
 	jsr	adrCd0086C0.l	;4EB9000086C0
 	jsr	adrCd008878.l	;4EB900008878
@@ -6026,7 +6026,7 @@ adrCd004480:
 	jsr	adrCd008702.l	;4EB900008702
 	move.w	adrW_00447E.w,d7	;3E38447E	;Short Absolute converted to symbol!
 	jsr	adrCd00888E.l	;4EB90000888E
-	lea	CharacterStats.l,a0	;41F90000EB2A
+	lea	Character_Stats_DataTable.l,a0	;41F90000EB2A
 	moveq	#$00,d0	;7000
 	move.w	adrW_00447E.w,d0	;3038447E	;Short Absolute converted to symbol!
 	moveq	#$00,d1	;7200
@@ -9192,7 +9192,7 @@ Click_ShowStats:
 	lea	adrEA00E9E8.l,a6	;4DF90000E9E8
 	bsr	Print_fflim_text	;61006A9C
 	asl.w	#$05,d7	;EB47
-	lea	CharacterStats.l,a6	;4DF90000EB2A
+	lea	Character_Stats_DataTable.l,a6	;4DF90000EB2A
 	moveq	#$00,d0	;7000
 	move.b	$10(a6,d7.w),d0	;10367010
 	beq.s	adrCd00666E	;6732
@@ -9210,7 +9210,7 @@ adrCd00665C:
 adrCd006660:
 	and.w	#$000F,d0	;0240000F
 	asl.w	#$05,d0	;EB40
-	lea	CharacterStats.l,a4	;49F90000EB2A
+	lea	Character_Stats_DataTable.l,a4	;49F90000EB2A
 	add.w	d0,a4	;D8C0
 adrCd00666E:
 	rts	;4E75
@@ -9328,7 +9328,7 @@ adrCd006778:
 	bsr	adrCd006900	;61000182
 	move.w	d0,-(sp)	;3F00
 	move.l	a4,d0	;200C
-	sub.l	#CharacterStats,d0	;04800000EB2A
+	sub.l	#Character_Stats_DataTable,d0	;04800000EB2A
 	lea	Character_Pockets_DataTable.l,a0	;41F90000ED2A
 	lsr.w	#$01,d0	;E248
 	add.w	d0,a0	;D0C0
@@ -9496,7 +9496,7 @@ adrB_00687E:
 
 adrCd00688C:
 	move.l	a4,d0	;200C
-	sub.l	#CharacterStats,d0	;04800000EB2A
+	sub.l	#Character_Stats_DataTable,d0	;04800000EB2A
 	lsr.w	#$01,d0	;E248
 	lea	Character_Pockets_DataTable.l,a0	;41F90000ED2A
 	add.w	d0,a0	;D0C0
@@ -9685,7 +9685,7 @@ adrJA006A46:
 	asl.b	#$04,d0	;E900
 	lea	Character_Pockets_DataTable.l,a6	;4DF90000ED2A
 	add.w	d0,a6	;DCC0
-	lea	CharacterStats.l,a4	;49F90000EB2A
+	lea	Character_Stats_DataTable.l,a4	;49F90000EB2A
 	add.w	d0,d0	;D040
 	add.w	d0,a4	;D8C0
 	moveq	#$00,d0	;7000
@@ -11604,7 +11604,7 @@ adrCd0080CA:
 	bne	adrCd00815C	;66000066
 	move.w	$0006(a5),d7	;3E2D0006
 	asl.w	#$05,d7	;EB47
-	lea	CharacterStats.l,a6	;4DF90000EB2A
+	lea	Character_Stats_DataTable.l,a6	;4DF90000EB2A
 	lea	$05(a6,d7.w),a6	;4DF67005
 	move.l	#$00040019,d5	;2A3C00040019	;Long Addr replaced with Symbol
 	add.w	$0008(a5),d5	;DA6D0008
@@ -13077,7 +13077,7 @@ adrCd009000:
 	subq.b	#$07,d0	;5F00
 	beq.s	adrCd009038	;672A
 	move.l	a4,d0	;200C
-	sub.l	#CharacterStats,d0	;04800000EB2A
+	sub.l	#Character_Stats_DataTable,d0	;04800000EB2A
 	lsr.w	#$05,d0	;EA48
 	move.w	d0,d2	;3400
 	and.w	#$0003,d2	;02420003
@@ -14159,7 +14159,7 @@ adrCd0098BE:
 	cmp.l	$001C(a1),d2	;B4A9001C
 	beq.s	adrCd009930	;675E
 adrCd0098D2:
-	lea	CharacterStats.l,a1	;43F90000EB2A
+	lea	Character_Stats_DataTable.l,a1	;43F90000EB2A
 	move.b	d2,d0	;1002
 	swap	d2	;4842
 	rol.w	#$08,d2	;E15A
@@ -14613,7 +14613,7 @@ adrCd009CB2:
 	rts	;4E75
 
 Draw_Summon:
-	lea	adrEA009EBE.l,a2	;45F900009EBE
+	lea	GFX_Summon_LookupTable.l,a2	;45F900009EBE
 	lea	adrEA009DC0.l,a0	;41F900009DC0
 	lea	GFX_Summon.l,a1	;43F900045018
 	bsr.s	adrCd009CA2	;61BC
@@ -14669,7 +14669,7 @@ adrCd009D6A:
 	lea	adrEA009DD0.l,a0	;41F900009DD0
 	move.b	$00(a0,d2.w),d7	;1E302000
 	add.w	d2,d2	;D442
-	lea	adrEA009EE2.l,a0	;41F900009EE2
+	lea	GFX_Summon_Arms_LookupTable.l,a0	;41F900009EE2
 	lea	GFX_Summon.l,a1	;43F900045018
 	add.w	$00(a0,d2.w),a1	;D2F02000
 	move.w	d1,d2	;3401
@@ -14799,7 +14799,7 @@ MonsterColourGrading:
 	move.l	(a6),Buffer_Colour_Mask.l	;23D60000B4C0
 	rts	;4E75
 
-adrEA009EBE:
+GFX_Summon_LookupTable:
 	dc.w	$0000	;0000
 	dc.w	$0178	;0178
 	dc.w	$02F0	;02F0
@@ -14818,7 +14818,7 @@ adrEA009EBE:
 	dc.w	$0FA8	;0FA8
 	dc.w	$1030	;1030
 	dc.w	$10B8	;10B8
-adrEA009EE2:
+GFX_Summon_Arms_LookupTable:
 	dc.w	$1140	;1140
 	dc.w	$11E8	;11E8
 	dc.w	$1290	;1290
@@ -14911,7 +14911,7 @@ adrCd009F8C:
 	moveq	#$01,d2	;7401
 	moveq	#-$01,d6	;7CFF
 adrCd009F9E:
-	lea	adrEA00A6C2.l,a2	;45F90000A6C2
+	lea	Behemoth_Claw_Offsets.l,a2	;45F90000A6C2
 	lea	GFX_Behemoth.l,a1	;43F9000466D0
 	movem.w	d0/d1/d4/d5/d7,-(sp)	;48A7CD00
 	add.w	d1,d1	;D241
@@ -15006,10 +15006,10 @@ adrCd00A052:
 	add.b	adrB_00A02A(pc,d1.w),d4	;D83B10D6
 	bra	adrCd00AD34	;60000CDC
 
-adrB_00A05A:
+GFX_CrabFace_Heights:
 	dc.b	$0B	;0B
 	dc.b	$07	;07
-adrB_00A05C:
+GFX_CrabFace_Position:
 	dc.b	$FE	;FE
 	dc.b	$FB	;FB
 adrB_00A05E:
@@ -15022,9 +15022,9 @@ adrCd00A060:
 	moveq	#$00,d6	;7C00
 	lea	adrEA00A170.l,a2	;45F90000A170
 	movem.w	d0/d1/d4/d5,-(sp)	;48A7CC00
-	move.b	adrB_00A05A(pc,d1.w),d7	;1E3B10E8
+	move.b	GFX_CrabFace_Heights(pc,d1.w),d7	;1E3B10E8
 	bsr	adrCd00A0F6	;61000080
-	add.b	adrB_00A05C(pc,d1.w),d5	;DA3B10E2
+	add.b	GFX_CrabFace_Position(pc,d1.w),d5	;DA3B10E2
 adrCd00A07C:
 	bsr	adrCd00AD34	;61000CB6
 	movem.w	(sp)+,d0/d1/d4/d5	;4C9F0033
@@ -15652,7 +15652,7 @@ Draw_Behemoth:
 	lea	Monster_Behemoth_Colours.l,a0	;41F90000A52E
 	moveq	#$06,d3	;7606
 	bsr	MonsterColourGrading	;6100F978
-	lea	adrEA00A668.l,a0	;41F90000A668
+	lea	Behemoth_Position.l,a0	;41F90000A668
 	bsr.s	adrCd00A54C	;6126
 	clr.w	Buffer_Colour_Mask_Toggle.l	;42790000B4BE
 	rts	;4E75
@@ -15801,7 +15801,7 @@ adrEA00A604:
 	dc.w	$1348	;1348
 	dc.w	$13D8	;13D8
 	dc.w	$0000	;0000
-adrEA00A668:
+Behemoth_Position:
 	dc.w	$0C05	;0C05
 	dc.w	$F6F6	;F6F6
 	dc.w	$0000	;0000
@@ -15851,7 +15851,7 @@ adrEA00A668:
 	dc.w	$1020	;1020
 	dc.w	$10A8	;10A8
 	dc.w	$1130	;1130
-adrEA00A6C2:
+Behemoth_Claw_Offsets:
 	dc.w	$11B8	;11B8
 	dc.w	$1260	;1260
 	dc.w	$1308	;1308
@@ -18756,7 +18756,7 @@ adrCd00C7C8:
 	lea	GFX_Pockets+$4100.l,a1	;43F900050802
 	bsr	adrCd00CCB8	;610004CA
 	asl.w	#$05,d7	;EB47
-	lea	CharacterStats.l,a4	;49F90000EB2A
+	lea	Character_Stats_DataTable.l,a4	;49F90000EB2A
 	add.w	d7,a4	;D8C7
 	rts	;4E75
 
@@ -18936,7 +18936,7 @@ adrCd00C9DC:
 	move.w	d7,d0	;3007
 	swap	d7	;4847
 	asl.w	#$05,d0	;EB40
-	lea	CharacterStats.l,a1	;43F90000EB2A
+	lea	Character_Stats_DataTable.l,a1	;43F90000EB2A
 	add.w	d0,a1	;D2C0
 	moveq	#$00,d0	;7000
 	move.b	$0012(a1),d0	;10290012
@@ -19069,7 +19069,7 @@ adrCd00CB2A:
 	move.w	(sp),d0	;3017
 	lea	adrEA00CBD2.l,a6	;4DF90000CBD2
 	asl.w	#$05,d0	;EB40
-	lea	CharacterStats.l,a0	;41F90000EB2A
+	lea	Character_Stats_DataTable.l,a0	;41F90000EB2A
 	add.w	d0,a0	;D0C0
 	lea	adrEA00CBC4.l,a2	;45F90000CBC4
 	moveq	#$06,d7	;7E06
@@ -21695,272 +21695,9 @@ adrEA00EAFA:
 	dc.w	$005D	;005D
 	dc.w	$003A	;003A
 	dc.w	$0057	;0057
-CharacterStats:
-	dc.b	$01	;01
-	dc.b	$23	;23
-	dc.b	$11	;11
-	dc.b	$0D	;0D
-	dc.b	$0D	;0D
-	dc.b	$23	;23
-	dc.b	$23	;23
-	dc.b	$1F	;1F
-	dc.b	$1F	;1F
-	dc.b	$06	;06
-	dc.b	$09	;09
-	dc.b	$05	;05
-	dc.b	$80	;80
-	dc.b	$00	;00
-	dc.b	$00	;00
-	dc.b	$00	;00
-	dc.b	$C7	;C7
-	dc.b	$FF	;FF
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0709	;0709
-	dc.w	$0200	;0200
-	dc.w	$0300	;0300
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0113	;0113
-	dc.w	$1726	;1726
-	dc.w	$0E12	;0E12
-	dc.w	$121A	;121A
-	dc.w	$1A2B	;1A2B
-	dc.w	$2D00	;2D00
-	dc.w	$4800	;4800
-	dc.w	$0000	;0000
-	dc.w	$C7FF	;C7FF
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$010E	;010E
-	dc.w	$0100	;0100
-	dc.w	$0300	;0300
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0118	;0118
-	dc.w	$1313	;1313
-	dc.w	$2318	;2318
-	dc.w	$1818	;1818
-	dc.w	$180D	;180D
-	dc.w	$0D01	;0D01
-	dc.w	$0400	;0400
-	dc.w	$0000	;0000
-	dc.w	$C7FF	;C7FF
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$1219	;1219
-	dc.w	$0000	;0000
-	dc.w	$0300	;0300
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0110	;0110
-	dc.w	$200E	;200E
-	dc.w	$1218	;1218
-	dc.w	$1813	;1813
-	dc.w	$1310	;1310
-	dc.w	$1000	;1000
-	dc.w	$0008	;0008
-	dc.w	$0000	;0000
-	dc.w	$C7FF	;C7FF
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0514	;0514
-	dc.w	$0200	;0200
-	dc.w	$0300	;0300
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0122	;0122
-	dc.w	$150F	;150F
-	dc.w	$0F25	;0F25
-	dc.w	$251A	;251A
-	dc.w	$1A06	;1A06
-	dc.w	$0803	;0803
-	dc.w	$0800	;0800
-	dc.w	$0000	;0000
-	dc.w	$C7FF	;C7FF
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0719	;0719
-	dc.w	$0000	;0000
-	dc.w	$0300	;0300
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0113	;0113
-	dc.w	$1623	;1623
-	dc.w	$1410	;1410
-	dc.w	$1017	;1017
-	dc.w	$172B	;172B
-	dc.w	$3100	;3100
-	dc.w	$0480	;0480
-	dc.w	$0000	;0000
-	dc.w	$C7FF	;C7FF
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$080F	;080F
-	dc.w	$0200	;0200
-	dc.w	$0300	;0300
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0118	;0118
-	dc.w	$1412	;1412
-	dc.w	$2719	;2719
-	dc.w	$1919	;1919
-	dc.w	$190D	;190D
-	dc.w	$0E01	;0E01
-	dc.w	$1000	;1000
-	dc.w	$0000	;0000
-	dc.w	$C7FF	;C7FF
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$051B	;051B
-	dc.w	$0100	;0100
-	dc.w	$0300	;0300
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0110	;0110
-	dc.w	$1F13	;1F13
-	dc.w	$1217	;1217
-	dc.w	$1716	;1716
-	dc.w	$1610	;1610
-	dc.w	$1000	;1000
-	dc.w	$0020	;0020
-	dc.w	$0000	;0000
-	dc.w	$C7FF	;C7FF
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0017	;0017
-	dc.w	$0100	;0100
-	dc.w	$0300	;0300
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0121	;0121
-	dc.w	$1A0E	;1A0E
-	dc.w	$0D20	;0D20
-	dc.w	$201C	;201C
-	dc.w	$1C06	;1C06
-	dc.w	$0702	;0702
-	dc.w	$0080	;0080
-	dc.w	$0000	;0000
-	dc.w	$C7FF	;C7FF
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0013	;0013
-	dc.w	$0100	;0100
-	dc.w	$0300	;0300
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0110	;0110
-	dc.w	$1824	;1824
-	dc.w	$1111	;1111
-	dc.w	$1119	;1119
-	dc.w	$1900	;1900
-	dc.w	$0000	;0000
-	dc.w	$1008	;1008
-	dc.w	$0000	;0000
-	dc.w	$C7FF	;C7FF
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$081D	;081D
-	dc.w	$0300	;0300
-	dc.w	$0300	;0300
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0117	;0117
-	dc.w	$1215	;1215
-	dc.w	$2418	;2418
-	dc.w	$1817	;1817
-	dc.w	$170D	;170D
-	dc.w	$0D03	;0D03
-	dc.w	$8000	;8000
-	dc.w	$0000	;0000
-	dc.w	$C7FF	;C7FF
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0912	;0912
-	dc.w	$0200	;0200
-	dc.w	$0300	;0300
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$010D	;010D
-	dc.w	$2014	;2014
-	dc.w	$0B14	;0B14
-	dc.w	$1412	;1412
-	dc.w	$1210	;1210
-	dc.w	$1004	;1004
-	dc.w	$4000	;4000
-	dc.w	$0000	;0000
-	dc.w	$C7FF	;C7FF
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0D1A	;0D1A
-	dc.w	$0000	;0000
-	dc.w	$0300	;0300
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0124	;0124
-	dc.w	$1710	;1710
-	dc.w	$0B23	;0B23
-	dc.w	$231C	;231C
-	dc.w	$1C03	;1C03
-	dc.w	$0602	;0602
-	dc.w	$1000	;1000
-	dc.w	$0000	;0000
-	dc.w	$C7FF	;C7FF
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$101C	;101C
-	dc.w	$0200	;0200
-	dc.w	$0300	;0300
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0112	;0112
-	dc.w	$171F	;171F
-	dc.w	$1311	;1311
-	dc.w	$1119	;1119
-	dc.w	$192B	;192B
-	dc.w	$2B00	;2B00
-	dc.w	$8020	;8020
-	dc.w	$0000	;0000
-	dc.w	$C7FF	;C7FF
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$001D	;001D
-	dc.w	$0100	;0100
-	dc.w	$0300	;0300
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0119	;0119
-	dc.w	$1417	;1417
-	dc.w	$231A	;231A
-	dc.w	$1A1B	;1A1B
-	dc.w	$1B0D	;1B0D
-	dc.w	$0D01	;0D01
-	dc.w	$0800	;0800
-	dc.w	$0000	;0000
-	dc.w	$C7FF	;C7FF
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0B0A	;0B0A
-	dc.w	$0300	;0300
-	dc.w	$0300	;0300
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0112	;0112
-	dc.w	$2410	;2410
-	dc.w	$0F16	;0F16
-	dc.w	$1619	;1619
-	dc.w	$1910	;1910
-	dc.w	$1001	;1001
-	dc.w	$0080	;0080
-	dc.w	$0000	;0000
-	dc.w	$C7FF	;C7FF
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0312	;0312
-	dc.w	$0100	;0100
-	dc.w	$0300	;0300
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
+Character_Stats_DataTable:
+	INCBIN "/data/BLOODWYCH439-clean/data/champions.stats"
+
 Character_Pockets_DataTable:
 	INCBIN "/data/BLOODWYCH439-clean/data/champions.pockets"
 
@@ -22185,7 +21922,7 @@ MapData2:
 ObjectData_2:
 	INCBIN "/data/BLOODWYCH439-clean/maps/serp.obj"
 
-MaoData3:
+MapData3:
 	INCBIN "/data/BLOODWYCH439-clean/maps/moon.map"
 
 ObjectData_3:
@@ -22468,7 +22205,7 @@ adrEA01684C:
 	dc.w	$0000	;0000
 	dc.w	$0000	;0000
 	dc.w	$0000	;0000
-adrEA01694C:
+Spells_Practiced_DataTable:
 	dc.w	$0000	;0000
 	dc.w	$0000	;0000
 	dc.w	$0000	;0000
