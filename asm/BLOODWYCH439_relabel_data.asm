@@ -363,7 +363,7 @@ LoadGameFromMenu:
 	bcs	MainMenu	;6500FF46
 	bsr	LoadSaveGame_Action	;61003C1E
 	bsr	adrCd004440	;61003C38
-	cmp.b	#$FF,CharacterStats+$11.l	;0C3900FF0000EB3B
+	cmp.b	#$FF,Character_Stats_DataTable+$11.l	;0C3900FF0000EB3B
 	beq	MainMenu	;6700FF32
 	bsr	adrCd000B68	;61000350
 	move.w	#$0001,MainMenuBuffer.w	;31FC00010656	;Short Absolute converted to symbol!
@@ -399,7 +399,7 @@ QkPly2_Start:
 	move.l	#$04060D0F,Player2_ChampionPointer.l	;23FC04060D0F0000EEF6
 	move.l	#$04060D0F,adrL_00EF04.l	;23FC04060D0F0000EF04
 	move.w	#$0004,adrW_00EEE4.l	;33FC00040000EEE4
-	lea	CharacterStats+$80.l,a0	;41F90000EBAA
+	lea	Character_Stats_DataTable+$80.l,a0	;41F90000EBAA
 	move.b	#$0E,$0016(a0)	;117C000E0016
 	move.b	#$17,$0017(a0)	;117C00170017
 	clr.b	$0018(a0)	;42280018
@@ -11645,7 +11645,7 @@ adrCd008158:
 
 adrCd00815C:
 	moveq	#$0E,d3	;760E
-	lea	CharacterStats+$05.l,a6	;4DF90000EB2F
+	lea	Character_Stats_DataTable+$05.l,a6	;4DF90000EB2F
 	moveq	#$03,d6	;7C03
 	move.l	#$00060052,d5	;2A3C00060052
 adrLp00816C:
@@ -13635,12 +13635,12 @@ adrCd00956A:
 	btst	d1,d7	;0307
 	beq.s	adrCd00959E	;672A
 	cmp.b	#$01,-$0012(a3)	;0C2B0001FFEE
-	beq.s	adrCd0095A0	;6724
+	beq.s	Draw_Pillar	;6724
 	lea	GFX_Misc_Bed_Offsets.l,a0	;41F900018B2C
 	lea	GFX_Misc_Bed_Positions.l,a2	;45F90000BC9E
 	lea	GFX_Bed.l,a1	;43F900028C28
 	move.w	d0,d6	;3C00
-adrCd009590:
+Draw_Wall_Sprite:
 	bsr	adrCd00B486	;61001EF4
 	swap	d3	;4843
 	move.l	a3,-(sp)	;2F0B
@@ -13649,18 +13649,18 @@ adrCd009590:
 adrCd00959E:
 	rts	;4E75
 
-adrCd0095A0:
+Draw_Pillar:
 	lea	GFX_Misc_Pillar_Offsets.l,a0	;41F900018B16
 	lea	GFX_Misc_Pillar_Positions.l,a2	;45F90000BC06
 	lea	GFX_Pillar.l,a1	;43F9000296A0
 	move.w	d0,d6	;3C00
 adrCd0095B4:
 	moveq	#$00,d0	;7000
-	move.b	adrB_0095C0(pc,d6.w),d0	;103B6008
-	bpl.s	adrCd009590	;6AD4
-	bra	adrCd00B42E	;60001E70
+	move.b	GFX_Misc_Pillar_SpriteTable(pc,d6.w),d0	;103B6008
+	bpl.s	Draw_Wall_Sprite	;6AD4
+	bra	Flip_Sprite	;60001E70
 
-adrB_0095C0:
+GFX_Misc_Pillar_SpriteTable:
 	dc.b	$00	;00
 	dc.b	$01	;01
 	dc.b	$02	;02
@@ -15929,7 +15929,7 @@ Draw_Character:
 	bcc	adrCd00A7F2	;64000082
 	move.w	d3,d7	;3E03
 	asl.b	#$04,d7	;E907
-	lea	PocketContents+$02.l,a0	;41F90000ED2C
+	lea	Character_Pockets_DataTable+$02.l,a0	;41F90000ED2C
 	move.b	$00(a0,d7.w),d7	;1E307000
 	cmpi.w	#$0024,d7	;0C470024
 	bcc.s	adrCd00A7F2	;646C
@@ -16997,18 +16997,18 @@ adrCd00B03C:
 	add.w	d6,d6	;DC46
 	add.w	d6,d6	;DC46
 	and.w	#$000C,d6	;0246000C
-	move.l	adrEA00B064(pc,d6.w),d6	;2C3B6018
+	move.l	Bitplane_Mask(pc,d6.w),d6	;2C3B6018
 	and.l	d3,d6	;CC83
 	or.l	d6,d4	;8886
 	move.b	$00(a6,d7.w),d6	;1C367000
 	and.w	#$000C,d6	;0246000C
-	move.l	adrEA00B064(pc,d6.w),d6	;2C3B6008
+	move.l	Bitplane_Mask(pc,d6.w),d6	;2C3B6008
 	and.l	d3,d6	;CC83
 	or.l	d6,d5	;8A86
 adrCd00B062:
 	rts	;4E75
 
-adrEA00B064:
+Bitplane_Mask:
 	dc.w	$0000	;0000
 	dc.w	$0000	;0000
 	dc.w	$FFFF	;FFFF
@@ -17027,15 +17027,15 @@ adrCd00B074:
 	move.l	a3,-(sp)	;2F0B
 	bsr	adrCd00B4E0	;61000458
 	move.l	(sp)+,a3	;265F
-adrCd00B08C:
+Draw_Main_Object_Overlay:
 	tst.b	-$0015(a3)	;4A2BFFEB
 	beq.s	adrCd00B062	;67D0
 	addq.b	#$01,-$0015(a3)	;522BFFEB
-	beq	adrCd00B1E0	;67000148
+	beq	Draw_Main_Shelf_Overlay	;67000148
 	addq.b	#$01,-$0015(a3)	;522BFFEB
-	beq	adrCd00B13C	;6700009C
+	beq	Draw_Main_Sign_Overlay	;6700009C
 	addq.b	#$01,-$0015(a3)	;522BFFEB
-	beq.s	adrCd00B0EE	;6746
+	beq.s	Draw_Main_Switch_Overlay	;6746
 	lea	GFX_Main_Slots_Offsets.l,a0	;41F90000B224
 	lea	GFX_Main_Slots_Positions.l,a2	;45F90000BE36
 	lea	GFX_Slots.l,a1	;43F9000287A0
@@ -17053,7 +17053,7 @@ adrCd00B0D4:
 	clr.w	Buffer_Colour_Mask_Toggle.l	;42790000B4BE
 	rts	;4E75
 
-adrCd00B0EE:
+Draw_Main_Switch_Overlay:
 	lea	GFX_Main_Switches_Offsets.l,a0	;41F900018C2E
 	lea	GFX_Main_Switches_Positions.l,a2	;45F90000BEA6
 	lea	GFX_Switches.l,a1	;43F9000284E8
@@ -17074,7 +17074,7 @@ adrCd00B122:
 	clr.w	Buffer_Colour_Mask_Toggle.l	;42790000B4BE
 	rts	;4E75
 
-adrCd00B13C:
+Draw_Main_Sign_Overlay:
 	move.w	d6,-(sp)	;3F06
 	lea	GFX_Main_Sign_Offsets.l,a0	;41F900018BB0
 	lea	GFX_Main_Sign_Positions.l,a2	;45F90000BD56
@@ -17131,7 +17131,7 @@ adrCd00B1D4:
 	move.l	$00(a6,d1.w),d0	;20361000
 	rts	;4E75
 
-adrCd00B1E0:
+Draw_Main_Shelf_Overlay:
 	tst.b	-$001F(a3)	;4A2BFFE1
 	bne.s	adrCd00B1EE	;6608
 	btst	#$03,-$0011(a3)	;082B0003FFEF
@@ -17159,14 +17159,14 @@ GFX_Main_Signoverlay_Offsets:
 
 adrCd00B2A4:
 	moveq	#$00,d0	;7000
-	move.b	adrB_00B2BA(pc,d6.w),d0	;103B6012
+	move.b	GFX_Main_Wall_SpriteTable(pc,d6.w),d0	;103B6012
 	bsr	adrCd00B474	;610001C8
 	add.w	d3,a0	;D0C3
 	swap	d3	;4843
 	bsr	adrCd00B666	;610003B2
-	bra	adrCd00B08C	;6000FDD4
+	bra	Draw_Main_Object_Overlay	;6000FDD4
 
-adrB_00B2BA:
+GFX_Main_Wall_SpriteTable:
 	dc.b	$0C	;0C
 	dc.b	$0D	;0D
 	dc.b	$0E	;0E
@@ -17292,7 +17292,7 @@ adrCd00B40E:
 adrCd00B410:
 	moveq	#$00,d0	;7000
 	move.b	adrB_00B43C(pc,d6.w),d0	;103B6028
-	bmi.s	adrCd00B42E	;6B16
+	bmi.s	Flip_Sprite	;6B16
 	cmpi.b	#$0C,d0	;0C00000C
 	bcc	adrCd00B458	;6400003A
 	bsr.s	adrCd00B486	;6164
@@ -17303,7 +17303,7 @@ adrCd00B410:
 adrCd00B42C:
 	rts	;4E75
 
-adrCd00B42E:
+Flip_Sprite:
 	and.w	#$007F,d0	;0240007F
 	bsr.s	adrCd00B486	;6152
 	add.w	d3,a0	;D0C3
@@ -19427,7 +19427,7 @@ adrCd00CE86:
 	swap	d2	;4842
 	and.l	d0,d2	;C480
 	and.l	d1,d2	;C481
-	lea	adrEA00B064.l,a2	;45F90000B064
+	lea	Bitplane_Mask.l,a2	;45F90000B064
 	move.w	d3,d6	;3C03
 	and.w	#$000C,d6	;0246000C
 	move.l	$00(a2,d6.w),d6	;2C326000
