@@ -1518,7 +1518,7 @@ adrCd001498:
 	bsr	adrCd001842	;6100037E
 	bpl	adrCd001BCE	;6A000706
 	tst.w	adrW_0013C4.w	;4A7813C4	;Short Absolute converted to symbol!
-	beq	adrJA00175A	;6700028A
+	beq	AttackType_Drone	;6700028A
 	lea	ReserveSpace_1.l,a6	;4DF900058828
 	btst	#$00,(a5)	;08150000
 	beq.s	adrCd0014E4	;6706
@@ -1567,7 +1567,7 @@ adrCd00153A:
 	beq	adrCd001BD4	;6700067C
 	move.b	$0005(a4),d1	;122C0005
 	and.w	#$0060,d1	;02410060
-	bne	adrJA00175A	;660001F6
+	bne	AttackType_Drone	;660001F6
 	move.b	$0006(a4),d0	;102C0006
 	move.b	$0007(a4),d1	;122C0007
 	and.w	#$007F,d1	;0241007F
@@ -1585,22 +1585,22 @@ adrCd00153A:
 adrCd001596:
 	move.b	$000A(a4),d1	;122C000A
 	add.w	d1,d1	;D241
-	lea	adrJB00166A.l,a1	;43F90000166A
-	lea	adrJT0015AE.l,a0	;41F9000015AE
+	lea	AttackType_NoSpells.l,a1	;43F90000166A
+	lea	MonsterAttackTypeTable.l,a0	;41F9000015AE
 	add.w	$00(a0,d1.w),a1	;D2F01000
 	jmp	(a1)	;4ED1
 
-adrJT0015AE:
-	dc.w	adrJB00166A-adrJB00166A	;0000
-	dc.w	adrJA0015D6-adrJB00166A	;FF6C
-	dc.w	adrJA00175A-adrJB00166A	;00F0
-	dc.w	adrJA0015B8-adrJB00166A	;FF4E
-	dc.w	adrJA001664-adrJB00166A	;FFFA
+MonsterAttackTypeTable:
+	dc.w	AttackType_NoSpells-AttackType_NoSpells	;0000
+	dc.w	AttackType_Spells-AttackType_NoSpells	;FF6C
+	dc.w	AttackType_Drone-AttackType_NoSpells	;00F0
+	dc.w	AttackType_DroneSpells-AttackType_NoSpells	;FF4E
+	dc.w	adrJA001664-AttackType_NoSpells	;FFFA
 
-adrJA0015B8:
+AttackType_DroneSpells:
 	bsr	RandomGen_BytewithOffset	;61003FF2
 	and.w	#$000F,d0	;0240000F
-	bne	adrJA00175A	;66000198
+	bne	AttackType_Drone	;66000198
 	bra.s	adrCd0015E0	;601A
 
 MonsterAttackSpells:
@@ -1621,10 +1621,10 @@ MonsterAttackSpells:
 	dc.b	$00	;00
 	dc.b	$83	;83
 
-adrJA0015D6:
+AttackType_Spells:
 	bsr	adrCd005556	;61003F7E
 	subq.b	#$02,d0	;5500
-	bcc	adrJB00166A	;6400008C
+	bcc	AttackType_NoSpells	;6400008C
 adrCd0015E0:
 	bsr	RandomGen_BytewithOffset	;61003FCA
 	and.w	#$000F,d0	;0240000F
@@ -1677,15 +1677,15 @@ adrJA001664:
 	moveq	#$0B,d0	;700B
 	bra.s	adrCd001608	;609E
 
-adrJB00166A:
+AttackType_NoSpells:
 	moveq	#-$01,d2	;74FF
 	move.b	$0004(a4),d1	;122C0004
 	cmp.b	adrB_00EED5.l,d1	;B2390000EED5
-	bne.s	adrCd001684	;660C
+	bne.s	AttackType_ArcBoltMachine	;660C
 	move.l	adrL_00EE98.l,d0	;20390000EE98
 	move.l	d7,d1	;2207
 	bsr	adrCd0013A8	;6100FD26
-adrCd001684:
+AttackType_ArcBoltMachine:
 	move.w	d2,d3	;3602
 	moveq	#-$01,d2	;74FF
 	move.b	$0004(a4),d1	;122C0004
@@ -1717,14 +1717,14 @@ adrCd0016CE:
 	add.w	d7,d0					;D047
 	swap	d7					;4847
 	move.b	$00(a6,d0.w),d0				;10360000
-	beq.s	adrJA00175A				;6778
+	beq.s	AttackType_Drone				;6778
 	cmpi.b	#$FF,d0					;0C0000FF
-	beq.s	adrJA00175A				;6772
+	beq.s	AttackType_Drone				;6772
 	and.w	#$0003,d0				;02400003
 	move.b	$02(a4,d4.w),d6				;1C344002
 	and.w	#$0003,d6				;02460003
 	cmp.w	d0,d6					;BC40
-	beq.s	adrJA00175A				;6762
+	beq.s	AttackType_Drone				;6762
 	eor.w	d0,d6					;B146
 	subq.w	#$02,d6					;5546
 	beq	adrCd001BB8				;670004BA
@@ -1733,18 +1733,18 @@ adrCd0016CE:
 
 adrCd001708:
 	sub.b	#$84,d2					;04020084
-	bcs.s	adrJA00175A				;654C
+	bcs.s	AttackType_Drone				;654C
 	beq.s	adrCd001714				;6704
 	subq.b	#$03,d2					;5702
-	bne.s	adrJA00175A				;6646
+	bne.s	AttackType_Drone				;6646
 adrCd001714:
 	not.w	d1					;4641
 	and.w	#$0007,d1				;02410007
 	beq.s	adrCd001728				;670C
 	cmpi.w	#$0007,d1				;0C410007
-	bne.s	adrJA00175A				;6638
+	bne.s	AttackType_Drone				;6638
 	tst.b	$00(a6,d0.w)				;4A360000
-	bne.s	adrJA00175A				;6632
+	bne.s	AttackType_Drone				;6632
 adrCd001728:
 	or.b	#$07,$01(a6,d0.w)			;003600070001
 	moveq	#$00,d1					;7200
@@ -1762,7 +1762,7 @@ adrCd001746:
 	move.w	#$0100,d1	;323C0100
 	move.b	$000C(a4),d1	;122C000C
 	bsr	adrCd0054BE	;61003D66
-adrJA00175A:
+AttackType_Drone:
 	move.b	$02(a4,d4.w),d6	;1C344002
 	and.w	#$0003,d6	;02460003
 	bsr	adrCd007A44	;610062E0
@@ -1835,7 +1835,7 @@ adrCd00181E:
 	eor.b	#$02,$0002(a4)	;0A2C00020002
 	rts	;4E75
 
-adrB_001832:
+Monster_Movement_DataTable:
 	dc.b	$B0	;B0
 	dc.b	$A0	;A0
 	dc.b	$10	;10
@@ -1862,7 +1862,7 @@ adrCd001842:
 	asl.w	#$02,d2	;E542
 	lsr.w	#$04,d0	;E848
 	add.w	d0,d2	;D440
-	move.b	adrB_001832(pc,d2.w),d0	;103B20DA
+	move.b	Monster_Movement_DataTable(pc,d2.w),d0	;103B20DA
 	rts	;4E75
 
 adrCd00185C:
@@ -2969,31 +2969,31 @@ adrCd002396:
 	beq.s	adrCd002394			;67D4
 	move.w	#$0056,d5			;3A3C0056
 	cmpi.b	#$6B,d2				;0C02006B
-	beq.s	adrCd0023F6			;672C
+	beq.s	.DropTheObject			;672C
 	cmpi.b	#$40,d2				;0C020040
 	bne.s	adrCd0023D6			;6606
 	swap	d2				;4842
 	move.w	d2,d5				;3A02
-	bra.s	adrCd0023F6			;6020
+	bra.s	.DropTheObject			;6020
 
 adrCd0023D6:
 	bsr	RandomGen_BytewithOffset			;610031D4
 	and.w	#$000F,d0			;0240000F
-	move.b	adrB_002404(pc,d0.w),d5		;1A3B0024
+	move.b	DroppedObjects_DataTable(pc,d0.w),d5		;1A3B0024
 	beq.s	adrCd002394			;67B0
 	cmpi.w	#$0005,d5			;0C450005
-	bcc.s	adrCd0023F6			;640C
+	bcc.s	.DropTheObject			;640C
 	bsr	RandomGen_BytewithOffset			;610031C0
 	and.w	#$0007,d0			;02400007
 	swap	d0				;4840
 	add.l	d0,d5				;DA80
-adrCd0023F6:
+.DropTheObject:
 	move.w	d4,d0	;3004
 	move.l	adrL_00EE78.l,a6	;2C790000EE78
 	moveq	#$00,d6	;7C00
 	bra	adrCd005E88	;60003A86
 
-adrB_002404:
+DroppedObjects_DataTable:
 	dc.b	$00	;00
 	dc.b	$01	;01
 	dc.b	$04	;04
