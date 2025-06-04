@@ -3857,7 +3857,7 @@ adrJT002CAE:
 	dc.w	adrJA002DF8-adrJA002CE4	;0114
 	dc.w	adrJA002E12-adrJA002CE4	;012E
 	dc.w	adrJA002F24-adrJA002CE4	;0240
-	dc.w	adrJA002F50-adrJA002CE4	;026C
+	dc.w	Trade_Exchange_TBC-adrJA002CE4	;026C
 	dc.w	adrJA002FC4-adrJA002CE4	;02E0
 	dc.w	adrJA00307E-adrJA002CE4	;039A
 	dc.w	adrJA00309A-adrJA002CE4	;03B6
@@ -4103,7 +4103,7 @@ MonsterCommsType:
 MonsterCommsNotTraderTBC:
 	bra	adrCd0038D2	;60000984
 
-adrJA002F50:
+Trade_Exchange_TBC:
 	cmpi.b	#$10,d0	;0C000010
 	bcs	Comms_Champion_TBC	;6500FE50
 	move.w	$002E(a5),d1	;322D002E
@@ -4173,7 +4173,7 @@ adrCd002FF8:
 	sub.b	#$14,d0	;04000014
 	bcc.s	adrCd00300A	;6406
 	moveq	#$01,d0	;7001
-	bra	adrCd003242	;6000023A
+	bra	Trade_Offer_TBC	;6000023A
 
 adrCd00300A:
 	lea	adrEA0031E6.l,a0	;41F9000031E6
@@ -4188,10 +4188,10 @@ adrCd003016:
 	sub.w	#$000A,d1	;0441000A
 	add.w	#$003C,d1	;0641003C
 	cmp.w	#$0064,d1	;B27C0064
-	bcc	adrCd003242	;64000210
+	bcc	Trade_Offer_TBC	;64000210
 	mulu	d1,d0	;C0C1
 	divu	#$0064,d0	;80FC0064
-	bra	adrCd003242	;60000206
+	bra	Trade_Offer_TBC	;60000206
 
 adrCd00303E:
 	bpl.s	adrCd003054	;6A14
@@ -4207,7 +4207,7 @@ adrCd003054:
 	lsr.b	#$01,d0	;E208
 	add.b	d2,d0	;D002
 	bset	#$07,d0	;08C00007
-	bra	adrCd003242	;600001DA
+	bra	Trade_Offer_TBC	;600001DA
 
 adrCd00306A:
 	clr.b	$0008(a4)	;422C0008
@@ -4350,7 +4350,7 @@ adrEA0031E6:
 	dc.b	$08	;08
 	dc.b	$0F	;0F
 	dc.b	$FF	;FF
-adrEA003212:
+ArmouryList:
 	dc.b	$3D	;3D
 	dc.b	$33	;33
 	dc.b	$24	;24
@@ -4391,7 +4391,7 @@ adrCd003232:
 	move.b	$0C(a0,d1.w),d0	;1030100C
 	rts	;4E75
 
-adrCd003242:
+Trade_Offer_TBC:
 	move.b	d0,$0009(a4)	;19400009
 	and.w	#$007F,d0	;0240007F
 	jsr	adrCd00CEC4.l	;4EB90000CEC4
@@ -4417,13 +4417,13 @@ MonsterCommsTraderMaybe:
 	beq.s	adrCd0032D8	;674A
 	bsr	RandomGen_BytewithOffset	;6100231C
 	cmp.b	#$16,$000B(a1)	;0C290016000B
-	bne.s	adrCd0032A8	;660E
+	bne.s	.Trader_NotPotionsButArms	;660E
 	and.w	#$0003,d0	;02400003
 	add.w	#$0017,d0	;06400017
 	move.b	d0,$000C(a1)	;1340000C
 	bra.s	adrCd0032D8	;6030
 
-adrCd0032A8:
+.Trader_NotPotionsButArms:
 	and.w	#$001F,d0	;0240001F
 	move.b	$0006(a1),d1	;12290006
 	cmpi.b	#$08,d1	;0C010008
@@ -4433,7 +4433,7 @@ adrCd0032A8:
 	bcc.s	adrCd0032C0	;6402
 	lsr.w	#$01,d0	;E248
 adrCd0032C0:
-	lea	adrEA003212.w,a0	;41F83212	;Short Absolute converted to symbol!
+	lea	ArmouryList.w,a0	;41F83212	;Short Absolute converted to symbol!
 	move.b	$00(a0,d0.w),$000C(a1)	;13700000000C
 	move.b	$0006(a1),d0	;10290006
 	and.w	#$007F,d0	;0240007F
@@ -4905,9 +4905,9 @@ adrCd00383E:
 	bne.s	adrCd00385C	;6618
 	move.w	$002C(a5),d0	;302D002C
 	cmp.b	#$02,$0008(a4)	;0C2C00020008
-	bne	adrCd003242	;6600F9F2
+	bne	Trade_Offer_TBC	;6600F9F2
 	move.b	#$01,$0008(a4)	;197C00010008
-	bra	adrCd003242	;6000F9E8
+	bra	Trade_Offer_TBC	;6000F9E8
 
 adrCd00385C:
 	cmp.b	#$01,$0008(a4)	;0C2C00010008
