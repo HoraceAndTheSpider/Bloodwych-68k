@@ -4427,12 +4427,12 @@ MonsterCommsTraderMaybe:
 	and.w	#$001F,d0	;0240001F
 	move.b	$0006(a1),d1	;12290006
 	cmpi.b	#$08,d1	;0C010008
-	bcc.s	adrCd0032C0	;640A
+	bcc.s	.DontDivideList	;640A
 	lsr.w	#$01,d0	;E248
 	cmpi.b	#$04,d1	;0C010004
-	bcc.s	adrCd0032C0	;6402
+	bcc.s	.DontDivideList	;6402
 	lsr.w	#$01,d0	;E248
-adrCd0032C0:
+.DontDivideList:
 	lea	ArmouryList.w,a0	;41F83212	;Short Absolute converted to symbol!
 	move.b	$00(a0,d0.w),$000C(a1)	;13700000000C
 	move.b	$0006(a1),d0	;10290006
@@ -6752,7 +6752,7 @@ adrCd004D32:
 	clr.b	$0056(a5)	;422D0056
 	cmp.w	#$0004,$0014(a5)	;0C6D00040014
 	bne.s	adrCd004D4E	;6604
-	bsr	Click_CloseSpellBook	;61000A58
+	bsr	Click_CloseCurrentPage	;61000A58
 adrCd004D4E:
 	cmp.w	#$005E,$0002(a5)	;0C6D005E0002
 	bcs	adrCd004C2A	;6500FED4
@@ -6769,10 +6769,10 @@ adrCd004D4E:
 
 adrJT004D78:
 	dc.l	adrJA004DAA	;00004DAA
-	dc.l	Click_CloseSpellBook	;000057A4
+	dc.l	Click_CloseCurrentPage	;000057A4
 	dc.l	adrJA004DEA	;00004DEA
 	dc.l	adrJA005628	;00005628
-	dc.l	Click_CloseSpellBook	;000057A4
+	dc.l	Click_CloseCurrentPage	;000057A4
 
 adrCd004D8C:
 	bclr	#$07,$0001(a5)	;08AD00070001
@@ -7713,7 +7713,7 @@ adrJA005628:
 	bcs.s	adrCd005676	;6524
 	lsr.w	#$04,d1	;E849
 	cmpi.w	#$0005,d1	;0C410005
-	beq	Click_CloseSpellBook	;6700014A
+	beq	Click_CloseCurrentPage	;6700014A
 	cmpi.w	#$0004,d1	;0C410004
 	beq.s	adrCd005678	;6716
 	move.b	$18(a5,d1.w),d0	;10351018
@@ -7861,7 +7861,7 @@ adrEA005794:
 	dc.w	$FF01	;FF01
 	dc.w	$01FF	;01FF
 
-Click_CloseSpellBook:
+Click_CloseCurrentPage:
 	clr.w	$0014(a5)	;426D0014
 	bra	adrCd008278	;60002ACE
 
@@ -7895,14 +7895,14 @@ InterfaceButtons:
 	dc.l	Click_RotateLeft	;00006F5A
 	dc.l	Click_RotateRight	;00006F68
 	dc.l	Click_Display	;0000588E
-	dc.l	adrJA006C0A	;00006C0A
-	dc.l	adrJA006A46	;00006A46
+	dc.l	Redraw_Inventory	;00006C0A
+	dc.l	Click_ObjectInInventory	;00006A46
 	dc.l	Click_Item_17_to_1A_Potions	;00006914
 	dc.l	adrJA005862	;00005862
 	dc.l	Click_LaunchSpellFromBook	;00004E7A
 	dc.l	Click_ViewSpell	;000055E0
 	dc.l	Click_TurnSpellBookPage	;0000C2EA
-	dc.l	Click_CloseSpellBook	;000057A4
+	dc.l	Click_CloseCurrentPage	;000057A4
 	dc.l	Click_TurnSpellBookPage	;0000C2EA
 	dc.l	Click_CommsAndOptions	;0000420C
 	dc.l	adrJA005862	;00005862
@@ -9831,9 +9831,9 @@ adrCd006984:
 
 adrCd00699A:
 	cmpi.w	#$0005,d0	;0C400005
-	bcs	adrCd006A16	;65000076
+	bcs	Click_CountedObject	;65000076
 	cmpi.w	#$0014,d0	;0C400014
-	bcs.s	adrCd0069BA	;6512
+	bcs.s	Click_PortionedFood	;6512
 	moveq	#$00,d1	;7200
 	sub.w	#$0014,d0	;04400014
 adrLp0069AE:
@@ -9842,7 +9842,7 @@ adrLp0069AE:
 	moveq	#$00,d0	;7000
 	bra.s	adrCd0069D4	;601A
 
-adrCd0069BA:
+Click_PortionedFood:
 	moveq	#$14,d1	;7214
 	cmpi.w	#$000E,d0	;0C40000E
 	bcc.s	adrCd0069C4	;6402
@@ -9878,7 +9878,7 @@ adrCd0069F4:
 	bsr	adrCd006D1E	;6100030E
 	bra	adrCd006C9C	;60000288
 
-adrCd006A16:
+Click_CountedObject:
 	moveq	#$00,d7	;7E00
 	move.b	$000F(a5),d7	;1E2D000F
 	move.b	$18(a5,d7.w),d7	;1E357018
@@ -9886,18 +9886,18 @@ adrCd006A16:
 	lea	Character_Pockets_DataTable.l,a6	;4DF90000ED2A
 	add.w	d7,a6	;DCC7
 	subq.b	#$01,$0B(a6,d0.w)	;5336000B
-	bcc.s	adrCd006A36	;6406
+	bcc.s	Stack_ObjectFromInventory	;6406
 adrCd006A30:
 	addq.b	#$01,$0B(a6,d0.w)	;5236000B
 	rts	;4E75
 
-adrCd006A36:
+Stack_ObjectFromInventory:
 	cmp.w	#$0063,$002C(a5)	;0C6D0063002C
 	bcc.s	adrCd006A30	;64F2
 	addq.w	#$01,$002C(a5)	;526D002C
-	bra	adrJA006C0A	;600001C6
+	bra	Redraw_Inventory	;600001C6
 
-adrJA006A46:
+Click_ObjectInInventory:
 	moveq	#$00,d7	;7E00
 	move.b	$000E(a5),d7	;1E2D000E
 	moveq	#$00,d0	;7000
@@ -9921,26 +9921,26 @@ adrJA006A46:
 	cmpi.w	#$002B,d1	;0C41002B
 	bcc.s	adrCd006AAE	;6424
 	btst	#$00,d2	;08020000
-	beq.s	adrCd006AF2	;6762
+	beq.s	Redraw_HeldItem	;6762
 	cmpi.w	#$0027,d1	;0C410027
-	bcs.s	adrCd006AF2	;655C
+	bcs.s	Redraw_HeldItem	;655C
 	bra.s	adrCd006AAE	;6016
 
 adrCd006A98:
 	cmpi.b	#$02,d0	;0C000002
 	bne.s	adrCd006AB4	;6616
 	tst.w	d1	;4A41
-	beq.s	adrCd006AF2	;6750
+	beq.s	Redraw_HeldItem	;6750
 	cmpi.w	#$001B,d1	;0C41001B
 	bcs.s	adrCd006AAE	;6506
 	cmpi.w	#$0024,d1	;0C410024
-	bcs.s	adrCd006AF2	;6544
+	bcs.s	Redraw_HeldItem	;6544
 adrCd006AAE:
 	move.w	d7,$000E(a5)	;3B47000E
 	rts	;4E75
 
 adrCd006AB4:
-	bcc.s	adrCd006AF2	;643C
+	bcc.s	Redraw_HeldItem	;643C
 	cmp.w	#$002B,$002E(a5)	;0C6D002B002E
 	bcs.s	adrCd006ADC	;651E
 	cmp.w	#$0030,$002E(a5)	;0C6D0030002E
@@ -9948,18 +9948,18 @@ adrCd006AB4:
 	move.b	$0012(a4),d1	;122C0012
 	move.b	$002F(a5),$0012(a4)	;196D002F0012
 	move.b	d1,$002F(a5)	;1B41002F
-	bne.s	adrCd006AF2	;661C
+	bne.s	Redraw_HeldItem	;661C
 	clr.w	$002C(a5)	;426D002C
-	bra.s	adrCd006AF2	;6016
+	bra.s	Redraw_HeldItem	;6016
 
 adrCd006ADC:
 	tst.b	$00(a6,d0.w)	;4A360000
-	bne.s	adrCd006AF2	;6610
+	bne.s	Redraw_HeldItem	;6610
 	tst.w	$002E(a5)	;4A6D002E
-	bne.s	adrCd006AF2	;660A
+	bne.s	Redraw_HeldItem	;660A
 	move.b	$0012(a4),$00(a6,d0.w)	;1DAC00120000
 	clr.b	$0012(a4)	;422C0012
-adrCd006AF2:
+Redraw_HeldItem:
 	moveq	#$00,d1	;7200
 	move.b	$00(a6,d0.w),d1	;12360000
 	beq	adrCd006B82	;67000088
@@ -10047,12 +10047,12 @@ adrCd006BD6:
 adrCd006BD8:
 	move.w	d7,$000E(a5)	;3B47000E
 	move.w	$002E(a5),d0	;302D002E
-	beq.s	adrCd006BE8	;6706
+	beq.s	Return_ObjectToInventory	;6706
 	cmpi.w	#$0005,d0	;0C400005
-	bcs.s	adrJA006C0A	;6522
-adrCd006BE8:
+	bcs.s	Redraw_Inventory	;6522
+Return_ObjectToInventory:
 	move.w	#$0001,$002C(a5)	;3B7C0001002C
-	bra.s	adrJA006C0A	;601A
+	bra.s	Redraw_Inventory	;601A
 
 Click_OpenInventory:
 	clr.w	$000E(a5)	;426D000E
@@ -10061,7 +10061,7 @@ Click_OpenInventory:
 	add.w	$0008(a5),d5	;DA6D0008
 	moveq	#$03,d3	;7603
 	bsr	BW_draw_bar	;61006E60
-adrJA006C0A:
+Redraw_Inventory:
 	move.w	$000E(a5),d7	;3E2D000E
 	move.b	$18(a5,d7.w),d7	;1E357018
 	and.w	#$000F,d7	;0247000F
@@ -10179,23 +10179,22 @@ adrCd006D6E:
 	move.l	#$00000088,a3	;267C00000088
 	bra	adrCd00CCB8	;60005F3C
 
-adrW_006D7E:
+Arrow_Highlights_Y_Offsets:
 	dc.w	$0050	;0050
 	dc.w	$0268	;0268
 	dc.w	$01D8	;01D8
 	dc.w	$0180	;0180
 	dc.w	$0000	;0000
 	dc.w	$00E0	;00E0
-adrW_006D8A:
+Arrow_Highlights_X_Positions:
 	dc.w	$00A0	;00A0
 	dc.w	$0284	;0284
 	dc.w	$02D0	;02D0
 	dc.w	$0280	;0280
 	dc.w	$00A0	;00A0
 	dc.w	$00A2	;00A2
-adrB_006D96:
+Arrow_Highlights_Offsets:
 	dc.b	$01	;01
-adrB_006D97:
 	dc.b	$08	;08
 	dc.b	$00	;00
 	dc.b	$0A	;0A
@@ -10217,15 +10216,15 @@ adrCd006DA2:
 	add.w	$000A(a5),a0	;D0ED000A
 	add.w	#$08DC,a0	;D0FC08DC
 	add.w	d0,d0	;D040
-	add.w	adrW_006D8A(pc,d0.w),a0	;D0FB00C2
+	add.w	Arrow_Highlights_X_Positions(pc,d0.w),a0	;D0FB00C2
 	lea	GFX_ButtonHighlights.l,a1	;43F900018EFE
-	add.w	adrW_006D7E(pc,d0.w),a1	;D2FB00AC
+	add.w	Arrow_Highlights_Y_Offsets(pc,d0.w),a1	;D2FB00AC
 	moveq	#$00,d5	;7A00
 	moveq	#$00,d3	;7600
-	move.b	adrB_006D96(pc,d0.w),d5	;1A3B00BC
+	move.b	Arrow_Highlights_Offsets(pc,d0.w),d5	;1A3B00BC
 	move.b	d5,d3	;1605
 	swap	d5	;4845
-	move.b	adrB_006D97(pc,d0.w),d5	;1A3B00B5
+	move.b	Arrow_Highlights_Offsets+$01(pc,d0.w),d5	;1A3B00B5
 	addq.w	#$01,d3	;5243
 	add.w	d3,d3	;D643
 	swap	d3	;4843
@@ -18148,7 +18147,7 @@ adrCd00B40E:
 	nop	;4E71
 adrCd00B410:
 	moveq	#$00,d0	;7000
-	move.b	adrB_00B43C(pc,d6.w),d0	;103B6028
+	move.b	GFX_Wall_Signs_SpriteTable_TBC(pc,d6.w),d0	;103B6028
 	bmi.s	Flip_Sprite	;6B16
 	cmpi.b	#$0C,d0	;0C00000C
 	bcc	adrCd00B458	;6400003A
@@ -18167,7 +18166,7 @@ Flip_Sprite:
 	swap	d3	;4843
 	bra	adrLp00B76E	;60000334
 
-adrB_00B43C:
+GFX_Wall_Signs_SpriteTable_TBC:
 	dc.b	$00	;00
 	dc.b	$01	;01
 	dc.b	$02	;02

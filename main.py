@@ -56,10 +56,6 @@ def pygame_prompt(options):
                     if rect.collidepoint(ev.pos):
                         return opt
 
-
-
-
-
 # Entry point
 def main():
     parser = argparse.ArgumentParser(
@@ -77,6 +73,7 @@ def main():
 
     inspect_p = sub.add_parser('inspect', help='Inspect segments')
     inspect_p.add_argument('-n', '--name', help='Filter segment name')
+    inspect_p.add_argument('label', nargs='?', help='Filter by ASM label (exact match)')
     inspect_p.add_argument('--debug', action='store_true', help='Show head/tail bytes on failure')
 
     relabel_p = sub.add_parser('relabel', help='Relabel segments in ASM source')
@@ -90,7 +87,6 @@ def main():
 
     cmd = args.cmd or pygame_prompt(['extract', 'patch', 'inspect', 'relabel'])
     pygame.quit()
-
 
     if cmd == 'extract':
         extract_segments(
@@ -111,6 +107,7 @@ def main():
             args.master,
             args.sheet,
             name_filter=getattr(args, 'name', None),
+            label_filter=getattr(args, 'label', None),
             debug=getattr(args, 'debug', False)
         )
     elif cmd == 'relabel':
