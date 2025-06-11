@@ -102,10 +102,10 @@ GameStart:
 	move.w	#$7FFF,_custom+intena.l	;33FC7FFF00DFF09A
 	move.w	#$7FFF,_custom+intreq.l	;33FC7FFF00DFF09C
 	lea	$0005FFFC.l,sp	;4FF90005FFFC
-	clr.b	SyncFlagHighByte_AI.l	;423900008C1F
+	clr.b	SyncFlagHighByte_AI_TBC.l	;423900008C1F
 	bsr	adrCd000492	;61000074
-	clr.b	InputStateFlag_AI.l	;42390000EE2D
-	clr.w	FrameSyncFlagWord_AI.l	;427900008C1E
+	clr.b	InputStateFlag_AI_TBC.l	;42390000EE2D
+	clr.w	FrameSyncFlagWord_AI_TBC.l	;427900008C1E
 	bsr	adrCd0008C4	;61000496
 	bsr	MainMenu	;61000314
 	jsr	adrCd008DA8.l	;4EB900008DA8
@@ -707,7 +707,7 @@ LevelData_LookupTable:
 adrCd000BA2:
 	bsr	PrepareCharacters	;6100FDF2
 adrCd000BA6:
-	clr.w	FrameSyncFlagWord_AI.l	;427900008C1E
+	clr.w	FrameSyncFlagWord_AI_TBC.l	;427900008C1E
 	move.b	#$FF,adrB_00EE2C.l	;13FC00FF0000EE2C
 	lea	Player1_Data.l,a5	;4BF90000EE7C
 	move.l	#$00F00020,$0002(a5)	;2B7C00F000200002
@@ -738,9 +738,9 @@ adrLp000C18:
 	lea	Player1_Data.l,a5	;4BF90000EE7C
 	dbra	d7,adrLp000C18	;51CFFFDE
 	bsr	adrCd0042BA	;6100367C
-	move.w	#$FFFF,FrameSyncFlagWord_AI.l	;33FCFFFF00008C1E
+	move.w	#$FFFF,FrameSyncFlagWord_AI_TBC.l	;33FCFFFF00008C1E
 adrCd000C48:
-	tst.b	FrameSyncFlagWord_AI.l	;4A3900008C1E
+	tst.b	FrameSyncFlagWord_AI_TBC.l	;4A3900008C1E
 	bne.s	adrCd000C48	;66F8
 adrCd000C50:
 	lea	Player1_Data.l,a5	;4BF90000EE7C
@@ -757,9 +757,9 @@ adrCd000C50:
 	lea	Player1_Data.l,a5	;4BF90000EE7C
 adrCd000C88:
 	jsr	adrCd008FB8.l	;4EB900008FB8
-	move.b	#$FF,FrameSyncFlagWord_AI.l	;13FC00FF00008C1E
+	move.b	#$FF,FrameSyncFlagWord_AI_TBC.l	;13FC00FF00008C1E
 adrCd000C96:
-	tst.b	FrameSyncFlagWord_AI.l	;4A3900008C1E
+	tst.b	FrameSyncFlagWord_AI_TBC.l	;4A3900008C1E
 	bne.s	adrCd000C96	;66F8
 	bsr.s	adrCd000D04	;6164
 	move.b	Player1_ChampionCount.l,d0	;10390000EE94
@@ -780,9 +780,9 @@ DBFWait1b:
 	dbra	d0,DBFWait1b	;51C8FFFA
 	move.l	#$FFFFFFFF,adrL_00EED6.l	;23FCFFFFFFFF0000EED6
 	move.l	#$FFFFFFFF,adrL_00EF38.l	;23FCFFFFFFFF0000EF38
-	clr.w	FrameSyncFlagWord_AI.l	;427900008C1E
+	clr.w	FrameSyncFlagWord_AI_TBC.l	;427900008C1E
 	bsr	adrCd0042BA	;610035CC
-	clr.w	FrameSyncFlagWord_AI.l	;427900008C1E
+	clr.w	FrameSyncFlagWord_AI_TBC.l	;427900008C1E
 	moveq	#$14,d0	;7014
 DBFWait1c:
 	dbra	d1,DBFWait1c	;51C9FFFE
@@ -1058,7 +1058,7 @@ adrCd000FB8:
 	tst.b	$0015(a5)	;4A2D0015
 	bne.s	adrCd000FD0	;6608
 	move.w	d6,-(sp)	;3F06
-	bsr	adrCd0081CE	;61007202
+	bsr	Load_MapPosition_AI_TBC	;61007202
 	move.w	(sp)+,d6	;3C1F
 adrCd000FD0:
 	and.w	#$000E,d6	;0246000E
@@ -1750,7 +1750,7 @@ adrCd001746:
 AttackType_Drone:
 	move.b	$02(a4,d4.w),d6	;1C344002
 	and.w	#$0003,d6	;02460003
-	bsr	adrCd007A44	;610062E0
+	bsr	Compute_NewMapIndex_AI_TBC	;610062E0
 	bcs	adrCd001AF0	;65000388
 	cmpi.w	#$0000,d4	;0C440000
 	bne.s	adrCd001778	;6608
@@ -1996,7 +1996,7 @@ adrCd001A06:
 	move.b	$000B(a4),d4	;182C000B
 	move.b	$0002(a4),d0	;102C0002
 	and.w	#$0003,d0	;02400003
-	lea	adrEA005794.l,a0	;41F900005794
+	lea	MovementOffsetTable.l,a0	;41F900005794
 	add.b	$08(a0,d0.w),d7	;DE300008
 	swap	d7	;4847
 	add.b	$00(a0,d0.w),d7	;DE300000
@@ -2240,7 +2240,7 @@ adrCd001CD4:
 	bsr	adrCd001BB8	;6100FEE2
 	move.w	d0,d6	;3C00
 	and.w	#$0003,d6	;02460003
-	bsr	adrCd007A44	;61005D64
+	bsr	Compute_NewMapIndex_AI_TBC	;61005D64
 	bcs.s	adrCd001CF0	;650C
 	move.b	d7,$0001(a4)	;19470001
 	swap	d7	;4847
@@ -2474,7 +2474,7 @@ adrCd001F36:
 	move.l	a5,-(sp)	;2F0D
 	move.l	a1,a5	;2A49
 	bsr	adrCd007B50	;61005C10
-	bsr	adrCd0081CE	;6100628A
+	bsr	Load_MapPosition_AI_TBC	;6100628A
 	move.l	(sp)+,a5	;2A5F
 	rts	;4E75
 
@@ -3593,7 +3593,7 @@ adrCd002A44:
 	movem.w	d4-d7,-(sp)	;48A70F00
 	tst.w	d7	;4A47
 	bne.s	adrCd002A58	;6608
-	bsr	adrCd0081CE	;6100577C
+	bsr	Load_MapPosition_AI_TBC	;6100577C
 	movem.w	(sp),d4-d7	;4C9700F0
 adrCd002A58:
 	bsr	adrCd005FC4	;6100356A
@@ -5517,7 +5517,7 @@ adrCd003F66:
 	move.b	d0,$004F(a5)	;1B40004F
 	move.l	$001C(a5),d7	;2E2D001C
 	move.w	$0020(a5),d6	;3C2D0020
-	bsr	adrCd007A44	;61003AC2
+	bsr	Compute_NewMapIndex_AI_TBC	;61003AC2
 	bcc.s	adrCd003F9C	;6416
 	addq.w	#$02,sp	;544F
 	lea	adrEA0041BB.l,a6	;4DF9000041BB
@@ -5894,7 +5894,7 @@ adrCd0042D4:
 adrCd0042F6:
 	jsr	adrCd008CCA.l	;4EB900008CCA
 	bsr	adrCd008D88	;61004A8A
-	move.w	#$FFFF,FrameSyncFlagWord_AI.l	;33FCFFFF00008C1E
+	move.w	#$FFFF,FrameSyncFlagWord_AI_TBC.l	;33FCFFFF00008C1E
 	rts	;4E75
 
 adrCd00430A:
@@ -5909,7 +5909,7 @@ adrCd00430A:
 
 Click_LoadSaveGame:
 	move.l	adrEA00EE36.l,-(sp)	;2F390000EE36
-	clr.w	FrameSyncFlagWord_AI.l	;427900008C1E
+	clr.w	FrameSyncFlagWord_AI_TBC.l	;427900008C1E
 	move.l	#$00067D00,screen_ptr.l	;23FC00067D0000008D36
 	move.l	#$00060000,framebuffer_ptr.l	;23FC0006000000008D3A
 	lea	Player1_Data.l,a5	;4BF90000EE7C
@@ -7357,7 +7357,7 @@ adrCd005332:
 	move.w	$0058(a5),d5	;3A2D0058
 adrCd00533C:
 	move.w	d5,-(sp)	;3F05
-	bsr	adrCd007A44	;61002704
+	bsr	Compute_NewMapIndex_AI_TBC	;61002704
 	bcc.s	adrCd005352	;640E
 	move.w	(sp)+,d5	;3A1F
 	move.b	#$FF,adrW_00505A.w	;11FC00FF505A	;Short Absolute converted to symbol!
@@ -7836,7 +7836,7 @@ adrCd005782:
 adrCd005792:
 	rts	;4E75
 
-adrEA005794:
+MovementOffsetTable:
 	dc.w	$0001	;0001
 	dc.w	$00FF	;00FF
 	dc.w	$0101	;0101
@@ -8177,11 +8177,11 @@ Switches_LookupTable:
 	dc.w	Switch_00_s00_Null-Switch_00_s00_Null	;0000
 	dc.w	Switch_01_s02_Trigger_11_t16_RemoveXY-Switch_00_s00_Null	;01AC
 	dc.w	Switch_02_s04_Trigger_23_t2E-Switch_00_s00_Null	;0196
-	dc.w	Switch_03_s06_Trigger_03_t06_OpenLockedDoorXY-Switch_00_s00_Null	;1BE0
-	dc.w	Switch_04_s08_Trigger_22_t2C_RotateWallXY-Switch_00_s00_Null	;1B4E
-	dc.w	Switch_05_s0A_Trigger_13_t1A_TogglePillarXY-Switch_00_s00_Null	;1C06
-	dc.w	Switch_06_s0C_Trigger_18_t24_CreatePillarXY-Switch_00_s00_Null	;1C02
-	dc.w	Switch_07_s0E_Trigger_26_t34_RotateWoodXY-Switch_00_s00_Null	;1BF2
+	dc.w	Switch_03_s06_Trigger_03_t06_OpenLockedDoor_XY-Switch_00_s00_Null	;1BE0
+	dc.w	Switch_04_s08_Trigger_22_t2C_RotateWall_XY-Switch_00_s00_Null	;1B4E
+	dc.w	Switch_05_s0A_Trigger_13_t1A_TogglePillar_XY-Switch_00_s00_Null	;1C06
+	dc.w	Switch_06_s0C_Trigger_18_t24_CreatePillar_XY-Switch_00_s00_Null	;1C02
+	dc.w	Switch_07_s0E_Trigger_26_t34_RotateWood_XY-Switch_00_s00_Null	;1BF2
 SwitchData_1:
 	INCBIN "/data/BLOODWYCH439-clean/maps/mod0.switches"
 
@@ -8511,7 +8511,7 @@ adrCd005FA6:
 	move.w	d3,d0	;3003
 	bsr	adrCd006660	;610006AA
 	clr.b	$0011(a4)	;422C0011
-	bsr	adrCd0081CE	;61002210
+	bsr	Load_MapPosition_AI_TBC	;61002210
 	bra	adrCd007B50	;60001B8E
 
 adrCd005FC4:
@@ -9069,7 +9069,7 @@ adrCd0064C2:
 	bmi.s	adrJA0064D0	;6B08
 	bsr	adrCd004E8E	;6100E9C4
 adrCd0064CC:
-	bra	adrCd0081CE	;60001D00
+	bra	Load_MapPosition_AI_TBC	;60001D00
 
 adrJA0064D0:
 	moveq	#$02,d3	;7602
@@ -9755,7 +9755,7 @@ adrCd006B1C:
 	bcs.s	adrCd006B30	;650E
 	move.b	$0B(a6,d1.w),$002D(a5)	;1B76100B002D
 	clr.b	$0B(a6,d1.w)	;4236100B
-	bra	adrCd006BB0	;60000082
+	bra	Wear_Object	;60000082
 
 adrCd006B30:
 	cmp.w	d1,d3	;B641
@@ -9791,9 +9791,9 @@ adrCd006B78:
 
 adrCd006B82:
 	move.w	$002E(a5),d3	;362D002E
-	beq.s	adrCd006BB0	;6728
+	beq.s	Wear_Object	;6728
 	cmpi.w	#$0005,d3	;0C430005
-	bcc.s	adrCd006BB0	;6422
+	bcc.s	Wear_Object	;6422
 	move.b	$0B(a6,d3.w),d2	;1436300B
 	add.b	$002D(a5),d2	;D42D002D
 	move.b	d2,$0B(a6,d3.w)	;1D82300B
@@ -9807,7 +9807,7 @@ adrLp006BA2:
 	clr.b	$00(a6,d2.w)	;42362000
 adrCd006BAC:
 	dbra	d2,adrLp006BA2	;51CAFFF4
-adrCd006BB0:
+Wear_Object:
 	move.b	d3,$00(a6,d0.w)	;1D830000
 	move.w	d1,$002E(a5)	;3B41002E
 adrCd006BB8:
@@ -9985,7 +9985,7 @@ Arrow_Highlights_Offsets:
 	dc.b	$01	;01
 	dc.b	$09	;09
 
-adrCd006DA2:
+Draw_Arrow_Highlights:
 	tst.b	$0015(a5)	;4A2D0015
 	bne	adrCd004C3E	;6600DE96
 	or.b	#$04,$0054(a5)	;002D00040054
@@ -10010,60 +10010,60 @@ adrCd006DA2:
 
 Click_MoveForwards:
 	moveq	#$00,d0	;7000
-	bra.s	MoveParty	;600A
+	bra.s	.MoveParty	;600A
 
 Click_MoveBackwards:
 	moveq	#$02,d0	;7002
-	bra.s	MoveParty	;6006
+	bra.s	.MoveParty	;6006
 
 Click_MoveLeft:
 	moveq	#$03,d0	;7003
-	bra.s	MoveParty	;6002
+	bra.s	.MoveParty	;6002
 
 Click_MoveRight:
 	moveq	#$01,d0	;7001
-MoveParty:
+.MoveParty:
 	and.b	#$01,(a5)	;02150001
 	move.w	d0,-(sp)	;3F00
-	bsr.s	adrCd006DA2	;619E
+	bsr.s	Draw_Arrow_Highlights	;619E
 	move.w	(sp)+,d6	;3C1F
 	move.l	$001C(a5),d7	;2E2D001C
 	add.w	$0020(a5),d6	;DC6D0020
 	and.w	#$0003,d6	;02460003
-	bsr	adrCd007A44	;61000C30
-	bcc	adrCd006E3E	;64000026
+	bsr	Compute_NewMapIndex_AI_TBC	;61000C30
+	bcc	Check_Collision_AI_TBC	;64000026
 	cmp.w	d0,d2	;B440
-	bne.s	adrCd006E3C	;661E
+	bne.s	.MoveFailed	;661E
 	move.w	$00(a6,d0.w),d1	;32360000
 	and.w	#$0007,d1	;02410007
 	cmpi.w	#$0004,d1	;0C410004
-	bne.s	adrCd006E3C	;6610
+	bne.s	.MoveFailed	;6610
 	move.b	$00(a6,d0.w),d1	;12360000
 	lsr.b	#$01,d1	;E209
 	eor.b	#$02,d1	;0A010002
 	cmp.b	d1,d6	;BC01
-	beq	adrCd006ED0	;67000096
-adrCd006E3C:
+	beq	Execute_StairTransition_AI_TBC	;67000096
+.MoveFailed:
 	rts	;4E75
 
-adrCd006E3E:
+Check_Collision_AI_TBC:
 	move.w	$00(a6,d0.w),d1	;32360000
 	and.w	#$0007,d1	;02410007
 	subq.w	#$06,d1	;5D41
-	bcs.s	adrCd006EA8	;655E
-	beq.s	adrCd006E90	;6744
+	bcs.s	Start_StairTransition_AI_TBC	;655E
+	beq.s	Begin_StairCondition_AI_TBC	;6744
 	move.b	$00(a6,d0.w),d1	;12360000
 	move.w	d1,d2	;3401
 	and.w	#$0003,d2	;02420003
 	subq.w	#$01,d2	;5342
-	bne.s	adrCd006EA8	;664E
+	bne.s	Start_StairTransition_AI_TBC	;664E
 	move.l	d7,$001C(a5)	;2B47001C
 	movem.w	d0/d1,-(sp)	;48A7C000
 	moveq	#$05,d1	;7205
 	bsr	adrCd005500	;6100E69A
 	movem.w	(sp)+,d0/d1	;4C9F0003
 	tst.w	d3	;4A43
-	bpl.s	adrCd006E3C	;6ACC
+	bpl.s	.MoveFailed	;6ACC
 	lsr.b	#$02,d1	;E409
 	move.w	d1,d7	;3E01
 	movem.l	d0/a6,-(sp)	;48E78002
@@ -10076,42 +10076,42 @@ adrCd006E3E:
 	move.l	(sp)+,a5	;2A5F
 	rts	;4E75
 
-adrCd006E90:
+Begin_StairCondition_AI_TBC:
 	move.b	$00(a6,d0.w),d1	;12360000
 	and.w	#$0003,d1	;02410003
-	bne.s	adrCd006EA0	;6606
-	bsr	adrCd006F80	;610000E4
-	bra.s	adrCd006EA8	;6008
+	bne.s	Save_State_For_Stair_AI_TBC	;6606
+	bsr	TeamAvatar_LoopStart_AI_TBC	;610000E4
+	bra.s	Start_StairTransition_AI_TBC	;6008
 
-adrCd006EA0:
+Save_State_For_Stair_AI_TBC:
 	subq.w	#$01,d1	;5341
-	beq.s	adrCd006EA8	;6704
-	bsr	adrCd006FAA	;61000104
-adrCd006EA8:
+	beq.s	Start_StairTransition_AI_TBC	;6704
+	bsr	Reset_TriggerWait_AI_TBC	;61000104
+Start_StairTransition_AI_TBC:
 	movem.l	d0/d7/a6,-(sp)	;48E78102
-	bsr	adrCd0081CE	;61001320
+	bsr	Load_MapPosition_AI_TBC	;61001320
 	movem.l	(sp)+,d0/d7/a6	;4CDF4081
 	move.w	$00(a6,d0.w),d1	;32360000
 	and.w	#$0007,d1	;02410007
 	cmpi.w	#$0004,d1	;0C410004
-	bne	adrCd006F38	;66000076
+	bne	Store_PlayerXY_AI_TBC	;66000076
 	moveq	#$00,d6	;7C00
 	move.b	$00(a6,d0.w),d6	;1C360000
 	lsr.b	#$01,d6	;E20E
 	eor.b	#$02,d6	;0A060002
-adrCd006ED0:
+Execute_StairTransition_AI_TBC:
 	bclr	#$07,$01(a6,d0.w)	;08B600070001
 	move.w	$0058(a5),d2	;342D0058
 	move.w	d2,d1	;3202
 	addq.w	#$01,d1	;5241
 	btst	#$00,$00(a6,d0.w)	;083600000000
-	beq.s	adrCd006EE8	;6702
+	beq.s	Continue_StairTransition_AI_TBC	;6702
 	subq.w	#$02,d1	;5541
-adrCd006EE8:
+Continue_StairTransition_AI_TBC:
 	bsr	adrCd0084BA	;610015D0
 	move.w	d1,d0	;3001
 	bsr	adrCd0084DA	;610015EA
-	lea	adrEA005794.w,a0	;41F85794	;Short Absolute converted to symbol!
+	lea	MovementOffsetTable.w,a0	;41F85794	;Short Absolute converted to symbol!
 	add.b	$08(a0,d6.w),d7	;DE306008
 	add.b	$08(a0,d6.w),d7	;DE306008
 	swap	d7	;4847
@@ -10120,74 +10120,74 @@ adrCd006EE8:
 	swap	d7	;4847
 	bsr	CoordToMap	;61001590
 	tst.b	$01(a6,d0.w)	;4A360001
-	bpl.s	adrCd006F24	;6A10
+	bpl.s	Update_StairCompletion_AI_TBC	;6A10
 	bsr	adrCd0084D6	;610015C0
 	bsr	adrCd008498	;6100157E
 	bset	#$07,$01(a6,d0.w)	;08F600070001
 	rts	;4E75
 
-adrCd006F24:
+Update_StairCompletion_AI_TBC:
 	move.w	d1,$0058(a5)	;3B410058
 	bset	#$07,$01(a6,d0.w)	;08F600070001
 	move.b	$00(a6,d0.w),d0	;10360000
 	lsr.b	#$01,d0	;E208
 	move.b	d0,$0021(a5)	;1B400021
-adrCd006F38:
+Store_PlayerXY_AI_TBC:
 	move.l	d7,$001C(a5)	;2B47001C
 	tst.b	$003E(a5)	;4A2D003E
-	beq.s	adrCd006F4A	;6708
+	beq.s	Check_TeamPad_AI_TBC	;6708
 	clr.b	$003E(a5)	;422D003E
 	bsr	adrCd007B50	;61000C08
-adrCd006F4A:
+Check_TeamPad_AI_TBC:
 	move.w	$0042(a5),d0	;302D0042
-	bmi.s	adrCd006F58	;6B08
+	bmi.s	After_TeamPad_AI_TBC	;6B08
 	cmpi.w	#$0008,d0	;0C400008
 	bcc	Click_ShowTeamAvatars	;6400C388
-adrCd006F58:
+After_TeamPad_AI_TBC:
 	rts	;4E75
 
 Click_RotateLeft:
 	subq.w	#$01,$0020(a5)	;536D0020
 	and.w	#$0003,$0020(a5)	;026D00030020
 	moveq	#$04,d0	;7004
-	bra.s	adrCd006F74	;600C
+	bra.s	Execute_Rotation	;600C
 
 Click_RotateRight:
 	addq.w	#$01,$0020(a5)	;526D0020
 	and.w	#$0003,$0020(a5)	;026D00030020
 	moveq	#$05,d0	;7005
-adrCd006F74:
-	bsr	adrCd006DA2	;6100FE2C
+Execute_Rotation:
+	bsr	Draw_Arrow_Highlights	;6100FE2C
 	bsr	adrCd008498	;6100151E
-	bra	adrCd006EA8	;6000FF2A
+	bra	Start_StairTransition_AI_TBC	;6000FF2A
 
-adrCd006F80:
+TeamAvatar_LoopStart_AI_TBC:
 	movem.l	d0/d7/a6,-(sp)	;48E78102
 	moveq	#$03,d7	;7E03
-adrLp006F86:
+TeamAvatar_LoopBody_AI_TBC:
 	move.b	$18(a5,d7.w),d1	;12357018
 	move.w	d1,d0	;3001
 	and.w	#$00E0,d1	;024100E0
-	bne.s	adrCd006F9A	;6608
+	bne.s	TeamAvatar_LoopEnd_AI_TBC	;6608
 	bsr	adrCd006660	;6100F6CC
 	clr.b	$0011(a4)	;422C0011
-adrCd006F9A:
-	dbra	d7,adrLp006F86	;51CFFFEA
+TeamAvatar_LoopEnd_AI_TBC:
+	dbra	d7,TeamAvatar_LoopBody_AI_TBC	;51CFFFEA
 	bsr	adrCd007B50	;61000BB0
 	movem.l	(sp)+,d0/d7/a6	;4CDF4081
 	rts	;4E75
 
-adrEA006FA8:
+Trigger_WaitFlag_AI_TBC:
 	dc.w	$FFFF	;FFFF
 
-adrCd006FAA:
-	move.w	#$FFFF,adrEA006FA8.w	;31FCFFFF6FA8	;Short Absolute converted to symbol!
+Reset_TriggerWait_AI_TBC:
+	move.w	#$FFFF,Trigger_WaitFlag_AI_TBC.w	;31FCFFFF6FA8	;Short Absolute converted to symbol!
 	move.b	$00(a6,d0.w),d1	;12360000
 	and.w	#$0003,d1	;02410003
 	subq.w	#$02,d1	;5541
-	bne.s	adrCd006FC0	;6604
-	clr.w	adrEA006FA8.w	;42786FA8	;Short Absolute converted to symbol!
-adrCd006FC0:
+	bne.s	TriggerWait_PostCheck_AI_TBC	;6604
+	clr.w	Trigger_WaitFlag_AI_TBC.w	;42786FA8	;Short Absolute converted to symbol!
+TriggerWait_PostCheck_AI_TBC:
 	move.b	$00(a6,d0.w),d1	;12360000
 	and.w	#$00F8,d1	;024100F8
 	lsr.b	#$01,d1	;E209
@@ -10198,22 +10198,22 @@ adrCd006FC0:
 	moveq	#$00,d2	;7400
 	move.b	$00(a1,d1.w),d2	;14311000
 	cmpi.b	#$08,d2	;0C020008
-	beq.s	adrCd006FF2	;670C
+	beq.s	Setup_TriggerEffectDefault_AI_TBC	;670C
 	cmpi.b	#$0A,d2	;0C02000A
-	beq.s	adrCd006FF2	;6706
+	beq.s	Setup_TriggerEffectDefault_AI_TBC	;6706
 	cmpi.b	#$2A,d2	;0C02002A
-	bne.s	adrCd006FF8	;6606
-adrCd006FF2:
-	move.w	#$0005,adrEA006FA8.w	;31FC00056FA8	;Short Absolute converted to symbol!
-adrCd006FF8:
+	bne.s	TriggerEffect_Actual_AI_TBC	;6606
+Setup_TriggerEffectDefault_AI_TBC:
+	move.w	#$0005,Trigger_WaitFlag_AI_TBC.w	;31FC00056FA8	;Short Absolute converted to symbol!
+TriggerEffect_Actual_AI_TBC:
 	lea	Trigger_00_t00_Null.l,a0	;41F900007016
 	add.w	Triggers_LookupTable(pc,d2.w),a0	;D0FB2018
 	movem.l	d0/d7/a6,-(sp)	;48E78102
 	jsr	(a0)	;4E90
-	move.w	adrEA006FA8.w,d0	;30386FA8	;Short Absolute converted to symbol!
-	bmi.s	adrCd007012	;6B04
+	move.w	Trigger_WaitFlag_AI_TBC.w,d0	;30386FA8	;Short Absolute converted to symbol!
+	bmi.s	TriggerEffect_Post_AI_TBC	;6B04
 	bsr	PlaySound	;610018AE
-adrCd007012:
+TriggerEffect_Post_AI_TBC:
 	movem.l	(sp)+,d0/d7/a6	;4CDF4081
 Trigger_00_t00_Null:
 	rts	;4E75
@@ -10222,36 +10222,36 @@ Triggers_LookupTable:
 	dc.w	Trigger_00_t00_Null-Trigger_00_t00_Null	;0000
 	dc.w	Trigger_01_t02_Spinner180-Trigger_00_t00_Null	;06FC
 	dc.w	Trigger_02_t04_SpinnerRandom-Trigger_00_t00_Null	;0704
-	dc.w	Switch_03_s06_Trigger_03_t06_OpenLockedDoorXY-Trigger_00_t00_Null	;0730
-	dc.w	Trigger_04_t08-Trigger_00_t00_Null	;07EA
-	dc.w	Trigger_05_t0A-Trigger_00_t00_Null	;08DA
+	dc.w	Switch_03_s06_Trigger_03_t06_OpenLockedDoor_XY-Trigger_00_t00_Null	;0730
+	dc.w	Trigger_04_t08_Vivify_Machine_External-Trigger_00_t00_Null	;07EA
+	dc.w	Trigger_05_t0A_Vivify_Machine_Internal-Trigger_00_t00_Null	;08DA
 	dc.w	Trigger_06_t0C_WoodTrap1-Trigger_00_t00_Null	;06BC
 	dc.w	Trigger_07_t0E_WoodTrap2-Trigger_00_t00_Null	;06D4
-	dc.w	Trigger_08_t10-Trigger_00_t00_Null	;06EC
-	dc.w	Trigger_09_t12-Trigger_00_t00_Null	;043E
-	dc.w	Trigger_10_t14-Trigger_00_t00_Null	;03D0
+	dc.w	Trigger_08_t10_Trader_DoorCloser-Trigger_00_t00_Null	;06EC
+	dc.w	Trigger_09_t12_Tower_Entrance_SidePad-Trigger_00_t00_Null	;043E
+	dc.w	Trigger_10_t14_Tower_Entrance_CentrePad-Trigger_00_t00_Null	;03D0
 	dc.w	Switch_01_s02_Trigger_11_t16_RemoveXY-Trigger_00_t00_Null	;ECFC
-	dc.w	Trigger_12_t18-Trigger_00_t00_Null	;071E
-	dc.w	Switch_05_s0A_Trigger_13_t1A_TogglePillarXY-Trigger_00_t00_Null	;0756
-	dc.w	Trigger_14_t1C-Trigger_00_t00_Null	;0768
+	dc.w	Trigger_12_t18_Close_VoidLock_Door_XY-Trigger_00_t00_Null	;071E
+	dc.w	Switch_05_s0A_Trigger_13_t1A_TogglePillar_XY-Trigger_00_t00_Null	;0756
+	dc.w	Trigger_14_t1C_Create_Spinner_or_Other_XY-Trigger_00_t00_Null	;0768
 
 	dc.w	Switch_00_s00_Trigger_15_t1E_ToggleWallXY-Trigger_00_t00_Null	;ECE2
-	dc.w	Trigger_16_t20-Trigger_00_t00_Null	;0780
-	dc.w	Trigger_17_t22-Trigger_00_t00_Null	;07C0
-	dc.w	Switch_06_s0C_Trigger_18_t24_CreatePillarXY-Trigger_00_t00_Null	;0752
+	dc.w	Trigger_16_t20_Create_Pad_FXY-Trigger_00_t00_Null	;0780
+	dc.w	Trigger_17_t22_Move_Diagonal_Pillar-Trigger_00_t00_Null	;07C0
+	dc.w	Switch_06_s0C_Trigger_18_t24_CreatePillar_XY-Trigger_00_t00_Null	;0752
 
-	dc.w	Trigger_19_t26-Trigger_00_t00_Null	;0370
-	dc.w	Trigger_20_t28-Trigger_00_t00_Null	;0340
-	dc.w	Trigger_21_t2A-Trigger_00_t00_Null	;0670
-	dc.w	Switch_04_s08_Trigger_22_t2C_RotateWallXY-Trigger_00_t00_Null	;069E
+	dc.w	Trigger_19_t26_Keep_Entrance_SidePad-Trigger_00_t00_Null	;0370
+	dc.w	Trigger_20_t28_Keep_Entrance_CentrePad-Trigger_00_t00_Null	;0340
+	dc.w	Trigger_21_t2A_Flash_Telepoprt_FXY-Trigger_00_t00_Null	;0670
+	dc.w	Switch_04_s08_Trigger_22_t2C_RotateWall_XY-Trigger_00_t00_Null	;069E
 
 	dc.w	Switch_02_s04_Trigger_23_t2E-Trigger_00_t00_Null	;ECE6
 	dc.w	adrJA007728-Trigger_00_t00_Null	;0712
 	dc.w	Trigger_24_t30_Spinner3-Trigger_00_t00_Null	;0626
-	dc.w	Trigger_25_t32-Trigger_00_t00_Null	;0774
+	dc.w	Trigger_25_t32_Clicker_Teleport_FXY-Trigger_00_t00_Null	;0774
 
-	dc.w	Switch_07_s0E_Trigger_26_t34_RotateWoodXY-Trigger_00_t00_Null	;0742
-	dc.w	Trigger_27_t36-Trigger_00_t00_Null	;061A
+	dc.w	Switch_07_s0E_Trigger_26_t34_RotateWood_XY-Trigger_00_t00_Null	;0742
+	dc.w	Trigger_27_t36_Rotate_WoodWall_CounterClockwise-Trigger_00_t00_Null	;061A
 	dc.w	Trigger_28_t38_GameCompletion-Trigger_00_t00_Null	;0504
 	dc.w	adrJA007502-Trigger_00_t00_Null	;04EC
 TriggersData_1:
@@ -10272,7 +10272,7 @@ TriggersData_5:
 TriggersData_6:
 	INCBIN "/data/BLOODWYCH439-clean/maps/zendik.triggers"
 
-Trigger_20_t28:
+Trigger_20_t28_Keep_Entrance_CentrePad:
 	tst.w	MultiPlayer.l	;4A790000EE30
 	beq	adrCd007470	;67000112
 	pea	$00(a1,d1.w)	;48711000
@@ -10287,7 +10287,7 @@ Trigger_20_t28:
 	moveq	#$00,d0	;7000
 	bra	adrCd007408	;60000084
 
-Trigger_19_t26:
+Trigger_19_t26_Keep_Entrance_SidePad:
 	tst.w	MultiPlayer.l	;4A790000EE30
 	bne	adrCd007470	;660000E2
 	pea	$00(a1,d1.w)	;48711000
@@ -10319,7 +10319,7 @@ Keep_Start_Floors_DataTable:
 Keep_Start_XY_DataTable:
 	INCBIN "/data/BLOODWYCH439-clean/maps/keep.entrances"
 
-Trigger_10_t14:
+Trigger_10_t14_Tower_Entrance_CentrePad:
 	tst.w	MultiPlayer.l	;4A790000EE30
 	beq	adrCd007470	;67000082
 	pea	$00(a1,d1.w)	;48711000
@@ -10351,7 +10351,7 @@ adrCd007408:
 	bset	#$07,$01(a6,d0.w)	;08F600070001
 	bra	MonsterTransfer	;600095A4
 
-Trigger_09_t12:
+Trigger_09_t12_Tower_Entrance_SidePad:
 	tst.w	MultiPlayer.l	;4A790000EE30
 	bmi.s	adrCd007470	;6B14
 	pea	$00(a1,d1.w)	;48711000
@@ -10411,7 +10411,7 @@ adrJA007502:
 Trigger_28_t38_GameCompletion:
 	move.l	a5,-(sp)	;2F0D
 	bsr.s	GameEndPicture	;6164
-	clr.w	FrameSyncFlagWord_AI.l	;427900008C1E
+	clr.w	FrameSyncFlagWord_AI_TBC.l	;427900008C1E
 	bsr	adrCd008CCA	;610017A4
 	bsr	adrCd008D88	;6100185E
 	moveq	#$4B,d0	;704B
@@ -10431,9 +10431,9 @@ DBFWait1d:
 .Player2Skip:
 	bsr	adrCd008CCA	;61001762
 	bsr	adrCd008D88	;6100181C
-	move.w	#$FFFF,FrameSyncFlagWord_AI.l	;33FCFFFF00008C1E
+	move.w	#$FFFF,FrameSyncFlagWord_AI_TBC.l	;33FCFFFF00008C1E
 adrCd007576:
-	tst.b	FrameSyncFlagWord_AI.l	;4A3900008C1E
+	tst.b	FrameSyncFlagWord_AI_TBC.l	;4A3900008C1E
 	bne.s	adrCd007576	;66F8
 	move.l	(sp)+,a5	;2A5F
 	rts	;4E75
@@ -10480,7 +10480,7 @@ CongratsText:
 	dc.b	$FF	;FF
 	dc.b	$00	;00
 
-Trigger_27_t36:
+Trigger_27_t36_Rotate_WoodWall_CounterClockwise:
 	bsr	adrCd005D2E	;6100E6FC
 	eor.b	#$03,$00(a6,d0.w)	;0A3600030000
 	rts	;4E75
@@ -10513,7 +10513,7 @@ adrCd007664:
 	move.l	d0,$0008(sp)	;2F400008
 	rts	;4E75
 
-Trigger_21_t2A:
+Trigger_21_t2A_Flash_Telepoprt_FXY:
 	moveq	#$00,d0	;7000
 	move.b	$01(a1,d1.w),d0	;10311001
 	move.w	d0,d6	;3C00
@@ -10534,7 +10534,7 @@ adrCd0076AC:
 	moveq	#$10,d7	;7E10
 	bra	adrCd001DBC	;6000A70A
 
-Switch_04_s08_Trigger_22_t2C_RotateWallXY:
+Switch_04_s08_Trigger_22_t2C_RotateWall_XY:
 	bsr	adrCd005D2E	;6100E678
 	move.b	$01(a6,d0.w),d1	;12360001
 	move.w	d1,d2	;3401
@@ -10559,7 +10559,7 @@ Trigger_07_t0E_WoodTrap2:
 	bset	#$06,$02(a6,d0.w)	;08F600060002
 	rts	;4E75
 
-Trigger_08_t10:
+Trigger_08_t10_Trader_DoorCloser:
 	subq.w	#$02,d0	;5540
 	tst.b	$01(a6,d0.w)	;4A360001
 	bmi.s	adrCd007710	;6B06
@@ -10582,51 +10582,51 @@ adrJA007728:
 	and.w	#$0003,$0020(a5)	;026D00030020
 	rts	;4E75
 
-Trigger_12_t18:
+Trigger_12_t18_Close_VoidLock_Door_XY:
 	bsr	adrCd005D2E	;6100E5F8
 	bset	#$00,$00(a6,d0.w)	;08F600000000
-	move.w	#$0001,adrEA006FA8.w	;31FC00016FA8	;Short Absolute converted to symbol!
+	move.w	#$0001,Trigger_WaitFlag_AI_TBC.w	;31FC00016FA8	;Short Absolute converted to symbol!
 	rts	;4E75
 
-Switch_03_s06_Trigger_03_t06_OpenLockedDoorXY:
+Switch_03_s06_Trigger_03_t06_OpenLockedDoor_XY:
 	bsr	adrCd005D2E	;6100E5E6
 	bclr	#$00,$00(a6,d0.w)	;08B600000000
-	move.w	#$0001,adrEA006FA8.w	;31FC00016FA8	;Short Absolute converted to symbol!
+	move.w	#$0001,Trigger_WaitFlag_AI_TBC.w	;31FC00016FA8	;Short Absolute converted to symbol!
 	rts	;4E75
 
-Switch_07_s0E_Trigger_26_t34_RotateWoodXY:
+Switch_07_s0E_Trigger_26_t34_RotateWood_XY:
 	bsr	adrCd005D2E	;6100E5D4
 	move.b	$00(a6,d0.w),d1	;12360000
 	ror.b	#$02,d1	;E419
 	move.b	d1,$00(a6,d0.w)	;1D810000
 	rts	;4E75
 
-Switch_06_s0C_Trigger_18_t24_CreatePillarXY:
+Switch_06_s0C_Trigger_18_t24_CreatePillar_XY:
 	bsr	Switch_01_s02_Trigger_11_t16_RemoveXY	;6100E5A8
-Switch_05_s0A_Trigger_13_t1A_TogglePillarXY:
+Switch_05_s0A_Trigger_13_t1A_TogglePillar_XY:
 	bsr	adrCd005D2E	;6100E5C0
 	move.b	#$01,$00(a6,d0.w)	;1DBC00010000
 	eor.b	#$03,$01(a6,d0.w)	;0A3600030001
 	rts	;4E75
 
-Trigger_14_t1C:
+Trigger_14_t1C_Create_Spinner_or_Other_XY:
 	bsr	adrCd005D2E	;6100E5AE
 	or.b	#$06,$01(a6,d0.w)	;003600060001
 	rts	;4E75
 
-Trigger_25_t32:
+Trigger_25_t32_Clicker_Teleport_FXY:
 	bsr	adrCd005D2E	;6100E5A2
 	eor.b	#$06,$01(a6,d0.w)	;0A3600060001
 	rts	;4E75
 
-Trigger_16_t20:
+Trigger_16_t20_Create_Pad_FXY:
 	moveq	#$00,d6	;7C00
 	move.b	$01(a1,d1.w),d6	;1C311001
 	move.w	d1,-(sp)	;3F01
 	bsr	adrCd0084FC	;61000D5C
 	move.w	(sp)+,d1	;321F
 	move.l	d2,d7	;2E02
-	lea	adrEA005794.w,a0	;41F85794	;Short Absolute converted to symbol!
+	lea	MovementOffsetTable.w,a0	;41F85794	;Short Absolute converted to symbol!
 	add.b	$08(a0,d6.w),d7	;DE306008
 	cmp.w	adrW_00EE72.l,d7	;BE790000EE72
 	bcc	Switch_01_s02_Trigger_11_t16_RemoveXY	;6400E55C
@@ -10639,7 +10639,7 @@ Trigger_16_t20:
 	eor.b	#$06,$01(a6,d0.w)	;0A3600060001
 	rts	;4E75
 
-Trigger_17_t22:
+Trigger_17_t22_Move_Diagonal_Pillar:
 	bsr	adrCd0084FC	;61000D24
 	move.l	d2,d7	;2E02
 	subq.b	#$01,d7	;5307
@@ -10653,7 +10653,7 @@ Trigger_17_t22:
 	and.w	#$00F8,$00(a6,d0.w)	;027600F80000
 	rts	;4E75
 
-Trigger_04_t08:
+Trigger_04_t08_Vivify_Machine_External:
 	addq.w	#$02,d0	;5440
 	tst.b	$01(a6,d0.w)	;4A360001
 	bmi	Trigger_00_t00_Null	;6B00F80E
@@ -10742,7 +10742,7 @@ adrCd0078E4:
 	move.l	(sp)+,a5	;2A5F
 	rts	;4E75
 
-Trigger_05_t0A:
+Trigger_05_t0A_Vivify_Machine_Internal:
 	subq.w	#$02,d0	;5540
 	bset	#$00,$00(a6,d0.w)	;08F600000000
 	addq.w	#$02,d0	;5440
@@ -10751,7 +10751,7 @@ adrCd0078FA:
 	bsr	adrCd001DBC	;6100A4BC
 	moveq	#$05,d0	;7005
 	bsr	PlaySound	;61000FB8
-	move.w	#$FFFF,adrEA006FA8.w	;31FCFFFF6FA8	;Short Absolute converted to symbol!
+	move.w	#$FFFF,Trigger_WaitFlag_AI_TBC.w	;31FCFFFF6FA8	;Short Absolute converted to symbol!
 	moveq	#$03,d0	;7003
 adrLp007910:
 	tst.b	$18(a5,d0.w)	;4A350018
@@ -10860,7 +10860,7 @@ adrCd007A34:
 adrCd007A42:
 	rts	;4E75
 
-adrCd007A44:
+Compute_NewMapIndex_AI_TBC:
 	move.l	d7,d5	;2A07
 	bsr	CoordToMap	;61000A54
 	move.w	d0,d2	;3400
@@ -11353,7 +11353,7 @@ adrCd007DF2:
 adrCd007E12:
 	move.l	a0,-(sp)	;2F08
 	bsr	Print_com_menu_entry	;61005936
-	clr.b	InputStateFlag_AI.l	;42390000EE2D
+	clr.b	InputStateFlag_AI_TBC.l	;42390000EE2D
 	move.l	(sp)+,a0	;205F
 	add.w	#$0140,a0	;D0FC0140
 adrL_007E22:	equ	*-2
@@ -11688,7 +11688,7 @@ adrB_0081CA:
 	dc.b	$0C	;0C
 	dc.b	$07	;07
 
-adrCd0081CE:
+Load_MapPosition_AI_TBC:
 	tst.w	$0014(a5)	;4A6D0014
 	bne.s	adrCd0081C8	;66F4
 	or.b	#$04,$0054(a5)	;002D00040054
@@ -11798,7 +11798,7 @@ adrCd0082BA:
 adrCd008308:
 	move.l	#$0003001E,d5	;2A3C0003001E	;Long Addr replaced with Symbol
 	bsr	adrCd00CCB8	;610049A8
-	bsr	adrCd0081CE	;6100FEBA
+	bsr	Load_MapPosition_AI_TBC	;6100FEBA
 	move.w	#$0062,d0	;303C0062
 	bsr	adrCd00CAEA	;610047CE
 	moveq	#$20,d5	;7A20
@@ -11945,7 +11945,7 @@ adrCd00847E:
 adrCd008482:
 	move.w	$0020(a5),d0	;302D0020
 adrCd008486:
-	lea	adrEA005794.w,a0	;41F85794	;Short Absolute converted to symbol!
+	lea	MovementOffsetTable.w,a0	;41F85794	;Short Absolute converted to symbol!
 	add.b	$08(a0,d0.w),d7	;DE300008
 	swap	d7	;4847
 	add.b	$00(a0,d0.w),d7	;DE300000
@@ -12644,9 +12644,9 @@ VBI_Marker:
 	dc.w	$0000	;0000
 Paused_Marker:
 	dc.w	$0000	;0000
-FrameSyncFlagWord_AI:
+FrameSyncFlagWord_AI_TBC:
 	dc.b	$00	;00
-SyncFlagHighByte_AI:
+SyncFlagHighByte_AI_TBC:
 	dc.b	$FF	;FF
 
 VerticalBlankInterupt:
@@ -12689,12 +12689,12 @@ adrCd008C92:
 	dbra	d0,adrLp008C8A	;51C8FFF6
 	lea	Player1_Data.l,a5	;4BF90000EE7C
 	bsr	adrCd008B72	;6100FED4
-	tst.b	SyncFlagHighByte_AI.l	;4A3900008C1F
+	tst.b	SyncFlagHighByte_AI_TBC.l	;4A3900008C1F
 	beq.s	adrCd008CBC	;6714
 	bsr	InputControls	;6100FD72
-	tst.b	FrameSyncFlagWord_AI.l	;4A3900008C1E
+	tst.b	FrameSyncFlagWord_AI_TBC.l	;4A3900008C1E
 	beq.s	adrCd008CBC	;6708
-	clr.b	FrameSyncFlagWord_AI.l	;423900008C1E
+	clr.b	FrameSyncFlagWord_AI_TBC.l	;423900008C1E
 	bsr.s	adrCd008CCA	;610E
 adrCd008CBC:
 	movem.l	(sp)+,d0-d7/a0-a6	;4CDF7FFF
@@ -18193,7 +18193,7 @@ adrCd00C168:
 	bsr	ChampionSelection	;61000C16
 	bsr	adrCd00C01E	;6100FEA4
 	move.w	#$0005,adrW_00EEC6.l	;33FC00050000EEC6
-	move.b	#$01,SyncFlagHighByte_AI.l	;13FC000100008C1F
+	move.b	#$01,SyncFlagHighByte_AI_TBC.l	;13FC000100008C1F
 	jsr	adrEA0008F2.w	;4EB808F2	;Short Absolute converted to symbol!
 adrCd00C190:
 	move.w	adrW_00EEF2.l,d1	;32390000EEF2
@@ -18206,9 +18206,9 @@ adrCd00C190:
 	lea	Player2_Data.l,a5	;4BF90000EEDE
 	bsr	adrCd00C1F6	;6100003E
 	bsr	adrCd00C232	;61000076
-	move.b	#$FF,FrameSyncFlagWord_AI.l	;13FC00FF00008C1E
+	move.b	#$FF,FrameSyncFlagWord_AI_TBC.l	;13FC00FF00008C1E
 adrCd00C1C6:
-	tst.b	FrameSyncFlagWord_AI.l	;4A3900008C1E
+	tst.b	FrameSyncFlagWord_AI_TBC.l	;4A3900008C1E
 	bne.s	adrCd00C1C6	;66F8
 	move.b	#$01,adrB_00EE2C.l	;13FC00010000EE2C
 	lea	Player1_Data.l,a5	;4BF90000EE7C
@@ -20481,7 +20481,7 @@ Print_com_menu_entry:
 	cmpi.b	#$FC,d0					;0C0000FC
 	bne.s	.continuedcode_005				;66DE
 	addq.w	#$01,a0					;5248
-	move.b	#$FF,InputStateFlag_AI.l			;13FC00FF0000EE2D
+	move.b	#$FF,InputStateFlag_AI_TBC.l			;13FC00FF0000EE2D
 	move.l	#$000D0002,adrW_00D92A.l		;23FC000D00020000D92A
 	cmp.b	$0040(a5),d7				;BE2D0040
 	bne.s	.continuedcode_005				;66C4
@@ -20630,7 +20630,7 @@ adrLp00D8D6:
 	move.b	(a1),d1	;1211
 	swap	d1	;4841
 	move.b	(a1)+,d1	;1219
-	tst.b	InputStateFlag_AI.l	;4A390000EE2D
+	tst.b	InputStateFlag_AI_TBC.l	;4A390000EE2D
 	beq.s	adrCd00D8E8	;6704
 	add.l	d1,d1	;D281
 	add.l	d1,d1	;D281
@@ -20682,9 +20682,9 @@ Draw_woundflash_digit:
 .continuedcode_011:
 	move.l	d1,(a1)+	;22C1
 	dbra	d2,.continuedcode_011	;51CAFFFC
-	move.b	#$FF,InputStateFlag_AI.l	;13FC00FF0000EE2D
+	move.b	#$FF,InputStateFlag_AI_TBC.l	;13FC00FF0000EE2D
 	bsr	BW_Blitchar	;6100005A
-	clr.b	InputStateFlag_AI.l	;42390000EE2D
+	clr.b	InputStateFlag_AI_TBC.l	;42390000EE2D
 	movem.l	(sp)+,d4/d5	;4CDF0030
 	move.l	a0,a1	;2248
 	move.w	d4,d1	;3204
@@ -21704,7 +21704,7 @@ adrW_00EE2A:
 	dc.w	$0000	;0000
 adrB_00EE2C:
 	dc.b	$00	;00
-InputStateFlag_AI:
+InputStateFlag_AI_TBC:
 	dc.b	$00	;00
 CurrentTower:
 	dc.b	$00	;00
