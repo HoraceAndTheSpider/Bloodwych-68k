@@ -77,20 +77,38 @@ profiles can be added without changing the directory contract.
 python main.py
 python main.py profiles
 python main.py paths
+python main.py graphics
 python main.py --master BLOODWYCH439 extract
 python main.py --master BLOODWYCH439 inspect
 python main.py --master BLOODWYCH439 relabel
 python main.py --master BLOODWYCH439 patch
 ```
 
-A bare `python main.py` launch opens the Pygame command chooser. Supplying an
-explicit subcommand bypasses Pygame, which keeps the same core tools usable in
-terminals, tests, build workers, and the future web application.
+A bare `python main.py` launch opens the Pygame command chooser. Supplying a
+data-processing subcommand bypasses the launcher, which keeps the same core
+tools usable in terminals, tests, build workers, and the future web
+application. The `graphics` subcommand opens the Pygame viewer directly.
 
 The graphics tools can losslessly convert the 128-glyph `GameFont` and Atari
 ST-style four-plane graphics with extracted `.offsets` and `.positions`
 metadata. See `docs/gamefont-and-st-graphics.md` for the currently understood
 formats and round-trip guarantees.
+
+The launcher now includes a graphical viewer for monster types `$64` upwards.
+It renders the complete Beholder data live and reports missing companion
+metadata for the other extracted monster graphics. Its overhead navigator
+uses the original 19-cell view cone and mini-space position tables, so choosing
+a square resolves the same image slot and screen anchor as the 68k renderer.
+
+The extracted avatar and Beholder data can also be exported and verified over
+the native 128 x 76 floor/ceiling window with:
+
+```text
+python tools/graphics_preview.py outputs/graphics-preview --scale 4
+```
+
+This also exports exact indexed component PNGs, red-border drawing guides, and
+JSON metadata for template editing and the future re-import stage.
 
 The optional `data_action` column in `segments.xlsx` can now split one
 contiguous ASM data region into several labelled INCBIN files without

@@ -12,6 +12,7 @@ from tools.tool_common import (
     PROJECT_ROOT,
     WHDLOAD_DIR,
     ToolError,
+    get_profile,
 )
 from tools.tool_extract import extract_segments
 from tools.tool_inspect import inspect_source
@@ -19,12 +20,13 @@ from tools.tool_patch import patch_segments
 from tools.tool_relabel import relabel_segments
 
 
-GUI_COMMANDS = ("extract", "relabel", "inspect", "patch")
+GUI_COMMANDS = ("extract", "relabel", "inspect", "patch", "graphics")
 GUI_LABELS = {
     "extract": "Extract",
     "relabel": "Relabel",
     "inspect": "Inspect / Data",
     "patch": "Patch",
+    "graphics": "Graphics Viewer",
 }
 
 
@@ -43,7 +45,7 @@ def launch_gui() -> str | None:
         surface = pygame.display.set_mode((400, 300))
         pygame.display.set_caption("Bloodwych ReSource")
         font = pygame.font.SysFont(None, 24)
-        button_width, button_height, spacing = 140, 40, 10
+        button_width, button_height, spacing = 180, 40, 10
         total_height = len(GUI_COMMANDS) * (button_height + spacing) - spacing
         start_y = (300 - total_height) // 2
         buttons = [
@@ -114,6 +116,7 @@ def build_parser() -> argparse.ArgumentParser:
     inspect.add_argument("--debug", action="store_true")
 
     subparsers.add_parser("relabel", help="Generate asm/<binary>_relabel.asm")
+    subparsers.add_parser("graphics", help="Open the extracted graphics viewer")
     subparsers.add_parser("profiles", help="List configured game binaries")
     subparsers.add_parser("paths", help="Show the canonical project paths")
     return parser
@@ -144,6 +147,13 @@ def run(args: argparse.Namespace, parser: argparse.ArgumentParser) -> int:
         )
     elif args.command == "relabel":
         relabel_segments(args.master, args.sheet)
+    elif args.command == "graphics":
+        from tools.graphics_viewer import GraphicsViewerError, launch_graphics_viewer
+
+        try:
+            launch_graphics_viewer(get_profile(args.master).clean_dir)
+        except GraphicsViewerError as error:
+            raise ToolError(str(error)) from error
     elif args.command == "profiles":
         for profile in PROFILES:
             sheet = profile.segment_sheet or "not yet mapped"
@@ -165,10 +175,19 @@ def main() -> int:
     parser = build_parser()
     args = parser.parse_args()
     try:
-        if args.command is None:
-            args.command = launch_gui()
-            if args.command is None:
+        while args.command is None:
+            selected = launch_gui()
+            if selected is None:
                 return 0
+            if selected == "graphics":
+                from tools.graphics_viewer import GraphicsViewerError, launch_graphics_viewer
+
+                try:
+                    launch_graphics_viewer()
+                except GraphicsViewerError as error:
+                    raise ToolError(str(error)) from error
+                continue
+            args.command = selected
         return run(args, parser)
     except ToolError as error:
         parser.exit(2, f"Error: {error}\n")
