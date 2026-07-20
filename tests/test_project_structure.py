@@ -1,6 +1,9 @@
 from __future__ import annotations
 
 import unittest
+from unittest.mock import patch
+
+import main
 
 from tools.tool_common import (
     ASM_DIR,
@@ -16,6 +19,16 @@ from tools.tool_common import (
 
 
 class ProjectStructureTests(unittest.TestCase):
+    def test_bare_main_launch_uses_gui_command(self) -> None:
+        with (
+            patch("sys.argv", ["main.py"]),
+            patch("main.launch_gui", return_value="profiles") as launch_gui,
+            patch("main.run", return_value=0) as run,
+        ):
+            self.assertEqual(main.main(), 0)
+        launch_gui.assert_called_once_with()
+        self.assertEqual(run.call_args.args[0].command, "profiles")
+
     def test_configured_binary_names(self) -> None:
         self.assertEqual(
             [profile.filename for profile in PROFILES],

@@ -74,6 +74,7 @@ profiles can be added without changing the directory contract.
 ### Python commands
 
 ```text
+python main.py
 python main.py profiles
 python main.py paths
 python main.py --master BLOODWYCH439 extract
@@ -81,6 +82,10 @@ python main.py --master BLOODWYCH439 inspect
 python main.py --master BLOODWYCH439 relabel
 python main.py --master BLOODWYCH439 patch
 ```
+
+A bare `python main.py` launch opens the Pygame command chooser. Supplying an
+explicit subcommand bypasses Pygame, which keeps the same core tools usable in
+terminals, tests, build workers, and the future web application.
 
 The graphics tools can losslessly convert the 128-glyph `GameFont` and Atari
 ST-style four-plane graphics with extracted `.offsets` and `.positions`

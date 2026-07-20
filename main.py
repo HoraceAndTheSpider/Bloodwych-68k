@@ -19,6 +19,63 @@ from tools.tool_patch import patch_segments
 from tools.tool_relabel import relabel_segments
 
 
+GUI_COMMANDS = ("extract", "patch", "inspect", "relabel")
+
+
+def launch_gui() -> str | None:
+    """Show the legacy Pygame command chooser for a bare ``main.py`` launch."""
+    try:
+        import pygame
+    except ImportError as error:
+        raise ToolError(
+            "Pygame is required for the graphical launcher. "
+            "Install requirements.txt or run an explicit CLI command."
+        ) from error
+
+    pygame.init()
+    try:
+        surface = pygame.display.set_mode((400, 300))
+        pygame.display.set_caption("Bloodwych ReSource")
+        font = pygame.font.SysFont(None, 24)
+        button_width, button_height, spacing = 140, 40, 10
+        total_height = len(GUI_COMMANDS) * (button_height + spacing) - spacing
+        start_y = (300 - total_height) // 2
+        buttons = [
+            (
+                pygame.Rect(
+                    (400 - button_width) // 2,
+                    start_y + index * (button_height + spacing),
+                    button_width,
+                    button_height,
+                ),
+                command,
+            )
+            for index, command in enumerate(GUI_COMMANDS)
+        ]
+        clock = pygame.time.Clock()
+
+        while True:
+            mouse_position = pygame.mouse.get_pos()
+            surface.fill((30, 30, 30))
+            for rectangle, command in buttons:
+                colour = (80, 80, 240) if rectangle.collidepoint(mouse_position) else (50, 50, 200)
+                pygame.draw.rect(surface, colour, rectangle)
+                label = font.render(command.capitalize(), True, (255, 255, 255))
+                surface.blit(label, label.get_rect(center=rectangle.center))
+            pygame.display.flip()
+
+            for event in pygame.event.get():
+                if event.type == pygame.QUIT:
+                    return None
+                if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
+                    for rectangle, command in buttons:
+                        if rectangle.collidepoint(event.pos):
+                            return command
+            clock.tick(60)
+    finally:
+        pygame.quit()
+
+
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
         description="Bloodwych ReSource: extract, inspect, relabel, and rebuild game data"
@@ -58,11 +115,27 @@ def build_parser() -> argparse.ArgumentParser:
 
 def run(args: argparse.Namespace, parser: argparse.ArgumentParser) -> int:
     if args.command == "extract":
-        extract_segments(args.master, args.sheet, args.name, args.debug)
+        extract_segments(
+            args.master,
+            args.sheet,
+            getattr(args, "name", None),
+            getattr(args, "debug", False),
+        )
     elif args.command == "patch":
-        patch_segments(args.master, args.sheet, args.name, args.debug)
+        patch_segments(
+            args.master,
+            args.sheet,
+            getattr(args, "name", None),
+            getattr(args, "debug", False),
+        )
     elif args.command == "inspect":
-        inspect_source(args.master, args.sheet, args.name, args.label, args.debug)
+        inspect_source(
+            args.master,
+            args.sheet,
+            getattr(args, "name", None),
+            getattr(args, "label", None),
+            getattr(args, "debug", False),
+        )
     elif args.command == "relabel":
         relabel_segments(args.master, args.sheet)
     elif args.command == "profiles":
@@ -86,6 +159,10 @@ def main() -> int:
     parser = build_parser()
     args = parser.parse_args()
     try:
+        if args.command is None:
+            args.command = launch_gui()
+            if args.command is None:
+                return 0
         return run(args, parser)
     except ToolError as error:
         parser.exit(2, f"Error: {error}\n")
