@@ -10,10 +10,20 @@ from unittest.mock import patch
 
 import pandas as pd
 
-from tools.tool_inspect import inspect_source
+from tools.tool_inspect import _parse_dc_bytes, inspect_source
 
 
 class InspectSourceTests(unittest.TestCase):
+    def test_devpac_doubled_quote_delimiters_emit_one_character(self) -> None:
+        self.assertEqual(
+            _parse_dc_bytes("\tdc.b\t'N''EGG'\t;4E27454747"),
+            b"N'EGG",
+        )
+        self.assertEqual(
+            _parse_dc_bytes('\tdc.b\t"I""M DUE"\t;49224D20445545'),
+            b'I"M DUE',
+        )
+
     def test_failed_block_is_not_replaced(self) -> None:
         with tempfile.TemporaryDirectory() as temporary_directory:
             root = Path(temporary_directory)

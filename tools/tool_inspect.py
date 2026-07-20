@@ -145,7 +145,13 @@ def _parse_dc_bytes(source: str) -> bytes | None:
             and operand[0] in ("'", '"')
             and operand[-1] == operand[0]
         ):
-            literal = operand[1:-1].encode("latin-1")
+            delimiter = operand[0]
+            # Devpac escapes the active string delimiter by doubling it, so
+            # ``'N''EGG'`` emits the five bytes for ``N'EGG`` rather than two
+            # apostrophes. The same rule applies to double-quoted strings.
+            literal = operand[1:-1].replace(delimiter * 2, delimiter).encode(
+                "latin-1"
+            )
             encoded.extend(literal)
             fallback_width += len(literal)
             continue
