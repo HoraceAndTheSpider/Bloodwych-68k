@@ -19,7 +19,13 @@ from tools.tool_patch import patch_segments
 from tools.tool_relabel import relabel_segments
 
 
-GUI_COMMANDS = ("extract", "patch", "inspect", "relabel")
+GUI_COMMANDS = ("extract", "relabel", "inspect", "patch")
+GUI_LABELS = {
+    "extract": "Extract",
+    "relabel": "Relabel",
+    "inspect": "Inspect / Data",
+    "patch": "Patch",
+}
 
 
 def launch_gui() -> str | None:
@@ -60,7 +66,7 @@ def launch_gui() -> str | None:
             for rectangle, command in buttons:
                 colour = (80, 80, 240) if rectangle.collidepoint(mouse_position) else (50, 50, 200)
                 pygame.draw.rect(surface, colour, rectangle)
-                label = font.render(command.capitalize(), True, (255, 255, 255))
+                label = font.render(GUI_LABELS[command], True, (255, 255, 255))
                 surface.blit(label, label.get_rect(center=rectangle.center))
             pygame.display.flip()
 

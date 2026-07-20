@@ -19,6 +19,13 @@ from tools.tool_common import (
 
 
 class ProjectStructureTests(unittest.TestCase):
+    def test_gui_commands_follow_the_source_generation_workflow(self) -> None:
+        self.assertEqual(
+            main.GUI_COMMANDS,
+            ("extract", "relabel", "inspect", "patch"),
+        )
+        self.assertEqual(main.GUI_LABELS["inspect"], "Inspect / Data")
+
     def test_bare_main_launch_uses_gui_command(self) -> None:
         with (
             patch("sys.argv", ["main.py"]),
