@@ -7,6 +7,7 @@ from pathlib import Path
 
 import pandas as pd
 
+from .resource_layout import EXTRACT_ONLY, data_action, resource_layouts
 from .tool_common import (
     BINARIES_DIR,
     ToolError,
@@ -36,10 +37,15 @@ def patch_segments(
 
     frame = load_segments(sheet, master)
     require_columns(frame, ("offset", "size", "name"))
+    resource_layouts(frame)
     patched_count = 0
     with patched.open("r+b") as binary:
         binary_size = patched.stat().st_size
         for _, row in frame.iterrows():
+            if data_action(row) == EXTRACT_ONLY:
+                if debug and not pd.isna(row.get("name")):
+                    print(f"Skipping '{str(row.get('name')).strip()}': extract_only")
+                continue
             if pd.isna(row["name"]):
                 continue
             name = str(row["name"]).strip()

@@ -91,3 +91,9 @@ The graphics tools can losslessly convert the 128-glyph `GameFont` and Atari
 ST-style four-plane graphics with extracted `.offsets` and `.positions`
 metadata. See `docs/gamefont-and-st-graphics.md` for the currently understood
 formats and round-trip guarantees.
+
+The optional `data_action` column in `segments.xlsx` can now split one
+contiguous ASM data region into several labelled INCBIN files without
+hard-coded Python ranges. See `docs/resource-layouts.md` for the
+`data_start`, `data_append`, and `extract_only` conventions and validation
+rules.

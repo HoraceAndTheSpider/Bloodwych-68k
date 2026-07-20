@@ -1,0 +1,4 @@
+*.gfx binary
+*.heights binary
+*.offsets binary
+*.positions binary
