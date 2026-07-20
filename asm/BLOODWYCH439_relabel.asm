@@ -2969,12 +2969,12 @@ adrCd002396:
 	beq.s	adrCd002394			;67D4
 	move.w	#$0056,d5			;3A3C0056
 	cmpi.b	#$6B,d2				;0C02006B
-	beq.s	.DropTheObject			;672C
+	beq.s	_DropTheObject			;672C
 	cmpi.b	#$40,d2				;0C020040
 	bne.s	adrCd0023D6			;6606
 	swap	d2				;4842
 	move.w	d2,d5				;3A02
-	bra.s	.DropTheObject			;6020
+	bra.s	_DropTheObject			;6020
 
 adrCd0023D6:
 	bsr	RandomGen_BytewithOffset			;610031D4
@@ -2982,12 +2982,12 @@ adrCd0023D6:
 	move.b	DroppedObjects_DataTable(pc,d0.w),d5		;1A3B0024
 	beq.s	adrCd002394			;67B0
 	cmpi.w	#$0005,d5			;0C450005
-	bcc.s	.DropTheObject			;640C
+	bcc.s	_DropTheObject			;640C
 	bsr	RandomGen_BytewithOffset			;610031C0
 	and.w	#$0007,d0			;02400007
 	swap	d0				;4840
 	add.l	d0,d5				;DA80
-.DropTheObject:
+_DropTheObject:
 	move.w	d4,d0	;3004
 	move.l	adrL_00EE78.l,a6	;2C790000EE78
 	moveq	#$00,d6	;7C00
@@ -10232,19 +10232,19 @@ Draw_Arrow_Highlights:
 
 Click_MoveForwards:
 	moveq	#$00,d0	;7000
-	bra.s	.MoveParty	;600A
+	bra.s	_MoveParty	;600A
 
 Click_MoveBackwards:
 	moveq	#$02,d0	;7002
-	bra.s	.MoveParty	;6006
+	bra.s	_MoveParty	;6006
 
 Click_MoveLeft:
 	moveq	#$03,d0	;7003
-	bra.s	.MoveParty	;6002
+	bra.s	_MoveParty	;6002
 
 Click_MoveRight:
 	moveq	#$01,d0	;7001
-.MoveParty:
+_MoveParty:
 	and.b	#$01,(a5)	;02150001
 	move.w	d0,-(sp)	;3F00
 	bsr.s	Draw_Arrow_Highlights	;619E
@@ -10255,17 +10255,17 @@ Click_MoveRight:
 	bsr	Compute_NewMapIndex_AI_TBC	;61000C30
 	bcc	Check_Collision_AI_TBC	;64000026
 	cmp.w	d0,d2	;B440
-	bne.s	.MoveFailed	;661E
+	bne.s	_MoveFailed	;661E
 	move.w	$00(a6,d0.w),d1	;32360000
 	and.w	#$0007,d1	;02410007
 	cmpi.w	#$0004,d1	;0C410004
-	bne.s	.MoveFailed	;6610
+	bne.s	_MoveFailed	;6610
 	move.b	$00(a6,d0.w),d1	;12360000
 	lsr.b	#$01,d1	;E209
 	eor.b	#$02,d1	;0A010002
 	cmp.b	d1,d6	;BC01
 	beq	Execute_StairTransition_AI_TBC	;67000096
-.MoveFailed:
+_MoveFailed:
 	rts	;4E75
 
 Check_Collision_AI_TBC:
@@ -10285,7 +10285,7 @@ Check_Collision_AI_TBC:
 	bsr	adrCd005500	;6100E69A
 	movem.w	(sp)+,d0/d1	;4C9F0003
 	tst.w	d3	;4A43
-	bpl.s	.MoveFailed	;6ACC
+	bpl.s	_MoveFailed	;6ACC
 	lsr.b	#$02,d1	;E409
 	move.w	d1,d7	;3E01
 	movem.l	d0/a6,-(sp)	;48E78002
