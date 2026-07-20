@@ -1,99 +1,72 @@
-#!/usr/bin/env python3
-import os
-import sys
-import argparse
-import pandas as pd
+"""Apply labels from segments.xlsx to a reverse-engineered 68k source file."""
+
+from __future__ import annotations
+
 import re
 import shutil
-from openpyxl import load_workbook
+from pathlib import Path
 
-from .tool_common import parse_int
+import pandas as pd
 
-# 4. Relabel segments in ASM source
-def relabel_segments(master, sheet):
-    df = pd.read_excel(sheet) if sheet.lower().endswith(('.xls', '.xlsx')) else pd.read_csv(sheet)
-    df.columns = [c.strip().lower() for c in df.columns]
-    for req in ('label', 'relabel'):
-        if req not in df.columns:
-            print(f"Error: '{req}' column required")
-            sys.exit(1)
+from .tool_common import ToolError, asm_path, load_segments, require_columns
 
-    asm_folder = 'asm'
-    orig_path = os.path.join(asm_folder, f"{master}.asm")
-    if not os.path.isfile(orig_path):
-        print(f"Error: ASM '{orig_path}' not found")
-        sys.exit(1)
-    base, ext = os.path.splitext(master)
-    new_path = os.path.join(asm_folder, f"{base}_relabel{ext}.asm")
-    shutil.copy2(orig_path, new_path)
-    print(f"Created relabel copy '{new_path}'")
 
-    lines = open(new_path, 'r', encoding='utf-8', errors='ignore').read().splitlines()
-    for _, row in df.iterrows():
-        label = str(row['label']).strip()
-        new_label = str(row['relabel']).strip()
-        if not label or label.lower() == 'nan':
+def relabel_segments(master: str, sheet: str | Path) -> Path:
+    frame = load_segments(sheet, master)
+    require_columns(frame, ("label", "relabel"))
+
+    original = asm_path(master, "source")
+    if not original.is_file():
+        raise ToolError(f"ASM source not found: {original}")
+    destination = asm_path(master, "relabel")
+    shutil.copy2(original, destination)
+    print(f"Created relabel copy '{destination}'")
+
+    lines = destination.read_text(encoding="utf-8", errors="ignore").splitlines()
+    for _, row in frame.iterrows():
+        if pd.isna(row["label"]) or pd.isna(row["relabel"]):
             continue
-        if not new_label or new_label.lower() == 'nan' or new_label == label:
+        label = str(row["label"]).strip()
+        new_label = str(row["relabel"]).strip()
+        if not label or label.casefold() == "nan":
+            continue
+        if not new_label or new_label.casefold() == "nan" or new_label == label:
             continue
 
-        # _delete
-        if new_label.lower().startswith('_delete'):
-            matches = [i for i, ln in enumerate(lines)
-                       if re.match(rf'^\s*{re.escape(label)}\s*:', ln)]
-            if len(matches) == 1:
-                idx = matches[0]
-                if ';' not in lines[idx]:
-                    print(f"Deleting '{label}' at line {idx+1}")
-                    lines.pop(idx)
-                else:
-                    print(f"Cannot delete '{label}': comment on line {idx+1}")
+        definition_pattern = rf"^\s*{re.escape(label)}\s*:"
+        if new_label.casefold().startswith("_delete"):
+            matches = [i for i, line in enumerate(lines) if re.match(definition_pattern, line)]
+            if len(matches) == 1 and ";" not in lines[matches[0]]:
+                print(f"Deleting '{label}' at line {matches[0] + 1}")
+                lines.pop(matches[0])
             else:
-                print(f"Cannot delete '{label}': {len(matches)} occurrences")
+                print(f"Cannot safely delete '{label}': {len(matches)} definition(s)")
             continue
 
-        # _offset
-        if new_label.lower().startswith('_offset_'):
-            parts = new_label.split('_')
-            if len(parts) < 4 or not parts[-1].lower().startswith('0x'):
+        if new_label.casefold().startswith("_offset_"):
+            parts = new_label.split("_")
+            if len(parts) < 4 or not parts[-1].casefold().startswith("0x"):
                 print(f"Invalid offset format '{new_label}', skipping")
                 continue
-            name_part = '_'.join(parts[2:-1]).rstrip('_')
-            hex_val   = parts[-1][2:]
-            offset_lbl= f"{name_part}+${hex_val}"
-
-            # delete definition
-            matches = [i for i, ln in enumerate(lines)
-                       if re.match(rf'^\s*{re.escape(label)}\s*:', ln)]
-            if len(matches) == 1:
-                idx = matches[0]
-                if ';' not in lines[idx]:
-                    print(f"Deleting '{label}' at line {idx+1}")
-                    lines.pop(idx)
-                else:
-                    print(f"Cannot delete '{label}': comment on line {idx+1}")
+            replacement = f"{'_'.join(parts[2:-1]).rstrip('_')}+${parts[-1][2:]}"
+            matches = [i for i, line in enumerate(lines) if re.match(definition_pattern, line)]
+            if len(matches) == 1 and ";" not in lines[matches[0]]:
+                lines.pop(matches[0])
             else:
-                print(f"Cannot delete '{label}': {len(matches)} occurrences")
-
-            # patch references
-            pattern = rf'\b{re.escape(label)}\b'
-            for i, ln in enumerate(lines):
-                if re.search(pattern, ln) and not ln.strip().startswith(label + ':'):
-                    new_ln = re.sub(pattern, offset_lbl, ln)
-                    lines[i] = new_ln
-                    print(f"Replaced '{label}' -> '{offset_lbl}' in line {i+1}")
+                print(f"Cannot safely delete definition '{label}'; skipping offset replacement")
+                continue
+            reference_pattern = rf"\b{re.escape(label)}\b"
+            lines = [re.sub(reference_pattern, replacement, line) for line in lines]
+            print(f"Replaced '{label}' references with '{replacement}'")
             continue
 
-        # general relabel
-        if not any(re.match(rf'^\s*{re.escape(label)}\s*:', ln) for ln in lines):
+        if not any(re.match(definition_pattern, line) for line in lines):
             print(f"Label '{label}' not found, skipping")
             continue
-        pattern = rf'\b{re.escape(label)}\b'
-        for i, ln in enumerate(lines):
-            if re.search(pattern, ln):
-                lines[i] = re.sub(pattern, new_label, ln)
+        reference_pattern = rf"\b{re.escape(label)}\b"
+        lines = [re.sub(reference_pattern, new_label, line) for line in lines]
         print(f"Relabeled '{label}' to '{new_label}'")
 
-    with open(new_path, 'w', encoding='utf-8', errors='ignore') as f:
-        f.write("\n".join(lines) + "\n")
-    print(f"Saved relabeled ASM to '{new_path}'")
+    destination.write_text("\n".join(lines) + "\n", encoding="utf-8")
+    print(f"Saved relabeled ASM to '{destination}'")
+    return destination

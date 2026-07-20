@@ -40,3 +40,54 @@ FS-UAE Amiga Emulator (Running the above and Testing)
 **Further Information**
 
 The Wiki section of this Project documents the findings of all investigations of the Bloodwych Data formats and when possibly refers back directly to the source code included.
+
+## SuperApp foundation
+
+The root `main.py` and reusable modules in `tools/` form the initial foundation
+for a unified extraction, editing, graphics, source, and build application.
+They use the repository itself as the project workspace:
+
+```text
+segments.xlsx                 binary regions and source labels
+asm/                          original, relabelled, and data-linked 68k source
+binaries/                     supported original executables and build outputs
+data/<binary>-clean/          extracted source data
+data/<binary>-modified/       edited fixed-size replacement blocks
+tools/                        reusable Python and graphics conversion code
+whdload/                      save data and WHDLoad support
+```
+
+The configured executable names currently present in the repository are:
+
+```text
+BLOODWYCH439
+BLOODWYCH102
+BLOODWYCH1927
+BEXT43
+AtariST_DEMO_CODE
+```
+
+Only `BLOODWYCH439` currently has a segment worksheet and complete Python
+extraction profile. The other executables are recognised explicitly so their
+profiles can be added without changing the directory contract.
+
+### Python commands
+
+```text
+python main.py
+python main.py profiles
+python main.py paths
+python main.py --master BLOODWYCH439 extract
+python main.py --master BLOODWYCH439 inspect
+python main.py --master BLOODWYCH439 relabel
+python main.py --master BLOODWYCH439 patch
+```
+
+A bare `python main.py` launch opens the Pygame command chooser. Supplying an
+explicit subcommand bypasses Pygame, which keeps the same core tools usable in
+terminals, tests, build workers, and the future web application.
+
+The graphics tools can losslessly convert the 128-glyph `GameFont` and Atari
+ST-style four-plane graphics with extracted `.offsets` and `.positions`
+metadata. See `docs/gamefont-and-st-graphics.md` for the currently understood
+formats and round-trip guarantees.

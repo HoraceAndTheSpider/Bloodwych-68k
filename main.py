@@ -1,119 +1,172 @@
 #!/usr/bin/env python3
-import os
-import sys
+"""Top-level command entry point for the Bloodwych ReSource SuperApp."""
+
+from __future__ import annotations
+
 import argparse
-import pandas as pd
-import re
-import shutil
-import pygame
-from pygame.locals import QUIT, MOUSEBUTTONDOWN
-from openpyxl import load_workbook
+from pathlib import Path
 
-import tools.tool_inspect
-
+from tools.tool_common import (
+    DEFAULT_SEGMENTS_FILE,
+    PROFILES,
+    PROJECT_ROOT,
+    WHDLOAD_DIR,
+    ToolError,
+)
 from tools.tool_extract import extract_segments
 from tools.tool_inspect import inspect_source
 from tools.tool_patch import patch_segments
 from tools.tool_relabel import relabel_segments
 
-# Initialize Pygame for command selection UI
-def init_gui():
+
+GUI_COMMANDS = ("extract", "patch", "inspect", "relabel")
+
+
+def launch_gui() -> str | None:
+    """Show the legacy Pygame command chooser for a bare ``main.py`` launch."""
+    try:
+        import pygame
+    except ImportError as error:
+        raise ToolError(
+            "Pygame is required for the graphical launcher. "
+            "Install requirements.txt or run an explicit CLI command."
+        ) from error
+
     pygame.init()
-    surf = pygame.display.set_mode((400, 300))
-    pygame.display.set_caption('Segment Tool Command')
-    font = pygame.font.SysFont(None, 24)
-    return surf, font
+    try:
+        surface = pygame.display.set_mode((400, 300))
+        pygame.display.set_caption("Bloodwych ReSource")
+        font = pygame.font.SysFont(None, 24)
+        button_width, button_height, spacing = 140, 40, 10
+        total_height = len(GUI_COMMANDS) * (button_height + spacing) - spacing
+        start_y = (300 - total_height) // 2
+        buttons = [
+            (
+                pygame.Rect(
+                    (400 - button_width) // 2,
+                    start_y + index * (button_height + spacing),
+                    button_width,
+                    button_height,
+                ),
+                command,
+            )
+            for index, command in enumerate(GUI_COMMANDS)
+        ]
+        clock = pygame.time.Clock()
 
-# Draw a button and handle hover
-def draw_button(surf, font, rect, text, mouse_pos):
-    color = (80,80,240) if rect.collidepoint(mouse_pos) else (50,50,200)
-    pygame.draw.rect(surf, color, rect)
-    txt = font.render(text, True, (255,255,255))
-    surf.blit(txt, txt.get_rect(center=rect.center))
+        while True:
+            mouse_position = pygame.mouse.get_pos()
+            surface.fill((30, 30, 30))
+            for rectangle, command in buttons:
+                colour = (80, 80, 240) if rectangle.collidepoint(mouse_position) else (50, 50, 200)
+                pygame.draw.rect(surface, colour, rectangle)
+                label = font.render(command.capitalize(), True, (255, 255, 255))
+                surface.blit(label, label.get_rect(center=rectangle.center))
+            pygame.display.flip()
 
-# Prompt user for command via clickable buttons
-def pygame_prompt(options):
-    surf, font = init_gui()
-    # layout buttons
-    w, h, sp = 120, 40, 10
-    total = len(options)*(h+sp)-sp
-    start_y = (300-total)//2
-    buttons = []
-    for i,opt in enumerate(options):
-        rect = pygame.Rect((400-w)//2, start_y+i*(h+sp), w, h)
-        buttons.append((rect,opt))
-    while True:
-        mouse = pygame.mouse.get_pos()
-        surf.fill((30,30,30))
-        for rect,opt in buttons:
-            draw_button(surf,font,rect,opt.capitalize(),mouse)
-        pygame.display.update()
-        for ev in pygame.event.get():
-            if ev.type==QUIT:
-                pygame.quit(); sys.exit()
-            if ev.type==MOUSEBUTTONDOWN and ev.button==1:
-                for rect,opt in buttons:
-                    if rect.collidepoint(ev.pos):
-                        return opt
+            for event in pygame.event.get():
+                if event.type == pygame.QUIT:
+                    return None
+                if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
+                    for rectangle, command in buttons:
+                        if rectangle.collidepoint(event.pos):
+                            return command
+            clock.tick(60)
+    finally:
+        pygame.quit()
 
-# Entry point
-def main():
+
+def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
-        description="Segment tool: extract, patch, inspect, relabel"
+        description="Bloodwych ReSource: extract, inspect, relabel, and rebuild game data"
     )
-    sub = parser.add_subparsers(dest='cmd')
+    parser.add_argument(
+        "-m",
+        "--master",
+        default="BLOODWYCH439",
+        help="Configured binary filename (default: BLOODWYCH439)",
+    )
+    parser.add_argument(
+        "-s",
+        "--sheet",
+        default=str(DEFAULT_SEGMENTS_FILE),
+        help="segments.xlsx or compatible CSV definition",
+    )
+    subparsers = parser.add_subparsers(dest="command")
 
-    extract_p = sub.add_parser('extract', help='Extract segments')
-    extract_p.add_argument('-n', '--name', help='Filter segment name')
-    extract_p.add_argument('--debug', action='store_true', help='Enable debug output')
+    extract = subparsers.add_parser("extract", help="Extract configured segments")
+    extract.add_argument("-n", "--name", help="Extract one exact segment name")
+    extract.add_argument("--debug", action="store_true")
 
-    patch_p = sub.add_parser('patch', help='Patch segments')
-    patch_p.add_argument('-n', '--name', help='Filter segment name')
-    patch_p.add_argument('--debug', action='store_true', help='Enable debug output')
+    patch = subparsers.add_parser("patch", help="Create a fixed-size patched binary")
+    patch.add_argument("-n", "--name", help="Patch one exact segment name")
+    patch.add_argument("--debug", action="store_true")
 
-    inspect_p = sub.add_parser('inspect', help='Inspect segments')
-    inspect_p.add_argument('-n', '--name', help='Filter segment name')
-    inspect_p.add_argument('label', nargs='?', help='Filter by ASM label (exact match)')
-    inspect_p.add_argument('--debug', action='store_true', help='Show head/tail bytes on failure')
+    inspect = subparsers.add_parser("inspect", help="Validate extracted data against ASM")
+    inspect.add_argument("-n", "--name", help="Inspect one exact segment name")
+    inspect.add_argument("label", nargs="?", help="Inspect one exact ASM label")
+    inspect.add_argument("--debug", action="store_true")
 
-    relabel_p = sub.add_parser('relabel', help='Relabel segments in ASM source')
+    subparsers.add_parser("relabel", help="Generate asm/<binary>_relabel.asm")
+    subparsers.add_parser("profiles", help="List configured game binaries")
+    subparsers.add_parser("paths", help="Show the canonical project paths")
+    return parser
 
-    parser.add_argument('-m', '--master', default='BLOODWYCH439',
-                        help='Master binary name (with extension)')
-    parser.add_argument('-s', '--sheet', default='segments.xlsx',
-                        help='Spreadsheet file (.xls, .xlsx or .csv)')
 
-    args = parser.parse_args()
-
-    cmd = args.cmd or pygame_prompt(['extract', 'patch', 'inspect', 'relabel'])
-    pygame.quit()
-
-    if cmd == 'extract':
+def run(args: argparse.Namespace, parser: argparse.ArgumentParser) -> int:
+    if args.command == "extract":
         extract_segments(
             args.master,
             args.sheet,
-            name_filter=getattr(args, 'name', None),
-            debug=getattr(args, 'debug', False)
+            getattr(args, "name", None),
+            getattr(args, "debug", False),
         )
-    elif cmd == 'patch':
+    elif args.command == "patch":
         patch_segments(
             args.master,
             args.sheet,
-            name_filter=getattr(args, 'name', None),
-            debug=getattr(args, 'debug', False)
+            getattr(args, "name", None),
+            getattr(args, "debug", False),
         )
-    elif cmd == 'inspect':
+    elif args.command == "inspect":
         inspect_source(
             args.master,
             args.sheet,
-            name_filter=getattr(args, 'name', None),
-            label_filter=getattr(args, 'label', None),
-            debug=getattr(args, 'debug', False)
+            getattr(args, "name", None),
+            getattr(args, "label", None),
+            getattr(args, "debug", False),
         )
-    elif cmd == 'relabel':
+    elif args.command == "relabel":
         relabel_segments(args.master, args.sheet)
+    elif args.command == "profiles":
+        for profile in PROFILES:
+            sheet = profile.segment_sheet or "not yet mapped"
+            print(
+                f"{profile.filename:18} {profile.platform:8} "
+                f"{profile.product:15} segments={sheet}"
+            )
+    elif args.command == "paths":
+        for name in ("asm", "binaries", "data", "tools"):
+            print(f"{name:10} {PROJECT_ROOT / name}")
+        print(f"{'whdload':10} {WHDLOAD_DIR}")
+        print(f"segments   {Path(args.sheet)}")
     else:
         parser.print_help()
+    return 0
 
-if __name__ == '__main__':
-    main()
+
+def main() -> int:
+    parser = build_parser()
+    args = parser.parse_args()
+    try:
+        if args.command is None:
+            args.command = launch_gui()
+            if args.command is None:
+                return 0
+        return run(args, parser)
+    except ToolError as error:
+        parser.exit(2, f"Error: {error}\n")
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())
