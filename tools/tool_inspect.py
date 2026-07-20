@@ -1,15 +1,19 @@
 #!/usr/bin/env python3
-import os
-import sys
-import pandas as pd
 import re
-import shutil
-from openpyxl import load_workbook
+from pathlib import Path
 
-from .tool_common import parse_int
+from .tool_common import (
+    ToolError,
+    asm_path as project_asm_path,
+    get_profile,
+    load_segments,
+    parse_int,
+    relative_to_root,
+    require_columns,
+)
 
 # 3. Inspect segments (read-only)
-def inspect_source(master, sheet, name_filter=None, label_filter=None, debug=False):
+def inspect_source(master, sheet, name_filter=None, label_filter=None, debug=False) -> Path:
     """
     Scan each segment from the spreadsheet, verify that its
     dc.* block in ASM matches the extracted .bin file head/tail bytes,
@@ -22,39 +26,26 @@ def inspect_source(master, sheet, name_filter=None, label_filter=None, debug=Fal
       label_filter  – if provided, only segments whose ASM label (or fallback original label) exactly matches (case-insensitive) are checked
       debug         – if True, print head/tail differences on failure
     """
-    base = os.path.splitext(master)[0]
-    clean_dir = os.path.join('data', f"{base}-clean")
-
-    # Load the workbook and pick the correct sheet
-    wb = load_workbook(sheet, data_only=True)
-    sheet_name = next((s for s in wb.sheetnames if s.lower() == master.lower()), None)
-    if not sheet_name:
-        print(f"No sheet {master}")
-        sys.exit(1)
+    profile = get_profile(master)
+    clean_dir = profile.clean_dir
 
     # Decide whether we're using <master>_relabel.asm or <master>.asm
-    asm_folder = 'asm'
-    relabel_f = os.path.join(asm_folder, f"{master}_relabel.asm")
-    if os.path.isfile(relabel_f):
+    relabel_f = project_asm_path(master, "relabel")
+    if relabel_f.is_file():
         asm_path, label_col = relabel_f, 'relabel'
         print(f"Using relabel ASM {asm_path}")
     else:
-        asm_path, label_col = os.path.join(asm_folder, f"{master}.asm"), 'label'
-    if not os.path.isfile(asm_path):
-        print(f"No ASM {asm_path}")
-        sys.exit(1)
+        asm_path, label_col = project_asm_path(master, "source"), 'label'
+    if not asm_path.is_file():
+        raise ToolError(f"ASM source not found: {asm_path}")
 
     # Read the original ASM lines into memory, and make a working copy
-    lines = open(asm_path, 'r', errors='ignore').read().splitlines()
+    lines = asm_path.read_text(errors='ignore').splitlines()
     working_lines = list(lines)
 
     # Load the spreadsheet data into a DataFrame
-    df = pd.read_excel(sheet, sheet_name=sheet_name)
-    df.columns = [c.strip().lower() for c in df.columns]
-    for req in ('name', 'size', label_col):
-        if req not in df.columns:
-            print(f"Missing {req}")
-            sys.exit(1)
+    df = load_segments(sheet, master)
+    require_columns(df, ('name', 'size', label_col))
 
     # We'll collect all (start, end, seg_path) tuples for later replacement
     mods = []
@@ -85,8 +76,8 @@ def inspect_source(master, sheet, name_filter=None, label_filter=None, debug=Fal
 
         sz = parse_int(r['size'])
         print(f"Check {nm}@{lb} row{row}")
-        seg_path = os.path.join(clean_dir, nm)
-        if sz is None or not os.path.isfile(seg_path) or os.path.getsize(seg_path) != sz:
+        seg_path = clean_dir / Path(nm)
+        if sz is None or not seg_path.is_file() or seg_path.stat().st_size != sz:
             print("  missing or size mismatch")
             continue
 
@@ -118,7 +109,7 @@ def inspect_source(master, sheet, name_filter=None, label_filter=None, debug=Fal
                     if lines[i].strip().endswith(':')), len(lines))
 
         # 5) Read the extracted binary and compare head/tail against in-source dc.* directives
-        data = open(seg_path, 'rb').read()
+        data = seg_path.read_bytes()
         chk = min(16, sz)
         head = data[:chk]
         tail = data[-chk:]
@@ -224,19 +215,18 @@ def inspect_source(master, sheet, name_filter=None, label_filter=None, debug=Fal
                 print(f"    found    tail: {bytes(dt[-chk:]).hex()}")
 
         # Schedule this block for replacement with INCBIN later
-        mods.append((start, end, os.path.join(clean_dir, nm)))
+        mods.append((start, end, seg_path))
 
     # Apply all replacements in _reverse_ order so earlier edits don't shift later indices
     for start, end, seg_path in sorted(mods, key=lambda x: x[0], reverse=True):
         # Delete the old dc.* lines
         del working_lines[start + 1 : end]
         # Insert the new INCBIN directive (with a leading forward slash)
-        working_lines.insert(start + 1, f'\tINCBIN "/{seg_path}"\n')
+        working_lines.insert(start + 1, f'\tINCBIN "{relative_to_root(seg_path)}"')
 
     # Write out the modified ASM file under *_data.asm
-    base_name, ext = os.path.splitext(os.path.basename(asm_path))
-    new_name = os.path.join(os.path.dirname(asm_path), f"{base_name}_data{ext}")
-    with open(new_name, 'w') as fout:
-        fout.write("\n".join(working_lines))
+    new_name = asm_path.with_name(f"{asm_path.stem}_data{asm_path.suffix}")
+    new_name.write_text("\n".join(working_lines) + "\n")
 
     print(f"Modified ASM written to {new_name}")
+    return new_name

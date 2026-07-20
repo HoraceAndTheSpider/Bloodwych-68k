@@ -52,3 +52,9 @@ coverage.xml
 
 # Sphinx documentation
 docs/_build/
+
+# Local editor, operating-system, and generated verification files
+.DS_Store
+*.swp
+node_modules/
+outputs/
