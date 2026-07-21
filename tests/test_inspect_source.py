@@ -80,7 +80,7 @@ class InspectSourceTests(unittest.TestCase):
                 output_path = inspect_source("GAME", root / "segments.xlsx")
 
             generated = output_path.read_text(encoding="utf-8")
-            self.assertIn('GoodBlock:\n\tINCBIN "good.bin"', generated)
+            self.assertIn('GoodBlock:\n\tINCBIN "/good.bin"', generated)
             self.assertIn("BadBlock:\n\tdc.b\t$05,$06,$07,$08", generated)
             self.assertNotIn('INCBIN "bad.bin"', generated)
             self.assertIn("FAIL - source block retained", output_log.getvalue())
@@ -175,13 +175,13 @@ class InspectSourceTests(unittest.TestCase):
             generated = output_path.read_text(encoding="utf-8")
             self.assertIn(
                 "Beholder_Body:\n"
-                '\tINCBIN "body.gfx"\n'
+                '\tINCBIN "/body.gfx"\n'
                 "Beholder_UpperEyes:\n"
-                '\tINCBIN "upper.gfx"\n'
+                '\tINCBIN "/upper.gfx"\n'
                 "Beholder_CentralEye_Near:\n"
-                '\tINCBIN "near.gfx"\n'
+                "\tdc.b\t$05\n"
                 "Beholder_CentralEye_Far:\n"
-                '\tINCBIN "far.gfx"',
+                '\tINCBIN "/far.gfx"',
                 generated,
             )
             self.assertNotIn("Old_Internal_1:", generated)
@@ -233,7 +233,7 @@ class InspectSourceTests(unittest.TestCase):
                 output_path = inspect_source("GAME", root / "segments.xlsx")
 
             self.assertIn(
-                'Lookup:\n\tINCBIN "lookup.offsets"',
+                'Lookup:\n\tINCBIN "/lookup.offsets"',
                 output_path.read_text(encoding="utf-8"),
             )
 

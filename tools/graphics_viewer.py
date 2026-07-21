@@ -1,10 +1,5 @@
 #!/usr/bin/env python3
-"""Pygame preview UI for extracted Bloodwych graphics.
-
-The first slice supports the Bloodwych SPS 439 monster range ($64 upwards) and
-reproduces each monster from its extracted planar graphics, component layout,
-position, animation, facing, and grade metadata.
-"""
+"""Pygame data viewer for extracted Bloodwych graphics."""
 
 from __future__ import annotations
 
@@ -13,7 +8,13 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Sequence
 
+from tools.data_overlay import (
+    DataOverlayPath,
+    data_overlay_root,
+    related_data_roots,
+)
 from tools.graphics_preview import (
+    AirbourneSpellAssets,
     BeholderAssets,
     CharacterAssets,
     CrabAssets,
@@ -23,6 +24,7 @@ from tools.graphics_preview import (
     VIEW_HEIGHT,
     VIEW_WIDTH,
     load_floor_ceiling_background,
+    render_airbourne_spell,
     render_beholder,
     render_character_preview,
     render_monster_operations,
@@ -47,7 +49,7 @@ class GraphicsViewerError(RuntimeError):
 WINDOW_SIZE = (1220, 760)
 PREVIEW_SCALE = 5
 FACING_NAMES = ("Front", "Side", "Back", "Mirrored side")
-CATEGORY_NAMES = ("Characters", "Monsters", "Avatars", "Icons")
+CATEGORY_NAMES = ("Character/Monster Graphics", "Avatars", "Icons")
 # The unmirrored Beholder side eye points screen-left; facing 3 mirrors it.
 FACING_ARROW_DIRECTIONS = ((0, 1), (-1, 0), (0, -1), (1, 0))
 
@@ -67,6 +69,11 @@ CHARACTER_FILES = (
     "data/characters-alternate-render.layout",
     "data/characters-alternate-distant-4.positions",
     "data/characters-alternate-distant-5.positions",
+)
+
+AIRBOURNE_SPELL_FILES = (
+    "gfx/AirbourneFireball.gfx",
+    "gfx/AirbourneSpells.gfx",
 )
 
 
@@ -101,6 +108,15 @@ class MonsterFileStatus:
     @property
     def ready(self) -> bool:
         return not self.missing_gfx and not self.missing_companions
+
+
+@dataclass(frozen=True)
+class AirbourneSpellDefinition:
+    code: int
+    name: str
+    note: str = ""
+    version: str = "BLOODWYCH439"
+    false_data: bool = False
 
 
 BEHOLDER_COMPANIONS = (
@@ -256,6 +272,77 @@ MONSTERS = (
 )
 
 
+AIRBOURNE_SPELLS = (
+    AirbourneSpellDefinition(0x80, "Fireball"),
+    AirbourneSpellDefinition(0x81, "Wychwind"),
+    AirbourneSpellDefinition(0x82, "Arc Bolt"),
+    AirbourneSpellDefinition(0x83, "Disrupt"),
+    AirbourneSpellDefinition(0x84, "Blaze"),
+    AirbourneSpellDefinition(0x85, "Fireball"),
+    AirbourneSpellDefinition(0x86, "Flying Vivify"),
+    AirbourneSpellDefinition(0x87, "Firepath"),
+    AirbourneSpellDefinition(0x88, "Arrow"),
+    AirbourneSpellDefinition(0x89, "Elf Arrow"),
+    AirbourneSpellDefinition(0x8A, "Missile"),
+    AirbourneSpellDefinition(0x8B, "Confuse"),
+    AirbourneSpellDefinition(0x8C, "Paralyze"),
+    AirbourneSpellDefinition(0x8D, "Bigile"),
+    AirbourneSpellDefinition(0x8E, "Full Spelltap"),
+    AirbourneSpellDefinition(0x8F, "Terror"),
+    AirbourneSpellDefinition(
+        0x90,
+        "Unknown black/white spell",
+        note="No known gameplay effect; beyond the logical SPS 439 spell range.",
+        false_data=True,
+    ),
+    AirbourneSpellDefinition(
+        0x91,
+        "Unknown red/yellow spell",
+        note="No known gameplay effect; beyond the logical SPS 439 spell range.",
+        false_data=True,
+    ),
+    AirbourneSpellDefinition(
+        0x92,
+        "Unknown green/yellow spell",
+        note="No known gameplay effect; beyond the logical SPS 439 spell range.",
+        false_data=True,
+    ),
+    AirbourneSpellDefinition(
+        0x93,
+        "Unknown blue/yellow spell",
+        note="No known gameplay effect; beyond the logical SPS 439 spell range.",
+        false_data=True,
+    ),
+    AirbourneSpellDefinition(0x94, "Vortex", version="BEXT43"),
+    AirbourneSpellDefinition(0x95, "Spray", version="BEXT43"),
+    AirbourneSpellDefinition(0x96, "Nullify", version="BEXT43"),
+    AirbourneSpellDefinition(
+        0x97,
+        "Unknown BEXT spell",
+        note="No confirmed gameplay effect.",
+        version="BEXT43",
+    ),
+    AirbourneSpellDefinition(0x98, "Inferno", version="BEXT43"),
+)
+
+
+def is_bext_data_set(data_root: Path) -> bool:
+    """Return whether the selected extracted data belongs to Extended Levels."""
+    return data_root.name.upper().startswith("BEXT")
+
+
+def monster_is_selectable(definition: MonsterDefinition, *, bext_loaded: bool) -> bool:
+    return definition.version != "BEXT43" or bext_loaded
+
+
+def spell_is_selectable(
+    definition: AirbourneSpellDefinition, *, bext_loaded: bool
+) -> bool:
+    if definition.false_data:
+        return False
+    return definition.version != "BEXT43" or bext_loaded
+
+
 def inspect_monster_files(definition: MonsterDefinition, monsters_dir: Path) -> MonsterFileStatus:
     def split(files: Sequence[str]) -> tuple[tuple[str, ...], tuple[str, ...]]:
         existing = tuple(name for name in files if (monsters_dir / name).is_file())
@@ -270,6 +357,41 @@ def inspect_monster_files(definition: MonsterDefinition, monsters_dir: Path) -> 
         existing_companions,
         missing_companions,
     )
+
+
+def modified_overrides(
+    data_root: Path | DataOverlayPath, relative_files: Sequence[str]
+) -> tuple[str, ...]:
+    """Return the requested files currently supplied by the modified overlay."""
+    overrides = []
+    for name in relative_files:
+        path = data_root / name
+        if isinstance(path, DataOverlayPath) and path.uses_modified:
+            overrides.append(name)
+    return tuple(overrides)
+
+
+def monster_grade_count(
+    definition: MonsterDefinition, monsters_dir: Path | DataOverlayPath
+) -> int:
+    """Return the number of colour-grade steps available to one renderer."""
+    if definition.code == 0x65 or definition.renderer == "entropy":
+        return 1
+    lookup_files = {
+        "summon": "summon.colours",
+        "beholder": "beholder.colours",
+        "behemoth": "behemoth.colours",
+        "crab": "crab.colours",
+        "dragon_large": "dragon.colours",
+        "dragon_small": "dragon.colours",
+    }
+    filename = lookup_files.get(definition.renderer)
+    if filename is None:
+        return 1
+    try:
+        return max(1, len((monsters_dir / filename).read_bytes()))
+    except OSError:
+        return 1
 
 
 def indexed_to_surface(pygame: object, pixels: Sequence[Sequence[int]]) -> object:
@@ -323,6 +445,15 @@ def load_renderer_assets(monsters_dir: Path) -> tuple[dict[str, object], dict[st
 def load_character_assets(data_root: Path) -> tuple[CharacterAssets | None, str | None]:
     try:
         return CharacterAssets(data_root / "data", data_root / "gfx"), None
+    except (OSError, ValueError, RuntimeError) as error:
+        return None, str(error)
+
+
+def load_airbourne_spell_assets(
+    gfx_dir: Path | DataOverlayPath,
+) -> tuple[AirbourneSpellAssets | None, str | None]:
+    try:
+        return AirbourneSpellAssets(gfx_dir), None
     except (OSError, ValueError, RuntimeError) as error:
         return None, str(error)
 
@@ -393,7 +524,10 @@ def render_monster_preview(
 
 
 def launch_graphics_viewer(
-    data_root: Path | None = None, *, screenshot_path: Path | None = None
+    data_root: Path | None = None,
+    *,
+    screenshot_path: Path | None = None,
+    prefer_modified: bool = False,
 ) -> None:
     """Open the first SuperApp graphics viewer and return when it closes."""
     try:
@@ -403,21 +537,68 @@ def launch_graphics_viewer(
             "Pygame is required for the graphics viewer. Install requirements.txt."
         ) from error
 
-    data_root = data_root or DATA_DIR / "BLOODWYCH439-clean"
-    gfx_dir = data_root / "gfx"
-    monsters_dir = data_root / "monsters"
-    if not gfx_dir.is_dir() or not monsters_dir.is_dir():
-        raise GraphicsViewerError(f"Graphics viewer data is missing below {data_root}")
+    requested_root = data_root or DATA_DIR / "BLOODWYCH439-clean"
+    clean_root, modified_root, supplied_modified = related_data_roots(requested_root)
+    if not (clean_root / "gfx").is_dir() or not (clean_root / "monsters").is_dir():
+        raise GraphicsViewerError(f"Clean graphics viewer data is missing below {clean_root}")
+    modified_available = modified_root.is_dir()
+    use_modified = modified_available and (prefer_modified or supplied_modified)
+    bext_loaded = is_bext_data_set(clean_root)
 
-    background = load_floor_ceiling_background(gfx_dir)
-    renderer_assets, renderer_errors = load_renderer_assets(monsters_dir)
-    character_assets, character_error = load_character_assets(data_root)
+    def load_dataset(enabled: bool) -> tuple[
+        DataOverlayPath,
+        DataOverlayPath,
+        DataOverlayPath,
+        list[list[int]],
+        dict[str, object],
+        dict[str, str],
+        CharacterAssets | None,
+        str | None,
+        AirbourneSpellAssets | None,
+        str | None,
+    ]:
+        root = data_overlay_root(clean_root, modified_root, enabled=enabled)
+        current_gfx_dir = root / "gfx"
+        current_monsters_dir = root / "monsters"
+        current_background = load_floor_ceiling_background(current_gfx_dir)
+        current_renderers, current_renderer_errors = load_renderer_assets(
+            current_monsters_dir
+        )
+        current_characters, current_character_error = load_character_assets(root)
+        current_spells, current_spell_error = load_airbourne_spell_assets(
+            current_gfx_dir
+        )
+        return (
+            root,
+            current_gfx_dir,
+            current_monsters_dir,
+            current_background,
+            current_renderers,
+            current_renderer_errors,
+            current_characters,
+            current_character_error,
+            current_spells,
+            current_spell_error,
+        )
+
+    (
+        dataset_root,
+        gfx_dir,
+        monsters_dir,
+        background,
+        renderer_assets,
+        renderer_errors,
+        character_assets,
+        character_error,
+        spell_assets,
+        spell_error,
+    ) = load_dataset(use_modified)
 
     pygame.init()
     pygame.key.set_repeat(250, 45)
     try:
         screen = pygame.display.set_mode(WINDOW_SIZE)
-        pygame.display.set_caption("Bloodwych ReSource - Graphics Viewer")
+        pygame.display.set_caption("Bloodwych ReSource - Data Viewer")
         title_font = pygame.font.SysFont(None, 30)
         font = pygame.font.SysFont(None, 22)
         small_font = pygame.font.SysFont(None, 18)
@@ -426,6 +607,8 @@ def launch_graphics_viewer(
         selected_category = 0
         selected_index = 2
         selected_character = 0
+        selected_spell_index = 0
+        selected_graphic_type = "character"
         selected_view_cell = 17
         selected_subposition = 0
         facing = 0
@@ -433,18 +616,47 @@ def launch_graphics_viewer(
         animation_frame = 0
         nudge_x = 0
         nudge_y = 0
+        overlay_error: str | None = None
 
-        category_rects = [
-            pygame.Rect(20 + index * 152, 52, 142, 34)
-            for index in range(len(CATEGORY_NAMES))
-        ]
-        monster_rects = [
-            pygame.Rect(20, 112 + index * 49, 220, 40)
-            for index in range(len(MONSTERS))
-        ]
+        category_rects = (
+            pygame.Rect(20, 52, 250, 34),
+            pygame.Rect(280, 52, 142, 34),
+            pygame.Rect(432, 52, 142, 34),
+        )
+        overlay_rect = pygame.Rect(935, 52, 255, 34)
         character_rects = [
             pygame.Rect(20 + (index % 8) * 27, 112 + (index // 8) * 32, 25, 28)
             for index in range(0x56)
+        ]
+        reserved_character_rects = [
+            (
+                code,
+                pygame.Rect(
+                    20 + (code % 8) * 27,
+                    112 + (code // 8) * 32,
+                    25,
+                    28,
+                ),
+            )
+            for code in range(0x56, 0x64)
+        ]
+        monster_rects = [
+            pygame.Rect(
+                20 + (index % 8) * 27,
+                112 + (13 + index // 8) * 32,
+                25,
+                28,
+            )
+            for index in range(len(MONSTERS))
+        ]
+        spell_rects = [
+            pygame.Rect(
+                20 + (index % 8) * 27,
+                112 + (15 + index // 8) * 32,
+                25,
+                28,
+            )
+            for index in range(len(AIRBOURNE_SPELLS))
         ]
         control_specs = (
             ("facing_down", "Facing -", (270, 540, 108, 34)),
@@ -457,7 +669,7 @@ def launch_graphics_viewer(
             ("up", "Y -", (422, 628, 70, 34)),
             ("down", "Y +", (498, 628, 70, 34)),
             ("reset", "Reset offset", (574, 628, 112, 34)),
-            ("back", "Back", (20, 700, 100, 36)),
+            ("back", "Back", (20, 724, 100, 30)),
         )
         controls = {
             name: (pygame.Rect(rectangle), label)
@@ -466,9 +678,15 @@ def launch_graphics_viewer(
 
         def adjust(action: str) -> bool:
             nonlocal facing, grade_step, animation_frame, nudge_x, nudge_y
-            if selected_category == 0:
+            if selected_graphic_type != "monster":
                 if action in {"grade_down", "grade_up"}:
                     return True
+            if selected_graphic_type == "spell" and action in {
+                "facing_down",
+                "facing_up",
+                "frame",
+            }:
+                return True
             if action == "facing_down":
                 facing = (facing - 1) % 4
             elif action == "facing_up":
@@ -476,7 +694,10 @@ def launch_graphics_viewer(
             elif action == "grade_down":
                 grade_step = max(0, grade_step - 1)
             elif action == "grade_up":
-                grade_step = min(7, grade_step + 1)
+                grade_step = min(
+                    monster_grade_count(MONSTERS[selected_index], monsters_dir) - 1,
+                    grade_step + 1,
+                )
             elif action == "left":
                 nudge_x -= 1
             elif action == "right":
@@ -493,10 +714,36 @@ def launch_graphics_viewer(
                 return False
             return True
 
+        def reload_dataset(enabled: bool) -> None:
+            nonlocal dataset_root, gfx_dir, monsters_dir, background
+            nonlocal renderer_assets, renderer_errors
+            nonlocal character_assets, character_error
+            nonlocal spell_assets, spell_error
+            nonlocal use_modified, grade_step, nudge_x, nudge_y, overlay_error
+            (
+                dataset_root,
+                gfx_dir,
+                monsters_dir,
+                background,
+                renderer_assets,
+                renderer_errors,
+                character_assets,
+                character_error,
+                spell_assets,
+                spell_error,
+            ) = load_dataset(enabled)
+            use_modified = enabled
+            grade_step = min(
+                grade_step,
+                monster_grade_count(MONSTERS[selected_index], monsters_dir) - 1,
+            )
+            nudge_x = nudge_y = 0
+            overlay_error = None
+
         def choose_valid_subposition(subpositions: tuple[int, ...]) -> None:
             nonlocal selected_view_cell, selected_subposition, nudge_x, nudge_y
             available = visible_subpositions(selected_view_cell, subpositions)
-            if selected_category == 0:
+            if selected_graphic_type == "character":
                 available = tuple(
                     subposition
                     for subposition in available
@@ -512,7 +759,7 @@ def launch_graphics_viewer(
             preferred_cells = (16, 17, 15, 14) + tuple(range(18))
             for cell in preferred_cells:
                 available = visible_subpositions(cell, subpositions)
-                if selected_category == 0:
+                if selected_graphic_type == "character":
                     available = tuple(
                         subposition
                         for subposition in available
@@ -527,11 +774,22 @@ def launch_graphics_viewer(
 
         running = True
         while running:
-            characters_active = selected_category == 0
+            characters_active = selected_graphic_type == "character"
+            monsters_active = selected_graphic_type == "monster"
+            spells_active = selected_graphic_type == "spell"
             definition = MONSTERS[selected_index]
-            subpositions = (
-                FORMATION_SUBPOSITIONS if characters_active else definition.subpositions
-            )
+            spell_definition = AIRBOURNE_SPELLS[selected_spell_index]
+            if monsters_active:
+                grade_step = min(
+                    grade_step,
+                    monster_grade_count(definition, monsters_dir) - 1,
+                )
+            if characters_active:
+                subpositions = FORMATION_SUBPOSITIONS
+            elif monsters_active:
+                subpositions = definition.subpositions
+            else:
+                subpositions = CENTRED_SUBPOSITIONS
             choose_valid_subposition(subpositions)
             screen_position = resolve_monster_screen_position(
                 selected_view_cell, selected_subposition
@@ -559,7 +817,7 @@ def launch_graphics_viewer(
                     preview_error = str(error)
             elif characters_active:
                 preview_error = character_error
-            else:
+            elif monsters_active:
                 renderer_key = (
                     "dragon"
                     if definition.renderer in {"dragon_large", "dragon_small"}
@@ -582,11 +840,30 @@ def launch_graphics_viewer(
                         preview_error = str(error)
                 elif renderer_key in renderer_errors:
                     preview_error = renderer_errors[renderer_key]
+            elif spell_definition.code <= 0x8F and spell_assets is not None:
+                try:
+                    preview_pixels, preview_metadata = render_airbourne_spell(
+                        background,
+                        spell_assets,
+                        spell_definition.code,
+                        distance=screen_position.gfx_slot,
+                        anchor_x=screen_position.screen_x + nudge_x,
+                        anchor_y=screen_position.screen_y + nudge_y,
+                    )
+                except (OSError, ValueError, RuntimeError, IndexError) as error:
+                    preview_error = str(error)
+            elif spell_definition.code <= 0x8F:
+                preview_error = spell_error
+            else:
+                preview_error = (
+                    "BEXT flying-spell rendering requires the matching extracted "
+                    "Extended Levels graphics data."
+                )
 
             mouse = pygame.mouse.get_pos()
             screen.fill((24, 26, 31))
             screen.blit(
-                title_font.render("Bloodwych Graphics Viewer", True, (240, 240, 245)),
+                title_font.render("Bloodwych Data Viewer", True, (240, 240, 245)),
                 (20, 16),
             )
 
@@ -594,39 +871,115 @@ def launch_graphics_viewer(
                 active = index == selected_category
                 colour = (54, 105, 170) if active else (52, 55, 63)
                 pygame.draw.rect(screen, colour, rectangle, border_radius=4)
-                suffix = " (planned)" if index >= 2 else ""
+                suffix = " (planned)" if index >= 1 else ""
                 text_colour = (245, 245, 245) if active else (150, 150, 155)
                 label = small_font.render(name + suffix, True, text_colour)
                 screen.blit(label, label.get_rect(center=rectangle.center))
 
-            if characters_active:
-                for character, rectangle in enumerate(character_rects):
-                    selected = character == selected_character
-                    hovered = rectangle.collidepoint(mouse)
-                    colour = (
-                        (61, 110, 174)
-                        if selected
-                        else ((58, 61, 70) if hovered else (43, 46, 54))
-                    )
-                    pygame.draw.rect(screen, colour, rectangle, border_radius=3)
-                    label = small_font.render(f"{character:02X}", True, (244, 244, 248))
-                    screen.blit(label, label.get_rect(center=rectangle.center))
+            overlay_hovered = overlay_rect.collidepoint(mouse)
+            if not modified_available:
+                overlay_colour = (45, 47, 54)
+                overlay_text = "Modified overlay unavailable"
+                overlay_text_colour = (128, 130, 137)
             else:
-                for index, (definition_item, rectangle) in enumerate(
-                    zip(MONSTERS, monster_rects)
-                ):
-                    selected = index == selected_index
-                    hovered = rectangle.collidepoint(mouse)
-                    colour = (
-                        (61, 110, 174)
-                        if selected
-                        else ((58, 61, 70) if hovered else (43, 46, 54))
+                overlay_colour = (
+                    (52, 126, 83)
+                    if use_modified
+                    else ((69, 112, 169) if overlay_hovered else (52, 76, 108))
+                )
+                overlay_text = (
+                    "Modified overlay: ON" if use_modified else "Modified overlay: OFF"
+                )
+                overlay_text_colour = (250, 250, 250)
+            pygame.draw.rect(screen, overlay_colour, overlay_rect, border_radius=4)
+            overlay_label = small_font.render(
+                overlay_text, True, overlay_text_colour
+            )
+            screen.blit(overlay_label, overlay_label.get_rect(center=overlay_rect.center))
+
+            if use_modified:
+                overlay_notice = (
+                    "Sparse modified preview: missing files use clean data; patching still "
+                    "requires a matching layout."
+                )
+                screen.blit(
+                    small_font.render(overlay_notice, True, (230, 184, 105)),
+                    (270, 91),
+                )
+            elif overlay_error:
+                screen.blit(
+                    small_font.render(
+                        f"Could not load modified overlay: {overlay_error}",
+                        True,
+                        (244, 148, 135),
+                    ),
+                    (270, 91),
+                )
+
+            for character, rectangle in enumerate(character_rects):
+                selected = characters_active and character == selected_character
+                hovered = rectangle.collidepoint(mouse)
+                colour = (
+                    (61, 110, 174)
+                    if selected
+                    else ((58, 61, 70) if hovered else (43, 46, 54))
+                )
+                pygame.draw.rect(screen, colour, rectangle, border_radius=3)
+                label = small_font.render(f"{character:02X}", True, (244, 244, 248))
+                screen.blit(label, label.get_rect(center=rectangle.center))
+
+            for code, rectangle in reserved_character_rects:
+                pygame.draw.rect(screen, (35, 37, 43), rectangle, border_radius=3)
+                label = small_font.render(f"{code:02X}", True, (91, 94, 102))
+                screen.blit(label, label.get_rect(center=rectangle.center))
+
+            for index, (definition_item, rectangle) in enumerate(
+                zip(MONSTERS, monster_rects)
+            ):
+                enabled = monster_is_selectable(
+                    definition_item, bext_loaded=bext_loaded
+                )
+                selected = monsters_active and index == selected_index
+                hovered = rectangle.collidepoint(mouse)
+                colour = (
+                    (61, 110, 174)
+                    if selected
+                    else (
+                        ((58, 61, 70) if hovered else (43, 46, 54))
+                        if enabled
+                        else (35, 37, 43)
                     )
-                    pygame.draw.rect(screen, colour, rectangle, border_radius=4)
-                    label = font.render(
-                        definition_item.display_name, True, (244, 244, 248)
+                )
+                pygame.draw.rect(screen, colour, rectangle, border_radius=3)
+                label = small_font.render(
+                    f"{definition_item.code:02X}",
+                    True,
+                    (244, 244, 248) if enabled else (91, 94, 102),
+                )
+                screen.blit(label, label.get_rect(center=rectangle.center))
+
+            for index, (spell_item, rectangle) in enumerate(
+                zip(AIRBOURNE_SPELLS, spell_rects)
+            ):
+                enabled = spell_is_selectable(spell_item, bext_loaded=bext_loaded)
+                selected = spells_active and index == selected_spell_index
+                hovered = rectangle.collidepoint(mouse)
+                colour = (
+                    (61, 110, 174)
+                    if selected
+                    else (
+                        ((58, 61, 70) if hovered else (43, 46, 54))
+                        if enabled
+                        else (35, 37, 43)
                     )
-                    screen.blit(label, (rectangle.x + 10, rectangle.y + 10))
+                )
+                pygame.draw.rect(screen, colour, rectangle, border_radius=3)
+                label = small_font.render(
+                    f"{spell_item.code:02X}",
+                    True,
+                    (244, 244, 248) if enabled else (91, 94, 102),
+                )
+                screen.blit(label, label.get_rect(center=rectangle.center))
 
             preview_rect = pygame.Rect(
                 270,
@@ -668,6 +1021,14 @@ def launch_graphics_viewer(
                     f"anchor ({screen_position.screen_x + nudge_x}, "
                     f"{screen_position.screen_y + nudge_y})"
                 )
+            elif spells_active:
+                status_text = (
+                    f"${spell_definition.code:02X} {spell_definition.name}  |  "
+                    f"{screen_position.forward_distance} ahead, {lane_name}  |  "
+                    f"image {screen_position.gfx_slot}  |  "
+                    f"anchor ({screen_position.screen_x + nudge_x}, "
+                    f"{screen_position.screen_y + nudge_y})"
+                )
             else:
                 status_text = (
                     f"{screen_position.forward_distance} ahead, {lane_name}  |  "
@@ -679,10 +1040,19 @@ def launch_graphics_viewer(
 
             for action, (rectangle, label_text) in controls.items():
                 hovered = rectangle.collidepoint(mouse)
-                disabled = characters_active and action in {
-                    "grade_down",
-                    "grade_up",
-                }
+                disabled = (
+                    characters_active and action in {"grade_down", "grade_up"}
+                ) or (
+                    spells_active
+                    and action
+                    in {
+                        "facing_down",
+                        "facing_up",
+                        "grade_down",
+                        "grade_up",
+                        "frame",
+                    }
+                )
                 colour = (
                     (45, 47, 54)
                     if disabled
@@ -698,10 +1068,15 @@ def launch_graphics_viewer(
                     "All six source distances and four facings. Animate toggles "
                     "the independent arm variants."
                 )
-            else:
+            elif monsters_active:
                 help_text = (
                     f"Facing: {FACING_NAMES[facing]}  |  grade: base +{grade_step}.  "
                     "Click a mini-space; arrow keys apply a one-pixel preview offset."
+                )
+            else:
+                help_text = (
+                    "Source distance geometry and spell colour mask. Click a visible "
+                    "space; arrow keys apply a one-pixel preview offset."
                 )
             screen.blit(small_font.render(help_text, True, (178, 181, 189)), (270, 590))
 
@@ -711,7 +1086,11 @@ def launch_graphics_viewer(
                     (
                         "Character source view position"
                         if characters_active
-                        else "Source-verified view position"
+                        else (
+                            "Spell source view position"
+                            if spells_active
+                            else "Source-verified view position"
+                        )
                     ),
                     True,
                     (240, 240, 245),
@@ -790,7 +1169,7 @@ def launch_graphics_viewer(
                         colour = (222, 116, 55) if selected else (65, 113, 167)
                         pygame.draw.ellipse(screen, colour, centre_rect)
                         slot_hit_rects.append((centre_rect, view_cell, 4))
-                        if selected:
+                        if selected and not spells_active:
                             draw_facing_arrow(centre_rect)
                     continue
 
@@ -844,7 +1223,11 @@ def launch_graphics_viewer(
                     (
                         "Blue = available  |  orange arrow = character facing"
                         if characters_active
-                        else "Blue = visible  |  orange arrow = monster facing"
+                        else (
+                            "Blue = visible  |  orange = selected spell position"
+                            if spells_active
+                            else "Blue = visible  |  orange arrow = monster facing"
+                        )
                     ),
                     True,
                     (178, 181, 189),
@@ -855,7 +1238,11 @@ def launch_graphics_viewer(
             details_title = (
                 f"${selected_character:02X}  Character"
                 if characters_active
-                else definition.display_name
+                else (
+                    f"${spell_definition.code:02X}  Airbourne spell"
+                    if spells_active
+                    else f"${definition.code:02X}  Monster"
+                )
             )
             screen.blit(
                 title_font.render(details_title, True, (240, 240, 245)),
@@ -888,7 +1275,7 @@ def launch_graphics_viewer(
 
             if characters_active:
                 existing_character_files = tuple(
-                    name for name in CHARACTER_FILES if (data_root / name).is_file()
+                    name for name in CHARACTER_FILES if (dataset_root / name).is_file()
                 )
                 missing_character_files = tuple(
                     name for name in CHARACTER_FILES if name not in existing_character_files
@@ -903,6 +1290,13 @@ def launch_graphics_viewer(
                     missing_character_files,
                     (244, 148, 135),
                 )
+                if use_modified:
+                    overrides = modified_overrides(dataset_root, CHARACTER_FILES)
+                    detail_block(
+                        "Modified overlay",
+                        (f"{len(overrides)} files; remaining files are clean",),
+                        (230, 184, 105),
+                    )
                 if preview_metadata:
                     body_design = int(preview_metadata["body_design"])
                     body_layout = str(preview_metadata["body_layout"])
@@ -924,7 +1318,7 @@ def launch_graphics_viewer(
                     detail_block("Colour masks", palettes, (155, 188, 239))
                 if preview_error:
                     detail_block("Renderer error", (preview_error,), (244, 184, 115))
-            else:
+            elif monsters_active:
                 graphics_present = status.existing_gfx
                 if len(graphics_present) > 2:
                     graphics_present = (f"{len(graphics_present)} files",)
@@ -935,13 +1329,62 @@ def launch_graphics_viewer(
                     companion_summary = (f"{len(companion_summary)} files (complete)",)
                 detail_block("Companions present", companion_summary, (126, 218, 151))
                 detail_block("Companions missing", status.missing_companions, (244, 184, 115))
+                if use_modified:
+                    monster_files = tuple(
+                        f"monsters/{name}"
+                        for name in definition.gfx_files + definition.companion_files
+                    )
+                    overrides = modified_overrides(dataset_root, monster_files)
+                    detail_block(
+                        "Modified overlay",
+                        (f"{len(overrides)} files; remaining files are clean",),
+                        (230, 184, 105),
+                    )
+                notes = (f"Name: {definition.name}",)
                 if definition.note:
-                    detail_block("Notes", (definition.note,), (155, 188, 239))
+                    notes += (definition.note,)
+                detail_block("Notes", notes, (155, 188, 239))
                 if definition.version != "BLOODWYCH439":
                     detail_block("Version", (definition.version,), (155, 188, 239))
                 if preview_metadata:
                     palette = preview_metadata["replacement_palette_indices"]
                     detail_block("Selected palette", (str(palette),), (155, 188, 239))
+            else:
+                existing_spell_files = tuple(
+                    name for name in AIRBOURNE_SPELL_FILES if (dataset_root / name).is_file()
+                )
+                missing_spell_files = tuple(
+                    name for name in AIRBOURNE_SPELL_FILES if name not in existing_spell_files
+                )
+                detail_block(
+                    "Spell graphics",
+                    existing_spell_files,
+                    (126, 218, 151),
+                )
+                detail_block("Missing data", missing_spell_files, (244, 148, 135))
+                if use_modified:
+                    overrides = modified_overrides(dataset_root, AIRBOURNE_SPELL_FILES)
+                    detail_block(
+                        "Modified overlay",
+                        (f"{len(overrides)} files; remaining files are clean",),
+                        (230, 184, 105),
+                    )
+                notes = (f"Name: {spell_definition.name}",)
+                if spell_definition.note:
+                    notes += (spell_definition.note,)
+                detail_block("Notes", notes, (155, 188, 239))
+                if spell_definition.version != "BLOODWYCH439":
+                    detail_block(
+                        "Version", (spell_definition.version,), (155, 188, 239)
+                    )
+                if preview_metadata:
+                    detail_block(
+                        "Selected palette",
+                        (str(preview_metadata["replacement_palette_indices"]),),
+                        (155, 188, 239),
+                    )
+                if preview_error:
+                    detail_block("Renderer error", (preview_error,), (244, 184, 115))
 
             pygame.display.flip()
             if screenshot_path is not None:
@@ -962,22 +1405,43 @@ def launch_graphics_viewer(
                     if event.key in keyboard_actions:
                         running = adjust(keyboard_actions[event.key])
                 elif event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
+                    if overlay_rect.collidepoint(event.pos) and modified_available:
+                        try:
+                            reload_dataset(not use_modified)
+                        except (OSError, ValueError, RuntimeError, IndexError) as error:
+                            overlay_error = str(error)
+                        continue
                     for index, rectangle in enumerate(category_rects):
-                        if rectangle.collidepoint(event.pos) and index < 2:
+                        if rectangle.collidepoint(event.pos) and index == 0:
                             selected_category = index
                             nudge_x = nudge_y = 0
                             break
-                    if characters_active:
-                        for character, rectangle in enumerate(character_rects):
-                            if rectangle.collidepoint(event.pos):
-                                selected_character = character
-                                nudge_x = nudge_y = 0
-                                break
-                    else:
-                        for index, rectangle in enumerate(monster_rects):
-                            if rectangle.collidepoint(event.pos):
-                                selected_index = index
-                                break
+                    for character, rectangle in enumerate(character_rects):
+                        if rectangle.collidepoint(event.pos):
+                            selected_character = character
+                            selected_graphic_type = "character"
+                            nudge_x = nudge_y = 0
+                            break
+                    for index, (definition_item, rectangle) in enumerate(
+                        zip(MONSTERS, monster_rects)
+                    ):
+                        if rectangle.collidepoint(event.pos) and monster_is_selectable(
+                            definition_item, bext_loaded=bext_loaded
+                        ):
+                            selected_index = index
+                            selected_graphic_type = "monster"
+                            nudge_x = nudge_y = 0
+                            break
+                    for index, (spell_item, rectangle) in enumerate(
+                        zip(AIRBOURNE_SPELLS, spell_rects)
+                    ):
+                        if rectangle.collidepoint(event.pos) and spell_is_selectable(
+                            spell_item, bext_loaded=bext_loaded
+                        ):
+                            selected_spell_index = index
+                            selected_graphic_type = "spell"
+                            nudge_x = nudge_y = 0
+                            break
                     for rectangle, view_cell, subposition in slot_hit_rects:
                         if rectangle.collidepoint(event.pos):
                             selected_view_cell = view_cell
@@ -997,12 +1461,21 @@ def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--data-root", type=Path)
     parser.add_argument(
+        "--modified",
+        action="store_true",
+        help="start with the sparse modified-data overlay enabled",
+    )
+    parser.add_argument(
         "--screenshot",
         type=Path,
         help="save the initial viewer frame and exit (useful for visual testing)",
     )
     args = parser.parse_args()
-    launch_graphics_viewer(args.data_root, screenshot_path=args.screenshot)
+    launch_graphics_viewer(
+        args.data_root,
+        screenshot_path=args.screenshot,
+        prefer_modified=args.modified,
+    )
 
 
 if __name__ == "__main__":

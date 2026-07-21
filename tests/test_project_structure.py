@@ -25,7 +25,7 @@ class ProjectStructureTests(unittest.TestCase):
             ("extract", "relabel", "inspect", "patch", "graphics"),
         )
         self.assertEqual(main.GUI_LABELS["inspect"], "Inspect / Data")
-        self.assertEqual(main.GUI_LABELS["graphics"], "Graphics Viewer")
+        self.assertEqual(main.GUI_LABELS["graphics"], "Data Viewer")
 
     def test_bare_main_launch_uses_gui_command(self) -> None:
         commands = []
@@ -75,6 +75,16 @@ class ProjectStructureTests(unittest.TestCase):
             self.assertEqual(main.main(), 0)
         self.assertEqual(launch_gui.call_count, 3)
         viewer.assert_called_once_with()
+
+    def test_graphics_cli_can_start_with_modified_overlay(self) -> None:
+        parser = main.build_parser()
+        args = parser.parse_args(["graphics", "--modified"])
+        with patch("tools.graphics_viewer.launch_graphics_viewer") as viewer:
+            self.assertEqual(main.run(args, parser), 0)
+        viewer.assert_called_once_with(
+            get_profile("BLOODWYCH439").clean_dir,
+            prefer_modified=True,
+        )
 
     def test_configured_binary_names(self) -> None:
         self.assertEqual(

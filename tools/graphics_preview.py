@@ -298,18 +298,21 @@ class BeholderAssets:
             "far_y": 2,
             "far_side_mirrored_x": 2,
             "near_mirrored_half_x": 2,
-            "grade_lookup": 8,
         }
         for name, expected in expected_lengths.items():
             actual = len(getattr(self, name))
             if actual != expected:
                 raise ValueError(f"Beholder {name}: expected {expected} entries, got {actual}")
+        if not self.grade_lookup:
+            raise ValueError("Beholder colour lookup must contain at least one grade")
         if any(index >= len(self.monster_palettes) for index in self.grade_lookup):
             raise ValueError("Beholder colour lookup references a missing monster palette")
 
     def replacement_palette(self, grade_step: int) -> list[int]:
         if not 0 <= grade_step < len(self.grade_lookup):
-            raise ValueError("Beholder grade step must be from 0 to 7")
+            raise ValueError(
+                f"Beholder grade step must be from 0 to {len(self.grade_lookup) - 1}"
+            )
         return self.monster_palettes[self.grade_lookup[grade_step]]
 
     def all_sprites(self) -> list[IndexedSprite]:
@@ -397,10 +400,12 @@ def graded_palette(
     monsters_dir: Path, colours_file: str, grade_step: int
 ) -> list[int]:
     lookup = list((monsters_dir / colours_file).read_bytes())
-    if len(lookup) != 8:
-        raise ValueError(f"{colours_file} must contain eight grade entries")
+    if not lookup:
+        raise ValueError(f"{colours_file} must contain at least one grade entry")
     if not 0 <= grade_step < len(lookup):
-        raise ValueError("monster grade step must be from 0 to 7")
+        raise ValueError(
+            f"monster grade step must be from 0 to {len(lookup) - 1}"
+        )
     palettes = read_palette_groups(monsters_dir)
     palette_index = lookup[grade_step]
     if palette_index >= len(palettes):
@@ -440,6 +445,120 @@ CHARACTER_DISTANT_DIMENSIONS = {
     0: {4: (22, 0xB0, 0x000), 5: (17, 0x88, 0x210)},
     1: {4: (21, 0xA8, 0x000), 5: (16, 0x80, 0x1F8)},
 }
+
+
+# Draw_Spell divides the six source view distances into four pictures.  Codes
+# $80-$85 use AirbourneFireball.gfx; $86-$8F use the final $2B8-byte picture
+# set inside AirbourneSpells.gfx.  The preceding $4E0 bytes in that second file
+# belong to the separate stationary-spell renderer.
+AIRBOURNE_SPELL_DISTANCE_GROUPS = (0, 0, 1, 1, 2, 3)
+AIRBOURNE_FIREBALL_GEOMETRY = (
+    (0x000, -7, -8, 2, 26),
+    (0x1A0, -4, 0, 1, 16),
+    (0x220, 1, 16, 1, 11),
+    (0x278, 2, 13, 1, 8),
+)
+AIRBOURNE_GENERIC_GEOMETRY = (
+    (0x000, -7, -8, 2, 27),
+    (0x1B0, -2, 1, 1, 15),
+    (0x228, 1, 14, 1, 11),
+    (0x280, 1, 14, 1, 7),
+)
+AIRBOURNE_GENERIC_SOURCE_OFFSET = 0x4E0
+AIRBOURNE_SPELL_PALETTES = (
+    (9, 13, 11, 12),
+    (2, 6, 8, 7),
+    (2, 13, 6, 5),
+    (0, 0, 0, 0),
+    (9, 12, 11, 13),
+    (9, 13, 11, 12),
+    (11, 14, 13, 11),
+    (9, 12, 11, 13),
+    (9, 10, 10, 11),
+    (1, 2, 5, 6),
+    (12, 11, 13, 14),
+    (7, 8, 6, 13),
+    (1, 5, 6, 13),
+    (7, 2, 8, 4),
+    (10, 11, 13, 13),
+    (11, 13, 13, 14),
+)
+
+
+class AirbourneSpellAssets:
+    """SPS 439 flying-spell pictures and the source-owned colour masks."""
+
+    def __init__(self, gfx_dir: Path):
+        self.fireball = (gfx_dir / "AirbourneFireball.gfx").read_bytes()
+        self.generic = (gfx_dir / "AirbourneSpells.gfx").read_bytes()
+        if len(self.fireball) != 0x2B8:
+            raise ValueError("AirbourneFireball.gfx must be $2B8 bytes")
+        if len(self.generic) < AIRBOURNE_GENERIC_SOURCE_OFFSET + 0x2B8:
+            raise ValueError("AirbourneSpells.gfx does not contain its flying-spell pictures")
+
+    def draw_operation(self, code: int, distance: int) -> DrawOperation:
+        if not 0x80 <= code <= 0x8F:
+            raise ValueError("SPS 439 flying-spell code must be $80-$8F")
+        if not 0 <= distance < len(AIRBOURNE_SPELL_DISTANCE_GROUPS):
+            raise ValueError("flying-spell distance must be 0..5")
+        group = AIRBOURNE_SPELL_DISTANCE_GROUPS[distance]
+        if code < 0x86:
+            data = self.fireball
+            source_file = "AirbourneFireball.gfx"
+            source_base = 0
+            geometry = AIRBOURNE_FIREBALL_GEOMETRY[group]
+        else:
+            data = self.generic
+            source_file = "AirbourneSpells.gfx"
+            source_base = AIRBOURNE_GENERIC_SOURCE_OFFSET
+            geometry = AIRBOURNE_GENERIC_GEOMETRY[group]
+        offset, x, y, width_words, height = geometry
+        sprite = decode_sprite(
+            data,
+            offset=source_base + offset,
+            width_words=width_words,
+            height=height,
+            name=f"AirbourneSpell_{code:02X}_{group}",
+            source_file=source_file,
+        )
+        return DrawOperation(
+            sprite,
+            x,
+            y + COMPOSITE_BITMAP_VIEWPORT_Y_ADJUSTMENT,
+        )
+
+    @staticmethod
+    def replacement_palette(code: int) -> tuple[int, int, int, int]:
+        if not 0x80 <= code <= 0x8F:
+            raise ValueError("SPS 439 flying-spell code must be $80-$8F")
+        return AIRBOURNE_SPELL_PALETTES[code - 0x80]
+
+
+def render_airbourne_spell(
+    background: Sequence[Sequence[int]],
+    assets: AirbourneSpellAssets,
+    code: int,
+    *,
+    distance: int,
+    anchor_x: int,
+    anchor_y: int,
+) -> tuple[list[list[int]], dict[str, object]]:
+    """Render one SPS 439 airborne spell at its game view position."""
+    operation = assets.draw_operation(code, distance)
+    replacements = assets.replacement_palette(code)
+    pixels = remap_template_colours(operation.sprite.pixels, replacements)
+    x = anchor_x + operation.x
+    y = anchor_y + operation.y
+    canvas = [list(row) for row in background]
+    blit(canvas, pixels, x, y)
+    return canvas, {
+        "spell_code": code,
+        "distance": distance,
+        "replacement_palette_indices": list(replacements),
+        "requested_game_anchor": [anchor_x, anchor_y],
+        "positioning_mode": "game-anchor",
+        "operations": ({"sprite": operation.sprite.name, "x": x, "y": y},),
+    }
 
 
 class CharacterAssets:
@@ -490,13 +609,14 @@ class CharacterAssets:
             raise ValueError("character head/body selections must contain $56 entries")
         if len(self.colours) != 0x56 * 20:
             raise ValueError("characters.colours must contain five palettes per character")
-        if len(self.body_data) != 0x8640:
-            raise ValueError("BodyParts.gfx has an unexpected length")
-        if len(self.head_data) != 0x3E70:
-            raise ValueError("HeadParts.gfx has an unexpected length")
-        if len(body_definitions) != 14 * 10:
-            raise ValueError("character body definitions must contain fourteen records")
-        words = struct.unpack(">70H", body_definitions)
+        if len(self.body_data) < 0x8640 or len(self.body_data) % 8:
+            raise ValueError("BodyParts.gfx is shorter than SPS 439 or not strip-aligned")
+        if len(self.head_data) < 0x3E70 or len(self.head_data) % 0x378:
+            raise ValueError("HeadParts.gfx does not contain complete head definitions")
+        body_definition_count, remainder = divmod(len(body_definitions), 10)
+        if remainder or not 14 <= body_definition_count <= 16:
+            raise ValueError("character body definitions must contain 14 to 16 records")
+        words = struct.unpack(f">{len(body_definitions) // 2}H", body_definitions)
         self.body_definitions = tuple(
             tuple(words[index : index + 5]) for index in range(0, len(words), 5)
         )
@@ -519,7 +639,7 @@ class CharacterAssets:
             raise ValueError("character distant position tables must contain eight bytes")
         if max(self.body_selections) >= len(self.body_definitions):
             raise ValueError("characters.bodies references an unknown body design")
-        if max(self.head_selections) >= 18:
+        if max(self.head_selections) >= len(self.head_data) // 0x378:
             raise ValueError("characters.heads references an unknown head design")
 
     def body_design(self, character: int) -> int:
@@ -531,7 +651,7 @@ class CharacterAssets:
         return self.head_selections[character]
 
     def body_layout(self, character: int) -> int:
-        return self.body_definitions[self.body_design(character)][0]
+        return int(bool(self.body_definitions[self.body_design(character)][0]))
 
     def palettes(self, character: int) -> tuple[tuple[int, int, int, int], ...]:
         self._validate_character(character)
@@ -551,9 +671,10 @@ class CharacterAssets:
     ) -> list[CharacterDrawOperation]:
         body_index = self.body_design(character)
         head_index = self.head_design(character)
-        alternate, legs_offset, torso_offset, arms_offset, distant_offset = (
+        layout_selector, legs_offset, torso_offset, arms_offset, distant_offset = (
             self.body_definitions[body_index]
         )
+        alternate = int(bool(layout_selector))
         palettes = self.palettes(character)
         if distance in (4, 5):
             if not 0 <= facing <= 3:

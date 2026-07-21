@@ -52,8 +52,10 @@ def resource_layouts(frame: pd.DataFrame) -> tuple[ResourceLayout, ...]:
     """Validate and return all ``data_start``/``data_append`` row groups.
 
     A layout starts with ``data_start``. Any immediately following
-    ``data_append`` rows belong to that layout and must repeat the same original
-    source label. Spreadsheet order defines emitted file order.
+    ``data_append`` rows belong to that layout. Their label may either repeat
+    the original group anchor (the legacy convention) or identify an internal
+    source label at which that appended resource begins. Spreadsheet order
+    defines emitted file order.
     """
     if DATA_ACTION_COLUMN not in frame.columns:
         return ()
@@ -90,10 +92,10 @@ def resource_layouts(frame: pd.DataFrame) -> tuple[ResourceLayout, ...]:
                     "follow a data_start or data_append row"
                 )
             append_label = cell_text(row, "label")
-            if append_label != active_label:
+            if not append_label:
                 raise ToolError(
-                    f"data_append at spreadsheet row {excel_row} repeats label "
-                    f"'{append_label}', expected '{active_label}'"
+                    f"data_append at spreadsheet row {excel_row} requires an "
+                    "original or internal source label"
                 )
             active.append((index, row))
             continue

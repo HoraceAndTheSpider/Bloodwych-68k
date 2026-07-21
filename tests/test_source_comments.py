@@ -85,6 +85,82 @@ class SourceCommentTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "Conflicting source comments"):
             apply_source_comments(["Shared:", "\tdc.b\t$00"], frame)
 
+    def test_blank_duplicate_defers_to_resource_layout_comment(self):
+        frame = pd.DataFrame(
+            [
+                {
+                    "label": "Combined",
+                    "relabel": "GeneratedPart",
+                    "source_comment": "Packed render layout.",
+                },
+                {
+                    "label": "OldInternal",
+                    "relabel": "GeneratedPart",
+                    "source_comment": "",
+                },
+            ]
+        )
+
+        self.assertEqual(
+            apply_source_comments(["GeneratedPart:", "\tdc.b\t$00"], frame),
+            [
+                "GeneratedPart:",
+                "\t; ReSource: Packed render layout.",
+                "\tdc.b\t$00",
+            ],
+        )
+
+    def test_nonblank_duplicate_replaces_initial_blank_comment(self):
+        frame = pd.DataFrame(
+            [
+                {
+                    "label": "OldInternal",
+                    "relabel": "GeneratedPart",
+                    "source_comment": "",
+                },
+                {
+                    "label": "Combined",
+                    "relabel": "GeneratedPart",
+                    "source_comment": "Packed render layout.",
+                },
+            ]
+        )
+
+        self.assertEqual(
+            apply_source_comments(["GeneratedPart:", "\tdc.b\t$00"], frame),
+            [
+                "GeneratedPart:",
+                "\t; ReSource: Packed render layout.",
+                "\tdc.b\t$00",
+            ],
+        )
+
+    def test_resource_layout_comment_wins_over_alias_comment(self):
+        frame = pd.DataFrame(
+            [
+                {
+                    "label": "Combined",
+                    "relabel": "GeneratedPart",
+                    "data_action": "data_append",
+                    "source_comment": "Generated resource description.",
+                },
+                {
+                    "label": "OldInternal",
+                    "relabel": "GeneratedPart",
+                    "source_comment": "Older alias description.",
+                },
+            ]
+        )
+
+        self.assertEqual(
+            apply_source_comments(["GeneratedPart:", "\tdc.b\t$00"], frame),
+            [
+                "GeneratedPart:",
+                "\t; ReSource: Generated resource description.",
+                "\tdc.b\t$00",
+            ],
+        )
+
 
 if __name__ == "__main__":
     unittest.main()

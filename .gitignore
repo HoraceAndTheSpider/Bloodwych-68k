@@ -60,3 +60,6 @@ Icon?
 *.swp
 node_modules/
 outputs/
+
+# Local backups of sparse modified-data overlays.
+data/*-modified-old/

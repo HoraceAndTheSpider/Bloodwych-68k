@@ -410,7 +410,7 @@ QkPly2_Start:
 	rts	;4E75
 
 Init_DisplayDMA_AI_TBC:
-	lea	adrEA01684C.l,a0	;41F90001684C
+	lea	BitReverse_LookupBuffer.l,a0	;41F90001684C
 	move.w	#$00FF,d7	;3E3C00FF
 SpellsPracticed_InitializeEntriesLoop_AI_TBC:
 	move.w	d7,d0	;3007
@@ -1604,7 +1604,7 @@ AttackType_DroneSpells:
 	bra.s	adrCd0015E0	;601A
 
 MonsterAttackSpells:
-	INCBIN "data/BLOODWYCH439-clean/data/monsters.spellbook.block"
+	INCBIN "/data/BLOODWYCH439-clean/data/monsters.spellbook.block"
 
 AttackType_Spells:
 	bsr	adrCd005556	;61003F7E
@@ -7999,7 +7999,7 @@ MainWall_Action_02_Scrolls:
 	bra	Print_fflim_text	;60007776
 
 Scroll_TowerOffsets_DataTable:
-	INCBIN "data/BLOODWYCH439-clean/data/scrollstowers.data"
+	INCBIN "/data/BLOODWYCH439-clean/data/scrollstowers.data"
 
 MainWall_Action_04_Sockets:
 	moveq	#$00,d1	;7200
@@ -8146,9 +8146,9 @@ adrCd005AD2:
 	bra	adrCd001DBC	;6000C2C4
 
 TanGemLocs:
-	INCBIN "data/BLOODWYCH439-clean/maps/gem-tan.locations"
+	INCBIN "/data/BLOODWYCH439-clean/maps/gem-tan.locations"
 BlueGemLocs:
-	INCBIN "data/BLOODWYCH439-clean/maps/gem-blu.locations"
+	INCBIN "/data/BLOODWYCH439-clean/maps/gem-blu.locations"
 
 MainWall_Action_03_Switches:
 	moveq	#$00,d1	;7200
@@ -8182,17 +8182,17 @@ Switches_LookupTable:
 	dc.w	Switch_06_s0C_Trigger_18_t24_CreatePillar_XY-Switch_00_s00_Null	;1C02
 	dc.w	Switch_07_s0E_Trigger_26_t34_RotateWood_XY-Switch_00_s00_Null	;1BF2
 SwitchData_1:
-	INCBIN "data/BLOODWYCH439-clean/maps/mod0.switches"
+	INCBIN "/data/BLOODWYCH439-clean/maps/mod0.switches"
 SwitchData_2:
-	INCBIN "data/BLOODWYCH439-clean/maps/serp.switches"
+	INCBIN "/data/BLOODWYCH439-clean/maps/serp.switches"
 SwitchData_3:
-	INCBIN "data/BLOODWYCH439-clean/maps/moon.switches"
+	INCBIN "/data/BLOODWYCH439-clean/maps/moon.switches"
 SwitchData_4:
-	INCBIN "data/BLOODWYCH439-clean/maps/drag.switches"
+	INCBIN "/data/BLOODWYCH439-clean/maps/drag.switches"
 SwitchData_5:
-	INCBIN "data/BLOODWYCH439-clean/maps/chaos.switches"
+	INCBIN "/data/BLOODWYCH439-clean/maps/chaos.switches"
 SwitchData_6:
-	INCBIN "data/BLOODWYCH439-clean/maps/zendik.switches"
+	INCBIN "/data/BLOODWYCH439-clean/maps/zendik.switches"
 
 Switch_00_s00_Trigger_15_t1E_ToggleWallXY:
 	bsr	Switch_01_s02_Trigger_11_t16_RemoveXY	;61000018
@@ -10249,17 +10249,17 @@ Triggers_LookupTable:
 	dc.w	Trigger_28_t38_GameCompletion-Trigger_00_t00_Null	;0504
 	dc.w	adrJA007502-Trigger_00_t00_Null	;04EC
 TriggersData_1:
-	INCBIN "data/BLOODWYCH439-clean/maps/mod0.triggers"
+	INCBIN "/data/BLOODWYCH439-clean/maps/mod0.triggers"
 TriggersData_2:
-	INCBIN "data/BLOODWYCH439-clean/maps/serp.triggers"
+	INCBIN "/data/BLOODWYCH439-clean/maps/serp.triggers"
 TriggersData_3:
-	INCBIN "data/BLOODWYCH439-clean/maps/moon.triggers"
+	INCBIN "/data/BLOODWYCH439-clean/maps/moon.triggers"
 TriggersData_4:
-	INCBIN "data/BLOODWYCH439-clean/maps/drag.triggers"
+	INCBIN "/data/BLOODWYCH439-clean/maps/drag.triggers"
 TriggersData_5:
-	INCBIN "data/BLOODWYCH439-clean/maps/chaos.triggers"
+	INCBIN "/data/BLOODWYCH439-clean/maps/chaos.triggers"
 TriggersData_6:
-	INCBIN "data/BLOODWYCH439-clean/maps/zendik.triggers"
+	INCBIN "/data/BLOODWYCH439-clean/maps/zendik.triggers"
 
 Trigger_20_t28_Keep_Entrance_CentrePad:
 	tst.w	MultiPlayer.l	;4A790000EE30
@@ -10303,9 +10303,9 @@ adrCd0073A6:
 	bra	adrCd00748C	;600000C2
 
 Keep_Start_Floors_DataTable:
-	INCBIN "data/BLOODWYCH439-clean/maps/keep.floors"
+	INCBIN "/data/BLOODWYCH439-clean/maps/keep.floors"
 Keep_Start_XY_DataTable:
-	INCBIN "data/BLOODWYCH439-clean/maps/keep.entrances"
+	INCBIN "/data/BLOODWYCH439-clean/maps/keep.entrances"
 
 Trigger_10_t14_Tower_Entrance_CentrePad:
 	tst.w	MultiPlayer.l	;4A790000EE30
@@ -10386,7 +10386,7 @@ adrCd00748C:
 	bra	MonsterTransfer	;6000950E
 
 Tower_Start_XY_DataTable:
-	INCBIN "data/BLOODWYCH439-clean/data/tower.entrances"
+	INCBIN "/data/BLOODWYCH439-clean/data/tower.entrances"
 
 adrJA007502:
 	move.l	adrL_00EE78.l,a6	;2C790000EE78
@@ -13172,7 +13172,7 @@ adrCd0090D4:
 	add.w	-$000A(a3),d0	;D06BFFF6
 	and.w	#$0001,d0	;02400001
 	move.w	d0,-$000C(a3)	;3740FFF4
-	bsr	adrCd00B7F4	;610026F8
+	bsr	Draw_FloorAndCeiling	;610026F8
 	move.w	-$000A(a3),d0	;302BFFF6
 	move.w	d0,d1	;3200
 	ror.b	#$03,d0	;E618
@@ -13366,29 +13366,29 @@ adrCd0092E8:
 	cmpi.w	#$001C,d1	;0C41001C
 	bcc.s	adrCd009358	;6466
 	move.w	d1,-(sp)	;3F01
-	bsr	adrCd00995C	;61000666
+	bsr	Prepare_CentredMonster_ScreenPosition	;61000666
 	move.w	(sp)+,d0	;301F
 	addq.b	#$01,d1	;5201
 	beq.s	adrCd009358	;675A
 	subq.b	#$01,d1	;5301
-	move.b	adrB_00935A(pc,d1.w),d1	;123B1058
+	move.b	GFX_StationarySpell_DistanceGroups(pc,d1.w),d1	;123B1058
 	add.w	d1,d1	;D241
 	lea	GFX_AirbourneSpells.l,a1	;43F900034A30
-	add.w	adrW_009360(pc,d1.w),a1	;D2FB1052
+	add.w	GFX_StationarySpell_LookupTable(pc,d1.w),a1	;D2FB1052
 	add.w	d1,d1	;D241
-	add.b	adrB_009368(pc,d1.w),d4	;D83B1054
-	add.b	adrB_009369(pc,d1.w),d5	;DA3B1051
+	add.b	GFX_StationarySpell_RenderLayout(pc,d1.w),d4	;D83B1054
+	add.b	GFX_StationarySpell_RenderLayout+$1(pc,d1.w),d5	;DA3B1051
 	moveq	#$00,d7	;7E00
-	move.b	adrB_00936A(pc,d1.w),d7	;1E3B104C
+	move.b	GFX_StationarySpell_RenderLayout+$2(pc,d1.w),d7	;1E3B104C
 	swap	d7	;4847
-	move.b	adrB_00936B(pc,d1.w),d7	;1E3B1047
+	move.b	GFX_StationarySpell_RenderLayout+$3(pc,d1.w),d7	;1E3B1047
 	add.w	$0008(a5),d5	;DA6D0008
 	move.b	d4,d6	;1C04
 	add.b	#$60,d4	;06040060
 	ext.w	d6	;4886
 	asr.w	#$04,d6	;E846
 	move.w	#$FFFF,Buffer_Colour_Mask_Toggle.l	;33FCFFFF0000B4BE
-	lea	SpellStars_Colours.l,a0	;41F900009B70
+	lea	GFX_Spell_ColourMasks.l,a0	;41F900009B70
 	move.l	$00(a0,d0.w),Buffer_Colour_Mask.l	;23F000000000B4C0
 	move.l	a3,-(sp)	;2F0B
 	bsr	adrCd00AE5E	;61001B10
@@ -13397,38 +13397,15 @@ adrCd0092E8:
 adrCd009358:
 	rts	;4E75
 
-adrB_00935A:
-	dc.b	$00	;00
-	dc.b	$00	;00
-	dc.b	$01	;01
-	dc.b	$01	;01
-	dc.b	$02	;02
-	dc.b	$03	;03
-adrW_009360:
-	dc.w	$0000	;0000
-	dc.w	$0318	;0318
-	dc.w	$0438	;0438
-	dc.w	$0498	;0498
-adrB_009368:
-	dc.b	$F4	;F4
-adrB_009369:
-	dc.b	$F7	;F7
-adrB_00936A:
-	dc.b	$02	;02
-adrB_00936B:
-	dc.b	$20	;20
-	dc.b	$FA	;FA
-	dc.b	$FD	;FD
-	dc.b	$01	;01
-	dc.b	$11	;11
-	dc.b	$FE	;FE
-	dc.b	$0D	;0D
-	dc.b	$00	;00
-	dc.b	$0B	;0B
-	dc.b	$00	;00
-	dc.b	$0D	;0D
-	dc.b	$00	;00
-	dc.b	$08	;08
+GFX_StationarySpell_DistanceGroups:
+	; ReSource: Maps six visible distances to four stationary-spell graphical sizes: 0,0,1,1,2,3.
+	INCBIN "/data/BLOODWYCH439-clean/gfx-data/AirbourneSpells_Stationary_DistanceGroups.lookup"
+GFX_StationarySpell_LookupTable:
+	; ReSource: Four big-endian source offsets into the stationary portion of AirbourneSpells.gfx.
+	INCBIN "/data/BLOODWYCH439-clean/gfx-data/AirbourneSpells_Stationary.offsets"
+GFX_StationarySpell_RenderLayout:
+	; ReSource: Four packed records containing signed X, signed Y, width-minus-one and height-minus-one.
+	INCBIN "/data/BLOODWYCH439-clean/gfx-data/AirbourneSpells_Stationary.positions"
 
 adrCd009378:
 	and.w	#$0007,d1	;02410007
@@ -14187,50 +14164,22 @@ adrCd009930:
 	ori.b	#$01,ccr	;003C0001
 	rts	;4E75
 
-adrB_009936:
-	dc.b	$00	;00
-	dc.b	$00	;00
-	dc.b	$01	;01
-	dc.b	$01	;01
-	dc.b	$00	;00
-adrB_00993B:
-	dc.b	$06	;06
-	dc.b	$06	;06
-	dc.b	$FF	;FF
-	dc.b	$04	;04
-	dc.b	$02	;02
-	dc.b	$00	;00
-	dc.b	$FF	;FF
-	dc.b	$06	;06
-	dc.b	$06	;06
-	dc.b	$FF	;FF
-	dc.b	$04	;04
-	dc.b	$02	;02
-	dc.b	$00	;00
-	dc.b	$FF	;FF
-	dc.b	$06	;06
-	dc.b	$04	;04
-	dc.b	$02	;02
-	dc.b	$00	;00
-	dc.b	$FF	;FF
-adrB_00994E:
-	dc.b	$00	;00
-	dc.b	$01	;01
-	dc.b	$02	;02
-	dc.b	$03	;03
-	dc.b	$04	;04
-	dc.b	$04	;04
-	dc.b	$05	;05
-	dc.b	$05	;05
-adrB_009956:
-	dc.b	$27	;27
-	dc.b	$25	;25
-	dc.b	$24	;24
-	dc.b	$24	;24
-	dc.b	$18	;18
-	dc.b	$1A	;1A
+Monster_SubPosition_DepthAdjustments:
+	; ReSource: Adjusts the selected sub-position before it is converted to a monster graphics distance.
+	dc.b	$00,$00,$01,$01,$00
+Monster_ViewCell_DepthSlots:
+	; ReSource: Maps each view cell to a base depth slot; $FF marks a position that is not visible.
+	dc.b	$06,$06,$FF,$04,$02,$00,$FF,$06,$06,$FF,$04,$02,$00,$FF,$06,$04
+	dc.b	$02,$00,$FF
+Monster_Depth_GfxSlots:
+	; ReSource: Maps depth slots to one of the six monster graphics-distance slots.
+	INCBIN "/data/BLOODWYCH439-clean/gfx-data/Monster_Depth_GfxSlots.lookup"
+Monster_GfxSlot_YPositions:
+	; ReSource: Provides the base vertical screen position for each monster graphics-distance slot.
+	INCBIN "/data/BLOODWYCH439-clean/gfx-data/Monster_GfxSlot_Y.positions"
 
-adrCd00995C:
+Prepare_CentredMonster_ScreenPosition:
+	; ReSource: Entry point for centrally positioned monsters; forces the centre sub-position before using Prepare_Monster_ScreenPosition.
 	moveq	#$04,d1	;7204
 Prepare_Monster_ScreenPosition:
 	move.w	d1,d2	;3401
@@ -14238,20 +14187,20 @@ Prepare_Monster_ScreenPosition:
 	moveq	#$00,d0	;7000
 	moveq	#$00,d4	;7800
 	move.b	-$0016(a3),d0	;102BFFEA
-	move.b	adrB_00993B(pc,d0.w),d1	;123B00C9
+	move.b	Monster_ViewCell_DepthSlots(pc,d0.w),d1	;123B00C9
 	bmi.s	adrCd0099C6	;6B50
-	add.b	adrB_009936(pc,d2.w),d1	;D23B20BE
+	add.b	Monster_SubPosition_DepthAdjustments(pc,d2.w),d1	;D23B20BE
 	move.w	d0,d5	;3A00
 	asl.w	#$02,d0	;E540
 	add.w	d5,d0	;D045
 	add.w	d2,d0	;D042
 	move.w	d1,d2	;3401
-	lea	adrEA018A84.l,a0	;41F900018A84
+	lea	Monster_ViewCell_SubPosition_XPositions.l,a0	;41F900018A84
 	move.b	$00(a0,d0.w),d4	;18300000
 	cmpi.b	#$FF,d4	;0C0400FF
 	beq.s	adrCd0099C8	;6734
-	move.b	adrB_00994E(pc,d2.w),d1	;123B20B8
-	move.b	adrB_009956(pc,d1.w),d5	;1A3B10BC
+	move.b	Monster_Depth_GfxSlots(pc,d2.w),d1	;123B20B8
+	move.b	Monster_GfxSlot_YPositions(pc,d1.w),d5	;1A3B10BC
 	move.w	-$0012(a3),d0	;302BFFEE
 	and.w	#$0007,d0	;02400007
 	cmpi.w	#$0004,d0	;0C400004
@@ -14443,79 +14392,33 @@ adrCd009B5E:
 	bsr.s	Decode_Monster_RenderFlags	;6154
 	bra	adrCd00A6EC	;60000B7E
 
-SpellStars_Colours:
-	dc.l	$090D0B0C	;090D0B0C
-	dc.l	$02060807	;02060807
-	dc.l	$020D0605	;020D0605
-	dc.l	$00000000	;00000000
-	dc.l	$090C0B0D	;090C0B0D
-	dc.l	$090D0B0C	;090D0B0C
-	dc.l	$0B0E0D0B	;0B0E0D0B
-	dc.l	$090C0B0D	;090C0B0D
-	dc.l	$090A0A0B	;090A0A0B
-	dc.l	$01020506	;01020506
-	dc.l	$0C0B0D0E	;0C0B0D0E
-	dc.l	$0708060D	;0708060D
-	dc.l	$0105060D	;0105060D
-	dc.l	$07020804	;07020804
-	dc.l	$0A0B0D0D	;0A0B0D0D
-	dc.l	$0B0D0D0E	;0B0D0D0E
-	dc.l	$00000000	;00000000
-	dc.l	$090C0B0D	;090C0B0D
-	dc.l	$0506060D	;0506060D
-	dc.l	$0708060D	;0708060D
+GFX_Spell_ColourMasks:
+	; ReSource: Four colour-mask indices per spell code. The first 16 records cover $80–$8F; the final four $90–$93 records have no confirmed gameplay effect but are retained for byte-exact source reproduction.
+	INCBIN "/data/BLOODWYCH439-clean/gfx-data/AirbourneSpells.colours"
 
 Decode_Monster_RenderFlags:
 	clr.b	-$0015(a3)	;422BFFEB
 	and.w	#$001F,d0	;0240001F
-	move.b	adrB_009BD0(pc,d0.w),-$0015(a3)	;177B0006FFEB
+	move.b	Monster_RenderFlags_LookupTable(pc,d0.w),-$0015(a3)	;177B0006FFEB
 	rts	;4E75
 
-adrB_009BD0:
-	dc.b	$00	;00
-	dc.b	$00	;00
-	dc.b	$03	;03
-	dc.b	$02	;02
-	dc.b	$02	;02
-	dc.b	$03	;03
-	dc.b	$01	;01
-	dc.b	$01	;01
-	dc.b	$01	;01
-	dc.b	$03	;03
-	dc.b	$03	;03
-	dc.b	$03	;03
-	dc.b	$00	;00
-	dc.b	$02	;02
-	dc.b	$00	;00
-	dc.b	$01	;01
-	dc.b	$00	;00
-	dc.b	$00	;00
-	dc.b	$00	;00
-	dc.b	$01	;01
-	dc.b	$01	;01
-	dc.b	$01	;01
-	dc.b	$01	;01
-	dc.b	$01	;01
-	dc.b	$00	;00
-	dc.b	$00	;00
-	dc.b	$00	;00
-	dc.b	$03	;03
-	dc.b	$03	;03
-	dc.b	$03	;03
-	dc.b	$03	;03
-	dc.b	$03	;03
+Monster_RenderFlags_LookupTable:
+	; ReSource: Maps the low five bits of a monster render state to the two arm or claw animation flags.
+	INCBIN "/data/BLOODWYCH439-clean/gfx-data/Monster_RenderFlags.lookup"
 
-Draw_Spell:
-	lea	adrEA009C68.l,a1		;43F900009C68
+Draw_AirbourneSpell:
+	; ReSource: Selects the distance group, graphical family and colour mask used to render flying spell codes $80+.
+	lea	GFX_AirbourneSpell_DistanceGroups.l,a1		;43F900009C68
 	move.b	$00(a1,d1.w),d1			;12311000
 	add.w	d1,d1				;D241
 	lea	GFX_FireBall.l,a1		;43F900034778
-	lea	adrEA009C6E.l,a2		;45F900009C6E
+	lea	GFX_AirbourneFireball_RenderLayout.l,a2		;45F900009C6E
 	cmpi.b	#$86,d0				;0C000086
-	bcs.s	adrCd009C18			;650A
+	bcs.s	.RenderSelectedLayout			;650A
 	add.w	#$0798,a1			;D2FC0798
-	lea	adrEA009C86.l,a2		;45F900009C86
-adrCd009C18:
+	lea	GFX_AirbourneSpells_RenderLayout.l,a2		;45F900009C86
+.RenderSelectedLayout:
+	; ReSource: Shared rendering path after selecting either the Fireball or general Airbourne-spell layout.
 	add.w	$00(a2,d1.w),a1			;D2F21000
 	add.w	d1,d1				;D241
 	add.b	$08(a2,d1.w),d4			;D8321008
@@ -14531,7 +14434,7 @@ adrCd009C18:
 	asr.w	#$04,d6	;			E846
 	move.l	a3,-(sp)			;2F0B
 	move.w	#$FFFF,Buffer_Colour_Mask_Toggle.l		;33FCFFFF0000B4BE
-	lea	SpellStars_Colours.l,a0		;41F900009B70
+	lea	GFX_Spell_ColourMasks.l,a0		;41F900009B70
 	asl.b	#$02,d0	;E500
 	move.l	$00(a0,d0.w),Buffer_Colour_Mask.l	;23F000000000B4C0
 	bsr	adrCd00AE5E	;61001202
@@ -14539,51 +14442,25 @@ adrCd009C18:
 	move.l	(sp)+,a3	;265F
 	rts	;4E75
 
-adrEA009C68:
-	dc.b	$00	;00
-	dc.b	$00	;00
-	dc.b	$01	;01
-	dc.b	$01	;01
-	dc.b	$02	;02
-	dc.b	$03	;03
-adrEA009C6E:
-	dc.w	$0000	;0000
-	dc.w	$01A0	;01A0
-	dc.w	$0220	;0220
-	dc.w	$0278	;0278
-	dc.w	$F9F8	;F9F8
-	dc.w	$0119	;0119
-	dc.w	$FC00	;FC00
-	dc.w	$000F	;000F
-	dc.w	$0110	;0110
-	dc.w	$000A	;000A
-	dc.w	$020D	;020D
-	dc.w	$0007	;0007
-adrEA009C86:
-	dc.w	$0000	;0000
-	dc.w	$01B0	;01B0
-	dc.w	$0228	;0228
-	dc.w	$0280	;0280
-	dc.w	$F9F8	;F9F8
-	dc.w	$011A	;011A
-	dc.w	$FE01	;FE01
-	dc.w	$000E	;000E
-	dc.w	$010E	;010E
-	dc.w	$000A	;000A
-	dc.w	$010E	;010E
-	dc.w	$0006	;0006
-adrB_009C9E:
-	dc.b	$00	;00
-	dc.b	$01	;01
-	dc.b	$02	;02
-	dc.b	$81	;81
+GFX_AirbourneSpell_DistanceGroups:
+	; ReSource: Maps the six visible source distances to four graphical sizes: 0,0,1,1,2,3.
+	INCBIN "/data/BLOODWYCH439-clean/gfx-data/AirbourneSpell_DistanceGroups.lookup"
+GFX_AirbourneFireball_RenderLayout:
+	; ReSource: Four source offsets followed by four packed X, Y, width-minus-one and height-minus-one records for spell codes $80–$85.
+	INCBIN "/data/BLOODWYCH439-clean/gfx-data/AirbourneFireball.layout"
+GFX_AirbourneSpells_RenderLayout:
+	; ReSource: Four source offsets followed by four packed X, Y, width-minus-one and height-minus-one records for spell codes $86–$8F. Offsets are relative to the flying-spell pictures at AirbourneSpells.gfx+$4E0.
+	INCBIN "/data/BLOODWYCH439-clean/gfx-data/AirbourneSpells_Flying.layout"
+Monster_Facing_GfxVariants_LookupTable:
+	; ReSource: Maps facing direction to front, side, back, or mirrored-side graphic variants.
+	INCBIN "/data/BLOODWYCH439-clean/gfx-data/Monster_Facing_GfxVariants.lookup"
 
 adrCd009CA2:
 	move.w	d1,d2	;3401
 	add.w	d2,d2	;D442
 	add.w	d1,d2	;D441
 	moveq	#$00,d6	;7C00
-	move.b	adrB_009C9E(pc,d0.w),d3	;163B00F2
+	move.b	Monster_Facing_GfxVariants_LookupTable(pc,d0.w),d3	;163B00F2
 	bpl.s	adrCd009CB2	;6A02
 	moveq	#-$01,d6	;7CFF
 adrCd009CB2:
@@ -14601,7 +14478,7 @@ adrCd009CB2:
 
 Draw_Summon:
 	lea	GFX_Summon_LookupTable.l,a2	;45F900009EBE
-	lea	adrEA009DC0.l,a0	;41F900009DC0
+	lea	GFX_Summon_Body_Layout.l,a0	;41F900009DC0
 	lea	GFX_Summon.l,a1	;43F900045018
 	bsr.s	adrCd009CA2	;61BC
 	lea	Illusion_Palettes.l,a6	;4DF900009E5C
@@ -14628,17 +14505,17 @@ Draw_Summon:
 adrCd009D28:
 	cmpi.w	#$0004,d1	;0C410004
 	bcc	adrCd009DB6	;64000088
-	lea	adrEA009DDC.l,a2	;45F900009DDC
+	lea	GFX_Summon_PrimaryArm_Positions.l,a2	;45F900009DDC
 	movem.w	d0/d1/d4/d5,-(sp)	;48A7CC00
 	moveq	#$00,d6	;7C00
 	moveq	#$00,d2	;7400
 	bsr	adrCd009D50	;61000010
 	movem.w	(sp)+,d0/d1/d4/d5	;4C9F0033
-	lea	adrEA009DFC.l,a2	;45F900009DFC
+	lea	GFX_Summon_SecondaryArm_Positions.l,a2	;45F900009DFC
 	moveq	#-$01,d6	;7CFF
 	moveq	#$01,d2	;7401
 adrCd009D50:
-	lea	adrEA009DCC.l,a0	;41F900009DCC
+	lea	GFX_Summon_ArmVariants_LookupTable.l,a0	;41F900009DCC
 	move.b	$00(a0,d0.w),d3	;16300000
 	bpl.s	adrCd009D5E	;6A02
 	not.w	d6	;4646
@@ -14653,7 +14530,7 @@ adrCd009D6A:
 	add.w	d1,d2	;D441
 	add.w	d3,d2	;D443
 	moveq	#$00,d7	;7E00
-	lea	adrEA009DD0.l,a0	;41F900009DD0
+	lea	GFX_Summon_Arm_Heights.l,a0	;41F900009DD0
 	move.b	$00(a0,d2.w),d7	;1E302000
 	add.w	d2,d2	;D442
 	lea	GFX_Summon_Arms_LookupTable.l,a0	;41F900009EE2
@@ -14677,94 +14554,26 @@ adrCd009DB6:
 	rts	;4E75
 
 Monster_Summon_Colours:
-	INCBIN "data/BLOODWYCH439-clean/monsters/summon.colours"
-adrEA009DC0:
-	dc.w	$1511	;1511
-	dc.w	$0D0C	;0D0C
-	dc.w	$FE00	;FE00
-	dc.w	$2E26	;2E26
-	dc.w	$1F1A	;1F1A
-	dc.w	$1510	;1510
-adrEA009DCC:
-	dc.w	$0001	;0001
-	dc.w	$8001	;8001
-adrEA009DD0:
-	dc.w	$1414	;1414
-	dc.w	$1010	;1010
-	dc.w	$100B	;100B
-	dc.w	$0C0C	;0C0C
-	dc.w	$0A0B	;0A0B
-	dc.w	$0B08	;0B08
-adrEA009DDC:
-	dc.w	$09F9	;09F9
-	dc.w	$FFFF	;FFFF
-	dc.w	$FAF9	;FAF9
-	dc.w	$03F9	;03F9
-	dc.w	$07FA	;07FA
-	dc.w	$FFFF	;FFFF
-	dc.w	$00FA	;00FA
-	dc.w	$02FA	;02FA
-	dc.w	$07FB	;07FB
-	dc.w	$FFFF	;FFFF
-	dc.w	$04FB	;04FB
-	dc.w	$01FB	;01FB
-	dc.w	$06FC	;06FC
-	dc.w	$FFFF	;FFFF
-	dc.w	$07FC	;07FC
-	dc.w	$01FC	;01FC
-adrEA009DFC:
-	dc.w	$FAF9	;FAF9
-	dc.w	$03F9	;03F9
-	dc.w	$09F9	;09F9
-	dc.w	$FFFF	;FFFF
-	dc.w	$00FA	;00FA
-	dc.w	$04FA	;04FA
-	dc.w	$07FA	;07FA
-	dc.w	$FFFF	;FFFF
-	dc.w	$04FB	;04FB
-	dc.w	$05FB	;05FB
-	dc.w	$06FB	;06FB
-	dc.w	$FFFF	;FFFF
-	dc.w	$07FC	;07FC
-	dc.w	$05FC	;05FC
-	dc.w	$06FC	;06FC
-	dc.w	$FFFF	;FFFF
-	dc.w	$0D04	;0D04
-	dc.w	$FFFF	;FFFF
-	dc.w	$F604	;F604
-	dc.w	$0604	;0604
-	dc.w	$0A02	;0A02
-	dc.w	$FFFF	;FFFF
-	dc.w	$FD02	;FD02
-	dc.w	$0302	;0302
-	dc.w	$0A01	;0A01
-	dc.w	$FFFF	;FFFF
-	dc.w	$0101	;0101
-	dc.w	$0301	;0301
-	dc.w	$0901	;0901
-	dc.w	$FFFF	;FFFF
-	dc.w	$0401	;0401
-	dc.w	$0201	;0201
-	dc.w	$F604	;F604
-	dc.w	$0004	;0004
-	dc.w	$0D04	;0D04
-	dc.w	$FFFF	;FFFF
-	dc.w	$FD02	;FD02
-	dc.w	$0302	;0302
-	dc.w	$0A02	;0A02
-	dc.w	$FFFF	;FFFF
-	dc.w	$0101	;0101
-	dc.w	$0301	;0301
-	dc.w	$0901	;0901
-	dc.w	$FFFF	;FFFF
-	dc.w	$0401	;0401
-	dc.w	$0401	;0401
-	dc.w	$0901	;0901
-	dc.w	$FFFF	;FFFF
+	INCBIN "/data/BLOODWYCH439-clean/monsters/summon.colours"
+GFX_Summon_Body_Layout:
+	; ReSource: Contains Summon body vertical adjustments and heights; its final bytes also begin the packed body-width data.
+	INCBIN "/data/BLOODWYCH439-clean/monsters/Summon_Body.layout"
+GFX_Summon_ArmVariants_LookupTable:
+	; ReSource: Maps Summon facing direction to an arm graphic variant and mirroring; it also forms part of the packed body-width data.
+	INCBIN "/data/BLOODWYCH439-clean/monsters/Summon_ArmVariants.lookup"
+GFX_Summon_Arm_Heights:
+	; ReSource: Provides Summon arm heights and completes the packed body-width table.
+	INCBIN "/data/BLOODWYCH439-clean/monsters/Summon_Arms.heights"
+GFX_Summon_PrimaryArm_Positions:
+	; ReSource: Packed X and Y drawing positions for the primary Summon arm; $FFFF suppresses an unavailable component.
+	INCBIN "/data/BLOODWYCH439-clean/monsters/Summon_PrimaryArm.positions"
+GFX_Summon_SecondaryArm_Positions:
+	; ReSource: Packed X and Y drawing positions for the secondary Summon arm; $FFFF suppresses an unavailable component.
+	INCBIN "/data/BLOODWYCH439-clean/monsters/Summon_SecondaryArm.positions"
 Illusion_Palettes:
-	INCBIN "data/BLOODWYCH439-clean/monsters/illusion.palette"
+	INCBIN "/data/BLOODWYCH439-clean/monsters/illusion.palette"
 Monster_Palettes:
-	INCBIN "data/BLOODWYCH439-clean/monsters/monsters.palette"
+	INCBIN "/data/BLOODWYCH439-clean/monsters/monsters.palette"
 
 MonsterColourGrading:
 	moveq	#$00,d2	;7400
@@ -14785,37 +14594,11 @@ MonsterColourGrading:
 	rts	;4E75
 
 GFX_Summon_LookupTable:
-	dc.w	$0000	;0000
-	dc.w	$0178	;0178
-	dc.w	$02F0	;02F0
-	dc.w	$0468	;0468
-	dc.w	$05A0	;05A0
-	dc.w	$06D8	;06D8
-	dc.w	$0810	;0810
-	dc.w	$0910	;0910
-	dc.w	$0A10	;0A10
-	dc.w	$0B10	;0B10
-	dc.w	$0BE8	;0BE8
-	dc.w	$0CC0	;0CC0
-	dc.w	$0D98	;0D98
-	dc.w	$0E48	;0E48
-	dc.w	$0EF8	;0EF8
-	dc.w	$0FA8	;0FA8
-	dc.w	$1030	;1030
-	dc.w	$10B8	;10B8
+	; ReSource: Offsets of the 18 Summon body pictures in Summon.gfx: six distances by three facing variants.
+	INCBIN "/data/BLOODWYCH439-clean/monsters/Summon.offsets"
 GFX_Summon_Arms_LookupTable:
-	dc.w	$1140	;1140
-	dc.w	$11E8	;11E8
-	dc.w	$1290	;1290
-	dc.w	$1318	;1318
-	dc.w	$13A0	;13A0
-	dc.w	$1428	;1428
-	dc.w	$1488	;1488
-	dc.w	$14F0	;14F0
-	dc.w	$1558	;1558
-	dc.w	$15B0	;15B0
-	dc.w	$1610	;1610
-	dc.w	$1670	;1670
+	; ReSource: Offsets of the 12 Summon arm pictures in Summon.gfx: four distances by three arm variants.
+	INCBIN "/data/BLOODWYCH439-clean/monsters/Summon_Arms.offsets"
 
 Draw_Crab:
 	move.w	#$FFFF,Buffer_Colour_Mask_Toggle.l	;33FCFFFF0000B4BE
@@ -14829,7 +14612,7 @@ Draw_Crab:
 	rts	;4E75
 
 Monster_Crabs_Colours:
-	INCBIN "data/BLOODWYCH439-clean/monsters/crab.colours"
+	INCBIN "/data/BLOODWYCH439-clean/monsters/crab.colours"
 
 adrCd009F28:
 	cmpi.b	#$02,d1	;0C010002
@@ -14896,7 +14679,7 @@ adrCd009F8C:
 	moveq	#$01,d2	;7401
 	moveq	#-$01,d6	;7CFF
 adrCd009F9E:
-	lea	Behemoth_Claw_Offsets.l,a2	;45F90000A6C2
+	lea	GFX_Behemoth_Claw_LookupTable.l,a2	;45F90000A6C2
 	lea	GFX_Behemoth.l,a1	;43F9000466D0
 	movem.w	d0/d1/d4/d5/d7,-(sp)	;48A7CD00
 	add.w	d1,d1	;D241
@@ -14991,7 +14774,7 @@ adrCd00A052:
 	add.b	adrB_00A02A(pc,d1.w),d4	;D83B10D6
 	bra	Draw_Monster_16PixelStrip	;60000CDC
 
-GFX_CrabFace_Heights:
+adrB_00A05A:
 	dc.b	$0B	;0B
 	dc.b	$07	;07
 GFX_CrabFace_Position:
@@ -15007,7 +14790,7 @@ adrCd00A060:
 	moveq	#$00,d6	;7C00
 	lea	adrEA00A170.l,a2	;45F90000A170
 	movem.w	d0/d1/d4/d5,-(sp)	;48A7CC00
-	move.b	GFX_CrabFace_Heights(pc,d1.w),d7	;1E3B10E8
+	move.b	adrB_00A05A(pc,d1.w),d7	;1E3B10E8
 	bsr	adrCd00A0F6	;61000080
 	add.b	GFX_CrabFace_Position(pc,d1.w),d5	;DA3B10E2
 adrCd00A07C:
@@ -15080,7 +14863,7 @@ adrCd00A0F6:
 	rts	;4E75
 
 adrCd00A106:
-	lea	adrEA00A536.l,a0	;41F90000A536
+	lea	Monster_DistanceGroups_LookupTable.l,a0	;41F90000A536
 	move.b	$00(a0,d1.w),d1	;12301000
 	lea	adrEA00A168.l,a2	;45F90000A168
 	lea	adrEA00A15C.l,a0	;41F90000A15C
@@ -15157,11 +14940,11 @@ adrCd00A1A4:
 	rts	;4E75
 
 Monster_Beholder_Colours:
-	INCBIN "data/BLOODWYCH439-clean/monsters/beholder.colours"
+	INCBIN "/data/BLOODWYCH439-clean/monsters/beholder.colours"
 GFX_Beholder_CentralEye_Near_Front_Heights:
-	INCBIN "data/BLOODWYCH439-clean/monsters/Beholder_CentralEye_Near_Front.heights"
+	INCBIN "/data/BLOODWYCH439-clean/monsters/Beholder_CentralEye_Near_Front.heights"
 GFX_Beholder_CentralEye_Near_YPositions:
-	INCBIN "data/BLOODWYCH439-clean/monsters/Beholder_CentralEye_Near_Y.positions"
+	INCBIN "/data/BLOODWYCH439-clean/monsters/Beholder_CentralEye_Near_Y.positions"
 
 Draw_Beholder_CentralEye:
 	cmpi.b	#$04,d1	;0C010004
@@ -15184,11 +14967,11 @@ adrCd00A1DC:
 	bra	Draw_Beholder_Component	;600000C4
 
 GFX_Beholder_CentralEye_Near_Side_Heights:
-	INCBIN "data/BLOODWYCH439-clean/monsters/Beholder_CentralEye_Near_Side.heights"
+	INCBIN "/data/BLOODWYCH439-clean/monsters/Beholder_CentralEye_Near_Side.heights"
 GFX_Beholder_CentralEye_Near_Side_Mirrored_XPositions:
-	INCBIN "data/BLOODWYCH439-clean/monsters/Beholder_CentralEye_Near_Side_Mirrored_X.positions"
+	INCBIN "/data/BLOODWYCH439-clean/monsters/Beholder_CentralEye_Near_Side_Mirrored_X.positions"
 GFX_Beholder_CentralEye_Near_Side_YPositions:
-	INCBIN "data/BLOODWYCH439-clean/monsters/Beholder_CentralEye_Near_Side_Y.positions"
+	INCBIN "/data/BLOODWYCH439-clean/monsters/Beholder_CentralEye_Near_Side_Y.positions"
 
 Draw_Beholder_CentralEye_NearSide:
 	add.w	#$0010,a2	;D4FC0010
@@ -15203,9 +14986,9 @@ Draw_Beholder_CentralEye_NearSide:
 	bra	Draw_Monster_16PixelStrip	;60000B14
 
 GFX_Beholder_CentralEye_Far_YPositions:
-	INCBIN "data/BLOODWYCH439-clean/monsters/Beholder_CentralEye_Far_Y.positions"
+	INCBIN "/data/BLOODWYCH439-clean/monsters/Beholder_CentralEye_Far_Y.positions"
 GFX_Beholder_CentralEye_Far_Side_Mirrored_XPositions:
-	INCBIN "data/BLOODWYCH439-clean/monsters/Beholder_CentralEye_Far_Side_Mirrored_X.positions"
+	INCBIN "/data/BLOODWYCH439-clean/monsters/Beholder_CentralEye_Far_Side_Mirrored_X.positions"
 
 Draw_Beholder_CentralEye_Far:
 	lea	GFX_Beholder_CentralEye_Far_LookupTable.l,a2	;45F90000A328
@@ -15228,13 +15011,13 @@ adrCd00A248:
 	bra	Draw_Monster_16PixelStrip	;60000ADE
 
 GFX_Beholder_Body_Heights:
-	INCBIN "data/BLOODWYCH439-clean/monsters/Beholder_Body.heights"
+	INCBIN "/data/BLOODWYCH439-clean/monsters/Beholder_Body.heights"
 GFX_Beholder_Composite_XPositions:
-	INCBIN "data/BLOODWYCH439-clean/monsters/Beholder_Composite_X.positions"
+	INCBIN "/data/BLOODWYCH439-clean/monsters/Beholder_Composite_X.positions"
 GFX_Beholder_Composite_YPositions:
-	INCBIN "data/BLOODWYCH439-clean/monsters/Beholder_Composite_Y.positions"
+	INCBIN "/data/BLOODWYCH439-clean/monsters/Beholder_Composite_Y.positions"
 GFX_Beholder_UpperEyes_Heights:
-	INCBIN "data/BLOODWYCH439-clean/monsters/Beholder_UpperEyes.heights"
+	INCBIN "/data/BLOODWYCH439-clean/monsters/Beholder_UpperEyes.heights"
 
 Draw_Beholder_BodyAndUpperEyes:
 	moveq	#$00,d7	;7E00
@@ -15278,7 +15061,7 @@ Draw_Beholder_Component:
 	rts	;4E75
 
 GFX_Beholder_Near_MirroredHalf_XPositions:
-	INCBIN "data/BLOODWYCH439-clean/monsters/Beholder_Near_MirroredHalf_X.positions"
+	INCBIN "/data/BLOODWYCH439-clean/monsters/Beholder_Near_MirroredHalf_X.positions"
 
 Select_Beholder_GfxFromLookup:
 	move.w	d1,d2	;3401
@@ -15288,21 +15071,21 @@ Select_Beholder_GfxFromLookup:
 	rts	;4E75
 
 GFX_Beholder_Body_LookupTable:
-	INCBIN "data/BLOODWYCH439-clean/monsters/Beholder_Body.offsets"
+	INCBIN "/data/BLOODWYCH439-clean/monsters/Beholder_Body.offsets"
 GFX_Beholder_UpperEyes_LookupTable:
-	INCBIN "data/BLOODWYCH439-clean/monsters/Beholder_UpperEyes.offsets"
+	INCBIN "/data/BLOODWYCH439-clean/monsters/Beholder_UpperEyes.offsets"
 GFX_Beholder_CentralEye_Near_LookupTable:
-	INCBIN "data/BLOODWYCH439-clean/monsters/Beholder_CentralEye_Near.offsets"
+	INCBIN "/data/BLOODWYCH439-clean/monsters/Beholder_CentralEye_Near.offsets"
 GFX_Beholder_CentralEye_Far_LookupTable:
-	INCBIN "data/BLOODWYCH439-clean/monsters/Beholder_CentralEye_Far.offsets"
+	INCBIN "/data/BLOODWYCH439-clean/monsters/Beholder_CentralEye_Far.offsets"
 
 Draw_LittleDragon:
 	moveq	#$01,d2	;7401
-	lea	LittleDragon_Table_Unknown.l,a2	;45F90000A33C
+	lea	adrEA00A33C.l,a2	;45F90000A33C
 	moveq	#$03,d3	;7603
 	bra.s	adrCd00A356	;601A
 
-LittleDragon_Table_Unknown:
+adrEA00A33C:
 	dc.w	$F1F5	;F1F5
 	dc.w	$FBFA	;FBFA
 	dc.w	$FD01	;FD01
@@ -15318,7 +15101,7 @@ Draw_BigDragon:
 	lea	BigDragon_Table_Unknown.l,a2	;45F90000A344
 	moveq	#$09,d3	;7609
 adrCd00A356:
-	lea	adrEA00A536.l,a0	;41F90000A536
+	lea	Monster_DistanceGroups_LookupTable.l,a0	;41F90000A536
 	move.b	$00(a0,d1.w),d1	;12301000
 	add.b	$00(a2,d1.w),d4	;D8321000
 	add.b	$04(a2,d1.w),d5	;DA321004
@@ -15352,7 +15135,7 @@ adrB_00A39C:
 	dc.b	$FF	;FF
 	dc.b	$F6	;F6
 Monster_Dragon_Colours:
-	INCBIN "data/BLOODWYCH439-clean/monsters/dragon.colours"
+	INCBIN "/data/BLOODWYCH439-clean/monsters/dragon.colours"
 
 adrCd00A3AE:
 	cmpi.b	#$02,d0	;0C000002
@@ -15574,23 +15357,22 @@ Draw_Behemoth:
 	lea	Monster_Behemoth_Colours.l,a0	;41F90000A52E
 	moveq	#$06,d3	;7606
 	bsr	MonsterColourGrading	;6100F978
-	lea	Behemoth_Position.l,a0	;41F90000A668
+	lea	GFX_Behemoth_Layout.l,a0	;41F90000A668
 	bsr.s	adrCd00A54C	;6126
 	clr.w	Buffer_Colour_Mask_Toggle.l	;42790000B4BE
 	rts	;4E75
 
 Monster_Behemoth_Colours:
-	INCBIN "data/BLOODWYCH439-clean/monsters/behemoth.colours"
-adrEA00A536:
-	dc.w	$0000	;0000
-	dc.w	$0101	;0101
-	dc.w	$0203	;0203
+	INCBIN "/data/BLOODWYCH439-clean/monsters/behemoth.colours"
+Monster_DistanceGroups_LookupTable:
+	; ReSource: Maps six visible distance slots to four stored size groups used by centred large monsters.
+	INCBIN "/data/BLOODWYCH439-clean/gfx-data/Monster_DistanceGroups.lookup"
 
 Draw_Entropy:
 	move.l	#$04080C,Buffer_Colour_Mask.l	;23FC0004080C0000B4C0
-	lea	adrEA00A604.l,a0	;41F90000A604
+	lea	GFX_Entropy_Layout.l,a0	;41F90000A604
 adrCd00A54C:
-	move.b	adrEA00A536(pc,d1.w),d1	;123B10E8
+	move.b	Monster_DistanceGroups_LookupTable(pc,d1.w),d1	;123B10E8
 	lea	$0042(a0),a2	;45E80042
 
 	move.l	$003E(a0),a1	;2268003E    *Fix stored address **  
@@ -15667,38 +15449,9 @@ adrCd00A600:
 
 ;fiX Label expected
 	dc.w	$FFFF	;FFFF
-adrEA00A604:
-	dc.w	$1008	;1008
-	dc.w	$F8F8	;F8F8
-	dc.w	$0000	;0000
-	dc.w	$3223	;3223
-	dc.w	$1A14	;1A14
-	dc.w	$0002	;0002
-	dc.w	$0000	;0000
-	dc.w	$0100	;0100
-	dc.w	$0001	;0001
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$FAFB	;FAFB
-	dc.w	$FBFB	;FBFB
-	dc.w	$FDF1	;FDF1
-	dc.w	$FEF7	;FEF7
-	dc.w	$03F4	;03F4
-	dc.w	$04FF	;04FF
-	dc.w	$0D03	;0D03
-	dc.w	$0703	;0703
-	dc.w	$FEF2	;FEF2
-	dc.w	$FCF3	;FCF3
-	dc.w	$1914	;1914
-	dc.w	$110E	;110E
-	dc.w	$F617	;F617
-	dc.w	$120E	;120E
-	dc.w	$F419	;F419
-	dc.w	$051B	;051B
-	dc.w	$F90A	;F90A
-	dc.w	$0B05	;0B05
-	dc.w	$F80B	;F80B
-	dc.w	$040C	;040C
+GFX_Entropy_Layout:
+	; ReSource: Packed Entropy body and limb dimensions, positions, and mirroring rules.
+	INCBIN "/data/BLOODWYCH439-clean/monsters/Entropy.layout"
 
 
 	;dc.w	$0004	;0004
@@ -15722,38 +15475,9 @@ adrEA00A604:
 	dc.w	$1348	;1348
 	dc.w	$13D8	;13D8
 	dc.w	$0000	;0000
-Behemoth_Position:
-	dc.w	$0C05	;0C05
-	dc.w	$F6F6	;F6F6
-	dc.w	$0000	;0000
-	dc.w	$2B1E	;2B1E
-	dc.w	$1410	;1410
-	dc.w	$0102	;0102
-	dc.w	$0100	;0100
-	dc.w	$0100	;0100
-	dc.w	$0001	;0001
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$F1F6	;F1F6
-	dc.w	$F7F7	;F7F7
-	dc.w	$FF00	;FF00
-	dc.w	$FFFF	;FFFF
-	dc.w	$04FA	;04FA
-	dc.w	$0505	;0505
-	dc.w	$0F0F	;0F0F
-	dc.w	$0F0B	;0F0B
-	dc.w	$FEF1	;FEF1
-	dc.w	$FBF2	;FBF2
-	dc.w	$1414	;1414
-	dc.w	$0D0D	;0D0D
-	dc.w	$F42B	;F42B
-	dc.w	$0719	;0719
-	dc.w	$F42B	;F42B
-	dc.w	$0719	;0719
-	dc.w	$F817	;F817
-	dc.w	$050B	;050B
-	dc.w	$F817	;F817
-	dc.w	$050B	;050B
+GFX_Behemoth_Layout:
+	; ReSource: Packed Behemoth body and claw dimensions, positions, and mirroring rules.
+	INCBIN "/data/BLOODWYCH439-clean/monsters/Behemoth.layout"
 
 	;dc.w	$0004	;0004
 	;dc.w	$66D0	;66D0
@@ -15772,11 +15496,9 @@ Behemoth_Position:
 	dc.w	$1020	;1020
 	dc.w	$10A8	;10A8
 	dc.w	$1130	;1130
-Behemoth_Claw_Offsets:
-	dc.w	$11B8	;11B8
-	dc.w	$1260	;1260
-	dc.w	$1308	;1308
-	dc.w	$1378	;1378
+GFX_Behemoth_Claw_LookupTable:
+	; ReSource: Offsets of four Behemoth claw pictures; the closest front-facing Crab reuses these graphics.
+	INCBIN "/data/BLOODWYCH439-clean/monsters/Behemoth_Claws.offsets"
 
 Draw_Monster_CompositeBitmap:
 	add.w	$0008(a5),d5	;DA6D0008
@@ -15804,7 +15526,7 @@ adrCd00A6EC:
 
 adrCd00A6F6:
 	move.b	-$0017(a3),d0	;102BFFE9
-	bmi	Draw_Spell	;6B00F4F4
+	bmi	Draw_AirbourneSpell	;6B00F4F4
 	move.w	-$000A(a3),d0	;302BFFF6
 	btst	#$00,d0	;08000000
 	bne.s	adrCd00A70A	;6602
@@ -15871,7 +15593,7 @@ Unknown_DataTable:
 	dc.b	$C3	;C3
 	dc.b	$00	;00
 CharacterBodySel:
-	INCBIN "data/BLOODWYCH439-clean/data/characters.bodies"
+	INCBIN "/data/BLOODWYCH439-clean/data/characters.bodies"
 
 adrCd00A7F2:
 	move.b	CharacterBodySel(pc,d3.w),d3	;163B30A8
@@ -15886,14 +15608,14 @@ adrCd00A804:
 	add.b	d6,d3	;D606
 adrCd00A808:
 	move.b	d6,-$001C(a3)			;1746FFE4
-	lea	adrEA00A88E.l,a0		;41F90000A88E
+	lea	Character_BodyDefinitions.l,a0		;41F90000A88E
 	and.w	#$000F,d3			;0243000F
 	mulu	#$000A,d3			;C6FC000A
 	lea	$02(a0,d3.w),a0			;41F03002
-	lea	adrEA018804.l,a1		;43F900018804
+	lea	Character_RenderLayout_Standard.l,a1		;43F900018804
 	tst.w	-$0002(a0)			;4A68FFFE
 	beq.s	adrCd00A830			;6706
-	lea	adrEA018944.l,a1		;43F900018944
+	lea	Character_RenderLayout_Alternate.l,a1		;43F900018944
 adrCd00A830:
 	move.l	a0,-(sp)	;2F08
 	move.l	a1,-(sp)	;2F09
@@ -15923,7 +15645,7 @@ adrCd00A876:
 	moveq	#$00,d0	;7000
 adrCd00A878:
 	move.w	d0,-(sp)	;3F00
-	bsr	adrCd00A998	;6100011C
+	bsr	Draw_CharacterComponent	;6100011C
 	move.w	(sp)+,d0	;301F
 	addq.w	#$01,d0	;5240
 	cmpi.w	#$0005,d0	;0C400005
@@ -15931,125 +15653,31 @@ adrCd00A878:
 	add.w	#$0012,sp	;DEFC0012
 	rts	;4E75
 
-adrEA00A88E:
-	dc.w	$0000	;0000
-	dc.w	$2BE0	;2BE0
-	dc.w	$10E0	;10E0
-	dc.w	$3378	;3378
-	dc.w	$4428	;4428
-	dc.w	$0000	;0000
-	dc.w	$2448	;2448
-	dc.w	$0CA8	;0CA8
-	dc.w	$3828	;3828
-	dc.w	$47D0	;47D0
-	dc.w	$0000	;0000
-	dc.w	$1518	;1518
-	dc.w	$0000	;0000
-	dc.w	$3378	;3378
-	dc.w	$3CD8	;3CD8
-	dc.w	$0000	;0000
-	dc.w	$1518	;1518
-	dc.w	$0438	;0438
-	dc.w	$3378	;3378
-	dc.w	$4080	;4080
-	dc.w	$0001	;0001
-	dc.w	$4EC0	;4EC0
-	dc.w	$4B78	;4B78
-	dc.w	$6C60	;6C60
-	dc.w	$7098	;7098
-	dc.w	$0000	;0000
-	dc.w	$1518	;1518
-	dc.w	$0438	;0438
-	dc.w	$3378	;3378
-	dc.w	$4080	;4080
-	dc.w	$0001	;0001
-	dc.w	$64F8	;64F8
-	dc.w	$4B78	;4B78
-	dc.w	$6C60	;6C60
-	dc.w	$7410	;7410
-	dc.w	$0000	;0000
-	dc.w	$1CB0	;1CB0
-	dc.w	$0870	;0870
-	dc.w	$3378	;3378
-	dc.w	$4428	;4428
-	dc.w	$0001	;0001
-	dc.w	$5D90	;5D90
-	dc.w	$4B78	;4B78
-	dc.w	$6C60	;6C60
-	dc.w	$7410	;7410
-	dc.w	$0000	;0000
-	dc.w	$1CB0	;1CB0
-	dc.w	$0870	;0870
-	dc.w	$3378	;3378
-	dc.w	$4428	;4428
-	dc.w	$0001	;0001
-	dc.w	$5628	;5628
-	dc.w	$4B78	;4B78
-	dc.w	$6C60	;6C60
-	dc.w	$7788	;7788
-	dc.w	$0000	;0000
-	dc.w	$1518	;1518
-	dc.w	$0870	;0870
-	dc.w	$3378	;3378
-	dc.w	$4080	;4080
-	dc.w	$0000	;0000
-	dc.w	$7B00	;7B00
-	dc.w	$0000	;0000
-	dc.w	$3378	;3378
-	dc.w	$8298	;8298
-	dc.w	$0000	;0000
-	dc.w	$7B00	;7B00
-	dc.w	$0870	;0870
-	dc.w	$3378	;3378
-	dc.w	$8298	;8298
+Character_BodyDefinitions:
+	; ReSource: Fourteen 10-byte records containing a layout selector and BodyParts.gfx bases for legs, torso, arms and the distant composite.
+	INCBIN "/data/BLOODWYCH439-clean/data/characters-body-definitions.layout"
 CharacterHeadSel:
-	INCBIN "data/BLOODWYCH439-clean/data/characters.heads"
-adrW_00A970:
-	dc.w	$00A0	;00A0
-adrW_00A972:
-	dc.w	$00AC	;00AC
-	dc.w	$00C4	;00C4
-	dc.w	$00D0	;00D0
-	dc.w	$00E8	;00E8
-	dc.w	$00F4	;00F4
-	dc.w	$010C	;010C
-	dc.w	$0118	;0118
-	dc.w	$010C	;010C
-	dc.w	$0118	;0118
-adrB_00A984:
-	dc.b	$00	;00
-	dc.b	$01	;01
-	dc.b	$02	;02
-	dc.b	$81	;81
-	dc.b	$00	;00
-	dc.b	$01	;01
-	dc.b	$02	;02
-	dc.b	$81	;81
-	dc.b	$00	;00
-	dc.b	$01	;01
-	dc.b	$02	;02
-	dc.b	$81	;81
-	dc.b	$00	;00
-	dc.b	$FF	;FF
-	dc.b	$80	;80
-	dc.b	$01	;01
-	dc.b	$80	;80
-	dc.b	$81	;81
-	dc.b	$00	;00
-	dc.b	$FF	;FF
+	INCBIN "/data/BLOODWYCH439-clean/data/characters.heads"
+Character_RenderTableOffsets:
+	; ReSource: Interleaved five-entry lookup containing the height-table and graphics-source-table offsets for each rendered character part.
+	INCBIN "/data/BLOODWYCH439-clean/data/characters-render-table-offsets.lookup"
+Character_PartFacingVariants:
+	; ReSource: Five parts × four facings; bit 7 means mirror and $FF suppresses that part.
+	INCBIN "/data/BLOODWYCH439-clean/data/characters-part-variants.lookup"
 
-adrCd00A998:
+Draw_CharacterComponent:
+	; ReSource: Draws one character component by selecting its distance, facing and animation variant, resolving its height and graphics source, applying its colour mask, and positioning or mirroring the 16-pixel strip.
 	move.w	d0,d2	;3400
 	asl.w	#$02,d2	;E542
-	move.w	adrW_00A970(pc,d2.w),d1	;323B20D2
-	move.w	adrW_00A972(pc,d2.w),d3	;363B20D0
+	move.w	Character_RenderTableOffsets(pc,d2.w),d1	;323B20D2
+	move.w	Character_RenderTableOffsets+$02(pc,d2.w),d3	;363B20D0
 	move.l	$0010(sp),a0	;206F0010
 	lea	$00(a0,d1.w),a1	;43F01000
 	lea	$00(a0,d3.w),a2	;45F03000
 	add.w	$000E(sp),a0	;D0EF000E
 	add.w	$0006(sp),d2	;D46F0006
 	moveq	#$00,d6	;7C00
-	move.b	adrB_00A984(pc,d2.w),d2	;143B20C8
+	move.b	Character_PartFacingVariants(pc,d2.w),d2	;143B20C8
 	bpl.s	adrCd00A9C2	;6A02
 	subq.w	#$01,d6	;5346
 adrCd00A9C2:
@@ -16115,8 +15743,8 @@ adrCd00AA4E:
 	move.w	$0008(sp),d1	;322F0008
 	subq.w	#$06,d0	;5D40
 	add.w	d0,d0	;D040
-	lea	adrEA00AAFC.l,a0	;41F90000AAFC
-	cmp.l	#adrEA018944,$0010(sp)	;0CAF000189440010
+	lea	Character_ArmAnimationPositions.l,a0	;41F90000AAFC
+	cmp.l	#Character_RenderLayout_Alternate,$0010(sp)	;0CAF000189440010
 	bne.s	adrCd00AA76	;6604
 	add.w	#$0024,a0	;D0FC0024
 adrCd00AA76:
@@ -16177,43 +15805,9 @@ adrCd00AADC:
 adrCd00AAF8:
 	bra	adrCd00AD2E	;60000234
 
-adrEA00AAFC:
-	dc.w	$0806	;0806
-	dc.w	$0605	;0605
-	dc.w	$FC00	;FC00
-	dc.w	$04FC	;04FC
-	dc.w	$0404	;0404
-	dc.w	$FC00	;FC00
-	dc.w	$FD00	;FD00
-	dc.w	$03FA	;03FA
-	dc.w	$0306	;0306
-	dc.w	$FD00	;FD00
-	dc.w	$FE00	;FE00
-	dc.w	$02F9	;02F9
-	dc.w	$0207	;0207
-	dc.w	$FE00	;FE00
-	dc.w	$FE00	;FE00
-	dc.w	$02F8	;02F8
-	dc.w	$0207	;0207
-	dc.w	$FE00	;FE00
-	dc.w	$0806	;0806
-	dc.w	$0605	;0605
-	dc.w	$FD00	;FD00
-	dc.w	$03FA	;03FA
-	dc.w	$0306	;0306
-	dc.w	$FD00	;FD00
-	dc.w	$FE00	;FE00
-	dc.w	$02F8	;02F8
-	dc.w	$0207	;0207
-	dc.w	$FE00	;FE00
-	dc.w	$FE00	;FE00
-	dc.w	$02F8	;02F8
-	dc.w	$0208	;0208
-	dc.w	$FE00	;FE00
-	dc.w	$FE00	;FE00
-	dc.w	$02F7	;02F7
-	dc.w	$0209	;0209
-	dc.w	$FE00	;FE00
+Character_ArmAnimationPositions:
+	; ReSource: Standard and alternate animated-arm Y corrections and facing-specific X corrections.
+	INCBIN "/data/BLOODWYCH439-clean/data/characters-arm-animation.positions"
 
 adrCd00AB44:
 	lea	Buffer_Colour_Mask.l,a6	;4DF90000B4C0
@@ -16469,13 +16063,13 @@ adrCd00AC6E:
 	beq.s	adrCd00AC8C	;6710
 	moveq	#$14,d7	;7E14
 	move.w	#$00A8,d2	;343C00A8
-	lea	adrEA018A74.l,a0	;41F900018A74
+	lea	Character_Distant4_Positions_Alternate.l,a0	;41F900018A74
 	bra	adrCd00ACCC	;60000042
 
 adrCd00AC8C:
 	moveq	#$15,d7	;7E15
 	move.w	#$00B0,d2	;343C00B0
-	lea	adrEA018934.l,a0	;41F900018934
+	lea	Character_Distant4_Positions_Standard.l,a0	;41F900018934
 	bra	adrCd00ACCC	;60000032
 
 adrCd00AC9C:
@@ -16486,14 +16080,14 @@ adrCd00AC9C:
 	beq.s	adrCd00ACBC	;6712
 	moveq	#$0F,d7	;7E0F
 	move.w	#$0080,d2	;343C0080
-	lea	adrEA018A7C.l,a0	;41F900018A7C
+	lea	Character_Distant5_Positions_Alternate.l,a0	;41F900018A7C
 	add.w	#$01F8,d3	;064301F8
 	bra.s	adrCd00ACCC	;6010
 
 adrCd00ACBC:
 	moveq	#$10,d7	;7E10
 	move.w	#$0088,d2	;343C0088
-	lea	adrEA01893C.l,a0	;41F90001893C
+	lea	Character_Distant5_Positions_Standard.l,a0	;41F90001893C
 	add.w	#$0210,d3	;06430210
 adrCd00ACCC:
 	move.l	d3,a1	;2243
@@ -16564,7 +16158,7 @@ adrW_00AD64:
 	dc.w	$004B	;004B
 
 adrCd00AD66:
-	lea	adrEA01684C.l,a6	;4DF90001684C
+	lea	BitReverse_LookupBuffer.l,a6	;4DF90001684C
 adrCd00AD6C:
 	moveq	#$00,d2	;7400
 	move.b	d0,d2	;1400
@@ -17063,15 +16657,15 @@ adrCd00B1EE:
 	bra	adrCd00B410	;6000020E
 
 GFX_Main_Slots_Palette:
-	INCBIN "data/BLOODWYCH439-clean/gfx/Main_Slots.colours"
+	INCBIN "/data/BLOODWYCH439-clean/gfx/Main_Slots.colours"
 GFX_Main_Slots_Offsets:
-	INCBIN "data/BLOODWYCH439-clean/gfx/Main_Slots.offsets"
+	INCBIN "/data/BLOODWYCH439-clean/gfx/Main_Slots.offsets"
 GFX_Switches_Colours:
-	INCBIN "data/BLOODWYCH439-clean/gfx/Switches.colours"
+	INCBIN "/data/BLOODWYCH439-clean/gfx/Switches.colours"
 GFX_Main_Sign_Colours:
-	INCBIN "data/BLOODWYCH439-clean/gfx/Main_Sign.colours"
+	INCBIN "/data/BLOODWYCH439-clean/gfx/Main_Sign.colours"
 GFX_Main_Signoverlay_Offsets:
-	INCBIN "data/BLOODWYCH439-clean/gfx/Main_SignOverlay.offsets"
+	INCBIN "/data/BLOODWYCH439-clean/gfx/Main_SignOverlay.offsets"
 
 adrCd00B2A4:
 	moveq	#$00,d0	;7000
@@ -17112,7 +16706,7 @@ GFX_Main_Wall_SpriteTable:
 	dc.b	$1A	;1A
 	dc.b	$1B	;1B
 Door_Lock_Colours:
-	INCBIN "data/BLOODWYCH439-clean/data/Door_Lock.colours"
+	INCBIN "/data/BLOODWYCH439-clean/data/Door_Lock.colours"
 
 adrCd00B2DE:
 	cmp.b	#$01,-$0013(a3)	;0C2B0001FFED
@@ -17691,16 +17285,18 @@ adrCd00B7DE:
 	dbra	d5,adrLp00B76E	;51CDFF7E
 	rts	;4E75
 
-adrCd00B7F4:
+Draw_FloorAndCeiling:
+	; ReSource: Draws the floor and ceiling bands used by the dungeon viewport.
 	lea	GFX_FloorCeiling.l,a1	;43F900032120
 	move.l	-$0008(a3),a0	;206BFFF8
 	tst.w	-$000C(a3)	;4A6BFFF4
-	beq.s	adrCd00B864	;6760
+	beq.s	Draw_FloorAndCeiling_BitReversed	;6760
 	moveq	#$16,d0	;7016
-	bsr.s	adrLp00B80C	;6104
-	bsr.s	adrCd00B82A	;6120
+	bsr.s	Draw_FloorAndCeiling_CopyRows_Loop	;6104
+	bsr.s	Clear_FloorCeiling_ViewGap	;6120
 	moveq	#$21,d0	;7021
-adrLp00B80C:
+Draw_FloorAndCeiling_CopyRows_Loop:
+	; ReSource: Copies source rows into the floor and ceiling areas of the dungeon viewport.
 	moveq	#$07,d1	;7207
 adrLp00B80E:
 	move.w	(a1)+,(a0)+	;30D9
@@ -17709,10 +17305,11 @@ adrLp00B80E:
 	move.w	(a1)+,$5DBE(a0)	;31595DBE
 	dbra	d1,adrLp00B80E	;51C9FFF0
 	lea	$0018(a0),a0	;41E80018
-	dbra	d0,adrLp00B80C	;51C8FFE6
+	dbra	d0,Draw_FloorAndCeiling_CopyRows_Loop	;51C8FFE6
 	rts	;4E75
 
-adrCd00B82A:
+Clear_FloorCeiling_ViewGap:
+	; ReSource: Clears the horizontal gap between the floor and ceiling render regions.
 	moveq	#$12,d0	;7012
 	moveq	#$00,d1	;7200
 adrLp00B82E:
@@ -17739,16 +17336,18 @@ adrLp00B82E:
 	dbra	d0,adrLp00B82E	;51C8FFCE
 	rts	;4E75
 
-adrCd00B864:
-	lea	adrEA01684C.l,a6	;4DF90001684C
+Draw_FloorAndCeiling_BitReversed:
+	; ReSource: Draws the bit-reversed half of the floor and ceiling pattern.
+	lea	BitReverse_LookupBuffer.l,a6	;4DF90001684C
 	lea	$0010(a0),a0	;41E80010
 	moveq	#$16,d7	;7E16
-	bsr.s	adrLp00B87E	;610C
+	bsr.s	Draw_FloorAndCeiling_BitReversed_Loop	;610C
 	sub.w	#$0010,a0	;90FC0010
-	bsr.s	adrCd00B82A	;61B2
+	bsr.s	Clear_FloorCeiling_ViewGap	;61B2
 	lea	$0010(a0),a0	;41E80010
 	moveq	#$21,d7	;7E21
-adrLp00B87E:
+Draw_FloorAndCeiling_BitReversed_Loop:
+	; ReSource: Loop used to write the bit-reversed floor and ceiling rows.
 	moveq	#$07,d3	;7607
 adrLp00B880:
 	move.l	(a1)+,d0	;2019
@@ -17764,7 +17363,7 @@ adrLp00B880:
 	move.w	d1,-(a0)	;3101
 	dbra	d3,adrLp00B880	;51CBFFDE
 	lea	$0038(a0),a0	;41E80038
-	dbra	d7,adrLp00B87E	;51CFFFD4
+	dbra	d7,Draw_FloorAndCeiling_BitReversed_Loop	;51CFFFD4
 	rts	;4E75
 
 adrEA00B8AE:
@@ -17973,35 +17572,35 @@ adrEA00B9F2:
 	dc.w	$1B17	;1B17
 	dc.w	$0BFF	;0BFF
 GFX_Main_Walls_Positions:
-	INCBIN "data/BLOODWYCH439-clean/gfx/Main_Walls.positions"
+	INCBIN "/data/BLOODWYCH439-clean/gfx/Main_Walls.positions"
 GFX_Wooden_Wall_Positions:
-	INCBIN "data/BLOODWYCH439-clean/gfx/Wooden_Wall.positions"
+	INCBIN "/data/BLOODWYCH439-clean/gfx/Wooden_Wall.positions"
 GFX_Stairs_Up_Positions:
-	INCBIN "data/BLOODWYCH439-clean/gfx/Stairs_Up.positions"
+	INCBIN "/data/BLOODWYCH439-clean/gfx/Stairs_Up.positions"
 GFX_Stairs_Down_Positions:
-	INCBIN "data/BLOODWYCH439-clean/gfx/Stairs_Down.positions"
+	INCBIN "/data/BLOODWYCH439-clean/gfx/Stairs_Down.positions"
 GFX_Misc_Pillar_Positions:
-	INCBIN "data/BLOODWYCH439-clean/gfx/Misc_Pillar.positions"
+	INCBIN "/data/BLOODWYCH439-clean/gfx/Misc_Pillar.positions"
 GFX_Door_Positions:
-	INCBIN "data/BLOODWYCH439-clean/gfx/Door.Positions"
+	INCBIN "/data/BLOODWYCH439-clean/gfx/Door.Positions"
 GFX_Misc_Bed_Positions:
-	INCBIN "data/BLOODWYCH439-clean/gfx/Misc_Bed.positions"
+	INCBIN "/data/BLOODWYCH439-clean/gfx/Misc_Bed.positions"
 GFX_Main_Shelf_Positions:
-	INCBIN "data/BLOODWYCH439-clean/gfx/Main_Shelf.positions"
+	INCBIN "/data/BLOODWYCH439-clean/gfx/Main_Shelf.positions"
 GFX_Main_Sign_Positions:
-	INCBIN "data/BLOODWYCH439-clean/gfx/Main_Sign.positions"
+	INCBIN "/data/BLOODWYCH439-clean/gfx/Main_Sign.positions"
 GFX_Main_Signoverlay_Positions:
-	INCBIN "data/BLOODWYCH439-clean/gfx/Main_SignOverlay.positions"
+	INCBIN "/data/BLOODWYCH439-clean/gfx/Main_SignOverlay.positions"
 GFX_Main_Slots_Positions:
-	INCBIN "data/BLOODWYCH439-clean/gfx/Main_Slots.positions"
+	INCBIN "/data/BLOODWYCH439-clean/gfx/Main_Slots.positions"
 GFX_Main_Switches_Positions:
-	INCBIN "data/BLOODWYCH439-clean/gfx/Main_Switches.positions"
+	INCBIN "/data/BLOODWYCH439-clean/gfx/Main_Switches.positions"
 GFX_Pad_Pit_Low_Positions:
-	INCBIN "data/BLOODWYCH439-clean/gfx/Pad_Pit_Low.positions"
+	INCBIN "/data/BLOODWYCH439-clean/gfx/Pad_Pit_Low.positions"
 GFX_Pad_Trigger_Positions:
-	INCBIN "data/BLOODWYCH439-clean/gfx/Pad_Trigger.positions"
+	INCBIN "/data/BLOODWYCH439-clean/gfx/Pad_Trigger.positions"
 GFX_Wooden_Doors_Positions:
-	INCBIN "data/BLOODWYCH439-clean/gfx/Wooden_Doors.positions"
+	INCBIN "/data/BLOODWYCH439-clean/gfx/Wooden_Doors.positions"
 
 adrCd00C01E:
 	lea	Msg_SelectChamps.l,a6	;4DF90000E480
@@ -21349,7 +20948,7 @@ WordsText:
 	dc.b	$01	;01
 	dc.b	'I'	;49
 Objects_Texts:
-	INCBIN "data/BLOODWYCH439-clean/data/objecttext.block"
+	INCBIN "/data/BLOODWYCH439-clean/data/objecttext.block"
 Msg_SelectChamps:
 	dc.b	'PLEASE SELECT YOUR CHAMPIONS...'	;504C454153452053454C45435420594F5552204348414D50494F4E532E2E2E
 	dc.b	$FF	;FF
@@ -21362,17 +20961,17 @@ adrEA00E4C2:
 adrEA00E4C3:
 	dc.b	$00	;00
 Object_DataTable:
-	INCBIN "data/BLOODWYCH439-clean/data/objectpocketicons.block"
+	INCBIN "/data/BLOODWYCH439-clean/data/objectpocketicons.block"
 Object_Floor_DataTable:
-	INCBIN "data/BLOODWYCH439-clean/data/objectflooricons.block"
+	INCBIN "/data/BLOODWYCH439-clean/data/objectflooricons.block"
 GFX_ObjectsOnFloor_Heights:
-	INCBIN "data/BLOODWYCH439-clean/gfx/ObjectsOnFloor.heights"
+	INCBIN "/data/BLOODWYCH439-clean/gfx/ObjectsOnFloor.heights"
 Object_Floor_Colours:
-	INCBIN "data/BLOODWYCH439-clean/data/objectfloor.colours"
+	INCBIN "/data/BLOODWYCH439-clean/data/objectfloor.colours"
 Object_Floor_Palettes:
-	INCBIN "data/BLOODWYCH439-clean/data/objectfloor.palette"
+	INCBIN "/data/BLOODWYCH439-clean/data/objectfloor.palette"
 GFX_ObjectsOnFloor_Offsets:
-	INCBIN "data/BLOODWYCH439-clean/gfx/ObjectsOnFloor.offsets"
+	INCBIN "/data/BLOODWYCH439-clean/gfx/ObjectsOnFloor.offsets"
 adrEA00E998:
 	dc.b	$FC	;FC
 	dc.b	$12	;12
@@ -21591,9 +21190,9 @@ adrEA00EAFA:
 	dc.w	$003A	;003A
 	dc.w	$0057	;0057
 Character_Stats_DataTable:
-	INCBIN "data/BLOODWYCH439-clean/data/champions.stats"
+	INCBIN "/data/BLOODWYCH439-clean/data/champions.stats"
 Character_Pockets_DataTable:
-	INCBIN "data/BLOODWYCH439-clean/data/champions.pockets"
+	INCBIN "/data/BLOODWYCH439-clean/data/champions.pockets"
 adrW_00EE2A:
 	dc.w	$0000	;0000
 adrB_00EE2C:
@@ -21804,30 +21403,30 @@ adrL_00EF38:
 	dc.l	$FFFFFFFF	;FFFFFFFF
 	dc.l	$FFFFFFFF	;FFFFFFFF
 MapData1:
-	INCBIN "data/BLOODWYCH439-clean/maps/mod0.map"
+	INCBIN "/data/BLOODWYCH439-clean/maps/mod0.map"
 
 ObjectData_1:
-	INCBIN "data/BLOODWYCH439-clean/maps/mod0.obj"
+	INCBIN "/data/BLOODWYCH439-clean/maps/mod0.obj"
 MapData2:
-	INCBIN "data/BLOODWYCH439-clean/maps/serp.map"
+	INCBIN "/data/BLOODWYCH439-clean/maps/serp.map"
 ObjectData_2:
-	INCBIN "data/BLOODWYCH439-clean/maps/serp.obj"
+	INCBIN "/data/BLOODWYCH439-clean/maps/serp.obj"
 MapData3:
-	INCBIN "data/BLOODWYCH439-clean/maps/moon.map"
+	INCBIN "/data/BLOODWYCH439-clean/maps/moon.map"
 ObjectData_3:
-	INCBIN "data/BLOODWYCH439-clean/maps/moon.obj"
+	INCBIN "/data/BLOODWYCH439-clean/maps/moon.obj"
 MapData4:
-	INCBIN "data/BLOODWYCH439-clean/maps/drag.map"
+	INCBIN "/data/BLOODWYCH439-clean/maps/drag.map"
 ObjectData_4:
-	INCBIN "data/BLOODWYCH439-clean/maps/drag.obj"
+	INCBIN "/data/BLOODWYCH439-clean/maps/drag.obj"
 MapData5:
-	INCBIN "data/BLOODWYCH439-clean/maps/chaos.map"
+	INCBIN "/data/BLOODWYCH439-clean/maps/chaos.map"
 ObjectData_5:
-	INCBIN "data/BLOODWYCH439-clean/maps/chaos.obj"
+	INCBIN "/data/BLOODWYCH439-clean/maps/chaos.obj"
 MapData6:
-	INCBIN "data/BLOODWYCH439-clean/maps/zendik.map"
+	INCBIN "/data/BLOODWYCH439-clean/maps/zendik.map"
 ObjectData_6:
-	INCBIN "data/BLOODWYCH439-clean/maps/zendik.obj"
+	INCBIN "/data/BLOODWYCH439-clean/maps/zendik.obj"
 adrEA01674C:
 	dc.w	$0000	;0000
 	dc.w	$0000	;0000
@@ -21958,7 +21557,8 @@ adrEA0167CC:
 	dc.w	$0000	;0000
 	dc.w	$0000	;0000
 	dc.w	$0000	;0000
-adrEA01684C:
+BitReverse_LookupBuffer:
+	; ReSource: Working lookup buffer containing bit-reversed byte values used by the floor and ceiling renderer.
 	dc.w	$0000	;0000
 	dc.w	$0000	;0000
 	dc.w	$0000	;0000
@@ -23657,17 +23257,17 @@ adrEA0174F8:
 	dc.w	$0000	;0000
 	dc.w	$0000	;0000
 MonsterTotalsCounts_mod0:
-	INCBIN "data/BLOODWYCH439-clean/maps/mod0.monstercount"
+	INCBIN "/data/BLOODWYCH439-clean/maps/mod0.monstercount"
 MonsterTotalsCounts_serp:
-	INCBIN "data/BLOODWYCH439-clean/maps/serp.monstercount"
+	INCBIN "/data/BLOODWYCH439-clean/maps/serp.monstercount"
 MonsterTotalsCounts_moon:
-	INCBIN "data/BLOODWYCH439-clean/maps/moon.monstercount"
+	INCBIN "/data/BLOODWYCH439-clean/maps/moon.monstercount"
 MonsterTotalsCounts_drag:
-	INCBIN "data/BLOODWYCH439-clean/maps/drag.monstercount"
+	INCBIN "/data/BLOODWYCH439-clean/maps/drag.monstercount"
 MonsterTotalsCounts_chaos:
-	INCBIN "data/BLOODWYCH439-clean/maps/chaos.monstercount"
+	INCBIN "/data/BLOODWYCH439-clean/maps/chaos.monstercount"
 MonsterTotalsCounts_zendik:
-	INCBIN "data/BLOODWYCH439-clean/maps/zendik.monstercount"
+	INCBIN "/data/BLOODWYCH439-clean/maps/zendik.monstercount"
 TheMonsterBlock:
 	dc.w	$040B	;040B
 	dc.w	$0F00	;0F00
@@ -25979,418 +25579,65 @@ SpellBookRunes:
 	dc.b	'yhadalittlelaaneeitwerraguddutnerewanzednowtecozzitwerawuddunwhyamistillhavintotypethiscrapwhithoughtidfinishacoupleoflinesq'	;79686164616C6974746C656C61616E6565697477657272616775646475746E65726577616E7A65646E6F777465636F7A7A6974776572617775646
 *56E776879616D697374696C6C686176696E746F74797065746869736372617077686974686F75676874696466696E69736861636F75706C656F666C696E657371
 	dc.b	'x'	;78
-adrEA018804:
-	dc.w	$0000	;0000
-	dc.w	$01F2	;01F2
-	dc.w	$03EB	;03EB
-	dc.w	$FCF4	;FCF4
-	dc.w	$05F4	;05F4
-	dc.w	$0500	;0500
-	dc.w	$03F2	;03F2
-	dc.w	$03EB	;03EB
-	dc.w	$0000	;0000
-	dc.w	$FFF4	;FFF4
-	dc.w	$0000	;0000
-	dc.w	$01F2	;01F2
-	dc.w	$03EB	;03EB
-	dc.w	$05F4	;05F4
-	dc.w	$FCF4	;FCF4
-	dc.w	$FC00	;FC00
-	dc.w	$FEF2	;FEF2
-	dc.w	$FEEB	;FEEB
-	dc.w	$02F4	;02F4
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$01F4	;01F4
-	dc.w	$03EE	;03EE
-	dc.w	$FDF6	;FDF6
-	dc.w	$02F6	;02F6
-	dc.w	$0300	;0300
-	dc.w	$02F4	;02F4
-	dc.w	$02EE	;02EE
-	dc.w	$FFFF	;FFFF
-	dc.w	$FCF6	;FCF6
-	dc.w	$0000	;0000
-	dc.w	$01F4	;01F4
-	dc.w	$03EE	;03EE
-	dc.w	$02F6	;02F6
-	dc.w	$FDF6	;FDF6
-	dc.w	$FA00	;FA00
-	dc.w	$FBF4	;FBF4
-	dc.w	$FBEE	;FBEE
-	dc.w	$01F6	;01F6
-	dc.w	$FFFF	;FFFF
-	dc.w	$0000	;0000
-	dc.w	$01F6	;01F6
-	dc.w	$02F1	;02F1
-	dc.w	$FDF8	;FDF8
-	dc.w	$FEF8	;FEF8
-	dc.w	$0300	;0300
-	dc.w	$02F6	;02F6
-	dc.w	$03F1	;03F1
-	dc.w	$FFFF	;FFFF
-	dc.w	$FBF8	;FBF8
-	dc.w	$0000	;0000
-	dc.w	$01F6	;01F6
-	dc.w	$02F1	;02F1
-	dc.w	$FEF8	;FEF8
-	dc.w	$FDF8	;FDF8
-	dc.w	$F800	;F800
-	dc.w	$F9F6	;F9F6
-	dc.w	$F8F1	;F8F1
-	dc.w	$00F8	;00F8
-	dc.w	$FFFF	;FFFF
-	dc.w	$FF00	;FF00
-	dc.w	$00F7	;00F7
-	dc.w	$02F3	;02F3
-	dc.w	$FDF9	;FDF9
-	dc.w	$FCF9	;FCF9
-	dc.w	$0200	;0200
-	dc.w	$01F7	;01F7
-	dc.w	$02F3	;02F3
-	dc.w	$FFFF	;FFFF
-	dc.w	$F8F9	;F8F9
-	dc.w	$FF00	;FF00
-	dc.w	$01F7	;01F7
-	dc.w	$01F3	;01F3
-	dc.w	$FCF9	;FCF9
-	dc.w	$FDF9	;FDF9
-	dc.w	$F700	;F700
-	dc.w	$F8F7	;F8F7
-	dc.w	$F6F3	;F6F3
-	dc.w	$01F9	;01F9
-	dc.w	$FFFF	;FFFF
-	dc.w	$1919	;1919
-	dc.w	$1915	;1915
-	dc.w	$1515	;1515
-	dc.w	$1111	;1111
-	dc.w	$110E	;110E
-	dc.w	$0E0E	;0E0E
-	dc.w	$0000	;0000
-	dc.w	$00D0	;00D0
-	dc.w	$01A0	;01A0
-	dc.w	$0270	;0270
-	dc.w	$0320	;0320
-	dc.w	$03D0	;03D0
-	dc.w	$0480	;0480
-	dc.w	$0510	;0510
-	dc.w	$05A0	;05A0
-	dc.w	$0630	;0630
-	dc.w	$06A8	;06A8
-	dc.w	$0720	;0720
-	dc.w	$0D0D	;0D0D
-	dc.w	$0D0B	;0D0B
-	dc.w	$0B0B	;0B0B
-	dc.w	$0909	;0909
-	dc.w	$0908	;0908
-	dc.w	$0808	;0808
-	dc.w	$0000	;0000
-	dc.w	$0070	;0070
-	dc.w	$00E0	;00E0
-	dc.w	$0150	;0150
-	dc.w	$01B0	;01B0
-	dc.w	$0210	;0210
-	dc.w	$0270	;0270
-	dc.w	$02C0	;02C0
-	dc.w	$0310	;0310
-	dc.w	$0360	;0360
-	dc.w	$03A8	;03A8
-	dc.w	$03F0	;03F0
-	dc.w	$0B0B	;0B0B
-	dc.w	$0B09	;0B09
-	dc.w	$0909	;0909
-	dc.w	$0707	;0707
-	dc.w	$0706	;0706
-	dc.w	$0606	;0606
-	dc.w	$0000	;0000
-	dc.w	$0060	;0060
-	dc.w	$00C0	;00C0
-	dc.w	$0120	;0120
-	dc.w	$0170	;0170
-	dc.w	$01C0	;01C0
-	dc.w	$0210	;0210
-	dc.w	$0250	;0250
-	dc.w	$0290	;0290
-	dc.w	$02D0	;02D0
-	dc.w	$0308	;0308
-	dc.w	$0340	;0340
-	dc.w	$1111	;1111
-	dc.w	$0D0D	;0D0D
-	dc.w	$0D0A	;0D0A
-	dc.w	$0B0B	;0B0B
-	dc.w	$0809	;0809
-	dc.w	$0907	;0907
-	dc.w	$0000	;0000
-	dc.w	$0090	;0090
-	dc.w	$0120	;0120
-	dc.w	$0190	;0190
-	dc.w	$0200	;0200
-	dc.w	$0270	;0270
-	dc.w	$02C8	;02C8
-	dc.w	$0328	;0328
-	dc.w	$0388	;0388
-	dc.w	$03D0	;03D0
-	dc.w	$0420	;0420
-	dc.w	$0470	;0470
-adrEA018934:
-	dc.w	$0001	;0001
-	dc.w	$0501	;0501
-	dc.w	$0001	;0001
-	dc.w	$F801	;F801
-adrEA01893C:
-	dc.w	$0000	;0000
-	dc.w	$0300	;0300
-	dc.w	$0000	;0000
-	dc.w	$F600	;F600
-adrEA018944:
-	dc.w	$0001	;0001
-	dc.w	$03F5	;03F5
-	dc.w	$03EE	;03EE
-	dc.w	$FFF7	;FFF7
-	dc.w	$02F7	;02F7
-	dc.w	$0501	;0501
-	dc.w	$05F5	;05F5
-	dc.w	$05EE	;05EE
-	dc.w	$0000	;0000
-	dc.w	$FEF7	;FEF7
-	dc.w	$0001	;0001
-	dc.w	$03F5	;03F5
-	dc.w	$03EE	;03EE
-	dc.w	$02F7	;02F7
-	dc.w	$FFF7	;FFF7
-	dc.w	$FC01	;FC01
-	dc.w	$FCF5	;FCF5
-	dc.w	$FCEE	;FCEE
-	dc.w	$03F7	;03F7
-	dc.w	$0000	;0000
-	dc.w	$0101	;0101
-	dc.w	$03F8	;03F8
-	dc.w	$03F2	;03F2
-	dc.w	$FFF9	;FFF9
-	dc.w	$00F9	;00F9
-	dc.w	$0301	;0301
-	dc.w	$03F8	;03F8
-	dc.w	$03F2	;03F2
-	dc.w	$FFFF	;FFFF
-	dc.w	$FBF9	;FBF9
-	dc.w	$0101	;0101
-	dc.w	$03F8	;03F8
-	dc.w	$03F2	;03F2
-	dc.w	$00F9	;00F9
-	dc.w	$FFF9	;FFF9
-	dc.w	$FA01	;FA01
-	dc.w	$FAF8	;FAF8
-	dc.w	$F9F2	;F9F2
-	dc.w	$02F9	;02F9
-	dc.w	$FFFF	;FFFF
-	dc.w	$FF00	;FF00
-	dc.w	$01F9	;01F9
-	dc.w	$01F4	;01F4
-	dc.w	$FEFB	;FEFB
-	dc.w	$FBFB	;FBFB
-	dc.w	$0300	;0300
-	dc.w	$02F9	;02F9
-	dc.w	$03F4	;03F4
-	dc.w	$FFFF	;FFFF
-	dc.w	$F9FB	;F9FB
-	dc.w	$FF00	;FF00
-	dc.w	$01F9	;01F9
-	dc.w	$01F4	;01F4
-	dc.w	$FBFB	;FBFB
-	dc.w	$FEFB	;FEFB
-	dc.w	$F700	;F700
-	dc.w	$F8F9	;F8F9
-	dc.w	$F7F4	;F7F4
-	dc.w	$01FB	;01FB
-	dc.w	$FFFF	;FFFF
-	dc.w	$FF00	;FF00
-	dc.w	$00F9	;00F9
-	dc.w	$01F5	;01F5
-	dc.w	$FEFB	;FEFB
-	dc.w	$F9FB	;F9FB
-	dc.w	$0200	;0200
-	dc.w	$02F9	;02F9
-	dc.w	$03F5	;03F5
-	dc.w	$FFFF	;FFFF
-	dc.w	$F8FB	;F8FB
-	dc.w	$FF00	;FF00
-	dc.w	$00F9	;00F9
-	dc.w	$00F5	;00F5
-	dc.w	$F9FB	;F9FB
-	dc.w	$FEFB	;FEFB
-	dc.w	$F700	;F700
-	dc.w	$F7F9	;F7F9
-	dc.w	$F6F5	;F6F5
-	dc.w	$01FB	;01FB
-	dc.w	$FFFF	;FFFF
-	dc.w	$1818	;1818
-	dc.w	$1814	;1814
-	dc.w	$1414	;1414
-	dc.w	$1111	;1111
-	dc.w	$110E	;110E
-	dc.w	$0E0E	;0E0E
-	dc.w	$0000	;0000
-	dc.w	$00C8	;00C8
-	dc.w	$0190	;0190
-	dc.w	$0258	;0258
-	dc.w	$0300	;0300
-	dc.w	$03A8	;03A8
-	dc.w	$0450	;0450
-	dc.w	$04E0	;04E0
-	dc.w	$0570	;0570
-	dc.w	$0600	;0600
-	dc.w	$0678	;0678
-	dc.w	$06F0	;06F0
-	dc.w	$0B0B	;0B0B
-	dc.w	$0B08	;0B08
-	dc.w	$0808	;0808
-	dc.w	$0606	;0606
-	dc.w	$0606	;0606
-	dc.w	$0606	;0606
-	dc.w	$0000	;0000
-	dc.w	$0060	;0060
-	dc.w	$00C0	;00C0
-	dc.w	$0120	;0120
-	dc.w	$0168	;0168
-	dc.w	$01B0	;01B0
-	dc.w	$01F8	;01F8
-	dc.w	$0230	;0230
-	dc.w	$0268	;0268
-	dc.w	$02A0	;02A0
-	dc.w	$02D8	;02D8
-	dc.w	$0310	;0310
-	dc.w	$0B0B	;0B0B
-	dc.w	$0B09	;0B09
-	dc.w	$0909	;0909
-	dc.w	$0707	;0707
-	dc.w	$0706	;0706
-	dc.w	$0606	;0606
-	dc.w	$0000	;0000
-	dc.w	$0060	;0060
-	dc.w	$00C0	;00C0
-	dc.w	$0120	;0120
-	dc.w	$0170	;0170
-	dc.w	$01C0	;01C0
-	dc.w	$0210	;0210
-	dc.w	$0250	;0250
-	dc.w	$0290	;0290
-	dc.w	$02D0	;02D0
-	dc.w	$0308	;0308
-	dc.w	$0340	;0340
-	dc.w	$0F0F	;0F0F
-	dc.w	$0B0C	;0B0C
-	dc.w	$0C09	;0C09
-	dc.w	$090A	;090A
-	dc.w	$0808	;0808
-	dc.w	$0806	;0806
-	dc.w	$0000	;0000
-	dc.w	$0080	;0080
-	dc.w	$0100	;0100
-	dc.w	$0160	;0160
-	dc.w	$01C8	;01C8
-	dc.w	$0230	;0230
-	dc.w	$0280	;0280
-	dc.w	$02D0	;02D0
-	dc.w	$0328	;0328
-	dc.w	$0370	;0370
-	dc.w	$03B8	;03B8
-	dc.w	$0400	;0400
-adrEA018A74:
-	dc.w	$0002	;0002
-	dc.w	$0402	;0402
-	dc.w	$0002	;0002
-	dc.w	$F802	;F802
-adrEA018A7C:
-	dc.w	$0001	;0001
-	dc.w	$0201	;0201
-	dc.w	$0001	;0001
-	dc.w	$F601	;F601
-adrEA018A84:
-	dc.w	$01FF	;01FF
-	dc.w	$FFFF	;FFFF
-	dc.w	$FC20	;FC20
-	dc.w	$1215	;1215
-	dc.w	$1C18	;1C18
-	dc.w	$FFFF	;FFFF
-	dc.w	$FFFF	;FFFF
-	dc.w	$FF1B	;FF1B
-	dc.w	$040C	;040C
-	dc.w	$170C	;170C
-	dc.w	$0BFF	;0BFF
-	dc.w	$FA10	;FA10
-	dc.w	$00F8	;00F8
-	dc.w	$FFFF	;FFFF
-	dc.w	$00F1	;00F1
-	dc.w	$FFFF	;FFFF
-	dc.w	$FFFF	;FFFF
-	dc.w	$FFFF	;FFFF
-	dc.w	$7578	;7578
-	dc.w	$FF7A	;FF7A
-	dc.w	$6457	;6457
-	dc.w	$5A61	;5A61
-	dc.w	$5DFF	;5DFF
-	dc.w	$FFFF	;FFFF
-	dc.w	$FFFF	;FFFF
-	dc.w	$725A	;725A
-	dc.w	$5E6B	;5E6B
-	dc.w	$64FF	;64FF
-	dc.w	$6968	;6968
-	dc.w	$7E76	;7E76
-	dc.w	$FF76	;FF76
-	dc.w	$70FF	;70FF
-	dc.w	$7EFF	;7EFF
-	dc.w	$FFFF	;FFFF
-	dc.w	$FFFF	;FFFF
-	dc.w	$4334	;4334
-	dc.w	$3840	;3840
-	dc.w	$3C45	;3C45
-	dc.w	$3035	;3035
-	dc.w	$413A	;413A
-	dc.w	$4A2B	;4A2B
-	dc.w	$2F48	;2F48
-	dc.w	$3B4D	;3B4D
-	dc.w	$2228	;2228
-	dc.w	$4938	;4938
+Character_RenderLayout_Standard:
+	INCBIN "/data/BLOODWYCH439-clean/data/characters-standard-render.layout"
+Character_Distant4_Positions_Standard:
+	; ReSource: Four signed XY pairs for the corresponding distant graphics slot.
+	INCBIN "/data/BLOODWYCH439-clean/data/characters-standard-distant-4.positions"
+Character_Distant5_Positions_Standard:
+	; ReSource: Four signed XY pairs for the corresponding distant graphics slot.
+	INCBIN "/data/BLOODWYCH439-clean/data/characters-standard-distant-5.positions"
+Character_RenderLayout_Alternate:
+	INCBIN "/data/BLOODWYCH439-clean/data/characters-alternate-render.layout"
+Character_Distant4_Positions_Alternate:
+	; ReSource: Four signed XY pairs for the corresponding distant graphics slot.
+	INCBIN "/data/BLOODWYCH439-clean/data/characters-alternate-distant-4.positions"
+Character_Distant5_Positions_Alternate:
+	; ReSource: Four signed XY pairs for the corresponding distant graphics slot.
+	INCBIN "/data/BLOODWYCH439-clean/data/characters-alternate-distant-5.positions"
+Monster_ViewCell_SubPosition_XPositions:
+	; ReSource: Provides the horizontal screen position for every view-cell and sub-position combination.
+	INCBIN "/data/BLOODWYCH439-clean/gfx-data/Monster_ViewCell_SubPosition_X.positions"
 GFX_Main_Walls_Offsets:
-	INCBIN "data/BLOODWYCH439-clean/gfx/Main_Walls.offsets"
+	INCBIN "/data/BLOODWYCH439-clean/gfx/Main_Walls.offsets"
 GFX_Misc_Pillar_Offsets:
-	INCBIN "data/BLOODWYCH439-clean/gfx/Misc_Pillar.offsets"
+	INCBIN "/data/BLOODWYCH439-clean/gfx/Misc_Pillar.offsets"
 GFX_Misc_Bed_Offsets:
-	INCBIN "data/BLOODWYCH439-clean/gfx/Misc_Bed.offsets"
+	INCBIN "/data/BLOODWYCH439-clean/gfx/Misc_Bed.offsets"
 GFX_Wooden_Doors_Offsets:
-	INCBIN "data/BLOODWYCH439-clean/gfx/Wooden_Doors.offsets"
+	INCBIN "/data/BLOODWYCH439-clean/gfx/Wooden_Doors.offsets"
 GFX_Wooden_Wall_Offsets:
-	INCBIN "data/BLOODWYCH439-clean/gfx/Wooden_Wall.offsets"
+	INCBIN "/data/BLOODWYCH439-clean/gfx/Wooden_Wall.offsets"
 GFX_Main_Shelf_Offsets:
-	INCBIN "data/BLOODWYCH439-clean/gfx/Main_Shelf.offsets"
+	INCBIN "/data/BLOODWYCH439-clean/gfx/Main_Shelf.offsets"
 GFX_Main_Sign_Offsets:
-	INCBIN "data/BLOODWYCH439-clean/gfx/Main_Sign.offsets"
+	INCBIN "/data/BLOODWYCH439-clean/gfx/Main_Sign.offsets"
 GFX_Stairs_Up_Offsets:
-	INCBIN "data/BLOODWYCH439-clean/gfx/Stairs_Up.offsets"
+	INCBIN "/data/BLOODWYCH439-clean/gfx/Stairs_Up.offsets"
 GFX_Stairs_Down_Offsets:
-	INCBIN "data/BLOODWYCH439-clean/gfx/Stairs_Down.offsets"
+	INCBIN "/data/BLOODWYCH439-clean/gfx/Stairs_Down.offsets"
 GFX_Door_Offsets:
-	INCBIN "data/BLOODWYCH439-clean/gfx/Door.offsets"
+	INCBIN "/data/BLOODWYCH439-clean/gfx/Door.offsets"
 GFX_Main_Switches_Offsets:
-	INCBIN "data/BLOODWYCH439-clean/gfx/Main_Switches.offsets"
+	INCBIN "/data/BLOODWYCH439-clean/gfx/Main_Switches.offsets"
 GFX_Pad_Pit_Offsets:
-	INCBIN "data/BLOODWYCH439-clean/gfx/Pad_Pit.offsets"
+	INCBIN "/data/BLOODWYCH439-clean/gfx/Pad_Pit.offsets"
 GFX_Pad_Trigger_Offsets:
-	INCBIN "data/BLOODWYCH439-clean/gfx/Pad_Trigger.offsets"
+	INCBIN "/data/BLOODWYCH439-clean/gfx/Pad_Trigger.offsets"
 GameFont:
-	INCBIN "data/BLOODWYCH439-clean/gfx/GameFont"
+	INCBIN "/data/BLOODWYCH439-clean/gfx/GameFont"
 GFX_ButtonHighlights:
-	INCBIN "data/BLOODWYCH439-clean/gfx/ButtonHighlights.gfx"
+	INCBIN "/data/BLOODWYCH439-clean/gfx/ButtonHighlights.gfx"
 GFX_Scroll_Edge_Top:
-	INCBIN "data/BLOODWYCH439-clean/gfx/Scroll_Edge_Top.gfx"
+	INCBIN "/data/BLOODWYCH439-clean/gfx/Scroll_Edge_Top.gfx"
 GFX_Scroll_Edge_Bottom:
-	INCBIN "data/BLOODWYCH439-clean/gfx/Scroll_Edge_Bottom.gfx"
+	INCBIN "/data/BLOODWYCH439-clean/gfx/Scroll_Edge_Bottom.gfx"
 GFX_Scroll_Edge_Left:
-	INCBIN "data/BLOODWYCH439-clean/gfx/Scroll_Edge_Left.gfx"
+	INCBIN "/data/BLOODWYCH439-clean/gfx/Scroll_Edge_Left.gfx"
 GFX_Scroll_Edge_Right:
-	INCBIN "data/BLOODWYCH439-clean/gfx/Scroll_Edge_Right.gfx"
+	INCBIN "/data/BLOODWYCH439-clean/gfx/Scroll_Edge_Right.gfx"
 GFX_Shield_Clicked:
-	INCBIN "data/BLOODWYCH439-clean/gfx/Shield_Clicked.gfx"
+	INCBIN "/data/BLOODWYCH439-clean/gfx/Shield_Clicked.gfx"
 SpellNames:
 	dc.b	'ARMOUR  TERROR  VITALISEBEGUILE DEFLECT MAGELOCKCONCEAL WARPOWERMISSILE VANISH  PARALYZEALCHEMY CONFUSE LEVITATEANTIMAGERECH'	;41524D4F55522020544552524F522020564954414C49534542454755494C45204445464C454354204D4147454C4F434B434F4E4345414C2057415
 *04F5745524D495353494C452056414E4953482020504152414C595A45414C4348454D5920434F4E46555345204C45564954415445414E54494D41474552454348
@@ -26463,49 +25710,49 @@ SpellDescriptions:
 	dc.b	$23	;23
 	dc.b	'FOR THOSE WHO THINK THEY LOVE WALLS',0	;464F522054484F53452057484F205448494E4B2054484559204C4F56452057414C4C5300
 Scroll_Offsets:
-	INCBIN "data/BLOODWYCH439-clean/data/scrolls.offsets"
+	INCBIN "/data/BLOODWYCH439-clean/data/scrolls.offsets"
 Scroll_Texts:
-	INCBIN "data/BLOODWYCH439-clean/data/scrolls.text"
+	INCBIN "/data/BLOODWYCH439-clean/data/scrolls.text"
 GFX_MainWalls:
-	INCBIN "data/BLOODWYCH439-clean/gfx/Main_Walls.gfx"
+	INCBIN "/data/BLOODWYCH439-clean/gfx/Main_Walls.gfx"
 GFX_WoodenWalls:
-	INCBIN "data/BLOODWYCH439-clean/gfx/Wooden_Wall.gfx"
+	INCBIN "/data/BLOODWYCH439-clean/gfx/Wooden_Wall.gfx"
 GFX_WoodDoors:
-	INCBIN "data/BLOODWYCH439-clean/gfx/Wooden_Doors.gfx"
+	INCBIN "/data/BLOODWYCH439-clean/gfx/Wooden_Doors.gfx"
 GFX_Shelf:
-	INCBIN "data/BLOODWYCH439-clean/gfx/Main_Shelf.gfx"
+	INCBIN "/data/BLOODWYCH439-clean/gfx/Main_Shelf.gfx"
 GFX_Sign:
-	INCBIN "data/BLOODWYCH439-clean/gfx/Main_Sign.gfx"
+	INCBIN "/data/BLOODWYCH439-clean/gfx/Main_Sign.gfx"
 GFX_SignOverlay:
-	INCBIN "data/BLOODWYCH439-clean/gfx/Main_SignOverlay.gfx"
+	INCBIN "/data/BLOODWYCH439-clean/gfx/Main_SignOverlay.gfx"
 GFX_Switches:
-	INCBIN "data/BLOODWYCH439-clean/gfx/Main_Switches.gfx"
+	INCBIN "/data/BLOODWYCH439-clean/gfx/Main_Switches.gfx"
 GFX_Slots:
-	INCBIN "data/BLOODWYCH439-clean/gfx/Main_Slots.gfx"
+	INCBIN "/data/BLOODWYCH439-clean/gfx/Main_Slots.gfx"
 GFX_Bed:
-	INCBIN "data/BLOODWYCH439-clean/gfx/Misc_Bed.gfx"
+	INCBIN "/data/BLOODWYCH439-clean/gfx/Misc_Bed.gfx"
 GFX_Pillar:
-	INCBIN "data/BLOODWYCH439-clean/gfx/Misc_Pillar.gfx"
+	INCBIN "/data/BLOODWYCH439-clean/gfx/Misc_Pillar.gfx"
 GFX_Stairs_Up:
-	INCBIN "data/BLOODWYCH439-clean/gfx/Stairs_Up.gfx"
+	INCBIN "/data/BLOODWYCH439-clean/gfx/Stairs_Up.gfx"
 GFX_Stairs_Down:
-	INCBIN "data/BLOODWYCH439-clean/gfx/Stairs_Down.gfx"
+	INCBIN "/data/BLOODWYCH439-clean/gfx/Stairs_Down.gfx"
 GFX_Door_Open:
-	INCBIN "data/BLOODWYCH439-clean/gfx/Door_Open.gfx"
+	INCBIN "/data/BLOODWYCH439-clean/gfx/Door_Open.gfx"
 	dc.w	$FFFF	;FFFF
 	dc.w	$0000	;0000
 	dc.w	$0000	;0000
 	dc.w	$0000	;0000
 GFX_Door_Metal:
-	INCBIN "data/BLOODWYCH439-clean/gfx/Door_Metal.gfx"
+	INCBIN "/data/BLOODWYCH439-clean/gfx/Door_Metal.gfx"
 GFX_Door_PortCullis:
-	INCBIN "data/BLOODWYCH439-clean/gfx/Door_PortCullis.gfx"
+	INCBIN "/data/BLOODWYCH439-clean/gfx/Door_PortCullis.gfx"
 GFX_Pit_Low:
-	INCBIN "data/BLOODWYCH439-clean/gfx/Pad_Pit_Low.gfx"
+	INCBIN "/data/BLOODWYCH439-clean/gfx/Pad_Pit_Low.gfx"
 GFX_Pit_High:
-	INCBIN "data/BLOODWYCH439-clean/gfx/Pad_Pit_High.gfx"
+	INCBIN "/data/BLOODWYCH439-clean/gfx/Pad_Pit_High.gfx"
 GFX_Pad_Trigger:
-	INCBIN "data/BLOODWYCH439-clean/gfx/Pad_Trigger.gfx"
+	INCBIN "/data/BLOODWYCH439-clean/gfx/Pad_Trigger.gfx"
 	dc.w	$001F	;001F
 	dc.w	$243F	;243F
 	dc.w	$FFBF	;FFBF
@@ -26527,68 +25774,68 @@ GFX_Pad_Trigger:
 	dc.w	$FFFF	;FFFF
 	dc.w	$FFFF	;FFFF
 GFX_FloorCeiling:
-	INCBIN "data/BLOODWYCH439-clean/gfx/FloorCeiling.gfx"
+	INCBIN "/data/BLOODWYCH439-clean/gfx/FloorCeiling.gfx"
 GFX_ObjectsOnFloor:
-	INCBIN "data/BLOODWYCH439-clean/gfx/ObjectsOnFloor.gfx"
+	INCBIN "/data/BLOODWYCH439-clean/gfx/ObjectsOnFloor.gfx"
 GFX_FireBall:
-	INCBIN "data/BLOODWYCH439-clean/gfx/AirbourneFireball.gfx"
+	INCBIN "/data/BLOODWYCH439-clean/gfx/AirbourneFireball.gfx"
 GFX_AirbourneSpells:
-	INCBIN "data/BLOODWYCH439-clean/gfx/AirbourneSpells.gfx"
+	INCBIN "/data/BLOODWYCH439-clean/gfx/AirbourneSpells.gfx"
 CharacterColours:
-	INCBIN "data/BLOODWYCH439-clean/data/characters.colours"
+	INCBIN "/data/BLOODWYCH439-clean/data/characters.colours"
 GFX_HeadParts:
-	INCBIN "data/BLOODWYCH439-clean/gfx/HeadParts.gfx"
+	INCBIN "/data/BLOODWYCH439-clean/gfx/HeadParts.gfx"
 GFX_BodyParts:
-	INCBIN "data/BLOODWYCH439-clean/gfx/BodyParts.gfx"
+	INCBIN "/data/BLOODWYCH439-clean/gfx/BodyParts.gfx"
 GFX_Avatars_Large:
-	INCBIN "data/BLOODWYCH439-clean/gfx/Avatars_Large.gfx"
+	INCBIN "/data/BLOODWYCH439-clean/gfx/Avatars_Large.gfx"
 GFX_Avatars_Small:
-	INCBIN "data/BLOODWYCH439-clean/gfx/Shield_Avatars.gfx"
+	INCBIN "/data/BLOODWYCH439-clean/gfx/Shield_Avatars.gfx"
 GFX_Shield_Top:
-	INCBIN "data/BLOODWYCH439-clean/gfx/ShieldTop.gfx"
+	INCBIN "/data/BLOODWYCH439-clean/gfx/ShieldTop.gfx"
 GFX_Shield_Bottom:
-	INCBIN "data/BLOODWYCH439-clean/gfx/ShieldBottom.gfx"
+	INCBIN "/data/BLOODWYCH439-clean/gfx/ShieldBottom.gfx"
 GFX_Shield_Classes:
-	INCBIN "data/BLOODWYCH439-clean/gfx/ShieldClasses.gfx"
+	INCBIN "/data/BLOODWYCH439-clean/gfx/ShieldClasses.gfx"
 GFX_Fairy:
-	INCBIN "data/BLOODWYCH439-clean/gfx/Fairy.gfx"
+	INCBIN "/data/BLOODWYCH439-clean/gfx/Fairy.gfx"
 GFX_Summon:
-	INCBIN "data/BLOODWYCH439-clean/monsters/Summon.gfx"
+	INCBIN "/data/BLOODWYCH439-clean/monsters/Summon.gfx"
 GFX_Behemoth:
-	INCBIN "data/BLOODWYCH439-clean/monsters/Behemoth.gfx"
+	INCBIN "/data/BLOODWYCH439-clean/monsters/Behemoth.gfx"
 GFX_Crab:
-	INCBIN "data/BLOODWYCH439-clean/monsters/Crab.gfx"
+	INCBIN "/data/BLOODWYCH439-clean/monsters/Crab.gfx"
 GFX_CrabClaw:
-	INCBIN "data/BLOODWYCH439-clean/monsters/CrabClaw.gfx"
+	INCBIN "/data/BLOODWYCH439-clean/monsters/CrabClaw.gfx"
 GFX_Beholder_Body:
-	INCBIN "data/BLOODWYCH439-clean/monsters/Beholder_Body.gfx"
+	INCBIN "/data/BLOODWYCH439-clean/monsters/Beholder_Body.gfx"
 GFX_Beholder_UpperEyes:
-	INCBIN "data/BLOODWYCH439-clean/monsters/Beholder_UpperEyes.gfx"
+	INCBIN "/data/BLOODWYCH439-clean/monsters/Beholder_UpperEyes.gfx"
 GFX_Beholder_CentralEye_Near:
-	INCBIN "data/BLOODWYCH439-clean/monsters/Beholder_CentralEye_Near.gfx"
+	INCBIN "/data/BLOODWYCH439-clean/monsters/Beholder_CentralEye_Near.gfx"
 GFX_Beholder_CentralEye_Far:
-	INCBIN "data/BLOODWYCH439-clean/monsters/Beholder_CentralEye_Far.gfx"
+	INCBIN "/data/BLOODWYCH439-clean/monsters/Beholder_CentralEye_Far.gfx"
 GFX_Dragon:
-	INCBIN "data/BLOODWYCH439-clean/monsters/Dragon.gfx"
+	INCBIN "/data/BLOODWYCH439-clean/monsters/Dragon.gfx"
 
 GFX_Entropy:
-	INCBIN "data/BLOODWYCH439-clean/monsters/Entropy.gfx"
+	INCBIN "/data/BLOODWYCH439-clean/monsters/Entropy.gfx"
 GFX_Pockets:
-	INCBIN "data/BLOODWYCH439-clean/gfx/Pockets.gfx"
+	INCBIN "/data/BLOODWYCH439-clean/gfx/Pockets.gfx"
 SFX_AudioSample_1:
-	INCBIN "data/BLOODWYCH439-clean/sfx/sample1.sound"
+	INCBIN "/data/BLOODWYCH439-clean/sfx/sample1.sound"
 SFX_AudioSample_2:
-	INCBIN "data/BLOODWYCH439-clean/sfx/sample2.sound"
+	INCBIN "/data/BLOODWYCH439-clean/sfx/sample2.sound"
 SFX_AudioSample_3:
-	INCBIN "data/BLOODWYCH439-clean/sfx/sample3.sound"
+	INCBIN "/data/BLOODWYCH439-clean/sfx/sample3.sound"
 SFX_AudioSample_4:
-	INCBIN "data/BLOODWYCH439-clean/sfx/sample4.sound"
+	INCBIN "/data/BLOODWYCH439-clean/sfx/sample4.sound"
 SFX_AudioSample_5:
-	INCBIN "data/BLOODWYCH439-clean/sfx/sample5.sound"
+	INCBIN "/data/BLOODWYCH439-clean/sfx/sample5.sound"
 ReserveSpace_1:
-	INCBIN "data/BLOODWYCH439-clean/data/reservespace1.block"
+	INCBIN "/data/BLOODWYCH439-clean/data/reservespace1.block"
 ReserveSpace_2:
-	INCBIN "data/BLOODWYCH439-clean/data/reservespace2.block"
+	INCBIN "/data/BLOODWYCH439-clean/data/reservespace2.block"
 	dc.b	$00	;00
 	dc.b	$00	;00
 	dc.b	$00	;00

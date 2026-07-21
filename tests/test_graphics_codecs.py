@@ -1,25 +1,36 @@
 from __future__ import annotations
 
 import unittest
+from pathlib import Path
+from tempfile import TemporaryDirectory
 
+from tools.data_overlay import data_overlay_root, related_data_roots
 from tools.gamefont_converter import EXPECTED_SIZE, glyph_pixels, read_font
 from tools.graphics_preview import (
+    AirbourneSpellAssets,
     BeholderAssets,
     CharacterAssets,
     decode_fixed_sprites,
     load_floor_ceiling_background,
     remap_template_colours,
     render_beholder,
+    render_airbourne_spell,
     render_character_preview,
 )
 from tools.st_planar_assets import decode_planar, encode_planar, read_tables
 from tools.graphics_viewer import (
+    AIRBOURNE_SPELLS,
     CATEGORY_NAMES,
+    CHARACTER_FILES,
     MONSTERS,
     inspect_monster_files,
     load_character_assets,
     load_renderer_assets,
+    modified_overrides,
+    monster_is_selectable,
+    monster_grade_count,
     render_monster_preview,
+    spell_is_selectable,
 )
 from tools.tool_common import BINARIES_DIR, DATA_DIR
 
@@ -30,11 +41,130 @@ CHARACTER_DATA_DIR = DATA_DIR / "BLOODWYCH439-clean" / "data"
 
 
 class GraphicsCodecTests(unittest.TestCase):
+    def test_modified_data_overlay_falls_back_per_file(self) -> None:
+        with TemporaryDirectory() as temp_dir:
+            root = Path(temp_dir)
+            clean = root / "BLOODWYCH439-clean"
+            modified = root / "BLOODWYCH439-modified"
+            (clean / "data").mkdir(parents=True)
+            (modified / "data").mkdir(parents=True)
+            (clean / "data" / "one.bin").write_bytes(b"clean one")
+            (clean / "data" / "two.bin").write_bytes(b"clean two")
+            (modified / "data" / "one.bin").write_bytes(b"modified one")
+
+            overlay = data_overlay_root(clean, modified, enabled=True)
+            self.assertEqual(
+                (overlay / "data" / "one.bin").read_bytes(), b"modified one"
+            )
+            self.assertEqual(
+                (overlay / "data" / "two.bin").read_bytes(), b"clean two"
+            )
+            self.assertEqual(
+                modified_overrides(
+                    overlay, ("data/one.bin", "data/two.bin")
+                ),
+                ("data/one.bin",),
+            )
+
+            clean_only = data_overlay_root(clean, modified, enabled=False)
+            self.assertEqual(
+                (clean_only / "data" / "one.bin").read_bytes(), b"clean one"
+            )
+            self.assertEqual(
+                related_data_roots(modified), (clean, modified, True)
+            )
+
+    def test_character_overlay_can_replace_only_three_source_files(self) -> None:
+        with TemporaryDirectory() as temp_dir:
+            modified = Path(temp_dir) / "BLOODWYCH439-modified"
+            modified_data = modified / "data"
+            modified_data.mkdir(parents=True)
+            for filename in (
+                "characters.bodies",
+                "characters.heads",
+                "characters.colours",
+            ):
+                source = CHARACTER_DATA_DIR / filename
+                (modified_data / filename).write_bytes(source.read_bytes())
+
+            heads = bytearray((modified_data / "characters.heads").read_bytes())
+            heads[0] = 0
+            (modified_data / "characters.heads").write_bytes(heads)
+
+            overlay = data_overlay_root(
+                DATA_DIR / "BLOODWYCH439-clean", modified, enabled=True
+            )
+            assets, error = load_character_assets(overlay)
+            self.assertIsNone(error)
+            self.assertIsNotNone(assets)
+            self.assertEqual(assets.head_design(0), 0)
+            self.assertEqual(
+                modified_overrides(overlay, CHARACTER_FILES),
+                (
+                    "data/characters.heads",
+                    "data/characters.bodies",
+                    "data/characters.colours",
+                ),
+            )
+
+    def test_modified_monster_lookup_can_supply_sixteen_grades(self) -> None:
+        with TemporaryDirectory() as temp_dir:
+            modified = Path(temp_dir) / "BLOODWYCH439-modified"
+            modified_monsters = modified / "monsters"
+            modified_monsters.mkdir(parents=True)
+            original = (MONSTERS_DIR / "beholder.colours").read_bytes()
+            (modified_monsters / "beholder.colours").write_bytes(original * 2)
+            overlay = data_overlay_root(
+                DATA_DIR / "BLOODWYCH439-clean", modified, enabled=True
+            )
+            assets = BeholderAssets(overlay / "monsters")
+            self.assertEqual(len(assets.grade_lookup), 16)
+            self.assertEqual(assets.replacement_palette(15), assets.replacement_palette(7))
+            self.assertEqual(monster_grade_count(MONSTERS[2], overlay / "monsters"), 16)
+
     def test_characters_are_the_first_graphics_viewer_category(self) -> None:
-        self.assertEqual(CATEGORY_NAMES[:2], ("Characters", "Monsters"))
+        self.assertEqual(
+            CATEGORY_NAMES,
+            ("Character/Monster Graphics", "Avatars", "Icons"),
+        )
         assets, error = load_character_assets(DATA_DIR / "BLOODWYCH439-clean")
         self.assertIsNotNone(assets)
         self.assertIsNone(error)
+
+    def test_airbourne_spell_range_and_bext_gating(self) -> None:
+        spells = {definition.code: definition for definition in AIRBOURNE_SPELLS}
+        self.assertEqual((min(spells), max(spells)), (0x80, 0x98))
+        self.assertTrue(spell_is_selectable(spells[0x80], bext_loaded=False))
+        for code in range(0x90, 0x94):
+            self.assertFalse(spell_is_selectable(spells[code], bext_loaded=False))
+            self.assertFalse(spell_is_selectable(spells[code], bext_loaded=True))
+        self.assertFalse(spell_is_selectable(spells[0x94], bext_loaded=False))
+        self.assertTrue(spell_is_selectable(spells[0x94], bext_loaded=True))
+        self.assertFalse(monster_is_selectable(MONSTERS[-1], bext_loaded=False))
+        self.assertTrue(monster_is_selectable(MONSTERS[-1], bext_loaded=True))
+
+    def test_sps439_airbourne_spells_use_both_source_picture_sets(self) -> None:
+        assets = AirbourneSpellAssets(GFX_DIR)
+        fireball = assets.draw_operation(0x80, 0)
+        generic = assets.draw_operation(0x86, 0)
+        self.assertEqual((fireball.sprite.width, fireball.sprite.height), (32, 26))
+        self.assertEqual((generic.sprite.width, generic.sprite.height), (32, 27))
+        self.assertEqual(fireball.sprite.source_file, "AirbourneFireball.gfx")
+        self.assertEqual(generic.sprite.source_file, "AirbourneSpells.gfx")
+        self.assertNotEqual(
+            assets.replacement_palette(0x80), assets.replacement_palette(0x86)
+        )
+        background = load_floor_ceiling_background(GFX_DIR)
+        rendered, metadata = render_airbourne_spell(
+            background,
+            assets,
+            0x80,
+            distance=0,
+            anchor_x=56,
+            anchor_y=39,
+        )
+        self.assertNotEqual(rendered, background)
+        self.assertEqual(metadata["spell_code"], 0x80)
 
     def test_gamefont_layout_and_known_a_glyph(self) -> None:
         data = read_font(GFX_DIR / "GameFont")

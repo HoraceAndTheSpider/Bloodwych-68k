@@ -16,11 +16,12 @@ The supported values are:
 
 For a grouped replacement:
 
-1. Repeat the same original ASM `label` on the `data_start` row and every
-   immediately following `data_append` row.
+1. Put the source-region anchor in `label` on the `data_start` row. A following
+   `data_append` may repeat that anchor (the legacy convention) or name the
+   actual internal source label where its component begins.
 2. Give every row a unique `relabel`. These become labels in the generated
    source.
-3. Put the files in output order. Spreadsheet order is INCBIN order.
+3. Put the files in output order. Spreadsheet order is generated-data order.
 4. Provide `offset` and `size` on every row. The ranges must be exactly
    contiguous.
 5. Ensure every extracted file exists and exactly matches its declared size.
@@ -31,6 +32,11 @@ bytes, crossing any obsolete internal source labels. Only an exact match is
 replaced. A missing file, size mismatch, offset gap/overlap, source parse
 failure, byte mismatch, duplicate output label, or overlapping replacement
 leaves the source data intact.
+
+Devpac automatically appends a zero byte to every odd-length `INCBIN`. To keep
+the generated executable byte-exact, `inspect` emits even-length resources as
+`INCBIN` and odd-length resources as generated `dc.b` lines. The external file
+remains authoritative: rerunning `inspect` refreshes those bytes after edits.
 
 The inspector also checks labels removed from inside the consumed source span.
 If any such label is still referenced by source that will remain in the output,
@@ -43,7 +49,8 @@ The relabel process now has explicit passes:
 
 1. `_delete` label definitions.
 2. `_offset_..._0x...` conversions.
-3. Ordinary relabels and `data_start` anchors.
+3. Ordinary relabels, `data_start` anchors, and `data_append` rows that name a
+   distinct internal source label.
 
 `_delete` still removes only a label-definition line; it does not delete the
 following data. Grouped resource layouts do not require `_delete` rows because

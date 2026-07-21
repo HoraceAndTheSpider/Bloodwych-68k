@@ -6,7 +6,7 @@ import re
 
 import pandas as pd
 
-from .resource_layout import cell_text
+from .resource_layout import DATA_APPEND, DATA_START, cell_text, data_action
 
 
 SOURCE_COMMENT_COLUMN = "source_comment"
@@ -36,6 +36,7 @@ def apply_source_comments(lines: list[str], frame: pd.DataFrame) -> list[str]:
         return lines
 
     comments: dict[str, tuple[str, ...]] = {}
+    comment_priorities: dict[str, int] = {}
     for _, row in frame.iterrows():
         label = _target_label(row)
         if not label:
@@ -45,9 +46,24 @@ def apply_source_comments(lines: list[str], frame: pd.DataFrame) -> list[str]:
             part.strip() for part in text.splitlines() if part.strip()
         )
         key = label.casefold()
-        if key in comments and comments[key] != comment_lines:
+        priority = 1 if data_action(row) in {DATA_START, DATA_APPEND} else 0
+        if key not in comments:
+            comments[key] = comment_lines
+            comment_priorities[key] = priority
+        elif comments[key] == comment_lines:
+            comment_priorities[key] = max(comment_priorities[key], priority)
+        elif not comment_lines:
+            continue
+        elif not comments[key]:
+            comments[key] = comment_lines
+            comment_priorities[key] = priority
+        elif priority > comment_priorities[key]:
+            comments[key] = comment_lines
+            comment_priorities[key] = priority
+        elif priority < comment_priorities[key]:
+            continue
+        else:
             raise ValueError(f"Conflicting source comments for label '{label}'")
-        comments[key] = comment_lines
 
     result = list(lines)
     edits: list[tuple[int, int, tuple[str, ...]]] = []

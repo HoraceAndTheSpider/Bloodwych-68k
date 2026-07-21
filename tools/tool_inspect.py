@@ -360,7 +360,19 @@ def _replacement_lines(replacement: Replacement) -> list[str]:
     for part_index, part in enumerate(replacement.parts):
         if part_index:
             generated.append(f"{part.output_label}:")
-        generated.append(f'\tINCBIN "{relative_to_root(part.path)}"')
+        if part.size % 2:
+            # Devpac pads every odd-length INCBIN with a zero byte. Emit the
+            # extracted bytes directly so splitting a source block at an odd
+            # boundary remains byte-exact. Rerunning Inspect refreshes these
+            # lines from the corresponding external data file.
+            for start in range(0, len(part.data), 16):
+                values = ",".join(
+                    f"${value:02X}" for value in part.data[start : start + 16]
+                )
+                generated.append(f"\tdc.b\t{values}")
+        else:
+            relative_path = str(relative_to_root(part.path)).replace("\\", "/")
+            generated.append(f'\tINCBIN "/{relative_path.lstrip("/")}"')
     return generated
 
 
@@ -410,8 +422,10 @@ def inspect_source(
     Ordinary rows replace one exact-size dc.* region with one INCBIN. A
     ``data_start`` row plus its immediately following ``data_append`` rows form
     one atomic layout: their files are concatenated for validation, while each
-    receives its own label and INCBIN in the generated source. ``extract_only``
-    rows remain available to extraction but never replace or patch source data.
+    receives its own label and generated data directive. Even-sized resources
+    use INCBIN; odd-sized resources use exact dc.b data because Devpac otherwise
+    appends a padding byte. ``extract_only`` rows remain available to extraction
+    but never replace or patch source data.
     """
     profile = get_profile(master)
     clean_dir = profile.clean_dir

@@ -29,11 +29,24 @@ def relabel_segments(master: str, sheet: str | Path) -> Path:
     print(f"Created relabel copy '{destination}'")
 
     lines = destination.read_text(encoding="utf-8", errors="ignore").splitlines()
-    resource_layouts(frame)  # Validate grouped rows before changing the source.
+    layouts = resource_layouts(frame)  # Validate before changing the source.
+    internal_append_indices = {
+        index
+        for layout in layouts
+        for index, row in layout.rows[1:]
+        if cell_text(row, "label") != layout.source_label
+    }
 
     def relabel_rows():
-        for _, row in frame.iterrows():
-            if data_action(row) in (DATA_APPEND, EXTRACT_ONLY):
+        for index, row in frame.iterrows():
+            action = data_action(row)
+            if action == EXTRACT_ONLY:
+                continue
+            # Legacy grouped rows repeat the data_start anchor and their labels
+            # are emitted later by inspect_source. A data_append row carrying a
+            # distinct internal source label is renamed normally, allowing one
+            # spreadsheet row to describe both that label and its INCBIN part.
+            if action == DATA_APPEND and index not in internal_append_indices:
                 continue
             label = cell_text(row, "label")
             new_label = cell_text(row, "relabel")

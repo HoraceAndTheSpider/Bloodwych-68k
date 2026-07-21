@@ -26,7 +26,7 @@ GUI_LABELS = {
     "relabel": "Relabel",
     "inspect": "Inspect / Data",
     "patch": "Patch",
-    "graphics": "Graphics Viewer",
+    "graphics": "Data Viewer",
 }
 
 
@@ -116,7 +116,12 @@ def build_parser() -> argparse.ArgumentParser:
     inspect.add_argument("--debug", action="store_true")
 
     subparsers.add_parser("relabel", help="Generate asm/<binary>_relabel.asm")
-    subparsers.add_parser("graphics", help="Open the extracted graphics viewer")
+    graphics = subparsers.add_parser("graphics", help="Open the extracted graphics viewer")
+    graphics.add_argument(
+        "--modified",
+        action="store_true",
+        help="start with the sparse modified-data overlay enabled",
+    )
     subparsers.add_parser("profiles", help="List configured game binaries")
     subparsers.add_parser("paths", help="Show the canonical project paths")
     return parser
@@ -151,7 +156,10 @@ def run(args: argparse.Namespace, parser: argparse.ArgumentParser) -> int:
         from tools.graphics_viewer import GraphicsViewerError, launch_graphics_viewer
 
         try:
-            launch_graphics_viewer(get_profile(args.master).clean_dir)
+            launch_graphics_viewer(
+                get_profile(args.master).clean_dir,
+                prefer_modified=getattr(args, "modified", False),
+            )
         except GraphicsViewerError as error:
             raise ToolError(str(error)) from error
     elif args.command == "profiles":

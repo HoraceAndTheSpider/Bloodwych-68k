@@ -410,7 +410,7 @@ QkPly2_Start:
 	rts	;4E75
 
 Init_DisplayDMA_AI_TBC:
-	lea	adrEA01684C.l,a0	;41F90001684C
+	lea	BitReverse_LookupBuffer.l,a0	;41F90001684C
 	move.w	#$00FF,d7	;3E3C00FF
 SpellsPracticed_InitializeEntriesLoop_AI_TBC:
 	move.w	d7,d0	;3007
@@ -13800,7 +13800,7 @@ adrCd0090D4:
 	add.w	-$000A(a3),d0	;D06BFFF6
 	and.w	#$0001,d0	;02400001
 	move.w	d0,-$000C(a3)	;3740FFF4
-	bsr	adrCd00B7F4	;610026F8
+	bsr	Draw_FloorAndCeiling	;610026F8
 	move.w	-$000A(a3),d0	;302BFFF6
 	move.w	d0,d1	;3200
 	ror.b	#$03,d0	;E618
@@ -13994,29 +13994,29 @@ adrCd0092E8:
 	cmpi.w	#$001C,d1	;0C41001C
 	bcc.s	adrCd009358	;6466
 	move.w	d1,-(sp)	;3F01
-	bsr	adrCd00995C	;61000666
+	bsr	Prepare_CentredMonster_ScreenPosition	;61000666
 	move.w	(sp)+,d0	;301F
 	addq.b	#$01,d1	;5201
 	beq.s	adrCd009358	;675A
 	subq.b	#$01,d1	;5301
-	move.b	adrB_00935A(pc,d1.w),d1	;123B1058
+	move.b	GFX_StationarySpell_DistanceGroups(pc,d1.w),d1	;123B1058
 	add.w	d1,d1	;D241
 	lea	GFX_AirbourneSpells.l,a1	;43F900034A30
-	add.w	adrW_009360(pc,d1.w),a1	;D2FB1052
+	add.w	GFX_StationarySpell_LookupTable(pc,d1.w),a1	;D2FB1052
 	add.w	d1,d1	;D241
-	add.b	adrB_009368(pc,d1.w),d4	;D83B1054
-	add.b	adrB_009369(pc,d1.w),d5	;DA3B1051
+	add.b	GFX_StationarySpell_RenderLayout(pc,d1.w),d4	;D83B1054
+	add.b	GFX_StationarySpell_RenderLayout+$1(pc,d1.w),d5	;DA3B1051
 	moveq	#$00,d7	;7E00
-	move.b	adrB_00936A(pc,d1.w),d7	;1E3B104C
+	move.b	GFX_StationarySpell_RenderLayout+$2(pc,d1.w),d7	;1E3B104C
 	swap	d7	;4847
-	move.b	adrB_00936B(pc,d1.w),d7	;1E3B1047
+	move.b	GFX_StationarySpell_RenderLayout+$3(pc,d1.w),d7	;1E3B1047
 	add.w	$0008(a5),d5	;DA6D0008
 	move.b	d4,d6	;1C04
 	add.b	#$60,d4	;06040060
 	ext.w	d6	;4886
 	asr.w	#$04,d6	;E846
 	move.w	#$FFFF,Buffer_Colour_Mask_Toggle.l	;33FCFFFF0000B4BE
-	lea	SpellStars_Colours.l,a0	;41F900009B70
+	lea	GFX_Spell_ColourMasks.l,a0	;41F900009B70
 	move.l	$00(a0,d0.w),Buffer_Colour_Mask.l	;23F000000000B4C0
 	move.l	a3,-(sp)	;2F0B
 	bsr	adrCd00AE5E	;61001B10
@@ -14025,25 +14025,25 @@ adrCd0092E8:
 adrCd009358:
 	rts	;4E75
 
-adrB_00935A:
+GFX_StationarySpell_DistanceGroups:
+	; ReSource: Maps six visible distances to four stationary-spell graphical sizes: 0,0,1,1,2,3.
 	dc.b	$00	;00
 	dc.b	$00	;00
 	dc.b	$01	;01
 	dc.b	$01	;01
 	dc.b	$02	;02
 	dc.b	$03	;03
-adrW_009360:
+GFX_StationarySpell_LookupTable:
+	; ReSource: Four big-endian source offsets into the stationary portion of AirbourneSpells.gfx.
 	dc.w	$0000	;0000
 	dc.w	$0318	;0318
 	dc.w	$0438	;0438
 	dc.w	$0498	;0498
-adrB_009368:
+GFX_StationarySpell_RenderLayout:
+	; ReSource: Four packed records containing signed X, signed Y, width-minus-one and height-minus-one.
 	dc.b	$F4	;F4
-adrB_009369:
 	dc.b	$F7	;F7
-adrB_00936A:
 	dc.b	$02	;02
-adrB_00936B:
 	dc.b	$20	;20
 	dc.b	$FA	;FA
 	dc.b	$FD	;FD
@@ -14815,13 +14815,15 @@ adrCd009930:
 	ori.b	#$01,ccr	;003C0001
 	rts	;4E75
 
-adrB_009936:
+Monster_SubPosition_DepthAdjustments:
+	; ReSource: Adjusts the selected sub-position before it is converted to a monster graphics distance.
 	dc.b	$00	;00
 	dc.b	$00	;00
 	dc.b	$01	;01
 	dc.b	$01	;01
 	dc.b	$00	;00
-adrB_00993B:
+Monster_ViewCell_DepthSlots:
+	; ReSource: Maps each view cell to a base depth slot; $FF marks a position that is not visible.
 	dc.b	$06	;06
 	dc.b	$06	;06
 	dc.b	$FF	;FF
@@ -14841,7 +14843,8 @@ adrB_00993B:
 	dc.b	$02	;02
 	dc.b	$00	;00
 	dc.b	$FF	;FF
-adrB_00994E:
+Monster_Depth_GfxSlots:
+	; ReSource: Maps depth slots to one of the six monster graphics-distance slots.
 	dc.b	$00	;00
 	dc.b	$01	;01
 	dc.b	$02	;02
@@ -14850,7 +14853,8 @@ adrB_00994E:
 	dc.b	$04	;04
 	dc.b	$05	;05
 	dc.b	$05	;05
-adrB_009956:
+Monster_GfxSlot_YPositions:
+	; ReSource: Provides the base vertical screen position for each monster graphics-distance slot.
 	dc.b	$27	;27
 	dc.b	$25	;25
 	dc.b	$24	;24
@@ -14858,7 +14862,8 @@ adrB_009956:
 	dc.b	$18	;18
 	dc.b	$1A	;1A
 
-adrCd00995C:
+Prepare_CentredMonster_ScreenPosition:
+	; ReSource: Entry point for centrally positioned monsters; forces the centre sub-position before using Prepare_Monster_ScreenPosition.
 	moveq	#$04,d1	;7204
 Prepare_Monster_ScreenPosition:
 	move.w	d1,d2	;3401
@@ -14866,20 +14871,20 @@ Prepare_Monster_ScreenPosition:
 	moveq	#$00,d0	;7000
 	moveq	#$00,d4	;7800
 	move.b	-$0016(a3),d0	;102BFFEA
-	move.b	adrB_00993B(pc,d0.w),d1	;123B00C9
+	move.b	Monster_ViewCell_DepthSlots(pc,d0.w),d1	;123B00C9
 	bmi.s	adrCd0099C6	;6B50
-	add.b	adrB_009936(pc,d2.w),d1	;D23B20BE
+	add.b	Monster_SubPosition_DepthAdjustments(pc,d2.w),d1	;D23B20BE
 	move.w	d0,d5	;3A00
 	asl.w	#$02,d0	;E540
 	add.w	d5,d0	;D045
 	add.w	d2,d0	;D042
 	move.w	d1,d2	;3401
-	lea	adrEA018A84.l,a0	;41F900018A84
+	lea	Monster_ViewCell_SubPosition_XPositions.l,a0	;41F900018A84
 	move.b	$00(a0,d0.w),d4	;18300000
 	cmpi.b	#$FF,d4	;0C0400FF
 	beq.s	adrCd0099C8	;6734
-	move.b	adrB_00994E(pc,d2.w),d1	;123B20B8
-	move.b	adrB_009956(pc,d1.w),d5	;1A3B10BC
+	move.b	Monster_Depth_GfxSlots(pc,d2.w),d1	;123B20B8
+	move.b	Monster_GfxSlot_YPositions(pc,d1.w),d5	;1A3B10BC
 	move.w	-$0012(a3),d0	;302BFFEE
 	and.w	#$0007,d0	;02400007
 	cmpi.w	#$0004,d0	;0C400004
@@ -15071,7 +15076,8 @@ adrCd009B5E:
 	bsr.s	Decode_Monster_RenderFlags	;6154
 	bra	adrCd00A6EC	;60000B7E
 
-SpellStars_Colours:
+GFX_Spell_ColourMasks:
+	; ReSource: Four colour-mask indices per spell code. The first 16 records cover $80–$8F; the final four $90–$93 records have no confirmed gameplay effect but are retained for byte-exact source reproduction.
 	dc.l	$090D0B0C	;090D0B0C
 	dc.l	$02060807	;02060807
 	dc.l	$020D0605	;020D0605
@@ -15096,10 +15102,11 @@ SpellStars_Colours:
 Decode_Monster_RenderFlags:
 	clr.b	-$0015(a3)	;422BFFEB
 	and.w	#$001F,d0	;0240001F
-	move.b	adrB_009BD0(pc,d0.w),-$0015(a3)	;177B0006FFEB
+	move.b	Monster_RenderFlags_LookupTable(pc,d0.w),-$0015(a3)	;177B0006FFEB
 	rts	;4E75
 
-adrB_009BD0:
+Monster_RenderFlags_LookupTable:
+	; ReSource: Maps the low five bits of a monster render state to the two arm or claw animation flags.
 	dc.b	$00	;00
 	dc.b	$00	;00
 	dc.b	$03	;03
@@ -15133,17 +15140,19 @@ adrB_009BD0:
 	dc.b	$03	;03
 	dc.b	$03	;03
 
-Draw_Spell:
-	lea	adrEA009C68.l,a1		;43F900009C68
+Draw_AirbourneSpell:
+	; ReSource: Selects the distance group, graphical family and colour mask used to render flying spell codes $80+.
+	lea	GFX_AirbourneSpell_DistanceGroups.l,a1		;43F900009C68
 	move.b	$00(a1,d1.w),d1			;12311000
 	add.w	d1,d1				;D241
 	lea	GFX_FireBall.l,a1		;43F900034778
-	lea	adrEA009C6E.l,a2		;45F900009C6E
+	lea	GFX_AirbourneFireball_RenderLayout.l,a2		;45F900009C6E
 	cmpi.b	#$86,d0				;0C000086
-	bcs.s	adrCd009C18			;650A
+	bcs.s	.RenderSelectedLayout			;650A
 	add.w	#$0798,a1			;D2FC0798
-	lea	adrEA009C86.l,a2		;45F900009C86
-adrCd009C18:
+	lea	GFX_AirbourneSpells_RenderLayout.l,a2		;45F900009C86
+.RenderSelectedLayout:
+	; ReSource: Shared rendering path after selecting either the Fireball or general Airbourne-spell layout.
 	add.w	$00(a2,d1.w),a1			;D2F21000
 	add.w	d1,d1				;D241
 	add.b	$08(a2,d1.w),d4			;D8321008
@@ -15159,7 +15168,7 @@ adrCd009C18:
 	asr.w	#$04,d6	;			E846
 	move.l	a3,-(sp)			;2F0B
 	move.w	#$FFFF,Buffer_Colour_Mask_Toggle.l		;33FCFFFF0000B4BE
-	lea	SpellStars_Colours.l,a0		;41F900009B70
+	lea	GFX_Spell_ColourMasks.l,a0		;41F900009B70
 	asl.b	#$02,d0	;E500
 	move.l	$00(a0,d0.w),Buffer_Colour_Mask.l	;23F000000000B4C0
 	bsr	adrCd00AE5E	;61001202
@@ -15167,14 +15176,16 @@ adrCd009C18:
 	move.l	(sp)+,a3	;265F
 	rts	;4E75
 
-adrEA009C68:
+GFX_AirbourneSpell_DistanceGroups:
+	; ReSource: Maps the six visible source distances to four graphical sizes: 0,0,1,1,2,3.
 	dc.b	$00	;00
 	dc.b	$00	;00
 	dc.b	$01	;01
 	dc.b	$01	;01
 	dc.b	$02	;02
 	dc.b	$03	;03
-adrEA009C6E:
+GFX_AirbourneFireball_RenderLayout:
+	; ReSource: Four source offsets followed by four packed X, Y, width-minus-one and height-minus-one records for spell codes $80–$85.
 	dc.w	$0000	;0000
 	dc.w	$01A0	;01A0
 	dc.w	$0220	;0220
@@ -15187,7 +15198,8 @@ adrEA009C6E:
 	dc.w	$000A	;000A
 	dc.w	$020D	;020D
 	dc.w	$0007	;0007
-adrEA009C86:
+GFX_AirbourneSpells_RenderLayout:
+	; ReSource: Four source offsets followed by four packed X, Y, width-minus-one and height-minus-one records for spell codes $86–$8F. Offsets are relative to the flying-spell pictures at AirbourneSpells.gfx+$4E0.
 	dc.w	$0000	;0000
 	dc.w	$01B0	;01B0
 	dc.w	$0228	;0228
@@ -15200,7 +15212,8 @@ adrEA009C86:
 	dc.w	$000A	;000A
 	dc.w	$010E	;010E
 	dc.w	$0006	;0006
-adrB_009C9E:
+Monster_Facing_GfxVariants_LookupTable:
+	; ReSource: Maps facing direction to front, side, back, or mirrored-side graphic variants.
 	dc.b	$00	;00
 	dc.b	$01	;01
 	dc.b	$02	;02
@@ -15211,7 +15224,7 @@ adrCd009CA2:
 	add.w	d2,d2	;D442
 	add.w	d1,d2	;D441
 	moveq	#$00,d6	;7C00
-	move.b	adrB_009C9E(pc,d0.w),d3	;163B00F2
+	move.b	Monster_Facing_GfxVariants_LookupTable(pc,d0.w),d3	;163B00F2
 	bpl.s	adrCd009CB2	;6A02
 	moveq	#-$01,d6	;7CFF
 adrCd009CB2:
@@ -15229,7 +15242,7 @@ adrCd009CB2:
 
 Draw_Summon:
 	lea	GFX_Summon_LookupTable.l,a2	;45F900009EBE
-	lea	adrEA009DC0.l,a0	;41F900009DC0
+	lea	GFX_Summon_Body_Layout.l,a0	;41F900009DC0
 	lea	GFX_Summon.l,a1	;43F900045018
 	bsr.s	adrCd009CA2	;61BC
 	lea	Illusion_Palettes.l,a6	;4DF900009E5C
@@ -15256,17 +15269,17 @@ Draw_Summon:
 adrCd009D28:
 	cmpi.w	#$0004,d1	;0C410004
 	bcc	adrCd009DB6	;64000088
-	lea	adrEA009DDC.l,a2	;45F900009DDC
+	lea	GFX_Summon_PrimaryArm_Positions.l,a2	;45F900009DDC
 	movem.w	d0/d1/d4/d5,-(sp)	;48A7CC00
 	moveq	#$00,d6	;7C00
 	moveq	#$00,d2	;7400
 	bsr	adrCd009D50	;61000010
 	movem.w	(sp)+,d0/d1/d4/d5	;4C9F0033
-	lea	adrEA009DFC.l,a2	;45F900009DFC
+	lea	GFX_Summon_SecondaryArm_Positions.l,a2	;45F900009DFC
 	moveq	#-$01,d6	;7CFF
 	moveq	#$01,d2	;7401
 adrCd009D50:
-	lea	adrEA009DCC.l,a0	;41F900009DCC
+	lea	GFX_Summon_ArmVariants_LookupTable.l,a0	;41F900009DCC
 	move.b	$00(a0,d0.w),d3	;16300000
 	bpl.s	adrCd009D5E	;6A02
 	not.w	d6	;4646
@@ -15281,7 +15294,7 @@ adrCd009D6A:
 	add.w	d1,d2	;D441
 	add.w	d3,d2	;D443
 	moveq	#$00,d7	;7E00
-	lea	adrEA009DD0.l,a0	;41F900009DD0
+	lea	GFX_Summon_Arm_Heights.l,a0	;41F900009DD0
 	move.b	$00(a0,d2.w),d7	;1E302000
 	add.w	d2,d2	;D442
 	lea	GFX_Summon_Arms_LookupTable.l,a0	;41F900009EE2
@@ -15309,24 +15322,28 @@ Monster_Summon_Colours:
 	dc.w	$0203	;0203
 	dc.w	$0405	;0405
 	dc.w	$0607	;0607
-adrEA009DC0:
+GFX_Summon_Body_Layout:
+	; ReSource: Contains Summon body vertical adjustments and heights; its final bytes also begin the packed body-width data.
 	dc.w	$1511	;1511
 	dc.w	$0D0C	;0D0C
 	dc.w	$FE00	;FE00
 	dc.w	$2E26	;2E26
 	dc.w	$1F1A	;1F1A
 	dc.w	$1510	;1510
-adrEA009DCC:
+GFX_Summon_ArmVariants_LookupTable:
+	; ReSource: Maps Summon facing direction to an arm graphic variant and mirroring; it also forms part of the packed body-width data.
 	dc.w	$0001	;0001
 	dc.w	$8001	;8001
-adrEA009DD0:
+GFX_Summon_Arm_Heights:
+	; ReSource: Provides Summon arm heights and completes the packed body-width table.
 	dc.w	$1414	;1414
 	dc.w	$1010	;1010
 	dc.w	$100B	;100B
 	dc.w	$0C0C	;0C0C
 	dc.w	$0A0B	;0A0B
 	dc.w	$0B08	;0B08
-adrEA009DDC:
+GFX_Summon_PrimaryArm_Positions:
+	; ReSource: Packed X and Y drawing positions for the primary Summon arm; $FFFF suppresses an unavailable component.
 	dc.w	$09F9	;09F9
 	dc.w	$FFFF	;FFFF
 	dc.w	$FAF9	;FAF9
@@ -15343,7 +15360,8 @@ adrEA009DDC:
 	dc.w	$FFFF	;FFFF
 	dc.w	$07FC	;07FC
 	dc.w	$01FC	;01FC
-adrEA009DFC:
+GFX_Summon_SecondaryArm_Positions:
+	; ReSource: Packed X and Y drawing positions for the secondary Summon arm; $FFFF suppresses an unavailable component.
 	dc.w	$FAF9	;FAF9
 	dc.w	$03F9	;03F9
 	dc.w	$09F9	;09F9
@@ -15442,6 +15460,7 @@ MonsterColourGrading:
 	rts	;4E75
 
 GFX_Summon_LookupTable:
+	; ReSource: Offsets of the 18 Summon body pictures in Summon.gfx: six distances by three facing variants.
 	dc.w	$0000	;0000
 	dc.w	$0178	;0178
 	dc.w	$02F0	;02F0
@@ -15461,6 +15480,7 @@ GFX_Summon_LookupTable:
 	dc.w	$1030	;1030
 	dc.w	$10B8	;10B8
 GFX_Summon_Arms_LookupTable:
+	; ReSource: Offsets of the 12 Summon arm pictures in Summon.gfx: four distances by three arm variants.
 	dc.w	$1140	;1140
 	dc.w	$11E8	;11E8
 	dc.w	$1290	;1290
@@ -15556,7 +15576,7 @@ adrCd009F8C:
 	moveq	#$01,d2	;7401
 	moveq	#-$01,d6	;7CFF
 adrCd009F9E:
-	lea	Behemoth_Claw_Offsets.l,a2	;45F90000A6C2
+	lea	GFX_Behemoth_Claw_LookupTable.l,a2	;45F90000A6C2
 	lea	GFX_Behemoth.l,a1	;43F9000466D0
 	movem.w	d0/d1/d4/d5/d7,-(sp)	;48A7CD00
 	add.w	d1,d1	;D241
@@ -15651,7 +15671,7 @@ adrCd00A052:
 	add.b	adrB_00A02A(pc,d1.w),d4	;D83B10D6
 	bra	Draw_Monster_16PixelStrip	;60000CDC
 
-GFX_CrabFace_Heights:
+adrB_00A05A:
 	dc.b	$0B	;0B
 	dc.b	$07	;07
 GFX_CrabFace_Position:
@@ -15667,7 +15687,7 @@ adrCd00A060:
 	moveq	#$00,d6	;7C00
 	lea	adrEA00A170.l,a2	;45F90000A170
 	movem.w	d0/d1/d4/d5,-(sp)	;48A7CC00
-	move.b	GFX_CrabFace_Heights(pc,d1.w),d7	;1E3B10E8
+	move.b	adrB_00A05A(pc,d1.w),d7	;1E3B10E8
 	bsr	adrCd00A0F6	;61000080
 	add.b	GFX_CrabFace_Position(pc,d1.w),d5	;DA3B10E2
 adrCd00A07C:
@@ -15740,7 +15760,7 @@ adrCd00A0F6:
 	rts	;4E75
 
 adrCd00A106:
-	lea	adrEA00A536.l,a0	;41F90000A536
+	lea	Monster_DistanceGroups_LookupTable.l,a0	;41F90000A536
 	move.b	$00(a0,d1.w),d1	;12301000
 	lea	adrEA00A168.l,a2	;45F90000A168
 	lea	adrEA00A15C.l,a0	;41F90000A15C
@@ -16023,11 +16043,11 @@ GFX_Beholder_CentralEye_Far_LookupTable:
 
 Draw_LittleDragon:
 	moveq	#$01,d2	;7401
-	lea	LittleDragon_Table_Unknown.l,a2	;45F90000A33C
+	lea	adrEA00A33C.l,a2	;45F90000A33C
 	moveq	#$03,d3	;7603
 	bra.s	adrCd00A356	;601A
 
-LittleDragon_Table_Unknown:
+adrEA00A33C:
 	dc.w	$F1F5	;F1F5
 	dc.w	$FBFA	;FBFA
 	dc.w	$FD01	;FD01
@@ -16043,7 +16063,7 @@ Draw_BigDragon:
 	lea	BigDragon_Table_Unknown.l,a2	;45F90000A344
 	moveq	#$09,d3	;7609
 adrCd00A356:
-	lea	adrEA00A536.l,a0	;41F90000A536
+	lea	Monster_DistanceGroups_LookupTable.l,a0	;41F90000A536
 	move.b	$00(a0,d1.w),d1	;12301000
 	add.b	$00(a2,d1.w),d4	;D8321000
 	add.b	$04(a2,d1.w),d5	;DA321004
@@ -16302,7 +16322,7 @@ Draw_Behemoth:
 	lea	Monster_Behemoth_Colours.l,a0	;41F90000A52E
 	moveq	#$06,d3	;7606
 	bsr	MonsterColourGrading	;6100F978
-	lea	Behemoth_Position.l,a0	;41F90000A668
+	lea	GFX_Behemoth_Layout.l,a0	;41F90000A668
 	bsr.s	adrCd00A54C	;6126
 	clr.w	Buffer_Colour_Mask_Toggle.l	;42790000B4BE
 	rts	;4E75
@@ -16312,16 +16332,17 @@ Monster_Behemoth_Colours:
 	dc.w	$0A08	;0A08
 	dc.w	$0304	;0304
 	dc.w	$0507	;0507
-adrEA00A536:
+Monster_DistanceGroups_LookupTable:
+	; ReSource: Maps six visible distance slots to four stored size groups used by centred large monsters.
 	dc.w	$0000	;0000
 	dc.w	$0101	;0101
 	dc.w	$0203	;0203
 
 Draw_Entropy:
 	move.l	#$04080C,Buffer_Colour_Mask.l	;23FC0004080C0000B4C0
-	lea	adrEA00A604.l,a0	;41F90000A604
+	lea	GFX_Entropy_Layout.l,a0	;41F90000A604
 adrCd00A54C:
-	move.b	adrEA00A536(pc,d1.w),d1	;123B10E8
+	move.b	Monster_DistanceGroups_LookupTable(pc,d1.w),d1	;123B10E8
 	lea	$0042(a0),a2	;45E80042
 
 	move.l	$003E(a0),a1	;2268003E    *Fix stored address **  
@@ -16398,7 +16419,8 @@ adrCd00A600:
 
 ;fiX Label expected
 	dc.w	$FFFF	;FFFF
-adrEA00A604:
+GFX_Entropy_Layout:
+	; ReSource: Packed Entropy body and limb dimensions, positions, and mirroring rules.
 	dc.w	$1008	;1008
 	dc.w	$F8F8	;F8F8
 	dc.w	$0000	;0000
@@ -16453,7 +16475,8 @@ adrEA00A604:
 	dc.w	$1348	;1348
 	dc.w	$13D8	;13D8
 	dc.w	$0000	;0000
-Behemoth_Position:
+GFX_Behemoth_Layout:
+	; ReSource: Packed Behemoth body and claw dimensions, positions, and mirroring rules.
 	dc.w	$0C05	;0C05
 	dc.w	$F6F6	;F6F6
 	dc.w	$0000	;0000
@@ -16503,7 +16526,8 @@ Behemoth_Position:
 	dc.w	$1020	;1020
 	dc.w	$10A8	;10A8
 	dc.w	$1130	;1130
-Behemoth_Claw_Offsets:
+GFX_Behemoth_Claw_LookupTable:
+	; ReSource: Offsets of four Behemoth claw pictures; the closest front-facing Crab reuses these graphics.
 	dc.w	$11B8	;11B8
 	dc.w	$1260	;1260
 	dc.w	$1308	;1308
@@ -16535,7 +16559,7 @@ adrCd00A6EC:
 
 adrCd00A6F6:
 	move.b	-$0017(a3),d0	;102BFFE9
-	bmi	Draw_Spell	;6B00F4F4
+	bmi	Draw_AirbourneSpell	;6B00F4F4
 	move.w	-$000A(a3),d0	;302BFFF6
 	btst	#$00,d0	;08000000
 	bne.s	adrCd00A70A	;6602
@@ -16702,14 +16726,14 @@ adrCd00A804:
 	add.b	d6,d3	;D606
 adrCd00A808:
 	move.b	d6,-$001C(a3)			;1746FFE4
-	lea	adrEA00A88E.l,a0		;41F90000A88E
+	lea	Character_BodyDefinitions.l,a0		;41F90000A88E
 	and.w	#$000F,d3			;0243000F
 	mulu	#$000A,d3			;C6FC000A
 	lea	$02(a0,d3.w),a0			;41F03002
-	lea	adrEA018804.l,a1		;43F900018804
+	lea	Character_RenderLayout_Standard.l,a1		;43F900018804
 	tst.w	-$0002(a0)			;4A68FFFE
 	beq.s	adrCd00A830			;6706
-	lea	adrEA018944.l,a1		;43F900018944
+	lea	Character_RenderLayout_Alternate.l,a1		;43F900018944
 adrCd00A830:
 	move.l	a0,-(sp)	;2F08
 	move.l	a1,-(sp)	;2F09
@@ -16739,7 +16763,7 @@ adrCd00A876:
 	moveq	#$00,d0	;7000
 adrCd00A878:
 	move.w	d0,-(sp)	;3F00
-	bsr	adrCd00A998	;6100011C
+	bsr	Draw_CharacterComponent	;6100011C
 	move.w	(sp)+,d0	;301F
 	addq.w	#$01,d0	;5240
 	cmpi.w	#$0005,d0	;0C400005
@@ -16747,7 +16771,8 @@ adrCd00A878:
 	add.w	#$0012,sp	;DEFC0012
 	rts	;4E75
 
-adrEA00A88E:
+Character_BodyDefinitions:
+	; ReSource: Fourteen 10-byte records containing a layout selector and BodyParts.gfx bases for legs, torso, arms and the distant composite.
 	dc.w	$0000	;0000
 	dc.w	$2BE0	;2BE0
 	dc.w	$10E0	;10E0
@@ -16862,9 +16887,9 @@ CharacterHeadSel:
 	dc.w	$0F0F	;0F0F
 	dc.w	$0F0F	;0F0F
 	dc.w	$0F0F	;0F0F
-adrW_00A970:
+Character_RenderTableOffsets:
+	; ReSource: Interleaved five-entry lookup containing the height-table and graphics-source-table offsets for each rendered character part.
 	dc.w	$00A0	;00A0
-adrW_00A972:
 	dc.w	$00AC	;00AC
 	dc.w	$00C4	;00C4
 	dc.w	$00D0	;00D0
@@ -16874,7 +16899,8 @@ adrW_00A972:
 	dc.w	$0118	;0118
 	dc.w	$010C	;010C
 	dc.w	$0118	;0118
-adrB_00A984:
+Character_PartFacingVariants:
+	; ReSource: Five parts × four facings; bit 7 means mirror and $FF suppresses that part.
 	dc.b	$00	;00
 	dc.b	$01	;01
 	dc.b	$02	;02
@@ -16896,18 +16922,19 @@ adrB_00A984:
 	dc.b	$00	;00
 	dc.b	$FF	;FF
 
-adrCd00A998:
+Draw_CharacterComponent:
+	; ReSource: Draws one character component by selecting its distance, facing and animation variant, resolving its height and graphics source, applying its colour mask, and positioning or mirroring the 16-pixel strip.
 	move.w	d0,d2	;3400
 	asl.w	#$02,d2	;E542
-	move.w	adrW_00A970(pc,d2.w),d1	;323B20D2
-	move.w	adrW_00A972(pc,d2.w),d3	;363B20D0
+	move.w	Character_RenderTableOffsets(pc,d2.w),d1	;323B20D2
+	move.w	Character_RenderTableOffsets+$02(pc,d2.w),d3	;363B20D0
 	move.l	$0010(sp),a0	;206F0010
 	lea	$00(a0,d1.w),a1	;43F01000
 	lea	$00(a0,d3.w),a2	;45F03000
 	add.w	$000E(sp),a0	;D0EF000E
 	add.w	$0006(sp),d2	;D46F0006
 	moveq	#$00,d6	;7C00
-	move.b	adrB_00A984(pc,d2.w),d2	;143B20C8
+	move.b	Character_PartFacingVariants(pc,d2.w),d2	;143B20C8
 	bpl.s	adrCd00A9C2	;6A02
 	subq.w	#$01,d6	;5346
 adrCd00A9C2:
@@ -16973,8 +17000,8 @@ adrCd00AA4E:
 	move.w	$0008(sp),d1	;322F0008
 	subq.w	#$06,d0	;5D40
 	add.w	d0,d0	;D040
-	lea	adrEA00AAFC.l,a0	;41F90000AAFC
-	cmp.l	#adrEA018944,$0010(sp)	;0CAF000189440010
+	lea	Character_ArmAnimationPositions.l,a0	;41F90000AAFC
+	cmp.l	#Character_RenderLayout_Alternate,$0010(sp)	;0CAF000189440010
 	bne.s	adrCd00AA76	;6604
 	add.w	#$0024,a0	;D0FC0024
 adrCd00AA76:
@@ -17035,7 +17062,8 @@ adrCd00AADC:
 adrCd00AAF8:
 	bra	adrCd00AD2E	;60000234
 
-adrEA00AAFC:
+Character_ArmAnimationPositions:
+	; ReSource: Standard and alternate animated-arm Y corrections and facing-specific X corrections.
 	dc.w	$0806	;0806
 	dc.w	$0605	;0605
 	dc.w	$FC00	;FC00
@@ -17327,13 +17355,13 @@ adrCd00AC6E:
 	beq.s	adrCd00AC8C	;6710
 	moveq	#$14,d7	;7E14
 	move.w	#$00A8,d2	;343C00A8
-	lea	adrEA018A74.l,a0	;41F900018A74
+	lea	Character_Distant4_Positions_Alternate.l,a0	;41F900018A74
 	bra	adrCd00ACCC	;60000042
 
 adrCd00AC8C:
 	moveq	#$15,d7	;7E15
 	move.w	#$00B0,d2	;343C00B0
-	lea	adrEA018934.l,a0	;41F900018934
+	lea	Character_Distant4_Positions_Standard.l,a0	;41F900018934
 	bra	adrCd00ACCC	;60000032
 
 adrCd00AC9C:
@@ -17344,14 +17372,14 @@ adrCd00AC9C:
 	beq.s	adrCd00ACBC	;6712
 	moveq	#$0F,d7	;7E0F
 	move.w	#$0080,d2	;343C0080
-	lea	adrEA018A7C.l,a0	;41F900018A7C
+	lea	Character_Distant5_Positions_Alternate.l,a0	;41F900018A7C
 	add.w	#$01F8,d3	;064301F8
 	bra.s	adrCd00ACCC	;6010
 
 adrCd00ACBC:
 	moveq	#$10,d7	;7E10
 	move.w	#$0088,d2	;343C0088
-	lea	adrEA01893C.l,a0	;41F90001893C
+	lea	Character_Distant5_Positions_Standard.l,a0	;41F90001893C
 	add.w	#$0210,d3	;06430210
 adrCd00ACCC:
 	move.l	d3,a1	;2243
@@ -17422,7 +17450,7 @@ adrW_00AD64:
 	dc.w	$004B	;004B
 
 adrCd00AD66:
-	lea	adrEA01684C.l,a6	;4DF90001684C
+	lea	BitReverse_LookupBuffer.l,a6	;4DF90001684C
 adrCd00AD6C:
 	moveq	#$00,d2	;7400
 	move.b	d0,d2	;1400
@@ -18631,16 +18659,18 @@ adrCd00B7DE:
 	dbra	d5,adrLp00B76E	;51CDFF7E
 	rts	;4E75
 
-adrCd00B7F4:
+Draw_FloorAndCeiling:
+	; ReSource: Draws the floor and ceiling bands used by the dungeon viewport.
 	lea	GFX_FloorCeiling.l,a1	;43F900032120
 	move.l	-$0008(a3),a0	;206BFFF8
 	tst.w	-$000C(a3)	;4A6BFFF4
-	beq.s	adrCd00B864	;6760
+	beq.s	Draw_FloorAndCeiling_BitReversed	;6760
 	moveq	#$16,d0	;7016
-	bsr.s	adrLp00B80C	;6104
-	bsr.s	adrCd00B82A	;6120
+	bsr.s	Draw_FloorAndCeiling_CopyRows_Loop	;6104
+	bsr.s	Clear_FloorCeiling_ViewGap	;6120
 	moveq	#$21,d0	;7021
-adrLp00B80C:
+Draw_FloorAndCeiling_CopyRows_Loop:
+	; ReSource: Copies source rows into the floor and ceiling areas of the dungeon viewport.
 	moveq	#$07,d1	;7207
 adrLp00B80E:
 	move.w	(a1)+,(a0)+	;30D9
@@ -18649,10 +18679,11 @@ adrLp00B80E:
 	move.w	(a1)+,$5DBE(a0)	;31595DBE
 	dbra	d1,adrLp00B80E	;51C9FFF0
 	lea	$0018(a0),a0	;41E80018
-	dbra	d0,adrLp00B80C	;51C8FFE6
+	dbra	d0,Draw_FloorAndCeiling_CopyRows_Loop	;51C8FFE6
 	rts	;4E75
 
-adrCd00B82A:
+Clear_FloorCeiling_ViewGap:
+	; ReSource: Clears the horizontal gap between the floor and ceiling render regions.
 	moveq	#$12,d0	;7012
 	moveq	#$00,d1	;7200
 adrLp00B82E:
@@ -18679,16 +18710,18 @@ adrLp00B82E:
 	dbra	d0,adrLp00B82E	;51C8FFCE
 	rts	;4E75
 
-adrCd00B864:
-	lea	adrEA01684C.l,a6	;4DF90001684C
+Draw_FloorAndCeiling_BitReversed:
+	; ReSource: Draws the bit-reversed half of the floor and ceiling pattern.
+	lea	BitReverse_LookupBuffer.l,a6	;4DF90001684C
 	lea	$0010(a0),a0	;41E80010
 	moveq	#$16,d7	;7E16
-	bsr.s	adrLp00B87E	;610C
+	bsr.s	Draw_FloorAndCeiling_BitReversed_Loop	;610C
 	sub.w	#$0010,a0	;90FC0010
-	bsr.s	adrCd00B82A	;61B2
+	bsr.s	Clear_FloorCeiling_ViewGap	;61B2
 	lea	$0010(a0),a0	;41E80010
 	moveq	#$21,d7	;7E21
-adrLp00B87E:
+Draw_FloorAndCeiling_BitReversed_Loop:
+	; ReSource: Loop used to write the bit-reversed floor and ceiling rows.
 	moveq	#$07,d3	;7607
 adrLp00B880:
 	move.l	(a1)+,d0	;2019
@@ -18704,7 +18737,7 @@ adrLp00B880:
 	move.w	d1,-(a0)	;3101
 	dbra	d3,adrLp00B880	;51CBFFDE
 	lea	$0038(a0),a0	;41E80038
-	dbra	d7,adrLp00B87E	;51CFFFD4
+	dbra	d7,Draw_FloorAndCeiling_BitReversed_Loop	;51CFFFD4
 	rts	;4E75
 
 adrEA00B8AE:
@@ -40177,7 +40210,8 @@ adrEA0167CC:
 	dc.w	$0000	;0000
 	dc.w	$0000	;0000
 	dc.w	$0000	;0000
-adrEA01684C:
+BitReverse_LookupBuffer:
+	; ReSource: Working lookup buffer containing bit-reversed byte values used by the floor and ceiling renderer.
 	dc.w	$0000	;0000
 	dc.w	$0000	;0000
 	dc.w	$0000	;0000
@@ -44193,7 +44227,7 @@ SpellBookRunes:
 	dc.b	'yhadalittlelaaneeitwerraguddutnerewanzednowtecozzitwerawuddunwhyamistillhavintotypethiscrapwhithoughtidfinishacoupleoflinesq'	;79686164616C6974746C656C61616E6565697477657272616775646475746E65726577616E7A65646E6F777465636F7A7A6974776572617775646
 *56E776879616D697374696C6C686176696E746F74797065746869736372617077686974686F75676874696466696E69736861636F75706C656F666C696E657371
 	dc.b	'x'	;78
-adrEA018804:
+Character_RenderLayout_Standard:
 	dc.w	$0000	;0000
 	dc.w	$01F2	;01F2
 	dc.w	$03EB	;03EB
@@ -44346,17 +44380,19 @@ adrEA018804:
 	dc.w	$03D0	;03D0
 	dc.w	$0420	;0420
 	dc.w	$0470	;0470
-adrEA018934:
+Character_Distant4_Positions_Standard:
+	; ReSource: Four signed XY pairs for the corresponding distant graphics slot.
 	dc.w	$0001	;0001
 	dc.w	$0501	;0501
 	dc.w	$0001	;0001
 	dc.w	$F801	;F801
-adrEA01893C:
+Character_Distant5_Positions_Standard:
+	; ReSource: Four signed XY pairs for the corresponding distant graphics slot.
 	dc.w	$0000	;0000
 	dc.w	$0300	;0300
 	dc.w	$0000	;0000
 	dc.w	$F600	;F600
-adrEA018944:
+Character_RenderLayout_Alternate:
 	dc.w	$0001	;0001
 	dc.w	$03F5	;03F5
 	dc.w	$03EE	;03EE
@@ -44509,17 +44545,20 @@ adrEA018944:
 	dc.w	$0370	;0370
 	dc.w	$03B8	;03B8
 	dc.w	$0400	;0400
-adrEA018A74:
+Character_Distant4_Positions_Alternate:
+	; ReSource: Four signed XY pairs for the corresponding distant graphics slot.
 	dc.w	$0002	;0002
 	dc.w	$0402	;0402
 	dc.w	$0002	;0002
 	dc.w	$F802	;F802
-adrEA018A7C:
+Character_Distant5_Positions_Alternate:
+	; ReSource: Four signed XY pairs for the corresponding distant graphics slot.
 	dc.w	$0001	;0001
 	dc.w	$0201	;0201
 	dc.w	$0001	;0001
 	dc.w	$F601	;F601
-adrEA018A84:
+Monster_ViewCell_SubPosition_XPositions:
+	; ReSource: Provides the horizontal screen position for every view-cell and sub-position combination.
 	dc.w	$01FF	;01FF
 	dc.w	$FFFF	;FFFF
 	dc.w	$FC20	;FC20
