@@ -103,21 +103,21 @@ GameStart:
 	move.w	#$7FFF,_custom+intreq.l	;33FC7FFF00DFF09C
 	lea	$0005FFFC.l,sp	;4FF90005FFFC
 	clr.b	SyncFlagHighByte_AI_TBC.l	;423900008C1F
-	bsr	adrCd000492	;61000074
+	bsr	Init_CustomChipRegisters_AI_TBC	;61000074
 	clr.b	InputStateFlag_AI_TBC.l	;42390000EE2D
 	clr.w	FrameSyncFlagWord_AI_TBC.l	;427900008C1E
-	bsr	adrCd0008C4	;61000496
+	bsr	Init_DisplayDMA_AI_TBC	;61000496
 	bsr	MainMenu	;61000314
 	jsr	adrCd008DA8.l	;4EB900008DA8
 	jsr	adrCd008DA0.l	;4EB900008DA0
 	moveq	#$00,d0	;7000
 	jsr	PlaySound.l	;4EB9000088BE
 	tst.w	MainMenuBuffer.l	;4A7900000656
-	bmi.s	adrCd00048E	;6B3E
-	beq.s	adrCd000456	;6704
+	bmi.s	MainMenu_ReturnToStart_AI_TBC	;6B3E
+	beq.s	PostMainMenu_ChampionSetup_AI_TBC	;6704
 	bra	adrCd000BA6	;60000752
 
-adrCd000456:
+PostMainMenu_ChampionSetup_AI_TBC:
 	jsr	ChampionSelection_Main.l	;4EB90000C0FA
 	move.b	adrB_00EE83.l,Player1_ChampionCount.l	;13F90000EE830000EE94
 	move.b	Player2_ChampionCount.l,Player2_ChampionPointer.l	;13F90000EEE50000EEF6
@@ -127,10 +127,10 @@ adrCd000456:
 DBFWait1a:
 	dbra	d1,DBFWait1a	;51C9FFFE
 	dbra	d0,DBFWait1a	;51C8FFFA
-adrCd00048E:
-	bra	adrCd000BA2	;60000712
+MainMenu_ReturnToStart_AI_TBC:
+	bra	PrepareCharacterData_AI_TBC	;60000712
 
-adrCd000492:
+Init_CustomChipRegisters_AI_TBC:
 	jsr	adrCd008DBA.l	;4EB900008DBA
 	move.w	#$4200,_custom+bplcon0.l	;33FC420000DFF100
 	move.w	#$0000,_custom+bplcon1.l	;33FC000000DFF102
@@ -145,10 +145,10 @@ adrCd000492:
 	move.l	#$00060000,screen_ptr.l	;23FC0006000000008D36
 	jsr	adrCd008D00.l	;4EB900008D00
 	lea	CopperList_01.l,a0	;41F900008E30
-	lea	adrEA0005AA.l,a1	;43F9000005AA
-	lea	adrEA0005B2.l,a2	;45F9000005B2
+	lea	Copper_SpriteOffsetTable_DATA_AI_TBC.l,a1	;43F9000005AA
+	lea	Sprite_PositionPointerTable_DATA_AI_TBC.l,a2	;45F9000005B2
 	moveq	#$07,d1	;7207
-adrLp00050E:
+Copper_SpriteInitLoop_AI_TBC:
 	moveq	#$00,d0	;7000
 	move.b	$00(a1,d1.w),d0	;10311000
 	add.w	d0,d0	;D040
@@ -158,13 +158,13 @@ adrLp00050E:
 	swap	d0	;4840
 	move.w	d0,$0002(a0)	;31400002
 	addq.w	#$08,a0	;5048
-	dbra	d1,adrLp00050E	;51C9FFE4
+	dbra	d1,Copper_SpriteInitLoop_AI_TBC	;51C9FFE4
 	move.l	#adrL_008CC8,d0	;203C00008CC8
 	lea	$0060.w,a0	;41F80060	;Short Absolute replaced by symbol!
 	moveq	#$07,d1	;7207
-adrLp000538:
+Interrupt_VectorInitLoop_AI_TBC:
 	move.l	d0,(a0)+	;20C0
-	dbra	d1,adrLp000538	;51C9FFFC
+	dbra	d1,Interrupt_VectorInitLoop_AI_TBC	;51C9FFFC
 	move.l	#VerticalBlankInterupt,$006C.w	;21FC00008C20006C	;Short Absolute converted to symbol!
 	move.l	#Level_2_Interrupt,$0068.w	;21FC000005CE0068	;Short Absolute converted to symbol!
 	move.l	#adrL_0088A4,$0070.w	;21FC000088A40070	;Short Absolute converted to symbol!
@@ -181,19 +181,19 @@ adrLp000538:
 	move.w	#$C038,_custom+intena.l	;33FCC03800DFF09A
 	rts	;4E75
 
-adrEA0005AA:
+Copper_SpriteOffsetTable_DATA_AI_TBC:
 	dc.w	$0404	;0404
 	dc.w	$0403	;0403
 	dc.w	$0402	;0402
 	dc.w	$0100	;0100
-adrEA0005B2:
+Sprite_PositionPointerTable_DATA_AI_TBC:
 	dc.l	SpritePosition_00	;00008E84
 	dc.l	SpritePosition_01	;00008F14
 	dc.l	SpritePosition_04	;00008ECC
 	dc.l	SpritePosition_02	;00008F5C
 	dc.l	adrEA008EC8	;00008EC8
 	dc.w	$0000	;0000
-adrEA0005C8:
+Level2Int_LastKeyScratch_AI_TBC:
 	dc.b	$00	;00
 KeyboardKeyCode:
 	dc.b	$00	;00
@@ -219,7 +219,7 @@ Level_2_Interrupt:
 	lea	_ciaa.l,a0	;41F900BFE001
 	move.b	$0D00(a0),d0	;10280D00
 	and.b	#$BF,$0E00(a0)	;022800BF0E00
-	move.b	d0,adrEA0005C8.w	;11C005C8	;Short Absolute converted to symbol!
+	move.b	d0,Level2Int_LastKeyScratch_AI_TBC.w	;11C005C8	;Short Absolute converted to symbol!
 	movem.l	(sp)+,d0/d1/a0	;4CDF0103
 	move.w	#$0008,_custom+intreq.l	;33FC000800DFF09C
 	rte	;4E73
@@ -365,7 +365,7 @@ LoadGameFromMenu:
 	bsr	adrCd004440	;61003C38
 	cmp.b	#$FF,Character_Stats_DataTable+$11.l	;0C3900FF0000EB3B
 	beq	MainMenu	;6700FF32
-	bsr	adrCd000B68	;61000350
+	bsr	Load_LevelLookupTable_AI_TBC	;61000350
 	move.w	#$0001,MainMenuBuffer.w	;31FC00010656	;Short Absolute converted to symbol!
 	rts	;4E75
 
@@ -409,53 +409,53 @@ QkPly2_Start:
 	move.b	d0,$0176(a0)	;11400176
 	rts	;4E75
 
-adrCd0008C4:
+Init_DisplayDMA_AI_TBC:
 	lea	adrEA01684C.l,a0	;41F90001684C
 	move.w	#$00FF,d7	;3E3C00FF
-adrLp0008CE:
+SpellsPracticed_InitializeEntriesLoop_AI_TBC:
 	move.w	d7,d0	;3007
 	moveq	#$07,d6	;7C07
-adrLp0008D2:
+SpellsPracticed_AccumulateEntryBitsLoop_AI_TBC:
 	lsr.b	#$01,d0	;E208
 	addx.b	d1,d1	;D301
-	dbra	d6,adrLp0008D2	;51CEFFFA
+	dbra	d6,SpellsPracticed_AccumulateEntryBitsLoop_AI_TBC	;51CEFFFA
 	move.b	d1,$00(a0,d7.w)	;11817000
-	dbra	d7,adrLp0008CE	;51CFFFEE
+	dbra	d7,SpellsPracticed_InitializeEntriesLoop_AI_TBC	;51CFFFEE
 	lea	Spells_Practiced_DataTable.l,a0	;41F90001694C
 	moveq	#$7F,d0	;707F
-adrLp0008EA:
+SpellsPracticed_ClearEntriesLoop_AI_TBC:
 	clr.l	(a0)+	;4298
-	dbra	d0,adrLp0008EA	;51C8FFFC
+	dbra	d0,SpellsPracticed_ClearEntriesLoop_AI_TBC	;51C8FFFC
 	rts	;4E75
 
-adrEA0008F2:
+SpellPractice_CountInit_DATA_AI_TBC:
 	moveq	#$0F,d7	;7E0F
-adrLp0008F4:
+SpellPractice_UpdateCountLoop_AI_TBC:
 	move.w	d7,d0	;3007
-	bsr	adrCd000904	;6100000C
+	bsr	SpellPractice_ComputeThreshold_AI_TBC	;6100000C
 	move.b	d0,$0009(a4)	;19400009
-	dbra	d7,adrLp0008F4	;51CFFFF4
+	dbra	d7,SpellPractice_UpdateCountLoop_AI_TBC	;51CFFFF4
 	rts	;4E75
 
-adrCd000904:
+SpellPractice_ComputeThreshold_AI_TBC:
 	move.w	d0,d1	;3200
 	bsr	adrCd006660	;61005D58
-	bsr.s	adrCd00093E	;6132
+	bsr.s	SpellCost_AlternateSelector_AI_TBC	;6132
 	asl.w	#$02,d0	;E540
 	move.b	$0003(a4),d1	;122C0003
 	lsr.b	#$01,d1	;E209
 	add.b	d1,d0	;D001
 	cmpi.b	#$64,d0	;0C000064
-	bcs.s	adrCd00091E	;6502
+	bcs.s	SpellPractice_ClampThreshold_AI_TBC	;6502
 	moveq	#$63,d0	;7063
-adrCd00091E:
+SpellPractice_ClampThreshold_AI_TBC:
 	move.b	d0,$000A(a4)	;1940000A
 	rts	;4E75
 
-adrCd000924:
+SpellCost_SelectOrComputeFallback_AI_TBC:
 	and.w	#$0003,d1	;02410003
-	move.b	adrB_00093A(pc,d1.w),d1	;123B1010
-	bpl.s	adrCd000954	;6A26
+	move.b	SpellCost_BasicValues_DATA_AI_TBC(pc,d1.w),d1	;123B1010
+	bpl.s	SpellCost_FinalizeCost_AI_TBC	;6A26
 	moveq	#$00,d0	;7000
 	move.b	(a4),d0	;1014
 	add.w	d0,d0	;D040
@@ -463,46 +463,46 @@ adrCd000924:
 	lsr.w	#$02,d0	;E448
 	rts	;4E75
 
-adrB_00093A:
+SpellCost_BasicValues_DATA_AI_TBC:
 	dc.b	$00	;00
 	dc.b	$02	;02
 	dc.b	$FF	;FF
 	dc.b	$02	;02
 
-adrCd00093E:
+SpellCost_AlternateSelector_AI_TBC:
 	and.w	#$0003,d1	;02410003
-	move.b	adrB_000948(pc,d1.w),d1	;123B1004
-	bra.s	adrCd000954	;600C
+	move.b	SpellCost_AlternateValues_DATA_AI_TBC(pc,d1.w),d1	;123B1004
+	bra.s	SpellCost_FinalizeCost_AI_TBC	;600C
 
-adrB_000948:
+SpellCost_AlternateValues_DATA_AI_TBC:
 	dc.b	$02	;02
 	dc.b	$00	;00
 	dc.b	$01	;01
 	dc.b	$02	;02
 
-adrCd00094C:
+SpellCost_ShiftSelector_AI_TBC:
 	and.w	#$0003,d1	;02410003
-	move.b	adrB_00095C(pc,d1.w),d1	;123B100A
-adrCd000954:
+	move.b	SpellCost_ShiftFactors_DATA_AI_TBC(pc,d1.w),d1	;123B100A
+SpellCost_FinalizeCost_AI_TBC:
 	moveq	#$00,d0	;7000
 	move.b	(a4),d0	;1014
 	lsr.w	d1,d0	;E268
 	rts	;4E75
 
-adrB_00095C:
+SpellCost_ShiftFactors_DATA_AI_TBC:
 	dc.b	$02	;02
 	dc.b	$02	;02
 	dc.b	$01	;01
 	dc.b	$00	;00
 
-adrCd000960:
+Map_Traps_InitProcessing_AI_TBC:
 	moveq	#$00,d7	;7E00
 	moveq	#$00,d6	;7C00
 	move.l	adrL_00EE78.l,a6	;2C790000EE78
 	lea	$0FCA(a6),a0	;41EE0FCA
-adrCd00096E:
+Map_Traps_ProcessNextEntryLoop_AI_TBC:
 	cmp.w	-$0002(a0),d7	;BE68FFFE
-	bcc.s	adrCd000994	;6420
+	bcc.s	Map_Traps_ProcessingDone_AI_TBC	;6420
 	move.b	$00(a0,d7.w),d0	;10307000
 	rol.w	#$08,d0	;E158
 	move.b	$01(a0,d7.w),d0	;10307001
@@ -512,13 +512,13 @@ adrCd00096E:
 	add.w	d6,d6	;DC46
 	addq.w	#$05,d6	;5A46
 	add.w	d6,d7	;DE46
-	bra.s	adrCd00096E	;60DA
+	bra.s	Map_Traps_ProcessNextEntryLoop_AI_TBC	;60DA
 
-adrCd000994:
+Map_Traps_ProcessingDone_AI_TBC:
 	rts	;4E75
 
 PrepareCharacters:
-	bsr	adrCd000B68	;610001D0
+	bsr	Load_LevelLookupTable_AI_TBC	;610001D0
 	lea	Character_Stats_DataTable.l,a4	;49F90000EB2A
 	moveq	#$0F,d6	;7C0F
 CharacterFillLoop:
@@ -545,7 +545,7 @@ adrCd0009EE:
 	add.w	#$0020,a4	;D8FC0020
 	dbra	d6,CharacterFillLoop	;51CEFFAE
 MonsterTransfer:
-	bsr	adrCd000960	;6100FF68
+	bsr	Map_Traps_InitProcessing_AI_TBC	;6100FF68
 	lea	adrEA017390.l,a4	;49F900017390
 	moveq	#-$01,d6	;7CFF
 	move.w	d6,-$0002(a4)	;3946FFFE
@@ -561,7 +561,7 @@ adrLp000A08:
 	move.w	CurrentTower.l,d0	;30390000EE2E
 	move.w	d0,d1	;3200
 	add.w	d0,d0	;D040
-	lea	MonsterTotalsCounts.l,a4	;49F900017578
+	lea	MonsterTotalsCounts_mod0.l,a4	;49F900017578
 	move.w	$00(a4,d0.w),d6	;3C340000
 	lea	UnpackedMonsters.l,a4	;49F900016B7E
 	move.w	d6,-$0002(a4)	;3946FFFE
@@ -682,7 +682,7 @@ adrCd000B32:
 adrCd000B66:
 	rts	;4E75
 
-adrCd000B68:
+Load_LevelLookupTable_AI_TBC:
 	move.w	CurrentTower.l,d0	;30390000EE2E
 	add.w	d0,d0	;D040
 	lea	LevelData_LookupTable.l,a0	;41F900000B96
@@ -704,7 +704,7 @@ LevelData_LookupTable:
 	dc.w	MapData5-MapData1	;5008
 	dc.w	MapData6-MapData1	;640A
 
-adrCd000BA2:
+PrepareCharacterData_AI_TBC:
 	bsr	PrepareCharacters	;6100FDF2
 adrCd000BA6:
 	clr.w	FrameSyncFlagWord_AI_TBC.l	;427900008C1E
@@ -739,40 +739,40 @@ adrLp000C18:
 	dbra	d7,adrLp000C18	;51CFFFDE
 	bsr	adrCd0042BA	;6100367C
 	move.w	#$FFFF,FrameSyncFlagWord_AI_TBC.l	;33FCFFFF00008C1E
-adrCd000C48:
+Wait_FrameSync_AI_TBC:
 	tst.b	FrameSyncFlagWord_AI_TBC.l	;4A3900008C1E
-	bne.s	adrCd000C48	;66F8
-adrCd000C50:
+	bne.s	Wait_FrameSync_AI_TBC	;66F8
+Menu_RenderLoop_AI_TBC:
 	lea	Player1_Data.l,a5	;4BF90000EE7C
 	bsr	adrCd0084D6	;6100787E
 	bsr	adrCd004C90	;61004034
 	bsr	adrCd0057AC	;61004B4C
 	tst.w	MultiPlayer.l	;4A790000EE30
-	bne.s	adrCd000C88	;661E
+	bne.s	Menu_IdlePoll_AI_TBC	;661E
 	lea	Player2_Data.l,a5	;4BF90000EEDE
 	bsr	adrCd0084D6	;61007864
 	bsr	adrCd004C90	;6100401A
 	bsr	adrCd0057AC	;61004B32
 	jsr	adrCd008FB8.l	;4EB900008FB8
 	lea	Player1_Data.l,a5	;4BF90000EE7C
-adrCd000C88:
+Menu_IdlePoll_AI_TBC:
 	jsr	adrCd008FB8.l	;4EB900008FB8
 	move.b	#$FF,FrameSyncFlagWord_AI_TBC.l	;13FC00FF00008C1E
 adrCd000C96:
 	tst.b	FrameSyncFlagWord_AI_TBC.l	;4A3900008C1E
 	bne.s	adrCd000C96	;66F8
-	bsr.s	adrCd000D04	;6164
+	bsr.s	RelocateTraps_AI_TBC	;6164
 	move.b	Player1_ChampionCount.l,d0	;10390000EE94
 	and.b	Player2_ChampionPointer.l,d0	;C0390000EEF6
 	btst	#$06,d0	;08000006
 	beq.s	adrCd000CB4	;6702
-	bsr.s	adrCd000CC2	;610E
+	bsr.s	DelayLoop1a_AI_TBC	;610E
 adrCd000CB4:
 	move.w	#$0001,adrW_00505A.l	;33FC00010000505A
 	bsr	adrCd001238	;6100057A
-	bra.s	adrCd000C50	;608E
+	bra.s	Menu_RenderLoop_AI_TBC	;608E
 
-adrCd000CC2:
+DelayLoop1a_AI_TBC:
 	move.l	adrEA00EE36.l,-(sp)	;2F390000EE36
 	moveq	#$14,d0	;7014
 DBFWait1b:
@@ -789,32 +789,32 @@ DBFWait1c:
 	dbra	d0,DBFWait1c	;51C8FFFA
 	bra	LoadGame	;600036A2
 
-adrCd000D04:
+RelocateTraps_AI_TBC:
 	lea	Player1_Data.l,a5	;4BF90000EE7C
-	bsr.s	adrCd000D12	;6106
+	bsr.s	Setup_PlayerZOffset_AI_TBC	;6106
 	lea	Player2_Data.l,a5	;4BF90000EEDE
-adrCd000D12:
+Setup_PlayerZOffset_AI_TBC:
 	and.b	#$7F,$0052(a5)	;022D007F0052
 	move.b	$0054(a5),d3	;162D0054
 	clr.b	$0054(a5)	;422D0054
 	move.w	$000A(a5),d0	;302D000A
 	move.w	d0,d6	;3C00
-	bsr.s	adrCd000D7E	;6156
+	bsr.s	ScreenFade_Control_AI_TBC	;6156
 	move.w	d6,d0	;3006
 	add.w	#$001C,d0	;0640001C
-	bsr.s	adrCd000D7E	;614E
+	bsr.s	ScreenFade_Control_AI_TBC	;614E
 	lsr.b	#$01,d3	;E20B
-	bcc.s	adrCd000D3C	;6408
+	bcc.s	Player_HeightAdjust_AI_TBC	;6408
 	move.w	d6,d0	;3006
 	add.w	#$0DCC,d0	;06400DCC
-	bsr.s	adrCd000D68	;612C
-adrCd000D3C:
+	bsr.s	Setup_ScreenFade_AI_TBC	;612C
+Player_HeightAdjust_AI_TBC:
 	move.w	d6,d0	;3006
 	lsr.b	#$01,d3	;E20B
-	bcc.s	adrCd000D48	;6406
+	bcc.s	Player_HeightCheck_AI_TBC	;6406
 	add.w	#$000C,d0	;0640000C
-	bsr.s	adrCd000D68	;6120
-adrCd000D48:
+	bsr.s	Setup_ScreenFade_AI_TBC	;6120
+Player_HeightCheck_AI_TBC:
 	move.w	d6,d0	;3006
 	lsr.b	#$01,d3	;E20B
 	bcc	adrCd000DEA	;6400009C
@@ -825,7 +825,7 @@ adrCd000D48:
 	add.w	d0,a0	;D0C0
 	bra	adrCd000DEC	;60000086
 
-adrCd000D68:
+Setup_ScreenFade_AI_TBC:
 	move.l	screen_ptr.l,a0	;207900008D36
 	move.l	framebuffer_ptr.l,a1	;227900008D3A
 	add.w	d0,a1	;D2C0
@@ -833,7 +833,7 @@ adrCd000D68:
 	moveq	#$07,d0	;7007
 	bra	adrLp000DEE	;60000072
 
-adrCd000D7E:
+ScreenFade_Control_AI_TBC:
 	moveq	#$06,d2	;7406
 	btst	#$05,d3	;08030005
 	bne.s	adrCd000D8C	;6606
@@ -909,7 +909,7 @@ adrLp000DEE:
 	dbra	d0,adrLp000DEE	;51C8FFBE
 	rts	;4E75
 
-adrCd000E34:
+Keyboard_InterruptService_AI_TBC:
 	move.l	a4,d0	;200C
 	sub.l	#Character_Stats_DataTable,d0	;04800000EB2A
 	lsr.w	#$01,d0	;E248
@@ -920,19 +920,19 @@ adrCd000E34:
 	movem.l	d0/d1/d7/a5,-(sp)	;48E7C104
 	bsr	adrCd004066	;61003216
 	tst.w	d1	;4A41
-	bmi.s	adrCd000E64	;6B0E
+	bmi.s	CheckKeyboard_InputLoop_AI_TBC	;6B0E
 	btst	#$06,$18(a5,d1.w)	;083500061018
-	beq.s	adrCd000E64	;6706
+	beq.s	CheckKeyboard_InputLoop_AI_TBC	;6706
 	movem.l	(sp)+,d0/d1/d7/a5	;4CDF2083
 	rts	;4E75
 
-adrCd000E64:
+CheckKeyboard_InputLoop_AI_TBC:
 	movem.l	(sp)+,d0/d1/d7/a5	;4CDF2083
 	move.b	$0009(a4),d0	;102C0009
 	cmp.b	$000A(a4),d0	;B02C000A
-	beq.s	adrCd000E76	;6704
+	beq.s	ProcessKeyCode_AI_TBC	;6704
 	addq.b	#$01,$0009(a4)	;522C0009
-adrCd000E76:
+ProcessKeyCode_AI_TBC:
 	move.b	(a4),d0	;1014
 	lsr.b	#$01,d0	;E208
 	cmp.b	#$5B,(a0)	;0C10005B
@@ -952,22 +952,22 @@ adrCd000E94:
 adrCd000E9E:
 	move.b	d0,$0005(a4)	;19400005
 	tst.b	$0007(a4)	;4A2C0007
-	bne.s	adrCd000ECE	;6626
+	bne.s	RandomWalk_NormalReturn_AI_TBC	;6626
 	movem.l	d7/a4/a5,-(sp)	;48E7010C
 	bsr	RandomGen_BytewithOffset	;610046FE
 	and.w	#$0007,d0	;02400007
 	add.b	(a4),d0	;D014
 	cmp.b	$0005(a4),d0	;B02C0005
-	bcs.s	adrCd000EC2	;6506
+	bcs.s	RandomWalk_Init_AI_TBC	;6506
 	move.b	$0005(a4),d0	;102C0005
 	beq.s	adrCd000ECA	;6708
-adrCd000EC2:
+RandomWalk_Init_AI_TBC:
 	move.w	d0,d5	;3A00
 	move.w	d7,d0	;3007
 	bsr	adrCd002298	;610013D0
 adrCd000ECA:
 	movem.l	(sp)+,d7/a4/a5	;4CDF3080
-adrCd000ECE:
+RandomWalk_NormalReturn_AI_TBC:
 	move.b	$0010(a4),d0	;102C0010
 	bne.s	adrCd000EE0	;660C
 	subq.b	#$01,$0007(a4)	;532C0007
@@ -987,27 +987,27 @@ adrCd000EF2:
 adrCd000EF6:
 	rts	;4E75
 
-adrCd000EF8:
+Stat_UpdateLoop_AI_TBC:
 	lea	Character_Stats_DataTable.l,a4	;49F90000EB2A
 	moveq	#$0F,d7	;7E0F
 adrLp000F00:
 	movem.l	d7/a4,-(sp)	;48E70108
-	bsr	adrCd000E34	;6100FF2E
+	bsr	Keyboard_InterruptService_AI_TBC	;6100FF2E
 	movem.l	(sp)+,d7/a4	;4CDF1080
 	add.w	#$0020,a4	;D8FC0020
 	dbra	d7,adrLp000F00	;51CFFFEE
 	subq.b	#$01,adrB_00EE3C.l	;53390000EE3C
 	lea	Player1_Data.l,a5	;4BF90000EE7C
-	bsr	adrCd000F3E	;6100001C
+	bsr	ChampionFlag_Test_AI_TBC	;6100001C
 	lea	Player2_Data.l,a5	;4BF90000EEDE
-	bsr	adrCd000F3E	;61000012
+	bsr	ChampionFlag_Test_AI_TBC	;61000012
 	tst.b	adrB_00EE3C.l	;4A390000EE3C
-	bpl.s	adrCd000F3C	;6A06
+	bpl.s	ChampionFlag_Reset_AI_TBC	;6A06
 	clr.b	adrB_00EE3C.l	;42390000EE3C
-adrCd000F3C:
+ChampionFlag_Reset_AI_TBC:
 	rts	;4E75
 
-adrCd000F3E:
+ChampionFlag_Test_AI_TBC:
 	tst.b	adrB_00EE3C.l	;4A390000EE3C
 	bpl	adrCd00104A	;6A000104
 	moveq	#$00,d6	;7C00
@@ -1021,15 +1021,15 @@ adrLp000F4C:
 	move.w	d0,d1	;3200
 	bsr	adrCd006660	;61005700
 	btst	#$02,(a5)	;08150002
-	bne.s	adrCd000F80	;6618
+	bne.s	TeamAvatar_UpdateLoop_AI_TBC	;6618
 	btst	#$06,$18(a5,d7.w)	;083500067018
-	bne.s	adrCd000F80	;6610
+	bne.s	TeamAvatar_UpdateLoop_AI_TBC	;6610
 	cmpi.b	#$0B,d1	;0C01000B
-	beq.s	adrCd000F80	;670A
+	beq.s	TeamAvatar_UpdateLoop_AI_TBC	;670A
 	subq.b	#$01,$0010(a4)	;532C0010
-	bcc.s	adrCd000F80	;6404
+	bcc.s	TeamAvatar_UpdateLoop_AI_TBC	;6404
 	clr.b	$0010(a4)	;422C0010
-adrCd000F80:
+TeamAvatar_UpdateLoop_AI_TBC:
 	move.b	$0011(a4),d0	;102C0011
 	and.w	#$0007,d0	;02400007
 	beq.s	adrCd000FB8	;672E
@@ -1043,10 +1043,10 @@ adrCd000F9A:
 	btst	d7,$003E(a5)	;0F2D003E
 	bne.s	adrCd000FB8	;6618
 	tst.w	d7	;4A47
-	beq.s	adrCd000FAA	;6706
+	beq.s	TriggerState_Reset_AI_TBC	;6706
 	tst.w	$0042(a5)	;4A6D0042
 	bpl.s	adrCd000FB8	;6A0E
-adrCd000FAA:
+TriggerState_Reset_AI_TBC:
 	movem.w	d6/d7,-(sp)	;48A70300
 	bsr	adrCd007EF0	;61006F40
 	movem.w	(sp)+,d6/d7	;4C9F00C0
@@ -1054,19 +1054,19 @@ adrCd000FAA:
 adrCd000FB8:
 	dbra	d7,adrLp000F4C	;51CFFF92
 	btst	#$00,d6	;08060000
-	beq.s	adrCd000FD0	;670E
+	beq.s	TriggerState_Check_AI_TBC	;670E
 	tst.b	$0015(a5)	;4A2D0015
-	bne.s	adrCd000FD0	;6608
+	bne.s	TriggerState_Check_AI_TBC	;6608
 	move.w	d6,-(sp)	;3F06
 	bsr	Load_MapPosition_AI_TBC	;61007202
 	move.w	(sp)+,d6	;3C1F
-adrCd000FD0:
+TriggerState_Check_AI_TBC:
 	and.w	#$000E,d6	;0246000E
 	beq.s	adrCd00104A	;6774
 	bsr	adrCd007ED2	;61006EFA
 	bra.s	adrCd00104A	;606E
 
-adrCd000FDC:
+FloorTrigger_Handler_AI_TBC:
 	btst	#$02,(a5)	;08150002
 	beq	adrCd00108E	;670000AC
 	clr.w	adrW_001062.l	;427900001062
@@ -1092,11 +1092,11 @@ adrLp00100E:
 	clr.b	$0015(a4)	;422C0015
 adrCd00102A:
 	movem.l	d7/a5,-(sp)	;48E70104
-	bsr	adrCd000E34	;6100FE04
+	bsr	Keyboard_InterruptService_AI_TBC	;6100FE04
 	tst.w	adrW_001062.l	;4A7900001062
 	beq.s	adrCd001042	;6708
 	subq.b	#$01,$0009(a4)	;532C0009
-	bsr	adrCd000E34	;6100FDF4
+	bsr	Keyboard_InterruptService_AI_TBC	;6100FDF4
 adrCd001042:
 	movem.l	(sp)+,d7/a5	;4CDF2080
 adrCd001046:
@@ -1300,17 +1300,17 @@ adrCd001238:
 	move.w	#$012C,adrEA00EE36.l	;33FC012C0000EE36
 	bsr	adrCd001174	;6100FF2A
 	lea	Player1_Data.l,a5	;4BF90000EE7C
-	bsr	adrCd000FDC	;6100FD88
+	bsr	FloorTrigger_Handler_AI_TBC	;6100FD88
 	lea	ReserveSpace_1.l,a6	;4DF900058828
 	bsr	adrCd005694	;61004436
 	lea	Player2_Data.l,a5	;4BF90000EEDE
-	bsr	adrCd000FDC	;6100FD74
+	bsr	FloorTrigger_Handler_AI_TBC	;6100FD74
 	lea	ReserveSpace_2.l,a6	;4DF900058C10
 	bsr	adrCd005694	;61004422
 	bsr	adrCd001090	;6100FE1A
 	bchg	#$01,adrB_00EE3F.l	;087900010000EE3F
 	beq.s	adrCd001286	;6704
-	bsr	adrCd000EF8	;6100FC74
+	bsr	Stat_UpdateLoop_AI_TBC	;6100FC74
 adrCd001286:
 	tst.w	adrW_00EE38.l	;4A790000EE38
 	bne	adrCd0013C0	;66000132
@@ -1906,7 +1906,7 @@ adrCd001894:
 	move.b	d7,$0001(a4)			;19470001
 	bsr	CoordToMap		;61006BB2
 	move.l	a1,a4				;2849
-	bsr	adrCd001D58		;61000468
+	bsr	CheckEquipCostsAndAttrs_AI_TBC		;61000468
 	move.l	(sp)+,a4		;285F
 	rts				;4E75
 
@@ -2127,7 +2127,7 @@ adrCd001B68:
 
 adrCd001B74:
 	tst.b	$000B(a4)	;4A2C000B
-	bmi	adrCd001CFC	;6B000182
+	bmi	EquipStateOrArmorHandler_AI_TBC	;6B000182
 	cmp.b	#$15,$000B(a4)	;0C2C0015000B
 	beq.s	adrCd001BB8	;6734
 	cmp.b	#$16,$000B(a4)	;0C2C0016000B
@@ -2251,68 +2251,68 @@ adrLp001CAA:
 adrCd001CD2:
 	rts	;4E75
 
-adrCd001CD4:
+HandleArmorSubroutine_AI_TBC:
 	bsr	adrCd001BB8	;6100FEE2
 	move.w	d0,d6	;3C00
 	and.w	#$0003,d6	;02460003
 	bsr	Compute_NewMapIndex_AI_TBC	;61005D64
-	bcs.s	adrCd001CF0	;650C
+	bcs.s	CheckAndToggleProcessedFlag_AI_TBC	;650C
 	move.b	d7,$0001(a4)	;19470001
 	swap	d7	;4847
 	move.b	d7,$0000(a4)	;19470000
 	rts	;4E75
 
-adrCd001CF0:
+CheckAndToggleProcessedFlag_AI_TBC:
 	cmp.w	d0,d2	;B440
-	bne.s	adrCd001CFC	;6608
+	bne.s	EquipStateOrArmorHandler_AI_TBC	;6608
 	eor.b	#$02,$0002(a4)	;0A2C00020002
 	rts	;4E75
 
-adrCd001CFC:
+EquipStateOrArmorHandler_AI_TBC:
 	cmp.b	#$84,$000B(a4)	;0C2C0084000B
-	bne.s	adrCd001D1E	;661A
+	bne.s	CompareLastBlockedVSEquipCode_AI_TBC	;661A
 	move.b	#$85,$000B(a4)	;197C0085000B
 	move.b	$0006(a4),d1	;122C0006
 	addq.w	#$04,d1	;5841
 	asl.w	#$02,d1	;E541
 	move.b	d1,$0006(a4)	;19410006
-adrCd001D16:
+ClearOrTogglePlayerBit_AI_TBC:
 	eor.b	#$02,$0002(a4)	;0A2C00020002
 	rts	;4E75
 
-adrCd001D1E:
+CompareLastBlockedVSEquipCode_AI_TBC:
 	cmp.w	d2,d0	;B042
-	bne.s	adrCd001D32	;6610
+	bne.s	EquipOrArmorDecisionLoop_AI_TBC	;6610
 	cmp.b	#$85,$000B(a4)	;0C2C0085000B
-	beq.s	adrCd001D16	;67EC
+	beq.s	ClearOrTogglePlayerBit_AI_TBC	;67EC
 	cmp.b	#$82,$000B(a4)	;0C2C0082000B
-	beq.s	adrCd001CD4	;67A2
-adrCd001D32:
+	beq.s	HandleArmorSubroutine_AI_TBC	;67A2
+EquipOrArmorDecisionLoop_AI_TBC:
 	cmp.b	#$85,$000B(a4)	;0C2C0085000B
-	bne.s	adrCd001D52	;6618
+	bne.s	MarkMapCellProcessedFlag_AI_TBC	;6618
 	move.w	$00(a6,d0.w),d1	;32360000
 	not.b	d1	;4601
 	and.w	#$0007,d1	;02410007
-	bne.s	adrCd001D16	;66D0
+	bne.s	ClearOrTogglePlayerBit_AI_TBC	;66D0
 	move.b	$00(a6,d0.w),d1	;12360000
 	and.w	#$0003,d1	;02410003
 	subq.w	#$01,d1	;5341
-	bne.s	adrCd001D16	;66C4
-adrCd001D52:
+	bne.s	ClearOrTogglePlayerBit_AI_TBC	;66C4
+MarkMapCellProcessedFlag_AI_TBC:
 	bclr	#$07,$01(a6,d2.w)	;08B600072001
-adrCd001D58:
+CheckEquipCostsAndAttrs_AI_TBC:
 	cmp.b	#$88,$000B(a4)	;0C2C0088000B
-	bcs.s	adrCd001D6A	;650A
+	bcs.s	ClampEquipOrTeleportCode_AI_TBC	;650A
 	cmp.b	#$8B,$000B(a4)	;0C2C008B000B
 	bcs	adrCd001C48	;6500FEE0
-adrCd001D6A:
+ClampEquipOrTeleportCode_AI_TBC:
 	moveq	#$00,d7	;7E00
 	move.b	$0006(a4),d7	;1E2C0006
 	swap	d7	;4847
 	move.b	$000B(a4),d7	;1E2C000B
-	bmi.s	adrCd001D7A	;6B02
+	bmi.s	PrepareTeleportOrEquipValue_AI_TBC	;6B02
 	clr.w	d7	;4247
-adrCd001D7A:
+PrepareTeleportOrEquipValue_AI_TBC:
 	moveq	#$00,d1	;7200
 	move.b	$0004(a4),d1	;122C0004
 	move.w	d0,d4	;3800
@@ -2969,12 +2969,12 @@ adrCd002396:
 	beq.s	adrCd002394			;67D4
 	move.w	#$0056,d5			;3A3C0056
 	cmpi.b	#$6B,d2				;0C02006B
-	beq.s	.DropTheObject			;672C
+	beq.s	_DropTheObject			;672C
 	cmpi.b	#$40,d2				;0C020040
 	bne.s	adrCd0023D6			;6606
 	swap	d2				;4842
 	move.w	d2,d5				;3A02
-	bra.s	.DropTheObject			;6020
+	bra.s	_DropTheObject			;6020
 
 adrCd0023D6:
 	bsr	RandomGen_BytewithOffset			;610031D4
@@ -2982,12 +2982,12 @@ adrCd0023D6:
 	move.b	DroppedObjects_DataTable(pc,d0.w),d5		;1A3B0024
 	beq.s	adrCd002394			;67B0
 	cmpi.w	#$0005,d5			;0C450005
-	bcc.s	.DropTheObject			;640C
+	bcc.s	_DropTheObject			;640C
 	bsr	RandomGen_BytewithOffset			;610031C0
 	and.w	#$0007,d0			;02400007
 	swap	d0				;4840
 	add.l	d0,d5				;DA80
-.DropTheObject:
+_DropTheObject:
 	move.w	d4,d0	;3004
 	move.l	adrL_00EE78.l,a6	;2C790000EE78
 	moveq	#$00,d6	;7C00
@@ -3096,70 +3096,70 @@ adrCd0024F2:
 	moveq	#$03,d1	;7203
 adrLp0024FC:
 	move.b	$18(a5,d1.w),d0	;10351018
-	bmi.s	adrCd002520	;6B1E
+	bmi.s	Loop_CheckSpecialFlag06_AI_TBC	;6B1E
 	btst	#$06,d0	;08000006
-	beq.s	adrCd002520	;6718
+	beq.s	Loop_CheckSpecialFlag06_AI_TBC	;6718
 	btst	#$05,d0	;08000005
-	bne.s	adrCd002520	;6612
+	bne.s	Loop_CheckSpecialFlag06_AI_TBC	;6612
 	and.w	#$000F,d0	;0240000F
 	bsr	adrCd004092	;61001B7E
 	tst.w	d2	;4A42
-	bmi.s	adrCd002520	;6B06
+	bmi.s	Loop_CheckSpecialFlag06_AI_TBC	;6B06
 	move.b	#$FF,$26(a5,d2.w)	;1BBC00FF2026
-adrCd002520:
+Loop_CheckSpecialFlag06_AI_TBC:
 	dbra	d1,adrLp0024FC	;51C9FFDA
 	btst	#$06,$0018(a5)	;082D00060018
-	bne.s	adrCd002534	;6608
+	bne.s	Handle_SpecialFlag06_AI_TBC	;6608
 	bsr	adrCd008246	;61005D18
-	bra	adrCd00260A	;600000D8
+	bra	Finalize_PartyAction_AI_TBC	;600000D8
 
-adrCd002534:
+Handle_SpecialFlag06_AI_TBC:
 	moveq	#$00,d1	;7200
 	moveq	#$00,d0	;7000
-adrCd002538:
+Loop_InventoryAction_AI_TBC:
 	move.b	$18(a5,d1.w),d0	;10351018
 	and.w	#$00E0,d0	;024000E0
-	bne.s	adrCd002576	;6634
+	bne.s	Adjust_InventoryIndex_AI_TBC	;6634
 	move.b	$18(a5,d1.w),d0	;10351018
 	and.w	#$000F,d0	;0240000F
 	move.b	$0018(a5),$18(a5,d1.w)	;1BAD00181018
 	move.b	d0,$0018(a5)	;1B400018
 	bset	#$04,$0018(a5)	;08ED00040018
 	move.w	d0,$0006(a5)	;3B400006
-	bsr.s	adrCd002564	;6104
-	bra	adrCd0025FE	;6000009C
+	bsr.s	Init_InventorySwap_AI_TBC	;6104
+	bra	Clear_PartyActionState_AI_TBC	;6000009C
 
-adrCd002564:
+Init_InventorySwap_AI_TBC:
 	lea	adrEA002680.l,a0	;41F900002680
 	move.b	(a0),d0	;1010
 	move.b	$00(a0,d1.w),(a0)	;10B01000
 	move.b	d0,$00(a0,d1.w)	;11801000
 	rts	;4E75
 
-adrCd002576:
+Adjust_InventoryIndex_AI_TBC:
 	addq.w	#$01,d1	;5241
 	cmpi.w	#$0004,d1	;0C410004
-	bcs.s	adrCd002538	;65BA
+	bcs.s	Loop_InventoryAction_AI_TBC	;65BA
 	and.b	#$01,(a5)	;02150001
 	moveq	#$03,d1	;7203
 adrLp002584:
 	move.b	$18(a5,d1.w),d0	;10351018
 	btst	#$05,d0	;08000005
-	beq.s	adrCd002594	;6706
+	beq.s	Store_InventoryState_AI_TBC	;6706
 	btst	#$06,d0	;08000006
-	beq.s	adrCd00259A	;6706
-adrCd002594:
+	beq.s	End_InventoryLoop_AI_TBC	;6706
+Store_InventoryState_AI_TBC:
 	dbra	d1,adrLp002584	;51C9FFEE
-	bra.s	adrCd0025EE	;6054
+	bra.s	Dispatch_PartyAction_AI_TBC	;6054
 
-adrCd00259A:
+End_InventoryLoop_AI_TBC:
 	move.b	$0018(a5),$18(a5,d1.w)	;1BAD00181018
 	move.b	d0,$0018(a5)	;1B400018
 	bset	#$04,$0018(a5)	;08ED00040018
 	and.w	#$000F,d0	;0240000F
 	move.w	d0,$0006(a5)	;3B400006
-	bsr.s	adrCd002564	;61B0
-	bsr	adrCd002628	;61000072
+	bsr.s	Init_InventorySwap_AI_TBC	;61B0
+	bsr	Clear_TriggerProcessed_AI_TBC	;61000072
 	bclr	#$05,$0018(a5)	;08AD00050018
 	bsr	adrCd00665C	;6100409C
 	move.b	$0016(a4),$001D(a5)	;1B6C0016001D
@@ -3169,27 +3169,27 @@ adrCd00259A:
 	move.b	#$FF,$0016(a4)	;197C00FF0016
 	move.b	$0018(a5),$0026(a5)	;1B6D00180026
 	and.b	#$0F,$0026(a5)	;022D000F0026
-	bra.s	adrCd0025FE	;6010
+	bra.s	Clear_PartyActionState_AI_TBC	;6010
 
-adrCd0025EE:
-	bsr.s	adrCd002628	;6138
+Dispatch_PartyAction_AI_TBC:
+	bsr.s	Clear_TriggerProcessed_AI_TBC	;6138
 	move.b	#$FF,$001D(a5)	;1B7C00FF001D
 	bsr	adrCd00270E	;61000116
 	and.b	#$01,(a5)	;02150001
-adrCd0025FE:
+Clear_PartyActionState_AI_TBC:
 	clr.w	$0014(a5)	;426D0014
 	clr.b	$003E(a5)	;422D003E
 	bsr	adrCd008278	;61005C70
-adrCd00260A:
+Finalize_PartyAction_AI_TBC:
 	move.w	#$FFFF,$0042(a5)	;3B7CFFFF0042
 	move.w	#$FFFF,$0040(a5)	;3B7CFFFF0040
 	move.b	#$FF,$0035(a5)	;1B7C00FF0035
 	bsr	adrCd007EC0	;610058A2
-	bsr	adrCd002662	;61000040
+	bsr	Loop_TeamAvatarSlots_AI_TBC	;61000040
 	move.l	(sp)+,a5	;2A5F
 	rts	;4E75
 
-adrCd002628:
+Clear_TriggerProcessed_AI_TBC:
 	bsr	adrCd008498	;61005E6E
 	bclr	#$07,$01(a6,d0.w)	;08B600070001
 	moveq	#$03,d1	;7203
@@ -3197,31 +3197,31 @@ adrLp002634:
 	moveq	#$01,d5	;7A01
 	swap	d5	;4845
 	move.b	$18(a5,d1.w),d5	;1A351018
-	bmi.s	adrCd00265C	;6B1E
+	bmi.s	Mark_TeamAvatarSlot_AI_TBC	;6B1E
 	bset	#$05,$18(a5,d1.w)	;08F500051018
-	bne.s	adrCd00265C	;6616
+	bne.s	Mark_TeamAvatarSlot_AI_TBC	;6616
 	and.w	#$000F,d5	;0245000F
 	add.w	#$0040,d5	;06450040
 	moveq	#$00,d6	;7C00
 	movem.l	d0/d1,-(sp)	;48E7C000
 	bsr	adrCd005E88	;61003832
 	movem.l	(sp)+,d0/d1	;4CDF0003
-adrCd00265C:
+Mark_TeamAvatarSlot_AI_TBC:
 	dbra	d1,adrLp002634	;51C9FFD6
 	rts	;4E75
 
-adrCd002662:
+Loop_TeamAvatarSlots_AI_TBC:
 	moveq	#$03,d7	;7E03
 adrLp002664:
 	move.b	$18(a5,d7.w),d0	;10357018
-	bmi.s	adrCd00267A	;6B10
+	bmi.s	Eval_TeamAvatarSlot_AI_TBC	;6B10
 	moveq	#$00,d0	;7000
 	move.b	adrEA002680(pc,d7.w),d0	;103B7012
-	beq.s	adrCd00267A	;6708
+	beq.s	Eval_TeamAvatarSlot_AI_TBC	;6708
 	move.w	d7,-(sp)	;3F07
-	bsr	adrCd002684	;6100000E
+	bsr	Quickstart_FallbackHandler_AI_TBC	;6100000E
 	move.w	(sp)+,d7	;3E1F
-adrCd00267A:
+Eval_TeamAvatarSlot_AI_TBC:
 	dbra	d7,adrLp002664	;51CFFFE8
 	rts	;4E75
 
@@ -3229,7 +3229,7 @@ adrEA002680:
 	dc.w	$0000	;0000
 	dc.w	$0000	;0000
 
-adrCd002684:
+Quickstart_FallbackHandler_AI_TBC:
 	move.w	d0,-(sp)		;3F00
 	move.l	#$000D000C,adrW_00D92A.l	;23FC000D000C0000D92A
 	lea	GFX_Pockets+$7688.l,a1	;43F900053D8A
@@ -3546,19 +3546,19 @@ adrCd00299A:
 	move.b	d0,d1	;1200
 	and.w	#$000F,d1	;0241000F
 	subq.w	#$01,d1	;5341
-	bcs.s	adrCd0029B0	;6506
+	bcs.s	Check_DoorToggle_AI_TBC	;6506
 	subq.b	#$01,$0019(a4)	;532C0019
 adrCd0029AE:
 	rts	;4E75
 
-adrCd0029B0:
+Check_DoorToggle_AI_TBC:
 	move.b	d0,d1	;1200
 	lsr.b	#$04,d1	;E809
 	or.b	d0,d1	;8200
 	move.b	d1,$0019(a4)	;19410019
 	moveq	#$04,d4	;7804
 	bclr	d7,$003C(a5)	;0FAD003C
-	bne	adrCd002A44	;66000082
+	bne	Call_DoorToggleRoutine_AI_TBC	;66000082
 	move.b	(a5),d0	;1015
 	and.w	#$000A,d0	;0240000A
 	beq.s	adrCd0029AE	;67E2
@@ -3575,13 +3575,13 @@ adrCd0029D8:
 	move.w	d3,d0	;3003
 	bsr	adrCd004092	;610016A2
 	movem.w	d2/d3/d7,-(sp)	;48A73100
-	bsr	adrCd002A64	;6100006C
-	bmi.s	adrCd002A02	;6B06
+	bsr	PostDoorToggle_Enter_AI_TBC	;6100006C
+	bmi.s	DoorToggle_Lower_AI_TBC	;6B06
 	bsr	adrCd0033BE	;610009C0
 	bcs.s	adrCd002A14	;6512
-adrCd002A02:
+DoorToggle_Lower_AI_TBC:
 	movem.w	(sp)+,d2/d3/d7	;4C9F008C
-adrCd002A06:
+DoorToggle_Raise_AI_TBC:
 	tst.w	d7	;4A47
 	bne	adrCd002B26	;6600011C
 	and.b	#$01,(a5)	;02150001
@@ -3594,16 +3594,16 @@ adrCd002A14:
 	cmpi.b	#$10,d0	;0C000010
 	bcs.s	adrCd002A28	;6506
 	tst.b	$000B(a1)	;4A29000B
-	bmi.s	adrCd002A06	;6BDE
+	bmi.s	DoorToggle_Raise_AI_TBC	;6BDE
 adrCd002A28:
 	cmpi.w	#$0002,d2	;0C420002
 	bcc	adrCd002B26	;640000F8
 	movem.l	a4/a5,-(sp)	;48E7000C
-	bsr	adrCd002ABA	;61000084
+	bsr	Clear_LaunchPadFlag_AI_TBC	;61000084
 	movem.l	(sp)+,a4/a5	;4CDF3000
 	move.w	adrEA016B6C.l,d5	;3A3900016B6C
 	moveq	#$00,d4	;7800
-adrCd002A44:
+Call_DoorToggleRoutine_AI_TBC:
 	move.w	$0004(sp),d7	;3E2F0004
 	movem.w	d4-d7,-(sp)	;48A70F00
 	tst.w	d7	;4A47
@@ -3615,52 +3615,52 @@ adrCd002A58:
 	movem.w	(sp)+,d4-d7	;4C9F00F0
 	bra	adrCd0060CA	;60003668
 
-adrCd002A64:
+PostDoorToggle_Enter_AI_TBC:
 	bsr	adrCd008498	;61005A32
 	move.w	$00(a6,d0.w),d1	;32360000
 	and.w	#$0007,d1	;02410007
 	subq.w	#$02,d1	;5541
-	bne.s	adrCd002A80	;660C
+	bne.s	PostDoorToggle_CheckExit_AI_TBC	;660C
 	move.w	$0020(a5),d1	;322D0020
 	add.w	d1,d1	;D241
 	btst	d1,$00(a6,d0.w)	;03360000
-	bne.s	adrCd002AB6	;6636
-adrCd002A80:
+	bne.s	PostDoorToggle_Default_AI_TBC	;6636
+PostDoorToggle_CheckExit_AI_TBC:
 	bsr	adrCd00847E	;610059FC
 	cmp.w	adrW_00EE72.l,d7	;BE790000EE72
-	bcc.s	adrCd002AB6	;642A
+	bcc.s	PostDoorToggle_Default_AI_TBC	;642A
 	swap	d7	;4847
 	cmp.w	adrW_00EE70.l,d7	;BE790000EE70
-	bcc.s	adrCd002AB6	;6420
+	bcc.s	PostDoorToggle_Default_AI_TBC	;6420
 	move.w	$00(a6,d0.w),d1	;32360000
 	and.w	#$0007,d1	;02410007
 	subq.w	#$02,d1	;5541
-	bne.s	adrCd002AB2	;6610
+	bne.s	PostDoorToggle_EndCase_AI_TBC	;6610
 	move.w	$0020(a5),d1	;322D0020
 	eor.w	#$0002,d1	;0A410002
 	add.w	d1,d1	;D241
 	btst	d1,$00(a6,d0.w)	;03360000
-	bne.s	adrCd002AB6	;6604
-adrCd002AB2:
+	bne.s	PostDoorToggle_Default_AI_TBC	;6604
+PostDoorToggle_EndCase_AI_TBC:
 	moveq	#$00,d1	;7200
 	rts	;4E75
 
-adrCd002AB6:
+PostDoorToggle_Default_AI_TBC:
 	moveq	#-$01,d1	;72FF
 	rts	;4E75
 
-adrCd002ABA:
+Clear_LaunchPadFlag_AI_TBC:
 	clr.w	adrW_006458.l	;427900006458
 	move.w	$0020(a5),d1	;322D0020
 	tst.b	d0	;4A00
-	bpl.s	adrCd002ADC	;6A14
+	bpl.s	Reset_LaunchPadPost_AI_TBC	;6A14
 	sub.w	$0020(a1),d1	;92690020
 	move.w	d1,adrW_00628A.l	;33C10000628A
 	move.w	$0020(a5),d0	;302D0020
 	bsr	adrCd006018	;61003540
-	bra.s	adrCd002AF8	;601C
+	bra.s	Restore_LaunchPadState_AI_TBC	;601C
 
-adrCd002ADC:
+Reset_LaunchPadPost_AI_TBC:
 	move.b	$0002(a1),d2	;14290002
 	cmpi.b	#$10,d0	;0C000010
 	bcc.s	adrCd002AEA	;6404
@@ -3670,7 +3670,7 @@ adrCd002AEA:
 	sub.w	d2,d1	;9242
 	move.w	d1,adrW_00628A.l	;33C10000628A
 	move.w	d0,d1	;3200
-adrCd002AF8:
+Restore_LaunchPadState_AI_TBC:
 	move.w	d3,d0	;3003
 	not.w	d0	;4640
 	and.w	#$0003,d0	;02400003
@@ -3690,7 +3690,7 @@ adrCd002B0A:
 adrCd002B26:
 	move.w	d3,d1	;3203
 	move.w	d1,d2	;3401
-	bsr	adrCd00094C	;6100DE20
+	bsr	SpellCost_ShiftSelector_AI_TBC	;6100DE20
 	lea	Character_Pockets_DataTable.l,a0	;41F90000ED2A
 	asl.w	#$04,d2	;E942
 	add.w	d2,a0	;D0C2
@@ -3720,7 +3720,7 @@ adrLp002B3E:
 	move.w	d0,d7	;3E00
 	bsr	adrCd005328	;610027B0
 	moveq	#$01,d4	;7801
-	bra	adrCd002A44	;6000FEC6
+	bra	Call_DoorToggleRoutine_AI_TBC	;6000FEC6
 
 adrB_002B80:
 	dc.b	$01	;01
@@ -3760,7 +3760,7 @@ adrCd002BB4:
 	bsr	adrCd004EA0	;610022E4
 	moveq	#$03,d4	;7803
 	tst.b	$0013(a4)	;4A2C0013
-	bmi	adrCd002A44	;6B00FE7E
+	bmi	Call_DoorToggleRoutine_AI_TBC	;6B00FE7E
 	addq.b	#$04,$0007(a4)	;582C0007
 	rts	;4E75
 
@@ -5958,7 +5958,7 @@ LoadGame:
 	bsr	adrCd004440	;61000092
 	tst.l	d0	;4A80
 	bmi.s	LoadGame	;6BF0
-	bsr	adrCd000B68	;6100C7B2
+	bsr	Load_LevelLookupTable_AI_TBC	;6100C7B2
 	bra.s	adrCd004396	;60DC
 
 SaveGame:
@@ -6130,13 +6130,13 @@ adrCd0045DE:
 	moveq	#$05,d5	;7A05
 	moveq	#$28,d7	;7E28
 	moveq	#$00,d6	;7C00
-	bsr	adrCd00AD34	;61006724
+	bsr	Draw_Monster_16PixelStrip	;61006724
 	lea	GFX_Fairy.l,a1	;43F900044ED0
 	moveq	#$17,d4	;7817
 	moveq	#$05,d5	;7A05
 	moveq	#$28,d7	;7E28
 	moveq	#-$01,d6	;7CFF
-	bsr	adrCd00AD34	;61006712
+	bsr	Draw_Monster_16PixelStrip	;61006712
 	unlk	a3	;4E5B
 	move.l	(sp)+,a4	;285F
 	rts	;4E75
@@ -6615,7 +6615,7 @@ adrCd004BB0:
 	bne.s	adrCd004BCE	;6604
 	addq.b	#$01,$001E(a4)	;522C001E
 adrCd004BCE:
-	bsr	adrCd000904	;6100BD34
+	bsr	SpellPractice_ComputeThreshold_AI_TBC	;6100BD34
 	moveq	#$00,d2	;7400
 	move.b	(a4),d2	;1414
 	lea	adrEA004B1A.w,a6	;4DF84B1A	;Short Absolute converted to symbol!
@@ -7443,7 +7443,7 @@ adrCd0053FE:
 	bset	#$07,$0006(a4)	;08EC00070006
 adrCd005412:
 	tst.b	adrW_00505A.w	;4A38505A	;Short Absolute converted to symbol!
-	bne	adrCd001D58	;6600C940
+	bne	CheckEquipCostsAndAttrs_AI_TBC	;6600C940
 	rts	;4E75
 
 Spells_27_Wychwind:
@@ -9069,7 +9069,7 @@ adrCd0062D6:
 	move.w	d1,d0	;3001
 	bsr.s	adrCd00631E	;6144
 	bsr	adrCd006382	;610000A6
-	bsr	adrCd000924	;6100A644
+	bsr	SpellCost_SelectOrComputeFallback_AI_TBC	;6100A644
 	tst.w	adrW_00628A.w	;4A78628A	;Short Absolute converted to symbol!
 	bne.s	adrCd0062EA	;6602
 	move.b	(a4),d0	;1014
@@ -9601,7 +9601,7 @@ adrCd0067EA:
 	lsr.w	d3,d0	;E668
 	add.w	d0,d7	;DE40
 	move.w	d1,d4	;3801
-	bsr	adrCd00093E	;6100A14C
+	bsr	SpellCost_AlternateSelector_AI_TBC	;6100A14C
 	add.b	d0,d7	;DE00
 	add.b	d0,d7	;DE00
 	add.b	$0014(a4),d7	;DE2C0014
@@ -10232,19 +10232,19 @@ Draw_Arrow_Highlights:
 
 Click_MoveForwards:
 	moveq	#$00,d0	;7000
-	bra.s	.MoveParty	;600A
+	bra.s	_MoveParty	;600A
 
 Click_MoveBackwards:
 	moveq	#$02,d0	;7002
-	bra.s	.MoveParty	;6006
+	bra.s	_MoveParty	;6006
 
 Click_MoveLeft:
 	moveq	#$03,d0	;7003
-	bra.s	.MoveParty	;6002
+	bra.s	_MoveParty	;6002
 
 Click_MoveRight:
 	moveq	#$01,d0	;7001
-.MoveParty:
+_MoveParty:
 	and.b	#$01,(a5)	;02150001
 	move.w	d0,-(sp)	;3F00
 	bsr.s	Draw_Arrow_Highlights	;619E
@@ -10255,17 +10255,17 @@ Click_MoveRight:
 	bsr	Compute_NewMapIndex_AI_TBC	;61000C30
 	bcc	Check_Collision_AI_TBC	;64000026
 	cmp.w	d0,d2	;B440
-	bne.s	.MoveFailed	;661E
+	bne.s	_MoveFailed	;661E
 	move.w	$00(a6,d0.w),d1	;32360000
 	and.w	#$0007,d1	;02410007
 	cmpi.w	#$0004,d1	;0C410004
-	bne.s	.MoveFailed	;6610
+	bne.s	_MoveFailed	;6610
 	move.b	$00(a6,d0.w),d1	;12360000
 	lsr.b	#$01,d1	;E209
 	eor.b	#$02,d1	;0A010002
 	cmp.b	d1,d6	;BC01
 	beq	Execute_StairTransition_AI_TBC	;67000096
-.MoveFailed:
+_MoveFailed:
 	rts	;4E75
 
 Check_Collision_AI_TBC:
@@ -10285,7 +10285,7 @@ Check_Collision_AI_TBC:
 	bsr	adrCd005500	;6100E69A
 	movem.w	(sp)+,d0/d1	;4C9F0003
 	tst.w	d3	;4A43
-	bpl.s	.MoveFailed	;6ACC
+	bpl.s	_MoveFailed	;6ACC
 	lsr.b	#$02,d1	;E409
 	move.w	d1,d7	;3E01
 	movem.l	d0/a6,-(sp)	;48E78002
@@ -10947,7 +10947,7 @@ adrCd007408:
 	move.w	d1,$0058(a5)	;3B410058
 	lsr.b	#$02,d0	;E408
 	move.w	d0,CurrentTower.l	;33C00000EE2E
-	bsr	adrCd000B68	;61009736
+	bsr	Load_LevelLookupTable_AI_TBC	;61009736
 	bsr	adrCd0084D6	;610010A0
 	bsr	adrCd008498	;6100105E
 	move.l	d0,$0004(sp)	;2F400004
@@ -10989,7 +10989,7 @@ adrCd00748C:
 	move.w	d1,$0058(a1)	;33410058
 	lsr.b	#$02,d0	;E408
 	move.w	d0,CurrentTower.l	;33C00000EE2E
-	bsr	adrCd000B68	;610096AE
+	bsr	Load_LevelLookupTable_AI_TBC	;610096AE
 	bsr	adrCd0084D6	;61001018
 	bsr	adrCd008498	;61000FD6
 	move.l	d0,$0004(sp)	;2F400004
@@ -11410,7 +11410,7 @@ adrCd007974:
 	add.w	d1,a3	;D6C1
 	lea	UnpackedMonsters.l,a4	;49F900016B7E
 	move.w	-$0002(a4),d1	;322CFFFE
-	lea	MonsterTotalsCounts.l,a0	;41F900017578
+	lea	MonsterTotalsCounts_mod0.l,a0	;41F900017578
 	move.w	d1,$00(a0,d0.w)	;31810000
 	bmi.s	adrCd007A10	;6B6C
 	move.l	a3,a0	;204B
@@ -14860,7 +14860,7 @@ adrB_009956:
 
 adrCd00995C:
 	moveq	#$04,d1	;7204
-adrCd00995E:
+Prepare_Monster_ScreenPosition:
 	move.w	d1,d2	;3401
 	move.w	#$004B,adrW_00AD64.l	;33FC004B0000AD64
 	moveq	#$00,d0	;7000
@@ -14999,7 +14999,7 @@ adrCd009AA8:
 	move.b	$0005(a1),d0	;10290005
 	move.b	$0006(a1),-$0018(a3)	;17690006FFE8
 adrCd009AB2:
-	bsr	adrCd009BC0	;6100010C
+	bsr	Decode_Monster_RenderFlags	;6100010C
 	move.b	d1,d2	;1401
 	and.b	#$03,d2	;02020003
 	move.b	d2,-$001B(a3)	;1742FFE5
@@ -15068,7 +15068,7 @@ adrCd009B5E:
 	move.b	d0,-$0017(a3)	;1740FFE9
 	bsr	adrCd006660	;6100CAFC
 	move.b	$001B(a4),d0	;102C001B
-	bsr.s	adrCd009BC0	;6154
+	bsr.s	Decode_Monster_RenderFlags	;6154
 	bra	adrCd00A6EC	;60000B7E
 
 SpellStars_Colours:
@@ -15093,7 +15093,7 @@ SpellStars_Colours:
 	dc.l	$0506060D	;0506060D
 	dc.l	$0708060D	;0708060D
 
-adrCd009BC0:
+Decode_Monster_RenderFlags:
 	clr.b	-$0015(a3)	;422BFFEB
 	and.w	#$001F,d0	;0240001F
 	move.b	adrB_009BD0(pc,d0.w),-$0015(a3)	;177B0006FFEB
@@ -15241,7 +15241,7 @@ Draw_Summon:
 .IllusionSkip:
 	movem.w	d0/d1/d4/d5/d7,-(sp)	;48A7CD00
 	move.l	a1,-(sp)	;2F09
-	bsr	adrCd00AD34	;6100102E
+	bsr	Draw_Monster_16PixelStrip	;6100102E
 	move.l	(sp)+,a1	;225F
 	movem.w	(sp)+,d0/d1/d4/d5/d7	;4C9F00B3
 	addq.b	#$03,d4	;5604
@@ -15251,7 +15251,7 @@ Draw_Summon:
 	bne.s	adrCd009D28	;660E
 	moveq	#-$01,d6	;7CFF
 	movem.w	d0/d1/d4/d5,-(sp)	;48A7CC00
-	bsr	adrCd00AD34	;61001012
+	bsr	Draw_Monster_16PixelStrip	;61001012
 	movem.w	(sp)+,d0/d1/d4/d5	;4C9F0033
 adrCd009D28:
 	cmpi.w	#$0004,d1	;0C410004
@@ -15299,7 +15299,7 @@ adrCd009DA2:
 	beq.s	adrCd009DB6	;670C
 	sub.b	$00(a2,d2.w),d4	;98322000
 	sub.b	$01(a2,d2.w),d5	;9A322001
-	bra	adrCd00AD34	;60000F80
+	bra	Draw_Monster_16PixelStrip	;60000F80
 
 adrCd009DB6:
 	rts	;4E75
@@ -15512,11 +15512,11 @@ adrCd009F32:
 	add.w	d1,d1	;D241
 	movem.l	d0/d1/d4/d5/d7/a1,-(sp)	;48E7CD40
 	add.b	adrB_009F7C(pc,d1.w),d4	;D83B1018
-	bsr	adrCd00AD34	;61000DCC
+	bsr	Draw_Monster_16PixelStrip	;61000DCC
 	movem.l	(sp)+,d0/d1/d4/d5/d7/a1	;4CDF02B3
 	moveq	#-$01,d6	;7CFF
 	add.b	adrB_009F7D(pc,d1.w),d4	;D83B100B
-	bra	adrCd00AD34	;60000DBE
+	bra	Draw_Monster_16PixelStrip	;60000DBE
 
 adrCd009F78:
 	rts	;4E75
@@ -15572,7 +15572,7 @@ adrCd009FC4:
 	add.b	adrB_009F82(pc,d3.w),d5	;DA3B30BC
 	add.w	d1,d1	;D241
 	add.w	$00(a2,d1.w),a1	;D2F21000
-	bsr	adrCd00AD34	;61000D64
+	bsr	Draw_Monster_16PixelStrip	;61000D64
 	movem.w	(sp)+,d0/d1/d4/d5/d7	;4C9F00B3
 	rts	;4E75
 
@@ -15620,7 +15620,7 @@ adrCd00A012:
 	add.b	adrB_009FDC(pc,d2.w),d4	;D83B20C2
 	add.b	adrB_009FE4(pc,d1.w),d5	;DA3B10C6
 	bsr	adrCd00A0F6	;610000D4
-	bra	adrCd00AD34	;60000D0E
+	bra	Draw_Monster_16PixelStrip	;60000D0E
 
 adrB_00A028:
 	dc.b	$08	;08
@@ -15649,7 +15649,7 @@ adrCd00A030:
 	addq.w	#$01,d1	;5241
 adrCd00A052:
 	add.b	adrB_00A02A(pc,d1.w),d4	;D83B10D6
-	bra	adrCd00AD34	;60000CDC
+	bra	Draw_Monster_16PixelStrip	;60000CDC
 
 GFX_CrabFace_Heights:
 	dc.b	$0B	;0B
@@ -15671,7 +15671,7 @@ adrCd00A060:
 	bsr	adrCd00A0F6	;61000080
 	add.b	GFX_CrabFace_Position(pc,d1.w),d5	;DA3B10E2
 adrCd00A07C:
-	bsr	adrCd00AD34	;61000CB6
+	bsr	Draw_Monster_16PixelStrip	;61000CB6
 	movem.w	(sp)+,d0/d1/d4/d5	;4C9F0033
 adrCd00A084:
 	rts	;4E75
@@ -15714,10 +15714,10 @@ adrCd00A0B4:
 	move.b	adrB_00A0B2(pc,d1.w),d7	;1E3B10EC
 	moveq	#-$01,d6	;7CFF
 	moveq	#$00,d2	;7400
-	bsr.s	adrCd00A0D2	;6104
+	bsr.s	GFX_Beholder	;6104
 	moveq	#$00,d6	;7C00
 	moveq	#$01,d2	;7401
-adrCd00A0D2:
+GFX_Beholder:
 	btst	d2,-$0015(a3)	;052BFFEB
 	beq.s	adrCd00A0F4	;671C
 	movem.w	d0/d1/d4/d5/d7,-(sp)	;48A7CD00
@@ -15726,7 +15726,7 @@ adrCd00A0D2:
 	add.w	d1,d1	;D241
 	add.w	d2,d1	;D242
 	add.b	adrB_00A0AC(pc,d1.w),d4	;D83B10C4
-	bsr	adrCd00AD34	;61000C48
+	bsr	Draw_Monster_16PixelStrip	;61000C48
 	move.l	(sp)+,a1	;225F
 	movem.w	(sp)+,d0/d1/d4/d5/d7	;4C9F00B3
 adrCd00A0F4:
@@ -15754,12 +15754,12 @@ adrCd00A106:
 	move.l	a1,-(sp)	;2F09
 	add.b	adrB_00A154(pc,d2.w),d4	;D83B201E
 	moveq	#$00,d6	;7C00
-	bsr	adrCd00A6CA	;6100058E
+	bsr	Draw_Monster_CompositeBitmap	;6100058E
 	move.l	(sp)+,a1	;225F
 	movem.l	(sp),d0-d2/d4/d5/d7	;4CD700B7
 	moveq	#-$01,d6	;7CFF
 	add.b	adrB_00A155(pc,d2.w),d4	;D83B200D
-	bsr	adrCd00A6CA	;6100057E
+	bsr	Draw_Monster_CompositeBitmap	;6100057E
 	movem.l	(sp)+,d0-d2/d4/d5/d7	;4CDF00B7
 	rts	;4E75
 
@@ -15808,10 +15808,10 @@ Draw_Beholder:
 	moveq	#$04,d3	;7604
 	lea	Monster_Beholder_Colours.l,a0	;41F90000A1AC
 	bsr	MonsterColourGrading	;6100FD00
-	bsr	adrCd00A26E	;610000D6
+	bsr	Draw_Beholder_BodyAndUpperEyes	;610000D6
 	cmpi.b	#$02,d0	;0C000002
 	beq.s	adrCd00A1A4	;6704
-	bsr	adrCd00A1BC	;6100001A
+	bsr	Draw_Beholder_CentralEye	;6100001A
 adrCd00A1A4:
 	clr.w	Buffer_Colour_Mask_Toggle.l	;42790000B4BE
 	rts	;4E75
@@ -15821,23 +15821,23 @@ Monster_Beholder_Colours:
 	dc.w	$070B	;070B
 	dc.w	$0308	;0308
 	dc.w	$0509	;0509
-adrB_00A1B4:
+GFX_Beholder_CentralEye_Near_Front_Heights:
 	dc.b	$08	;08
 	dc.b	$06	;06
 	dc.b	$06	;06
 	dc.b	$04	;04
-adrB_00A1B8:
+GFX_Beholder_CentralEye_Near_YPositions:
 	dc.b	$06	;06
 	dc.b	$05	;05
 	dc.b	$04	;04
 	dc.b	$03	;03
 
-adrCd00A1BC:
+Draw_Beholder_CentralEye:
 	cmpi.b	#$04,d1	;0C010004
-	bcc.s	adrCd00A226	;6464
-	lea	adrEA00A308.l,a2	;45F90000A308
+	bcc.s	Draw_Beholder_CentralEye_Far	;6464
+	lea	GFX_Beholder_CentralEye_Near_LookupTable.l,a2	;45F90000A308
 	moveq	#$00,d7	;7E00
-	add.b	adrB_00A1B8(pc,d1.w),d5	;DA3B10EC
+	add.b	GFX_Beholder_CentralEye_Near_YPositions(pc,d1.w),d5	;DA3B10EC
 	move.w	d1,d2	;3401
 	add.w	d2,d2	;D442
 	btst	#$01,-$0015(a3)	;082B0001FFEB
@@ -15845,54 +15845,54 @@ adrCd00A1BC:
 	addq.w	#$01,d2	;5242
 adrCd00A1DC:
 	add.w	d2,d2	;D442
-	lea	GFX_Beholder_0.l,a1	;43F900048260
+	lea	GFX_Beholder_Body.l,a1	;43F900048260
 	tst.b	d0	;4A00
-	bne.s	adrCd00A200	;6618
-	move.b	adrB_00A1B4(pc,d1.w),d7	;1E3B10CA
+	bne.s	Draw_Beholder_CentralEye_NearSide	;6618
+	move.b	GFX_Beholder_CentralEye_Near_Front_Heights(pc,d1.w),d7	;1E3B10CA
 	add.w	$00(a2,d2.w),a1	;D2F22000
-	bra	adrCd00A2B6	;600000C4
+	bra	Draw_Beholder_Component	;600000C4
 
-adrB_00A1F4:
+GFX_Beholder_CentralEye_Near_Side_Heights:
 	dc.b	$08	;08
 	dc.b	$06	;06
 	dc.b	$04	;04
 	dc.b	$04	;04
-adrB_00A1F8:
+GFX_Beholder_CentralEye_Near_Side_Mirrored_XPositions:
 	dc.b	$08	;08
 	dc.b	$04	;04
 	dc.b	$FF	;FF
 	dc.b	$FD	;FD
-adrB_00A1FC:
+GFX_Beholder_CentralEye_Near_Side_YPositions:
 	dc.b	$00	;00
 	dc.b	$00	;00
 	dc.b	$01	;01
 	dc.b	$00	;00
 
-adrCd00A200:
+Draw_Beholder_CentralEye_NearSide:
 	add.w	#$0010,a2	;D4FC0010
 	add.w	$00(a2,d2.w),a1	;D2F22000
-	move.b	adrB_00A1F4(pc,d1.w),d7	;1E3B10EA
-	add.b	adrB_00A1FC(pc,d1.w),d5	;DA3B10EE
+	move.b	GFX_Beholder_CentralEye_Near_Side_Heights(pc,d1.w),d7	;1E3B10EA
+	add.b	GFX_Beholder_CentralEye_Near_Side_YPositions(pc,d1.w),d5	;DA3B10EE
 	moveq	#$00,d6	;7C00
 	lsr.b	#$01,d0	;E208
-	beq	adrCd00AD34	;67000B1E
-	add.b	adrB_00A1F8(pc,d1.w),d4	;D83B10DE
+	beq	Draw_Monster_16PixelStrip	;67000B1E
+	add.b	GFX_Beholder_CentralEye_Near_Side_Mirrored_XPositions(pc,d1.w),d4	;D83B10DE
 	moveq	#-$01,d6	;7CFF
-	bra	adrCd00AD34	;60000B14
+	bra	Draw_Monster_16PixelStrip	;60000B14
 
-adrB_00A222:
+GFX_Beholder_CentralEye_Far_YPositions:
 	dc.b	$06	;06
 	dc.b	$04	;04
-adrB_00A224:
+GFX_Beholder_CentralEye_Far_Side_Mirrored_XPositions:
 	dc.b	$F9	;F9
 	dc.b	$F7	;F7
 
-adrCd00A226:
-	lea	adrEA00A328.l,a2	;45F90000A328
+Draw_Beholder_CentralEye_Far:
+	lea	GFX_Beholder_CentralEye_Far_LookupTable.l,a2	;45F90000A328
 	subq.w	#$04,d1	;5941
 	move.w	d1,d2	;3401
 	moveq	#$02,d7	;7E02
-	add.b	adrB_00A222(pc,d1.w),d5	;DA3B10EE
+	add.b	GFX_Beholder_CentralEye_Far_YPositions(pc,d1.w),d5	;DA3B10EE
 	moveq	#$00,d6	;7C00
 	tst.b	d0	;4A00
 	beq.s	adrCd00A248	;670C
@@ -15900,105 +15900,105 @@ adrCd00A226:
 	lsr.b	#$01,d0	;E208
 	beq.s	adrCd00A248	;6706
 	moveq	#-$01,d6	;7CFF
-	add.b	adrB_00A224(pc,d1.w),d4	;D83B10DE
+	add.b	GFX_Beholder_CentralEye_Far_Side_Mirrored_XPositions(pc,d1.w),d4	;D83B10DE
 adrCd00A248:
 	add.w	d2,d2	;D442
-	lea	GFX_Beholder_0.l,a1	;43F900048260
+	lea	GFX_Beholder_Body.l,a1	;43F900048260
 	add.w	$00(a2,d2.w),a1	;D2F22000
-	bra	adrCd00AD34	;60000ADE
+	bra	Draw_Monster_16PixelStrip	;60000ADE
 
-adrB_00A258:
+GFX_Beholder_Body_Heights:
 	dc.b	$14	;14
 	dc.b	$10	;10
 	dc.b	$0D	;0D
 	dc.b	$0A	;0A
 	dc.b	$0B	;0B
 	dc.b	$08	;08
-adrB_00A25E:
+GFX_Beholder_Composite_XPositions:
 	dc.b	$FD	;FD
 	dc.b	$FE	;FE
 	dc.b	$FF	;FF
 	dc.b	$FF	;FF
 	dc.b	$00	;00
 	dc.b	$00	;00
-adrB_00A264:
+GFX_Beholder_Composite_YPositions:
 	dc.b	$F2	;F2
 	dc.b	$F4	;F4
 	dc.b	$F6	;F6
 	dc.b	$F7	;F7
 	dc.b	$02	;02
 	dc.b	$01	;01
-adrB_00A26A:
+GFX_Beholder_UpperEyes_Heights:
 	dc.b	$06	;06
 	dc.b	$04	;04
 	dc.b	$03	;03
 	dc.b	$03	;03
 
-adrCd00A26E:
+Draw_Beholder_BodyAndUpperEyes:
 	moveq	#$00,d7	;7E00
-	move.b	adrB_00A258(pc,d1.w),d7	;1E3B10E6
-	add.b	adrB_00A25E(pc,d1.w),d4	;D83B10E8
-	add.b	adrB_00A264(pc,d1.w),d5	;DA3B10EA
-	lea	GFX_Beholder_LookupTable.l,a2	;45F90000A2F4
-	bsr	adrCd00A2E4	;61000060
-	bsr	adrCd00A2B6	;6100002E
+	move.b	GFX_Beholder_Body_Heights(pc,d1.w),d7	;1E3B10E6
+	add.b	GFX_Beholder_Composite_XPositions(pc,d1.w),d4	;D83B10E8
+	add.b	GFX_Beholder_Composite_YPositions(pc,d1.w),d5	;DA3B10EA
+	lea	GFX_Beholder_Body_LookupTable.l,a2	;45F90000A2F4
+	bsr	Select_Beholder_GfxFromLookup	;61000060
+	bsr	Draw_Beholder_Component	;6100002E
 	cmpi.b	#$04,d1	;0C010004
 	bcc.s	adrCd00A2B4	;6424
-	lea	GFX_BeholderEye_LookupTable.l,a2	;45F90000A300
-	bsr	adrCd00A2E4	;6100004C
+	lea	GFX_Beholder_UpperEyes_LookupTable.l,a2	;45F90000A300
+	bsr	Select_Beholder_GfxFromLookup	;6100004C
 	move.w	d5,-(sp)	;3F05
 	moveq	#$00,d7	;7E00
-	move.b	adrB_00A26A(pc,d1.w),d7	;1E3B10CA
+	move.b	GFX_Beholder_UpperEyes_Heights(pc,d1.w),d7	;1E3B10CA
 	sub.b	d7,d5	;9A07
 	move.b	-$0015(a3),d2	;142BFFEB
 	not.b	d2	;4602
 	and.w	#$0001,d2	;02420001
 	sub.b	d2,d5	;9A02
-	bsr.s	adrCd00A2B6	;6104
+	bsr.s	Draw_Beholder_Component	;6104
 	move.w	(sp)+,d5	;3A1F
 adrCd00A2B4:
 	rts	;4E75
 
-adrCd00A2B6:
+Draw_Beholder_Component:
 	movem.w	d0/d1/d4/d5/d7,-(sp)	;48A7CD00
 	move.l	a1,-(sp)	;2F09
 	moveq	#$00,d6	;7C00
-	bsr	adrCd00AD34	;61000A74
+	bsr	Draw_Monster_16PixelStrip	;61000A74
 	move.l	(sp)+,a1	;225F
 	movem.w	(sp)+,d0/d1/d4/d5/d7	;4C9F00B3
 	cmpi.b	#$02,d1	;0C010002
 	bcc.s	adrCd00A2B4	;64E6
 	moveq	#-$01,d6	;7CFF
 	movem.w	d0/d1/d4/d5/d7,-(sp)	;48A7CD00
-	add.b	adrB_00A2E2(pc,d1.w),d4	;D83B100C
-	bsr	adrCd00AD34	;61000A5A
+	add.b	GFX_Beholder_Near_MirroredHalf_XPositions(pc,d1.w),d4	;D83B100C
+	bsr	Draw_Monster_16PixelStrip	;61000A5A
 	movem.w	(sp)+,d0/d1/d4/d5/d7	;4C9F00B3
 	rts	;4E75
 
-adrB_00A2E2:
+GFX_Beholder_Near_MirroredHalf_XPositions:
 	dc.b	$08	;08
 	dc.b	$04	;04
 
-adrCd00A2E4:
+Select_Beholder_GfxFromLookup:
 	move.w	d1,d2	;3401
 	add.w	d2,d2	;D442
-	lea	GFX_Beholder_0.l,a1	;43F900048260
+	lea	GFX_Beholder_Body.l,a1	;43F900048260
 	add.w	$00(a2,d2.w),a1	;D2F22000
 	rts	;4E75
 
-GFX_Beholder_LookupTable:
-	dc.w	GFX_Beholder_0-GFX_Beholder_0	;0000
-	dc.w	GFX_Beholder_1-GFX_Beholder_0	;00A8
-	dc.w	GFX_Beholder_2-GFX_Beholder_0	;0130
-	dc.w	GFX_Beholder_3-GFX_Beholder_0	;01A0
-	dc.w	GFX_Beholder_4-GFX_Beholder_0	;01F8
-	dc.w	GFX_Beholder_5-GFX_Beholder_0	;0258
-GFX_BeholderEye_LookupTable:
-	dc.w	GFX_Beholder_6-GFX_Beholder_0	;02A0
-	dc.w	GFX_Beholder_7-GFX_Beholder_0	;02D8
-	dc.w	GFX_Beholder_8-GFX_Beholder_0	;0300
-	dc.w	GFX_Beholder_9-GFX_Beholder_0	;0320
-adrEA00A308:
+GFX_Beholder_Body_LookupTable:
+	dc.w	GFX_Beholder_Body-GFX_Beholder_Body	;0000
+	dc.w	_GFX_Beholder_1-GFX_Beholder_Body	;00A8
+	dc.w	_GFX_Beholder_2-GFX_Beholder_Body	;0130
+	dc.w	_GFX_Beholder_3-GFX_Beholder_Body	;01A0
+	dc.w	_GFX_Beholder_4-GFX_Beholder_Body	;01F8
+	dc.w	_GFX_Beholder_5-GFX_Beholder_Body	;0258
+GFX_Beholder_UpperEyes_LookupTable:
+	dc.w	_GFX_Beholder_6-GFX_Beholder_Body	;02A0
+	dc.w	_GFX_Beholder_7-GFX_Beholder_Body	;02D8
+	dc.w	_GFX_Beholder_8-GFX_Beholder_Body	;0300
+	dc.w	_GFX_Beholder_9-GFX_Beholder_Body	;0320
+GFX_Beholder_CentralEye_Near_LookupTable:
 	dc.w	$0340	;0340
 	dc.w	$0388	;0388
 	dc.w	$03D0	;03D0
@@ -16015,7 +16015,7 @@ adrEA00A308:
 	dc.w	$0628	;0628
 	dc.w	$0650	;0650
 	dc.w	$0678	;0678
-adrEA00A328:
+GFX_Beholder_CentralEye_Far_LookupTable:
 	dc.w	$06A0	;06A0
 	dc.w	$06B8	;06B8
 	dc.w	$06D0	;06D0
@@ -16124,7 +16124,7 @@ adrCd00A3E8:
 	addq.w	#$01,d3	;5243
 adrCd00A410:
 	add.b	adrB_00A43C(pc,d3.w),d4	;D83B302A
-	bra	adrCd00A6CA	;600002B4
+	bra	Draw_Monster_CompositeBitmap	;600002B4
 
 adrB_00A418:
 	dc.b	$00	;00
@@ -16248,14 +16248,14 @@ adrCd00A488:
 	lea	GFX_Dragon.l,a1	;43F900048960
 	add.w	$00(a2,d2.w),a1	;D2F22000
 	movem.l	d0/d1/d4/d5/d7/a1,-(sp)	;48E7CD40
-	bsr	adrCd00A6CA	;6100021C
+	bsr	Draw_Monster_CompositeBitmap	;6100021C
 	movem.l	(sp)+,d0/d1/d4/d5/d7/a1	;4CDF02B3
 	btst	#$00,d0	;08000000
 	bne.s	adrCd00A4CC	;6612
 	moveq	#-$01,d6	;7CFF
 	movem.w	d0/d1/d4/d5,-(sp)	;48A7CC00
 	add.b	adrB_00A4CE(pc,d1.w),d4	;D83B100C
-	bsr	adrCd00A6CA	;61000204
+	bsr	Draw_Monster_CompositeBitmap	;61000204
 	movem.w	(sp)+,d0/d1/d4/d5	;4C9F0033
 adrCd00A4CC:
 	rts	;4E75
@@ -16336,13 +16336,13 @@ adrCd00A54C:
 	add.b	$1A(a0,d2.w),d4	;D830201A
 adrCd00A56E:
 	movem.l	d0/d1/d4/d5/d7/a0/a1,-(sp)	;48E7CDC0
-	bsr	adrCd00A6CA	;61000156
+	bsr	Draw_Monster_CompositeBitmap	;61000156
 	movem.l	(sp),d0/d1/d4/d5/d7/a0/a1	;4CD703B3
 	btst	#$00,d0	;08000000
 	bne.s	adrCd00A58A	;660A
 	moveq	#-$01,d6	;7CFF
 	add.b	$22(a0,d1.w),d4	;D8301022
-	bsr	adrCd00A6CA	;61000142
+	bsr	Draw_Monster_CompositeBitmap	;61000142
 adrCd00A58A:
 	movem.l	(sp)+,d0/d1/d4/d5/d7/a0/a1	;4CDF03B3
 	cmpi.b	#$02,d1	;0C010002
@@ -16391,7 +16391,7 @@ adrCd00A5EE:
 	addq.w	#$01,d1	;5241
 adrCd00A5F4:
 	add.b	$2E(a0,d1.w),d4	;D830102E
-	bsr	adrCd00AD34	;6100073A
+	bsr	Draw_Monster_16PixelStrip	;6100073A
 	movem.w	(sp)+,d0/d1/d4/d5	;4C9F0033
 adrCd00A600:
 	rts	;4E75
@@ -16509,7 +16509,7 @@ Behemoth_Claw_Offsets:
 	dc.w	$1308	;1308
 	dc.w	$1378	;1378
 
-adrCd00A6CA:
+Draw_Monster_CompositeBitmap:
 	add.w	$0008(a5),d5	;DA6D0008
 	move.b	d4,d6	;1C04
 	add.b	#$60,d4	;06040060
@@ -16528,7 +16528,7 @@ adrCd00A6E8:
 	rts	;4E75
 
 adrCd00A6EC:
-	bsr	adrCd00995E	;6100F270
+	bsr	Prepare_Monster_ScreenPosition	;6100F270
 	tst.b	d1	;4A01
 	bpl.s	adrCd00A6F6	;6A02
 	rts	;4E75
@@ -17396,7 +17396,7 @@ adrCd00AD26:
 
 adrCd00AD2E:
 	add.l	#GFX_BodyParts,a1	;D3FC000396F0	;Long Addr replaced with Symbol
-adrCd00AD34:
+Draw_Monster_16PixelStrip:
 	move.w	d5,d0	;3005
 	add.w	d7,d0	;D047
 	sub.w	adrW_00AD64.l,d0	;90790000AD64
@@ -19774,7 +19774,7 @@ adrCd00C168:
 	bsr	adrCd00C01E	;6100FEA4
 	move.w	#$0005,adrW_00EEC6.l	;33FC00050000EEC6
 	move.b	#$01,SyncFlagHighByte_AI_TBC.l	;13FC000100008C1F
-	jsr	adrEA0008F2.w	;4EB808F2	;Short Absolute converted to symbol!
+	jsr	SpellPractice_CountInit_DATA_AI_TBC.w	;4EB808F2	;Short Absolute converted to symbol!
 adrCd00C190:
 	move.w	adrW_00EEF2.l,d1	;32390000EEF2
 	lea	Player1_Data.l,a5	;4BF90000EE7C
@@ -21274,7 +21274,7 @@ Exec_char_extensions:
 	bsr.s	CopyProtection	;610C
 	tst.l	d0	;4A80
 	beq.s	.Exit	;67F8
-	lea	adrCd000C50.w,a0	;41F80C50	;Short Absolute converted to symbol!
+	lea	Menu_RenderLoop_AI_TBC.w,a0	;41F80C50	;Short Absolute converted to symbol!
 	bra	adrCd008DAE		;6000BC78
 
 CopyProtection:
@@ -41875,7 +41875,7 @@ adrEA0174F8:
 	dc.w	$0000	;0000
 	dc.w	$0000	;0000
 	dc.w	$0000	;0000
-MonsterTotalsCounts:
+MonsterTotalsCounts_mod0:
 	dc.w	$0048	;0048
 	dc.w	$004D	;004D
 	dc.w	$0053	;0053
@@ -141056,7 +141056,7 @@ GFX_CrabClaw:
 	dc.w	$FDFF	;FDFF
 	dc.w	$FDFF	;FDFF
 	dc.w	$FDFF	;FDFF
-GFX_Beholder_0:
+GFX_Beholder_Body:
 	dc.w	$FEDF	;FEDF
 	dc.w	$FD3F	;FD3F
 	dc.w	$FC0F	;FC0F
@@ -141141,7 +141141,7 @@ GFX_Beholder_0:
 	dc.w	$FF0F	;FF0F
 	dc.w	$FF0F	;FF0F
 	dc.w	$FF0F	;FF0F
-GFX_Beholder_1:
+_GFX_Beholder_1:
 	dc.w	$F77F	;F77F
 	dc.w	$E8FF	;E8FF
 	dc.w	$E03F	;E03F
@@ -141210,7 +141210,7 @@ GFX_Beholder_1:
 	dc.w	$FC3F	;FC3F
 	dc.w	$FC3F	;FC3F
 	dc.w	$FC3F	;FC3F
-GFX_Beholder_2:
+_GFX_Beholder_2:
 	dc.w	$F6DF	;F6DF
 	dc.w	$C927	;C927
 	dc.w	$C007	;C007
@@ -141267,7 +141267,7 @@ GFX_Beholder_2:
 	dc.w	$F83F	;F83F
 	dc.w	$F83F	;F83F
 	dc.w	$F83F	;F83F
-GFX_Beholder_3:
+_GFX_Beholder_3:
 	dc.w	$F77F	;F77F
 	dc.w	$C89F	;C89F
 	dc.w	$C01F	;C01F
@@ -141312,7 +141312,7 @@ GFX_Beholder_3:
 	dc.w	$F07F	;F07F
 	dc.w	$F07F	;F07F
 	dc.w	$F07F	;F07F
-GFX_Beholder_4:
+_GFX_Beholder_4:
 	dc.w	$B6FF	;B6FF
 	dc.w	$497F	;497F
 	dc.w	$007F	;007F
@@ -141361,7 +141361,7 @@ GFX_Beholder_4:
 	dc.w	$E3FF	;E3FF
 	dc.w	$E3FF	;E3FF
 	dc.w	$E3FF	;E3FF
-GFX_Beholder_5:
+_GFX_Beholder_5:
 	dc.w	$BBFF	;BBFF
 	dc.w	$D7FF	;D7FF
 	dc.w	$83FF	;83FF
@@ -141398,7 +141398,7 @@ GFX_Beholder_5:
 	dc.w	$C7FF	;C7FF
 	dc.w	$C7FF	;C7FF
 	dc.w	$C7FF	;C7FF
-GFX_Beholder_6:
+_GFX_Beholder_6:
 	dc.w	$FFFF	;FFFF
 	dc.w	$E38F	;E38F
 	dc.w	$E38F	;E38F
@@ -141427,7 +141427,7 @@ GFX_Beholder_6:
 	dc.w	$F60F	;F60F
 	dc.w	$F00F	;F00F
 	dc.w	$F70F	;F70F
-GFX_Beholder_7:
+_GFX_Beholder_7:
 	dc.w	$FFFF	;FFFF
 	dc.w	$C63F	;C63F
 	dc.w	$C63F	;C63F
@@ -141448,7 +141448,7 @@ GFX_Beholder_7:
 	dc.w	$C03F	;C03F
 	dc.w	$C03F	;C03F
 	dc.w	$D8FF	;D8FF
-GFX_Beholder_8:
+_GFX_Beholder_8:
 	dc.w	$FFFF	;FFFF
 	dc.w	$CC67	;CC67
 	dc.w	$CC67	;CC67
@@ -141465,7 +141465,7 @@ GFX_Beholder_8:
 	dc.w	$B11B	;B11B
 	dc.w	$8003	;8003
 	dc.w	$BBBB	;BBBB
-GFX_Beholder_9:
+_GFX_Beholder_9:
 	dc.w	$FFFF	;FFFF
 	dc.w	$C89F	;C89F
 	dc.w	$C89F	;C89F

@@ -130,3 +130,111 @@ to an authoritative game segment. Edits should target the source template,
 palette table, or original planar segment, then regenerate all dependent
 previews. This is what allows modified game graphics to be loaded, displayed,
 edited, and rebuilt consistently.
+
+## Avatar and Beholder preview proof
+
+The avatar sizes are defined by the 68k drawing code:
+
+- `Avatars_Large.gfx` contains 16 images of 32 x 30 pixels. Each image is
+  480 bytes (`2 words * 30 rows * 8 bytes`).
+- `Shield_Avatars.gfx` contains 16 images of 32 x 16 pixels. Each image is
+  256 bytes (`2 words * 16 rows * 8 bytes`).
+
+Both files partition exactly at those boundaries and every decoded image
+encodes back to its original byte range.
+
+The corrected Beholder extraction is also lossless. Concatenating, in order,
+`Beholder_Body.gfx`, `Beholder_UpperEyes.gfx`,
+`Beholder_CentralEye_Near.gfx`, and `Beholder_CentralEye_Far.gfx` produces the
+same 1,792 bytes as concatenating the older `Beholder_01.gfx` through
+`Beholder_10.gfx` extraction.
+
+`tools/graphics_preview.py` reproduces the assembly renderer's component
+selection for all six distance levels and four facings. It uses the extracted:
+
+- component lookup offsets and height-minus-one tables;
+- composite and component position tables;
+- Beholder colour-grade lookup and monster palette table;
+- `FloorCeiling.gfx` for the 128 x 76 fake game window.
+
+The floor/ceiling layout is defined directly by `Draw_FloorAndCeiling` at the
+original `adrCd00B7F4`: 23 rows of ceiling, 19 cleared rows, then 34 rows of
+floor. The 3,648-byte source is therefore one 128 x 57 four-plane image whose
+two sections fit the game viewport exactly when the clear gap is inserted.
+
+The game's colour-mask routine does not recolour every indexed pixel. It
+replaces only template indices 0, 4, 8, and 12 with a selected four-byte
+monster palette; all other indices retain their original colour. Index 15 is
+the transparent mask colour for composition.
+
+Run the proof renderer with:
+
+```text
+python tools/graphics_preview.py outputs/graphics-preview --scale 4
+```
+
+It writes avatar sheets, all 24 Beholder window combinations, a Beholder
+contact sheet, exact component PNGs, red-border guide templates, and JSON
+metadata. The one-pixel red border is outside the editable image. Metadata
+records the editable rectangle as `[1, 1, width, height]`, so a future importer
+can crop the guide away before validating palette indices and encoding planar
+bytes. The border PNG is therefore a drawing aid; the adjacent borderless PNG
+is the exact native-size asset.
+
+This establishes the model for a preview/editor GUI: controls can vary monster
+distance, facing, animation frame, colour grade, and screen anchor without
+changing source bytes. Import should create a structured replacement for the
+authoritative `.gfx` range and regenerate the preview; it should not store or
+patch the contact sheet or precomposed monster image.
+
+## Initial graphics viewer
+
+The Pygame launcher now includes **Graphics Viewer**, also available directly:
+
+```text
+python main.py graphics
+```
+
+The initial category is Monsters and lists type codes `$64` through `$6C`.
+`$64` and `$65` share the Summon graphics, while `$69` and `$6A` share the
+Dragon block. `$6C` is shown as an Extended Levels expectation and is not part
+of the Bloodwych 4.39 dispatch table.
+
+Beholders are currently the only complete live renderer. Other selections
+show their available `.gfx` files and the provisional `.offsets`, `.heights`,
+and `.positions` companions still required. This lets metadata be extracted
+incrementally without pretending that a raw `.gfx` file is independently
+renderable.
+
+The viewer exposes four facings, the eight clamped colour-grade steps, two
+animation frames, and one-pixel X/Y adjustment. Image size and base screen
+position are now selected through an overhead dungeon navigator rather than a
+raw image-slot control.
+
+That navigator reproduces the relevant lookups in
+`Prepare_Monster_ScreenPosition`:
+
+- `adrEA00B8AE` supplies nineteen player-relative dungeon cells. Facing north,
+  these are the five cells at distance four, five at distance three, three at
+  distance two, three at distance one, and the player's own cell.
+- `adrB_00993B` assigns the renderer depth for each view cell.
+- `adrB_009936` advances the rear formation pair by one renderer depth.
+- `adrEA018A84` supplies a signed screen X position for each of four formation
+  mini-spaces plus the centred/full-cell position. `$FF` means that position is
+  not drawable.
+- `adrB_00994E` converts the resulting depth to one of the six graphic slots,
+  and `adrB_009956` supplies its base screen Y position.
+
+The lookup confirms the asymmetric edge cases visible in the original game.
+At one space to either side only two diagonal mini-spaces are drawable. At two
+spaces to the side three table entries are drawable, including one rear entry
+whose negative or edge X coordinate permits partial visibility depending on
+the sprite and facing. At the outer edge of distance four only one or two
+mini-spaces survive. The viewer renders these exact choices in blue and shows
+the selected creature's facing with an arrow.
+
+For now `tools/monster_view.py` contains a named Bloodwych 4.39 snapshot of
+these small lookup tables, with the source labels and proposed extracted
+filenames beside each one. They should become version-profile resources once
+the corresponding rows are added to `segments.xlsx`; the GUI-facing resolver
+API can remain unchanged when that loader is introduced.

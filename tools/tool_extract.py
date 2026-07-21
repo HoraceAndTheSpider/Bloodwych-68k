@@ -6,6 +6,7 @@ from pathlib import Path
 
 import pandas as pd
 
+from .resource_layout import resource_layouts
 from .tool_common import (
     ToolError,
     binary_path,
@@ -31,6 +32,7 @@ def extract_segments(
     output_dir.mkdir(parents=True, exist_ok=True)
     frame = load_segments(sheet, master)
     require_columns(frame, ("offset", "size", "name"))
+    resource_layouts(frame)
     extracted: list[Path] = []
 
     with source.open("rb") as binary:

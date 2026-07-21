@@ -55,6 +55,8 @@ docs/_build/
 
 # Local editor, operating-system, and generated verification files
 .DS_Store
+# Finder custom-folder icon metadata is stored as the filename "Icon\r".
+Icon?
 *.swp
 node_modules/
 outputs/

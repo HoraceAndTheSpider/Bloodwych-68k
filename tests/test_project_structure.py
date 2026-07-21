@@ -19,6 +19,14 @@ from tools.tool_common import (
 
 
 class ProjectStructureTests(unittest.TestCase):
+    def test_gui_commands_follow_the_source_generation_workflow(self) -> None:
+        self.assertEqual(
+            main.GUI_COMMANDS,
+            ("extract", "relabel", "inspect", "patch", "graphics"),
+        )
+        self.assertEqual(main.GUI_LABELS["inspect"], "Inspect / Data")
+        self.assertEqual(main.GUI_LABELS["graphics"], "Graphics Viewer")
+
     def test_bare_main_launch_uses_gui_command(self) -> None:
         with (
             patch("sys.argv", ["main.py"]),
@@ -28,6 +36,17 @@ class ProjectStructureTests(unittest.TestCase):
             self.assertEqual(main.main(), 0)
         launch_gui.assert_called_once_with()
         self.assertEqual(run.call_args.args[0].command, "profiles")
+
+    def test_graphics_viewer_returns_to_launcher(self) -> None:
+        with (
+            patch("sys.argv", ["main.py"]),
+            patch("main.launch_gui", side_effect=["graphics", "profiles"]) as launch_gui,
+            patch("tools.graphics_viewer.launch_graphics_viewer") as viewer,
+            patch("main.run", return_value=0),
+        ):
+            self.assertEqual(main.main(), 0)
+        self.assertEqual(launch_gui.call_count, 2)
+        viewer.assert_called_once_with()
 
     def test_configured_binary_names(self) -> None:
         self.assertEqual(
