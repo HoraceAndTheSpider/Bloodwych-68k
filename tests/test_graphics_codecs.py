@@ -5,26 +5,37 @@ import unittest
 from tools.gamefont_converter import EXPECTED_SIZE, glyph_pixels, read_font
 from tools.graphics_preview import (
     BeholderAssets,
+    CharacterAssets,
     decode_fixed_sprites,
     load_floor_ceiling_background,
     remap_template_colours,
     render_beholder,
+    render_character_preview,
 )
 from tools.st_planar_assets import decode_planar, encode_planar, read_tables
 from tools.graphics_viewer import (
+    CATEGORY_NAMES,
     MONSTERS,
     inspect_monster_files,
+    load_character_assets,
     load_renderer_assets,
     render_monster_preview,
 )
-from tools.tool_common import DATA_DIR
+from tools.tool_common import BINARIES_DIR, DATA_DIR
 
 
 GFX_DIR = DATA_DIR / "BLOODWYCH439-clean" / "gfx"
 MONSTERS_DIR = DATA_DIR / "BLOODWYCH439-clean" / "monsters"
+CHARACTER_DATA_DIR = DATA_DIR / "BLOODWYCH439-clean" / "data"
 
 
 class GraphicsCodecTests(unittest.TestCase):
+    def test_characters_are_the_first_graphics_viewer_category(self) -> None:
+        self.assertEqual(CATEGORY_NAMES[:2], ("Characters", "Monsters"))
+        assets, error = load_character_assets(DATA_DIR / "BLOODWYCH439-clean")
+        self.assertIsNotNone(assets)
+        self.assertIsNone(error)
+
     def test_gamefont_layout_and_known_a_glyph(self) -> None:
         data = read_font(GFX_DIR / "GameFont")
         self.assertEqual(len(data), EXPECTED_SIZE)
@@ -78,6 +89,145 @@ class GraphicsCodecTests(unittest.TestCase):
             b"".join(encode_planar(sprite.pixels) for sprite in shield),
             (GFX_DIR / "Shield_Avatars.gfx").read_bytes(),
         )
+
+    def test_all_character_records_build_from_five_source_parts(self) -> None:
+        assets = CharacterAssets(CHARACTER_DATA_DIR, GFX_DIR)
+        self.assertEqual(len(set(assets.body_selections)), 11)
+        self.assertEqual(max(assets.body_selections), 13)
+        self.assertEqual(len(set(assets.head_selections)), 18)
+        for character in range(0x56):
+            with self.subTest(character=f"${character:02X}"):
+                operations = assets.draw_operations(character)
+                self.assertEqual(
+                    [operation.part for operation in operations],
+                    ["legs", "torso", "head", "left_arm", "right_arm"],
+                )
+                self.assertFalse(operations[3].operation.mirrored)
+                self.assertTrue(operations[4].operation.mirrored)
+                for distance in range(6):
+                    for facing in range(4):
+                        view = assets.draw_operations(
+                            character,
+                            distance=distance,
+                            facing=facing,
+                            render_flags=3,
+                        )
+                        self.assertTrue(view)
+                        if distance >= 4:
+                            self.assertEqual(
+                                [operation.part for operation in view], ["distant"]
+                            )
+                            self.assertEqual(
+                                view[0].operation.mirrored,
+                                facing == 3,
+                            )
+                        for component in view:
+                            source = (
+                                GFX_DIR / component.operation.sprite.source_file
+                            ).read_bytes()
+                            start = component.operation.sprite.byte_offset
+                            end = start + component.operation.sprite.byte_size
+                            self.assertEqual(
+                                encode_planar(component.operation.sprite.pixels),
+                                source[start:end],
+                            )
+
+    def test_character_middle_distances_use_smaller_source_strips(self) -> None:
+        assets = CharacterAssets(CHARACTER_DATA_DIR, GFX_DIR)
+        heights = []
+        for distance in range(4):
+            legs = next(
+                operation
+                for operation in assets.draw_operations(0, distance=distance)
+                if operation.part == "legs"
+            )
+            heights.append(legs.operation.sprite.height)
+        self.assertEqual(heights, [26, 22, 18, 15])
+
+    def test_character_companion_tables_match_the_439_binary(self) -> None:
+        binary = (BINARIES_DIR / "BLOODWYCH439").read_bytes()
+        resources = {
+            "characters-body-definitions.layout": (0xA50A, 0x8C),
+            "characters-render-table-offsets.lookup": (0xA5EC, 0x14),
+            "characters-part-variants.lookup": (0xA600, 0x14),
+            "characters-arm-animation.positions": (0xA778, 0x48),
+            "characters-standard-render.layout": (0x18480, 0x130),
+            "characters-standard-distant-4.positions": (0x185B0, 8),
+            "characters-standard-distant-5.positions": (0x185B8, 8),
+            "characters-alternate-render.layout": (0x185C0, 0x130),
+            "characters-alternate-distant-4.positions": (0x186F0, 8),
+            "characters-alternate-distant-5.positions": (0x186F8, 8),
+        }
+        for filename, (offset, size) in resources.items():
+            with self.subTest(filename=filename):
+                self.assertEqual(
+                    (CHARACTER_DATA_DIR / filename).read_bytes(),
+                    binary[offset : offset + size],
+                )
+
+    def test_character_arm_animation_selects_variant_two(self) -> None:
+        assets = CharacterAssets(CHARACTER_DATA_DIR, GFX_DIR)
+        still = assets.draw_operations(0, distance=1, facing=0, render_flags=0)
+        animated = assets.draw_operations(0, distance=1, facing=0, render_flags=3)
+        still_arms = [item.operation.sprite.byte_offset for item in still if "arm" in item.part]
+        animated_arms = [
+            item.operation.sprite.byte_offset for item in animated if "arm" in item.part
+        ]
+        self.assertNotEqual(still_arms, animated_arms)
+        animated_near = assets.draw_operations(
+            0, distance=0, facing=0, render_flags=3
+        )
+        near_positions = [
+            (item.operation.x, item.operation.y)
+            for item in animated_near
+            if "arm" in item.part
+        ]
+        self.assertEqual(near_positions, [(-8, -19), (9, -19)])
+
+    def test_character_colours_are_five_independent_four_colour_masks(self) -> None:
+        assets = CharacterAssets(CHARACTER_DATA_DIR, GFX_DIR)
+        self.assertEqual(
+            assets.palettes(0),
+            (
+                (0, 4, 8, 0),
+                (14, 4, 8, 3),
+                (14, 4, 8, 3),
+                (4, 8, 4, 14),
+                (8, 8, 4, 4),
+            ),
+        )
+
+    def test_compact_character_bodies_apply_the_source_head_position(self) -> None:
+        assets = CharacterAssets(CHARACTER_DATA_DIR, GFX_DIR)
+        normal = assets.draw_operations(0)
+        compact_character = assets.body_selections.index(4)
+        compact = assets.draw_operations(compact_character)
+        normal_head = next(operation for operation in normal if operation.part == "head")
+        compact_head = next(operation for operation in compact if operation.part == "head")
+        self.assertEqual(
+            (normal_head.operation.x, normal_head.operation.y),
+            (3, -20),
+        )
+        self.assertEqual(
+            (compact_head.operation.x, compact_head.operation.y),
+            (3, -17),
+        )
+
+    def test_character_preview_uses_native_game_window_and_anchor(self) -> None:
+        assets = CharacterAssets(CHARACTER_DATA_DIR, GFX_DIR)
+        background = load_floor_ceiling_background(GFX_DIR)
+        pixels, metadata = render_character_preview(
+            background,
+            assets,
+            0,
+            anchor_x=56,
+            anchor_y=39,
+        )
+        self.assertEqual((len(pixels[0]), len(pixels)), (128, 76))
+        self.assertEqual(metadata["requested_game_anchor"], [56, 39])
+        self.assertEqual(metadata["body_design"], 0)
+        self.assertEqual(metadata["head_design"], 15)
+        self.assertEqual(len(metadata["operations"]), 5)
 
     def test_new_beholder_split_partitions_and_round_trips(self) -> None:
         assets = BeholderAssets(MONSTERS_DIR)

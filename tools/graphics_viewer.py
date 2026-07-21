@@ -15,6 +15,7 @@ from typing import Sequence
 
 from tools.graphics_preview import (
     BeholderAssets,
+    CharacterAssets,
     CrabAssets,
     DragonAssets,
     LargeMonsterAssets,
@@ -23,6 +24,7 @@ from tools.graphics_preview import (
     VIEW_WIDTH,
     load_floor_ceiling_background,
     render_beholder,
+    render_character_preview,
     render_monster_operations,
 )
 from tools.monster_view import (
@@ -45,9 +47,27 @@ class GraphicsViewerError(RuntimeError):
 WINDOW_SIZE = (1220, 760)
 PREVIEW_SCALE = 5
 FACING_NAMES = ("Front", "Side", "Back", "Mirrored side")
-CATEGORY_NAMES = ("Monsters", "Humanoids", "Avatars", "Icons")
+CATEGORY_NAMES = ("Characters", "Monsters", "Avatars", "Icons")
 # The unmirrored Beholder side eye points screen-left; facing 3 mirrors it.
 FACING_ARROW_DIRECTIONS = ((0, 1), (-1, 0), (0, -1), (1, 0))
+
+CHARACTER_FILES = (
+    "data/characters.heads",
+    "data/characters.bodies",
+    "data/characters.colours",
+    "gfx/HeadParts.gfx",
+    "gfx/BodyParts.gfx",
+    "data/characters-body-definitions.layout",
+    "data/characters-arm-animation.positions",
+    "data/characters-render-table-offsets.lookup",
+    "data/characters-part-variants.lookup",
+    "data/characters-standard-render.layout",
+    "data/characters-standard-distant-4.positions",
+    "data/characters-standard-distant-5.positions",
+    "data/characters-alternate-render.layout",
+    "data/characters-alternate-distant-4.positions",
+    "data/characters-alternate-distant-5.positions",
+)
 
 
 @dataclass(frozen=True)
@@ -300,6 +320,13 @@ def load_renderer_assets(monsters_dir: Path) -> tuple[dict[str, object], dict[st
     return assets, errors
 
 
+def load_character_assets(data_root: Path) -> tuple[CharacterAssets | None, str | None]:
+    try:
+        return CharacterAssets(data_root / "data", data_root / "gfx"), None
+    except (OSError, ValueError, RuntimeError) as error:
+        return None, str(error)
+
+
 def render_monster_preview(
     background: Sequence[Sequence[int]],
     definition: MonsterDefinition,
@@ -384,6 +411,7 @@ def launch_graphics_viewer(
 
     background = load_floor_ceiling_background(gfx_dir)
     renderer_assets, renderer_errors = load_renderer_assets(monsters_dir)
+    character_assets, character_error = load_character_assets(data_root)
 
     pygame.init()
     pygame.key.set_repeat(250, 45)
@@ -395,8 +423,10 @@ def launch_graphics_viewer(
         small_font = pygame.font.SysFont(None, 18)
         clock = pygame.time.Clock()
 
+        selected_category = 0
         selected_index = 2
-        selected_view_cell = 16
+        selected_character = 0
+        selected_view_cell = 17
         selected_subposition = 0
         facing = 0
         grade_step = 0
@@ -411,6 +441,10 @@ def launch_graphics_viewer(
         monster_rects = [
             pygame.Rect(20, 112 + index * 49, 220, 40)
             for index in range(len(MONSTERS))
+        ]
+        character_rects = [
+            pygame.Rect(20 + (index % 8) * 27, 112 + (index // 8) * 32, 25, 28)
+            for index in range(0x56)
         ]
         control_specs = (
             ("facing_down", "Facing -", (270, 540, 108, 34)),
@@ -432,6 +466,9 @@ def launch_graphics_viewer(
 
         def adjust(action: str) -> bool:
             nonlocal facing, grade_step, animation_frame, nudge_x, nudge_y
+            if selected_category == 0:
+                if action in {"grade_down", "grade_up"}:
+                    return True
             if action == "facing_down":
                 facing = (facing - 1) % 4
             elif action == "facing_up":
@@ -456,14 +493,32 @@ def launch_graphics_viewer(
                 return False
             return True
 
-        def choose_valid_subposition(definition: MonsterDefinition) -> None:
+        def choose_valid_subposition(subpositions: tuple[int, ...]) -> None:
             nonlocal selected_view_cell, selected_subposition, nudge_x, nudge_y
-            available = visible_subpositions(selected_view_cell, definition.subpositions)
+            available = visible_subpositions(selected_view_cell, subpositions)
+            if selected_category == 0:
+                available = tuple(
+                    subposition
+                    for subposition in available
+                    if (
+                        resolve_monster_screen_position(
+                            selected_view_cell, subposition
+                        ).gfx_slot
+                        in range(6)
+                    )
+                )
             if selected_subposition in available:
                 return
             preferred_cells = (16, 17, 15, 14) + tuple(range(18))
             for cell in preferred_cells:
-                available = visible_subpositions(cell, definition.subpositions)
+                available = visible_subpositions(cell, subpositions)
+                if selected_category == 0:
+                    available = tuple(
+                        subposition
+                        for subposition in available
+                        if resolve_monster_screen_position(cell, subposition).gfx_slot
+                        in range(6)
+                    )
                 if available:
                     selected_view_cell = cell
                     selected_subposition = available[0]
@@ -472,38 +527,61 @@ def launch_graphics_viewer(
 
         running = True
         while running:
+            characters_active = selected_category == 0
             definition = MONSTERS[selected_index]
-            choose_valid_subposition(definition)
+            subpositions = (
+                FORMATION_SUBPOSITIONS if characters_active else definition.subpositions
+            )
+            choose_valid_subposition(subpositions)
             screen_position = resolve_monster_screen_position(
                 selected_view_cell, selected_subposition
             )
             if screen_position is None:
                 raise GraphicsViewerError("No valid monster view position is available")
-            status = inspect_monster_files(definition, monsters_dir)
             preview_pixels = [row[:] for row in background]
             preview_metadata: dict[str, object] | None = None
             preview_error: str | None = None
-            renderer_key = (
-                "dragon" if definition.renderer in {"dragon_large", "dragon_small"}
-                else definition.renderer
-            )
-            if status.ready and renderer_key in renderer_assets:
+            status = inspect_monster_files(definition, monsters_dir)
+            renderer_key = None
+            if characters_active and character_assets is not None:
                 try:
-                    preview_pixels, preview_metadata = render_monster_preview(
+                    preview_pixels, preview_metadata = render_character_preview(
                         background,
-                        definition,
-                        renderer_assets,
+                        character_assets,
+                        selected_character,
                         distance=screen_position.gfx_slot,
                         facing=facing,
-                        grade_step=grade_step,
-                        animation_frame=animation_frame,
+                        render_flags=3 if animation_frame else 0,
                         anchor_x=screen_position.screen_x + nudge_x,
                         anchor_y=screen_position.screen_y + nudge_y,
                     )
                 except (OSError, ValueError, RuntimeError, IndexError) as error:
                     preview_error = str(error)
-            elif renderer_key in renderer_errors:
-                preview_error = renderer_errors[renderer_key]
+            elif characters_active:
+                preview_error = character_error
+            else:
+                renderer_key = (
+                    "dragon"
+                    if definition.renderer in {"dragon_large", "dragon_small"}
+                    else definition.renderer
+                )
+                if status.ready and renderer_key in renderer_assets:
+                    try:
+                        preview_pixels, preview_metadata = render_monster_preview(
+                            background,
+                            definition,
+                            renderer_assets,
+                            distance=screen_position.gfx_slot,
+                            facing=facing,
+                            grade_step=grade_step,
+                            animation_frame=animation_frame,
+                            anchor_x=screen_position.screen_x + nudge_x,
+                            anchor_y=screen_position.screen_y + nudge_y,
+                        )
+                    except (OSError, ValueError, RuntimeError, IndexError) as error:
+                        preview_error = str(error)
+                elif renderer_key in renderer_errors:
+                    preview_error = renderer_errors[renderer_key]
 
             mouse = pygame.mouse.get_pos()
             screen.fill((24, 26, 31))
@@ -513,25 +591,42 @@ def launch_graphics_viewer(
             )
 
             for index, (name, rectangle) in enumerate(zip(CATEGORY_NAMES, category_rects)):
-                active = index == 0
+                active = index == selected_category
                 colour = (54, 105, 170) if active else (52, 55, 63)
                 pygame.draw.rect(screen, colour, rectangle, border_radius=4)
-                suffix = "" if active else " (planned)"
+                suffix = " (planned)" if index >= 2 else ""
                 text_colour = (245, 245, 245) if active else (150, 150, 155)
                 label = small_font.render(name + suffix, True, text_colour)
                 screen.blit(label, label.get_rect(center=rectangle.center))
 
-            for index, (definition_item, rectangle) in enumerate(zip(MONSTERS, monster_rects)):
-                selected = index == selected_index
-                hovered = rectangle.collidepoint(mouse)
-                colour = (
-                    (61, 110, 174)
-                    if selected
-                    else ((58, 61, 70) if hovered else (43, 46, 54))
-                )
-                pygame.draw.rect(screen, colour, rectangle, border_radius=4)
-                label = font.render(definition_item.display_name, True, (244, 244, 248))
-                screen.blit(label, (rectangle.x + 10, rectangle.y + 10))
+            if characters_active:
+                for character, rectangle in enumerate(character_rects):
+                    selected = character == selected_character
+                    hovered = rectangle.collidepoint(mouse)
+                    colour = (
+                        (61, 110, 174)
+                        if selected
+                        else ((58, 61, 70) if hovered else (43, 46, 54))
+                    )
+                    pygame.draw.rect(screen, colour, rectangle, border_radius=3)
+                    label = small_font.render(f"{character:02X}", True, (244, 244, 248))
+                    screen.blit(label, label.get_rect(center=rectangle.center))
+            else:
+                for index, (definition_item, rectangle) in enumerate(
+                    zip(MONSTERS, monster_rects)
+                ):
+                    selected = index == selected_index
+                    hovered = rectangle.collidepoint(mouse)
+                    colour = (
+                        (61, 110, 174)
+                        if selected
+                        else ((58, 61, 70) if hovered else (43, 46, 54))
+                    )
+                    pygame.draw.rect(screen, colour, rectangle, border_radius=4)
+                    label = font.render(
+                        definition_item.display_name, True, (244, 244, 248)
+                    )
+                    screen.blit(label, (rectangle.x + 10, rectangle.y + 10))
 
             preview_rect = pygame.Rect(
                 270,
@@ -548,7 +643,7 @@ def launch_graphics_viewer(
                 overlay = pygame.Surface(preview_rect.size, pygame.SRCALPHA)
                 overlay.fill((0, 0, 0, 125))
                 screen.blit(overlay, preview_rect)
-                message = "Renderer unavailable: required companion data is listed on the right."
+                message = "Renderer unavailable: required source data is listed on the right."
                 if preview_error:
                     message = f"Renderer error: {preview_error}"
                 y = preview_rect.centery - 22
@@ -565,30 +660,62 @@ def launch_graphics_viewer(
                 if screen_position.dungeon_x == 0
                 else f"lane {screen_position.dungeon_x:+d}"
             )
-            status_text = (
-                f"{screen_position.forward_distance} ahead, {lane_name}  |  "
-                f"{screen_position.subposition_name}  |  image {screen_position.gfx_slot}  |  "
-                f"anchor ({screen_position.screen_x + nudge_x}, "
-                f"{screen_position.screen_y + nudge_y})"
-            )
+            if characters_active and preview_metadata:
+                status_text = (
+                    f"${selected_character:02X} character  |  "
+                    f"body ${preview_metadata['body_design']:02X}  |  "
+                    f"head ${preview_metadata['head_design']:02X}  |  "
+                    f"anchor ({screen_position.screen_x + nudge_x}, "
+                    f"{screen_position.screen_y + nudge_y})"
+                )
+            else:
+                status_text = (
+                    f"{screen_position.forward_distance} ahead, {lane_name}  |  "
+                    f"{screen_position.subposition_name}  |  image {screen_position.gfx_slot}  |  "
+                    f"anchor ({screen_position.screen_x + nudge_x}, "
+                    f"{screen_position.screen_y + nudge_y})"
+                )
             screen.blit(font.render(status_text, True, (225, 225, 230)), (270, 503))
 
             for action, (rectangle, label_text) in controls.items():
                 hovered = rectangle.collidepoint(mouse)
-                colour = (69, 112, 169) if hovered else (52, 76, 108)
+                disabled = characters_active and action in {
+                    "grade_down",
+                    "grade_up",
+                }
+                colour = (
+                    (45, 47, 54)
+                    if disabled
+                    else ((69, 112, 169) if hovered else (52, 76, 108))
+                )
                 pygame.draw.rect(screen, colour, rectangle, border_radius=4)
-                label = font.render(label_text, True, (250, 250, 250))
+                text_colour = (128, 130, 137) if disabled else (250, 250, 250)
+                label = font.render(label_text, True, text_colour)
                 screen.blit(label, label.get_rect(center=rectangle.center))
 
-            help_text = (
-                f"Facing: {FACING_NAMES[facing]}  |  grade: base +{grade_step}.  "
-                "Click a mini-space; arrow keys apply a one-pixel preview offset."
-            )
+            if characters_active:
+                help_text = (
+                    "All six source distances and four facings. Animate toggles "
+                    "the independent arm variants."
+                )
+            else:
+                help_text = (
+                    f"Facing: {FACING_NAMES[facing]}  |  grade: base +{grade_step}.  "
+                    "Click a mini-space; arrow keys apply a one-pixel preview offset."
+                )
             screen.blit(small_font.render(help_text, True, (178, 181, 189)), (270, 590))
 
             details_x = 935
             screen.blit(
-                font.render("Source-verified view position", True, (240, 240, 245)),
+                font.render(
+                    (
+                        "Character source view position"
+                        if characters_active
+                        else "Source-verified view position"
+                    ),
+                    True,
+                    (240, 240, 245),
+                ),
                 (details_x, 112),
             )
 
@@ -618,7 +745,8 @@ def launch_graphics_viewer(
                 )
 
             def draw_facing_arrow(rectangle: object) -> None:
-                direction_x, direction_y = FACING_ARROW_DIRECTIONS[facing]
+                displayed_facing = facing
+                direction_x, direction_y = FACING_ARROW_DIRECTIONS[displayed_facing]
                 centre = pygame.Vector2(rectangle.center)
                 direction = pygame.Vector2(direction_x, direction_y)
                 start = centre - direction * 4
@@ -642,12 +770,19 @@ def launch_graphics_viewer(
                     cell_size - 2,
                     cell_size - 2,
                 )
-                available = visible_subpositions(view_cell, definition.subpositions)
+                available = visible_subpositions(view_cell, subpositions)
+                if characters_active:
+                    available = tuple(
+                        subposition
+                        for subposition in available
+                        if resolve_monster_screen_position(view_cell, subposition).gfx_slot
+                        in range(6)
+                    )
                 cell_colour = (41, 47, 57) if available else (29, 32, 38)
                 pygame.draw.rect(screen, cell_colour, cell_rect)
                 pygame.draw.rect(screen, (73, 81, 95), cell_rect, 1)
 
-                if definition.subpositions == CENTRED_SUBPOSITIONS:
+                if subpositions == CENTRED_SUBPOSITIONS:
                     centre_rect = pygame.Rect(0, 0, 17, 17)
                     centre_rect.center = cell_rect.center
                     if 4 in available:
@@ -706,15 +841,24 @@ def launch_graphics_viewer(
             )
             screen.blit(
                 small_font.render(
-                    "Blue = visible  |  orange arrow = monster facing",
+                    (
+                        "Blue = available  |  orange arrow = character facing"
+                        if characters_active
+                        else "Blue = visible  |  orange arrow = monster facing"
+                    ),
                     True,
                     (178, 181, 189),
                 ),
                 (details_x, 345),
             )
 
+            details_title = (
+                f"${selected_character:02X}  Character"
+                if characters_active
+                else definition.display_name
+            )
             screen.blit(
-                title_font.render(definition.display_name, True, (240, 240, 245)),
+                title_font.render(details_title, True, (240, 240, 245)),
                 (details_x, 374),
             )
             details_y = 408
@@ -742,23 +886,62 @@ def launch_graphics_viewer(
                         details_y += 18
                 details_y += 7
 
-            graphics_present = status.existing_gfx
-            if len(graphics_present) > 2:
-                graphics_present = (f"{len(graphics_present)} files",)
-            detail_block("Graphics present", graphics_present, (126, 218, 151))
-            detail_block("Graphics missing", status.missing_gfx, (244, 148, 135))
-            companion_summary = status.existing_companions
-            if len(companion_summary) > 6:
-                companion_summary = (f"{len(companion_summary)} files (complete)",)
-            detail_block("Companions present", companion_summary, (126, 218, 151))
-            detail_block("Companions missing", status.missing_companions, (244, 184, 115))
-            if definition.note:
-                detail_block("Notes", (definition.note,), (155, 188, 239))
-            if definition.version != "BLOODWYCH439":
-                detail_block("Version", (definition.version,), (155, 188, 239))
-            if preview_metadata:
-                palette = preview_metadata["replacement_palette_indices"]
-                detail_block("Selected palette", (str(palette),), (155, 188, 239))
+            if characters_active:
+                existing_character_files = tuple(
+                    name for name in CHARACTER_FILES if (data_root / name).is_file()
+                )
+                missing_character_files = tuple(
+                    name for name in CHARACTER_FILES if name not in existing_character_files
+                )
+                detail_block(
+                    "Character data",
+                    (f"{len(existing_character_files)} files present",),
+                    (126, 218, 151),
+                )
+                detail_block(
+                    "Missing data",
+                    missing_character_files,
+                    (244, 148, 135),
+                )
+                if preview_metadata:
+                    body_design = int(preview_metadata["body_design"])
+                    body_layout = str(preview_metadata["body_layout"])
+                    detail_block(
+                        "Selections",
+                        (
+                            f"Body design ${body_design:02X} ({body_layout})",
+                            f"Head design ${int(preview_metadata['head_design']):02X}",
+                        ),
+                        (155, 188, 239),
+                    )
+                    palette_names = ("head", "legs", "torso", "arms", "distant")
+                    palettes = tuple(
+                        f"{name}: {values}"
+                        for name, values in zip(
+                            palette_names, preview_metadata["palettes"]
+                        )
+                    )
+                    detail_block("Colour masks", palettes, (155, 188, 239))
+                if preview_error:
+                    detail_block("Renderer error", (preview_error,), (244, 184, 115))
+            else:
+                graphics_present = status.existing_gfx
+                if len(graphics_present) > 2:
+                    graphics_present = (f"{len(graphics_present)} files",)
+                detail_block("Graphics present", graphics_present, (126, 218, 151))
+                detail_block("Graphics missing", status.missing_gfx, (244, 148, 135))
+                companion_summary = status.existing_companions
+                if len(companion_summary) > 6:
+                    companion_summary = (f"{len(companion_summary)} files (complete)",)
+                detail_block("Companions present", companion_summary, (126, 218, 151))
+                detail_block("Companions missing", status.missing_companions, (244, 184, 115))
+                if definition.note:
+                    detail_block("Notes", (definition.note,), (155, 188, 239))
+                if definition.version != "BLOODWYCH439":
+                    detail_block("Version", (definition.version,), (155, 188, 239))
+                if preview_metadata:
+                    palette = preview_metadata["replacement_palette_indices"]
+                    detail_block("Selected palette", (str(palette),), (155, 188, 239))
 
             pygame.display.flip()
             if screenshot_path is not None:
@@ -779,10 +962,22 @@ def launch_graphics_viewer(
                     if event.key in keyboard_actions:
                         running = adjust(keyboard_actions[event.key])
                 elif event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
-                    for index, rectangle in enumerate(monster_rects):
-                        if rectangle.collidepoint(event.pos):
-                            selected_index = index
+                    for index, rectangle in enumerate(category_rects):
+                        if rectangle.collidepoint(event.pos) and index < 2:
+                            selected_category = index
+                            nudge_x = nudge_y = 0
                             break
+                    if characters_active:
+                        for character, rectangle in enumerate(character_rects):
+                            if rectangle.collidepoint(event.pos):
+                                selected_character = character
+                                nudge_x = nudge_y = 0
+                                break
+                    else:
+                        for index, rectangle in enumerate(monster_rects):
+                            if rectangle.collidepoint(event.pos):
+                                selected_index = index
+                                break
                     for rectangle, view_cell, subposition in slot_hit_rects:
                         if rectangle.collidepoint(event.pos):
                             selected_view_cell = view_cell

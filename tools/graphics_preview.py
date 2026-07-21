@@ -76,6 +76,15 @@ class DrawOperation:
     mirrored: bool = False
 
 
+@dataclass(frozen=True)
+class CharacterDrawOperation:
+    """One independently recoloured strip in a composed character."""
+
+    operation: DrawOperation
+    part: str
+    replacements: tuple[int, int, int, int]
+
+
 def read_u16be(path: Path) -> list[int]:
     data = path.read_bytes()
     if len(data) % 2:
@@ -425,6 +434,310 @@ def facing_variant(facing: int) -> tuple[int, bool]:
         raise ValueError("facing must be 0..3")
     value = (0, 1, 2, 0x81)[facing]
     return value & 0x7F, bool(value & 0x80)
+
+
+CHARACTER_DISTANT_DIMENSIONS = {
+    0: {4: (22, 0xB0, 0x000), 5: (17, 0x88, 0x210)},
+    1: {4: (21, 0xA8, 0x000), 5: (16, 0x80, 0x1F8)},
+}
+
+
+class CharacterAssets:
+    """Compose character types $00-$55 from extracted heads and body strips.
+
+    The renderer follows all six source image distances, four facings, the two
+    body-layout families, and both independently animated arm variants.
+    """
+
+    PARTS = ("legs", "torso", "head", "left_arm", "right_arm")
+    COLOUR_GROUPS = (1, 2, 0, 3, 3)
+
+    def __init__(self, data_dir: Path, gfx_dir: Path):
+        self.data_dir = data_dir
+        self.gfx_dir = gfx_dir
+        self.body_selections = list((data_dir / "characters.bodies").read_bytes())
+        self.head_selections = list((data_dir / "characters.heads").read_bytes())
+        self.colours = (data_dir / "characters.colours").read_bytes()
+        body_definitions = (
+            data_dir / "characters-body-definitions.layout"
+        ).read_bytes()
+        self.part_variants = (
+            data_dir / "characters-part-variants.lookup"
+        ).read_bytes()
+        self.arm_animation_positions = (
+            data_dir / "characters-arm-animation.positions"
+        ).read_bytes()
+        render_table_offsets = (
+            data_dir / "characters-render-table-offsets.lookup"
+        ).read_bytes()
+        self.render_layouts = {
+            0: (data_dir / "characters-standard-render.layout").read_bytes(),
+            1: (data_dir / "characters-alternate-render.layout").read_bytes(),
+        }
+        self.distant_positions = {
+            layout: {
+                distance: (
+                    data_dir
+                    / f"characters-{name}-distant-{distance}.positions"
+                ).read_bytes()
+                for distance in (4, 5)
+            }
+            for layout, name in ((0, "standard"), (1, "alternate"))
+        }
+        self.body_data = (gfx_dir / "BodyParts.gfx").read_bytes()
+        self.head_data = (gfx_dir / "HeadParts.gfx").read_bytes()
+        if len(self.body_selections) != 0x56 or len(self.head_selections) != 0x56:
+            raise ValueError("character head/body selections must contain $56 entries")
+        if len(self.colours) != 0x56 * 20:
+            raise ValueError("characters.colours must contain five palettes per character")
+        if len(self.body_data) != 0x8640:
+            raise ValueError("BodyParts.gfx has an unexpected length")
+        if len(self.head_data) != 0x3E70:
+            raise ValueError("HeadParts.gfx has an unexpected length")
+        if len(body_definitions) != 14 * 10:
+            raise ValueError("character body definitions must contain fourteen records")
+        words = struct.unpack(">70H", body_definitions)
+        self.body_definitions = tuple(
+            tuple(words[index : index + 5]) for index in range(0, len(words), 5)
+        )
+        if len(self.part_variants) != 20:
+            raise ValueError("character part variants must contain twenty entries")
+        if len(self.arm_animation_positions) != 72:
+            raise ValueError("character arm animation positions must contain $48 bytes")
+        if len(render_table_offsets) != 20:
+            raise ValueError("character render table offsets must contain ten words")
+        table_offsets = struct.unpack(">10H", render_table_offsets)
+        self.height_table_offsets = table_offsets[0::2]
+        self.source_table_offsets = table_offsets[1::2]
+        if any(len(layout) != 0x130 for layout in self.render_layouts.values()):
+            raise ValueError("character render layouts must each contain $130 bytes")
+        if any(
+            len(positions) != 8
+            for layouts in self.distant_positions.values()
+            for positions in layouts.values()
+        ):
+            raise ValueError("character distant position tables must contain eight bytes")
+        if max(self.body_selections) >= len(self.body_definitions):
+            raise ValueError("characters.bodies references an unknown body design")
+        if max(self.head_selections) >= 18:
+            raise ValueError("characters.heads references an unknown head design")
+
+    def body_design(self, character: int) -> int:
+        self._validate_character(character)
+        return self.body_selections[character]
+
+    def head_design(self, character: int) -> int:
+        self._validate_character(character)
+        return self.head_selections[character]
+
+    def body_layout(self, character: int) -> int:
+        return self.body_definitions[self.body_design(character)][0]
+
+    def palettes(self, character: int) -> tuple[tuple[int, int, int, int], ...]:
+        self._validate_character(character)
+        start = character * 20
+        return tuple(
+            tuple(self.colours[start + group * 4 : start + group * 4 + 4])
+            for group in range(5)
+        )
+
+    def draw_operations(
+        self,
+        character: int,
+        *,
+        distance: int = 0,
+        facing: int = 0,
+        render_flags: int = 0,
+    ) -> list[CharacterDrawOperation]:
+        body_index = self.body_design(character)
+        head_index = self.head_design(character)
+        alternate, legs_offset, torso_offset, arms_offset, distant_offset = (
+            self.body_definitions[body_index]
+        )
+        palettes = self.palettes(character)
+        if distance in (4, 5):
+            if not 0 <= facing <= 3:
+                raise ValueError("character facing must be 0..3")
+            height, stride, group_offset = CHARACTER_DISTANT_DIMENSIONS[alternate][
+                distance
+            ]
+            positions_data = self.distant_positions[alternate][distance]
+            positions = tuple(
+                (
+                    signed_byte(positions_data[index]),
+                    signed_byte(positions_data[index + 1]),
+                )
+                for index in range(0, 8, 2)
+            )
+            source_variant = (0, 1, 2, 1)[facing]
+            x, y = positions[facing]
+            sprite = decode_sprite(
+                self.body_data,
+                offset=distant_offset + group_offset + source_variant * stride,
+                width_words=1,
+                height=height,
+                name=f"Character_{character:02X}_distant_{distance}_{facing}",
+                source_file="BodyParts.gfx",
+            )
+            return [
+                CharacterDrawOperation(
+                    DrawOperation(
+                        sprite,
+                        x,
+                        y + PIXEL_STRIP_VIEWPORT_Y_ADJUSTMENT,
+                        mirrored=facing == 3,
+                    ),
+                    "distant",
+                    palettes[4],
+                )
+            ]
+        if not 0 <= distance <= 3 or not 0 <= facing <= 3:
+            raise ValueError("character component view must use distance 0..3 and facing 0..3")
+
+        layout = self.render_layouts[alternate]
+        position_offset = (distance * 4 + facing) * 10
+        positions = tuple(
+            (
+                signed_byte(layout[position_offset + component * 2]),
+                signed_byte(layout[position_offset + component * 2 + 1]),
+            )
+            for component in range(5)
+        )
+        source_bases = (
+            legs_offset,
+            torso_offset,
+            head_index * 0x378,
+            arms_offset,
+            arms_offset,
+        )
+        source_data = (
+            self.body_data,
+            self.body_data,
+            self.head_data,
+            self.body_data,
+            self.body_data,
+        )
+        source_files = (
+            "BodyParts.gfx",
+            "BodyParts.gfx",
+            "HeadParts.gfx",
+            "BodyParts.gfx",
+            "BodyParts.gfx",
+        )
+        operations: list[CharacterDrawOperation] = []
+        for index, part in enumerate(self.PARTS):
+            raw_variant = self.part_variants[index * 4 + facing]
+            if raw_variant == 0xFF:
+                continue
+            mirrored = bool(raw_variant & 0x80)
+            variant = raw_variant & 0x7F
+            animated = index >= 3 and bool(render_flags & (1 << (index - 3)))
+            if animated:
+                variant = 2
+            table_index = distance * 3 + variant
+            height = (
+                layout[self.height_table_offsets[index] + table_index]
+                + 1
+            )
+            source_lookup = (
+                self.source_table_offsets[index] + table_index * 2
+            )
+            source_offset = source_bases[index] + int.from_bytes(
+                layout[source_lookup : source_lookup + 2], "big"
+            )
+            sprite = decode_sprite(
+                source_data[index],
+                offset=source_offset,
+                width_words=1,
+                height=height,
+                name=f"Character_{character:02X}_{part}",
+                source_file=source_files[index],
+            )
+            x, y = positions[index]
+            if animated:
+                animation_base = alternate * 36
+                y -= signed_byte(
+                    self.arm_animation_positions[animation_base + distance]
+                )
+                x += signed_byte(
+                    self.arm_animation_positions[
+                        animation_base
+                        + 4
+                        + distance * 8
+                        + (index - 3) * 4
+                        + facing
+                    ]
+                )
+                if facing & 1:
+                    mirrored = not mirrored
+            operations.append(
+                CharacterDrawOperation(
+                    DrawOperation(
+                        sprite,
+                        x,
+                        y + PIXEL_STRIP_VIEWPORT_Y_ADJUSTMENT,
+                        mirrored=mirrored,
+                    ),
+                    part,
+                    palettes[self.COLOUR_GROUPS[index]],
+                )
+            )
+        return operations
+
+    @staticmethod
+    def _validate_character(character: int) -> None:
+        if not 0 <= character <= 0x55:
+            raise ValueError("character type must be $00..$55")
+
+
+def render_character_preview(
+    background: Sequence[Sequence[int]],
+    assets: CharacterAssets,
+    character: int,
+    *,
+    distance: int = 0,
+    facing: int = 0,
+    render_flags: int = 0,
+    anchor_x: int,
+    anchor_y: int,
+) -> tuple[list[list[int]], dict[str, object]]:
+    """Render one source-exact character view into the game window."""
+    canvas = [list(row) for row in background]
+    records: list[dict[str, object]] = []
+    for component in assets.draw_operations(
+        character, distance=distance, facing=facing, render_flags=render_flags
+    ):
+        operation = component.operation
+        pixels = remap_template_colours(operation.sprite.pixels, component.replacements)
+        if operation.mirrored:
+            pixels = mirror_pixels(pixels)
+        x = anchor_x + operation.x
+        y = anchor_y + operation.y
+        blit(canvas, pixels, x, y)
+        records.append(
+            {
+                "part": component.part,
+                "sprite": operation.sprite.name,
+                "x": x,
+                "y": y,
+                "mirrored": operation.mirrored,
+                "replacement_palette_indices": list(component.replacements),
+            }
+        )
+    return canvas, {
+        "character": character,
+        "body_design": assets.body_design(character),
+        "body_layout": "alternate" if assets.body_layout(character) else "standard",
+        "head_design": assets.head_design(character),
+        "palettes": [list(palette) for palette in assets.palettes(character)],
+        "requested_game_anchor": [anchor_x, anchor_y],
+        "positioning_mode": "game-anchor",
+        "view": "component" if distance <= 3 else f"distant-{distance}",
+        "distance": distance,
+        "facing": facing,
+        "render_flags": render_flags,
+        "operations": records,
+    }
 
 
 DISTANCE_GROUPS = (0, 0, 1, 1, 2, 3)
