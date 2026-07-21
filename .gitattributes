@@ -1,4 +1,7 @@
 *.gfx binary
 *.heights binary
+*.layout binary
+*.lookup binary
 *.offsets binary
 *.positions binary
+*.flags binary

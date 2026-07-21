@@ -13,6 +13,7 @@ from .resource_layout import (
     data_action,
     resource_layouts,
 )
+from .source_comments import apply_source_comments
 from .tool_common import ToolError, asm_path, load_segments, require_columns
 
 
@@ -87,6 +88,7 @@ def relabel_segments(master: str, sheet: str | Path) -> Path:
         lines = [re.sub(reference_pattern, new_label, line) for line in lines]
         print(f"Relabeled '{label}' to '{new_label}'")
 
+    lines = apply_source_comments(lines, frame)
     destination.write_text("\n".join(lines) + "\n", encoding="utf-8")
     print(f"Saved relabeled ASM to '{destination}'")
     return destination

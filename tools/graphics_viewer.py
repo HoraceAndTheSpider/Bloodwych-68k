@@ -100,20 +100,63 @@ BEHOLDER_COMPANIONS = (
     "monsters.palette",
 )
 
+SUMMON_COMPANIONS = (
+    "Summon.offsets",
+    "Summon_Arms.offsets",
+    "Summon_Body.layout",
+    "Summon_ArmVariants.lookup",
+    "Summon_Arms.heights",
+    "Summon_PrimaryArm.positions",
+    "Summon_SecondaryArm.positions",
+)
+
+BEHEMOTH_COMPANIONS = (
+    "Behemoth.offsets",
+    "Behemoth_Claws.offsets",
+    "Behemoth.layout",
+    "Behemoth_LimbMirroring.flags",
+)
+
+CRAB_COMPANIONS = (
+    "Crab.offsets",
+    "Crab_Front.layout",
+    "Crab_SideNear.layout",
+    "Crab_SideFar.layout",
+    "Crab_FaceAndSideClaw.layout",
+    "Crab_BackClaw.layout",
+    "Crab_Body.layout",
+    "Behemoth_Claws.offsets",
+)
+
+DRAGON_COMPANIONS = (
+    "Dragon.offsets",
+    "Dragon_Body.layout",
+    "Dragon_Claws.layout",
+    "Dragon_Composite_XY.positions",
+    "Dragon_Side_X.positions",
+    "Dragon_MirroredHalf_X.positions",
+)
+
+ENTROPY_COMPANIONS = (
+    "Entropy.offsets",
+    "Entropy.layout",
+    "Entropy_LimbMirroring.flags",
+)
+
 
 MONSTERS = (
     MonsterDefinition(
         0x64,
         "Summon",
         ("Summon.gfx",),
-        ("Summon.offsets", "Summon.heights", "Summon.positions"),
+        SUMMON_COMPANIONS,
         note="$64 and $65 share the Summon graphics renderer.",
     ),
     MonsterDefinition(
         0x65,
         "Summon variant",
         ("Summon.gfx",),
-        ("Summon.offsets", "Summon.heights", "Summon.positions"),
+        SUMMON_COMPANIONS,
         note="Uses the same graphics as $64; game state selects its variant.",
     ),
     MonsterDefinition(
@@ -133,39 +176,39 @@ MONSTERS = (
         0x67,
         "Behemoth",
         ("Behemoth.gfx",),
-        ("Behemoth.offsets", "Behemoth.heights", "Behemoth.positions"),
+        BEHEMOTH_COMPANIONS,
     ),
     MonsterDefinition(
         0x68,
         "Crab",
         ("Crab.gfx", "CrabClaw.gfx"),
-        ("Crab.offsets", "Crab.heights", "Crab.positions"),
+        CRAB_COMPANIONS,
     ),
     MonsterDefinition(
         0x69,
         "Large dragon",
         ("Dragon.gfx",),
-        ("Dragon.offsets", "Dragon.heights", "Dragon.positions"),
+        DRAGON_COMPANIONS,
         note="$69 and $6A share the extracted Dragon graphics block.",
     ),
     MonsterDefinition(
         0x6A,
         "Small dragon",
         ("Dragon.gfx",),
-        ("Dragon.offsets", "Dragon.heights", "Dragon.positions"),
+        DRAGON_COMPANIONS,
         note="$69 and $6A share the extracted Dragon graphics block.",
     ),
     MonsterDefinition(
         0x6B,
         "Entropy",
         ("Entropy.gfx",),
-        ("Entropy.offsets", "Entropy.heights", "Entropy.positions"),
+        ENTROPY_COMPANIONS,
     ),
     MonsterDefinition(
         0x6C,
         "Extended Entropy",
         ("Entropy.gfx",),
-        ("Entropy.offsets", "Entropy.heights", "Entropy.positions"),
+        ENTROPY_COMPANIONS,
         note="Expected in BEXT; not dispatched by the Bloodwych 4.39 monster table.",
         version="BEXT43",
     ),

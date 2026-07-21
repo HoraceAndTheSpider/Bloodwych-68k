@@ -148,7 +148,8 @@ class GraphicsCodecTests(unittest.TestCase):
         self.assertTrue(inspect_monster_files(beholder, MONSTERS_DIR).ready)
         summon_status = inspect_monster_files(summon, MONSTERS_DIR)
         self.assertEqual(summon_status.existing_gfx, ("Summon.gfx",))
-        self.assertIn("Summon.offsets", summon_status.missing_companions)
+        self.assertIn("Summon.offsets", summon_status.existing_companions)
+        self.assertTrue(summon_status.ready)
 
 
 if __name__ == "__main__":

@@ -19,6 +19,7 @@ from .resource_layout import (
     layout_row_indices,
     resource_layouts,
 )
+from .source_comments import apply_source_comments
 from .tool_common import (
     ToolError,
     asm_path as project_asm_path,
@@ -558,6 +559,8 @@ def inspect_source(
     ]
     for replacement in sorted(accepted, key=lambda item: item.start, reverse=True):
         working_lines[replacement.start : replacement.end] = _replacement_lines(replacement)
+
+    working_lines = apply_source_comments(working_lines, frame)
 
     new_name = asm_path.with_name(f"{asm_path.stem}_data{asm_path.suffix}")
     new_name.write_text("\n".join(working_lines) + "\n", encoding="utf-8")
