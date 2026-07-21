@@ -5,7 +5,7 @@ perspective formula. It uses compact lookup tables for nineteen dungeon view
 cells and five positions within each cell. This module gives those tables
 names and exposes them through a small, testable API for the graphics viewer.
 
-The table values currently mirror Bloodwych 4.39. Their source labels and
+The table values currently mirror Bloodwych SPS 439. Their source labels and
 proposed extracted filenames are documented beside each constant so these can
 later be loaded from the version manifest without changing viewer behaviour.
 """

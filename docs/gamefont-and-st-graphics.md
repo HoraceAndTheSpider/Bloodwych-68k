@@ -2,7 +2,7 @@
 
 ## GameFont
 
-The Bloodwych 4.39 `GameFont` file is a headerless 640-byte bitmap table:
+The Bloodwych SPS 439 `GameFont` file is a headerless 640-byte bitmap table:
 
 - 128 glyphs, addressed by `character_code & 0x7f`.
 - Five bytes per glyph (`character_code * 5`).
@@ -198,7 +198,7 @@ python main.py graphics
 The initial category is Monsters and lists type codes `$64` through `$6C`.
 `$64` and `$65` share the Summon graphics, while `$69` and `$6A` share the
 Dragon block. `$6C` is shown as an Extended Levels expectation and is not part
-of the Bloodwych 4.39 dispatch table.
+of the Bloodwych SPS 439 dispatch table.
 
 Beholders are currently the only complete live renderer. Other selections
 show their available `.gfx` files and the provisional `.offsets`, `.heights`,
@@ -233,7 +233,7 @@ the sprite and facing. At the outer edge of distance four only one or two
 mini-spaces survive. The viewer renders these exact choices in blue and shows
 the selected creature's facing with an arrow.
 
-For now `tools/monster_view.py` contains a named Bloodwych 4.39 snapshot of
+For now `tools/monster_view.py` contains a named Bloodwych SPS 439 snapshot of
 these small lookup tables, with the source labels and proposed extracted
 filenames beside each one. They should become version-profile resources once
 the corresponding rows are added to `segments.xlsx`; the GUI-facing resolver

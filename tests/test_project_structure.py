@@ -28,24 +28,52 @@ class ProjectStructureTests(unittest.TestCase):
         self.assertEqual(main.GUI_LABELS["graphics"], "Graphics Viewer")
 
     def test_bare_main_launch_uses_gui_command(self) -> None:
+        commands = []
+
+        def record_command(args, _parser):
+            commands.append(args.command)
+            return 0
+
         with (
             patch("sys.argv", ["main.py"]),
-            patch("main.launch_gui", return_value="profiles") as launch_gui,
-            patch("main.run", return_value=0) as run,
+            patch("main.launch_gui", side_effect=["profiles", None]) as launch_gui,
+            patch("main.run", side_effect=record_command) as run,
         ):
             self.assertEqual(main.main(), 0)
-        launch_gui.assert_called_once_with()
-        self.assertEqual(run.call_args.args[0].command, "profiles")
+        self.assertEqual(launch_gui.call_count, 2)
+        run.assert_called_once()
+        self.assertEqual(commands, ["profiles"])
+
+    def test_front_page_tools_return_to_launcher(self) -> None:
+        commands = []
+
+        def record_command(args, _parser):
+            commands.append(args.command)
+            return 0
+
+        with (
+            patch("sys.argv", ["main.py"]),
+            patch(
+                "main.launch_gui",
+                side_effect=["extract", "relabel", "inspect", "patch", None],
+            ) as launch_gui,
+            patch("main.run", side_effect=record_command),
+        ):
+            self.assertEqual(main.main(), 0)
+        self.assertEqual(launch_gui.call_count, 5)
+        self.assertEqual(commands, ["extract", "relabel", "inspect", "patch"])
 
     def test_graphics_viewer_returns_to_launcher(self) -> None:
         with (
             patch("sys.argv", ["main.py"]),
-            patch("main.launch_gui", side_effect=["graphics", "profiles"]) as launch_gui,
+            patch(
+                "main.launch_gui", side_effect=["graphics", "profiles", None]
+            ) as launch_gui,
             patch("tools.graphics_viewer.launch_graphics_viewer") as viewer,
             patch("main.run", return_value=0),
         ):
             self.assertEqual(main.main(), 0)
-        self.assertEqual(launch_gui.call_count, 2)
+        self.assertEqual(launch_gui.call_count, 3)
         viewer.assert_called_once_with()
 
     def test_configured_binary_names(self) -> None:

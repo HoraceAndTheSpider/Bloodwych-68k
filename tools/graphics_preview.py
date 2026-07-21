@@ -36,6 +36,16 @@ TRANSPARENT_INDEX = 15
 GUIDE_BORDER_INDEX = 12
 TEMPLATE_COLOUR_INDICES = (0, 4, 8, 12)
 
+# Draw_Monster_CompositeBitmap writes into the whole 320-pixel screen and adds
+# Player_Data+$0008 to d5 ($27 for the upper player).  The preview canvas begins
+# at the dungeon window itself, whose upper-screen origin is $32, so composite
+# pieces need this conversion.  Draw_Monster_16PixelStrip already uses a
+# window-relative destination pointer and must not receive the adjustment.
+COMPOSITE_BITMAP_VIEWPORT_Y_ADJUSTMENT = 0x27 - 0x32
+# Draw_Monster_16PixelStrip starts from the per-view destination pointer held
+# at -$0008(a3).  That pointer is one scanline below the 128x76 canvas origin.
+PIXEL_STRIP_VIEWPORT_Y_ADJUSTMENT = 1
+
 
 @dataclass(frozen=True)
 class IndexedSprite:
@@ -315,7 +325,7 @@ class BeholderAssets:
             raise ValueError("animation frame and upper-eye lift must be 0 or 1")
 
         x = self.composite_x[distance]
-        y = self.composite_y[distance]
+        y = self.composite_y[distance] + PIXEL_STRIP_VIEWPORT_Y_ADJUSTMENT
         operations: list[DrawOperation] = []
 
         def add_component(sprite: IndexedSprite, component_x: int, component_y: int) -> None:
@@ -360,6 +370,548 @@ class BeholderAssets:
             eye_x = x + (self.far_side_mirrored_x[far_distance] if mirrored else 0)
             operations.append(DrawOperation(sprite, eye_x, eye_y, mirrored))
 
+        return operations
+
+
+def signed_byte(value: int) -> int:
+    return value - 256 if value >= 128 else value
+
+
+def read_palette_groups(monsters_dir: Path) -> list[list[int]]:
+    data = (monsters_dir / "monsters.palette").read_bytes()
+    if len(data) % 4:
+        raise ValueError("monsters.palette must contain four-byte palettes")
+    return [list(data[index : index + 4]) for index in range(0, len(data), 4)]
+
+
+def graded_palette(
+    monsters_dir: Path, colours_file: str, grade_step: int
+) -> list[int]:
+    lookup = list((monsters_dir / colours_file).read_bytes())
+    if len(lookup) != 8:
+        raise ValueError(f"{colours_file} must contain eight grade entries")
+    if not 0 <= grade_step < len(lookup):
+        raise ValueError("monster grade step must be from 0 to 7")
+    palettes = read_palette_groups(monsters_dir)
+    palette_index = lookup[grade_step]
+    if palette_index >= len(palettes):
+        raise ValueError(f"{colours_file} references missing palette {palette_index}")
+    return palettes[palette_index]
+
+
+def decode_sprite(
+    data: bytes,
+    *,
+    offset: int,
+    width_words: int,
+    height: int,
+    name: str,
+    source_file: str,
+) -> IndexedSprite:
+    byte_size = width_words * height * 8
+    raw = data[offset : offset + byte_size]
+    if len(raw) != byte_size:
+        raise ValueError(
+            f"{name}: expected {byte_size} bytes at {offset:#x}, got {len(raw)}"
+        )
+    pixels = decode_planar(raw, width_words, height)
+    if encode_planar(pixels) != raw:
+        raise RuntimeError(f"{name}: codec round trip failed")
+    return IndexedSprite(name, source_file, offset, pixels)
+
+
+def facing_variant(facing: int) -> tuple[int, bool]:
+    if not 0 <= facing <= 3:
+        raise ValueError("facing must be 0..3")
+    value = (0, 1, 2, 0x81)[facing]
+    return value & 0x7F, bool(value & 0x80)
+
+
+DISTANCE_GROUPS = (0, 0, 1, 1, 2, 3)
+
+
+class SummonAssets:
+    """Summon body and arm strips decoded from the shared packed tables."""
+
+    def __init__(self, monsters_dir: Path):
+        self.monsters_dir = monsters_dir
+        self.data = (monsters_dir / "Summon.gfx").read_bytes()
+        self.body_offsets = read_u16be(monsters_dir / "Summon.offsets")
+        self.arm_offsets = read_u16be(monsters_dir / "Summon_Arms.offsets")
+        self.body_layout = list((monsters_dir / "Summon_Body.layout").read_bytes())
+        self.arm_variants = list(
+            (monsters_dir / "Summon_ArmVariants.lookup").read_bytes()
+        )
+        self.arm_heights = list((monsters_dir / "Summon_Arms.heights").read_bytes())
+        self.primary_positions = (monsters_dir / "Summon_PrimaryArm.positions").read_bytes()
+        self.secondary_positions = (
+            monsters_dir / "Summon_SecondaryArm.positions"
+        ).read_bytes()
+        if (
+            len(self.body_offsets) != 18
+            or len(self.arm_offsets) != 12
+            or len(self.body_layout) != 12
+            or len(self.arm_variants) != 4
+            or len(self.arm_heights) != 12
+            or len(self.primary_positions) != 32
+            or len(self.secondary_positions) != 96
+        ):
+            raise ValueError("Summon companion tables have unexpected lengths")
+
+    def replacement_palette(self, grade_step: int, *, illusion: bool = False) -> list[int]:
+        if illusion:
+            palette = list((self.monsters_dir / "illusion.palette").read_bytes())
+            if len(palette) != 4:
+                raise ValueError("illusion.palette must contain four palette indices")
+            return palette
+        return graded_palette(self.monsters_dir, "summon.colours", grade_step)
+
+    def draw_operations(
+        self, distance: int, facing: int, *, render_flags: int = 0
+    ) -> list[DrawOperation]:
+        if not 0 <= distance <= 5:
+            raise ValueError("Summon distance must be 0..5")
+        variant, body_mirrored = facing_variant(facing)
+        body_index = distance * 3 + variant
+        body_height = self.body_layout[6 + distance] + 1
+        body_y = (
+            -signed_byte(self.body_layout[distance])
+            + PIXEL_STRIP_VIEWPORT_Y_ADJUSTMENT
+        )
+        operations = [
+            DrawOperation(
+                decode_sprite(
+                    self.data,
+                    offset=self.body_offsets[body_index],
+                    width_words=1,
+                    height=body_height,
+                    name=f"Summon_Body_{body_index:02d}",
+                    source_file="Summon.gfx",
+                ),
+                0,
+                body_y,
+                body_mirrored,
+            )
+        ]
+        if distance == 0 and facing % 2 == 0:
+            operations.append(
+                DrawOperation(operations[0].sprite, 3, body_y, not body_mirrored)
+            )
+
+        if distance >= 4:
+            return operations
+        # Draw_Summon advances d4 by three after drawing the body and before
+        # either arm-position table is applied.  The adjustment is retained at
+        # every distance, even when the nearest body is not drawn twice.
+        arm_anchor_x = 3
+        position_entry = (distance * 4 + facing) * 2
+        normal_variant = self.arm_variants[facing] & 0x7F
+        reverse_sides = bool(self.arm_variants[facing] & 0x80)
+        combined_positions = self.primary_positions + self.secondary_positions
+        for limb in range(2):
+            arm_variant = 2 if render_flags & (1 << limb) else normal_variant
+            arm_index = distance * 3 + arm_variant
+            sprite = decode_sprite(
+                self.data,
+                offset=self.arm_offsets[arm_index],
+                width_words=1,
+                height=self.arm_heights[arm_index] + 1,
+                name=f"Summon_Arm_{arm_index:02d}",
+                source_file="Summon.gfx",
+            )
+            mirrored = bool(limb)
+            if reverse_sides:
+                mirrored = not mirrored
+            if limb == 0:
+                positions = combined_positions
+            else:
+                positions = self.secondary_positions
+            positions_offset = position_entry + (64 if arm_variant == 2 else 0)
+            x_raw, y_raw = positions[positions_offset : positions_offset + 2]
+            if x_raw == 0xFF and y_raw == 0xFF:
+                continue
+            operations.append(
+                DrawOperation(
+                    sprite,
+                    arm_anchor_x - signed_byte(x_raw),
+                    body_y - signed_byte(y_raw),
+                    mirrored,
+                )
+            )
+        return operations
+
+
+class LargeMonsterAssets:
+    """Shared data-driven Behemoth and Entropy composite renderer."""
+
+    def __init__(self, monsters_dir: Path, stem: str):
+        if stem not in {"Behemoth", "Entropy"}:
+            raise ValueError("large monster stem must be Behemoth or Entropy")
+        self.monsters_dir = monsters_dir
+        self.stem = stem
+        self.data = (monsters_dir / f"{stem}.gfx").read_bytes()
+        self.layout = list((monsters_dir / f"{stem}.layout").read_bytes())
+        all_offsets = read_u16be(monsters_dir / f"{stem}.offsets")
+        self.body_offsets = all_offsets[:12]
+        self.limb_offsets = (
+            read_u16be(monsters_dir / "Behemoth_Claws.offsets")
+            if stem == "Behemoth"
+            else all_offsets[12:]
+        )
+        flags = (monsters_dir / f"{stem}_LimbMirroring.flags").read_bytes()
+        if len(self.layout) != 62 or len(self.body_offsets) != 12 or len(self.limb_offsets) != 4:
+            raise ValueError(f"{stem} companion tables have unexpected lengths")
+        if len(flags) != 2:
+            raise ValueError(f"{stem}_LimbMirroring.flags must contain one word")
+        self.reverse_limb_mirroring = bool(int.from_bytes(flags, "big"))
+
+    def replacement_palette(self, grade_step: int) -> list[int]:
+        if self.stem == "Entropy":
+            return [0, 4, 8, 12]
+        return graded_palette(self.monsters_dir, "behemoth.colours", grade_step)
+
+    def draw_operations(
+        self, distance: int, facing: int, *, render_flags: int = 0
+    ) -> list[DrawOperation]:
+        if not 0 <= distance <= 5:
+            raise ValueError(f"{self.stem} distance must be 0..5")
+        group = DISTANCE_GROUPS[distance]
+        variant, body_mirrored = facing_variant(facing)
+        body_index = group * 3 + variant
+        body_x = signed_byte(self.layout[0x16 + group])
+        source_y = -signed_byte(self.layout[group])
+        strip_y = source_y + PIXEL_STRIP_VIEWPORT_Y_ADJUSTMENT
+        body_y = source_y + COMPOSITE_BITMAP_VIEWPORT_Y_ADJUSTMENT
+        if facing & 1:
+            side_index = group * 2 + (facing >> 1)
+            body_x += signed_byte(self.layout[0x1A + side_index])
+        body = decode_sprite(
+            self.data,
+            offset=self.body_offsets[body_index],
+            width_words=self.layout[0x0A + body_index] + 1,
+            height=self.layout[0x06 + group] + 1,
+            name=f"{self.stem}_Body_{body_index:02d}",
+            source_file=f"{self.stem}.gfx",
+        )
+        operations = [DrawOperation(body, body_x, body_y, body_mirrored)]
+        if facing % 2 == 0:
+            operations.append(
+                DrawOperation(
+                    body,
+                    body_x + signed_byte(self.layout[0x22 + group]),
+                    body_y,
+                    True,
+                )
+            )
+
+        if group >= 2:
+            return operations
+        limb_count = 1 if facing & 1 else 2
+        for limb in range(limb_count):
+            animated = bool(render_flags & (1 << limb))
+            limb_index = group * 2 + int(animated)
+            mirrored = bool(limb)
+            if animated and self.reverse_limb_mirroring:
+                mirrored = not mirrored
+            if facing < 2:
+                mirrored = not mirrored
+            position_index = limb_index * 4 + (2 if facing & 1 else 0) + int(mirrored)
+            sprite = decode_sprite(
+                self.data,
+                offset=self.limb_offsets[limb_index],
+                width_words=1,
+                height=self.layout[0x2A + limb_index] + 1,
+                name=f"{self.stem}_Limb_{limb_index:02d}",
+                source_file=f"{self.stem}.gfx",
+            )
+            operations.append(
+                DrawOperation(
+                    sprite,
+                    body_x + signed_byte(self.layout[0x2E + position_index]),
+                    strip_y + signed_byte(self.layout[0x26 + limb_index]),
+                    mirrored,
+                )
+            )
+        return operations
+
+
+class DragonAssets:
+    """Large and small Dragon bodies and claws from their packed layout tables."""
+
+    def __init__(self, monsters_dir: Path):
+        self.monsters_dir = monsters_dir
+        self.data = (monsters_dir / "Dragon.gfx").read_bytes()
+        self.offsets = read_u16be(monsters_dir / "Dragon.offsets")
+        self.body = list((monsters_dir / "Dragon_Body.layout").read_bytes())
+        self.claws = list((monsters_dir / "Dragon_Claws.layout").read_bytes())
+        self.composite_xy = list(
+            (monsters_dir / "Dragon_Composite_XY.positions").read_bytes()
+        )
+        self.side_x = list((monsters_dir / "Dragon_Side_X.positions").read_bytes())
+        self.mirrored_half_x = list(
+            (monsters_dir / "Dragon_MirroredHalf_X.positions").read_bytes()
+        )
+        if (
+            len(self.offsets) != 27
+            or len(self.body) != 34
+            or len(self.claws) != 60
+            or len(self.composite_xy) != 16
+            or len(self.side_x) != 10
+            or len(self.mirrored_half_x) != 6
+        ):
+            raise ValueError("Dragon companion tables have unexpected lengths")
+
+    def replacement_palette(self, grade_step: int) -> list[int]:
+        return graded_palette(self.monsters_dir, "dragon.colours", grade_step)
+
+    def draw_operations(
+        self,
+        distance: int,
+        facing: int,
+        *,
+        small: bool,
+        render_flags: int = 0,
+    ) -> list[DrawOperation]:
+        if not 0 <= distance <= 5:
+            raise ValueError("Dragon distance must be 0..5")
+        group = DISTANCE_GROUPS[distance]
+        # Draw_LittleDragon uses its own position table at the current distance,
+        # then increments d1 before selecting the shared Dragon body/claw data.
+        # Thus a closest small Dragon uses the same image size as a large Dragon
+        # in the next stored distance group.
+        graphics_group = group + int(small)
+        base = 0 if small else 8
+        body_x = signed_byte(self.composite_xy[base + group])
+        body_y = (
+            signed_byte(self.composite_xy[base + 4 + group])
+            + COMPOSITE_BITMAP_VIEWPORT_Y_ADJUSTMENT
+        )
+        if facing & 1:
+            body_x += signed_byte(
+                self.side_x[graphics_group * 2 + (facing >> 1)]
+            )
+        variant, body_mirrored = facing_variant(facing)
+        body_index = graphics_group * 3 + variant
+        body = decode_sprite(
+            self.data,
+            offset=self.offsets[body_index],
+            width_words=self.body[body_index] + 1,
+            height=self.body[19 + body_index] + 1,
+            name=f"Dragon_Body_{body_index:02d}",
+            source_file="Dragon.gfx",
+        )
+        operations = [DrawOperation(body, body_x, body_y, body_mirrored)]
+        if facing % 2 == 0:
+            operations.append(
+                DrawOperation(
+                    body,
+                    body_x + signed_byte(self.mirrored_half_x[graphics_group]),
+                    body_y,
+                    True,
+                )
+            )
+
+        if facing == 2 or graphics_group >= 3:
+            return operations
+        limb_count = 1 if facing & 1 else 2
+        for limb in range(limb_count):
+            claw_index = graphics_group * 4 + (2 if facing else 0)
+            if render_flags & (1 << limb):
+                claw_index += 1
+            mirrored = bool(limb)
+            if facing == 1:
+                mirrored = not mirrored
+            sprite = decode_sprite(
+                self.data,
+                offset=self.offsets[15 + claw_index],
+                width_words=self.claws[claw_index] + 1,
+                height=self.claws[12 + claw_index] + 1,
+                name=f"Dragon_Claw_{claw_index:02d}",
+                source_file="Dragon.gfx",
+            )
+            x_index = 36 + claw_index * 2 + int(mirrored)
+            operations.append(
+                DrawOperation(
+                    sprite,
+                    body_x + signed_byte(self.claws[x_index]),
+                    body_y + signed_byte(self.claws[24 + claw_index]),
+                    mirrored,
+                )
+            )
+        return operations
+
+
+class CrabAssets:
+    """Crab body, face, side and claw strips from the split graphics block."""
+
+    def __init__(self, monsters_dir: Path):
+        self.monsters_dir = monsters_dir
+        self.crab_size = (monsters_dir / "Crab.gfx").stat().st_size
+        self.data = (monsters_dir / "Crab.gfx").read_bytes() + (
+            monsters_dir / "CrabClaw.gfx"
+        ).read_bytes()
+        self.offsets = read_u16be(monsters_dir / "Crab.offsets")
+        self.body = list((monsters_dir / "Crab_Body.layout").read_bytes())
+        self.front = list((monsters_dir / "Crab_Front.layout").read_bytes())
+        self.side_near = list((monsters_dir / "Crab_SideNear.layout").read_bytes())
+        self.side_far = list((monsters_dir / "Crab_SideFar.layout").read_bytes())
+        self.face = list((monsters_dir / "Crab_FaceAndSideClaw.layout").read_bytes())
+        self.back = list((monsters_dir / "Crab_BackClaw.layout").read_bytes())
+        self.behemoth_data = (monsters_dir / "Behemoth.gfx").read_bytes()
+        self.behemoth_claws = read_u16be(monsters_dir / "Behemoth_Claws.offsets")
+        if (
+            len(self.offsets) != 17
+            or len(self.body) != 20
+            or len(self.front) != 18
+            or len(self.side_near) != 16
+            or len(self.side_far) != 8
+            or len(self.face) != 6
+            or len(self.back) != 8
+            or len(self.behemoth_claws) != 4
+        ):
+            raise ValueError("Crab companion tables have unexpected lengths")
+
+    def replacement_palette(self, grade_step: int) -> list[int]:
+        return graded_palette(self.monsters_dir, "crab.colours", grade_step)
+
+    def strip(self, offset_index: int, height_minus_one: int, name: str) -> IndexedSprite:
+        return decode_sprite(
+            self.data,
+            offset=self.offsets[offset_index],
+            width_words=1,
+            height=height_minus_one + 1,
+            name=name,
+            source_file="Crab.gfx+CrabClaw.gfx",
+        )
+
+    def draw_operations(
+        self, distance: int, facing: int, *, render_flags: int = 0
+    ) -> list[DrawOperation]:
+        if not 0 <= distance <= 5:
+            raise ValueError("Crab distance must be 0..5")
+        group = DISTANCE_GROUPS[distance]
+        source_y = signed_byte(self.body[8 + group])
+        strip_y = source_y + PIXEL_STRIP_VIEWPORT_Y_ADJUSTMENT
+        body_y = source_y + COMPOSITE_BITMAP_VIEWPORT_Y_ADJUSTMENT
+        body = decode_sprite(
+            self.data,
+            offset=self.offsets[group],
+            width_words=self.body[12 + group] + 1,
+            height=self.body[16 + group] + 1,
+            name=f"Crab_Body_{group:02d}",
+            source_file="Crab.gfx+CrabClaw.gfx",
+        )
+        operations = [
+            DrawOperation(body, signed_byte(self.body[group * 2]), body_y),
+            DrawOperation(body, signed_byte(self.body[group * 2 + 1]), body_y, True),
+        ]
+
+        if group < 2:
+            if facing == 0:
+                operations.append(
+                    DrawOperation(
+                        self.strip(4 + group, self.face[group], f"Crab_Face_{group}"),
+                        0,
+                        strip_y + signed_byte(self.face[2 + group]),
+                    )
+                )
+            elif facing & 1 and group == 0:
+                right_side = facing == 3
+                mirrored = not right_side
+                operations.append(
+                    DrawOperation(
+                        decode_sprite(
+                            self.data,
+                            offset=self.crab_size,
+                            width_words=1,
+                            height=8,
+                            name="Crab_SideClaw",
+                            source_file="CrabClaw.gfx",
+                        ),
+                        signed_byte(self.face[4 + int(right_side)]),
+                        strip_y - 3,
+                        mirrored,
+                    )
+                )
+            elif facing == 2 and render_flags:
+                sprite = self.strip(7 + group, self.back[6 + group], f"Crab_BackClaw_{group}")
+                for limb in range(2):
+                    if render_flags & (1 << limb):
+                        operations.append(
+                            DrawOperation(
+                                sprite,
+                                signed_byte(self.back[group * 2 + limb]),
+                                strip_y + signed_byte(self.back[4 + group]),
+                                not bool(limb),
+                            )
+                        )
+
+        if facing == 2:
+            return operations
+        if facing == 0:
+            if group < 2:
+                for limb in range(2):
+                    animated = bool(render_flags & (1 << limb))
+                    claw_index = group * 2 + int(animated)
+                    x_position_index = group * 2 + limb
+                    y_position_index = group * 2 + int(animated)
+                    sprite = decode_sprite(
+                        self.behemoth_data,
+                        offset=self.behemoth_claws[claw_index],
+                        width_words=1,
+                        height=self.front[16 + group] + 1,
+                        name=f"Crab_BehemothClaw_{claw_index}",
+                        source_file="Behemoth.gfx",
+                    )
+                    operations.append(
+                        DrawOperation(
+                            sprite,
+                            signed_byte(self.front[12 + x_position_index]),
+                            strip_y + signed_byte(self.front[8 + y_position_index]),
+                            bool(limb),
+                        )
+                    )
+            else:
+                local = group - 2
+                sprite = self.strip(9 + local, self.front[6 + local], f"Crab_Front_{local}")
+                y = strip_y + signed_byte(self.front[local])
+                operations.extend(
+                    (
+                        DrawOperation(sprite, signed_byte(self.front[2 + local * 2]), y),
+                        DrawOperation(sprite, signed_byte(self.front[3 + local * 2]), y, True),
+                    )
+                )
+            return operations
+
+        right_side = facing == 3
+        mirrored = not right_side
+        if group < 2:
+            animation_bit = 0 if right_side else 1
+            animated = bool(render_flags & (1 << animation_bit))
+            sprite_index = group * 2 + int(animated)
+            x_index = 4 + group * 4 + int(right_side) * 2 + int(animated)
+            operations.append(
+                DrawOperation(
+                    self.strip(
+                        11 + sprite_index,
+                        self.side_near[sprite_index],
+                        f"Crab_SideNear_{sprite_index}",
+                    ),
+                    signed_byte(self.side_near[x_index]),
+                    strip_y + signed_byte(self.side_near[12 + sprite_index]),
+                    mirrored,
+                )
+            )
+        else:
+            local = group - 2
+            operations.append(
+                DrawOperation(
+                    self.strip(15 + local, self.side_far[local], f"Crab_SideFar_{local}"),
+                    signed_byte(self.side_far[2 + local * 2 + int(right_side)]),
+                    strip_y + signed_byte(self.side_far[6 + local]),
+                    mirrored,
+                )
+            )
         return operations
 
 
@@ -444,6 +996,49 @@ def render_beholder(
         "positioning_mode": positioning_mode,
         "unshifted_opaque_bounds": [left, top, right, bottom],
         "anchor_shift": [shift_x, shift_y],
+        "operations": records,
+    }
+
+
+def render_monster_operations(
+    background: Sequence[Sequence[int]],
+    operations: Sequence[DrawOperation],
+    replacements: Sequence[int],
+    *,
+    monster: str,
+    distance: int,
+    facing: int,
+    grade_step: int,
+    render_flags: int,
+    anchor_x: int,
+    anchor_y: int,
+) -> tuple[list[list[int]], dict[str, object]]:
+    canvas = [list(row) for row in background]
+    records = []
+    for operation in operations:
+        pixels = remap_template_colours(operation.sprite.pixels, replacements)
+        if operation.mirrored:
+            pixels = mirror_pixels(pixels)
+        x = anchor_x + operation.x
+        y = anchor_y + operation.y
+        blit(canvas, pixels, x, y)
+        records.append(
+            {
+                "sprite": operation.sprite.name,
+                "x": x,
+                "y": y,
+                "mirrored": operation.mirrored,
+            }
+        )
+    return canvas, {
+        "monster": monster,
+        "distance": distance,
+        "facing": facing,
+        "grade_step": grade_step,
+        "render_flags": render_flags,
+        "replacement_palette_indices": list(replacements),
+        "requested_game_anchor": [anchor_x, anchor_y],
+        "positioning_mode": "game-anchor",
         "operations": records,
     }
 
@@ -645,7 +1240,7 @@ def main() -> None:
         "--data-root",
         type=Path,
         default=DATA_DIR / "BLOODWYCH439-clean",
-        help="extracted version data root (default: Bloodwych 4.39 clean data)",
+        help="extracted SPS 439 data root (default: Bloodwych SPS 439 clean data)",
     )
     parser.add_argument("--scale", type=int, default=4, help="nearest-neighbour PNG scale")
     parser.add_argument(

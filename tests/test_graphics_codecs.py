@@ -11,7 +11,12 @@ from tools.graphics_preview import (
     render_beholder,
 )
 from tools.st_planar_assets import decode_planar, encode_planar, read_tables
-from tools.graphics_viewer import MONSTERS, inspect_monster_files
+from tools.graphics_viewer import (
+    MONSTERS,
+    inspect_monster_files,
+    load_renderer_assets,
+    render_monster_preview,
+)
 from tools.tool_common import DATA_DIR
 
 
@@ -74,22 +79,7 @@ class GraphicsCodecTests(unittest.TestCase):
             (GFX_DIR / "Shield_Avatars.gfx").read_bytes(),
         )
 
-    def test_new_beholder_split_preserves_old_block_and_partitions(self) -> None:
-        old_block = b"".join(
-            (MONSTERS_DIR / f"Beholder_{index:02d}.gfx").read_bytes()
-            for index in range(1, 11)
-        )
-        new_block = b"".join(
-            (MONSTERS_DIR / filename).read_bytes()
-            for filename in (
-                "Beholder_Body.gfx",
-                "Beholder_UpperEyes.gfx",
-                "Beholder_CentralEye_Near.gfx",
-                "Beholder_CentralEye_Far.gfx",
-            )
-        )
-        self.assertEqual(new_block, old_block)
-
+    def test_new_beholder_split_partitions_and_round_trips(self) -> None:
         assets = BeholderAssets(MONSTERS_DIR)
         self.assertEqual(
             [len(assets.body), len(assets.upper), len(assets.near), len(assets.far)],
@@ -142,14 +132,105 @@ class GraphicsCodecTests(unittest.TestCase):
         self.assertEqual(metadata["requested_game_anchor"], [74, 36])
         self.assertEqual(metadata["anchor_shift"], [74, 36])
 
-    def test_monster_file_status_reports_pending_renderers(self) -> None:
-        beholder = next(monster for monster in MONSTERS if monster.code == 0x66)
-        summon = next(monster for monster in MONSTERS if monster.code == 0x64)
-        self.assertTrue(inspect_monster_files(beholder, MONSTERS_DIR).ready)
-        summon_status = inspect_monster_files(summon, MONSTERS_DIR)
-        self.assertEqual(summon_status.existing_gfx, ("Summon.gfx",))
-        self.assertIn("Summon.offsets", summon_status.existing_companions)
-        self.assertTrue(summon_status.ready)
+    def test_all_configured_monsters_have_renderable_files(self) -> None:
+        for monster in MONSTERS:
+            with self.subTest(monster=monster.display_name):
+                self.assertTrue(inspect_monster_files(monster, MONSTERS_DIR).ready)
+
+    def test_all_configured_monsters_render_each_distance_and_facing(self) -> None:
+        background = load_floor_ceiling_background(GFX_DIR)
+        assets, errors = load_renderer_assets(MONSTERS_DIR)
+        self.assertFalse(errors)
+        for monster in MONSTERS:
+            for distance in range(6):
+                for facing in range(4):
+                    with self.subTest(
+                        monster=monster.display_name,
+                        distance=distance,
+                        facing=facing,
+                    ):
+                        pixels, metadata = render_monster_preview(
+                            background,
+                            monster,
+                            assets,
+                            distance=distance,
+                            facing=facing,
+                            grade_step=0,
+                            animation_frame=1,
+                            anchor_x=56,
+                            anchor_y=36,
+                        )
+                        self.assertEqual((len(pixels[0]), len(pixels)), (128, 76))
+                        self.assertTrue(metadata["operations"])
+
+    def test_summon_arms_include_the_post_body_x_adjustment(self) -> None:
+        assets, errors = load_renderer_assets(MONSTERS_DIR)
+        self.assertFalse(errors)
+        operations = assets["summon"].draw_operations(0, 0, render_flags=0)
+        arms = [operation for operation in operations if "_Arm_" in operation.sprite.name]
+        self.assertEqual([(arm.x, arm.y) for arm in arms], [(-6, -13), (9, -13)])
+
+    def test_behemoth_composite_body_uses_viewport_y_coordinates(self) -> None:
+        assets, errors = load_renderer_assets(MONSTERS_DIR)
+        self.assertFalse(errors)
+        operations = assets["behemoth"].draw_operations(0, 0, render_flags=0)
+        bodies = [operation for operation in operations if "_Body_" in operation.sprite.name]
+        claws = [operation for operation in operations if "_Limb_" in operation.sprite.name]
+        self.assertEqual([body.y for body in bodies], [-23, -23])
+        self.assertEqual([claw.y for claw in claws], [-13, -13])
+
+    def test_crab_front_components_follow_separate_source_indexes(self) -> None:
+        assets, errors = load_renderer_assets(MONSTERS_DIR)
+        self.assertFalse(errors)
+        operations = assets["crab"].draw_operations(0, 0, render_flags=0)
+        face = next(operation for operation in operations if "_Face_" in operation.sprite.name)
+        claws = [
+            operation
+            for operation in operations
+            if "_BehemothClaw_" in operation.sprite.name
+        ]
+        self.assertEqual((face.x, face.y), (0, 7))
+        self.assertEqual([(claw.x, claw.y) for claw in claws], [(-16, 6), (16, 6)])
+
+    def test_crab_back_and_side_claws_follow_source_mirroring(self) -> None:
+        assets, errors = load_renderer_assets(MONSTERS_DIR)
+        self.assertFalse(errors)
+        crab = assets["crab"]
+
+        back = crab.draw_operations(0, 2, render_flags=3)
+        back_claws = [operation for operation in back if "_BackClaw_" in operation.sprite.name]
+        self.assertEqual([claw.mirrored for claw in back_claws], [True, False])
+
+        side_left = crab.draw_operations(0, 1, render_flags=3)
+        side_right = crab.draw_operations(0, 3, render_flags=3)
+        left_claw = next(
+            operation for operation in side_left if "_SideNear_" in operation.sprite.name
+        )
+        right_claw = next(
+            operation for operation in side_right if "_SideNear_" in operation.sprite.name
+        )
+        left_face = next(
+            operation for operation in side_left if operation.sprite.name == "Crab_SideClaw"
+        )
+        right_face = next(
+            operation for operation in side_right if operation.sprite.name == "Crab_SideClaw"
+        )
+        self.assertEqual((left_face.x, left_face.mirrored), (-20, True))
+        self.assertEqual((right_face.x, right_face.mirrored), (20, False))
+        self.assertTrue(left_claw.mirrored)
+        self.assertFalse(right_claw.mirrored)
+
+    def test_small_dragon_uses_next_shared_graphics_distance(self) -> None:
+        assets, errors = load_renderer_assets(MONSTERS_DIR)
+        self.assertFalse(errors)
+        dragon = assets["dragon"]
+        small = dragon.draw_operations(0, 0, small=True, render_flags=0)
+        large_next = dragon.draw_operations(2, 0, small=False, render_flags=0)
+        self.assertEqual(
+            [operation.sprite.name for operation in small],
+            [operation.sprite.name for operation in large_next],
+        )
+        self.assertEqual(small[0].sprite.name, "Dragon_Body_03")
 
 
 if __name__ == "__main__":

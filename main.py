@@ -175,7 +175,10 @@ def main() -> int:
     parser = build_parser()
     args = parser.parse_args()
     try:
-        while args.command is None:
+        if args.command is not None:
+            return run(args, parser)
+
+        while True:
             selected = launch_gui()
             if selected is None:
                 return 0
@@ -188,7 +191,13 @@ def main() -> int:
                     raise ToolError(str(error)) from error
                 continue
             args.command = selected
-        return run(args, parser)
+            try:
+                run(args, parser)
+            finally:
+                # Commands selected from the launcher are one-shot jobs.  Reset
+                # the parsed command so the front menu is shown again when the
+                # tool completes; explicit CLI commands still exit normally.
+                args.command = None
     except ToolError as error:
         parser.exit(2, f"Error: {error}\n")
 

@@ -1,10 +1,9 @@
 #!/usr/bin/env python3
 """Pygame preview UI for extracted Bloodwych graphics.
 
-The first slice supports the Bloodwych 4.39 monster range ($64 upwards) and
-renders Beholders from their extracted component metadata.  Other monster
-types are visible in the selector and report the metadata still required
-before their assembly renderers can be reproduced.
+The first slice supports the Bloodwych SPS 439 monster range ($64 upwards) and
+reproduces each monster from its extracted planar graphics, component layout,
+position, animation, facing, and grade metadata.
 """
 
 from __future__ import annotations
@@ -16,10 +15,15 @@ from typing import Sequence
 
 from tools.graphics_preview import (
     BeholderAssets,
+    CrabAssets,
+    DragonAssets,
+    LargeMonsterAssets,
+    SummonAssets,
     VIEW_HEIGHT,
     VIEW_WIDTH,
     load_floor_ceiling_background,
     render_beholder,
+    render_monster_operations,
 )
 from tools.monster_view import (
     CENTRED_SUBPOSITIONS,
@@ -108,6 +112,9 @@ SUMMON_COMPANIONS = (
     "Summon_Arms.heights",
     "Summon_PrimaryArm.positions",
     "Summon_SecondaryArm.positions",
+    "summon.colours",
+    "illusion.palette",
+    "monsters.palette",
 )
 
 BEHEMOTH_COMPANIONS = (
@@ -115,6 +122,8 @@ BEHEMOTH_COMPANIONS = (
     "Behemoth_Claws.offsets",
     "Behemoth.layout",
     "Behemoth_LimbMirroring.flags",
+    "behemoth.colours",
+    "monsters.palette",
 )
 
 CRAB_COMPANIONS = (
@@ -126,6 +135,8 @@ CRAB_COMPANIONS = (
     "Crab_BackClaw.layout",
     "Crab_Body.layout",
     "Behemoth_Claws.offsets",
+    "crab.colours",
+    "monsters.palette",
 )
 
 DRAGON_COMPANIONS = (
@@ -135,6 +146,8 @@ DRAGON_COMPANIONS = (
     "Dragon_Composite_XY.positions",
     "Dragon_Side_X.positions",
     "Dragon_MirroredHalf_X.positions",
+    "dragon.colours",
+    "monsters.palette",
 )
 
 ENTROPY_COMPANIONS = (
@@ -150,6 +163,7 @@ MONSTERS = (
         "Summon",
         ("Summon.gfx",),
         SUMMON_COMPANIONS,
+        renderer="summon",
         note="$64 and $65 share the Summon graphics renderer.",
     ),
     MonsterDefinition(
@@ -157,6 +171,7 @@ MONSTERS = (
         "Summon variant",
         ("Summon.gfx",),
         SUMMON_COMPANIONS,
+        renderer="summon",
         note="Uses the same graphics as $64; game state selects its variant.",
     ),
     MonsterDefinition(
@@ -177,18 +192,21 @@ MONSTERS = (
         "Behemoth",
         ("Behemoth.gfx",),
         BEHEMOTH_COMPANIONS,
+        renderer="behemoth",
     ),
     MonsterDefinition(
         0x68,
         "Crab",
-        ("Crab.gfx", "CrabClaw.gfx"),
+        ("Crab.gfx", "CrabClaw.gfx", "Behemoth.gfx"),
         CRAB_COMPANIONS,
+        renderer="crab",
     ),
     MonsterDefinition(
         0x69,
         "Large dragon",
         ("Dragon.gfx",),
         DRAGON_COMPANIONS,
+        renderer="dragon_large",
         note="$69 and $6A share the extracted Dragon graphics block.",
     ),
     MonsterDefinition(
@@ -196,6 +214,7 @@ MONSTERS = (
         "Small dragon",
         ("Dragon.gfx",),
         DRAGON_COMPANIONS,
+        renderer="dragon_small",
         note="$69 and $6A share the extracted Dragon graphics block.",
     ),
     MonsterDefinition(
@@ -203,13 +222,15 @@ MONSTERS = (
         "Entropy",
         ("Entropy.gfx",),
         ENTROPY_COMPANIONS,
+        renderer="entropy",
     ),
     MonsterDefinition(
         0x6C,
         "Extended Entropy",
         ("Entropy.gfx",),
         ENTROPY_COMPANIONS,
-        note="Expected in BEXT; not dispatched by the Bloodwych 4.39 monster table.",
+        renderer="entropy",
+        note="Expected in BEXT; not dispatched by the Bloodwych SPS 439 monster table.",
         version="BEXT43",
     ),
 )
@@ -259,6 +280,91 @@ def wrap_text(font: object, text: str, width: int) -> list[str]:
     return lines
 
 
+def load_renderer_assets(monsters_dir: Path) -> tuple[dict[str, object], dict[str, str]]:
+    """Load each shared renderer independently so one bad table does not hide the rest."""
+    factories = {
+        "beholder": lambda: BeholderAssets(monsters_dir),
+        "summon": lambda: SummonAssets(monsters_dir),
+        "behemoth": lambda: LargeMonsterAssets(monsters_dir, "Behemoth"),
+        "entropy": lambda: LargeMonsterAssets(monsters_dir, "Entropy"),
+        "crab": lambda: CrabAssets(monsters_dir),
+        "dragon": lambda: DragonAssets(monsters_dir),
+    }
+    assets: dict[str, object] = {}
+    errors: dict[str, str] = {}
+    for name, factory in factories.items():
+        try:
+            assets[name] = factory()
+        except (OSError, ValueError, RuntimeError) as error:
+            errors[name] = str(error)
+    return assets, errors
+
+
+def render_monster_preview(
+    background: Sequence[Sequence[int]],
+    definition: MonsterDefinition,
+    assets: dict[str, object],
+    *,
+    distance: int,
+    facing: int,
+    grade_step: int,
+    animation_frame: int,
+    anchor_x: int,
+    anchor_y: int,
+) -> tuple[list[list[int]], dict[str, object]]:
+    """Dispatch one selected monster through its source-derived renderer."""
+    render_flags = 3 if animation_frame else 0
+    renderer = definition.renderer
+    if renderer == "beholder":
+        return render_beholder(
+            background,
+            assets["beholder"],
+            distance,
+            facing,
+            grade_step=grade_step,
+            animation_frame=animation_frame,
+            anchor_x=anchor_x,
+            anchor_y=anchor_y,
+        )
+    if renderer == "summon":
+        summon = assets["summon"]
+        operations = summon.draw_operations(distance, facing, render_flags=render_flags)
+        palette = summon.replacement_palette(
+            grade_step, illusion=definition.code == 0x65
+        )
+    elif renderer in {"behemoth", "entropy"}:
+        large = assets[renderer]
+        operations = large.draw_operations(distance, facing, render_flags=render_flags)
+        palette = large.replacement_palette(grade_step)
+    elif renderer == "crab":
+        crab = assets["crab"]
+        operations = crab.draw_operations(distance, facing, render_flags=render_flags)
+        palette = crab.replacement_palette(grade_step)
+    elif renderer in {"dragon_large", "dragon_small"}:
+        dragon = assets["dragon"]
+        operations = dragon.draw_operations(
+            distance,
+            facing,
+            small=renderer == "dragon_small",
+            render_flags=render_flags,
+        )
+        palette = dragon.replacement_palette(grade_step)
+    else:
+        raise ValueError(f"No renderer is configured for {definition.display_name}")
+    return render_monster_operations(
+        background,
+        operations,
+        palette,
+        monster=definition.name,
+        distance=distance,
+        facing=facing,
+        grade_step=grade_step,
+        render_flags=render_flags,
+        anchor_x=anchor_x,
+        anchor_y=anchor_y,
+    )
+
+
 def launch_graphics_viewer(
     data_root: Path | None = None, *, screenshot_path: Path | None = None
 ) -> None:
@@ -277,12 +383,7 @@ def launch_graphics_viewer(
         raise GraphicsViewerError(f"Graphics viewer data is missing below {data_root}")
 
     background = load_floor_ceiling_background(gfx_dir)
-    beholder_assets: BeholderAssets | None = None
-    beholder_error: str | None = None
-    try:
-        beholder_assets = BeholderAssets(monsters_dir)
-    except (OSError, ValueError, RuntimeError) as error:
-        beholder_error = str(error)
+    renderer_assets, renderer_errors = load_renderer_assets(monsters_dir)
 
     pygame.init()
     pygame.key.set_repeat(250, 45)
@@ -381,17 +482,28 @@ def launch_graphics_viewer(
             status = inspect_monster_files(definition, monsters_dir)
             preview_pixels = [row[:] for row in background]
             preview_metadata: dict[str, object] | None = None
-            if definition.renderer == "beholder" and status.ready and beholder_assets:
-                preview_pixels, preview_metadata = render_beholder(
-                    background,
-                    beholder_assets,
-                    screen_position.gfx_slot,
-                    facing,
-                    grade_step=grade_step,
-                    animation_frame=animation_frame,
-                    anchor_x=screen_position.screen_x + nudge_x,
-                    anchor_y=screen_position.screen_y + nudge_y,
-                )
+            preview_error: str | None = None
+            renderer_key = (
+                "dragon" if definition.renderer in {"dragon_large", "dragon_small"}
+                else definition.renderer
+            )
+            if status.ready and renderer_key in renderer_assets:
+                try:
+                    preview_pixels, preview_metadata = render_monster_preview(
+                        background,
+                        definition,
+                        renderer_assets,
+                        distance=screen_position.gfx_slot,
+                        facing=facing,
+                        grade_step=grade_step,
+                        animation_frame=animation_frame,
+                        anchor_x=screen_position.screen_x + nudge_x,
+                        anchor_y=screen_position.screen_y + nudge_y,
+                    )
+                except (OSError, ValueError, RuntimeError, IndexError) as error:
+                    preview_error = str(error)
+            elif renderer_key in renderer_errors:
+                preview_error = renderer_errors[renderer_key]
 
             mouse = pygame.mouse.get_pos()
             screen.fill((24, 26, 31))
@@ -432,13 +544,13 @@ def launch_graphics_viewer(
             scaled_surface = pygame.transform.scale(native_surface, preview_rect.size)
             screen.blit(scaled_surface, preview_rect)
 
-            if definition.renderer != "beholder" or not status.ready or not beholder_assets:
+            if preview_metadata is None:
                 overlay = pygame.Surface(preview_rect.size, pygame.SRCALPHA)
                 overlay.fill((0, 0, 0, 125))
                 screen.blit(overlay, preview_rect)
-                message = "Renderer pending: required companion data is listed on the right."
-                if definition.renderer == "beholder" and beholder_error:
-                    message = f"Beholder renderer error: {beholder_error}"
+                message = "Renderer unavailable: required companion data is listed on the right."
+                if preview_error:
+                    message = f"Renderer error: {preview_error}"
                 y = preview_rect.centery - 22
                 for line in wrap_text(font, message, preview_rect.width - 60):
                     text_surface = font.render(line, True, (255, 220, 145))
