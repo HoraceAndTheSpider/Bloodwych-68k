@@ -6,12 +6,24 @@ from __future__ import annotations
 import argparse
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Sequence
+from typing import Mapping, Sequence
 
 from tools.data_overlay import (
     DataOverlayPath,
     data_overlay_root,
     related_data_roots,
+)
+from tools.dungeon_view import (
+    DIRECTION_NAMES,
+    DUNGEON_FEATURES,
+    DUNGEON_SPACE_TYPES,
+    WOOD_STATE_NAMES,
+    DungeonAssets,
+    DungeonPlacement,
+    dungeon_features_for_map_type,
+    dungeon_state_name,
+    dungeon_variant_name,
+    render_dungeon_scene,
 )
 from tools.graphics_preview import (
     AirbourneSpellAssets,
@@ -49,9 +61,18 @@ class GraphicsViewerError(RuntimeError):
 WINDOW_SIZE = (1220, 760)
 PREVIEW_SCALE = 5
 FACING_NAMES = ("Front", "Side", "Back", "Mirrored side")
-CATEGORY_NAMES = ("Character/Monster Graphics", "Avatars", "Icons")
+CATEGORY_NAMES = (
+    "Character/Monster Graphics",
+    "Dungeon Graphics",
+    "Avatars",
+    "Icons",
+)
 # The unmirrored Beholder side eye points screen-left; facing 3 mirrors it.
 FACING_ARROW_DIRECTIONS = ((0, 1), (-1, 0), (0, -1), (1, 0))
+# A dungeon overlay attached to a south-facing wall looks back north into the
+# cell.  The arrow therefore shows the direction in which the visible face
+# points, which is opposite the labelled N/E/S/W map side.
+DUNGEON_DIRECTION_ARROW_DIRECTIONS = ((0, 1), (-1, 0), (0, -1), (1, 0))
 
 CHARACTER_FILES = (
     "data/characters.heads",
@@ -117,6 +138,17 @@ class AirbourneSpellDefinition:
     note: str = ""
     version: str = "BLOODWYCH439"
     false_data: bool = False
+
+
+@dataclass(frozen=True)
+class DungeonSelection:
+    view_cell: int
+    dungeon_x: int
+    forward_distance: int
+    screen_x: int = 0
+    screen_y: int = 0
+    gfx_slot: int = 0
+    subposition_name: str = "whole cell"
 
 
 BEHOLDER_COMPANIONS = (
@@ -528,6 +560,10 @@ def launch_graphics_viewer(
     *,
     screenshot_path: Path | None = None,
     prefer_modified: bool = False,
+    initial_category: str = "character",
+    initial_dungeon_feature: str = "stone",
+    initial_dungeon_scene: Mapping[int, DungeonPlacement] | None = None,
+    initial_dungeon_view_cell: int = 17,
 ) -> None:
     """Open the first SuperApp graphics viewer and return when it closes."""
     try:
@@ -556,6 +592,7 @@ def launch_graphics_viewer(
         str | None,
         AirbourneSpellAssets | None,
         str | None,
+        DungeonAssets,
     ]:
         root = data_overlay_root(clean_root, modified_root, enabled=enabled)
         current_gfx_dir = root / "gfx"
@@ -568,6 +605,7 @@ def launch_graphics_viewer(
         current_spells, current_spell_error = load_airbourne_spell_assets(
             current_gfx_dir
         )
+        current_dungeon = DungeonAssets(current_gfx_dir)
         return (
             root,
             current_gfx_dir,
@@ -579,6 +617,7 @@ def launch_graphics_viewer(
             current_character_error,
             current_spells,
             current_spell_error,
+            current_dungeon,
         )
 
     (
@@ -592,6 +631,7 @@ def launch_graphics_viewer(
         character_error,
         spell_assets,
         spell_error,
+        dungeon_assets,
     ) = load_dataset(use_modified)
 
     pygame.init()
@@ -604,24 +644,71 @@ def launch_graphics_viewer(
         small_font = pygame.font.SysFont(None, 18)
         clock = pygame.time.Clock()
 
-        selected_category = 0
+        selected_category = 1 if initial_category == "dungeon" else 0
         selected_index = 2
         selected_character = 0
         selected_spell_index = 0
-        selected_graphic_type = "character"
-        selected_view_cell = 17
+        selected_dungeon_index = next(
+            (
+                index
+                for index, feature in enumerate(DUNGEON_FEATURES)
+                if feature.key == initial_dungeon_feature
+            ),
+            1,
+        )
+        selected_dungeon_map_type = int(
+            DUNGEON_FEATURES[selected_dungeon_index].map_type or 0
+        )
+        selected_graphic_type = "dungeon" if initial_category == "dungeon" else "character"
+        selected_view_cell = (
+            initial_dungeon_view_cell
+            if 0 <= initial_dungeon_view_cell < 18
+            else 17
+        )
         selected_subposition = 0
         facing = 0
         grade_step = 0
         animation_frame = 0
+        dungeon_variant = 0
+        dungeon_active = True
+        dungeon_ceiling_hole = False
+        wood_states = [0, 0, 3, 0]
         nudge_x = 0
         nudge_y = 0
+        dungeon_scene: dict[int, DungeonPlacement] = {}
+        if DUNGEON_FEATURES[selected_dungeon_index].key != "space":
+            dungeon_scene[selected_view_cell] = DungeonPlacement(
+                DUNGEON_FEATURES[selected_dungeon_index].key,
+                facing,
+                dungeon_variant,
+                dungeon_active,
+                tuple(wood_states),
+            )
+        if initial_dungeon_scene is not None:
+            dungeon_scene = dict(initial_dungeon_scene)
+            initial_placement = dungeon_scene.get(selected_view_cell)
+            if initial_placement is not None:
+                placed_feature = next(
+                    feature
+                    for feature in DUNGEON_FEATURES
+                    if feature.key == initial_placement.feature_key
+                )
+                selected_dungeon_index = DUNGEON_FEATURES.index(placed_feature)
+                selected_dungeon_map_type = int(placed_feature.map_type or 0)
+                facing = initial_placement.direction
+                dungeon_variant = initial_placement.variant
+                dungeon_active = initial_placement.active
+                dungeon_ceiling_hole = initial_placement.ceiling_hole
+                wood_states = list(initial_placement.wood_states)
+                nudge_x = initial_placement.nudge_x
+                nudge_y = initial_placement.nudge_y
         overlay_error: str | None = None
 
         category_rects = (
             pygame.Rect(20, 52, 250, 34),
-            pygame.Rect(280, 52, 142, 34),
-            pygame.Rect(432, 52, 142, 34),
+            pygame.Rect(280, 52, 190, 34),
+            pygame.Rect(480, 52, 142, 34),
+            pygame.Rect(632, 52, 142, 34),
         )
         overlay_rect = pygame.Rect(935, 52, 255, 34)
         character_rects = [
@@ -658,12 +745,17 @@ def launch_graphics_viewer(
             )
             for index in range(len(AIRBOURNE_SPELLS))
         ]
+        dungeon_type_rects = [
+            pygame.Rect(20, 128 + index * 39, 210, 34)
+            for index in range(len(DUNGEON_SPACE_TYPES))
+        ]
         control_specs = (
-            ("facing_down", "Facing -", (270, 540, 108, 34)),
-            ("facing_up", "Facing +", (384, 540, 108, 34)),
-            ("grade_down", "Grade -", (510, 540, 96, 34)),
-            ("grade_up", "Grade +", (612, 540, 96, 34)),
-            ("frame", "Animate", (726, 540, 100, 34)),
+            ("facing_down", "Facing -", (270, 540, 90, 34)),
+            ("facing_up", "Facing +", (366, 540, 90, 34)),
+            ("grade_down", "Grade -", (468, 540, 88, 34)),
+            ("grade_up", "Grade +", (562, 540, 88, 34)),
+            ("state", "State", (662, 540, 120, 34)),
+            ("frame", "Animate", (790, 540, 120, 34)),
             ("left", "X -", (270, 628, 70, 34)),
             ("right", "X +", (346, 628, 70, 34)),
             ("up", "Y -", (422, 628, 70, 34)),
@@ -675,9 +767,89 @@ def launch_graphics_viewer(
             name: (pygame.Rect(rectangle), label)
             for name, label, rectangle in control_specs
         }
+        wood_control_rects = tuple(
+            (
+                direction_index,
+                pygame.Rect(24, 514 + direction_index * 42, 98, 34),
+                pygame.Rect(128, 514 + direction_index * 42, 104, 34),
+            )
+            for direction_index in range(4)
+        )
+
+        def current_dungeon_placement() -> DungeonPlacement:
+            return DungeonPlacement(
+                DUNGEON_FEATURES[selected_dungeon_index].key,
+                facing,
+                dungeon_variant,
+                dungeon_active,
+                tuple(wood_states),
+                nudge_x,
+                nudge_y,
+                dungeon_ceiling_hole,
+            )
 
         def adjust(action: str) -> bool:
             nonlocal facing, grade_step, animation_frame, nudge_x, nudge_y
+            nonlocal dungeon_variant, dungeon_active, dungeon_ceiling_hole
+            nonlocal wood_states
+            if selected_graphic_type == "dungeon":
+                feature = DUNGEON_FEATURES[selected_dungeon_index]
+                if action == "facing_down":
+                    facing = (facing - 1) % 4
+                elif action == "facing_up":
+                    facing = (facing + 1) % 4
+                elif action == "grade_down":
+                    dungeon_variant = (dungeon_variant - 1) % feature.variants
+                elif action == "grade_up":
+                    dungeon_variant = (dungeon_variant + 1) % feature.variants
+                elif action == "state":
+                    if feature.key in {"pit", "pad"}:
+                        dungeon_ceiling_hole = not dungeon_ceiling_hole
+                    elif feature.key in {
+                        "shelf",
+                        "switch",
+                        "socket",
+                        "door_metal",
+                        "door_portcullis",
+                    }:
+                        dungeon_active = not dungeon_active
+                    else:
+                        return True
+                elif action == "frame":
+                    if selected_view_cell in dungeon_scene:
+                        del dungeon_scene[selected_view_cell]
+                    elif feature.key != "space":
+                        dungeon_scene[selected_view_cell] = current_dungeon_placement()
+                    return True
+                elif action.startswith("wood_wall_"):
+                    direction_index = int(action.rsplit("_", 1)[-1])
+                    wood_states[direction_index] = (
+                        0 if wood_states[direction_index] == 1 else 1
+                    )
+                elif action.startswith("wood_door_"):
+                    direction_index = int(action.rsplit("_", 1)[-1])
+                    wood_states[direction_index] = {
+                        2: 3,
+                        3: 2,
+                    }.get(wood_states[direction_index], 3)
+                elif action == "left":
+                    nudge_x -= 1
+                elif action == "right":
+                    nudge_x += 1
+                elif action == "up":
+                    nudge_y -= 1
+                elif action == "down":
+                    nudge_y += 1
+                elif action == "reset":
+                    if feature.key == "wood":
+                        wood_states = [0, 0, 3, 0]
+                    else:
+                        nudge_x = nudge_y = 0
+                elif action == "back":
+                    return False
+                if selected_view_cell in dungeon_scene:
+                    dungeon_scene[selected_view_cell] = current_dungeon_placement()
+                return True
             if selected_graphic_type != "monster":
                 if action in {"grade_down", "grade_up"}:
                     return True
@@ -719,6 +891,7 @@ def launch_graphics_viewer(
             nonlocal renderer_assets, renderer_errors
             nonlocal character_assets, character_error
             nonlocal spell_assets, spell_error
+            nonlocal dungeon_assets
             nonlocal use_modified, grade_step, nudge_x, nudge_y, overlay_error
             (
                 dataset_root,
@@ -731,6 +904,7 @@ def launch_graphics_viewer(
                 character_error,
                 spell_assets,
                 spell_error,
+                dungeon_assets,
             ) = load_dataset(enabled)
             use_modified = enabled
             grade_step = min(
@@ -777,23 +951,42 @@ def launch_graphics_viewer(
             characters_active = selected_graphic_type == "character"
             monsters_active = selected_graphic_type == "monster"
             spells_active = selected_graphic_type == "spell"
+            dungeons_active = selected_graphic_type == "dungeon"
             definition = MONSTERS[selected_index]
             spell_definition = AIRBOURNE_SPELLS[selected_spell_index]
+            dungeon_definition = DUNGEON_FEATURES[selected_dungeon_index]
+            dungeon_options = dungeon_features_for_map_type(
+                selected_dungeon_map_type
+            )
+            dungeon_option_rects = [
+                pygame.Rect(20, 470 + index * 38, 210, 34)
+                for index in range(len(dungeon_options))
+            ]
             if monsters_active:
                 grade_step = min(
                     grade_step,
                     monster_grade_count(definition, monsters_dir) - 1,
                 )
-            if characters_active:
+            if dungeons_active:
+                subpositions = CENTRED_SUBPOSITIONS
+            elif characters_active:
                 subpositions = FORMATION_SUBPOSITIONS
             elif monsters_active:
                 subpositions = definition.subpositions
             else:
                 subpositions = CENTRED_SUBPOSITIONS
-            choose_valid_subposition(subpositions)
-            screen_position = resolve_monster_screen_position(
-                selected_view_cell, selected_subposition
-            )
+            if dungeons_active:
+                dungeon_x, dungeon_y = VIEW_CELL_COORDINATES[selected_view_cell]
+                screen_position = DungeonSelection(
+                    selected_view_cell,
+                    dungeon_x,
+                    -dungeon_y,
+                )
+            else:
+                choose_valid_subposition(subpositions)
+                screen_position = resolve_monster_screen_position(
+                    selected_view_cell, selected_subposition
+                )
             if screen_position is None:
                 raise GraphicsViewerError("No valid monster view position is available")
             preview_pixels = [row[:] for row in background]
@@ -801,7 +994,16 @@ def launch_graphics_viewer(
             preview_error: str | None = None
             status = inspect_monster_files(definition, monsters_dir)
             renderer_key = None
-            if characters_active and character_assets is not None:
+            if dungeons_active:
+                try:
+                    preview_pixels, preview_metadata = render_dungeon_scene(
+                        background,
+                        dungeon_assets,
+                        dungeon_scene,
+                    )
+                except (OSError, ValueError, RuntimeError, IndexError) as error:
+                    preview_error = str(error)
+            elif characters_active and character_assets is not None:
                 try:
                     preview_pixels, preview_metadata = render_character_preview(
                         background,
@@ -871,7 +1073,7 @@ def launch_graphics_viewer(
                 active = index == selected_category
                 colour = (54, 105, 170) if active else (52, 55, 63)
                 pygame.draw.rect(screen, colour, rectangle, border_radius=4)
-                suffix = " (planned)" if index >= 1 else ""
+                suffix = " (planned)" if index >= 2 else ""
                 text_colour = (245, 245, 245) if active else (150, 150, 155)
                 label = small_font.render(name + suffix, True, text_colour)
                 screen.blit(label, label.get_rect(center=rectangle.center))
@@ -981,6 +1183,72 @@ def launch_graphics_viewer(
                 )
                 screen.blit(label, label.get_rect(center=rectangle.center))
 
+            if dungeons_active:
+                pygame.draw.rect(screen, (24, 26, 31), pygame.Rect(16, 100, 224, 610))
+                screen.blit(
+                    small_font.render("Space types", True, (178, 181, 189)),
+                    (20, 106),
+                )
+                for space_type, rectangle in zip(
+                    DUNGEON_SPACE_TYPES, dungeon_type_rects
+                ):
+                    selected = space_type.map_type == selected_dungeon_map_type
+                    hovered = rectangle.collidepoint(mouse)
+                    colour = (
+                        (61, 110, 174)
+                        if selected
+                        else ((58, 61, 70) if hovered else (43, 46, 54))
+                    )
+                    pygame.draw.rect(screen, colour, rectangle, border_radius=3)
+                    label = small_font.render(
+                        f"{space_type.name} ({space_type.map_type})",
+                        True,
+                        (244, 244, 248),
+                    )
+                    screen.blit(label, label.get_rect(center=rectangle.center))
+                screen.blit(
+                    small_font.render("Options", True, (178, 181, 189)),
+                    (20, 448),
+                )
+                for feature_item, rectangle in zip(
+                    dungeon_options, dungeon_option_rects
+                ):
+                    selected = feature_item is dungeon_definition
+                    hovered = rectangle.collidepoint(mouse)
+                    colour = (
+                        (61, 110, 174)
+                        if selected
+                        else ((58, 61, 70) if hovered else (43, 46, 54))
+                    )
+                    pygame.draw.rect(screen, colour, rectangle, border_radius=3)
+                    label = small_font.render(
+                        feature_item.name, True, (244, 244, 248)
+                    )
+                    screen.blit(label, label.get_rect(center=rectangle.center))
+                if dungeon_definition.key == "wood":
+                    for direction_index, wall_rect, door_rect in wood_control_rects:
+                        state = wood_states[direction_index]
+                        direction = DIRECTION_NAMES[direction_index][0]
+                        wall_label = f"{direction} wall {'ON' if state == 1 else 'OFF'}"
+                        door_state = {
+                            2: "OPEN",
+                            3: "CLOSED",
+                        }.get(state, "ADD")
+                        door_label = f"{direction} door {door_state}"
+                        for rectangle, text, selected in (
+                            (wall_rect, wall_label, state == 1),
+                            (door_rect, door_label, state in {2, 3}),
+                        ):
+                            hovered = rectangle.collidepoint(mouse)
+                            colour = (
+                                (61, 110, 174)
+                                if selected
+                                else ((58, 61, 70) if hovered else (43, 46, 54))
+                            )
+                            pygame.draw.rect(screen, colour, rectangle, border_radius=3)
+                            label = small_font.render(text, True, (244, 244, 248))
+                            screen.blit(label, label.get_rect(center=rectangle.center))
+
             preview_rect = pygame.Rect(
                 270,
                 112,
@@ -1013,7 +1281,14 @@ def launch_graphics_viewer(
                 if screen_position.dungeon_x == 0
                 else f"lane {screen_position.dungeon_x:+d}"
             )
-            if characters_active and preview_metadata:
+            if dungeons_active:
+                status_text = (
+                    f"{dungeon_definition.name}  |  "
+                    f"{screen_position.forward_distance} ahead, {lane_name}  |  "
+                    f"view cell {selected_view_cell}  |  "
+                    f"{DIRECTION_NAMES[facing]}"
+                )
+            elif characters_active and preview_metadata:
                 status_text = (
                     f"${selected_character:02X} character  |  "
                     f"body ${preview_metadata['body_design']:02X}  |  "
@@ -1039,6 +1314,39 @@ def launch_graphics_viewer(
             screen.blit(font.render(status_text, True, (225, 225, 230)), (270, 503))
 
             for action, (rectangle, label_text) in controls.items():
+                if dungeons_active:
+                    state_labels = {
+                        "shelf": "Conceal shelf" if dungeon_active else "Show shelf",
+                        "switch": "Set dim" if dungeon_active else "Set lit",
+                        "socket": "Remove gem" if dungeon_active else "Insert gem",
+                        "door_metal": "Open door" if dungeon_active else "Close door",
+                        "door_portcullis": "Open door" if dungeon_active else "Close door",
+                        "pit": (
+                            "Remove ceiling" if dungeon_ceiling_hole else "Add ceiling"
+                        ),
+                        "pad": (
+                            "Remove ceiling" if dungeon_ceiling_hole else "Add ceiling"
+                        ),
+                    }
+                    dungeon_labels = {
+                        "facing_down": "Rotate -",
+                        "facing_up": "Rotate +",
+                        "grade_down": "Variant -",
+                        "grade_up": "Variant +",
+                        "state": state_labels.get(dungeon_definition.key, "No state"),
+                        "frame": (
+                            "Clear cell"
+                            if selected_view_cell in dungeon_scene
+                            else "Place cell"
+                        ),
+                        "left": "X -",
+                        "right": "X +",
+                        "up": "Y -",
+                        "down": "Y +",
+                        "reset": "Reset sides" if dungeon_definition.key == "wood" else "Reset offset",
+                        "back": "Back",
+                    }
+                    label_text = dungeon_labels[action]
                 hovered = rectangle.collidepoint(mouse)
                 disabled = (
                     characters_active and action in {"grade_down", "grade_up"}
@@ -1052,6 +1360,23 @@ def launch_graphics_viewer(
                         "grade_up",
                         "frame",
                     }
+                ) or (
+                    dungeons_active
+                    and action in {"grade_down", "grade_up"}
+                    and dungeon_definition.variants <= 1
+                ) or (
+                    dungeons_active
+                    and action == "state"
+                    and dungeon_definition.key
+                    not in {
+                        "shelf",
+                        "switch",
+                        "socket",
+                        "door_metal",
+                        "door_portcullis",
+                        "pit",
+                        "pad",
+                    }
                 )
                 colour = (
                     (45, 47, 54)
@@ -1063,7 +1388,22 @@ def launch_graphics_viewer(
                 label = font.render(label_text, True, text_colour)
                 screen.blit(label, label.get_rect(center=rectangle.center))
 
-            if characters_active:
+            if dungeons_active:
+                if dungeon_definition.key == "wood":
+                    states = " | ".join(
+                        f"{direction[0]}: {WOOD_STATE_NAMES[state]}"
+                        for direction, state in zip(DIRECTION_NAMES, wood_states)
+                    )
+                    help_text = (
+                        "Wall toggles that side on/off; Door adds a closed door, "
+                        "then switches it open/closed. " + states
+                    )
+                else:
+                    help_text = (
+                        "Select a cell, choose an option, then Place/Clear cell. "
+                        "Occupied cells retain their own direction and variant."
+                    )
+            elif characters_active:
                 help_text = (
                     "All six source distances and four facings. Animate toggles "
                     "the independent arm variants."
@@ -1084,12 +1424,16 @@ def launch_graphics_viewer(
             screen.blit(
                 font.render(
                     (
-                        "Character source view position"
-                        if characters_active
+                        "Dungeon source view position"
+                        if dungeons_active
                         else (
-                            "Spell source view position"
-                            if spells_active
-                            else "Source-verified view position"
+                            "Character source view position"
+                            if characters_active
+                            else (
+                                "Spell source view position"
+                                if spells_active
+                                else "Source-verified view position"
+                            )
                         )
                     ),
                     True,
@@ -1125,7 +1469,12 @@ def launch_graphics_viewer(
 
             def draw_facing_arrow(rectangle: object) -> None:
                 displayed_facing = facing
-                direction_x, direction_y = FACING_ARROW_DIRECTIONS[displayed_facing]
+                directions = (
+                    DUNGEON_DIRECTION_ARROW_DIRECTIONS
+                    if dungeons_active
+                    else FACING_ARROW_DIRECTIONS
+                )
+                direction_x, direction_y = directions[displayed_facing]
                 centre = pygame.Vector2(rectangle.center)
                 direction = pygame.Vector2(direction_x, direction_y)
                 start = centre - direction * 4
@@ -1150,7 +1499,9 @@ def launch_graphics_viewer(
                     cell_size - 2,
                 )
                 available = visible_subpositions(view_cell, subpositions)
-                if characters_active:
+                if dungeons_active:
+                    available = (4,)
+                elif characters_active:
                     available = tuple(
                         subposition
                         for subposition in available
@@ -1166,8 +1517,24 @@ def launch_graphics_viewer(
                     centre_rect.center = cell_rect.center
                     if 4 in available:
                         selected = selected_view_cell == view_cell
+                        placement = dungeon_scene.get(view_cell) if dungeons_active else None
                         colour = (222, 116, 55) if selected else (65, 113, 167)
-                        pygame.draw.ellipse(screen, colour, centre_rect)
+                        if placement is not None:
+                            pygame.draw.rect(screen, colour, centre_rect, border_radius=3)
+                            placed_feature = next(
+                                item
+                                for item in DUNGEON_FEATURES
+                                if item.key == placement.feature_key
+                            )
+                            type_label = small_font.render(
+                                str(placed_feature.map_type), True, (250, 250, 250)
+                            )
+                            screen.blit(
+                                type_label,
+                                type_label.get_rect(center=centre_rect.center),
+                            )
+                        else:
+                            pygame.draw.ellipse(screen, colour, centre_rect, 2)
                         slot_hit_rects.append((centre_rect, view_cell, 4))
                         if selected and not spells_active:
                             draw_facing_arrow(centre_rect)
@@ -1221,12 +1588,16 @@ def launch_graphics_viewer(
             screen.blit(
                 small_font.render(
                     (
-                        "Blue = available  |  orange arrow = character facing"
-                        if characters_active
+                        "Blue = cells  |  orange = feature direction"
+                        if dungeons_active
                         else (
-                            "Blue = visible  |  orange = selected spell position"
-                            if spells_active
-                            else "Blue = visible  |  orange arrow = monster facing"
+                            "Blue = available  |  orange arrow = character facing"
+                            if characters_active
+                            else (
+                                "Blue = visible  |  orange = selected spell position"
+                                if spells_active
+                                else "Blue = visible  |  orange arrow = monster facing"
+                            )
                         )
                     ),
                     True,
@@ -1236,12 +1607,16 @@ def launch_graphics_viewer(
             )
 
             details_title = (
-                f"${selected_character:02X}  Character"
-                if characters_active
+                dungeon_definition.name
+                if dungeons_active
                 else (
-                    f"${spell_definition.code:02X}  Airbourne spell"
-                    if spells_active
-                    else f"${definition.code:02X}  Monster"
+                    f"${selected_character:02X}  Character"
+                    if characters_active
+                    else (
+                        f"${spell_definition.code:02X}  Airbourne spell"
+                        if spells_active
+                        else f"${definition.code:02X}  Monster"
+                    )
                 )
             )
             screen.blit(
@@ -1273,7 +1648,87 @@ def launch_graphics_viewer(
                         details_y += 18
                 details_y += 7
 
-            if characters_active:
+            if dungeons_active:
+                existing_files = tuple(
+                    name
+                    for name in dungeon_definition.files
+                    if (gfx_dir / name).is_file()
+                )
+                missing_files = tuple(
+                    name
+                    for name in dungeon_definition.files
+                    if name not in existing_files
+                )
+                detail_block(
+                    "Source data",
+                    (f"{len(existing_files)} files present",),
+                    (126, 218, 151),
+                )
+                detail_block("Missing data", missing_files, (244, 148, 135))
+                if use_modified:
+                    overrides = modified_overrides(
+                        dataset_root,
+                        tuple(f"gfx/{name}" for name in dungeon_definition.files),
+                    )
+                    detail_block(
+                        "Modified overlay",
+                        (f"{len(overrides)} files; remaining files are clean",),
+                        (230, 184, 105),
+                    )
+                map_type = (
+                    "Logical/non-static"
+                    if dungeon_definition.map_type is None
+                    else f"Map type {dungeon_definition.map_type}"
+                )
+                detail_block(
+                    "Map definition",
+                    (
+                        f"{map_type}: {DUNGEON_SPACE_TYPES[selected_dungeon_map_type].name}",
+                        f"Option: {dungeon_definition.name}",
+                        f"Direction: {DIRECTION_NAMES[facing]}",
+                        (
+                            f"Variant: {dungeon_variant % dungeon_definition.variants} "
+                            f"({dungeon_variant_name(dungeon_definition, dungeon_variant)})"
+                        ),
+                        (
+                            "State: "
+                            + dungeon_state_name(
+                                dungeon_definition,
+                                dungeon_active,
+                                ceiling_hole=dungeon_ceiling_hole,
+                            )
+                        ),
+                    ),
+                    (155, 188, 239),
+                )
+                selected_placement = dungeon_scene.get(selected_view_cell)
+                detail_block(
+                    "Scene",
+                    (
+                        f"{len(dungeon_scene)} occupied cells",
+                        (
+                            f"Selected cell: {selected_placement.feature_key}"
+                            if selected_placement is not None
+                            else "Selected cell: empty"
+                        ),
+                    ),
+                    (155, 188, 239),
+                )
+                if dungeon_definition.key == "wood":
+                    detail_block(
+                        "N/E/S/W sides",
+                        tuple(
+                            f"{direction}: {WOOD_STATE_NAMES[state]}"
+                            for direction, state in zip(DIRECTION_NAMES, wood_states)
+                        ),
+                        (155, 188, 239),
+                    )
+                detail_block(
+                    "Notes", (dungeon_definition.note,), (155, 188, 239)
+                )
+                if preview_error:
+                    detail_block("Renderer error", (preview_error,), (244, 184, 115))
+            elif characters_active:
                 existing_character_files = tuple(
                     name for name in CHARACTER_FILES if (dataset_root / name).is_file()
                 )
@@ -1412,12 +1867,54 @@ def launch_graphics_viewer(
                             overlay_error = str(error)
                         continue
                     for index, rectangle in enumerate(category_rects):
-                        if rectangle.collidepoint(event.pos) and index == 0:
+                        if rectangle.collidepoint(event.pos) and index in {0, 1}:
                             selected_category = index
+                            selected_graphic_type = (
+                                "dungeon" if index == 1 else "character"
+                            )
                             nudge_x = nudge_y = 0
                             break
+                    if dungeons_active:
+                        for space_type, rectangle in zip(
+                            DUNGEON_SPACE_TYPES, dungeon_type_rects
+                        ):
+                            if rectangle.collidepoint(event.pos):
+                                selected_dungeon_map_type = space_type.map_type
+                                first_option = dungeon_features_for_map_type(
+                                    selected_dungeon_map_type
+                                )[0]
+                                selected_dungeon_index = DUNGEON_FEATURES.index(
+                                    first_option
+                                )
+                                selected_graphic_type = "dungeon"
+                                dungeon_variant = 0
+                                dungeon_active = True
+                                dungeon_ceiling_hole = False
+                                nudge_x = nudge_y = 0
+                                break
+                        for feature_item, rectangle in zip(
+                            dungeon_options, dungeon_option_rects
+                        ):
+                            if rectangle.collidepoint(event.pos):
+                                selected_dungeon_index = DUNGEON_FEATURES.index(
+                                    feature_item
+                                )
+                                selected_graphic_type = "dungeon"
+                                dungeon_variant = 0
+                                dungeon_active = True
+                                dungeon_ceiling_hole = False
+                                nudge_x = nudge_y = 0
+                                break
+                        if dungeon_definition.key == "wood":
+                            for direction_index, wall_rect, door_rect in wood_control_rects:
+                                if wall_rect.collidepoint(event.pos):
+                                    adjust(f"wood_wall_{direction_index}")
+                                    break
+                                if door_rect.collidepoint(event.pos):
+                                    adjust(f"wood_door_{direction_index}")
+                                    break
                     for character, rectangle in enumerate(character_rects):
-                        if rectangle.collidepoint(event.pos):
+                        if rectangle.collidepoint(event.pos) and not dungeons_active:
                             selected_character = character
                             selected_graphic_type = "character"
                             nudge_x = nudge_y = 0
@@ -1425,8 +1922,12 @@ def launch_graphics_viewer(
                     for index, (definition_item, rectangle) in enumerate(
                         zip(MONSTERS, monster_rects)
                     ):
-                        if rectangle.collidepoint(event.pos) and monster_is_selectable(
+                        if (
+                            rectangle.collidepoint(event.pos)
+                            and not dungeons_active
+                            and monster_is_selectable(
                             definition_item, bext_loaded=bext_loaded
+                            )
                         ):
                             selected_index = index
                             selected_graphic_type = "monster"
@@ -1435,8 +1936,12 @@ def launch_graphics_viewer(
                     for index, (spell_item, rectangle) in enumerate(
                         zip(AIRBOURNE_SPELLS, spell_rects)
                     ):
-                        if rectangle.collidepoint(event.pos) and spell_is_selectable(
+                        if (
+                            rectangle.collidepoint(event.pos)
+                            and not dungeons_active
+                            and spell_is_selectable(
                             spell_item, bext_loaded=bext_loaded
+                            )
                         ):
                             selected_spell_index = index
                             selected_graphic_type = "spell"
@@ -1446,7 +1951,28 @@ def launch_graphics_viewer(
                         if rectangle.collidepoint(event.pos):
                             selected_view_cell = view_cell
                             selected_subposition = subposition
-                            nudge_x = nudge_y = 0
+                            if dungeons_active and view_cell in dungeon_scene:
+                                placement = dungeon_scene[view_cell]
+                                placed_feature = next(
+                                    item
+                                    for item in DUNGEON_FEATURES
+                                    if item.key == placement.feature_key
+                                )
+                                selected_dungeon_index = DUNGEON_FEATURES.index(
+                                    placed_feature
+                                )
+                                selected_dungeon_map_type = int(
+                                    placed_feature.map_type or 0
+                                )
+                                facing = placement.direction
+                                dungeon_variant = placement.variant
+                                dungeon_active = placement.active
+                                dungeon_ceiling_hole = placement.ceiling_hole
+                                wood_states = list(placement.wood_states)
+                                nudge_x = placement.nudge_x
+                                nudge_y = placement.nudge_y
+                            else:
+                                nudge_x = nudge_y = 0
                             break
                     for action, (rectangle, _) in controls.items():
                         if rectangle.collidepoint(event.pos):
@@ -1470,11 +1996,24 @@ def main() -> None:
         type=Path,
         help="save the initial viewer frame and exit (useful for visual testing)",
     )
+    parser.add_argument(
+        "--dungeon",
+        action="store_true",
+        help="open the Dungeon Graphics category",
+    )
+    parser.add_argument(
+        "--dungeon-feature",
+        choices=tuple(feature.key for feature in DUNGEON_FEATURES),
+        default="stone",
+        help="initial dungeon option (primarily useful with --screenshot)",
+    )
     args = parser.parse_args()
     launch_graphics_viewer(
         args.data_root,
         screenshot_path=args.screenshot,
         prefer_modified=args.modified,
+        initial_category="dungeon" if args.dungeon else "character",
+        initial_dungeon_feature=args.dungeon_feature,
     )
 
 

@@ -125,7 +125,12 @@ class GraphicsCodecTests(unittest.TestCase):
     def test_characters_are_the_first_graphics_viewer_category(self) -> None:
         self.assertEqual(
             CATEGORY_NAMES,
-            ("Character/Monster Graphics", "Avatars", "Icons"),
+            (
+                "Character/Monster Graphics",
+                "Dungeon Graphics",
+                "Avatars",
+                "Icons",
+            ),
         )
         assets, error = load_character_assets(DATA_DIR / "BLOODWYCH439-clean")
         self.assertIsNotNone(assets)
