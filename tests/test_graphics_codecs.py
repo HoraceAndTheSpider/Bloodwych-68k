@@ -20,9 +20,13 @@ from tools.graphics_preview import (
 from tools.st_planar_assets import decode_planar, encode_planar, read_tables
 from tools.graphics_viewer import (
     AIRBOURNE_SPELLS,
+    CATEGORY_ENABLED,
     CATEGORY_NAMES,
+    CATEGORY_TAB_WIDTH,
     CHARACTER_FILES,
     MONSTERS,
+    category_offset_for_selection,
+    cycle_enabled_category,
     inspect_monster_files,
     load_character_assets,
     load_renderer_assets,
@@ -31,6 +35,7 @@ from tools.graphics_viewer import (
     monster_grade_count,
     render_monster_preview,
     spell_is_selectable,
+    visible_category_indices,
 )
 from tools.tool_common import BINARIES_DIR, DATA_DIR
 
@@ -135,6 +140,27 @@ class GraphicsCodecTests(unittest.TestCase):
         assets, error = load_character_assets(DATA_DIR / "BLOODWYCH439-clean")
         self.assertIsNotNone(assets)
         self.assertIsNone(error)
+
+    def test_graphics_viewer_category_carousel(self) -> None:
+        self.assertGreater(CATEGORY_TAB_WIDTH, 0)
+        self.assertEqual(
+            visible_category_indices(0, category_count=7), (0, 1, 2, 3)
+        )
+        self.assertEqual(
+            visible_category_indices(99, category_count=7), (3, 4, 5, 6)
+        )
+        self.assertEqual(category_offset_for_selection(5, 0, category_count=7), 2)
+        self.assertEqual(category_offset_for_selection(1, 3, category_count=7), 1)
+
+    def test_category_arrows_cycle_only_enabled_sections(self) -> None:
+        self.assertEqual(CATEGORY_ENABLED, (True, True, False, False))
+        self.assertEqual(cycle_enabled_category(0, 1), 1)
+        self.assertEqual(cycle_enabled_category(1, 1), 0)
+        self.assertEqual(cycle_enabled_category(0, -1), 1)
+        self.assertEqual(
+            cycle_enabled_category(2, 1, (True, False, True, False, True)),
+            4,
+        )
 
     def test_airbourne_spell_range_and_bext_gating(self) -> None:
         spells = {definition.code: definition for definition in AIRBOURNE_SPELLS}

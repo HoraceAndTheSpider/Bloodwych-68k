@@ -22,10 +22,11 @@ class ProjectStructureTests(unittest.TestCase):
     def test_gui_commands_follow_the_source_generation_workflow(self) -> None:
         self.assertEqual(
             main.GUI_COMMANDS,
-            ("extract", "relabel", "inspect", "patch", "graphics"),
+            ("extract", "relabel", "inspect", "patch", "graphics", "maps"),
         )
         self.assertEqual(main.GUI_LABELS["inspect"], "Inspect / Data")
         self.assertEqual(main.GUI_LABELS["graphics"], "Data Viewer")
+        self.assertEqual(main.GUI_LABELS["maps"], "Map Viewer / Editor")
 
     def test_bare_main_launch_uses_gui_command(self) -> None:
         commands = []
@@ -76,6 +77,19 @@ class ProjectStructureTests(unittest.TestCase):
         self.assertEqual(launch_gui.call_count, 3)
         viewer.assert_called_once_with()
 
+    def test_map_editor_returns_to_launcher(self) -> None:
+        with (
+            patch("sys.argv", ["main.py"]),
+            patch(
+                "main.launch_gui", side_effect=["maps", "profiles", None]
+            ) as launch_gui,
+            patch("tools.map_editor.app.launch_map_editor") as viewer,
+            patch("main.run", return_value=0),
+        ):
+            self.assertEqual(main.main(), 0)
+        self.assertEqual(launch_gui.call_count, 3)
+        viewer.assert_called_once_with()
+
     def test_graphics_cli_can_start_with_modified_overlay(self) -> None:
         parser = main.build_parser()
         args = parser.parse_args(["graphics", "--modified"])
@@ -84,6 +98,16 @@ class ProjectStructureTests(unittest.TestCase):
         viewer.assert_called_once_with(
             get_profile("BLOODWYCH439").clean_dir,
             prefer_modified=True,
+        )
+
+    def test_map_editor_cli_can_overlay_a_savegame(self) -> None:
+        parser = main.build_parser()
+        args = parser.parse_args(["maps", "--savegame", "whdload/bloodsave0"])
+        with patch("tools.map_editor.app.launch_map_editor") as viewer:
+            self.assertEqual(main.run(args, parser), 0)
+        viewer.assert_called_once_with(
+            get_profile("BLOODWYCH439").clean_dir,
+            savegame_path=main.Path("whdload/bloodsave0"),
         )
 
     def test_configured_binary_names(self) -> None:

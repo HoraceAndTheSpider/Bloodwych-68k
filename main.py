@@ -20,13 +20,14 @@ from tools.tool_patch import patch_segments
 from tools.tool_relabel import relabel_segments
 
 
-GUI_COMMANDS = ("extract", "relabel", "inspect", "patch", "graphics")
+GUI_COMMANDS = ("extract", "relabel", "inspect", "patch", "graphics", "maps")
 GUI_LABELS = {
     "extract": "Extract",
     "relabel": "Relabel",
     "inspect": "Inspect / Data",
     "patch": "Patch",
     "graphics": "Data Viewer",
+    "maps": "Map Viewer / Editor",
 }
 
 
@@ -42,12 +43,13 @@ def launch_gui() -> str | None:
 
     pygame.init()
     try:
-        surface = pygame.display.set_mode((400, 300))
+        window_size = (400, 360)
+        surface = pygame.display.set_mode(window_size)
         pygame.display.set_caption("Bloodwych ReSource")
         font = pygame.font.SysFont(None, 24)
         button_width, button_height, spacing = 180, 40, 10
         total_height = len(GUI_COMMANDS) * (button_height + spacing) - spacing
-        start_y = (300 - total_height) // 2
+        start_y = (window_size[1] - total_height) // 2
         buttons = [
             (
                 pygame.Rect(
@@ -122,6 +124,12 @@ def build_parser() -> argparse.ArgumentParser:
         action="store_true",
         help="start with the sparse modified-data overlay enabled",
     )
+    maps = subparsers.add_parser("maps", help="Open the map viewer/editor")
+    maps.add_argument(
+        "--savegame",
+        type=Path,
+        help="overlay a WHDLoad save instead of the extracted game maps",
+    )
     subparsers.add_parser("profiles", help="List configured game binaries")
     subparsers.add_parser("paths", help="Show the canonical project paths")
     return parser
@@ -162,6 +170,16 @@ def run(args: argparse.Namespace, parser: argparse.ArgumentParser) -> int:
             )
         except GraphicsViewerError as error:
             raise ToolError(str(error)) from error
+    elif args.command == "maps":
+        from tools.map_editor.app import MapEditorError, launch_map_editor
+
+        try:
+            launch_map_editor(
+                get_profile(args.master).clean_dir,
+                savegame_path=getattr(args, "savegame", None),
+            )
+        except MapEditorError as error:
+            raise ToolError(str(error)) from error
     elif args.command == "profiles":
         for profile in PROFILES:
             sheet = profile.segment_sheet or "not yet mapped"
@@ -190,7 +208,15 @@ def main() -> int:
             selected = launch_gui()
             if selected is None:
                 return 0
-            if selected == "graphics":
+            if selected in {"graphics", "maps"}:
+                if selected == "maps":
+                    from tools.map_editor.app import MapEditorError, launch_map_editor
+
+                    try:
+                        launch_map_editor()
+                    except MapEditorError as error:
+                        raise ToolError(str(error)) from error
+                    continue
                 from tools.graphics_viewer import GraphicsViewerError, launch_graphics_viewer
 
                 try:

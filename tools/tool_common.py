@@ -134,16 +134,21 @@ def load_segments(sheet: str | Path, master: str) -> pd.DataFrame:
             raise ToolError(
                 f"No segments.xlsx sheet is configured yet for {profile.filename}"
             )
-        book = pd.ExcelFile(path)
-        sheet_name = next(
-            (name for name in book.sheet_names if name.casefold() == profile.segment_sheet.casefold()),
-            None,
-        )
-        if sheet_name is None:
-            raise ToolError(
-                f"Workbook {path.name} has no '{profile.segment_sheet}' sheet for {profile.filename}"
+        with pd.ExcelFile(path) as book:
+            sheet_name = next(
+                (
+                    name
+                    for name in book.sheet_names
+                    if name.casefold() == profile.segment_sheet.casefold()
+                ),
+                None,
             )
-        frame = pd.read_excel(book, sheet_name=sheet_name)
+            if sheet_name is None:
+                raise ToolError(
+                    f"Workbook {path.name} has no '{profile.segment_sheet}' sheet "
+                    f"for {profile.filename}"
+                )
+            frame = pd.read_excel(book, sheet_name=sheet_name)
 
     frame.columns = [str(column).strip().casefold() for column in frame.columns]
     return frame

@@ -172,6 +172,13 @@ class DungeonPlacement:
     nudge_x: int = 0
     nudge_y: int = 0
     ceiling_hole: bool = False
+    # Source-derived colour/overlay selectors may depend on the absolute map
+    # coordinate rather than the map object's semantic variant.  -1 requests
+    # the all-black mask used by switch reference zero and void locks.  These
+    # follow the original preview fields to preserve the public positional
+    # construction used by the Data Viewer.
+    colour_variant: int | None = None
+    overlay_variant: int | None = None
 
 
 DUNGEON_FEATURES = (
@@ -290,17 +297,21 @@ def wall_slots_in_draw_order(
 
 
 def wall_face_direction(view_cell: int, column: int, player_facing: int = 0) -> int:
-    """Port adrCd0095D4's table-column to N/E/S/W conversion."""
+    """Return the relative N/E/S/W side represented by a face-table column.
+
+    The left, right, and centre groups use different column orders because the
+    source reuses mirrored perspective records.  ``adrCd0095D4`` tests the
+    requested map direction against those groups; it is not itself a direct
+    column-to-direction conversion.
+    """
     if not 0 <= view_cell < 19 or not 0 <= column < 4:
         raise ValueError("view cell and wall-face column are out of range")
-    direction = 3 - column  # d5 counts 3,2,1,0 while table bytes advance.
     if view_cell < 7:
-        if not direction & 1:
-            direction ^= 1
-    elif view_cell >= 14:
-        if not direction & 2:
-            direction ^= 1
-    direction ^= 3
+        direction = (0, 3, 2, 1)[column]  # N, W, S, E
+    elif view_cell < 14:
+        direction = (0, 1, 2, 3)[column]  # N, E, S, W
+    else:
+        direction = (0, 1, 3, 2)[column]  # N, E, W, S
     return (direction + player_facing) & 3
 
 
@@ -406,15 +417,20 @@ def _mapped_wall_operation(
     slot: int,
     *,
     main_wall: bool = False,
+    pattern_parity: int = 1,
     gfx_base: int = 0,
     replacements: Sequence[int] | None = None,
     palette_substitutions: Mapping[int, int] | None = None,
 ) -> DrawOperation:
-    mapped = MAIN_WALL_SPRITE_TABLE[slot] if main_wall else WALL_COMPONENT_SPRITE_TABLE[slot]
-    # Draw_Main_Wall reverses every source row through BitReverse_LookupBuffer
-    # before writing it right-to-left.  The extracted ST picture therefore
-    # needs one horizontal mirror even though its lookup byte has no flag.
-    mirrored = True if main_wall else bool(mapped & 0x80)
+    mapped = (
+        MAIN_WALL_SPRITE_TABLE[slot]
+        if main_wall and pattern_parity & 1
+        else (slot if main_wall else WALL_COMPONENT_SPRITE_TABLE[slot])
+    )
+    # The odd parity path selects the second source-picture set and reverses
+    # each row through BitReverse_LookupBuffer while writing right-to-left.
+    # The even path uses the identity picture index and ordinary row writer.
+    mirrored = bool(pattern_parity & 1) if main_wall else bool(mapped & 0x80)
     return group.operation(
         mapped & 0x7F,
         slot,
@@ -455,9 +471,18 @@ def _centred_operation(
     *,
     replacements: Sequence[int] | None = None,
 ) -> DrawOperation | None:
-    if not 0 <= view_cell < 18 or VIEW_CELL_CENTRED_SLOTS[view_cell] is None:
+    if not 0 <= view_cell < len(VIEW_CELL_CENTRED_SLOTS) or view_cell >= len(group.positions):
         return None
-    mapped = CENTRED_COMPONENT_SPRITE_TABLE[view_cell]
+    if view_cell == 18:
+        # Type-6 floor/ceiling graphics have a dedicated player-cell entry.
+        # The normal centred-slot table contains a sentinel here because it is
+        # bypassed by the original routine; the component table maps the cell
+        # directly to source picture 11.
+        mapped = 11
+    else:
+        if VIEW_CELL_CENTRED_SLOTS[view_cell] is None:
+            return None
+        mapped = CENTRED_COMPONENT_SPRITE_TABLE[view_cell]
     return group.operation(
         mapped & 0x7F,
         view_cell,
@@ -481,12 +506,15 @@ def render_dungeon_feature(
     view_cell: int,
     direction: int = 2,
     variant: int = 0,
+    colour_variant: int | None = None,
+    overlay_variant: int | None = None,
     active: bool = True,
     wood_states: Sequence[int] = (0, 0, 3, 0),
     wall_visibility_mask: int | None = None,
     nudge_x: int = 0,
     nudge_y: int = 0,
     ceiling_hole: bool = False,
+    pattern_parity: int = 1,
 ) -> tuple[list[list[int]], dict[str, object]]:
     """Render one map feature into the shared 128×76 game viewport."""
     canvas = [list(row) for row in background]
@@ -506,6 +534,7 @@ def render_dungeon_feature(
                 group,
                 slot,
                 main_wall=True,
+                pattern_parity=pattern_parity,
                 replacements=replacements,
                 palette_substitutions=palette_substitutions,
             )
@@ -555,10 +584,19 @@ def render_dungeon_feature(
                 if feature.key == "sign" and variant in range(1, 5):
                     palette_index = variant - 1
                 else:
-                    # Generated signs/wall scrolls use a location-derived
-                    # colour.  Index zero is a deterministic preview example.
-                    palette_index = variant if feature.key != "sign" else 0
-                replacements = list(palettes[palette_index % len(palettes)])
+                    # Generated signs, wall scrolls, and non-zero switches use
+                    # (map X + map Y) & 7.  The standalone viewer falls back to
+                    # its manually selected variant.
+                    palette_index = (
+                        colour_variant
+                        if colour_variant is not None
+                        else (variant if feature.key != "sign" else 0)
+                    )
+                replacements = (
+                    [0, 0, 0, 0]
+                    if palette_index < 0
+                    else list(palettes[palette_index % len(palettes)])
+                )
                 if feature.key == "socket" and not active:
                     # Draw_Main_Object_Overlay clears the low replacement byte
                     # for an empty socket while retaining the socket graphic.
@@ -577,6 +615,17 @@ def render_dungeon_feature(
                 if feature.key == "sign" and variant in range(1, 5):
                     overlay = wall_group("Main_SignOverlay")
                     overlay_base = (variant - 1) * 0x610
+                    for slot in slots:
+                        operations.extend(
+                            _mapped_wall_operations(
+                                overlay, slot, gfx_base=overlay_base
+                            )
+                        )
+                elif feature.key == "sign" and variant == 0:
+                    # Generated sign artwork is selected by
+                    # (2 * map X - map Y) & 3, independently of its palette.
+                    overlay = wall_group("Main_SignOverlay")
+                    overlay_base = ((overlay_variant or 0) & 3) * 0x610
                     for slot in slots:
                         operations.extend(
                             _mapped_wall_operations(
@@ -633,16 +682,35 @@ def render_dungeon_feature(
         if operation is not None:
             operations.append(operation)
     elif feature.key in {"stairs_up", "stairs_down"}:
-        slot = VIEW_CELL_CENTRED_SLOTS[view_cell] if 0 <= view_cell < 19 else None
-        if slot is not None:
-            stem = "Stairs_Up" if feature.key == "stairs_up" else "Stairs_Down"
-            operations.extend(_mapped_wall_operations(wall_group(stem), slot))
+        stem = "Stairs_Up" if feature.key == "stairs_up" else "Stairs_Down"
+        group = wall_group(stem)
+        if view_cell == 18:
+            # Draw_Main_Door_Or_Stairs uses the final source picture and the
+            # dedicated current-cell position, then mirrors the other half.
+            first = group.operation(16, 28)
+            operations.extend((
+                first,
+                DrawOperation(
+                    first.sprite,
+                    128 - first.x - first.sprite.width,
+                    first.y,
+                    True,
+                ),
+            ))
+        else:
+            slot = VIEW_CELL_CENTRED_SLOTS[view_cell] if 0 <= view_cell < 19 else None
+            if slot is not None:
+                operations.extend(_mapped_wall_operations(group, slot))
     elif feature.key in {"door_open", "door_metal", "door_portcullis"}:
         source_index = _door_source_index(view_cell)
         if source_index is not None:
+            # A player can only occupy a large-door cell after opening it.  The
+            # two inside-view pictures (11/12) consequently exist only in the
+            # shared open-door block; the closed metal/portcullis blocks end at
+            # picture 11's offset.
             gfx_name = (
                 "Door_Open.gfx"
-                if feature.key == "door_open" or not active
+                if view_cell == 18 or feature.key == "door_open" or not active
                 else {
                     "door_metal": "Door_Metal.gfx",
                     "door_portcullis": "Door_PortCullis.gfx",
@@ -650,12 +718,26 @@ def render_dungeon_feature(
             )
             group = assets.group(gfx_name, "Door.offsets", "Door.Positions")
             replacements = None
-            if feature.key != "door_open" and active:
+            if feature.key != "door_open":
                 lock_colours = (1, 9, 4, 6, 13, 12, 7, 14)
-                replacements = (0, 4, lock_colours[variant % 8], 12)
+                lock_colour = (
+                    0
+                    if colour_variant == -1
+                    else lock_colours[
+                        (colour_variant if colour_variant is not None else variant) % 8
+                    ]
+                )
+                replacements = (0, 4, lock_colour, 12)
+            position_index = view_cell
+            if view_cell == 18 and direction & 1:
+                # The source XORs the door axis with player facing and selects
+                # the alternative inside-door source/position pair when the
+                # structure runs sideways across the current cell.
+                source_index = 12
+                position_index = 19
             first = group.operation(
                 source_index,
-                view_cell,
+                position_index,
                 mirrored=7 <= view_cell <= 12,
                 replacements=replacements,
             )
@@ -701,9 +783,12 @@ def render_dungeon_feature(
         "direction": direction & 3,
         "direction_name": DIRECTION_NAMES[direction & 3],
         "variant": variant,
+        "colour_variant": colour_variant,
+        "overlay_variant": overlay_variant,
         "active": active,
         "wood_states": list(tuple(wood_states)[:4]),
         "ceiling_hole": ceiling_hole,
+        "pattern_parity": pattern_parity & 1,
         "visible_wall_slots": list(visible_slots),
         "operations": records,
     }
@@ -736,6 +821,8 @@ def render_dungeon_scene(
     background: Sequence[Sequence[int]],
     assets: DungeonAssets,
     placements: Mapping[int, DungeonPlacement],
+    *,
+    pattern_parity: int = 1,
 ) -> tuple[list[list[int]], dict[str, object]]:
     """Render independently configured map cells in source traversal order."""
     canvas = [list(row) for row in background]
@@ -754,19 +841,30 @@ def render_dungeon_scene(
             view_cell=view_cell,
             direction=placement.direction,
             variant=placement.variant,
+            colour_variant=placement.colour_variant,
+            overlay_variant=placement.overlay_variant,
             active=placement.active,
             wood_states=placement.wood_states,
             wall_visibility_mask=wall_visibility_mask,
             nudge_x=placement.nudge_x,
             nudge_y=placement.nudge_y,
             ceiling_hole=placement.ceiling_hole,
+            pattern_parity=pattern_parity,
         )
         rendered.append(metadata)
     return canvas, {
         "wall_visibility_mask": wall_visibility_mask,
+        "pattern_parity": pattern_parity & 1,
         "placements": rendered,
     }
 
 
-def load_dungeon_background(gfx_dir: object) -> list[list[int]]:
-    return load_floor_ceiling_background(gfx_dir)
+def load_dungeon_background(
+    gfx_dir: object,
+    *,
+    pattern_parity: int = 1,
+) -> list[list[int]]:
+    background = load_floor_ceiling_background(gfx_dir)
+    if pattern_parity & 1:
+        return background
+    return [list(reversed(row)) for row in background]

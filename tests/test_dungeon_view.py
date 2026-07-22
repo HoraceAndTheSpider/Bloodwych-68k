@@ -9,6 +9,7 @@ from tools.dungeon_view import (
     dungeon_features_for_map_type,
     dungeon_state_name,
     dungeon_variant_name,
+    load_dungeon_background,
     render_dungeon_feature,
     render_dungeon_scene,
     scene_wall_visibility_mask,
@@ -43,6 +44,20 @@ class DungeonViewGeometryTests(unittest.TestCase):
         self.assertEqual(directions_by_column, (0, 1, 3, 2))
         self.assertEqual(wall_slots_for_direction(17, 2), (27,))
         self.assertEqual(wall_slots_for_direction(17, 0), ())
+
+    def test_face_columns_use_mirrored_orders_on_each_side(self) -> None:
+        self.assertEqual(
+            tuple(wall_face_direction(3, column) for column in range(4)),
+            (0, 3, 2, 1),
+        )
+        self.assertEqual(
+            tuple(wall_face_direction(10, column) for column in range(4)),
+            (0, 1, 2, 3),
+        )
+        self.assertEqual(
+            tuple(wall_face_direction(17, column) for column in range(4)),
+            (0, 1, 3, 2),
+        )
 
     def test_space_types_expose_only_their_legal_options(self) -> None:
         self.assertEqual(
@@ -145,6 +160,35 @@ class DungeonAssetTests(unittest.TestCase):
         self.assertEqual(len(walls), 3)
         self.assertTrue(all(operation["mirrored"] for operation in walls))
 
+    def test_floor_and_main_wall_patterns_follow_render_parity(self) -> None:
+        normal = load_dungeon_background(DATA_ROOT, pattern_parity=1)
+        alternate = load_dungeon_background(DATA_ROOT, pattern_parity=0)
+        self.assertEqual(alternate, [list(reversed(row)) for row in normal])
+
+        stone = next(item for item in DUNGEON_FEATURES if item.key == "stone")
+        _, normal_metadata = render_dungeon_feature(
+            normal,
+            self.assets,
+            stone,
+            view_cell=3,
+            pattern_parity=1,
+        )
+        _, alternate_metadata = render_dungeon_feature(
+            alternate,
+            self.assets,
+            stone,
+            view_cell=3,
+            pattern_parity=0,
+        )
+        self.assertEqual(
+            [item["source_index"] for item in normal_metadata["operations"]],
+            [18, 17],
+        )
+        self.assertEqual(
+            [item["source_index"] for item in alternate_metadata["operations"]],
+            [6, 5],
+        )
+
     def test_scene_retains_independent_cell_configuration(self) -> None:
         placements = {
             3: DungeonPlacement("pillar", direction=1, variant=0),
@@ -202,6 +246,102 @@ class DungeonAssetTests(unittest.TestCase):
             ["Pad_Trigger.gfx", "Pad_Pit_High.gfx"],
         )
 
+    def test_current_cell_wood_front_edge_matches_nearest_south_edge(self) -> None:
+        wood = next(item for item in DUNGEON_FEATURES if item.key == "wood")
+        inside_pixels, inside = render_dungeon_feature(
+            self.background,
+            self.assets,
+            wood,
+            view_cell=18,
+            wood_states=(1, 0, 0, 0),
+        )
+        ahead_pixels, ahead = render_dungeon_feature(
+            self.background,
+            self.assets,
+            wood,
+            view_cell=17,
+            wood_states=(0, 0, 1, 0),
+        )
+        self.assertEqual(inside_pixels, ahead_pixels)
+        self.assertEqual(inside["operations"], ahead["operations"])
+
+    def test_current_cell_wood_draws_both_visible_side_walls(self) -> None:
+        wood = next(item for item in DUNGEON_FEATURES if item.key == "wood")
+        _, metadata = render_dungeon_feature(
+            self.background,
+            self.assets,
+            wood,
+            view_cell=18,
+            wood_states=(0, 1, 0, 1),
+        )
+        self.assertEqual(
+            [(item["source_index"], item["x"], item["mirrored"]) for item in metadata["operations"]],
+            [(11, 112, True), (11, 0, False)],
+        )
+
+    def test_left_view_cell_draws_its_visible_east_wooden_door(self) -> None:
+        wood = next(item for item in DUNGEON_FEATURES if item.key == "wood")
+        _, metadata = render_dungeon_feature(
+            self.background,
+            self.assets,
+            wood,
+            view_cell=3,
+            wood_states=(0, 3, 0, 0),
+        )
+        self.assertEqual(
+            [item["source"] for item in metadata["operations"]],
+            ["Wooden_Wall.gfx", "Wooden_Doors.gfx"],
+        )
+
+    def test_current_cell_floor_and_ceiling_features_use_final_position(self) -> None:
+        pad = next(item for item in DUNGEON_FEATURES if item.key == "pad")
+        _, metadata = render_dungeon_feature(
+            self.background,
+            self.assets,
+            pad,
+            view_cell=18,
+            ceiling_hole=True,
+        )
+        self.assertEqual(
+            [(item["source"], item["source_index"]) for item in metadata["operations"]],
+            [("Pad_Trigger.gfx", 11), ("Pad_Pit_High.gfx", 11)],
+        )
+
+    def test_current_cell_stairs_use_dedicated_inside_picture(self) -> None:
+        stairs = next(item for item in DUNGEON_FEATURES if item.key == "stairs_up")
+        _, metadata = render_dungeon_feature(
+            self.background,
+            self.assets,
+            stairs,
+            view_cell=18,
+        )
+        self.assertEqual(len(metadata["operations"]), 2)
+        self.assertEqual(
+            {item["source_index"] for item in metadata["operations"]},
+            {16},
+        )
+
+    def test_current_cell_large_door_selects_axis_specific_picture(self) -> None:
+        door = next(item for item in DUNGEON_FEATURES if item.key == "door_metal")
+        _, straight = render_dungeon_feature(
+            self.background,
+            self.assets,
+            door,
+            view_cell=18,
+            direction=0,
+        )
+        _, sideways = render_dungeon_feature(
+            self.background,
+            self.assets,
+            door,
+            view_cell=18,
+            direction=1,
+        )
+        self.assertEqual({item["source_index"] for item in straight["operations"]}, {11})
+        self.assertEqual({item["source_index"] for item in sideways["operations"]}, {12})
+        self.assertEqual({item["source"] for item in straight["operations"]}, {"Door_Open.gfx"})
+        self.assertEqual({item["source"] for item in sideways["operations"]}, {"Door_Open.gfx"})
+
     def test_socket_and_switch_states_change_the_rendered_colours(self) -> None:
         for key in ("socket", "switch"):
             with self.subTest(feature=key):
@@ -250,6 +390,35 @@ class DungeonAssetTests(unittest.TestCase):
             {item["source"] for item in opened["operations"]},
             {"Door_Open.gfx"},
         )
+
+    def test_open_door_and_void_lock_use_source_colour_masks(self) -> None:
+        door = next(item for item in DUNGEON_FEATURES if item.key == "door_metal")
+        ordinary, _ = render_dungeon_feature(
+            self.background,
+            self.assets,
+            door,
+            view_cell=17,
+            active=False,
+            colour_variant=0,
+        )
+        coloured, _ = render_dungeon_feature(
+            self.background,
+            self.assets,
+            door,
+            view_cell=17,
+            active=False,
+            colour_variant=5,
+        )
+        void, _ = render_dungeon_feature(
+            self.background,
+            self.assets,
+            door,
+            view_cell=17,
+            active=False,
+            colour_variant=-1,
+        )
+        self.assertNotEqual(ordinary, coloured)
+        self.assertNotEqual(ordinary, void)
 
     def test_magic_locations_reuse_source_rendering_primitives(self) -> None:
         expected_sources = {

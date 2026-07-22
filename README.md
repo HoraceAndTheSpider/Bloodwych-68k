@@ -78,6 +78,8 @@ python main.py
 python main.py profiles
 python main.py paths
 python main.py graphics
+python main.py maps
+python main.py maps --savegame whdload/bloodsave0
 python main.py --master BLOODWYCH439 extract
 python main.py --master BLOODWYCH439 inspect
 python main.py --master BLOODWYCH439 relabel
@@ -87,7 +89,14 @@ python main.py --master BLOODWYCH439 patch
 A bare `python main.py` launch opens the Pygame command chooser. Supplying a
 data-processing subcommand bypasses the launcher, which keeps the same core
 tools usable in terminals, tests, build workers, and the future web
-application. The `graphics` subcommand opens the Pygame viewer directly.
+application. The `graphics` subcommand opens the Pygame data viewer directly.
+The `maps` subcommand opens the map workspace; its optional `--savegame`
+argument reads the maps and other later resources from a WHDLoad save overlay.
+Map edits are never written to the clean extraction or supplied save. The Save
+button writes replacement maps and edited shared switch/trigger resources
+under `data/BLOODWYCH439-modified/maps/`, or a copied edited save under
+`data/BLOODWYCH439-modified/whdload/`. Shared game tables are read-only in a
+save-overlay session because they are not part of the save block.
 
 The graphics tools can losslessly convert the 128-glyph `GameFont` and Atari
 ST-style four-plane graphics with extracted `.offsets` and `.positions`

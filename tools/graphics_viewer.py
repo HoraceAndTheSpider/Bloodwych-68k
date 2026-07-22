@@ -67,12 +67,68 @@ CATEGORY_NAMES = (
     "Avatars",
     "Icons",
 )
+CATEGORY_ENABLED = (True, True, False, False)
+CATEGORY_GRAPHIC_TYPES = ("character", "dungeon", None, None)
+CATEGORY_TAB_VISIBLE_COUNT = 4
+CATEGORY_TAB_WIDTH = 190
+CATEGORY_TAB_GAP = 8
 # The unmirrored Beholder side eye points screen-left; facing 3 mirrors it.
 FACING_ARROW_DIRECTIONS = ((0, 1), (-1, 0), (0, -1), (1, 0))
 # A dungeon overlay attached to a south-facing wall looks back north into the
 # cell.  The arrow therefore shows the direction in which the visible face
 # points, which is opposite the labelled N/E/S/W map side.
 DUNGEON_DIRECTION_ARROW_DIRECTIONS = ((0, 1), (-1, 0), (0, -1), (1, 0))
+
+
+def visible_category_indices(
+    offset: int,
+    category_count: int | None = None,
+    capacity: int = CATEGORY_TAB_VISIBLE_COUNT,
+) -> tuple[int, ...]:
+    """Return the clamped slice of categories displayed in the tab strip."""
+
+    total = len(CATEGORY_NAMES) if category_count is None else max(0, category_count)
+    if capacity <= 0 or total == 0:
+        return ()
+    start = max(0, min(offset, max(0, total - capacity)))
+    return tuple(range(start, min(total, start + capacity)))
+
+
+def category_offset_for_selection(
+    selected: int,
+    offset: int,
+    category_count: int | None = None,
+    capacity: int = CATEGORY_TAB_VISIBLE_COUNT,
+) -> int:
+    """Move the visible tab window only far enough to reveal ``selected``."""
+
+    total = len(CATEGORY_NAMES) if category_count is None else max(0, category_count)
+    if total == 0 or capacity <= 0:
+        return 0
+    selected = max(0, min(selected, total - 1))
+    offset = max(0, min(offset, max(0, total - capacity)))
+    if selected < offset:
+        offset = selected
+    elif selected >= offset + capacity:
+        offset = selected - capacity + 1
+    return max(0, min(offset, max(0, total - capacity)))
+
+
+def cycle_enabled_category(
+    current: int,
+    direction: int,
+    enabled: Sequence[bool] = CATEGORY_ENABLED,
+) -> int:
+    """Cycle through selectable viewer sections, wrapping at either end."""
+
+    selectable = tuple(index for index, available in enumerate(enabled) if available)
+    if not selectable:
+        return current
+    if current not in selectable:
+        return selectable[0]
+    step = 1 if direction >= 0 else -1
+    return selectable[(selectable.index(current) + step) % len(selectable)]
+
 
 CHARACTER_FILES = (
     "data/characters.heads",
@@ -645,6 +701,7 @@ def launch_graphics_viewer(
         clock = pygame.time.Clock()
 
         selected_category = 1 if initial_category == "dungeon" else 0
+        category_tab_offset = category_offset_for_selection(selected_category, 0)
         selected_index = 2
         selected_character = 0
         selected_spell_index = 0
@@ -662,7 +719,7 @@ def launch_graphics_viewer(
         selected_graphic_type = "dungeon" if initial_category == "dungeon" else "character"
         selected_view_cell = (
             initial_dungeon_view_cell
-            if 0 <= initial_dungeon_view_cell < 18
+            if 0 <= initial_dungeon_view_cell < 19
             else 17
         )
         selected_subposition = 0
@@ -704,13 +761,45 @@ def launch_graphics_viewer(
                 nudge_y = initial_placement.nudge_y
         overlay_error: str | None = None
 
-        category_rects = (
-            pygame.Rect(20, 52, 250, 34),
-            pygame.Rect(280, 52, 190, 34),
-            pygame.Rect(480, 52, 142, 34),
-            pygame.Rect(632, 52, 142, 34),
-        )
+        category_left_rect = pygame.Rect(20, 52, 34, 34)
+        category_right_rect = pygame.Rect(854, 52, 34, 34)
         overlay_rect = pygame.Rect(935, 52, 255, 34)
+
+        def visible_category_rects() -> tuple[tuple[int, object], ...]:
+            return tuple(
+                (
+                    category_index,
+                    pygame.Rect(
+                        62
+                        + visible_index
+                        * (CATEGORY_TAB_WIDTH + CATEGORY_TAB_GAP),
+                        52,
+                        CATEGORY_TAB_WIDTH,
+                        34,
+                    ),
+                )
+                for visible_index, category_index in enumerate(
+                    visible_category_indices(category_tab_offset)
+                )
+            )
+
+        def select_category(category_index: int) -> None:
+            nonlocal selected_category
+            nonlocal selected_graphic_type
+            nonlocal category_tab_offset
+            nonlocal nudge_x
+            nonlocal nudge_y
+
+            if not CATEGORY_ENABLED[category_index]:
+                return
+            selected_category = category_index
+            graphic_type = CATEGORY_GRAPHIC_TYPES[category_index]
+            if graphic_type is not None:
+                selected_graphic_type = graphic_type
+            category_tab_offset = category_offset_for_selection(
+                selected_category, category_tab_offset
+            )
+            nudge_x = nudge_y = 0
         character_rects = [
             pygame.Rect(20 + (index % 8) * 27, 112 + (index // 8) * 32, 25, 28)
             for index in range(0x56)
@@ -1069,12 +1158,47 @@ def launch_graphics_viewer(
                 (20, 16),
             )
 
-            for index, (name, rectangle) in enumerate(zip(CATEGORY_NAMES, category_rects)):
-                active = index == selected_category
-                colour = (54, 105, 170) if active else (52, 55, 63)
+            selectable_category_count = sum(CATEGORY_ENABLED)
+            for rectangle, arrow in (
+                (category_left_rect, "<"),
+                (category_right_rect, ">"),
+            ):
+                hovered = rectangle.collidepoint(mouse)
+                enabled = selectable_category_count > 1
+                colour = (
+                    (65, 104, 151)
+                    if enabled and hovered
+                    else ((48, 68, 94) if enabled else (45, 47, 54))
+                )
                 pygame.draw.rect(screen, colour, rectangle, border_radius=4)
-                suffix = " (planned)" if index >= 2 else ""
-                text_colour = (245, 245, 245) if active else (150, 150, 155)
+                arrow_label = font.render(
+                    arrow, True, (245, 245, 245) if enabled else (115, 117, 123)
+                )
+                screen.blit(
+                    arrow_label, arrow_label.get_rect(center=rectangle.center)
+                )
+
+            for index, rectangle in visible_category_rects():
+                name = CATEGORY_NAMES[index]
+                active = index == selected_category
+                available = CATEGORY_ENABLED[index]
+                hovered = rectangle.collidepoint(mouse)
+                colour = (
+                    (54, 105, 170)
+                    if active
+                    else (
+                        (65, 69, 80)
+                        if available and hovered
+                        else ((52, 55, 63) if available else (43, 45, 52))
+                    )
+                )
+                pygame.draw.rect(screen, colour, rectangle, border_radius=4)
+                suffix = " (planned)" if not available else ""
+                text_colour = (
+                    (245, 245, 245)
+                    if active
+                    else ((205, 205, 210) if available else (125, 127, 134))
+                )
                 label = small_font.render(name + suffix, True, text_colour)
                 screen.blit(label, label.get_rect(center=rectangle.center))
 
@@ -1568,7 +1692,39 @@ def launch_graphics_viewer(
                 20,
                 20,
             )
-            pygame.draw.rect(screen, (202, 98, 48), player_rect, border_radius=4)
+            current_placement = dungeon_scene.get(18) if dungeons_active else None
+            current_selected = dungeons_active and selected_view_cell == 18
+            player_colour = (222, 116, 55) if current_selected else (202, 98, 48)
+            if current_placement is not None:
+                pygame.draw.rect(
+                    screen,
+                    (65, 113, 167),
+                    player_rect.inflate(8, 8),
+                    border_radius=5,
+                )
+                placed_feature = next(
+                    item
+                    for item in DUNGEON_FEATURES
+                    if item.key == current_placement.feature_key
+                )
+                type_label = small_font.render(
+                    str(placed_feature.map_type), True, (250, 250, 250)
+                )
+                screen.blit(
+                    type_label,
+                    type_label.get_rect(
+                        center=(player_rect.right + 7, player_rect.bottom + 4)
+                    ),
+                )
+            if current_selected:
+                pygame.draw.rect(
+                    screen,
+                    (255, 155, 75),
+                    player_rect.inflate(10, 10),
+                    2,
+                    border_radius=5,
+                )
+            pygame.draw.rect(screen, player_colour, player_rect, border_radius=4)
             pygame.draw.line(
                 screen,
                 (255, 230, 100),
@@ -1585,6 +1741,8 @@ def launch_graphics_viewer(
                     (player_rect.centerx + 4, player_rect.y - 2),
                 ),
             )
+            if dungeons_active:
+                slot_hit_rects.append((player_rect.inflate(10, 10), 18, 4))
             screen.blit(
                 small_font.render(
                     (
@@ -1866,13 +2024,19 @@ def launch_graphics_viewer(
                         except (OSError, ValueError, RuntimeError, IndexError) as error:
                             overlay_error = str(error)
                         continue
-                    for index, rectangle in enumerate(category_rects):
-                        if rectangle.collidepoint(event.pos) and index in {0, 1}:
-                            selected_category = index
-                            selected_graphic_type = (
-                                "dungeon" if index == 1 else "character"
-                            )
-                            nudge_x = nudge_y = 0
+                    if category_left_rect.collidepoint(event.pos):
+                        select_category(
+                            cycle_enabled_category(selected_category, -1)
+                        )
+                        continue
+                    if category_right_rect.collidepoint(event.pos):
+                        select_category(
+                            cycle_enabled_category(selected_category, 1)
+                        )
+                        continue
+                    for index, rectangle in visible_category_rects():
+                        if rectangle.collidepoint(event.pos):
+                            select_category(index)
                             break
                     if dungeons_active:
                         for space_type, rectangle in zip(
