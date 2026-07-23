@@ -196,10 +196,10 @@ DUNGEON_FEATURES = (
     DungeonFeatureDefinition("door_open", "Open doorway", 5, ("Door_Open.gfx", "Door.offsets", "Door.Positions"), "Open large-door frame."),
     DungeonFeatureDefinition("door_metal", "Metal door", 5, ("Door_Open.gfx", "Door_Metal.gfx", "Door.offsets", "Door.Positions"), "Metal-door style; state toggles open/closed and variant selects the key colour.", False, len(DOOR_LOCK_VARIANT_NAMES)),
     DungeonFeatureDefinition("door_portcullis", "Portcullis", 5, ("Door_Open.gfx", "Door_PortCullis.gfx", "Door.offsets", "Door.Positions"), "Portcullis style; state toggles open/closed and variant selects the key colour.", False, len(DOOR_LOCK_VARIANT_NAMES)),
-    DungeonFeatureDefinition("pit", "Floor pit", 6, ("Pad_Pit_Low.gfx", "Pad_Pit.offsets", "Pad_Pit_Low.positions"), "Floor hole selected by the centred component table."),
-    DungeonFeatureDefinition("ceiling_pit", "Ceiling hole", 6, ("Pad_Trigger.gfx", "Pad_Trigger.offsets", "Pad_Trigger.positions"), "Ceiling-hole overlay; it may coexist with a floor pit or trigger pad."),
-    DungeonFeatureDefinition("pad", "Trigger pad", 6, ("Pad_Pit_High.gfx", "Pad_Pit.offsets", "Pad_Pit_Low.positions"), "Trigger-pad template recoloured with the game's type-6 colour mask; a ceiling hole may coexist with it."),
-    DungeonFeatureDefinition("firepath", "Firepath", 7, ("Pad_Pit_High.gfx", "Pad_Pit.offsets", "Pad_Pit_Low.positions"), "Trigger-pad artwork recoloured red/yellow using the game's two flashing Firepath masks.", False, len(FIREPATH_COLOUR_FRAMES)),
+    DungeonFeatureDefinition("pit", "Floor pit", 6, ("Floor_Pit.gfx", "FloorPit_TriggerPad.offsets", "FloorPit_TriggerPad.positions"), "Floor hole selected by the centred component table."),
+    DungeonFeatureDefinition("ceiling_pit", "Ceiling hole", 6, ("Ceiling_Hole.gfx", "Ceiling_Hole.offsets", "Ceiling_Hole.positions"), "Ceiling-hole overlay; it may coexist with a floor pit or trigger pad."),
+    DungeonFeatureDefinition("pad", "Trigger pad", 6, ("Trigger_Pad.gfx", "FloorPit_TriggerPad.offsets", "FloorPit_TriggerPad.positions"), "Trigger-pad template recoloured with the game's type-6 colour mask; a ceiling hole may coexist with it."),
+    DungeonFeatureDefinition("firepath", "Firepath", 7, ("Trigger_Pad.gfx", "FloorPit_TriggerPad.offsets", "FloorPit_TriggerPad.positions"), "Trigger-pad artwork recoloured red/yellow using the game's two flashing Firepath masks.", False, len(FIREPATH_COLOUR_FRAMES)),
     DungeonFeatureDefinition("mindrock", "Mindrock", 7, ("Main_Walls.gfx", "Main_Walls.offsets", "Main_Walls.positions"), "Editor preview replaces the darkest grey with dark blue and white with light blue."),
     DungeonFeatureDefinition("formwall", "Formwall", 7, ("Main_Walls.gfx", "Main_Walls.offsets", "Main_Walls.positions"), "Editor preview replaces only the two middle greys with the game's two greens."),
 )
@@ -543,9 +543,9 @@ def render_dungeon_feature(
 
     def add_ceiling_hole() -> None:
         group = assets.group(
-            "Pad_Trigger.gfx",
-            "Pad_Trigger.offsets",
-            "Pad_Trigger.positions",
+            "Ceiling_Hole.gfx",
+            "Ceiling_Hole.offsets",
+            "Ceiling_Hole.positions",
         )
         operation = _centred_operation(group, view_cell)
         if operation is not None:
@@ -553,9 +553,9 @@ def render_dungeon_feature(
 
     def add_trigger_pad(replacements: Sequence[int]) -> None:
         group = assets.group(
-            "Pad_Pit_High.gfx",
-            "Pad_Pit.offsets",
-            "Pad_Pit_Low.positions",
+            "Trigger_Pad.gfx",
+            "FloorPit_TriggerPad.offsets",
+            "FloorPit_TriggerPad.positions",
         )
         operation = _centred_operation(
             group,
@@ -668,9 +668,9 @@ def render_dungeon_feature(
             )
         elif feature.key == "pit":
             group = assets.group(
-                "Pad_Pit_Low.gfx",
-                "Pad_Pit.offsets",
-                "Pad_Pit_Low.positions",
+                "Floor_Pit.gfx",
+                "FloorPit_TriggerPad.offsets",
+                "FloorPit_TriggerPad.positions",
             )
             operation = _centred_operation(group, view_cell)
         elif feature.key == "pad":

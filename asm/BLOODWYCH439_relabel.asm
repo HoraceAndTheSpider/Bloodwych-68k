@@ -14223,22 +14223,22 @@ adrCd0094F8:
 	btst	#$02,d1	;08010002
 	beq.s	adrCd009522	;671E
 	movem.l	d1/d6,-(sp)	;48E74200
-	lea	GFX_Pad_Trigger.l,a1	;43F900031F68
-	lea	GFX_Pad_Trigger_Positions.l,a2	;45F90000BF62
-	lea	GFX_Pad_Trigger_Offsets.l,a0	;41F900018C66
+	lea	GFX_Ceiling_Hole.l,a1	;43F900031F68
+	lea	GFX_Ceiling_Hole_Positions.l,a2	;45F90000BF62
+	lea	GFX_Ceiling_Hole_Offsets.l,a0	;41F900018C66
 	bsr	adrCd0095B4	;61000098
 	movem.l	(sp)+,d1/d6	;4CDF0042
 adrCd009522:
-	lea	GFX_Pad_Pit_Offsets.l,a0	;41F900018C4E
-	lea	GFX_Pad_Pit_Low_Positions.l,a2	;45F90000BF16
-	lea	GFX_Pit_Low.l,a1	;43F900031AD8
+	lea	GFX_FloorPit_TriggerPad_Offsets.l,a0	;41F900018C4E
+	lea	GFX_FloorPit_TriggerPad_Positions.l,a2	;45F90000BF16
+	lea	GFX_Floor_Pit.l,a1	;43F900031AD8
 	and.w	#$0003,d1	;02410003
 	beq.s	adrCd009560	;6726
 	cmpi.w	#$0003,d1	;0C410003
 	beq.s	adrCd009560	;6720
 	btst	#$00,d1	;08010000
 	bne.s	adrCd00955E	;6618
-	lea	GFX_Pit_High.l,a1	;43F900031D20
+	lea	GFX_Trigger_Pad.l,a1	;43F900031D20
 	move.w	#$FFFF,Buffer_Colour_Mask_Toggle.l	;33FCFFFF0000B4BE
 	bsr.s	adrCd0095B4	;615E
 	clr.w	Buffer_Colour_Mask_Toggle.l	;42790000B4BE
@@ -19615,7 +19615,8 @@ GFX_Main_Switches_Positions:
 	dc.w	$0008	;0008
 	dc.w	$181C	;181C
 	dc.w	$000C	;000C
-GFX_Pad_Pit_Low_Positions:
+GFX_FloorPit_TriggerPad_Positions:
+	; ReSource: Shared projected positions for floor pits and trigger pads, including the current-player square.
 	dc.w	$002A	;002A
 	dc.w	$0000	;0000
 	dc.w	$082A	;082A
@@ -19654,7 +19655,8 @@ GFX_Pad_Pit_Low_Positions:
 	dc.w	$0305	;0305
 	dc.w	$1049	;1049
 	dc.w	$0302	;0302
-GFX_Pad_Trigger_Positions:
+GFX_Ceiling_Hole_Positions:
+	; ReSource: Projected ceiling-hole positions, including the current-player square.
 	dc.w	$0016	;0016
 	dc.w	$0000	;0000
 	dc.w	$0816	;0816
@@ -44837,7 +44839,8 @@ GFX_Main_Switches_Offsets:
 	dc.w	$01D0	;01D0
 	dc.w	$0208	;0208
 	dc.w	$0250	;0250
-GFX_Pad_Pit_Offsets:
+GFX_FloorPit_TriggerPad_Offsets:
+	; ReSource: Shared picture offsets for floor-pit and trigger-pad artwork.
 	dc.w	$0000	;0000
 	dc.w	$0008	;0008
 	dc.w	$0018	;0018
@@ -44850,7 +44853,8 @@ GFX_Pad_Pit_Offsets:
 	dc.w	$00F8	;00F8
 	dc.w	$0128	;0128
 	dc.w	$01E8	;01E8
-GFX_Pad_Trigger_Offsets:
+GFX_Ceiling_Hole_Offsets:
+	; ReSource: Picture offsets for ceiling-hole artwork.
 	dc.w	$0000	;0000
 	dc.w	$0008	;0008
 	dc.w	$0018	;0018
@@ -95094,7 +95098,8 @@ GFX_Door_PortCullis:
 	dc.w	$FFFF	;FFFF
 	dc.w	$FFFF	;FFFF
 	dc.w	$FFFF	;FFFF
-GFX_Pit_Low:
+GFX_Floor_Pit:
+	; ReSource: Floor-pit artwork used for type-6 floor holes.
 	dc.w	$007F	;007F
 	dc.w	$007F	;007F
 	dc.w	$007F	;007F
@@ -95387,7 +95392,8 @@ GFX_Pit_Low:
 	dc.w	$DF9F	;DF9F
 	dc.w	$000F	;000F
 	dc.w	$000F	;000F
-GFX_Pit_High:
+GFX_Trigger_Pad:
+	; ReSource: Recolourable trigger-pad template, also reused by Firepath.
 	dc.w	$B7FF	;B7FF
 	dc.w	$07FF	;07FF
 	dc.w	$47FF	;47FF
@@ -95680,7 +95686,8 @@ GFX_Pit_High:
 	dc.w	$0007	;0007
 	dc.w	$9FE7	;9FE7
 	dc.w	$74E7	;74E7
-GFX_Pad_Trigger:
+GFX_Ceiling_Hole:
+	; ReSource: Ceiling-hole artwork; may coexist with a floor pit or trigger pad.
 	dc.w	$007F	;007F
 	dc.w	$007F	;007F
 	dc.w	$007F	;007F

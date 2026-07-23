@@ -13572,22 +13572,22 @@ adrCd0094F8:
 	btst	#$02,d1	;08010002
 	beq.s	adrCd009522	;671E
 	movem.l	d1/d6,-(sp)	;48E74200
-	lea	GFX_Pad_Trigger.l,a1	;43F900031F68
-	lea	GFX_Pad_Trigger_Positions.l,a2	;45F90000BF62
-	lea	GFX_Pad_Trigger_Offsets.l,a0	;41F900018C66
+	lea	GFX_Ceiling_Hole.l,a1	;43F900031F68
+	lea	GFX_Ceiling_Hole_Positions.l,a2	;45F90000BF62
+	lea	GFX_Ceiling_Hole_Offsets.l,a0	;41F900018C66
 	bsr	adrCd0095B4	;61000098
 	movem.l	(sp)+,d1/d6	;4CDF0042
 adrCd009522:
-	lea	GFX_Pad_Pit_Offsets.l,a0	;41F900018C4E
-	lea	GFX_Pad_Pit_Low_Positions.l,a2	;45F90000BF16
-	lea	GFX_Pit_Low.l,a1	;43F900031AD8
+	lea	GFX_FloorPit_TriggerPad_Offsets.l,a0	;41F900018C4E
+	lea	GFX_FloorPit_TriggerPad_Positions.l,a2	;45F90000BF16
+	lea	GFX_Floor_Pit.l,a1	;43F900031AD8
 	and.w	#$0003,d1	;02410003
 	beq.s	adrCd009560	;6726
 	cmpi.w	#$0003,d1	;0C410003
 	beq.s	adrCd009560	;6720
 	btst	#$00,d1	;08010000
 	bne.s	adrCd00955E	;6618
-	lea	GFX_Pit_High.l,a1	;43F900031D20
+	lea	GFX_Trigger_Pad.l,a1	;43F900031D20
 	move.w	#$FFFF,Buffer_Colour_Mask_Toggle.l	;33FCFFFF0000B4BE
 	bsr.s	adrCd0095B4	;615E
 	clr.w	Buffer_Colour_Mask_Toggle.l	;42790000B4BE
@@ -17299,10 +17299,12 @@ GFX_Main_Slots_Positions:
 	INCBIN "/data/BLOODWYCH439-clean/gfx/Main_Slots.positions"
 GFX_Main_Switches_Positions:
 	INCBIN "/data/BLOODWYCH439-clean/gfx/Main_Switches.positions"
-GFX_Pad_Pit_Low_Positions:
-	INCBIN "/data/BLOODWYCH439-clean/gfx/Pad_Pit_Low.positions"
-GFX_Pad_Trigger_Positions:
-	INCBIN "/data/BLOODWYCH439-clean/gfx/Pad_Trigger.positions"
+GFX_FloorPit_TriggerPad_Positions:
+	; ReSource: Shared projected positions for floor pits and trigger pads, including the current-player square.
+	INCBIN "/data/BLOODWYCH439-clean/gfx/FloorPit_TriggerPad.positions"
+GFX_Ceiling_Hole_Positions:
+	; ReSource: Projected ceiling-hole positions, including the current-player square.
+	INCBIN "/data/BLOODWYCH439-clean/gfx/Ceiling_Hole.positions"
 GFX_Wooden_Doors_Positions:
 	INCBIN "/data/BLOODWYCH439-clean/gfx/Wooden_Doors.positions"
 
@@ -23030,10 +23032,12 @@ GFX_Door_Offsets:
 	INCBIN "/data/BLOODWYCH439-clean/gfx/Door.offsets"
 GFX_Main_Switches_Offsets:
 	INCBIN "/data/BLOODWYCH439-clean/gfx/Main_Switches.offsets"
-GFX_Pad_Pit_Offsets:
-	INCBIN "/data/BLOODWYCH439-clean/gfx/Pad_Pit.offsets"
-GFX_Pad_Trigger_Offsets:
-	INCBIN "/data/BLOODWYCH439-clean/gfx/Pad_Trigger.offsets"
+GFX_FloorPit_TriggerPad_Offsets:
+	; ReSource: Shared picture offsets for floor-pit and trigger-pad artwork.
+	INCBIN "/data/BLOODWYCH439-clean/gfx/FloorPit_TriggerPad.offsets"
+GFX_Ceiling_Hole_Offsets:
+	; ReSource: Picture offsets for ceiling-hole artwork.
+	INCBIN "/data/BLOODWYCH439-clean/gfx/Ceiling_Hole.offsets"
 GameFont:
 	INCBIN "/data/BLOODWYCH439-clean/gfx/GameFont"
 GFX_ButtonHighlights:
@@ -23154,12 +23158,15 @@ GFX_Door_Metal:
 	INCBIN "/data/BLOODWYCH439-clean/gfx/Door_Metal.gfx"
 GFX_Door_PortCullis:
 	INCBIN "/data/BLOODWYCH439-clean/gfx/Door_PortCullis.gfx"
-GFX_Pit_Low:
-	INCBIN "/data/BLOODWYCH439-clean/gfx/Pad_Pit_Low.gfx"
-GFX_Pit_High:
-	INCBIN "/data/BLOODWYCH439-clean/gfx/Pad_Pit_High.gfx"
-GFX_Pad_Trigger:
-	INCBIN "/data/BLOODWYCH439-clean/gfx/Pad_Trigger.gfx"
+GFX_Floor_Pit:
+	; ReSource: Floor-pit artwork used for type-6 floor holes.
+	INCBIN "/data/BLOODWYCH439-clean/gfx/Floor_Pit.gfx"
+GFX_Trigger_Pad:
+	; ReSource: Recolourable trigger-pad template, also reused by Firepath.
+	INCBIN "/data/BLOODWYCH439-clean/gfx/Trigger_Pad.gfx"
+GFX_Ceiling_Hole:
+	; ReSource: Ceiling-hole artwork; may coexist with a floor pit or trigger pad.
+	INCBIN "/data/BLOODWYCH439-clean/gfx/Ceiling_Hole.gfx"
 GFX_FloorCeiling:
 	INCBIN "/data/BLOODWYCH439-clean/gfx/FloorCeiling.gfx"
 GFX_ObjectsOnFloor:

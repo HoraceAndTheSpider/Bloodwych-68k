@@ -193,11 +193,15 @@ Map type 6 contains independent floor and ceiling information. The ceiling bit
 is processed first, so a ceiling hole can coexist with either a floor pit or a
 trigger pad.
 
-The extracted filenames are historically easy to misread:
+The extracted resources are named for what the renderer draws:
 
-* `Pad_Trigger.gfx` is the **ceiling-hole** artwork;
-* `Pad_Pit_High.gfx` is the recolourable **trigger-pad** template;
-* `Pad_Pit_Low.gfx` is the **floor-pit** artwork.
+* `Ceiling_Hole.gfx` is the ceiling-hole artwork;
+* `Trigger_Pad.gfx` is the recolourable trigger-pad template;
+* `Floor_Pit.gfx` is the floor-pit artwork.
+
+Floor pits and trigger pads share `FloorPit_TriggerPad.offsets` and
+`FloorPit_TriggerPad.positions`. Ceiling holes use their own
+`Ceiling_Hole.offsets` and `Ceiling_Hole.positions`.
 
 The ordinary trigger pad uses the immediate replacement mask `[1,5,4,6]` set
 by the type-6 preparation routine at `$0094DC`.
@@ -214,7 +218,7 @@ The two final inside-view pictures revealed short historical extraction sizes:
 | Resource | Start | Correct SPS 439 size | Previous size |
 |---|---:|---:|---:|
 | `Door_Open.gfx` | `$02D2DC` | `$1B68` (7016) | `$1B60` (7008) |
-| `Pad_Trigger.gfx` | `$031BE4` | `$01B8` (440) | `$0190` (400) |
+| `Ceiling_Hole.gfx` | `$031BE4` | `$01B8` (440) | `$0190` (400) |
 
 Both corrected sizes end exactly at the next labelled resource. The omitted
 eight and forty bytes previously remained as raw `dc.w` lines in

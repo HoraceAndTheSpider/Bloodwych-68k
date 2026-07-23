@@ -225,11 +225,11 @@ class DungeonAssetTests(unittest.TestCase):
         )
         self.assertEqual(
             [item["source"] for item in pad_metadata["operations"]],
-            ["Pad_Pit_High.gfx"],
+            ["Trigger_Pad.gfx"],
         )
         self.assertEqual(
             [item["source"] for item in ceiling_metadata["operations"]],
-            ["Pad_Trigger.gfx"],
+            ["Ceiling_Hole.gfx"],
         )
 
     def test_floor_feature_can_coexist_with_a_ceiling_hole(self) -> None:
@@ -243,7 +243,7 @@ class DungeonAssetTests(unittest.TestCase):
         )
         self.assertEqual(
             [item["source"] for item in metadata["operations"]],
-            ["Pad_Trigger.gfx", "Pad_Pit_High.gfx"],
+            ["Ceiling_Hole.gfx", "Trigger_Pad.gfx"],
         )
 
     def test_current_cell_wood_front_edge_matches_nearest_south_edge(self) -> None:
@@ -304,7 +304,7 @@ class DungeonAssetTests(unittest.TestCase):
         )
         self.assertEqual(
             [(item["source"], item["source_index"]) for item in metadata["operations"]],
-            [("Pad_Trigger.gfx", 11), ("Pad_Pit_High.gfx", 11)],
+            [("Ceiling_Hole.gfx", 11), ("Trigger_Pad.gfx", 11)],
         )
 
     def test_current_cell_stairs_use_dedicated_inside_picture(self) -> None:
@@ -422,7 +422,7 @@ class DungeonAssetTests(unittest.TestCase):
 
     def test_magic_locations_reuse_source_rendering_primitives(self) -> None:
         expected_sources = {
-            "firepath": "Pad_Pit_High.gfx",
+            "firepath": "Trigger_Pad.gfx",
             "mindrock": "Main_Walls.gfx",
             "formwall": "Main_Walls.gfx",
         }
