@@ -13,13 +13,20 @@ from .resource_layout import (
     data_action,
     resource_layouts,
 )
+from .resource_aliases import insert_temporary_aliases
 from .source_comments import apply_source_comments
+from .source_rules import (
+    apply_source_rules,
+    insert_generated_equates,
+    load_source_metadata,
+)
 from .tool_common import ToolError, asm_path, load_segments, require_columns
 
 
 def relabel_segments(master: str, sheet: str | Path) -> Path:
     frame = load_segments(sheet, master)
     require_columns(frame, ("label", "relabel"))
+    equates, source_rules = load_source_metadata(sheet, master)
 
     original = asm_path(master, "source")
     if not original.is_file():
@@ -101,7 +108,10 @@ def relabel_segments(master: str, sheet: str | Path) -> Path:
         lines = [re.sub(reference_pattern, new_label, line) for line in lines]
         print(f"Relabeled '{label}' to '{new_label}'")
 
+    lines = apply_source_rules(lines, equates, source_rules)
+    lines = insert_generated_equates(lines, equates)
     lines = apply_source_comments(lines, frame)
+    lines = insert_temporary_aliases(lines, layouts)
     destination.write_text("\n".join(lines) + "\n", encoding="utf-8")
     print(f"Saved relabeled ASM to '{destination}'")
     return destination

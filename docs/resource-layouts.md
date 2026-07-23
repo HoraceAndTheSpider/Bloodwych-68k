@@ -51,6 +51,15 @@ The relabel process now has explicit passes:
 2. `_offset_..._0x...` conversions.
 3. Ordinary relabels, `data_start` anchors, and `data_append` rows that name a
    distinct internal source label.
+4. Temporary EQU aliases for `data_append` output labels whose rows repeat the
+   group anchor and therefore have no original source label.
+
+The aliases are derived from the component offsets, so `_relabel.asm` can
+reference later component names and still compile before INCBIN generation.
+When `inspect` successfully replaces that group, it removes the temporary
+aliases because the emitted INCBIN layout now defines real labels with those
+names. If the group is rejected, its aliases remain and the retained source
+continues to compile.
 
 `_delete` still removes only a label-definition line; it does not delete the
 following data. Grouped resource layouts do not require `_delete` rows because

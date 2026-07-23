@@ -105,7 +105,13 @@ class InspectSourceTests(unittest.TestCase):
                 "Old_Internal_2:\n"
                 "\tdc.b\t$05,$06,$07\n"
                 "After:\n"
-                "\trts\n",
+                "\trts\n"
+                "Beholder_UpperEyes:\t\tequ\tBeholder_Body+$2"
+                "\t; ReSource: temporary data_append alias\n"
+                "Beholder_CentralEye_Near:\t\tequ\tBeholder_Body+$4"
+                "\t; ReSource: temporary data_append alias\n"
+                "Beholder_CentralEye_Far:\t\tequ\tBeholder_Body+$5"
+                "\t; ReSource: temporary data_append alias\n",
                 encoding="utf-8",
             )
             files = {
@@ -186,6 +192,7 @@ class InspectSourceTests(unittest.TestCase):
             )
             self.assertNotIn("Old_Internal_1:", generated)
             self.assertNotIn("Old_Internal_2:", generated)
+            self.assertNotIn("temporary data_append alias", generated)
             self.assertIn("After:\n\trts", generated)
 
     def test_symbolic_dc_expression_uses_resource_comment_bytes(self) -> None:
@@ -244,7 +251,9 @@ class InspectSourceTests(unittest.TestCase):
             clean_dir.mkdir()
             relabel_source = root / "GAME_relabel.asm"
             relabel_source.write_text(
-                "Combined:\n\tdc.b\t$01,$02\nAfter:\n\trts\n",
+                "Combined:\n\tdc.b\t$01,$02\nAfter:\n\trts\n"
+                "Second:\t\tequ\tCombined+$2"
+                "\t; ReSource: temporary data_append alias\n",
                 encoding="utf-8",
             )
             (clean_dir / "one.bin").write_bytes(b"\x01")
@@ -288,6 +297,7 @@ class InspectSourceTests(unittest.TestCase):
             generated = output_path.read_text(encoding="utf-8")
             self.assertIn("Combined:\n\tdc.b\t$01,$02", generated)
             self.assertNotIn("INCBIN", generated)
+            self.assertIn("temporary data_append alias", generated)
 
     def test_group_is_retained_when_removed_internal_label_is_still_referenced(self) -> None:
         with tempfile.TemporaryDirectory() as temporary_directory:

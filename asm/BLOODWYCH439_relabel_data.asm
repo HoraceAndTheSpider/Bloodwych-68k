@@ -38,6 +38,11 @@ wd_SIZEOF:		equ	$00000088
 dsklen:			equ	$00000024
 ac_len:			equ	$00000004
 ciacra:			equ	$00000E00
+; ReSource: generated EQU definitions from segments.xlsx/EQUATES
+DiskReadTimeoutCount:		equ	$000186A0
+	; ReSource: Disk-read timeout counter used while waiting for DMA completion.
+; ReSource: end generated EQU definitions
+
 ****************************************************************************
 
 ; Fixed for Devpac:
@@ -568,7 +573,7 @@ adrLp000A08:
 	bmi	Trigger_00_t00_Null	;6B0065D8
 	add.w	d1,d0	;D041
 	asl.w	#$08,d0	;E140
-	lea	TheMonsterBlock.l,a3	;47F900017584
+	lea	MonsterBlock_mod0.l,a3	;47F900017584
 	add.w	d0,a3	;D6C0
 	moveq	#$00,d4	;7800
 .FillMonstersLoop:
@@ -1684,7 +1689,7 @@ adrCd0016A0:
 	tst.w	d2	;4A42
 	bmi.s	adrCd0016BE	;6B18
 	move.l	a4,d0	;200C
-	sub.l	#TheMonsterBlock,d0	;048000017584
+	sub.l	#MonsterBlock_mod0,d0	;048000017584
 	lsr.w	#$04,d0	;E848
 	add.b	$000B(a4),d0	;D02C000B
 	add.b	$0006(a4),d0	;D02C0006
@@ -10778,7 +10783,7 @@ adrCd007974:
 	add.w	d0,d0	;D040
 	add.w	d0,d1	;D240
 	asl.w	#$08,d1	;E141
-	lea	TheMonsterBlock.l,a3	;47F900017584
+	lea	MonsterBlock_mod0.l,a3	;47F900017584
 	add.w	d1,a3	;D6C1
 	lea	UnpackedMonsters.l,a4	;49F900016B7E
 	move.w	-$0002(a4),d1	;322CFFFE
@@ -12223,7 +12228,7 @@ adrCd0087EA:
 	beq.s	adrCd0087EA	;67F4
 	move.w	#$9F40,_custom+dsklen.l	;33FC9F4000DFF024
 	move.w	#$9F40,_custom+dsklen.l	;33FC9F4000DFF024
-	move.l	#adrL_0186A0,d1	;223C000186A0
+	move.l	#DiskReadTimeoutCount,d1	;223C000186A0
 adrCd00880C:
 	move.w	_custom+intreqr.l,d0	;303900DFF01E
 	btst	#$01,d0	;08000001
@@ -13101,18 +13106,18 @@ adrCd00905C:
 	move.l	-$0004(a3),d7	;2E2BFFFC
 	bsr	CoordToMap	;6100F42E
 	btst	#$05,$01(a6,d0.w)	;083600050001
-	beq.s	adrCd0090D4	;675C
+	beq.s	Draw_DungeonViewport	;675C
 	bsr	adrCd005F4E	;6100CED4
 	move.w	$0002(a0),d1	;32280002
 	move.w	d1,d0	;3001
 	and.w	#$0003,d1	;02410003
 	cmpi.w	#$0002,d1	;0C410002
-	bcc.s	adrCd0090D4	;6448
+	bcc.s	Draw_DungeonViewport	;6448
 	and.w	#$00FC,d0	;024000FC
 	cmpi.w	#$002C,d0	;0C40002C
 	bcc.s	adrCd00909C	;6406
 	cmpi.w	#$0020,d0	;0C400020
-	bcc.s	adrCd0090D4	;6438
+	bcc.s	Draw_DungeonViewport	;6438
 adrCd00909C:
 	lsr.w	#$01,d0	;E248
 	add.w	d0,d1	;D240
@@ -13162,7 +13167,8 @@ adrB_0090AC:
 	dc.b	$0E	;0E
 	dc.b	$08	;08
 
-adrCd0090D4:
+Draw_DungeonViewport:
+	; ReSource: Scans the 19 relative dungeon cells, builds the visibility and occlusion masks, then draws the surviving cells.
 	move.l	screen_ptr.l,a0	;207900008D36
 	add.w	#$01EC,a0	;D0FC01EC
 	add.w	$000A(a5),a0	;D0ED000A
@@ -13180,7 +13186,7 @@ adrCd0090D4:
 	add.w	d1,d0	;D041
 	add.w	d1,d1	;D241
 	add.w	d1,d0	;D041
-	lea	adrEA00B8AE.l,a0	;41F90000B8AE
+	lea	Dungeon_ViewCell_RelativeCoordinates.l,a0	;41F90000B8AE
 	add.w	d0,a0	;D0C0
 	move.l	a0,-$0010(a3)	;2748FFF0
 	move.l	adrW_00EE70.l,d1	;22390000EE70
@@ -13259,8 +13265,8 @@ adrCd0091C4:
 	swap	d5	;4845
 	rol.l	#$03,d4	;E79C
 	swap	d4	;4844
-	lea	adrEA00B9DA.l,a6	;4DF90000B9DA
-	lea	adrEA00B98E.l,a4	;49F90000B98E
+	lea	Dungeon_ViewCell_VisibleFaceMasks+$48.l,a6	;4DF90000B9DA
+	lea	Dungeon_ViewCell_OcclusionMasks+$48.l,a4	;49F90000B98E
 	moveq	#$00,d7	;7E00
 	moveq	#-$01,d0	;70FF
 	moveq	#$12,d6	;7C12
@@ -13281,7 +13287,7 @@ adrCd009202:
 	btst	d6,d5	;0D05
 	beq.s	adrCd009212	;670C
 	movem.l	d5-d7,-(sp)	;48E70700
-	bsr	adrCd00921E	;61000012
+	bsr	Draw_DungeonViewCell	;61000012
 	movem.l	(sp)+,d5-d7	;4CDF00E0
 adrCd009212:
 	addq.w	#$01,d6	;5246
@@ -13290,7 +13296,8 @@ adrCd009212:
 	unlk	a3	;4E5B
 	rts	;4E75
 
-adrCd00921E:
+Draw_DungeonViewCell:
+	; ReSource: Resolves and draws one player-relative dungeon view cell.
 	move.b	d6,-$0016(a3)	;1746FFEA
 	move.l	-$0010(a3),a0	;206BFFF0
 	add.w	d6,d6	;DC46
@@ -13409,13 +13416,14 @@ GFX_StationarySpell_RenderLayout:
 
 adrCd009378:
 	and.w	#$0007,d1	;02410007
-	bne.s	adrCd009388	;660A
+	bne.s	Draw_DungeonLocation_ByType	;660A
 	tst.b	-$0011(a3)	;4A2BFFEF
 	bmi	adrCd0099F0	;6B00066C
 	rts	;4E75
 
-adrCd009388:
-	lea	adrEA00B9F2.l,a6	;4DF90000B9F2
+Draw_DungeonLocation_ByType:
+	; ReSource: Dispatches the current map type and iterates its candidate wall faces.
+	lea	Dungeon_ViewCell_WallFaceSlots.l,a6	;4DF90000B9F2
 	add.w	d6,d6	;DC46
 	add.w	d6,a6	;DCC6
 	moveq	#$03,d5	;7A03
@@ -13426,7 +13434,7 @@ adrCd009388:
 	subq.b	#$01,d1	;5301
 	beq	adrCd00956A	;670001CA
 	cmpi.b	#$03,d1	;0C010003
-	beq	adrCd0094DC	;67000134
+	beq	Set_TriggerPad_ColourMask	;67000134
 	cmpi.b	#$04,d1	;0C010004
 	beq	adrCd009496	;670000E6
 	move.b	d1,-$0013(a3)	;1741FFED
@@ -13444,7 +13452,7 @@ adrLp0093C2:
 	beq.s	adrCd00943A	;676E
 	clr.b	-$0014(a3)	;422BFFEC
 	clr.b	-$0015(a3)	;422BFFEB
-	bsr	adrCd0095D4	;610001FE
+	bsr	Resolve_DungeonWallFaceDirection	;610001FE
 	tst.b	-$0013(a3)	;4A2BFFED
 	bmi.s	adrCd0093E4	;6B06
 	beq.s	adrCd009440	;6760
@@ -13481,7 +13489,7 @@ adrCd009412:
 	move.b	d0,-$0015(a3)	;1740FFEB
 adrCd00942E:
 	movem.l	d5/a6,-(sp)	;48E70402
-	bsr	adrCd00B3D8	;61001FA4
+	bsr	Draw_WoodenWallOrDoorFace	;61001FA4
 	movem.l	(sp)+,d5/a6	;4CDF4020
 adrCd00943A:
 	dbra	d5,adrLp0093C2	;51CDFF86
@@ -13507,17 +13515,17 @@ adrCd009440:
 	subq.b	#$01,-$0015(a3)	;532BFFEB
 adrCd009474:
 	movem.l	d5/a6,-(sp)	;48E70402
-	bsr	adrCd00B074	;61001BFA
+	bsr	Draw_MainWallFace_ByPatternParity	;61001BFA
 	movem.l	(sp)+,d5/a6	;4CDF4020
 	bra.s	adrCd00943A	;60B8
 
 adrCd009482:
 	bsr	adrCd0099DC	;61000558
-	bmi	adrCd00B2DE	;6B001E56
+	bmi	Draw_Main_Door_Or_Stairs	;6B001E56
 	btst	d1,d7	;0307
-	beq	adrCd00B2DE	;67001E50
+	beq	Draw_Main_Door_Or_Stairs	;67001E50
 	move.w	d1,d6	;3C01
-	bra	adrCd00B2DE	;60001E4A
+	bra	Draw_Main_Door_Or_Stairs	;60001E4A
 
 adrCd009496:
 	move.b	-$0012(a3),d1	;122BFFEE
@@ -13540,15 +13548,15 @@ adrCd0094B4:
 adrCd0094BC:
 	bsr	RandomGen_BytewithOffset	;6100C0EE
 	and.w	#$0004,d0	;02400004
-	move.l	adrL_0094D4(pc,d0.w),Buffer_Colour_Mask.l	;23FB000E0000B4C0
+	move.l	GFX_Firepath_ColourMasks(pc,d0.w),Buffer_Colour_Mask.l	;23FB000E0000B4C0
 	move.b	#$02,-$0012(a3)	;177C0002FFEE
 	bra.s	adrCd0094E6	;6012
 
-adrL_0094D4:
+GFX_Firepath_ColourMasks:
 	dc.l	$090C0B0D	;090C0B0D
 	dc.l	$090A0B0D	;090A0B0D
 
-adrCd0094DC:
+Set_TriggerPad_ColourMask:
 	move.l	#$01050406,Buffer_Colour_Mask.l	;23FC010504060000B4C0
 adrCd0094E6:
 	bsr	adrCd0099DC	;610004F4
@@ -13605,7 +13613,7 @@ adrCd00956A:
 	lea	GFX_Bed.l,a1	;43F900028C28
 	move.w	d0,d6	;3C00
 Draw_Wall_Sprite:
-	bsr	adrCd00B486	;61001EF4
+	bsr	Prepare_WallSpriteDraw	;61001EF4
 	swap	d3	;4843
 	move.l	a3,-(sp)	;2F0B
 	bsr	adrCd00B5CA	;61002030
@@ -13620,33 +13628,16 @@ Draw_Pillar:
 	move.w	d0,d6	;3C00
 adrCd0095B4:
 	moveq	#$00,d0	;7000
-	move.b	GFX_Misc_Pillar_SpriteTable(pc,d6.w),d0	;103B6008
+	move.b	GFX_CentredDungeonComponent_SpriteMirrorTable(pc,d6.w),d0	;103B6008
 	bpl.s	Draw_Wall_Sprite	;6AD4
 	bra	Flip_Sprite	;60001E70
 
-GFX_Misc_Pillar_SpriteTable:
-	dc.b	$00	;00
-	dc.b	$01	;01
-	dc.b	$02	;02
-	dc.b	$03	;03
-	dc.b	$04	;04
-	dc.b	$05	;05
-	dc.b	$06	;06
-	dc.b	$80	;80
-	dc.b	$81	;81
-	dc.b	$82	;82
-	dc.b	$83	;83
-	dc.b	$84	;84
-	dc.b	$85	;85
-	dc.b	$86	;86
-	dc.b	$07	;07
-	dc.b	$08	;08
-	dc.b	$09	;09
-	dc.b	$0A	;0A
-	dc.b	$0B	;0B
-	dc.b	$0C	;0C
+GFX_CentredDungeonComponent_SpriteMirrorTable:
+	; ReSource: Maps the 19 viewport cells to centred dungeon sprite numbers; bit 7 selects horizontal mirroring. The twentieth byte is spare.
+	INCBIN "/data/BLOODWYCH439-clean/gfx-data/Dungeon_CentredComponents.lookup"
 
-adrCd0095D4:
+Resolve_DungeonWallFaceDirection:
+	; ReSource: Converts the current candidate face and player facing into the corresponding N/E/S/W direction.
 	move.w	d5,d1	;3205
 	cmp.b	#$07,-$0016(a3)	;0C2B0007FFEA
 	bcc.s	adrCd0095EA	;640C
@@ -14243,7 +14234,7 @@ adrB_0099D4:
 adrCd0099DC:
 	moveq	#$00,d0	;7000
 	moveq	#$00,d1	;7200
-	lea	adrEA00B9DE.l,a0	;41F90000B9DE
+	lea	Dungeon_ViewCell_CentredSlots.l,a0	;41F90000B9DE
 	move.b	-$0016(a3),d0	;102BFFEA
 	move.b	$00(a0,d0.w),d1	;12300000
 adrCd0099EE:
@@ -15112,7 +15103,7 @@ adrCd00A356:
 	lsr.w	#$01,d2	;E24A
 	add.w	d1,d2	;D441
 	add.w	d1,d2	;D441
-	add.b	adrB_00A39C(pc,d2.w),d4	;D83B2022
+	add.b	GFX_Dragon_Side_XPositions(pc,d2.w),d4	;D83B2022
 adrCd00A37C:
 	lea	Monster_Dragon_Colours.l,a0	;41F90000A3A6
 	bsr	MonsterColourGrading	;6100FB10
@@ -15123,17 +15114,9 @@ adrCd00A37C:
 adrCd00A39A:
 	rts	;4E75
 
-adrB_00A39C:
-	dc.b	$FD	;FD
-	dc.b	$F5	;F5
-	dc.b	$FD	;FD
-	dc.b	$F1	;F1
-	dc.b	$FE	;FE
-	dc.b	$F2	;F2
-	dc.b	$FE	;FE
-	dc.b	$FA	;FA
-	dc.b	$FF	;FF
-	dc.b	$F6	;F6
+GFX_Dragon_Side_XPositions:
+	; ReSource: Additional horizontal shifts for side-facing Dragons by size group and side.
+	INCBIN "/data/BLOODWYCH439-clean/monsters/Dragon_Side_X.positions"
 Monster_Dragon_Colours:
 	INCBIN "/data/BLOODWYCH439-clean/monsters/dragon.colours"
 
@@ -15309,19 +15292,15 @@ adrCd00A488:
 	bne.s	adrCd00A4CC	;6612
 	moveq	#-$01,d6	;7CFF
 	movem.w	d0/d1/d4/d5,-(sp)	;48A7CC00
-	add.b	adrB_00A4CE(pc,d1.w),d4	;D83B100C
+	add.b	GFX_Dragon_MirroredHalf_XPositions(pc,d1.w),d4	;D83B100C
 	bsr	Draw_Monster_CompositeBitmap	;61000204
 	movem.w	(sp)+,d0/d1/d4/d5	;4C9F0033
 adrCd00A4CC:
 	rts	;4E75
 
-adrB_00A4CE:
-	dc.b	$20	;20
-	dc.b	$0E	;0E
-	dc.b	$10	;10
-	dc.b	$07	;07
-	dc.b	$04	;04
-	dc.b	$00	;00
+GFX_Dragon_MirroredHalf_XPositions:
+	; ReSource: Horizontal spacing used when the Dragon body is completed by drawing a mirrored second half.
+	INCBIN "/data/BLOODWYCH439-clean/monsters/Dragon_MirroredHalf_X.positions"
 adrEA00A4D4:
 	dc.w	$0000	;0000
 	dc.w	$0320	;0320
@@ -16532,14 +16511,15 @@ Bitplane_Mask:
 	dc.w	$FFFF	;FFFF
 	dc.w	$FFFF	;FFFF
 
-adrCd00B074:
+Draw_MainWallFace_ByPatternParity:
+	; ReSource: Dispatches one main-wall face through the ordinary or lookup-selected/bit-reversed path according to (player X + player Y + facing) & 1.
 	tst.w	-$000C(a3)	;4A6BFFF4
-	bne	adrCd00B2A4	;6600022A
+	bne	Draw_MainWallFace	;6600022A
 	move.w	d6,d0	;3006
-	bsr	adrCd00B474	;610003F4
+	bsr	Select_MainWallGraphicTables	;610003F4
 	swap	d3	;4843
 	move.l	a3,-(sp)	;2F0B
-	bsr	adrCd00B4E0	;61000458
+	bsr	Draw_WallComponent_Transformed	;61000458
 	move.l	(sp)+,a3	;265F
 Draw_Main_Object_Overlay:
 	tst.b	-$0015(a3)	;4A2BFFEB
@@ -16556,14 +16536,14 @@ Draw_Main_Object_Overlay:
 	lea	GFX_Main_Slots_Palette.l,a6	;4DF90000B204
 	move.b	-$0012(a3),d1	;122BFFEE
 	lsr.w	#$03,d1	;E649
-	bsr	adrCd00B1D4	;6100010C
+	bsr	Load_WallOverlay_ColourMask	;6100010C
 	btst	#$02,-$0012(a3)	;082B0002FFEE
 	beq.s	adrCd00B0D4	;6702
 	clr.b	d0	;4200
 adrCd00B0D4:
 	move.l	d0,Buffer_Colour_Mask.l	;23C00000B4C0
 	move.w	#$FFFF,Buffer_Colour_Mask_Toggle.l	;33FCFFFF0000B4BE
-	bsr	adrCd00B410	;6100032C
+	bsr	Draw_WallComponentFace	;6100032C
 	clr.w	Buffer_Colour_Mask_Toggle.l	;42790000B4BE
 	rts	;4E75
 
@@ -16575,7 +16555,7 @@ Draw_Main_Switch_Overlay:
 	move.b	-$0012(a3),d1	;122BFFEE
 	and.w	#$00F8,d1	;024100F8
 	beq.s	adrCd00B122	;6716
-	bsr	adrCd00B1C6	;610000B8
+	bsr	Select_MainSwitch_ColourMask	;610000B8
 	btst	#$02,-$0012(a3)	;082B0002FFEE
 	beq.s	adrCd00B122	;670A
 	and.w	#$00FF,d0	;024000FF
@@ -16584,7 +16564,7 @@ Draw_Main_Switch_Overlay:
 adrCd00B122:
 	move.l	d0,Buffer_Colour_Mask.l	;23C00000B4C0
 	move.w	#$FFFF,Buffer_Colour_Mask_Toggle.l	;33FCFFFF0000B4BE
-	bsr	adrCd00B410	;610002DE
+	bsr	Draw_WallComponentFace	;610002DE
 	clr.w	Buffer_Colour_Mask_Toggle.l	;42790000B4BE
 	rts	;4E75
 
@@ -16600,15 +16580,15 @@ Draw_Main_Sign_Overlay:
 	cmpi.b	#$05,d1	;0C010005
 	bcc.s	adrCd00B16C	;6408
 	subq.b	#$01,d1	;5301
-	bsr	adrCd00B1D4	;6100006C
+	bsr	Load_WallOverlay_ColourMask	;6100006C
 	bra.s	adrCd00B16E	;6002
 
 adrCd00B16C:
-	bsr.s	adrCd00B1CC	;615E
+	bsr.s	Calculate_WallOverlay_ColourIndex	;615E
 adrCd00B16E:
 	move.l	d0,Buffer_Colour_Mask.l	;23C00000B4C0
 	move.w	#$FFFF,Buffer_Colour_Mask_Toggle.l	;33FCFFFF0000B4BE
-	bsr	adrCd00B410	;61000292
+	bsr	Draw_WallComponentFace	;61000292
 	clr.w	Buffer_Colour_Mask_Toggle.l	;42790000B4BE
 	move.w	(sp)+,d6	;3C1F
 	move.b	-$0012(a3),d1	;122BFFEE
@@ -16630,16 +16610,19 @@ adrCd00B1A4:
 	add.w	d1,a1	;D2C1
 	lea	GFX_Main_Signoverlay_Positions.l,a2	;45F90000BDC6
 	lea	GFX_Main_Signoverlay_Offsets.l,a0	;41F90000B284
-	bsr	adrCd00B410	;6100024E
+	bsr	Draw_WallComponentFace	;6100024E
 adrCd00B1C4:
 	rts	;4E75
 
-adrCd00B1C6:
+Select_MainSwitch_ColourMask:
+	; ReSource: Selects the switch colour table before falling through to the coordinate-derived colour-mask lookup.
 	lea	GFX_Switches_Colours.l,a6	;4DF90000B244
-adrCd00B1CC:
+Calculate_WallOverlay_ColourIndex:
+	; ReSource: Calculates map X plus map Y for generated signs, wall scrolls and non-zero switch colour selection.
 	move.b	-$0019(a3),d1	;122BFFE7
 	add.b	-$001A(a3),d1	;D22BFFE6
-adrCd00B1D4:
+Load_WallOverlay_ColourMask:
+	; ReSource: Masks the colour index to eight entries, multiplies it by four and loads the selected four-byte colour mask.
 	and.w	#$0007,d1	;02410007
 	asl.w	#$02,d1	;E541
 	move.l	$00(a6,d1.w),d0	;20361000
@@ -16654,11 +16637,13 @@ adrCd00B1EE:
 	lea	GFX_Main_Shelf_Offsets.l,a0	;41F900018B90
 	lea	GFX_Main_Shelf_Positions.l,a2	;45F90000BCE6
 	lea	GFX_Shelf.l,a1	;43F900025490
-	bra	adrCd00B410	;6000020E
+	bra	Draw_WallComponentFace	;6000020E
 
 GFX_Main_Slots_Palette:
+	; ReSource: Supplies the colour selections.
 	INCBIN "/data/BLOODWYCH439-clean/gfx/Main_Slots.colours"
 GFX_Main_Slots_Offsets:
+	; ReSource: Selects individual socket pictures.
 	INCBIN "/data/BLOODWYCH439-clean/gfx/Main_Slots.offsets"
 GFX_Switches_Colours:
 	INCBIN "/data/BLOODWYCH439-clean/gfx/Switches.colours"
@@ -16667,48 +16652,24 @@ GFX_Main_Sign_Colours:
 GFX_Main_Signoverlay_Offsets:
 	INCBIN "/data/BLOODWYCH439-clean/gfx/Main_SignOverlay.offsets"
 
-adrCd00B2A4:
+Draw_MainWallFace:
+	; ReSource: Selects and draws one projected stone-wall face. Selects the parity-1 main-wall picture using GFX_Main_Wall_SpriteTable and draws it through the bit-reversed path.
 	moveq	#$00,d0	;7000
 	move.b	GFX_Main_Wall_SpriteTable(pc,d6.w),d0	;103B6012
-	bsr	adrCd00B474	;610001C8
+	bsr	Select_MainWallGraphicTables	;610001C8
 	add.w	d3,a0	;D0C3
 	swap	d3	;4843
-	bsr	adrCd00B666	;610003B2
+	bsr	Draw_MainWall_Transformed	;610003B2
 	bra	Draw_Main_Object_Overlay	;6000FDD4
 
 GFX_Main_Wall_SpriteTable:
-	dc.b	$0C	;0C
-	dc.b	$0D	;0D
-	dc.b	$0E	;0E
-	dc.b	$0F	;0F
-	dc.b	$10	;10
-	dc.b	$11	;11
-	dc.b	$12	;12
-	dc.b	$13	;13
-	dc.b	$14	;14
-	dc.b	$15	;15
-	dc.b	$16	;16
-	dc.b	$17	;17
-	dc.b	$00	;00
-	dc.b	$01	;01
-	dc.b	$02	;02
-	dc.b	$03	;03
-	dc.b	$04	;04
-	dc.b	$05	;05
-	dc.b	$06	;06
-	dc.b	$07	;07
-	dc.b	$08	;08
-	dc.b	$09	;09
-	dc.b	$0A	;0A
-	dc.b	$0B	;0B
-	dc.b	$18	;18
-	dc.b	$19	;19
-	dc.b	$1A	;1A
-	dc.b	$1B	;1B
+	; ReSource: Maps each of the 28 projected wall-face slots to a picture in Main_Walls.gfx.
+	INCBIN "/data/BLOODWYCH439-clean/gfx-data/Dungeon_MainWall_SpriteSelection.lookup"
 Door_Lock_Colours:
 	INCBIN "/data/BLOODWYCH439-clean/data/Door_Lock.colours"
 
-adrCd00B2DE:
+Draw_Main_Door_Or_Stairs:
+	; ReSource: Applies the large-door lock mask and selects open, metal or portcullis artwork, or dispatches the shared stairs path.
 	cmp.b	#$01,-$0013(a3)	;0C2B0001FFED
 	beq	adrCd00B384	;6700009E
 	move.w	#$FFFF,Buffer_Colour_Mask_Toggle.l	;33FCFFFF0000B4BE
@@ -16750,7 +16711,7 @@ adrCd00B350:
 	addq.w	#$01,d6	;5246
 	addq.w	#$01,d0	;5240
 adrCd00B370:
-	bsr	adrCd00B458	;610000E6
+	bsr	Draw_WallComponent_TwoHalves	;610000E6
 adrCd00B374:
 	clr.w	Buffer_Colour_Mask_Toggle.l	;42790000B4BE
 	tst.b	-$0011(a3)	;4A2BFFEF
@@ -16774,24 +16735,25 @@ adrCd00B3B0:
 	move.w	d6,d0	;3006
 	add.w	#$000A,d6	;0646000A
 	subq.w	#$02,d0	;5540
-	bsr	adrCd00B458	;61000090
+	bsr	Draw_WallComponent_TwoHalves	;61000090
 	bra.s	adrCd00B3CE	;6002
 
 adrCd00B3CC:
-	bsr.s	adrCd00B410	;6142
+	bsr.s	Draw_WallComponentFace	;6142
 adrCd00B3CE:
 	tst.b	-$0011(a3)	;4A2BFFEF
 	bmi	adrCd0099F0	;6B00E61C
 	rts	;4E75
 
-adrCd00B3D8:
+Draw_WoodenWallOrDoorFace:
+	; ReSource: Selects a solid wooden wall, open doorway frame and optional closed-door overlay.
 	lea	GFX_WoodenWalls.l,a1	;43F90001F980
 	lea	GFX_Wooden_Wall_Offsets.l,a0	;41F900018B70
 	lea	GFX_Wooden_Wall_Positions.l,a2	;45F90000BAAE
 	tst.b	-$0014(a3)	;4A2BFFEC
 	beq.s	adrCd00B40E	;671E
 	add.w	#$2498,a1	;D2FC2498
-	bsr.s	adrCd00B410	;611A
+	bsr.s	Draw_WallComponentFace	;611A
 	tst.b	-$0015(a3)	;4A2BFFEB
 	beq.s	adrCd00B42C	;6730
 	lea	GFX_Wooden_Doors_Offsets.l,a0	;41F900018B50
@@ -16799,13 +16761,14 @@ adrCd00B3D8:
 	lea	GFX_WoodDoors.l,a1	;43F9000242B0
 adrCd00B40E:
 	nop	;4E71
-adrCd00B410:
+Draw_WallComponentFace:
+	; ReSource: Selects a wall-component picture and chooses its normal, mirrored or two-half drawing path.
 	moveq	#$00,d0	;7000
-	move.b	GFX_Wall_Signs_SpriteTable_TBC(pc,d6.w),d0	;103B6028
+	move.b	GFX_WallComponent_SpriteMirrorTable(pc,d6.w),d0	;103B6028
 	bmi.s	Flip_Sprite	;6B16
 	cmpi.b	#$0C,d0	;0C00000C
-	bcc	adrCd00B458	;6400003A
-	bsr.s	adrCd00B486	;6164
+	bcc	Draw_WallComponent_TwoHalves	;6400003A
+	bsr.s	Prepare_WallSpriteDraw	;6164
 	swap	d3	;4843
 	move.l	a3,-(sp)	;2F0B
 	bsr	adrCd00B5CA	;610001A2
@@ -16815,43 +16778,18 @@ adrCd00B42C:
 
 Flip_Sprite:
 	and.w	#$007F,d0	;0240007F
-	bsr.s	adrCd00B486	;6152
+	bsr.s	Prepare_WallSpriteDraw	;6152
 	add.w	d3,a0	;D0C3
 	swap	d3	;4843
-	bra	adrLp00B76E	;60000334
+	bra	Draw_WallSprite_BitReversed	;60000334
 
-GFX_Wall_Signs_SpriteTable_TBC:
-	dc.b	$00	;00
-	dc.b	$01	;01
-	dc.b	$02	;02
-	dc.b	$03	;03
-	dc.b	$04	;04
-	dc.b	$05	;05
-	dc.b	$06	;06
-	dc.b	$07	;07
-	dc.b	$08	;08
-	dc.b	$09	;09
-	dc.b	$0A	;0A
-	dc.b	$0B	;0B
-	dc.b	$80	;80
-	dc.b	$81	;81
-	dc.b	$82	;82
-	dc.b	$83	;83
-	dc.b	$84	;84
-	dc.b	$85	;85
-	dc.b	$86	;86
-	dc.b	$87	;87
-	dc.b	$88	;88
-	dc.b	$89	;89
-	dc.b	$8A	;8A
-	dc.b	$8B	;8B
-	dc.b	$0C	;0C
-	dc.b	$0D	;0D
-	dc.b	$0E	;0E
-	dc.b	$0F	;0F
+GFX_WallComponent_SpriteMirrorTable:
+	; ReSource: Maps the 28 wall-face slots to component pictures; bit 7 selects the horizontally mirrored drawing path.
+	INCBIN "/data/BLOODWYCH439-clean/gfx-data/Dungeon_WallComponents.lookup"
 
-adrCd00B458:
-	bsr.s	adrCd00B486	;612C
+Draw_WallComponent_TwoHalves:
+	; ReSource: Draws one source half and its reflected partner to construct a complete central component.
+	bsr.s	Prepare_WallSpriteDraw	;612C
 	swap	d3	;4843
 	movem.l	d1/d3/d5/a0/a1/a3,-(sp)	;48E754D0
 	bsr	adrCd00B5CA	;61000168
@@ -16859,13 +16797,15 @@ adrCd00B458:
 	add.w	#$0010,a0	;D0FC0010
 	add.w	d1,d1	;D241
 	sub.w	d1,a0	;90C1
-	bra	adrLp00B76E	;600002FC
+	bra	Draw_WallSprite_BitReversed	;600002FC
 
-adrCd00B474:
+Select_MainWallGraphicTables:
+	; ReSource: Selects the Main_Walls graphics, picture offsets and packed position tables.
 	lea	GFX_Main_Walls_Positions.l,a2	;45F90000BA3E
 	lea	GFX_Main_Walls_Offsets.l,a0	;41F900018ADE
 	lea	GFX_MainWalls.l,a1	;43F90001B050
-adrCd00B486:
+Prepare_WallSpriteDraw:
+	; ReSource: Resolves a picture offset and packed position into source pointer, destination pointer, width and height.
 	add.w	d0,d0	;D040
 	add.w	$00(a0,d0.w),a1	;D2F00000
 	move.w	d6,d0	;3006
@@ -16899,45 +16839,20 @@ Buffer_Colour_Mask:
 	dc.w	$0004	;0004
 	dc.b	$08	;08
 	dc.b	$0C	;0C
-adrEA00B4C4:
-	dc.b	$01	;01
-	dc.b	$05	;05
-	dc.b	$07	;07
-	dc.b	$05	;05
-	dc.b	$01	;01
-	dc.b	$01	;01
-	dc.b	$06	;06
-	dc.b	$01	;01
-	dc.b	$02	;02
-	dc.b	$05	;05
-	dc.b	$01	;01
-	dc.b	$01	;01
-	dc.b	$01	;01
-	dc.b	$05	;05
-	dc.b	$07	;07
-	dc.b	$05	;05
-	dc.b	$01	;01
-	dc.b	$01	;01
-	dc.b	$03	;03
-	dc.b	$01	;01
-	dc.b	$05	;05
-	dc.b	$05	;05
-	dc.b	$01	;01
-	dc.b	$01	;01
-	dc.b	$07	;07
-	dc.b	$07	;07
-	dc.b	$02	;02
-	dc.b	$07	;07
+GFX_WallComponent_DrawTransformFlags:
+	; ReSource: Per-face transformation flags used by wall components, wooden walls, doors and stairs. Bits 0 and 2 select edge passes; bit 1 selects the perspective centre path.
+	INCBIN "/data/BLOODWYCH439-clean/gfx-data/Dungeon_WallComponent_DrawTransform.flags"
 
-adrCd00B4E0:
-	lea	adrEA00B4C4.l,a2	;45F90000B4C4
+Draw_WallComponent_Transformed:
+	; ReSource: Applies wall-component transformation flags and perspective trimming.
+	lea	GFX_WallComponent_DrawTransformFlags.l,a2	;45F90000B4C4
 	add.w	d6,a2	;D4C6
 	btst	#$01,(a2)	;08120001
 	beq	adrCd00B5CA	;670000DC
 	swap	d6	;4846
 	btst	#$00,(a2)	;08120000
 	beq.s	adrCd00B4FA	;6702
-	bsr.s	adrCd00B560	;6166
+	bsr.s	Draw_WallComponent_EdgeTransform	;6166
 adrCd00B4FA:
 	move.b	(a2),d6	;1C12
 	and.w	#$0007,d6	;02460007
@@ -16947,7 +16862,7 @@ adrCd00B4FA:
 	swap	d3	;4843
 	move.w	d5,d4	;3805
 	swap	d5	;4845
-	move.b	adrB_00B558(pc,d6.w),d6	;1C3B604A
+	move.b	GFX_WallComponent_PerspectiveTrimLookup(pc,d6.w),d6	;1C3B604A
 	sub.w	d6,d5	;9A46
 	add.w	d6,d6	;DC46
 	add.w	d6,d2	;D446
@@ -16975,22 +16890,17 @@ adrLp00B51C:
 	swap	d3	;4843
 	btst	#$02,(a2)	;08120002
 	beq.s	adrCd00B554	;6702
-	bsr.s	adrCd00B560	;610C
+	bsr.s	Draw_WallComponent_EdgeTransform	;610C
 adrCd00B554:
 	swap	d6	;4846
 	rts	;4E75
 
-adrB_00B558:
-	dc.b	$00	;00
-	dc.b	$00	;00
-	dc.b	$00	;00
-	dc.b	$01	;01
-	dc.b	$00	;00
-	dc.b	$00	;00
-	dc.b	$01	;01
-	dc.b	$02	;02
+GFX_WallComponent_PerspectiveTrimLookup:
+	; ReSource: Maps the low three component-transform flag bits to zero, one or two source word-columns trimmed during perspective drawing.
+	INCBIN "/data/BLOODWYCH439-clean/gfx-data/Dungeon_WallComponent_PerspectiveTrim.lookup"
 
-adrCd00B560:
+Draw_WallComponent_EdgeTransform:
+	; ReSource: Draws the extra perspective edge pass for a wall component.
 	movem.l	a0/a1,-(sp)	;48E700C0
 	swap	d3	;4843
 	move.w	d3,d6	;3C03
@@ -17094,31 +17004,20 @@ adrCd00B632:
 	dbra	d5,adrLp00B5CC	;51CDFF86
 	rts	;4E75
 
-adrEA00B64A:
-	dc.w	$0105	;0105
-	dc.w	$0705	;0705
-	dc.w	$0101	;0101
-	dc.w	$0301	;0301
-	dc.w	$0205	;0205
-	dc.w	$0101	;0101
-	dc.w	$0105	;0105
-	dc.w	$0705	;0705
-	dc.w	$0101	;0101
-	dc.w	$0601	;0601
-	dc.w	$0505	;0505
-	dc.w	$0101	;0101
-	dc.w	$0707	;0707
-	dc.w	$0207	;0207
+GFX_Main_Wall_DrawTransformFlags:
+	; ReSource: Per-face transformation flags for stone-wall graphics. This differs from the component table at wall-face slots 6 and 18.
+	INCBIN "/data/BLOODWYCH439-clean/gfx-data/Dungeon_MainWall_DrawTransform.flags"
 
-adrCd00B666:
-	lea	adrEA00B64A.l,a2	;45F90000B64A
+Draw_MainWall_Transformed:
+	; ReSource: Applies main-wall transformation flags, horizontal bit reversal and perspective trimming.
+	lea	GFX_Main_Wall_DrawTransformFlags.l,a2	;45F90000B64A
 	add.w	d6,a2	;D4C6
 	btst	#$01,(a2)	;08120001
-	beq	adrLp00B76E	;670000FA
+	beq	Draw_WallSprite_BitReversed	;670000FA
 	swap	d6	;4846
 	btst	#$00,(a2)	;08120000
 	beq.s	adrCd00B680	;6702
-	bsr.s	adrCd00B6FA	;617A
+	bsr.s	Draw_MainWall_EdgeTransform	;617A
 adrCd00B680:
 	movem.l	d7/a0/a1,-(sp)	;48E701C0
 	move.b	(a2),d6	;1C12
@@ -17129,7 +17028,7 @@ adrCd00B680:
 	swap	d3	;4843
 	move.w	d5,d4	;3805
 	swap	d5	;4845
-	move.b	adrB_00B6F2(pc,d6.w),d6	;1C3B6058
+	move.b	GFX_Main_Wall_PerspectiveTrimLookup(pc,d6.w),d6	;1C3B6058
 	sub.w	d6,d5	;9A46
 	add.w	d6,d6	;DC46
 	sub.w	d6,d7	;9E46
@@ -17163,22 +17062,17 @@ adrLp00B6A4:
 	swap	d3	;4843
 	btst	#$02,(a2)	;08120002
 	beq.s	adrCd00B6EE	;6702
-	bsr.s	adrCd00B6FA	;610C
+	bsr.s	Draw_MainWall_EdgeTransform	;610C
 adrCd00B6EE:
 	swap	d6	;4846
 	rts	;4E75
 
-adrB_00B6F2:
-	dc.b	$00	;00
-	dc.b	$00	;00
-	dc.b	$00	;00
-	dc.b	$01	;01
-	dc.b	$00	;00
-	dc.b	$00	;00
-	dc.b	$01	;01
-	dc.b	$02	;02
+GFX_Main_Wall_PerspectiveTrimLookup:
+	; ReSource: Maps the low three main-wall transform flag bits to zero, one or two source word-columns trimmed during perspective drawing.
+	INCBIN "/data/BLOODWYCH439-clean/gfx-data/Dungeon_MainWall_PerspectiveTrim.lookup"
 
-adrCd00B6FA:
+Draw_MainWall_EdgeTransform:
+	; ReSource: Draws the horizontally reversed perspective edge pass for a stone wall.
 	movem.l	a0/a1,-(sp)	;48E700C0
 	swap	d3	;4843
 	move.w	d3,d6	;3C03
@@ -17227,7 +17121,8 @@ adrLp00B70A:
 	addq.w	#$08,a1	;5049
 	rts	;4E75
 
-adrLp00B76E:
+Draw_WallSprite_BitReversed:
+	; ReSource: Writes normal wall rows after horizontally reversing their planar source bits.
 	swap	d5	;4845
 	move.w	d5,d3	;3605
 adrLp00B772:
@@ -17282,11 +17177,11 @@ adrCd00B7DE:
 	swap	d3	;4843
 	add.w	#$0028,a0	;D0FC0028
 	swap	d5	;4845
-	dbra	d5,adrLp00B76E	;51CDFF7E
+	dbra	d5,Draw_WallSprite_BitReversed	;51CDFF7E
 	rts	;4E75
 
 Draw_FloorAndCeiling:
-	; ReSource: Draws the floor and ceiling bands used by the dungeon viewport.
+	; ReSource: Draws the floor and ceiling bands used by the dungeon viewport. Selects the ordinary or horizontally bit-reversed floor/ceiling renderer according to the dungeon pattern parity.
 	lea	GFX_FloorCeiling.l,a1	;43F900032120
 	move.l	-$0008(a3),a0	;206BFFF8
 	tst.w	-$000C(a3)	;4A6BFFF4
@@ -17296,7 +17191,7 @@ Draw_FloorAndCeiling:
 	bsr.s	Clear_FloorCeiling_ViewGap	;6120
 	moveq	#$21,d0	;7021
 Draw_FloorAndCeiling_CopyRows_Loop:
-	; ReSource: Copies source rows into the floor and ceiling areas of the dungeon viewport.
+	; ReSource: Copies source rows into the floor and ceiling areas of the dungeon viewport. Copies the parity-1 floor and ceiling rows directly into the dungeon viewport.
 	moveq	#$07,d1	;7207
 adrLp00B80E:
 	move.w	(a1)+,(a0)+	;30D9
@@ -17309,7 +17204,7 @@ adrLp00B80E:
 	rts	;4E75
 
 Clear_FloorCeiling_ViewGap:
-	; ReSource: Clears the horizontal gap between the floor and ceiling render regions.
+	; ReSource: Clears the nineteen-rowhorizontal  view area between the ceiling and floor bands.
 	moveq	#$12,d0	;7012
 	moveq	#$00,d1	;7200
 adrLp00B82E:
@@ -17337,7 +17232,7 @@ adrLp00B82E:
 	rts	;4E75
 
 Draw_FloorAndCeiling_BitReversed:
-	; ReSource: Draws the bit-reversed half of the floor and ceiling pattern.
+	; ReSource: Draws the horizontally bit-reversed floor and ceiling bands for parity 0.
 	lea	BitReverse_LookupBuffer.l,a6	;4DF90001684C
 	lea	$0010(a0),a0	;41E80010
 	moveq	#$16,d7	;7E16
@@ -17347,7 +17242,7 @@ Draw_FloorAndCeiling_BitReversed:
 	lea	$0010(a0),a0	;41E80010
 	moveq	#$21,d7	;7E21
 Draw_FloorAndCeiling_BitReversed_Loop:
-	; ReSource: Loop used to write the bit-reversed floor and ceiling rows.
+	; ReSource: Loop used to write the bit-reversed floor and ceiling rows. Bit-reverses and writes each floor/ceiling source row from the opposite side of the viewport.
 	moveq	#$07,d3	;7607
 adrLp00B880:
 	move.l	(a1)+,d0	;2019
@@ -17366,211 +17261,19 @@ adrLp00B880:
 	dbra	d7,Draw_FloorAndCeiling_BitReversed_Loop	;51CFFFD4
 	rts	;4E75
 
-adrEA00B8AE:
-	dc.w	$FEFC	;FEFC
-	dc.w	$FFFC	;FFFC
-	dc.w	$FEFD	;FEFD
-	dc.w	$FFFD	;FFFD
-	dc.w	$FFFE	;FFFE
-	dc.w	$FFFF	;FFFF
-	dc.w	$FF00	;FF00
-	dc.w	$02FC	;02FC
-	dc.w	$01FC	;01FC
-	dc.w	$02FD	;02FD
-	dc.w	$01FD	;01FD
-	dc.w	$01FE	;01FE
-	dc.w	$01FF	;01FF
-	dc.w	$0100	;0100
-	dc.w	$00FC	;00FC
-	dc.w	$00FD	;00FD
-	dc.w	$00FE	;00FE
-	dc.w	$00FF	;00FF
-	dc.w	$0000	;0000
-	dc.w	$04FE	;04FE
-	dc.w	$04FF	;04FF
-	dc.w	$03FE	;03FE
-	dc.w	$03FF	;03FF
-	dc.w	$02FF	;02FF
-	dc.w	$01FF	;01FF
-	dc.w	$00FF	;00FF
-	dc.w	$0402	;0402
-	dc.w	$0401	;0401
-	dc.w	$0302	;0302
-	dc.w	$0301	;0301
-	dc.w	$0201	;0201
-	dc.w	$0101	;0101
-	dc.w	$0001	;0001
-	dc.w	$0400	;0400
-	dc.w	$0300	;0300
-	dc.w	$0200	;0200
-	dc.w	$0100	;0100
-	dc.w	$0000	;0000
-	dc.w	$0204	;0204
-	dc.w	$0104	;0104
-	dc.w	$0203	;0203
-	dc.w	$0103	;0103
-	dc.w	$0102	;0102
-	dc.w	$0101	;0101
-	dc.w	$0100	;0100
-	dc.w	$FE04	;FE04
-	dc.w	$FF04	;FF04
-	dc.w	$FE03	;FE03
-	dc.w	$FF03	;FF03
-	dc.w	$FF02	;FF02
-	dc.w	$FF01	;FF01
-	dc.w	$FF00	;FF00
-	dc.w	$0004	;0004
-	dc.w	$0003	;0003
-	dc.w	$0002	;0002
-	dc.w	$0001	;0001
-	dc.w	$0000	;0000
-	dc.w	$FC02	;FC02
-	dc.w	$FC01	;FC01
-	dc.w	$FD02	;FD02
-	dc.w	$FD01	;FD01
-	dc.w	$FE01	;FE01
-	dc.w	$FF01	;FF01
-	dc.w	$0001	;0001
-	dc.w	$FCFE	;FCFE
-	dc.w	$FCFF	;FCFF
-	dc.w	$FDFE	;FDFE
-	dc.w	$FDFF	;FDFF
-	dc.w	$FEFF	;FEFF
-	dc.w	$FFFF	;FFFF
-	dc.w	$00FF	;00FF
-	dc.w	$FC00	;FC00
-	dc.w	$FD00	;FD00
-	dc.w	$FE00	;FE00
-	dc.w	$FF00	;FF00
-	dc.w	$0000	;0000
-	dc.w	$FFFF	;FFFF
-	dc.w	$FFFF	;FFFF
-	dc.w	$FFFF	;FFFF
-	dc.w	$FFFD	;FFFD
-	dc.w	$FFFF	;FFFF
-	dc.w	$FFFE	;FFFE
-	dc.w	$FFFF	;FFFF
-	dc.w	$FFE8	;FFE8
-	dc.w	$FFFF	;FFFF
-	dc.w	$FFAC	;FFAC
-	dc.w	$FFFF	;FFFF
-	dc.w	$FEEC	;FEEC
-	dc.w	$FFFF	;FFFF
-	dc.w	$FBFF	;FBFF
-	dc.w	$FFFF	;FFFF
-	dc.w	$FFFF	;FFFF
-	dc.w	$FFFF	;FFFF
-	dc.w	$DFFF	;DFFF
-	dc.w	$FFFF	;FFFF
-	dc.w	$EFFF	;EFFF
-	dc.w	$FFFE	;FFFE
-	dc.w	$8FFF	;8FFF
-	dc.w	$FFFA	;FFFA
-	dc.w	$CFFF	;CFFF
-	dc.w	$FFEE	;FFEE
-	dc.w	$CFFF	;CFFF
-	dc.w	$FFBF	;FFBF
-	dc.w	$FFFF	;FFFF
-	dc.w	$FFFF	;FFFF
-	dc.w	$7FF7	;7FF7
-	dc.w	$FEFD	;FEFD
-	dc.w	$7FD7	;7FD7
-	dc.w	$FCF5	;FCF5
-	dc.w	$7F57	;7F57
-	dc.w	$F8D5	;F8D5
-	dc.w	$7D57	;7D57
-adrEA00B98E:
-	dc.w	$08D5	;08D5
-	dc.w	$7D57	;7D57
-	dc.w	$0000	;0000
-	dc.w	$0003	;0003
-	dc.w	$0000	;0000
-	dc.w	$000E	;000E
-	dc.w	$0000	;0000
-	dc.w	$0011	;0011
-	dc.w	$0000	;0000
-	dc.w	$0074	;0074
-	dc.w	$0000	;0000
-	dc.w	$01C0	;01C0
-	dc.w	$0000	;0000
-	dc.w	$0700	;0700
-	dc.w	$0000	;0000
-	dc.w	$0C00	;0C00
-	dc.w	$0000	;0000
-	dc.w	$3000	;3000
-	dc.w	$0000	;0000
-	dc.w	$E000	;E000
-	dc.w	$0001	;0001
-	dc.w	$1000	;1000
-	dc.w	$0007	;0007
-	dc.w	$4000	;4000
-	dc.w	$001C	;001C
-	dc.w	$0000	;0000
-	dc.w	$0070	;0070
-	dc.w	$0000	;0000
-	dc.w	$00C0	;00C0
-	dc.w	$0000	;0000
-	dc.w	$0100	;0100
-	dc.w	$8008	;8008
-	dc.w	$0302	;0302
-	dc.w	$0020	;0020
-	dc.w	$0608	;0608
-	dc.w	$0080	;0080
-	dc.w	$0C20	;0C20
-	dc.w	$0200	;0200
-adrEA00B9DA:
-	dc.w	$0880	;0880
-	dc.w	$0800	;0800
-adrEA00B9DE:
-	dc.w	$0002	;0002
-	dc.w	$FF06	;FF06
-	dc.w	$080A	;080A
-	dc.w	$FF0C	;FF0C
-	dc.w	$0EFF	;0EFF
-	dc.w	$1214	;1214
-	dc.w	$16FF	;16FF
-	dc.w	$1819	;1819
-	dc.w	$1A1B	;1A1B
-	dc.w	$FF00	;FF00
-adrEA00B9F2:
-	dc.w	$FFFF	;FFFF
-	dc.w	$0001	;0001
-	dc.w	$FF01	;FF01
-	dc.w	$0203	;0203
-	dc.w	$00FF	;00FF
-	dc.w	$FF04	;FF04
-	dc.w	$0204	;0204
-	dc.w	$0605	;0605
-	dc.w	$06FF	;06FF
-	dc.w	$0807	;0807
-	dc.w	$08FF	;08FF
-	dc.w	$0A09	;0A09
-	dc.w	$0AFF	;0AFF
-	dc.w	$FF0B	;FF0B
-	dc.w	$FFFF	;FFFF
-	dc.w	$0C0D	;0C0D
-	dc.w	$FF0D	;FF0D
-	dc.w	$0E0F	;0E0F
-	dc.w	$0CFF	;0CFF
-	dc.w	$FF10	;FF10
-	dc.w	$0E10	;0E10
-	dc.w	$1211	;1211
-	dc.w	$12FF	;12FF
-	dc.w	$1413	;1413
-	dc.w	$14FF	;14FF
-	dc.w	$1615	;1615
-	dc.w	$16FF	;16FF
-	dc.w	$FF17	;FF17
-	dc.w	$FF0F	;FF0F
-	dc.w	$0318	;0318
-	dc.w	$1811	;1811
-	dc.w	$0519	;0519
-	dc.w	$1913	;1913
-	dc.w	$071A	;071A
-	dc.w	$1A15	;1A15
-	dc.w	$091B	;091B
-	dc.w	$1B17	;1B17
-	dc.w	$0BFF	;0BFF
+Dungeon_ViewCell_RelativeCoordinates:
+	; ReSource: Four player-facing groups of 19 signed relative X/Y coordinate words defining the dungeon cells examined by the renderer.
+	INCBIN "/data/BLOODWYCH439-clean/gfx-data/Dungeon_ViewCell_RelativeCoordinates.positions"
+Dungeon_ViewCell_OcclusionMasks:
+	INCBIN "/data/BLOODWYCH439-clean/gfx-data/Dungeon_ViewCell_Occlusion.flags"
+Dungeon_ViewCell_VisibleFaceMasks:
+	INCBIN "/data/BLOODWYCH439-clean/gfx-data/Dungeon_ViewCell_VisibleFaces.flags"
+Dungeon_ViewCell_CentredSlots:
+	; ReSource: Maps the 19 view cells to centred projected slots used by pillars, beds, pits and pads; FF means unavailable. The twentieth byte is spare.
+	INCBIN "/data/BLOODWYCH439-clean/gfx-data/Dungeon_ViewCell_CentredSlots.lookup"
+Dungeon_ViewCell_WallFaceSlots:
+	; ReSource: Four N/E/S/W wall-face slot numbers per view cell; FF means that face is unavailable from that cell.
+	INCBIN "/data/BLOODWYCH439-clean/gfx-data/Dungeon_ViewCell_WallFaces.lookup"
 GFX_Main_Walls_Positions:
 	INCBIN "/data/BLOODWYCH439-clean/gfx/Main_Walls.positions"
 GFX_Wooden_Wall_Positions:
@@ -17592,6 +17295,7 @@ GFX_Main_Sign_Positions:
 GFX_Main_Signoverlay_Positions:
 	INCBIN "/data/BLOODWYCH439-clean/gfx/Main_SignOverlay.positions"
 GFX_Main_Slots_Positions:
+	; ReSource: Contains the exact X/Y/width/height rectangle for each projected wall view.
 	INCBIN "/data/BLOODWYCH439-clean/gfx/Main_Slots.positions"
 GFX_Main_Switches_Positions:
 	INCBIN "/data/BLOODWYCH439-clean/gfx/Main_Switches.positions"
@@ -23268,2312 +22972,18 @@ MonsterTotalsCounts_chaos:
 	INCBIN "/data/BLOODWYCH439-clean/maps/chaos.monstercount"
 MonsterTotalsCounts_zendik:
 	INCBIN "/data/BLOODWYCH439-clean/maps/zendik.monstercount"
-TheMonsterBlock:
-	dc.w	$040B	;040B
-	dc.w	$0F00	;0F00
-	dc.w	$15FF	;15FF
-	dc.w	$0416	;0416
-	dc.w	$1A00	;1A00
-	dc.w	$16FF	;16FF
-	dc.w	$0502	;0502
-	dc.w	$0004	;0004
-	dc.w	$15FF	;15FF
-	dc.w	$040F	;040F
-	dc.w	$0F00	;0F00
-	dc.w	$2FFF	;2FFF
-	dc.w	$1403	;1403
-	dc.w	$0900	;0900
-	dc.w	$11FF	;11FF
-	dc.w	$0406	;0406
-	dc.w	$0001	;0001
-	dc.w	$14FF	;14FF
-	dc.w	$0406	;0406
-	dc.w	$0100	;0100
-	dc.w	$14FF	;14FF
-	dc.w	$0406	;0406
-	dc.w	$0301	;0301
-	dc.w	$14FF	;14FF
-	dc.w	$0406	;0406
-	dc.w	$0400	;0400
-	dc.w	$14FF	;14FF
-	dc.w	$140A	;140A
-	dc.w	$0101	;0101
-	dc.w	$12FF	;12FF
-	dc.w	$140F	;140F
-	dc.w	$0102	;0102
-	dc.w	$1FFF	;1FFF
-	dc.w	$0415	;0415
-	dc.w	$0000	;0000
-	dc.w	$2900	;2900
-	dc.w	$14FF	;14FF
-	dc.w	$0001	;0001
-	dc.w	$1201	;1201
-	dc.w	$041E	;041E
-	dc.w	$0201	;0201
-	dc.w	$10FF	;10FF
-	dc.w	$041E	;041E
-	dc.w	$0402	;0402
-	dc.w	$68FF	;68FF
-	dc.w	$1413	;1413
-	dc.w	$0303	;0303
-	dc.w	$65FF	;65FF
-	dc.w	$041B	;041B
-	dc.w	$0C02	;0C02
-	dc.w	$68FF	;68FF
-	dc.w	$1418	;1418
-	dc.w	$0C02	;0C02
-	dc.w	$38FF	;38FF
-	dc.w	$1417	;1417
-	dc.w	$1802	;1802
-	dc.w	$4B04	;4B04
-	dc.w	$04FF	;04FF
-	dc.w	$1801	;1801
-	dc.w	$1105	;1105
-	dc.w	$141E	;141E
-	dc.w	$1202	;1202
-	dc.w	$65FF	;65FF
-	dc.w	$141E	;141E
-	dc.w	$1102	;1102
-	dc.w	$65FF	;65FF
-	dc.w	$041A	;041A
-	dc.w	$1901	;1901
-	dc.w	$31FF	;31FF
-	dc.w	$0419	;0419
-	dc.w	$1E02	;1E02
-	dc.w	$2FFF	;2FFF
-	dc.w	$1413	;1413
-	dc.w	$1C03	;1C03
-	dc.w	$25FF	;25FF
-	dc.w	$1416	;1416
-	dc.w	$0F01	;0F01
-	dc.w	$13FF	;13FF
-	dc.w	$0410	;0410
-	dc.w	$1501	;1501
-	dc.w	$13FF	;13FF
-	dc.w	$1417	;1417
-	dc.w	$1402	;1402
-	dc.w	$30FF	;30FF
-	dc.w	$0411	;0411
-	dc.w	$1002	;1002
-	dc.w	$68FF	;68FF
-	dc.w	$0415	;0415
-	dc.w	$0E02	;0E02
-	dc.w	$68FF	;68FF
-	dc.w	$030B	;030B
-	dc.w	$0303	;0303
-	dc.w	$1DFF	;1DFF
-	dc.w	$1300	;1300
-	dc.w	$0302	;0302
-	dc.w	$1FFF	;1FFF
-	dc.w	$030D	;030D
-	dc.w	$0202	;0202
-	dc.w	$29FF	;29FF
-	dc.w	$030E	;030E
-	dc.w	$0102	;0102
-	dc.w	$12FF	;12FF
-	dc.w	$1308	;1308
-	dc.w	$0D02	;0D02
-	dc.w	$1FFF	;1FFF
-	dc.w	$030A	;030A
-	dc.w	$0C02	;0C02
-	dc.w	$50FF	;50FF
-	dc.w	$030C	;030C
-	dc.w	$0E03	;0E03
-	dc.w	$68FF	;68FF
-	dc.w	$0300	;0300
-	dc.w	$0402	;0402
-	dc.w	$34FF	;34FF
-	dc.w	$1300	;1300
-	dc.w	$0E03	;0E03
-	dc.w	$65FF	;65FF
-	dc.w	$0301	;0301
-	dc.w	$0903	;0903
-	dc.w	$45FF	;45FF
-	dc.w	$1200	;1200
-	dc.w	$0B02	;0B02
-	dc.w	$6AFF	;6AFF
-	dc.w	$0203	;0203
-	dc.w	$0A03	;0A03
-	dc.w	$4AFF	;4AFF
-	dc.w	$0204	;0204
-	dc.w	$1002	;1002
-	dc.w	$11FF	;11FF
-	dc.w	$0206	;0206
-	dc.w	$1102	;1102
-	dc.w	$11FF	;11FF
-	dc.w	$0211	;0211
-	dc.w	$1203	;1203
-	dc.w	$4AFF	;4AFF
-	dc.w	$0209	;0209
-	dc.w	$0F02	;0F02
-	dc.w	$11FF	;11FF
-	dc.w	$020A	;020A
-	dc.w	$0B02	;0B02
-	dc.w	$4AFF	;4AFF
-	dc.w	$0210	;0210
-	dc.w	$1102	;1102
-	dc.w	$48FF	;48FF
-	dc.w	$020C	;020C
-	dc.w	$1403	;1403
-	dc.w	$14FF	;14FF
-	dc.w	$0213	;0213
-	dc.w	$0003	;0003
-	dc.w	$14FF	;14FF
-	dc.w	$1201	;1201
-	dc.w	$0603	;0603
-	dc.w	$3CFF	;3CFF
-	dc.w	$0204	;0204
-	dc.w	$0502	;0502
-	dc.w	$68FF	;68FF
-	dc.w	$1205	;1205
-	dc.w	$0103	;0103
-	dc.w	$6AFF	;6AFF
-	dc.w	$1208	;1208
-	dc.w	$0704	;0704
-	dc.w	$6AFF	;6AFF
-	dc.w	$120C	;120C
-	dc.w	$0003	;0003
-	dc.w	$43FF	;43FF
-	dc.w	$0213	;0213
-	dc.w	$1002	;1002
-	dc.w	$11FF	;11FF
-	dc.w	$0214	;0214
-	dc.w	$0C02	;0C02
-	dc.w	$4BFF	;4BFF
-	dc.w	$020C	;020C
-	dc.w	$0A02	;0A02
-	dc.w	$48FF	;48FF
-	dc.w	$150A	;150A
-	dc.w	$0303	;0303
-	dc.w	$4408	;4408
-	dc.w	$05FF	;05FF
-	dc.w	$0303	;0303
-	dc.w	$4409	;4409
-	dc.w	$0507	;0507
-	dc.w	$0004	;0004
-	dc.w	$12FF	;12FF
-	dc.w	$1510	;1510
-	dc.w	$0403	;0403
-	dc.w	$320C	;320C
-	dc.w	$05FF	;05FF
-	dc.w	$0404	;0404
-	dc.w	$320D	;320D
-	dc.w	$15FF	;15FF
-	dc.w	$0403	;0403
-	dc.w	$320E	;320E
-	dc.w	$1512	;1512
-	dc.w	$0704	;0704
-	dc.w	$6AFF	;6AFF
-	dc.w	$150F	;150F
-	dc.w	$0804	;0804
-	dc.w	$26FF	;26FF
-	dc.w	$0500	;0500
-	dc.w	$0B04	;0B04
-	dc.w	$68FF	;68FF
-	dc.w	$1500	;1500
-	dc.w	$0E04	;0E04
-	dc.w	$6AFF	;6AFF
-	dc.w	$0500	;0500
-	dc.w	$1104	;1104
-	dc.w	$50FF	;50FF
-	dc.w	$0501	;0501
-	dc.w	$1203	;1203
-	dc.w	$68FF	;68FF
-	dc.w	$1507	;1507
-	dc.w	$1204	;1204
-	dc.w	$65FF	;65FF
-	dc.w	$0506	;0506
-	dc.w	$0904	;0904
-	dc.w	$25FF	;25FF
-	dc.w	$150B	;150B
-	dc.w	$0A04	;0A04
-	dc.w	$66FF	;66FF
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$1200	;1200
-	dc.w	$0003	;0003
-	dc.w	$44FF	;44FF
-	dc.w	$0200	;0200
-	dc.w	$0103	;0103
-	dc.w	$30FF	;30FF
-	dc.w	$020A	;020A
-	dc.w	$0404	;0404
-	dc.w	$68FF	;68FF
-	dc.w	$1213	;1213
-	dc.w	$0004	;0004
-	dc.w	$20FF	;20FF
-	dc.w	$020F	;020F
-	dc.w	$0604	;0604
-	dc.w	$49FF	;49FF
-	dc.w	$020F	;020F
-	dc.w	$0703	;0703
-	dc.w	$4AFF	;4AFF
-	dc.w	$1208	;1208
-	dc.w	$1304	;1304
-	dc.w	$65FF	;65FF
-	dc.w	$0208	;0208
-	dc.w	$1005	;1005
-	dc.w	$68FF	;68FF
-	dc.w	$1208	;1208
-	dc.w	$0605	;0605
-	dc.w	$6600	;6600
-	dc.w	$12FF	;12FF
-	dc.w	$0604	;0604
-	dc.w	$6601	;6601
-	dc.w	$0200	;0200
-	dc.w	$1205	;1205
-	dc.w	$1004	;1004
-	dc.w	$02FF	;02FF
-	dc.w	$1204	;1204
-	dc.w	$4B05	;4B05
-	dc.w	$1207	;1207
-	dc.w	$0E06	;0E06
-	dc.w	$3DFF	;3DFF
-	dc.w	$1213	;1213
-	dc.w	$0A06	;0A06
-	dc.w	$6AFF	;6AFF
-	dc.w	$0211	;0211
-	dc.w	$0A06	;0A06
-	dc.w	$68FF	;68FF
-	dc.w	$1214	;1214
-	dc.w	$0305	;0305
-	dc.w	$25FF	;25FF
-	dc.w	$1302	;1302
-	dc.w	$0C06	;0C06
-	dc.w	$6AFF	;6AFF
-	dc.w	$0308	;0308
-	dc.w	$0505	;0505
-	dc.w	$68FF	;68FF
-	dc.w	$030B	;030B
-	dc.w	$0A04	;0A04
-	dc.w	$68FF	;68FF
-	dc.w	$0300	;0300
-	dc.w	$0704	;0704
-	dc.w	$480C	;480C
-	dc.w	$03FF	;03FF
-	dc.w	$0705	;0705
-	dc.w	$490D	;490D
-	dc.w	$1300	;1300
-	dc.w	$0004	;0004
-	dc.w	$6530	;6530
-	dc.w	$03FF	;03FF
-	dc.w	$0004	;0004
-	dc.w	$4931	;4931
-	dc.w	$1310	;1310
-	dc.w	$0D05	;0D05
-	dc.w	$21FF	;21FF
-	dc.w	$1310	;1310
-	dc.w	$0F04	;0F04
-	dc.w	$66FF	;66FF
-	dc.w	$0300	;0300
-	dc.w	$0B03	;0B03
-	dc.w	$1CFF	;1CFF
-	dc.w	$0301	;0301
-	dc.w	$0F04	;0F04
-	dc.w	$29FF	;29FF
-	dc.w	$0305	;0305
-	dc.w	$0F03	;0F03
-	dc.w	$1FFF	;1FFF
-	dc.w	$0403	;0403
-	dc.w	$0603	;0603
-	dc.w	$35FF	;35FF
-	dc.w	$1404	;1404
-	dc.w	$0903	;0903
-	dc.w	$21FF	;21FF
-	dc.w	$040A	;040A
-	dc.w	$0404	;0404
-	dc.w	$54FF	;54FF
-	dc.w	$0410	;0410
-	dc.w	$0004	;0004
-	dc.w	$6AFF	;6AFF
-	dc.w	$1404	;1404
-	dc.w	$1004	;1004
-	dc.w	$6608	;6608
-	dc.w	$04FF	;04FF
-	dc.w	$1003	;1003
-	dc.w	$2009	;2009
-	dc.w	$14FF	;14FF
-	dc.w	$1004	;1004
-	dc.w	$3C0A	;3C0A
-	dc.w	$04FF	;04FF
-	dc.w	$1003	;1003
-	dc.w	$1C0B	;1C0B
-	dc.w	$3400	;3400
-	dc.w	$0505	;0505
-	dc.w	$65FF	;65FF
-	dc.w	$1405	;1405
-	dc.w	$0004	;0004
-	dc.w	$6AFF	;6AFF
-	dc.w	$1409	;1409
-	dc.w	$0204	;0204
-	dc.w	$382C	;382C
-	dc.w	$04FF	;04FF
-	dc.w	$0A03	;0A03
-	dc.w	$342D	;342D
-	dc.w	$04FF	;04FF
-	dc.w	$1204	;1204
-	dc.w	$322E	;322E
-	dc.w	$140B	;140B
-	dc.w	$0A06	;0A06
-	dc.w	$6610	;6610
-	dc.w	$14FF	;14FF
-	dc.w	$0A06	;0A06
-	dc.w	$2711	;2711
-	dc.w	$0509	;0509
-	dc.w	$0D05	;0D05
-	dc.w	$68FF	;68FF
-	dc.w	$050B	;050B
-	dc.w	$0E04	;0E04
-	dc.w	$68FF	;68FF
-	dc.w	$1500	;1500
-	dc.w	$0005	;0005
-	dc.w	$2214	;2214
-	dc.w	$05FF	;05FF
-	dc.w	$0005	;0005
-	dc.w	$3615	;3615
-	dc.w	$1500	;1500
-	dc.w	$0C05	;0C05
-	dc.w	$6518	;6518
-	dc.w	$15FF	;15FF
-	dc.w	$0C04	;0C04
-	dc.w	$6519	;6519
-	dc.w	$15FF	;15FF
-	dc.w	$0C04	;0C04
-	dc.w	$651A	;651A
-	dc.w	$1809	;1809
-	dc.w	$0007	;0007
-	dc.w	$6AFF	;6AFF
-	dc.w	$0800	;0800
-	dc.w	$0306	;0306
-	dc.w	$2E1C	;2E1C
-	dc.w	$08FF	;08FF
-	dc.w	$0305	;0305
-	dc.w	$2D1D	;2D1D
-	dc.w	$08FF	;08FF
-	dc.w	$0305	;0305
-	dc.w	$2D1E	;2D1E
-	dc.w	$08FF	;08FF
-	dc.w	$0305	;0305
-	dc.w	$2D1F	;2D1F
-	dc.w	$080C	;080C
-	dc.w	$0006	;0006
-	dc.w	$2E20	;2E20
-	dc.w	$08FF	;08FF
-	dc.w	$0006	;0006
-	dc.w	$2E21	;2E21
-	dc.w	$08FF	;08FF
-	dc.w	$0005	;0005
-	dc.w	$2D22	;2D22
-	dc.w	$08FF	;08FF
-	dc.w	$0005	;0005
-	dc.w	$2D23	;2D23
-	dc.w	$080A	;080A
-	dc.w	$0605	;0605
-	dc.w	$68FF	;68FF
-	dc.w	$0804	;0804
-	dc.w	$0606	;0606
-	dc.w	$68FF	;68FF
-	dc.w	$0705	;0705
-	dc.w	$0106	;0106
-	dc.w	$2EFF	;2EFF
-	dc.w	$0706	;0706
-	dc.w	$0106	;0106
-	dc.w	$45FF	;45FF
-	dc.w	$1707	;1707
-	dc.w	$0006	;0006
-	dc.w	$6534	;6534
-	dc.w	$07FF	;07FF
-	dc.w	$0006	;0006
-	dc.w	$4835	;4835
-	dc.w	$1700	;1700
-	dc.w	$0C05	;0C05
-	dc.w	$6624	;6624
-	dc.w	$17FF	;17FF
-	dc.w	$0C07	;0C07
-	dc.w	$6625	;6625
-	dc.w	$17FF	;17FF
-	dc.w	$0C06	;0C06
-	dc.w	$6626	;6626
-	dc.w	$17FF	;17FF
-	dc.w	$0C07	;0C07
-	dc.w	$6627	;6627
-	dc.w	$070C	;070C
-	dc.w	$0A07	;0A07
-	dc.w	$68FF	;68FF
-	dc.w	$060B	;060B
-	dc.w	$0207	;0207
-	dc.w	$47FF	;47FF
-	dc.w	$060A	;060A
-	dc.w	$0107	;0107
-	dc.w	$47FF	;47FF
-	dc.w	$0609	;0609
-	dc.w	$0207	;0207
-	dc.w	$47FF	;47FF
-	dc.w	$1608	;1608
-	dc.w	$0108	;0108
-	dc.w	$42FF	;42FF
-	dc.w	$1602	;1602
-	dc.w	$0308	;0308
-	dc.w	$6528	;6528
-	dc.w	$16FF	;16FF
-	dc.w	$0307	;0307
-	dc.w	$6529	;6529
-	dc.w	$0605	;0605
-	dc.w	$0706	;0706
-	dc.w	$68FF	;68FF
-	dc.w	$1609	;1609
-	dc.w	$0E08	;0E08
-	dc.w	$6AFF	;6AFF
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0205	;0205
-	dc.w	$0C08	;0C08
-	dc.w	$15FF	;15FF
-	dc.w	$020C	;020C
-	dc.w	$0508	;0508
-	dc.w	$15FF	;15FF
-	dc.w	$1207	;1207
-	dc.w	$1207	;1207
-	dc.w	$6600	;6600
-	dc.w	$12FF	;12FF
-	dc.w	$1207	;1207
-	dc.w	$6601	;6601
-	dc.w	$120D	;120D
-	dc.w	$1207	;1207
-	dc.w	$6604	;6604
-	dc.w	$12FF	;12FF
-	dc.w	$1207	;1207
-	dc.w	$6605	;6605
-	dc.w	$1200	;1200
-	dc.w	$0A05	;0A05
-	dc.w	$2008	;2008
-	dc.w	$02FF	;02FF
-	dc.w	$0A05	;0A05
-	dc.w	$2D09	;2D09
-	dc.w	$02FF	;02FF
-	dc.w	$0A05	;0A05
-	dc.w	$1C0A	;1C0A
-	dc.w	$0200	;0200
-	dc.w	$1407	;1407
-	dc.w	$68FF	;68FF
-	dc.w	$0203	;0203
-	dc.w	$1406	;1406
-	dc.w	$68FF	;68FF
-	dc.w	$0205	;0205
-	dc.w	$1406	;1406
-	dc.w	$68FF	;68FF
-	dc.w	$0214	;0214
-	dc.w	$1405	;1405
-	dc.w	$550C	;550C
-	dc.w	$02FF	;02FF
-	dc.w	$1406	;1406
-	dc.w	$360D	;360D
-	dc.w	$0211	;0211
-	dc.w	$1406	;1406
-	dc.w	$2010	;2010
-	dc.w	$02FF	;02FF
-	dc.w	$1405	;1405
-	dc.w	$4811	;4811
-	dc.w	$020F	;020F
-	dc.w	$0B05	;0B05
-	dc.w	$68FF	;68FF
-	dc.w	$120C	;120C
-	dc.w	$1407	;1407
-	dc.w	$65FF	;65FF
-	dc.w	$120A	;120A
-	dc.w	$0606	;0606
-	dc.w	$67FF	;67FF
-	dc.w	$030A	;030A
-	dc.w	$0006	;0006
-	dc.w	$68FF	;68FF
-	dc.w	$1300	;1300
-	dc.w	$0007	;0007
-	dc.w	$4214	;4214
-	dc.w	$03FF	;03FF
-	dc.w	$0007	;0007
-	dc.w	$4715	;4715
-	dc.w	$1300	;1300
-	dc.w	$0B06	;0B06
-	dc.w	$67FF	;67FF
-	dc.w	$0310	;0310
-	dc.w	$0B07	;0B07
-	dc.w	$67FF	;67FF
-	dc.w	$030F	;030F
-	dc.w	$0A06	;0A06
-	dc.w	$68FF	;68FF
-	dc.w	$130A	;130A
-	dc.w	$0D07	;0D07
-	dc.w	$6AFF	;6AFF
-	dc.w	$1300	;1300
-	dc.w	$0D07	;0D07
-	dc.w	$6618	;6618
-	dc.w	$13FF	;13FF
-	dc.w	$0D06	;0D06
-	dc.w	$6619	;6619
-	dc.w	$03FF	;03FF
-	dc.w	$0D08	;0D08
-	dc.w	$281A	;281A
-	dc.w	$03FF	;03FF
-	dc.w	$0D06	;0D06
-	dc.w	$271B	;271B
-	dc.w	$030B	;030B
-	dc.w	$1307	;1307
-	dc.w	$331C	;331C
-	dc.w	$03FF	;03FF
-	dc.w	$1307	;1307
-	dc.w	$321D	;321D
-	dc.w	$130D	;130D
-	dc.w	$1307	;1307
-	dc.w	$3AFF	;3AFF
-	dc.w	$0312	;0312
-	dc.w	$0F07	;0F07
-	dc.w	$67FF	;67FF
-	dc.w	$030E	;030E
-	dc.w	$0F07	;0F07
-	dc.w	$67FF	;67FF
-	dc.w	$040E	;040E
-	dc.w	$0206	;0206
-	dc.w	$1420	;1420
-	dc.w	$04FF	;04FF
-	dc.w	$0206	;0206
-	dc.w	$1421	;1421
-	dc.w	$040E	;040E
-	dc.w	$0306	;0306
-	dc.w	$1424	;1424
-	dc.w	$04FF	;04FF
-	dc.w	$0306	;0306
-	dc.w	$1425	;1425
-	dc.w	$040E	;040E
-	dc.w	$0406	;0406
-	dc.w	$1428	;1428
-	dc.w	$04FF	;04FF
-	dc.w	$0406	;0406
-	dc.w	$1429	;1429
-	dc.w	$040D	;040D
-	dc.w	$0006	;0006
-	dc.w	$1448	;1448
-	dc.w	$04FF	;04FF
-	dc.w	$0007	;0007
-	dc.w	$1449	;1449
-	dc.w	$0405	;0405
-	dc.w	$0207	;0207
-	dc.w	$36FF	;36FF
-	dc.w	$040B	;040B
-	dc.w	$0107	;0107
-	dc.w	$33FF	;33FF
-	dc.w	$0403	;0403
-	dc.w	$0000	;0000
-	dc.w	$662C	;662C
-	dc.w	$14FF	;14FF
-	dc.w	$0008	;0008
-	dc.w	$662D	;662D
-	dc.w	$0403	;0403
-	dc.w	$0500	;0500
-	dc.w	$6630	;6630
-	dc.w	$14FF	;14FF
-	dc.w	$0508	;0508
-	dc.w	$6631	;6631
-	dc.w	$1406	;1406
-	dc.w	$0E06	;0E06
-	dc.w	$6AFF	;6AFF
-	dc.w	$1408	;1408
-	dc.w	$0E07	;0E07
-	dc.w	$67FF	;67FF
-	dc.w	$0404	;0404
-	dc.w	$1207	;1207
-	dc.w	$68FF	;68FF
-	dc.w	$1406	;1406
-	dc.w	$1207	;1207
-	dc.w	$66FF	;66FF
-	dc.w	$1408	;1408
-	dc.w	$1208	;1208
-	dc.w	$6AFF	;6AFF
-	dc.w	$140A	;140A
-	dc.w	$1208	;1208
-	dc.w	$67FF	;67FF
-	dc.w	$050D	;050D
-	dc.w	$1006	;1006
-	dc.w	$5134	;5134
-	dc.w	$15FF	;15FF
-	dc.w	$1007	;1007
-	dc.w	$2035	;2035
-	dc.w	$05FF	;05FF
-	dc.w	$1007	;1007
-	dc.w	$3636	;3636
-	dc.w	$05FF	;05FF
-	dc.w	$1006	;1006
-	dc.w	$2E37	;2E37
-	dc.w	$050E	;050E
-	dc.w	$1006	;1006
-	dc.w	$1038	;1038
-	dc.w	$15FF	;15FF
-	dc.w	$1007	;1007
-	dc.w	$4139	;4139
-	dc.w	$05FF	;05FF
-	dc.w	$1007	;1007
-	dc.w	$1C3A	;1C3A
-	dc.w	$05FF	;05FF
-	dc.w	$1006	;1006
-	dc.w	$553B	;553B
-	dc.w	$1502	;1502
-	dc.w	$0108	;0108
-	dc.w	$67FF	;67FF
-	dc.w	$1512	;1512
-	dc.w	$0009	;0009
-	dc.w	$67FF	;67FF
-	dc.w	$0503	;0503
-	dc.w	$0E07	;0E07
-	dc.w	$68FF	;68FF
-	dc.w	$0504	;0504
-	dc.w	$0D08	;0D08
-	dc.w	$68FF	;68FF
-	dc.w	$0602	;0602
-	dc.w	$0A08	;0A08
-	dc.w	$67FF	;67FF
-	dc.w	$0602	;0602
-	dc.w	$0608	;0608
-	dc.w	$67FF	;67FF
-	dc.w	$1605	;1605
-	dc.w	$0508	;0508
-	dc.w	$6AFF	;6AFF
-	dc.w	$060A	;060A
-	dc.w	$0408	;0408
-	dc.w	$253C	;253C
-	dc.w	$16FF	;16FF
-	dc.w	$0407	;0407
-	dc.w	$3D3D	;3D3D
-	dc.w	$06FF	;06FF
-	dc.w	$0408	;0408
-	dc.w	$473E	;473E
-	dc.w	$06FF	;06FF
-	dc.w	$0408	;0408
-	dc.w	$493F	;493F
-	dc.w	$0610	;0610
-	dc.w	$0709	;0709
-	dc.w	$68FF	;68FF
-	dc.w	$060C	;060C
-	dc.w	$0608	;0608
-	dc.w	$68FF	;68FF
-	dc.w	$0606	;0606
-	dc.w	$1009	;1009
-	dc.w	$67FF	;67FF
-	dc.w	$060B	;060B
-	dc.w	$0D09	;0D09
-	dc.w	$67FF	;67FF
-	dc.w	$0700	;0700
-	dc.w	$0307	;0307
-	dc.w	$3340	;3340
-	dc.w	$17FF	;17FF
-	dc.w	$0308	;0308
-	dc.w	$3941	;3941
-	dc.w	$17FF	;17FF
-	dc.w	$030A	;030A
-	dc.w	$3A42	;3A42
-	dc.w	$0700	;0700
-	dc.w	$0507	;0507
-	dc.w	$3344	;3344
-	dc.w	$17FF	;17FF
-	dc.w	$0508	;0508
-	dc.w	$3945	;3945
-	dc.w	$17FF	;17FF
-	dc.w	$050A	;050A
-	dc.w	$3A46	;3A46
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0201	;0201
-	dc.w	$1007	;1007
-	dc.w	$4C00	;4C00
-	dc.w	$02FF	;02FF
-	dc.w	$1008	;1008
-	dc.w	$5101	;5101
-	dc.w	$0201	;0201
-	dc.w	$0A07	;0A07
-	dc.w	$1F04	;1F04
-	dc.w	$02FF	;02FF
-	dc.w	$0A08	;0A08
-	dc.w	$4F05	;4F05
-	dc.w	$1205	;1205
-	dc.w	$1408	;1408
-	dc.w	$69FF	;69FF
-	dc.w	$1200	;1200
-	dc.w	$1507	;1507
-	dc.w	$67FF	;67FF
-	dc.w	$020E	;020E
-	dc.w	$1908	;1908
-	dc.w	$68FF	;68FF
-	dc.w	$021A	;021A
-	dc.w	$1A07	;1A07
-	dc.w	$2C08	;2C08
-	dc.w	$02FF	;02FF
-	dc.w	$1A07	;1A07
-	dc.w	$2009	;2009
-	dc.w	$12FF	;12FF
-	dc.w	$1A08	;1A08
-	dc.w	$3F0A	;3F0A
-	dc.w	$12FF	;12FF
-	dc.w	$1A09	;1A09
-	dc.w	$650B	;650B
-	dc.w	$1216	;1216
-	dc.w	$0E09	;0E09
-	dc.w	$69FF	;69FF
-	dc.w	$1215	;1215
-	dc.w	$0F09	;0F09
-	dc.w	$6AFF	;6AFF
-	dc.w	$1217	;1217
-	dc.w	$0408	;0408
-	dc.w	$67FF	;67FF
-	dc.w	$0211	;0211
-	dc.w	$0507	;0507
-	dc.w	$200C	;200C
-	dc.w	$12FF	;12FF
-	dc.w	$0509	;0509
-	dc.w	$410D	;410D
-	dc.w	$0207	;0207
-	dc.w	$0408	;0408
-	dc.w	$68FF	;68FF
-	dc.w	$0209	;0209
-	dc.w	$0308	;0308
-	dc.w	$68FF	;68FF
-	dc.w	$1208	;1208
-	dc.w	$0508	;0508
-	dc.w	$2C10	;2C10
-	dc.w	$12FF	;12FF
-	dc.w	$0509	;0509
-	dc.w	$4211	;4211
-	dc.w	$12FF	;12FF
-	dc.w	$0508	;0508
-	dc.w	$2C12	;2C12
-	dc.w	$12FF	;12FF
-	dc.w	$050A	;050A
-	dc.w	$4213	;4213
-	dc.w	$120C	;120C
-	dc.w	$0709	;0709
-	dc.w	$6614	;6614
-	dc.w	$12FF	;12FF
-	dc.w	$070A	;070A
-	dc.w	$6615	;6615
-	dc.w	$0300	;0300
-	dc.w	$0C09	;0C09
-	dc.w	$69FF	;69FF
-	dc.w	$0301	;0301
-	dc.w	$0C09	;0C09
-	dc.w	$69FF	;69FF
-	dc.w	$1306	;1306
-	dc.w	$030A	;030A
-	dc.w	$69FF	;69FF
-	dc.w	$030D	;030D
-	dc.w	$0409	;0409
-	dc.w	$68FF	;68FF
-	dc.w	$0311	;0311
-	dc.w	$0608	;0608
-	dc.w	$68FF	;68FF
-	dc.w	$0312	;0312
-	dc.w	$1208	;1208
-	dc.w	$2D18	;2D18
-	dc.w	$03FF	;03FF
-	dc.w	$1208	;1208
-	dc.w	$5119	;5119
-	dc.w	$13FF	;13FF
-	dc.w	$120A	;120A
-	dc.w	$661A	;661A
-	dc.w	$030B	;030B
-	dc.w	$0D08	;0D08
-	dc.w	$331C	;331C
-	dc.w	$03FF	;03FF
-	dc.w	$0D08	;0D08
-	dc.w	$4E1D	;4E1D
-	dc.w	$03FF	;03FF
-	dc.w	$0D0A	;0D0A
-	dc.w	$211E	;211E
-	dc.w	$1300	;1300
-	dc.w	$1209	;1209
-	dc.w	$2620	;2620
-	dc.w	$13FF	;13FF
-	dc.w	$1209	;1209
-	dc.w	$2621	;2621
-	dc.w	$0404	;0404
-	dc.w	$060A	;060A
-	dc.w	$67FF	;67FF
-	dc.w	$0405	;0405
-	dc.w	$0809	;0809
-	dc.w	$2824	;2824
-	dc.w	$14FF	;14FF
-	dc.w	$0809	;0809
-	dc.w	$6625	;6625
-	dc.w	$1410	;1410
-	dc.w	$0F0A	;0F0A
-	dc.w	$41FF	;41FF
-	dc.w	$0400	;0400
-	dc.w	$0A0A	;0A0A
-	dc.w	$68FF	;68FF
-	dc.w	$1400	;1400
-	dc.w	$0009	;0009
-	dc.w	$6AFF	;6AFF
-	dc.w	$0400	;0400
-	dc.w	$1009	;1009
-	dc.w	$68FF	;68FF
-	dc.w	$4500	;4500
-	dc.w	$030B	;030B
-	dc.w	$00FF	;00FF
-	dc.w	$050A	;050A
-	dc.w	$100A	;100A
-	dc.w	$5328	;5328
-	dc.w	$05FF	;05FF
-	dc.w	$100B	;100B
-	dc.w	$5329	;5329
-	dc.w	$050A	;050A
-	dc.w	$0E0A	;0E0A
-	dc.w	$532C	;532C
-	dc.w	$05FF	;05FF
-	dc.w	$0E0B	;0E0B
-	dc.w	$532D	;532D
-	dc.w	$050F	;050F
-	dc.w	$0A0A	;0A0A
-	dc.w	$68FF	;68FF
-	dc.w	$1509	;1509
-	dc.w	$030A	;030A
-	dc.w	$69FF	;69FF
-	dc.w	$0507	;0507
-	dc.w	$020A	;020A
-	dc.w	$67FF	;67FF
-	dc.w	$1600	;1600
-	dc.w	$000A	;000A
-	dc.w	$6AFF	;6AFF
-	dc.w	$1601	;1601
-	dc.w	$0C0A	;0C0A
-	dc.w	$67FF	;67FF
-	dc.w	$160B	;160B
-	dc.w	$0C08	;0C08
-	dc.w	$4130	;4130
-	dc.w	$06FF	;06FF
-	dc.w	$0C0A	;0C0A
-	dc.w	$3731	;3731
-	dc.w	$06FF	;06FF
-	dc.w	$0C09	;0C09
-	dc.w	$5332	;5332
-	dc.w	$16FF	;16FF
-	dc.w	$0C0A	;0C0A
-	dc.w	$2C33	;2C33
-	dc.w	$0608	;0608
-	dc.w	$050B	;050B
-	dc.w	$69FF	;69FF
-	dc.w	$1701	;1701
-	dc.w	$070A	;070A
-	dc.w	$69FF	;69FF
-	dc.w	$170A	;170A
-	dc.w	$030B	;030B
-	dc.w	$69FF	;69FF
-	dc.w	$1702	;1702
-	dc.w	$000B	;000B
-	dc.w	$69FF	;69FF
-	dc.w	$1708	;1708
-	dc.w	$000C	;000C
-	dc.w	$69FF	;69FF
-	dc.w	$0704	;0704
-	dc.w	$000A	;000A
-	dc.w	$4734	;4734
-	dc.w	$07FF	;07FF
-	dc.w	$000A	;000A
-	dc.w	$4735	;4735
-	dc.w	$0706	;0706
-	dc.w	$000A	;000A
-	dc.w	$4738	;4738
-	dc.w	$07FF	;07FF
-	dc.w	$000A	;000A
-	dc.w	$4739	;4739
-	dc.w	$1801	;1801
-	dc.w	$030D	;030D
-	dc.w	$69FF	;69FF
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0207	;0207
-	dc.w	$0000	;0000
-	dc.w	$16FF	;16FF
-	dc.w	$020D	;020D
-	dc.w	$1109	;1109
-	dc.w	$67FF	;67FF
-	dc.w	$0207	;0207
-	dc.w	$0B09	;0B09
-	dc.w	$69FF	;69FF
-	dc.w	$020A	;020A
-	dc.w	$0609	;0609
-	dc.w	$67FF	;67FF
-	dc.w	$0210	;0210
-	dc.w	$0609	;0609
-	dc.w	$69FF	;69FF
-	dc.w	$020A	;020A
-	dc.w	$0E09	;0E09
-	dc.w	$2B00	;2B00
-	dc.w	$02FF	;02FF
-	dc.w	$0E09	;0E09
-	dc.w	$2401	;2401
-	dc.w	$0208	;0208
-	dc.w	$0F09	;0F09
-	dc.w	$1E04	;1E04
-	dc.w	$02FF	;02FF
-	dc.w	$0F09	;0F09
-	dc.w	$2805	;2805
-	dc.w	$1214	;1214
-	dc.w	$020A	;020A
-	dc.w	$6AFF	;6AFF
-	dc.w	$1203	;1203
-	dc.w	$0E0A	;0E0A
-	dc.w	$69FF	;69FF
-	dc.w	$0204	;0204
-	dc.w	$000B	;000B
-	dc.w	$2F08	;2F08
-	dc.w	$02FF	;02FF
-	dc.w	$000B	;000B
-	dc.w	$3709	;3709
-	dc.w	$0205	;0205
-	dc.w	$000B	;000B
-	dc.w	$4D0C	;4D0C
-	dc.w	$02FF	;02FF
-	dc.w	$000B	;000B
-	dc.w	$460D	;460D
-	dc.w	$0200	;0200
-	dc.w	$030E	;030E
-	dc.w	$2A1C	;2A1C
-	dc.w	$02FF	;02FF
-	dc.w	$030E	;030E
-	dc.w	$2B1D	;2B1D
-	dc.w	$02FF	;02FF
-	dc.w	$030C	;030C
-	dc.w	$2B1E	;2B1E
-	dc.w	$0502	;0502
-	dc.w	$0B0B	;0B0B
-	dc.w	$1710	;1710
-	dc.w	$05FF	;05FF
-	dc.w	$0B0B	;0B0B
-	dc.w	$1711	;1711
-	dc.w	$0300	;0300
-	dc.w	$140C	;140C
-	dc.w	$67FF	;67FF
-	dc.w	$1500	;1500
-	dc.w	$020D	;020D
-	dc.w	$3BFF	;3BFF
-	dc.w	$0400	;0400
-	dc.w	$030D	;030D
-	dc.w	$67FF	;67FF
-	dc.w	$1300	;1300
-	dc.w	$000A	;000A
-	dc.w	$6614	;6614
-	dc.w	$13FF	;13FF
-	dc.w	$000B	;000B
-	dc.w	$6615	;6615
-	dc.w	$0300	;0300
-	dc.w	$080C	;080C
-	dc.w	$2B18	;2B18
-	dc.w	$03FF	;03FF
-	dc.w	$080D	;080D
-	dc.w	$2C19	;2C19
-	dc.w	$0309	;0309
-	dc.w	$0800	;0800
-	dc.w	$2520	;2520
-	dc.w	$13FF	;13FF
-	dc.w	$080C	;080C
-	dc.w	$1821	;1821
-	dc.w	$13FF	;13FF
-	dc.w	$080D	;080D
-	dc.w	$1722	;1722
-	dc.w	$0308	;0308
-	dc.w	$0A00	;0A00
-	dc.w	$2724	;2724
-	dc.w	$13FF	;13FF
-	dc.w	$0A0C	;0A0C
-	dc.w	$1825	;1825
-	dc.w	$13FF	;13FF
-	dc.w	$0A0D	;0A0D
-	dc.w	$1726	;1726
-	dc.w	$1304	;1304
-	dc.w	$000D	;000D
-	dc.w	$67FF	;67FF
-	dc.w	$130D	;130D
-	dc.w	$000D	;000D
-	dc.w	$69FF	;69FF
-	dc.w	$0303	;0303
-	dc.w	$120E	;120E
-	dc.w	$52FF	;52FF
-	dc.w	$1307	;1307
-	dc.w	$120D	;120D
-	dc.w	$2328	;2328
-	dc.w	$03FF	;03FF
-	dc.w	$120E	;120E
-	dc.w	$2429	;2429
-	dc.w	$1314	;1314
-	dc.w	$0F0E	;0F0E
-	dc.w	$69FF	;69FF
-	dc.w	$030F	;030F
-	dc.w	$0D0C	;0D0C
-	dc.w	$68FF	;68FF
-	dc.w	$030C	;030C
-	dc.w	$0E0C	;0E0C
-	dc.w	$68FF	;68FF
-	dc.w	$0404	;0404
-	dc.w	$120C	;120C
-	dc.w	$532C	;532C
-	dc.w	$14FF	;14FF
-	dc.w	$120D	;120D
-	dc.w	$412D	;412D
-	dc.w	$14FF	;14FF
-	dc.w	$120C	;120C
-	dc.w	$182E	;182E
-	dc.w	$0404	;0404
-	dc.w	$0900	;0900
-	dc.w	$1130	;1130
-	dc.w	$04FF	;04FF
-	dc.w	$090C	;090C
-	dc.w	$2831	;2831
-	dc.w	$14FF	;14FF
-	dc.w	$090E	;090E
-	dc.w	$4232	;4232
-	dc.w	$040D	;040D
-	dc.w	$060C	;060C
-	dc.w	$1E34	;1E34
-	dc.w	$14FF	;14FF
-	dc.w	$060D	;060D
-	dc.w	$1F35	;1F35
-	dc.w	$14FF	;14FF
-	dc.w	$060C	;060C
-	dc.w	$3F36	;3F36
-	dc.w	$0407	;0407
-	dc.w	$0300	;0300
-	dc.w	$1238	;1238
-	dc.w	$04FF	;04FF
-	dc.w	$030C	;030C
-	dc.w	$2C39	;2C39
-	dc.w	$04FF	;04FF
-	dc.w	$030E	;030E
-	dc.w	$413A	;413A
-	dc.w	$050B	;050B
-	dc.w	$000B	;000B
-	dc.w	$67FF	;67FF
-	dc.w	$0506	;0506
-	dc.w	$000C	;000C
-	dc.w	$4EFF	;4EFF
-	dc.w	$0504	;0504
-	dc.w	$000C	;000C
-	dc.w	$4FFF	;4FFF
-	dc.w	$0505	;0505
-	dc.w	$0C0D	;0C0D
-	dc.w	$69FF	;69FF
-	dc.w	$0507	;0507
-	dc.w	$0C0B	;0C0B
-	dc.w	$67FF	;67FF
-	dc.w	$050E	;050E
-	dc.w	$0C0B	;0C0B
-	dc.w	$69FF	;69FF
-	dc.w	$150D	;150D
-	dc.w	$0D0E	;0D0E
-	dc.w	$67FF	;67FF
-	dc.w	$050A	;050A
-	dc.w	$0E0C	;0E0C
-	dc.w	$17FF	;17FF
-	dc.w	$0604	;0604
-	dc.w	$070C	;070C
-	dc.w	$24FF	;24FF
-	dc.w	$0606	;0606
-	dc.w	$080C	;080C
-	dc.w	$443C	;443C
-	dc.w	$06FF	;06FF
-	dc.w	$080C	;080C
-	dc.w	$453D	;453D
-	dc.w	$060A	;060A
-	dc.w	$060C	;060C
-	dc.w	$2BFF	;2BFF
-	dc.w	$0608	;0608
-	dc.w	$000D	;000D
-	dc.w	$28FF	;28FF
-	dc.w	$060C	;060C
-	dc.w	$010B	;010B
-	dc.w	$5440	;5440
-	dc.w	$16FF	;16FF
-	dc.w	$010D	;010D
-	dc.w	$3E41	;3E41
-	dc.w	$060A	;060A
-	dc.w	$000C	;000C
-	dc.w	$37FF	;37FF
-	dc.w	$1604	;1604
-	dc.w	$0B0D	;0B0D
-	dc.w	$2348	;2348
-	dc.w	$06FF	;06FF
-	dc.w	$0B0E	;0B0E
-	dc.w	$2A49	;2A49
-	dc.w	$160A	;160A
-	dc.w	$0D0D	;0D0D
-	dc.w	$3B4C	;3B4C
-	dc.w	$16FF	;16FF
-	dc.w	$0D0E	;0D0E
-	dc.w	$3B4D	;3B4D
-	dc.w	$0700	;0700
-	dc.w	$000E	;000E
-	dc.w	$67FF	;67FF
-	dc.w	$0707	;0707
-	dc.w	$020E	;020E
-	dc.w	$67FF	;67FF
-	dc.w	$1700	;1700
-	dc.w	$0A10	;0A10
-	dc.w	$69FF	;69FF
-	dc.w	$1704	;1704
-	dc.w	$080E	;080E
-	dc.w	$1944	;1944
-	dc.w	$17FF	;17FF
-	dc.w	$080F	;080F
-	dc.w	$1945	;1945
-	dc.w	$17FF	;17FF
-	dc.w	$080F	;080F
-	dc.w	$1946	;1946
-	dc.w	$17FF	;17FF
-	dc.w	$080F	;080F
-	dc.w	$1947	;1947
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$1589	;1589
-	dc.w	$081E	;081E
-	dc.w	$6BFF	;6BFF
-	dc.w	$1101	;1101
-	dc.w	$0E0E	;0E0E
-	dc.w	$69FF	;69FF
-	dc.w	$1100	;1100
-	dc.w	$040E	;040E
-	dc.w	$6AFF	;6AFF
-	dc.w	$1105	;1105
-	dc.w	$0010	;0010
-	dc.w	$21FF	;21FF
-	dc.w	$0112	;0112
-	dc.w	$030F	;030F
-	dc.w	$68FF	;68FF
-	dc.w	$010E	;010E
-	dc.w	$030F	;030F
-	dc.w	$68FF	;68FF
-	dc.w	$0107	;0107
-	dc.w	$120F	;120F
-	dc.w	$2A00	;2A00
-	dc.w	$01FF	;01FF
-	dc.w	$120F	;120F
-	dc.w	$2401	;2401
-	dc.w	$110F	;110F
-	dc.w	$0F10	;0F10
-	dc.w	$6604	;6604
-	dc.w	$11FF	;11FF
-	dc.w	$0F10	;0F10
-	dc.w	$6605	;6605
-	dc.w	$110E	;110E
-	dc.w	$1010	;1010
-	dc.w	$67FF	;67FF
-	dc.w	$010E	;010E
-	dc.w	$0D12	;0D12
-	dc.w	$68FF	;68FF
-	dc.w	$0107	;0107
-	dc.w	$0B0F	;0B0F
-	dc.w	$0F08	;0F08
-	dc.w	$11FF	;11FF
-	dc.w	$0B0F	;0B0F
-	dc.w	$1809	;1809
-	dc.w	$01FF	;01FF
-	dc.w	$0B0F	;0B0F
-	dc.w	$2B0A	;2B0A
-	dc.w	$11FF	;11FF
-	dc.w	$0B11	;0B11
-	dc.w	$3A0B	;3A0B
-	dc.w	$0111	;0111
-	dc.w	$0810	;0810
-	dc.w	$530C	;530C
-	dc.w	$01FF	;01FF
-	dc.w	$0810	;0810
-	dc.w	$450D	;450D
-	dc.w	$0109	;0109
-	dc.w	$0212	;0212
-	dc.w	$67FF	;67FF
-	dc.w	$0200	;0200
-	dc.w	$100D	;100D
-	dc.w	$1110	;1110
-	dc.w	$02FF	;02FF
-	dc.w	$100D	;100D
-	dc.w	$4711	;4711
-	dc.w	$0200	;0200
-	dc.w	$0F0D	;0F0D
-	dc.w	$4814	;4814
-	dc.w	$02FF	;02FF
-	dc.w	$0F0D	;0F0D
-	dc.w	$4915	;4915
-	dc.w	$0201	;0201
-	dc.w	$0F0D	;0F0D
-	dc.w	$4A18	;4A18
-	dc.w	$02FF	;02FF
-	dc.w	$0F0D	;0F0D
-	dc.w	$4B19	;4B19
-	dc.w	$0201	;0201
-	dc.w	$100D	;100D
-	dc.w	$111C	;111C
-	dc.w	$02FF	;02FF
-	dc.w	$100D	;100D
-	dc.w	$471D	;471D
-	dc.w	$0202	;0202
-	dc.w	$0F0D	;0F0D
-	dc.w	$4B20	;4B20
-	dc.w	$02FF	;02FF
-	dc.w	$0F0D	;0F0D
-	dc.w	$4821	;4821
-	dc.w	$0202	;0202
-	dc.w	$100D	;100D
-	dc.w	$4924	;4924
-	dc.w	$02FF	;02FF
-	dc.w	$100D	;100D
-	dc.w	$4A25	;4A25
-	dc.w	$020F	;020F
-	dc.w	$0311	;0311
-	dc.w	$68FF	;68FF
-	dc.w	$1200	;1200
-	dc.w	$080F	;080F
-	dc.w	$69FF	;69FF
-	dc.w	$020D	;020D
-	dc.w	$090D	;090D
-	dc.w	$1728	;1728
-	dc.w	$02FF	;02FF
-	dc.w	$090D	;090D
-	dc.w	$1729	;1729
-	dc.w	$1307	;1307
-	dc.w	$0412	;0412
-	dc.w	$69FF	;69FF
-	dc.w	$030B	;030B
-	dc.w	$020F	;020F
-	dc.w	$69FF	;69FF
-	dc.w	$030E	;030E
-	dc.w	$010F	;010F
-	dc.w	$6AFF	;6AFF
-	dc.w	$1303	;1303
-	dc.w	$0204	;0204
-	dc.w	$662C	;662C
-	dc.w	$13FF	;13FF
-	dc.w	$0211	;0211
-	dc.w	$662D	;662D
-	dc.w	$13FF	;13FF
-	dc.w	$0210	;0210
-	dc.w	$662E	;662E
-	dc.w	$13FF	;13FF
-	dc.w	$020A	;020A
-	dc.w	$662F	;662F
-	dc.w	$0305	;0305
-	dc.w	$0511	;0511
-	dc.w	$67FF	;67FF
-	dc.w	$0300	;0300
-	dc.w	$0600	;0600
-	dc.w	$2630	;2630
-	dc.w	$13FF	;13FF
-	dc.w	$0611	;0611
-	dc.w	$1931	;1931
-	dc.w	$13FF	;13FF
-	dc.w	$0611	;0611
-	dc.w	$1832	;1832
-	dc.w	$13FF	;13FF
-	dc.w	$0610	;0610
-	dc.w	$1933	;1933
-	dc.w	$0307	;0307
-	dc.w	$0E10	;0E10
-	dc.w	$3634	;3634
-	dc.w	$03FF	;03FF
-	dc.w	$0E10	;0E10
-	dc.w	$2235	;2235
-	dc.w	$0300	;0300
-	dc.w	$1010	;1010
-	dc.w	$4338	;4338
-	dc.w	$03FF	;03FF
-	dc.w	$1010	;1010
-	dc.w	$4639	;4639
-	dc.w	$0312	;0312
-	dc.w	$1211	;1211
-	dc.w	$68FF	;68FF
-	dc.w	$130D	;130D
-	dc.w	$0811	;0811
-	dc.w	$533C	;533C
-	dc.w	$13FF	;13FF
-	dc.w	$0811	;0811
-	dc.w	$653D	;653D
-	dc.w	$1402	;1402
-	dc.w	$0312	;0312
-	dc.w	$67FF	;67FF
-	dc.w	$0406	;0406
-	dc.w	$1011	;1011
-	dc.w	$1E40	;1E40
-	dc.w	$14FF	;14FF
-	dc.w	$1011	;1011
-	dc.w	$3F41	;3F41
-	dc.w	$0400	;0400
-	dc.w	$1112	;1112
-	dc.w	$68FF	;68FF
-	dc.w	$0403	;0403
-	dc.w	$1112	;1112
-	dc.w	$68FF	;68FF
-	dc.w	$140A	;140A
-	dc.w	$0612	;0612
-	dc.w	$68FF	;68FF
-	dc.w	$140B	;140B
-	dc.w	$0C12	;0C12
-	dc.w	$3E44	;3E44
-	dc.w	$04FF	;04FF
-	dc.w	$0C12	;0C12
-	dc.w	$2B45	;2B45
-	dc.w	$14FF	;14FF
-	dc.w	$0C12	;0C12
-	dc.w	$3B46	;3B46
-	dc.w	$140C	;140C
-	dc.w	$0019	;0019
-	dc.w	$40FF	;40FF
-	dc.w	$1500	;1500
-	dc.w	$0714	;0714
-	dc.w	$69FF	;69FF
-	dc.w	$1509	;1509
-	dc.w	$0014	;0014
-	dc.w	$67FF	;67FF
-	dc.w	$150C	;150C
-	dc.w	$0014	;0014
-	dc.w	$1A4C	;1A4C
-	dc.w	$15FF	;15FF
-	dc.w	$0014	;0014
-	dc.w	$1A4D	;1A4D
-	dc.w	$150D	;150D
-	dc.w	$0414	;0414
-	dc.w	$1A50	;1A50
-	dc.w	$15FF	;15FF
-	dc.w	$0414	;0414
-	dc.w	$1A51	;1A51
-	dc.w	$150C	;150C
-	dc.w	$1014	;1014
-	dc.w	$1A54	;1A54
-	dc.w	$15FF	;15FF
-	dc.w	$1014	;1014
-	dc.w	$1A55	;1A55
-	dc.w	$1506	;1506
-	dc.w	$1014	;1014
-	dc.w	$1A58	;1A58
-	dc.w	$15FF	;15FF
-	dc.w	$1014	;1014
-	dc.w	$1A59	;1A59
-	dc.w	$1503	;1503
-	dc.w	$0314	;0314
-	dc.w	$1A5C	;1A5C
-	dc.w	$15FF	;15FF
-	dc.w	$0314	;0314
-	dc.w	$1A5D	;1A5D
-	dc.w	$1504	;1504
-	dc.w	$0014	;0014
-	dc.w	$1A48	;1A48
-	dc.w	$15FF	;15FF
-	dc.w	$0014	;0014
-	dc.w	$1A49	;1A49
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-adrL_0186A0:
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
+MonsterBlock_mod0:
+	INCBIN "/data/BLOODWYCH439-clean/maps/mod0.monsters"
+MonsteBlock_serp:
+	INCBIN "/data/BLOODWYCH439-clean/maps/serp.monsters"
+MonsterBlock_moon:
+	INCBIN "/data/BLOODWYCH439-clean/maps/moon.monsters"
+MonsterBlock_drag:
+	INCBIN "/data/BLOODWYCH439-clean/maps/drag.monsters"
+MonsterBlock_chaos:
+	INCBIN "/data/BLOODWYCH439-clean/maps/chaos.monsters"
+MonsterBlock_zendik:
+	INCBIN "/data/BLOODWYCH439-clean/maps/zendik.monsters"
 SpellBookRunes:
 	dc.b	'mar'	;6D6172
 	dc.b	'yhadalittlelaaneeitwerraguddutnerewanzednowtecozzitwerawuddunwhyamistillhavintotypethiscrapwhithoughtidfinishacoupleoflinesq'	;79686164616C6974746C656C61616E6565697477657272616775646475746E65726577616E7A65646E6F777465636F7A7A6974776572617775646
@@ -25728,6 +23138,7 @@ GFX_SignOverlay:
 GFX_Switches:
 	INCBIN "/data/BLOODWYCH439-clean/gfx/Main_Switches.gfx"
 GFX_Slots:
+	; ReSource: Raw socket pixels
 	INCBIN "/data/BLOODWYCH439-clean/gfx/Main_Slots.gfx"
 GFX_Bed:
 	INCBIN "/data/BLOODWYCH439-clean/gfx/Misc_Bed.gfx"
@@ -25739,10 +23150,6 @@ GFX_Stairs_Down:
 	INCBIN "/data/BLOODWYCH439-clean/gfx/Stairs_Down.gfx"
 GFX_Door_Open:
 	INCBIN "/data/BLOODWYCH439-clean/gfx/Door_Open.gfx"
-	dc.w	$FFFF	;FFFF
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
 GFX_Door_Metal:
 	INCBIN "/data/BLOODWYCH439-clean/gfx/Door_Metal.gfx"
 GFX_Door_PortCullis:
@@ -25753,26 +23160,6 @@ GFX_Pit_High:
 	INCBIN "/data/BLOODWYCH439-clean/gfx/Pad_Pit_High.gfx"
 GFX_Pad_Trigger:
 	INCBIN "/data/BLOODWYCH439-clean/gfx/Pad_Trigger.gfx"
-	dc.w	$001F	;001F
-	dc.w	$243F	;243F
-	dc.w	$FFBF	;FFBF
-	dc.w	$243F	;243F
-	dc.w	$FC00	;FC00
-	dc.w	$FFFF	;FFFF
-	dc.w	$FFFF	;FFFF
-	dc.w	$FFFF	;FFFF
-	dc.w	$0000	;0000
-	dc.w	$FFFF	;FFFF
-	dc.w	$FFFF	;FFFF
-	dc.w	$FFFF	;FFFF
-	dc.w	$0000	;0000
-	dc.w	$FFFF	;FFFF
-	dc.w	$FFFF	;FFFF
-	dc.w	$FFFF	;FFFF
-	dc.w	$003F	;003F
-	dc.w	$FFFF	;FFFF
-	dc.w	$FFFF	;FFFF
-	dc.w	$FFFF	;FFFF
 GFX_FloorCeiling:
 	INCBIN "/data/BLOODWYCH439-clean/gfx/FloorCeiling.gfx"
 GFX_ObjectsOnFloor:
@@ -26841,4 +24228,5 @@ ReserveSpace_2:
 	dc.b	$00	;00
 	dc.b	$00	;00
 GameEnd:
+
 	end

@@ -19,6 +19,7 @@ from .resource_layout import (
     layout_row_indices,
     resource_layouts,
 )
+from .resource_aliases import remove_temporary_aliases
 from .source_comments import apply_source_comments
 from .tool_common import (
     ToolError,
@@ -574,6 +575,14 @@ def inspect_source(
     for replacement in sorted(accepted, key=lambda item: item.start, reverse=True):
         working_lines[replacement.start : replacement.end] = _replacement_lines(replacement)
 
+    emitted_append_labels = {
+        part.output_label
+        for replacement in accepted
+        for part in replacement.parts[1:]
+    }
+    working_lines = remove_temporary_aliases(
+        working_lines, emitted_append_labels
+    )
     working_lines = apply_source_comments(working_lines, frame)
 
     new_name = asm_path.with_name(f"{asm_path.stem}_data{asm_path.suffix}")

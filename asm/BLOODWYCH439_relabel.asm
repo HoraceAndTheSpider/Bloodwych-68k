@@ -38,6 +38,11 @@ wd_SIZEOF:		equ	$00000088
 dsklen:			equ	$00000024
 ac_len:			equ	$00000004
 ciacra:			equ	$00000E00
+; ReSource: generated EQU definitions from segments.xlsx/EQUATES
+DiskReadTimeoutCount:		equ	$000186A0
+	; ReSource: Disk-read timeout counter used while waiting for DMA completion.
+; ReSource: end generated EQU definitions
+
 ****************************************************************************
 
 ; Fixed for Devpac:
@@ -568,7 +573,7 @@ adrLp000A08:
 	bmi	Trigger_00_t00_Null	;6B0065D8
 	add.w	d1,d0	;D041
 	asl.w	#$08,d0	;E140
-	lea	TheMonsterBlock.l,a3	;47F900017584
+	lea	MonsterBlock_mod0.l,a3	;47F900017584
 	add.w	d0,a3	;D6C0
 	moveq	#$00,d4	;7800
 .FillMonstersLoop:
@@ -1699,7 +1704,7 @@ adrCd0016A0:
 	tst.w	d2	;4A42
 	bmi.s	adrCd0016BE	;6B18
 	move.l	a4,d0	;200C
-	sub.l	#TheMonsterBlock,d0	;048000017584
+	sub.l	#MonsterBlock_mod0,d0	;048000017584
 	lsr.w	#$04,d0	;E848
 	add.b	$000B(a4),d0	;D02C000B
 	add.b	$0006(a4),d0	;D02C0006
@@ -11406,7 +11411,7 @@ adrCd007974:
 	add.w	d0,d0	;D040
 	add.w	d0,d1	;D240
 	asl.w	#$08,d1	;E141
-	lea	TheMonsterBlock.l,a3	;47F900017584
+	lea	MonsterBlock_mod0.l,a3	;47F900017584
 	add.w	d1,a3	;D6C1
 	lea	UnpackedMonsters.l,a4	;49F900016B7E
 	move.w	-$0002(a4),d1	;322CFFFE
@@ -12851,7 +12856,7 @@ adrCd0087EA:
 	beq.s	adrCd0087EA	;67F4
 	move.w	#$9F40,_custom+dsklen.l	;33FC9F4000DFF024
 	move.w	#$9F40,_custom+dsklen.l	;33FC9F4000DFF024
-	move.l	#adrL_0186A0,d1	;223C000186A0
+	move.l	#DiskReadTimeoutCount,d1	;223C000186A0
 adrCd00880C:
 	move.w	_custom+intreqr.l,d0	;303900DFF01E
 	btst	#$01,d0	;08000001
@@ -13729,18 +13734,18 @@ adrCd00905C:
 	move.l	-$0004(a3),d7	;2E2BFFFC
 	bsr	CoordToMap	;6100F42E
 	btst	#$05,$01(a6,d0.w)	;083600050001
-	beq.s	adrCd0090D4	;675C
+	beq.s	Draw_DungeonViewport	;675C
 	bsr	adrCd005F4E	;6100CED4
 	move.w	$0002(a0),d1	;32280002
 	move.w	d1,d0	;3001
 	and.w	#$0003,d1	;02410003
 	cmpi.w	#$0002,d1	;0C410002
-	bcc.s	adrCd0090D4	;6448
+	bcc.s	Draw_DungeonViewport	;6448
 	and.w	#$00FC,d0	;024000FC
 	cmpi.w	#$002C,d0	;0C40002C
 	bcc.s	adrCd00909C	;6406
 	cmpi.w	#$0020,d0	;0C400020
-	bcc.s	adrCd0090D4	;6438
+	bcc.s	Draw_DungeonViewport	;6438
 adrCd00909C:
 	lsr.w	#$01,d0	;E248
 	add.w	d0,d1	;D240
@@ -13790,7 +13795,8 @@ adrB_0090AC:
 	dc.b	$0E	;0E
 	dc.b	$08	;08
 
-adrCd0090D4:
+Draw_DungeonViewport:
+	; ReSource: Scans the 19 relative dungeon cells, builds the visibility and occlusion masks, then draws the surviving cells.
 	move.l	screen_ptr.l,a0	;207900008D36
 	add.w	#$01EC,a0	;D0FC01EC
 	add.w	$000A(a5),a0	;D0ED000A
@@ -13808,7 +13814,7 @@ adrCd0090D4:
 	add.w	d1,d0	;D041
 	add.w	d1,d1	;D241
 	add.w	d1,d0	;D041
-	lea	adrEA00B8AE.l,a0	;41F90000B8AE
+	lea	Dungeon_ViewCell_RelativeCoordinates.l,a0	;41F90000B8AE
 	add.w	d0,a0	;D0C0
 	move.l	a0,-$0010(a3)	;2748FFF0
 	move.l	adrW_00EE70.l,d1	;22390000EE70
@@ -13887,8 +13893,8 @@ adrCd0091C4:
 	swap	d5	;4845
 	rol.l	#$03,d4	;E79C
 	swap	d4	;4844
-	lea	adrEA00B9DA.l,a6	;4DF90000B9DA
-	lea	adrEA00B98E.l,a4	;49F90000B98E
+	lea	Dungeon_ViewCell_VisibleFaceMasks+$48.l,a6	;4DF90000B9DA
+	lea	Dungeon_ViewCell_OcclusionMasks+$48.l,a4	;49F90000B98E
 	moveq	#$00,d7	;7E00
 	moveq	#-$01,d0	;70FF
 	moveq	#$12,d6	;7C12
@@ -13909,7 +13915,7 @@ adrCd009202:
 	btst	d6,d5	;0D05
 	beq.s	adrCd009212	;670C
 	movem.l	d5-d7,-(sp)	;48E70700
-	bsr	adrCd00921E	;61000012
+	bsr	Draw_DungeonViewCell	;61000012
 	movem.l	(sp)+,d5-d7	;4CDF00E0
 adrCd009212:
 	addq.w	#$01,d6	;5246
@@ -13918,7 +13924,8 @@ adrCd009212:
 	unlk	a3	;4E5B
 	rts	;4E75
 
-adrCd00921E:
+Draw_DungeonViewCell:
+	; ReSource: Resolves and draws one player-relative dungeon view cell.
 	move.b	d6,-$0016(a3)	;1746FFEA
 	move.l	-$0010(a3),a0	;206BFFF0
 	add.w	d6,d6	;DC46
@@ -14060,13 +14067,14 @@ GFX_StationarySpell_RenderLayout:
 
 adrCd009378:
 	and.w	#$0007,d1	;02410007
-	bne.s	adrCd009388	;660A
+	bne.s	Draw_DungeonLocation_ByType	;660A
 	tst.b	-$0011(a3)	;4A2BFFEF
 	bmi	adrCd0099F0	;6B00066C
 	rts	;4E75
 
-adrCd009388:
-	lea	adrEA00B9F2.l,a6	;4DF90000B9F2
+Draw_DungeonLocation_ByType:
+	; ReSource: Dispatches the current map type and iterates its candidate wall faces.
+	lea	Dungeon_ViewCell_WallFaceSlots.l,a6	;4DF90000B9F2
 	add.w	d6,d6	;DC46
 	add.w	d6,a6	;DCC6
 	moveq	#$03,d5	;7A03
@@ -14077,7 +14085,7 @@ adrCd009388:
 	subq.b	#$01,d1	;5301
 	beq	adrCd00956A	;670001CA
 	cmpi.b	#$03,d1	;0C010003
-	beq	adrCd0094DC	;67000134
+	beq	Set_TriggerPad_ColourMask	;67000134
 	cmpi.b	#$04,d1	;0C010004
 	beq	adrCd009496	;670000E6
 	move.b	d1,-$0013(a3)	;1741FFED
@@ -14095,7 +14103,7 @@ adrLp0093C2:
 	beq.s	adrCd00943A	;676E
 	clr.b	-$0014(a3)	;422BFFEC
 	clr.b	-$0015(a3)	;422BFFEB
-	bsr	adrCd0095D4	;610001FE
+	bsr	Resolve_DungeonWallFaceDirection	;610001FE
 	tst.b	-$0013(a3)	;4A2BFFED
 	bmi.s	adrCd0093E4	;6B06
 	beq.s	adrCd009440	;6760
@@ -14132,7 +14140,7 @@ adrCd009412:
 	move.b	d0,-$0015(a3)	;1740FFEB
 adrCd00942E:
 	movem.l	d5/a6,-(sp)	;48E70402
-	bsr	adrCd00B3D8	;61001FA4
+	bsr	Draw_WoodenWallOrDoorFace	;61001FA4
 	movem.l	(sp)+,d5/a6	;4CDF4020
 adrCd00943A:
 	dbra	d5,adrLp0093C2	;51CDFF86
@@ -14158,17 +14166,17 @@ adrCd009440:
 	subq.b	#$01,-$0015(a3)	;532BFFEB
 adrCd009474:
 	movem.l	d5/a6,-(sp)	;48E70402
-	bsr	adrCd00B074	;61001BFA
+	bsr	Draw_MainWallFace_ByPatternParity	;61001BFA
 	movem.l	(sp)+,d5/a6	;4CDF4020
 	bra.s	adrCd00943A	;60B8
 
 adrCd009482:
 	bsr	adrCd0099DC	;61000558
-	bmi	adrCd00B2DE	;6B001E56
+	bmi	Draw_Main_Door_Or_Stairs	;6B001E56
 	btst	d1,d7	;0307
-	beq	adrCd00B2DE	;67001E50
+	beq	Draw_Main_Door_Or_Stairs	;67001E50
 	move.w	d1,d6	;3C01
-	bra	adrCd00B2DE	;60001E4A
+	bra	Draw_Main_Door_Or_Stairs	;60001E4A
 
 adrCd009496:
 	move.b	-$0012(a3),d1	;122BFFEE
@@ -14191,15 +14199,15 @@ adrCd0094B4:
 adrCd0094BC:
 	bsr	RandomGen_BytewithOffset	;6100C0EE
 	and.w	#$0004,d0	;02400004
-	move.l	adrL_0094D4(pc,d0.w),Buffer_Colour_Mask.l	;23FB000E0000B4C0
+	move.l	GFX_Firepath_ColourMasks(pc,d0.w),Buffer_Colour_Mask.l	;23FB000E0000B4C0
 	move.b	#$02,-$0012(a3)	;177C0002FFEE
 	bra.s	adrCd0094E6	;6012
 
-adrL_0094D4:
+GFX_Firepath_ColourMasks:
 	dc.l	$090C0B0D	;090C0B0D
 	dc.l	$090A0B0D	;090A0B0D
 
-adrCd0094DC:
+Set_TriggerPad_ColourMask:
 	move.l	#$01050406,Buffer_Colour_Mask.l	;23FC010504060000B4C0
 adrCd0094E6:
 	bsr	adrCd0099DC	;610004F4
@@ -14256,7 +14264,7 @@ adrCd00956A:
 	lea	GFX_Bed.l,a1	;43F900028C28
 	move.w	d0,d6	;3C00
 Draw_Wall_Sprite:
-	bsr	adrCd00B486	;61001EF4
+	bsr	Prepare_WallSpriteDraw	;61001EF4
 	swap	d3	;4843
 	move.l	a3,-(sp)	;2F0B
 	bsr	adrCd00B5CA	;61002030
@@ -14271,11 +14279,12 @@ Draw_Pillar:
 	move.w	d0,d6	;3C00
 adrCd0095B4:
 	moveq	#$00,d0	;7000
-	move.b	GFX_Misc_Pillar_SpriteTable(pc,d6.w),d0	;103B6008
+	move.b	GFX_CentredDungeonComponent_SpriteMirrorTable(pc,d6.w),d0	;103B6008
 	bpl.s	Draw_Wall_Sprite	;6AD4
 	bra	Flip_Sprite	;60001E70
 
-GFX_Misc_Pillar_SpriteTable:
+GFX_CentredDungeonComponent_SpriteMirrorTable:
+	; ReSource: Maps the 19 viewport cells to centred dungeon sprite numbers; bit 7 selects horizontal mirroring. The twentieth byte is spare.
 	dc.b	$00	;00
 	dc.b	$01	;01
 	dc.b	$02	;02
@@ -14297,7 +14306,8 @@ GFX_Misc_Pillar_SpriteTable:
 	dc.b	$0B	;0B
 	dc.b	$0C	;0C
 
-adrCd0095D4:
+Resolve_DungeonWallFaceDirection:
+	; ReSource: Converts the current candidate face and player facing into the corresponding N/E/S/W direction.
 	move.w	d5,d1	;3205
 	cmp.b	#$07,-$0016(a3)	;0C2B0007FFEA
 	bcc.s	adrCd0095EA	;640C
@@ -14927,7 +14937,7 @@ adrB_0099D4:
 adrCd0099DC:
 	moveq	#$00,d0	;7000
 	moveq	#$00,d1	;7200
-	lea	adrEA00B9DE.l,a0	;41F90000B9DE
+	lea	Dungeon_ViewCell_CentredSlots.l,a0	;41F90000B9DE
 	move.b	-$0016(a3),d0	;102BFFEA
 	move.b	$00(a0,d0.w),d1	;12300000
 adrCd0099EE:
@@ -16074,7 +16084,7 @@ adrCd00A356:
 	lsr.w	#$01,d2	;E24A
 	add.w	d1,d2	;D441
 	add.w	d1,d2	;D441
-	add.b	adrB_00A39C(pc,d2.w),d4	;D83B2022
+	add.b	GFX_Dragon_Side_XPositions(pc,d2.w),d4	;D83B2022
 adrCd00A37C:
 	lea	Monster_Dragon_Colours.l,a0	;41F90000A3A6
 	bsr	MonsterColourGrading	;6100FB10
@@ -16085,7 +16095,8 @@ adrCd00A37C:
 adrCd00A39A:
 	rts	;4E75
 
-adrB_00A39C:
+GFX_Dragon_Side_XPositions:
+	; ReSource: Additional horizontal shifts for side-facing Dragons by size group and side.
 	dc.b	$FD	;FD
 	dc.b	$F5	;F5
 	dc.b	$FD	;FD
@@ -16274,13 +16285,14 @@ adrCd00A488:
 	bne.s	adrCd00A4CC	;6612
 	moveq	#-$01,d6	;7CFF
 	movem.w	d0/d1/d4/d5,-(sp)	;48A7CC00
-	add.b	adrB_00A4CE(pc,d1.w),d4	;D83B100C
+	add.b	GFX_Dragon_MirroredHalf_XPositions(pc,d1.w),d4	;D83B100C
 	bsr	Draw_Monster_CompositeBitmap	;61000204
 	movem.w	(sp)+,d0/d1/d4/d5	;4C9F0033
 adrCd00A4CC:
 	rts	;4E75
 
-adrB_00A4CE:
+GFX_Dragon_MirroredHalf_XPositions:
+	; ReSource: Horizontal spacing used when the Dragon body is completed by drawing a mirrored second half.
 	dc.b	$20	;20
 	dc.b	$0E	;0E
 	dc.b	$10	;10
@@ -17824,14 +17836,15 @@ Bitplane_Mask:
 	dc.w	$FFFF	;FFFF
 	dc.w	$FFFF	;FFFF
 
-adrCd00B074:
+Draw_MainWallFace_ByPatternParity:
+	; ReSource: Dispatches one main-wall face through the ordinary or lookup-selected/bit-reversed path according to (player X + player Y + facing) & 1.
 	tst.w	-$000C(a3)	;4A6BFFF4
-	bne	adrCd00B2A4	;6600022A
+	bne	Draw_MainWallFace	;6600022A
 	move.w	d6,d0	;3006
-	bsr	adrCd00B474	;610003F4
+	bsr	Select_MainWallGraphicTables	;610003F4
 	swap	d3	;4843
 	move.l	a3,-(sp)	;2F0B
-	bsr	adrCd00B4E0	;61000458
+	bsr	Draw_WallComponent_Transformed	;61000458
 	move.l	(sp)+,a3	;265F
 Draw_Main_Object_Overlay:
 	tst.b	-$0015(a3)	;4A2BFFEB
@@ -17848,14 +17861,14 @@ Draw_Main_Object_Overlay:
 	lea	GFX_Main_Slots_Palette.l,a6	;4DF90000B204
 	move.b	-$0012(a3),d1	;122BFFEE
 	lsr.w	#$03,d1	;E649
-	bsr	adrCd00B1D4	;6100010C
+	bsr	Load_WallOverlay_ColourMask	;6100010C
 	btst	#$02,-$0012(a3)	;082B0002FFEE
 	beq.s	adrCd00B0D4	;6702
 	clr.b	d0	;4200
 adrCd00B0D4:
 	move.l	d0,Buffer_Colour_Mask.l	;23C00000B4C0
 	move.w	#$FFFF,Buffer_Colour_Mask_Toggle.l	;33FCFFFF0000B4BE
-	bsr	adrCd00B410	;6100032C
+	bsr	Draw_WallComponentFace	;6100032C
 	clr.w	Buffer_Colour_Mask_Toggle.l	;42790000B4BE
 	rts	;4E75
 
@@ -17867,7 +17880,7 @@ Draw_Main_Switch_Overlay:
 	move.b	-$0012(a3),d1	;122BFFEE
 	and.w	#$00F8,d1	;024100F8
 	beq.s	adrCd00B122	;6716
-	bsr	adrCd00B1C6	;610000B8
+	bsr	Select_MainSwitch_ColourMask	;610000B8
 	btst	#$02,-$0012(a3)	;082B0002FFEE
 	beq.s	adrCd00B122	;670A
 	and.w	#$00FF,d0	;024000FF
@@ -17876,7 +17889,7 @@ Draw_Main_Switch_Overlay:
 adrCd00B122:
 	move.l	d0,Buffer_Colour_Mask.l	;23C00000B4C0
 	move.w	#$FFFF,Buffer_Colour_Mask_Toggle.l	;33FCFFFF0000B4BE
-	bsr	adrCd00B410	;610002DE
+	bsr	Draw_WallComponentFace	;610002DE
 	clr.w	Buffer_Colour_Mask_Toggle.l	;42790000B4BE
 	rts	;4E75
 
@@ -17892,15 +17905,15 @@ Draw_Main_Sign_Overlay:
 	cmpi.b	#$05,d1	;0C010005
 	bcc.s	adrCd00B16C	;6408
 	subq.b	#$01,d1	;5301
-	bsr	adrCd00B1D4	;6100006C
+	bsr	Load_WallOverlay_ColourMask	;6100006C
 	bra.s	adrCd00B16E	;6002
 
 adrCd00B16C:
-	bsr.s	adrCd00B1CC	;615E
+	bsr.s	Calculate_WallOverlay_ColourIndex	;615E
 adrCd00B16E:
 	move.l	d0,Buffer_Colour_Mask.l	;23C00000B4C0
 	move.w	#$FFFF,Buffer_Colour_Mask_Toggle.l	;33FCFFFF0000B4BE
-	bsr	adrCd00B410	;61000292
+	bsr	Draw_WallComponentFace	;61000292
 	clr.w	Buffer_Colour_Mask_Toggle.l	;42790000B4BE
 	move.w	(sp)+,d6	;3C1F
 	move.b	-$0012(a3),d1	;122BFFEE
@@ -17922,16 +17935,19 @@ adrCd00B1A4:
 	add.w	d1,a1	;D2C1
 	lea	GFX_Main_Signoverlay_Positions.l,a2	;45F90000BDC6
 	lea	GFX_Main_Signoverlay_Offsets.l,a0	;41F90000B284
-	bsr	adrCd00B410	;6100024E
+	bsr	Draw_WallComponentFace	;6100024E
 adrCd00B1C4:
 	rts	;4E75
 
-adrCd00B1C6:
+Select_MainSwitch_ColourMask:
+	; ReSource: Selects the switch colour table before falling through to the coordinate-derived colour-mask lookup.
 	lea	GFX_Switches_Colours.l,a6	;4DF90000B244
-adrCd00B1CC:
+Calculate_WallOverlay_ColourIndex:
+	; ReSource: Calculates map X plus map Y for generated signs, wall scrolls and non-zero switch colour selection.
 	move.b	-$0019(a3),d1	;122BFFE7
 	add.b	-$001A(a3),d1	;D22BFFE6
-adrCd00B1D4:
+Load_WallOverlay_ColourMask:
+	; ReSource: Masks the colour index to eight entries, multiplies it by four and loads the selected four-byte colour mask.
 	and.w	#$0007,d1	;02410007
 	asl.w	#$02,d1	;E541
 	move.l	$00(a6,d1.w),d0	;20361000
@@ -17946,9 +17962,10 @@ adrCd00B1EE:
 	lea	GFX_Main_Shelf_Offsets.l,a0	;41F900018B90
 	lea	GFX_Main_Shelf_Positions.l,a2	;45F90000BCE6
 	lea	GFX_Shelf.l,a1	;43F900025490
-	bra	adrCd00B410	;6000020E
+	bra	Draw_WallComponentFace	;6000020E
 
 GFX_Main_Slots_Palette:
+	; ReSource: Supplies the colour selections.
 	dc.w	$0004	;0004
 	dc.w	$0506	;0506
 	dc.w	$0004	;0004
@@ -17966,6 +17983,7 @@ GFX_Main_Slots_Palette:
 	dc.w	$0004	;0004
 	dc.w	$0A0B	;0A0B
 GFX_Main_Slots_Offsets:
+	; ReSource: Selects individual socket pictures.
 	dc.w	$0000	;0000
 	dc.w	$0008	;0008
 	dc.w	$0038	;0038
@@ -18034,16 +18052,18 @@ GFX_Main_Signoverlay_Offsets:
 	dc.w	$0440	;0440
 	dc.w	$04B0	;04B0
 
-adrCd00B2A4:
+Draw_MainWallFace:
+	; ReSource: Selects and draws one projected stone-wall face. Selects the parity-1 main-wall picture using GFX_Main_Wall_SpriteTable and draws it through the bit-reversed path.
 	moveq	#$00,d0	;7000
 	move.b	GFX_Main_Wall_SpriteTable(pc,d6.w),d0	;103B6012
-	bsr	adrCd00B474	;610001C8
+	bsr	Select_MainWallGraphicTables	;610001C8
 	add.w	d3,a0	;D0C3
 	swap	d3	;4843
-	bsr	adrCd00B666	;610003B2
+	bsr	Draw_MainWall_Transformed	;610003B2
 	bra	Draw_Main_Object_Overlay	;6000FDD4
 
 GFX_Main_Wall_SpriteTable:
+	; ReSource: Maps each of the 28 projected wall-face slots to a picture in Main_Walls.gfx.
 	dc.b	$0C	;0C
 	dc.b	$0D	;0D
 	dc.b	$0E	;0E
@@ -18082,7 +18102,8 @@ Door_Lock_Colours:
 	dc.b	$07	;07
 	dc.b	$0E	;0E
 
-adrCd00B2DE:
+Draw_Main_Door_Or_Stairs:
+	; ReSource: Applies the large-door lock mask and selects open, metal or portcullis artwork, or dispatches the shared stairs path.
 	cmp.b	#$01,-$0013(a3)	;0C2B0001FFED
 	beq	adrCd00B384	;6700009E
 	move.w	#$FFFF,Buffer_Colour_Mask_Toggle.l	;33FCFFFF0000B4BE
@@ -18124,7 +18145,7 @@ adrCd00B350:
 	addq.w	#$01,d6	;5246
 	addq.w	#$01,d0	;5240
 adrCd00B370:
-	bsr	adrCd00B458	;610000E6
+	bsr	Draw_WallComponent_TwoHalves	;610000E6
 adrCd00B374:
 	clr.w	Buffer_Colour_Mask_Toggle.l	;42790000B4BE
 	tst.b	-$0011(a3)	;4A2BFFEF
@@ -18148,24 +18169,25 @@ adrCd00B3B0:
 	move.w	d6,d0	;3006
 	add.w	#$000A,d6	;0646000A
 	subq.w	#$02,d0	;5540
-	bsr	adrCd00B458	;61000090
+	bsr	Draw_WallComponent_TwoHalves	;61000090
 	bra.s	adrCd00B3CE	;6002
 
 adrCd00B3CC:
-	bsr.s	adrCd00B410	;6142
+	bsr.s	Draw_WallComponentFace	;6142
 adrCd00B3CE:
 	tst.b	-$0011(a3)	;4A2BFFEF
 	bmi	adrCd0099F0	;6B00E61C
 	rts	;4E75
 
-adrCd00B3D8:
+Draw_WoodenWallOrDoorFace:
+	; ReSource: Selects a solid wooden wall, open doorway frame and optional closed-door overlay.
 	lea	GFX_WoodenWalls.l,a1	;43F90001F980
 	lea	GFX_Wooden_Wall_Offsets.l,a0	;41F900018B70
 	lea	GFX_Wooden_Wall_Positions.l,a2	;45F90000BAAE
 	tst.b	-$0014(a3)	;4A2BFFEC
 	beq.s	adrCd00B40E	;671E
 	add.w	#$2498,a1	;D2FC2498
-	bsr.s	adrCd00B410	;611A
+	bsr.s	Draw_WallComponentFace	;611A
 	tst.b	-$0015(a3)	;4A2BFFEB
 	beq.s	adrCd00B42C	;6730
 	lea	GFX_Wooden_Doors_Offsets.l,a0	;41F900018B50
@@ -18173,13 +18195,14 @@ adrCd00B3D8:
 	lea	GFX_WoodDoors.l,a1	;43F9000242B0
 adrCd00B40E:
 	nop	;4E71
-adrCd00B410:
+Draw_WallComponentFace:
+	; ReSource: Selects a wall-component picture and chooses its normal, mirrored or two-half drawing path.
 	moveq	#$00,d0	;7000
-	move.b	GFX_Wall_Signs_SpriteTable_TBC(pc,d6.w),d0	;103B6028
+	move.b	GFX_WallComponent_SpriteMirrorTable(pc,d6.w),d0	;103B6028
 	bmi.s	Flip_Sprite	;6B16
 	cmpi.b	#$0C,d0	;0C00000C
-	bcc	adrCd00B458	;6400003A
-	bsr.s	adrCd00B486	;6164
+	bcc	Draw_WallComponent_TwoHalves	;6400003A
+	bsr.s	Prepare_WallSpriteDraw	;6164
 	swap	d3	;4843
 	move.l	a3,-(sp)	;2F0B
 	bsr	adrCd00B5CA	;610001A2
@@ -18189,12 +18212,13 @@ adrCd00B42C:
 
 Flip_Sprite:
 	and.w	#$007F,d0	;0240007F
-	bsr.s	adrCd00B486	;6152
+	bsr.s	Prepare_WallSpriteDraw	;6152
 	add.w	d3,a0	;D0C3
 	swap	d3	;4843
-	bra	adrLp00B76E	;60000334
+	bra	Draw_WallSprite_BitReversed	;60000334
 
-GFX_Wall_Signs_SpriteTable_TBC:
+GFX_WallComponent_SpriteMirrorTable:
+	; ReSource: Maps the 28 wall-face slots to component pictures; bit 7 selects the horizontally mirrored drawing path.
 	dc.b	$00	;00
 	dc.b	$01	;01
 	dc.b	$02	;02
@@ -18224,8 +18248,9 @@ GFX_Wall_Signs_SpriteTable_TBC:
 	dc.b	$0E	;0E
 	dc.b	$0F	;0F
 
-adrCd00B458:
-	bsr.s	adrCd00B486	;612C
+Draw_WallComponent_TwoHalves:
+	; ReSource: Draws one source half and its reflected partner to construct a complete central component.
+	bsr.s	Prepare_WallSpriteDraw	;612C
 	swap	d3	;4843
 	movem.l	d1/d3/d5/a0/a1/a3,-(sp)	;48E754D0
 	bsr	adrCd00B5CA	;61000168
@@ -18233,13 +18258,15 @@ adrCd00B458:
 	add.w	#$0010,a0	;D0FC0010
 	add.w	d1,d1	;D241
 	sub.w	d1,a0	;90C1
-	bra	adrLp00B76E	;600002FC
+	bra	Draw_WallSprite_BitReversed	;600002FC
 
-adrCd00B474:
+Select_MainWallGraphicTables:
+	; ReSource: Selects the Main_Walls graphics, picture offsets and packed position tables.
 	lea	GFX_Main_Walls_Positions.l,a2	;45F90000BA3E
 	lea	GFX_Main_Walls_Offsets.l,a0	;41F900018ADE
 	lea	GFX_MainWalls.l,a1	;43F90001B050
-adrCd00B486:
+Prepare_WallSpriteDraw:
+	; ReSource: Resolves a picture offset and packed position into source pointer, destination pointer, width and height.
 	add.w	d0,d0	;D040
 	add.w	$00(a0,d0.w),a1	;D2F00000
 	move.w	d6,d0	;3006
@@ -18273,7 +18300,8 @@ Buffer_Colour_Mask:
 	dc.w	$0004	;0004
 	dc.b	$08	;08
 	dc.b	$0C	;0C
-adrEA00B4C4:
+GFX_WallComponent_DrawTransformFlags:
+	; ReSource: Per-face transformation flags used by wall components, wooden walls, doors and stairs. Bits 0 and 2 select edge passes; bit 1 selects the perspective centre path.
 	dc.b	$01	;01
 	dc.b	$05	;05
 	dc.b	$07	;07
@@ -18303,15 +18331,16 @@ adrEA00B4C4:
 	dc.b	$02	;02
 	dc.b	$07	;07
 
-adrCd00B4E0:
-	lea	adrEA00B4C4.l,a2	;45F90000B4C4
+Draw_WallComponent_Transformed:
+	; ReSource: Applies wall-component transformation flags and perspective trimming.
+	lea	GFX_WallComponent_DrawTransformFlags.l,a2	;45F90000B4C4
 	add.w	d6,a2	;D4C6
 	btst	#$01,(a2)	;08120001
 	beq	adrCd00B5CA	;670000DC
 	swap	d6	;4846
 	btst	#$00,(a2)	;08120000
 	beq.s	adrCd00B4FA	;6702
-	bsr.s	adrCd00B560	;6166
+	bsr.s	Draw_WallComponent_EdgeTransform	;6166
 adrCd00B4FA:
 	move.b	(a2),d6	;1C12
 	and.w	#$0007,d6	;02460007
@@ -18321,7 +18350,7 @@ adrCd00B4FA:
 	swap	d3	;4843
 	move.w	d5,d4	;3805
 	swap	d5	;4845
-	move.b	adrB_00B558(pc,d6.w),d6	;1C3B604A
+	move.b	GFX_WallComponent_PerspectiveTrimLookup(pc,d6.w),d6	;1C3B604A
 	sub.w	d6,d5	;9A46
 	add.w	d6,d6	;DC46
 	add.w	d6,d2	;D446
@@ -18349,12 +18378,13 @@ adrLp00B51C:
 	swap	d3	;4843
 	btst	#$02,(a2)	;08120002
 	beq.s	adrCd00B554	;6702
-	bsr.s	adrCd00B560	;610C
+	bsr.s	Draw_WallComponent_EdgeTransform	;610C
 adrCd00B554:
 	swap	d6	;4846
 	rts	;4E75
 
-adrB_00B558:
+GFX_WallComponent_PerspectiveTrimLookup:
+	; ReSource: Maps the low three component-transform flag bits to zero, one or two source word-columns trimmed during perspective drawing.
 	dc.b	$00	;00
 	dc.b	$00	;00
 	dc.b	$00	;00
@@ -18364,7 +18394,8 @@ adrB_00B558:
 	dc.b	$01	;01
 	dc.b	$02	;02
 
-adrCd00B560:
+Draw_WallComponent_EdgeTransform:
+	; ReSource: Draws the extra perspective edge pass for a wall component.
 	movem.l	a0/a1,-(sp)	;48E700C0
 	swap	d3	;4843
 	move.w	d3,d6	;3C03
@@ -18468,7 +18499,8 @@ adrCd00B632:
 	dbra	d5,adrLp00B5CC	;51CDFF86
 	rts	;4E75
 
-adrEA00B64A:
+GFX_Main_Wall_DrawTransformFlags:
+	; ReSource: Per-face transformation flags for stone-wall graphics. This differs from the component table at wall-face slots 6 and 18.
 	dc.w	$0105	;0105
 	dc.w	$0705	;0705
 	dc.w	$0101	;0101
@@ -18484,15 +18516,16 @@ adrEA00B64A:
 	dc.w	$0707	;0707
 	dc.w	$0207	;0207
 
-adrCd00B666:
-	lea	adrEA00B64A.l,a2	;45F90000B64A
+Draw_MainWall_Transformed:
+	; ReSource: Applies main-wall transformation flags, horizontal bit reversal and perspective trimming.
+	lea	GFX_Main_Wall_DrawTransformFlags.l,a2	;45F90000B64A
 	add.w	d6,a2	;D4C6
 	btst	#$01,(a2)	;08120001
-	beq	adrLp00B76E	;670000FA
+	beq	Draw_WallSprite_BitReversed	;670000FA
 	swap	d6	;4846
 	btst	#$00,(a2)	;08120000
 	beq.s	adrCd00B680	;6702
-	bsr.s	adrCd00B6FA	;617A
+	bsr.s	Draw_MainWall_EdgeTransform	;617A
 adrCd00B680:
 	movem.l	d7/a0/a1,-(sp)	;48E701C0
 	move.b	(a2),d6	;1C12
@@ -18503,7 +18536,7 @@ adrCd00B680:
 	swap	d3	;4843
 	move.w	d5,d4	;3805
 	swap	d5	;4845
-	move.b	adrB_00B6F2(pc,d6.w),d6	;1C3B6058
+	move.b	GFX_Main_Wall_PerspectiveTrimLookup(pc,d6.w),d6	;1C3B6058
 	sub.w	d6,d5	;9A46
 	add.w	d6,d6	;DC46
 	sub.w	d6,d7	;9E46
@@ -18537,12 +18570,13 @@ adrLp00B6A4:
 	swap	d3	;4843
 	btst	#$02,(a2)	;08120002
 	beq.s	adrCd00B6EE	;6702
-	bsr.s	adrCd00B6FA	;610C
+	bsr.s	Draw_MainWall_EdgeTransform	;610C
 adrCd00B6EE:
 	swap	d6	;4846
 	rts	;4E75
 
-adrB_00B6F2:
+GFX_Main_Wall_PerspectiveTrimLookup:
+	; ReSource: Maps the low three main-wall transform flag bits to zero, one or two source word-columns trimmed during perspective drawing.
 	dc.b	$00	;00
 	dc.b	$00	;00
 	dc.b	$00	;00
@@ -18552,7 +18586,8 @@ adrB_00B6F2:
 	dc.b	$01	;01
 	dc.b	$02	;02
 
-adrCd00B6FA:
+Draw_MainWall_EdgeTransform:
+	; ReSource: Draws the horizontally reversed perspective edge pass for a stone wall.
 	movem.l	a0/a1,-(sp)	;48E700C0
 	swap	d3	;4843
 	move.w	d3,d6	;3C03
@@ -18601,7 +18636,8 @@ adrLp00B70A:
 	addq.w	#$08,a1	;5049
 	rts	;4E75
 
-adrLp00B76E:
+Draw_WallSprite_BitReversed:
+	; ReSource: Writes normal wall rows after horizontally reversing their planar source bits.
 	swap	d5	;4845
 	move.w	d5,d3	;3605
 adrLp00B772:
@@ -18656,11 +18692,11 @@ adrCd00B7DE:
 	swap	d3	;4843
 	add.w	#$0028,a0	;D0FC0028
 	swap	d5	;4845
-	dbra	d5,adrLp00B76E	;51CDFF7E
+	dbra	d5,Draw_WallSprite_BitReversed	;51CDFF7E
 	rts	;4E75
 
 Draw_FloorAndCeiling:
-	; ReSource: Draws the floor and ceiling bands used by the dungeon viewport.
+	; ReSource: Draws the floor and ceiling bands used by the dungeon viewport. Selects the ordinary or horizontally bit-reversed floor/ceiling renderer according to the dungeon pattern parity.
 	lea	GFX_FloorCeiling.l,a1	;43F900032120
 	move.l	-$0008(a3),a0	;206BFFF8
 	tst.w	-$000C(a3)	;4A6BFFF4
@@ -18670,7 +18706,7 @@ Draw_FloorAndCeiling:
 	bsr.s	Clear_FloorCeiling_ViewGap	;6120
 	moveq	#$21,d0	;7021
 Draw_FloorAndCeiling_CopyRows_Loop:
-	; ReSource: Copies source rows into the floor and ceiling areas of the dungeon viewport.
+	; ReSource: Copies source rows into the floor and ceiling areas of the dungeon viewport. Copies the parity-1 floor and ceiling rows directly into the dungeon viewport.
 	moveq	#$07,d1	;7207
 adrLp00B80E:
 	move.w	(a1)+,(a0)+	;30D9
@@ -18683,7 +18719,7 @@ adrLp00B80E:
 	rts	;4E75
 
 Clear_FloorCeiling_ViewGap:
-	; ReSource: Clears the horizontal gap between the floor and ceiling render regions.
+	; ReSource: Clears the nineteen-rowhorizontal  view area between the ceiling and floor bands.
 	moveq	#$12,d0	;7012
 	moveq	#$00,d1	;7200
 adrLp00B82E:
@@ -18711,7 +18747,7 @@ adrLp00B82E:
 	rts	;4E75
 
 Draw_FloorAndCeiling_BitReversed:
-	; ReSource: Draws the bit-reversed half of the floor and ceiling pattern.
+	; ReSource: Draws the horizontally bit-reversed floor and ceiling bands for parity 0.
 	lea	BitReverse_LookupBuffer.l,a6	;4DF90001684C
 	lea	$0010(a0),a0	;41E80010
 	moveq	#$16,d7	;7E16
@@ -18721,7 +18757,7 @@ Draw_FloorAndCeiling_BitReversed:
 	lea	$0010(a0),a0	;41E80010
 	moveq	#$21,d7	;7E21
 Draw_FloorAndCeiling_BitReversed_Loop:
-	; ReSource: Loop used to write the bit-reversed floor and ceiling rows.
+	; ReSource: Loop used to write the bit-reversed floor and ceiling rows. Bit-reverses and writes each floor/ceiling source row from the opposite side of the viewport.
 	moveq	#$07,d3	;7607
 adrLp00B880:
 	move.l	(a1)+,d0	;2019
@@ -18740,7 +18776,8 @@ adrLp00B880:
 	dbra	d7,Draw_FloorAndCeiling_BitReversed_Loop	;51CFFFD4
 	rts	;4E75
 
-adrEA00B8AE:
+Dungeon_ViewCell_RelativeCoordinates:
+	; ReSource: Four player-facing groups of 19 signed relative X/Y coordinate words defining the dungeon cells examined by the renderer.
 	dc.w	$FEFC	;FEFC
 	dc.w	$FFFC	;FFFC
 	dc.w	$FEFD	;FEFD
@@ -18853,7 +18890,6 @@ adrEA00B8AE:
 	dc.w	$7F57	;7F57
 	dc.w	$F8D5	;F8D5
 	dc.w	$7D57	;7D57
-adrEA00B98E:
 	dc.w	$08D5	;08D5
 	dc.w	$7D57	;7D57
 	dc.w	$0000	;0000
@@ -18892,10 +18928,10 @@ adrEA00B98E:
 	dc.w	$0080	;0080
 	dc.w	$0C20	;0C20
 	dc.w	$0200	;0200
-adrEA00B9DA:
 	dc.w	$0880	;0880
 	dc.w	$0800	;0800
-adrEA00B9DE:
+Dungeon_ViewCell_CentredSlots:
+	; ReSource: Maps the 19 view cells to centred projected slots used by pillars, beds, pits and pads; FF means unavailable. The twentieth byte is spare.
 	dc.w	$0002	;0002
 	dc.w	$FF06	;FF06
 	dc.w	$080A	;080A
@@ -18906,7 +18942,8 @@ adrEA00B9DE:
 	dc.w	$1819	;1819
 	dc.w	$1A1B	;1A1B
 	dc.w	$FF00	;FF00
-adrEA00B9F2:
+Dungeon_ViewCell_WallFaceSlots:
+	; ReSource: Four N/E/S/W wall-face slot numbers per view cell; FF means that face is unavailable from that cell.
 	dc.w	$FFFF	;FFFF
 	dc.w	$0001	;0001
 	dc.w	$FF01	;FF01
@@ -19464,6 +19501,7 @@ GFX_Main_Signoverlay_Positions:
 	dc.w	$1019	;1019
 	dc.w	$0115	;0115
 GFX_Main_Slots_Positions:
+	; ReSource: Contains the exact X/Y/width/height rectangle for each projected wall view.
 	dc.w	$001D	;001D
 	dc.w	$0000	;0000
 	dc.w	$081D	;081D
@@ -41916,7 +41954,7 @@ MonsterTotalsCounts_mod0:
 	dc.w	$0043	;0043
 	dc.w	$004F	;004F
 	dc.w	$004D	;004D
-TheMonsterBlock:
+MonsterBlock_mod0:
 	dc.w	$040B	;040B
 	dc.w	$0F00	;0F00
 	dc.w	$15FF	;15FF
@@ -76204,6 +76242,7 @@ GFX_Switches:
 	dc.w	$FFFE	;FFFE
 	dc.w	$FFFE	;FFFE
 GFX_Slots:
+	; ReSource: Raw socket pixels
 	dc.w	$FFFF	;FFFF
 	dc.w	$FFFF	;FFFF
 	dc.w	$FFFF	;FFFF
@@ -186271,4 +186310,22 @@ ReserveSpace_2:
 	dc.b	$00	;00
 	dc.b	$00	;00
 GameEnd:
+; ReSource: temporary data_append aliases
+MonsterTotalsCounts_serp:		equ	MonsterTotalsCounts_mod0+$2	; ReSource: temporary data_append alias
+MonsterTotalsCounts_moon:		equ	MonsterTotalsCounts_mod0+$4	; ReSource: temporary data_append alias
+MonsterTotalsCounts_drag:		equ	MonsterTotalsCounts_mod0+$6	; ReSource: temporary data_append alias
+MonsterTotalsCounts_chaos:		equ	MonsterTotalsCounts_mod0+$8	; ReSource: temporary data_append alias
+MonsterTotalsCounts_zendik:		equ	MonsterTotalsCounts_mod0+$A	; ReSource: temporary data_append alias
+MonsteBlock_serp:		equ	MonsterBlock_mod0+$300	; ReSource: temporary data_append alias
+MonsterBlock_moon:		equ	MonsterBlock_mod0+$600	; ReSource: temporary data_append alias
+MonsterBlock_drag:		equ	MonsterBlock_mod0+$900	; ReSource: temporary data_append alias
+MonsterBlock_chaos:		equ	MonsterBlock_mod0+$C00	; ReSource: temporary data_append alias
+MonsterBlock_zendik:		equ	MonsterBlock_mod0+$F00	; ReSource: temporary data_append alias
+GFX_Beholder_UpperEyes:		equ	GFX_Beholder_Body+$2A0	; ReSource: temporary data_append alias
+GFX_Beholder_CentralEye_Near:		equ	GFX_Beholder_Body+$340	; ReSource: temporary data_append alias
+GFX_Beholder_CentralEye_Far:		equ	GFX_Beholder_Body+$6A0	; ReSource: temporary data_append alias
+Dungeon_ViewCell_OcclusionMasks:		equ	Dungeon_ViewCell_RelativeCoordinates+$98	; ReSource: temporary data_append alias
+Dungeon_ViewCell_VisibleFaceMasks:		equ	Dungeon_ViewCell_RelativeCoordinates+$E4	; ReSource: temporary data_append alias
+; ReSource: end temporary data_append aliases
+
 	end

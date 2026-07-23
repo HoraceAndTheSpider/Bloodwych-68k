@@ -72,11 +72,15 @@ class ResourceLayoutTests(unittest.TestCase):
                     {
                         "label": "OldAnchor",
                         "relabel": "NewFirst",
+                        "offset": 10,
+                        "size": 2,
                         "data_action": "data_start",
                     },
                     {
                         "label": "OldAnchor",
                         "relabel": "NewSecond",
+                        "offset": 12,
+                        "size": 2,
                         "data_action": "data_append",
                     },
                     {
@@ -98,7 +102,11 @@ class ResourceLayoutTests(unittest.TestCase):
 
             generated = output.read_text(encoding="utf-8")
             self.assertIn("NewFirst:\n\tdc.w\t$0102", generated)
-            self.assertNotIn("NewSecond:", generated)
+            self.assertIn(
+                "NewSecond:\t\tequ\tNewFirst+$2"
+                "\t; ReSource: temporary data_append alias",
+                generated,
+            )
             self.assertNotIn("OldInternal:", generated)
             self.assertIn("\tdc.w\t$0304", generated)
 
