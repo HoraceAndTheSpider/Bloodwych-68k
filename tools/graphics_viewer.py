@@ -8,11 +8,17 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Mapping, Sequence
 
+from tools.champion_data import (
+    MAGIC_CLASS_NAMES,
+    PROFESSION_NAMES,
+    ChampionAssets,
+)
 from tools.data_overlay import (
     DataOverlayPath,
     data_overlay_root,
     related_data_roots,
 )
+from tools.gamefont_converter import glyph_pixels
 from tools.dungeon_view import (
     DIRECTION_NAMES,
     DUNGEON_FEATURES,
@@ -33,6 +39,7 @@ from tools.graphics_preview import (
     DragonAssets,
     LargeMonsterAssets,
     SummonAssets,
+    TRANSPARENT_INDEX,
     VIEW_HEIGHT,
     VIEW_WIDTH,
     load_floor_ceiling_background,
@@ -48,6 +55,7 @@ from tools.monster_view import (
     resolve_monster_screen_position,
     visible_subpositions,
 )
+from tools.object_data import OBJECT_COUNT, ObjectAssets
 from tools.st_planar_assets import GAME_PALETTE_RGB8
 
 
@@ -64,14 +72,17 @@ FACING_NAMES = ("Front", "Side", "Back", "Mirrored side")
 CATEGORY_NAMES = (
     "Character/Monster Graphics",
     "Dungeon Graphics",
+    "Champion Data",
+    "Object Data",
     "Avatars",
     "Icons",
 )
-CATEGORY_ENABLED = (True, True, False, False)
-CATEGORY_GRAPHIC_TYPES = ("character", "dungeon", None, None)
+CATEGORY_ENABLED = (True, True, True, True, False, False)
+CATEGORY_GRAPHIC_TYPES = ("character", "dungeon", "champion", "object", None, None)
 CATEGORY_TAB_VISIBLE_COUNT = 4
 CATEGORY_TAB_WIDTH = 190
 CATEGORY_TAB_GAP = 8
+CHAMPION_DATA_PAGE_NAMES = ("Stats", "Hidden", "Pockets", "Spells")
 # The unmirrored Beholder side eye points screen-left; facing 3 mirrors it.
 FACING_ARROW_DIRECTIONS = ((0, 1), (-1, 0), (0, -1), (1, 0))
 # A dungeon overlay attached to a south-facing wall looks back north into the
@@ -494,6 +505,62 @@ def indexed_to_surface(pygame: object, pixels: Sequence[Sequence[int]]) -> objec
     return pygame.image.fromstring(rgb, (width, height), "RGB")
 
 
+def draw_gamefont_text(
+    pygame: object,
+    surface: object,
+    font_data: bytes,
+    text: str,
+    x: int,
+    y: int,
+    colour: tuple[int, int, int],
+    *,
+    scale: int = 2,
+) -> None:
+    """Draw one line with the original 8x5 Bloodwych bitmap font."""
+
+    draw_gamefont_codes(
+        pygame,
+        surface,
+        font_data,
+        (ord(character) & 0x7F for character in text.upper()),
+        x,
+        y,
+        colour,
+        scale=scale,
+    )
+
+
+def draw_gamefont_codes(
+    pygame: object,
+    surface: object,
+    font_data: bytes,
+    codes: Sequence[int],
+    x: int,
+    y: int,
+    colour: tuple[int, int, int],
+    *,
+    scale: int = 2,
+) -> None:
+    """Draw raw GameFont character codes, including the non-ASCII glyphs."""
+
+    for code in codes:
+        pixels = glyph_pixels(font_data, code & 0x7F)
+        for row, values in enumerate(pixels):
+            for column, value in enumerate(values):
+                if value:
+                    pygame.draw.rect(
+                        surface,
+                        colour,
+                        (
+                            x + column * scale,
+                            y + row * scale,
+                            scale,
+                            scale,
+                        ),
+                    )
+        x += 8 * scale
+
+
 def wrap_text(font: object, text: str, width: int) -> list[str]:
     lines: list[str] = []
     for paragraph in text.splitlines() or ("",):
@@ -508,6 +575,98 @@ def wrap_text(font: object, text: str, width: int) -> list[str]:
                 current = candidate
         lines.append(current)
     return lines
+
+
+def champion_data_page_lines(
+    record: object, pocket_record: bytes, page: int
+) -> tuple[str, tuple[tuple[str, str], ...]]:
+    """Return labelled fields for the selected Champion Data page."""
+
+    if page == 0:
+        return (
+            "Visible Stats",
+            (
+                ("Level", f"{record.byte(0x00):02d}"),
+                ("Strength", f"{record.byte(0x01):02d}"),
+                ("Agility", f"{record.byte(0x02):02d}"),
+                ("Intelligence", f"{record.byte(0x03):02d}"),
+                ("Charisma", f"{record.byte(0x04):02d}"),
+                ("Hit points", f"{record.byte(0x05):02d} / {record.byte(0x06):02d}"),
+                ("Vitality", f"{record.byte(0x07):02d} / {record.byte(0x08):02d}"),
+                ("Spell points", f"{record.byte(0x09)} / {record.byte(0x0A)}"),
+                ("Armour level", str(record.byte(0x0B))),
+            ),
+        )
+    if page == 1:
+        return (
+            "Hidden Game State",
+            (
+                ("Food level", f"${record.byte(0x10):02X}"),
+                ("Current worn spell", f"${record.byte(0x11):02X}"),
+                ("Worn hand armour", f"${record.byte(0x12):02X}"),
+                ("Spell being cast", f"${record.byte(0x13):02X}"),
+                ("Spell power boost", f"${record.byte(0x14):02X}"),
+                ("Spell cooldown", f"${record.byte(0x15):02X}"),
+                ("Map position", f"X ${record.byte(0x16):02X}, Y ${record.byte(0x17):02X}"),
+                ("Sub-position", str(record.floor_position)),
+                ("Facing", str(record.direction)),
+                ("Speed", f"${record.byte(0x19):02X}"),
+                ("Floor", f"${record.byte(0x1A):02X}"),
+                ("Attack cooldown", f"${record.byte(0x1B):02X}"),
+                ("Levelling value", f"${record.byte(0x1C):02X}"),
+                ("XP to next level", f"${record.byte(0x1D):02X}"),
+                ("Fairy spells available", f"${record.byte(0x1E):02X}"),
+                ("Unknown byte $1F", f"${record.byte(0x1F):02X}"),
+            ),
+        )
+    if page == 2:
+        return (
+            "Pocket Data",
+            tuple(
+                (f"Pocket byte ${index:02X}", f"${value:02X}")
+                for index, value in enumerate(pocket_record)
+            ),
+        )
+    return (
+        "Spellbook Data",
+        (
+            ("Learned spells", ", ".join(f"${spell:02X}" for spell in record.learned_spells) or "None"),
+            ("Spell mask $0C", f"${record.byte(0x0C):02X}"),
+            ("Spell mask $0D", f"${record.byte(0x0D):02X}"),
+            ("Spell mask $0E", f"${record.byte(0x0E):02X}"),
+            ("Spell mask $0F", f"${record.byte(0x0F):02X}"),
+        ),
+    )
+
+
+def draw_scaled_indexed(
+    pygame: object,
+    surface: object,
+    pixels: Sequence[Sequence[int]],
+    rect: object,
+) -> None:
+    source = indexed_to_surface(pygame, pixels)
+    surface.blit(pygame.transform.scale(source, rect.size), rect)
+
+
+def crop_visible_pixels(
+    pixels: Sequence[Sequence[int]],
+    *,
+    background_index: int = TRANSPARENT_INDEX,
+) -> list[list[int]]:
+    points = [
+        (x, y)
+        for y, row in enumerate(pixels)
+        for x, colour in enumerate(row)
+        if colour != background_index
+    ]
+    if not points:
+        return [list(row) for row in pixels]
+    left = min(x for x, _ in points)
+    right = max(x for x, _ in points) + 1
+    top = min(y for _, y in points)
+    bottom = max(y for _, y in points) + 1
+    return [list(row[left:right]) for row in pixels[top:bottom]]
 
 
 def load_renderer_assets(monsters_dir: Path) -> tuple[dict[str, object], dict[str, str]]:
@@ -533,6 +692,20 @@ def load_renderer_assets(monsters_dir: Path) -> tuple[dict[str, object], dict[st
 def load_character_assets(data_root: Path) -> tuple[CharacterAssets | None, str | None]:
     try:
         return CharacterAssets(data_root / "data", data_root / "gfx"), None
+    except (OSError, ValueError, RuntimeError) as error:
+        return None, str(error)
+
+
+def load_champion_assets(data_root: Path) -> tuple[ChampionAssets | None, str | None]:
+    try:
+        return ChampionAssets(data_root), None
+    except (OSError, ValueError, RuntimeError) as error:
+        return None, str(error)
+
+
+def load_object_assets(data_root: Path) -> tuple[ObjectAssets | None, str | None]:
+    try:
+        return ObjectAssets(data_root), None
     except (OSError, ValueError, RuntimeError) as error:
         return None, str(error)
 
@@ -646,6 +819,10 @@ def launch_graphics_viewer(
         dict[str, str],
         CharacterAssets | None,
         str | None,
+        ChampionAssets | None,
+        str | None,
+        ObjectAssets | None,
+        str | None,
         AirbourneSpellAssets | None,
         str | None,
         DungeonAssets,
@@ -658,6 +835,8 @@ def launch_graphics_viewer(
             current_monsters_dir
         )
         current_characters, current_character_error = load_character_assets(root)
+        current_champions, current_champion_error = load_champion_assets(root)
+        current_objects, current_object_error = load_object_assets(root)
         current_spells, current_spell_error = load_airbourne_spell_assets(
             current_gfx_dir
         )
@@ -671,6 +850,10 @@ def launch_graphics_viewer(
             current_renderer_errors,
             current_characters,
             current_character_error,
+            current_champions,
+            current_champion_error,
+            current_objects,
+            current_object_error,
             current_spells,
             current_spell_error,
             current_dungeon,
@@ -685,6 +868,10 @@ def launch_graphics_viewer(
         renderer_errors,
         character_assets,
         character_error,
+        champion_assets,
+        champion_error,
+        object_assets,
+        object_error,
         spell_assets,
         spell_error,
         dungeon_assets,
@@ -698,12 +885,20 @@ def launch_graphics_viewer(
         title_font = pygame.font.SysFont(None, 30)
         font = pygame.font.SysFont(None, 22)
         small_font = pygame.font.SysFont(None, 18)
+        tiny_font = pygame.font.SysFont(None, 12)
         clock = pygame.time.Clock()
 
-        selected_category = 1 if initial_category == "dungeon" else 0
+        selected_category = {
+            "character": 0,
+            "dungeon": 1,
+            "champion": 2,
+            "object": 3,
+        }.get(initial_category, 0)
         category_tab_offset = category_offset_for_selection(selected_category, 0)
         selected_index = 2
         selected_character = 0
+        selected_object = 1
+        champion_data_page = 0
         selected_spell_index = 0
         selected_dungeon_index = next(
             (
@@ -716,7 +911,11 @@ def launch_graphics_viewer(
         selected_dungeon_map_type = int(
             DUNGEON_FEATURES[selected_dungeon_index].map_type or 0
         )
-        selected_graphic_type = "dungeon" if initial_category == "dungeon" else "character"
+        selected_graphic_type = {
+            "dungeon": "dungeon",
+            "champion": "champion",
+            "object": "object",
+        }.get(initial_category, "character")
         selected_view_cell = (
             initial_dungeon_view_cell
             if 0 <= initial_dungeon_view_cell < 19
@@ -803,6 +1002,28 @@ def launch_graphics_viewer(
         character_rects = [
             pygame.Rect(20 + (index % 8) * 27, 112 + (index // 8) * 32, 25, 28)
             for index in range(0x56)
+        ]
+        champion_rects = [
+            pygame.Rect(
+                20 + (index % 4) * 54,
+                132 + (index // 4) * 108,
+                48,
+                98,
+            )
+            for index in range(0x10)
+        ]
+        object_rects = [
+            pygame.Rect(
+                20 + (code % 8) * 27,
+                128 + (code // 8) * 31,
+                25,
+                27,
+            )
+            for code in range(OBJECT_COUNT)
+        ]
+        champion_page_rects = [
+            pygame.Rect(286 + index * 105, 382, 96, 30)
+            for index in range(len(CHAMPION_DATA_PAGE_NAMES))
         ]
         reserved_character_rects = [
             (
@@ -979,6 +1200,8 @@ def launch_graphics_viewer(
             nonlocal dataset_root, gfx_dir, monsters_dir, background
             nonlocal renderer_assets, renderer_errors
             nonlocal character_assets, character_error
+            nonlocal champion_assets, champion_error
+            nonlocal object_assets, object_error
             nonlocal spell_assets, spell_error
             nonlocal dungeon_assets
             nonlocal use_modified, grade_step, nudge_x, nudge_y, overlay_error
@@ -991,6 +1214,10 @@ def launch_graphics_viewer(
                 renderer_errors,
                 character_assets,
                 character_error,
+                champion_assets,
+                champion_error,
+                object_assets,
+                object_error,
                 spell_assets,
                 spell_error,
                 dungeon_assets,
@@ -1038,6 +1265,8 @@ def launch_graphics_viewer(
         running = True
         while running:
             characters_active = selected_graphic_type == "character"
+            champions_active = selected_graphic_type == "champion"
+            objects_active = selected_graphic_type == "object"
             monsters_active = selected_graphic_type == "monster"
             spells_active = selected_graphic_type == "spell"
             dungeons_active = selected_graphic_type == "dungeon"
@@ -1058,7 +1287,7 @@ def launch_graphics_viewer(
                 )
             if dungeons_active:
                 subpositions = CENTRED_SUBPOSITIONS
-            elif characters_active:
+            elif characters_active or champions_active:
                 subpositions = FORMATION_SUBPOSITIONS
             elif monsters_active:
                 subpositions = definition.subpositions
@@ -1092,10 +1321,15 @@ def launch_graphics_viewer(
                     )
                 except (OSError, ValueError, RuntimeError, IndexError) as error:
                     preview_error = str(error)
-            elif characters_active and character_assets is not None:
+            elif (characters_active or champions_active) and character_assets is not None:
                 try:
+                    character_background = (
+                        [[0] * VIEW_WIDTH for _ in range(VIEW_HEIGHT)]
+                        if champions_active
+                        else background
+                    )
                     preview_pixels, preview_metadata = render_character_preview(
-                        background,
+                        character_background,
                         character_assets,
                         selected_character,
                         distance=screen_position.gfx_slot,
@@ -1106,7 +1340,7 @@ def launch_graphics_viewer(
                     )
                 except (OSError, ValueError, RuntimeError, IndexError) as error:
                     preview_error = str(error)
-            elif characters_active:
+            elif characters_active or champions_active:
                 preview_error = character_error
             elif monsters_active:
                 renderer_key = (
@@ -1131,6 +1365,8 @@ def launch_graphics_viewer(
                         preview_error = str(error)
                 elif renderer_key in renderer_errors:
                     preview_error = renderer_errors[renderer_key]
+            elif objects_active:
+                pass
             elif spell_definition.code <= 0x8F and spell_assets is not None:
                 try:
                     preview_pixels, preview_metadata = render_airbourne_spell(
@@ -1152,6 +1388,879 @@ def launch_graphics_viewer(
                 )
 
             mouse = pygame.mouse.get_pos()
+            if objects_active:
+                screen.fill((24, 26, 31))
+                screen.blit(
+                    title_font.render(
+                        "Bloodwych Data Viewer", True, (240, 240, 245)
+                    ),
+                    (20, 16),
+                )
+
+                for rectangle, arrow in (
+                    (category_left_rect, "<"),
+                    (category_right_rect, ">"),
+                ):
+                    colour = (
+                        (65, 104, 151)
+                        if rectangle.collidepoint(mouse)
+                        else (48, 68, 94)
+                    )
+                    pygame.draw.rect(screen, colour, rectangle, border_radius=4)
+                    label = font.render(arrow, True, (245, 245, 245))
+                    screen.blit(label, label.get_rect(center=rectangle.center))
+
+                for index, rectangle in visible_category_rects():
+                    active = index == selected_category
+                    available = CATEGORY_ENABLED[index]
+                    colour = (
+                        (54, 105, 170)
+                        if active
+                        else (
+                            (65, 69, 80)
+                            if available and rectangle.collidepoint(mouse)
+                            else ((52, 55, 63) if available else (43, 45, 52))
+                        )
+                    )
+                    pygame.draw.rect(screen, colour, rectangle, border_radius=4)
+                    suffix = " (planned)" if not available else ""
+                    text_colour = (
+                        (245, 245, 245)
+                        if active
+                        else ((205, 205, 210) if available else (125, 127, 134))
+                    )
+                    label = small_font.render(
+                        CATEGORY_NAMES[index] + suffix, True, text_colour
+                    )
+                    screen.blit(label, label.get_rect(center=rectangle.center))
+
+                overlay_colour = (
+                    (45, 47, 54)
+                    if not modified_available
+                    else (
+                        (52, 126, 83)
+                        if use_modified
+                        else (
+                            (69, 112, 169)
+                            if overlay_rect.collidepoint(mouse)
+                            else (52, 76, 108)
+                        )
+                    )
+                )
+                overlay_text = (
+                    "Modified overlay unavailable"
+                    if not modified_available
+                    else (
+                        "Modified overlay: ON"
+                        if use_modified
+                        else "Modified overlay: OFF"
+                    )
+                )
+                pygame.draw.rect(screen, overlay_colour, overlay_rect, border_radius=4)
+                label = small_font.render(
+                    overlay_text,
+                    True,
+                    (128, 130, 137)
+                    if not modified_available
+                    else (250, 250, 250),
+                )
+                screen.blit(label, label.get_rect(center=overlay_rect.center))
+
+                screen.blit(
+                    small_font.render(
+                        "Objects $00-$6D", True, (178, 181, 189)
+                    ),
+                    (20, 105),
+                )
+                for code, rectangle in enumerate(object_rects):
+                    selected = code == selected_object
+                    colour = (
+                        (61, 110, 174)
+                        if selected
+                        else (
+                            (58, 61, 70)
+                            if rectangle.collidepoint(mouse)
+                            else (43, 46, 54)
+                        )
+                    )
+                    pygame.draw.rect(screen, colour, rectangle, border_radius=3)
+                    code_label = tiny_font.render(
+                        f"{code:02X}", True, (246, 246, 249)
+                    )
+                    screen.blit(
+                        code_label, code_label.get_rect(center=rectangle.center)
+                    )
+
+                back_rect = controls["back"][0]
+                pygame.draw.rect(
+                    screen,
+                    (69, 112, 169)
+                    if back_rect.collidepoint(mouse)
+                    else (52, 55, 63),
+                    back_rect,
+                    border_radius=4,
+                )
+                back_label = font.render("Back", True, (245, 245, 245))
+                screen.blit(back_label, back_label.get_rect(center=back_rect.center))
+
+                if object_assets is None:
+                    message = f"Object data unavailable: {object_error}"
+                    screen.blit(
+                        font.render(message, True, (255, 190, 120)), (270, 140)
+                    )
+                else:
+                    definition = object_assets.definition(selected_object)
+                    heading = title_font.render(
+                        f"${selected_object:02X}  {definition.name}",
+                        True,
+                        (246, 211, 72),
+                    )
+                    screen.blit(heading, (270, 108))
+
+                    pocket_frame = pygame.Rect(270, 150, 170, 260)
+                    floor_frame = pygame.Rect(460, 150, 510, 260)
+                    pygame.draw.rect(screen, (7, 8, 10), pocket_frame)
+                    pygame.draw.rect(screen, (7, 8, 10), floor_frame)
+                    pygame.draw.rect(screen, (68, 72, 82), pocket_frame, 2)
+                    pygame.draw.rect(screen, (68, 72, 82), floor_frame, 2)
+                    screen.blit(
+                        small_font.render(
+                            "Pocket appearance", True, (169, 196, 230)
+                        ),
+                        (pocket_frame.x + 10, pocket_frame.y + 9),
+                    )
+                    screen.blit(
+                        small_font.render(
+                            "All five floor projections - source left lane",
+                            True,
+                            (169, 196, 230),
+                        ),
+                        (floor_frame.x + 10, floor_frame.y + 9),
+                    )
+
+                    pocket = object_assets.pocket_sprite(selected_object)
+                    pocket_surface = indexed_to_surface(pygame, pocket.pixels)
+                    pocket_surface = pygame.transform.scale(pocket_surface, (32, 32))
+                    pocket_position = (
+                        pocket_frame.centerx - 16,
+                        pocket_frame.y + 92,
+                    )
+                    screen.blit(pocket_surface, pocket_position)
+                    if definition.displays_quantity:
+                        draw_gamefont_text(
+                            pygame,
+                            screen,
+                            object_assets.game_font,
+                            "05",
+                            pocket_frame.centerx - 16,
+                            pocket_frame.y + 148,
+                            GAME_PALETTE_RGB8[14],
+                            scale=2,
+                        )
+                        screen.blit(
+                            tiny_font.render(
+                                "example quantity", True, (142, 146, 155)
+                            ),
+                            (pocket_frame.x + 35, pocket_frame.y + 177),
+                        )
+
+                    floor_preview, floor_placements = object_assets.floor_preview(
+                        selected_object
+                    )
+                    if not floor_placements:
+                        empty_label = font.render(
+                            "No floor graphic", True, (145, 148, 156)
+                        )
+                        screen.blit(
+                            empty_label,
+                            empty_label.get_rect(center=floor_frame.center),
+                        )
+                    else:
+                        floor_surface = indexed_to_surface(
+                            pygame, floor_preview
+                        )
+                        floor_surface = pygame.transform.scale(
+                            floor_surface, (VIEW_WIDTH * 3, len(floor_preview) * 3)
+                        )
+                        screen.blit(
+                            floor_surface,
+                            floor_surface.get_rect(
+                                center=(floor_frame.centerx, floor_frame.centery + 8)
+                            ),
+                        )
+                        view_legend = "0 NEAR   1   2   3   4 FAR"
+                        screen.blit(
+                            tiny_font.render(view_legend, True, (178, 181, 189)),
+                            (floor_frame.right - 162, floor_frame.bottom - 18),
+                        )
+
+                    detail_x = 992
+                    group = definition.group_definition
+                    screen.blit(
+                        font.render("Object family", True, (126, 202, 143)),
+                        (detail_x, 150),
+                    )
+                    summary_lines = (
+                        definition.group,
+                        f"${group.first:02X}-${group.last:02X}",
+                        (
+                            "Quantity is rendered"
+                            if definition.displays_quantity
+                            else "No quantity rendering"
+                        ),
+                        (
+                            "Uses food/status logic"
+                            if definition.edible
+                            else "Outside food/status range"
+                        ),
+                    )
+                    for row, value in enumerate(summary_lines):
+                        for wrapped_row, line in enumerate(
+                            wrap_text(small_font, value, 190)
+                        ):
+                            y = 184 + row * 45 + wrapped_row * 18
+                            screen.blit(
+                                small_font.render(line, True, (225, 228, 234)),
+                                (detail_x, y),
+                            )
+
+                    panel = pygame.Rect(270, 430, 700, 238)
+                    pygame.draw.rect(screen, (8, 10, 12), panel)
+                    pygame.draw.rect(screen, (72, 77, 88), panel, 2)
+                    screen.blit(
+                        font.render(
+                            "Definition fields - future editable values",
+                            True,
+                            (246, 211, 72),
+                        ),
+                        (286, 446),
+                    )
+                    fields = (
+                        ("Pocket graphic", f"${definition.pocket_icon:02X}", "Pockets.gfx icon"),
+                        ("Pocket recolour", f"${definition.pocket_colour:02X}", "palette index"),
+                        (
+                            "First name word",
+                            f"${definition.first_name_index:02X}  {definition.resolved_word(definition.first_name_index)}",
+                            "object text index and selected word",
+                        ),
+                        (
+                            "Second name word",
+                            f"${definition.second_name_index:02X}  {definition.resolved_word(definition.second_name_index)}",
+                            "object text index and selected word",
+                        ),
+                        ("Floor graphic", f"${definition.floor_shape:02X}", "projected shape"),
+                        ("Floor colours", f"${definition.floor_colour_set:02X}", "four-colour definition"),
+                    )
+                    for index, (name, value, description) in enumerate(fields):
+                        column = index % 2
+                        row = index // 2
+                        field_rect = pygame.Rect(
+                            286 + column * 330,
+                            480 + row * 62,
+                            314,
+                            52,
+                        )
+                        pygame.draw.rect(screen, (18, 21, 26), field_rect)
+                        pygame.draw.rect(screen, (49, 55, 65), field_rect, 1)
+                        screen.blit(
+                            small_font.render(name, True, (160, 165, 176)),
+                            (field_rect.x + 10, field_rect.y + 8),
+                        )
+                        screen.blit(
+                            font.render(value, True, (226, 228, 234)),
+                            (field_rect.x + 150, field_rect.y + 7),
+                        )
+                        screen.blit(
+                            tiny_font.render(description, True, (125, 130, 141)),
+                            (field_rect.x + 10, field_rect.bottom - 17),
+                        )
+                pygame.display.flip()
+                if screenshot_path is not None:
+                    screenshot_path.parent.mkdir(parents=True, exist_ok=True)
+                    pygame.image.save(screen, str(screenshot_path))
+                    running = False
+                for event in pygame.event.get():
+                    if event.type == pygame.QUIT:
+                        running = False
+                    elif event.type == pygame.KEYDOWN:
+                        if event.key == pygame.K_ESCAPE:
+                            running = False
+                        elif event.key in {pygame.K_LEFT, pygame.K_UP}:
+                            selected_object = (selected_object - 1) % OBJECT_COUNT
+                        elif event.key in {pygame.K_RIGHT, pygame.K_DOWN}:
+                            selected_object = (selected_object + 1) % OBJECT_COUNT
+                    elif event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
+                        if overlay_rect.collidepoint(event.pos) and modified_available:
+                            try:
+                                reload_dataset(not use_modified)
+                            except (OSError, ValueError, RuntimeError, IndexError) as error:
+                                overlay_error = str(error)
+                            continue
+                        if category_left_rect.collidepoint(event.pos):
+                            select_category(cycle_enabled_category(selected_category, -1))
+                            continue
+                        if category_right_rect.collidepoint(event.pos):
+                            select_category(cycle_enabled_category(selected_category, 1))
+                            continue
+                        for index, rectangle in visible_category_rects():
+                            if rectangle.collidepoint(event.pos):
+                                select_category(index)
+                                break
+                        for code, rectangle in enumerate(object_rects):
+                            if rectangle.collidepoint(event.pos):
+                                selected_object = code
+                                break
+                        if back_rect.collidepoint(event.pos):
+                            running = False
+                clock.tick(60)
+                continue
+
+            if champions_active:
+                screen.fill((24, 26, 31))
+                screen.blit(
+                    title_font.render(
+                        "Bloodwych Data Viewer", True, (240, 240, 245)
+                    ),
+                    (20, 16),
+                )
+
+                selectable_category_count = sum(CATEGORY_ENABLED)
+                for rectangle, arrow in (
+                    (category_left_rect, "<"),
+                    (category_right_rect, ">"),
+                ):
+                    enabled = selectable_category_count > 1
+                    colour = (
+                        (65, 104, 151)
+                        if enabled and rectangle.collidepoint(mouse)
+                        else ((48, 68, 94) if enabled else (45, 47, 54))
+                    )
+                    pygame.draw.rect(screen, colour, rectangle, border_radius=4)
+                    label = font.render(
+                        arrow,
+                        True,
+                        (245, 245, 245) if enabled else (115, 117, 123),
+                    )
+                    screen.blit(label, label.get_rect(center=rectangle.center))
+
+                for index, rectangle in visible_category_rects():
+                    active = index == selected_category
+                    available = CATEGORY_ENABLED[index]
+                    colour = (
+                        (54, 105, 170)
+                        if active
+                        else (
+                            (65, 69, 80)
+                            if available and rectangle.collidepoint(mouse)
+                            else ((52, 55, 63) if available else (43, 45, 52))
+                        )
+                    )
+                    pygame.draw.rect(screen, colour, rectangle, border_radius=4)
+                    suffix = " (planned)" if not available else ""
+                    text_colour = (
+                        (245, 245, 245)
+                        if active
+                        else ((205, 205, 210) if available else (125, 127, 134))
+                    )
+                    label = small_font.render(
+                        CATEGORY_NAMES[index] + suffix, True, text_colour
+                    )
+                    screen.blit(label, label.get_rect(center=rectangle.center))
+
+                overlay_colour = (
+                    (45, 47, 54)
+                    if not modified_available
+                    else (
+                        (52, 126, 83)
+                        if use_modified
+                        else (
+                            (69, 112, 169)
+                            if overlay_rect.collidepoint(mouse)
+                            else (52, 76, 108)
+                        )
+                    )
+                )
+                overlay_text = (
+                    "Modified overlay unavailable"
+                    if not modified_available
+                    else (
+                        "Modified overlay: ON"
+                        if use_modified
+                        else "Modified overlay: OFF"
+                    )
+                )
+                pygame.draw.rect(screen, overlay_colour, overlay_rect, border_radius=4)
+                label = small_font.render(
+                    overlay_text,
+                    True,
+                    (128, 130, 137)
+                    if not modified_available
+                    else (250, 250, 250),
+                )
+                screen.blit(label, label.get_rect(center=overlay_rect.center))
+
+                screen.blit(
+                    small_font.render(
+                        "Champions $00-$0F", True, (178, 181, 189)
+                    ),
+                    (20, 105),
+                )
+                for champion, rectangle in enumerate(champion_rects):
+                    selected = champion == selected_character
+                    colour = (
+                        (61, 110, 174)
+                        if selected
+                        else (
+                            (58, 61, 70)
+                            if rectangle.collidepoint(mouse)
+                            else (43, 46, 54)
+                        )
+                    )
+                    pygame.draw.rect(screen, colour, rectangle, border_radius=4)
+                    if champion_assets is not None:
+                        shield = champion_assets.shield_avatar(champion)
+                        shield_surface = indexed_to_surface(pygame, shield.pixels)
+                        shield_rect = pygame.Rect(
+                            rectangle.x + 8, rectangle.y + 5, 32, 41
+                        )
+                        screen.blit(shield_surface, shield_rect)
+                        name = champion_assets.record(champion).given_name
+                    else:
+                        name = f"CHAMPION {champion:02X}"
+                    screen.blit(
+                        small_font.render(
+                            f"${champion:02X}", True, (244, 244, 248)
+                        ),
+                        (
+                            rectangle.centerx
+                            - small_font.size(f"${champion:02X}")[0] // 2,
+                            rectangle.y + 51,
+                        ),
+                    )
+                    name_label = tiny_font.render(
+                        name.replace("SIR ", "S. ").replace("THAI ", "T. "),
+                        True,
+                        (206, 208, 214),
+                    )
+                    screen.blit(
+                        name_label,
+                        name_label.get_rect(
+                            center=(rectangle.centerx, rectangle.y + 78)
+                        ),
+                    )
+
+                back_rect = controls["back"][0]
+                pygame.draw.rect(
+                    screen,
+                    (69, 112, 169)
+                    if back_rect.collidepoint(mouse)
+                    else (52, 55, 63),
+                    back_rect,
+                    border_radius=4,
+                )
+                back_label = font.render("Back", True, (245, 245, 245))
+                screen.blit(back_label, back_label.get_rect(center=back_rect.center))
+
+                if champion_assets is None:
+                    message = f"Champion data unavailable: {champion_error}"
+                    screen.blit(
+                        font.render(message, True, (255, 190, 120)), (270, 140)
+                    )
+                else:
+                    record = champion_assets.record(selected_character)
+                    profession_index = champion_assets.profession_index(
+                        selected_character
+                    )
+                    magic_index = champion_assets.magic_class_index(
+                        selected_character
+                    )
+                    screen.blit(
+                        title_font.render(
+                            f"${record.index:02X}  {record.full_name}",
+                            True,
+                            (240, 214, 92),
+                        ),
+                        (270, 108),
+                    )
+
+                    game_yellow = (245, 218, 55)
+                    magic_colours = (
+                        (35, 220, 70),
+                        (240, 205, 35),
+                        (225, 65, 42),
+                        (55, 100, 240),
+                    )
+
+                    # Top row: large portrait, composed body, stats scroll and
+                    # blank inventory slots.  Object population comes later.
+                    portrait_frame = pygame.Rect(270, 148, 136, 128)
+                    pygame.draw.rect(screen, (112, 116, 122), portrait_frame)
+                    pygame.draw.rect(screen, (42, 44, 49), portrait_frame, 4)
+                    draw_scaled_indexed(
+                        pygame,
+                        screen,
+                        champion_assets.large_avatars[selected_character].pixels,
+                        pygame.Rect(274, 152, 128, 120),
+                    )
+
+                    body_rect = pygame.Rect(420, 144, 130, 150)
+                    pygame.draw.rect(screen, (0, 0, 0), body_rect)
+                    if character_assets is not None:
+                        body_pixels, _ = render_character_preview(
+                            [
+                                [TRANSPARENT_INDEX] * VIEW_WIDTH
+                                for _ in range(VIEW_HEIGHT)
+                            ],
+                            character_assets,
+                            selected_character,
+                            distance=0,
+                            facing=0,
+                            render_flags=0,
+                            anchor_x=56,
+                            anchor_y=39,
+                        )
+                        body_crop = crop_visible_pixels(body_pixels)
+                        body_crop = [
+                            [0 if colour == TRANSPARENT_INDEX else colour for colour in row]
+                            for row in body_crop
+                        ]
+                        draw_scaled_indexed(
+                            pygame,
+                            screen,
+                            body_crop,
+                            pygame.Rect(body_rect.x + 28, body_rect.y + 8, 74, 134),
+                        )
+
+                    # Assemble the stats scroll from the four extracted native
+                    # edge strips.  The central area remains deliberately
+                    # plain so the GameFont values are readable.
+                    # Tall source geometry used by Click_ShowStats (D5=$38):
+                    # top/bottom = 96x15, with 57 rendered side rows at X=0
+                    # and X=80.  The resulting 96x87 scroll is shown at 2x.
+                    scroll_rect = pygame.Rect(592, 132, 192, 174)
+                    pygame.draw.rect(screen, (0, 0, 0), scroll_rect)
+                    # The background bar is drawn by BW_draw_bar with d3=3.
+                    pygame.draw.rect(
+                        screen,
+                        GAME_PALETTE_RGB8[3],
+                        pygame.Rect(
+                            scroll_rect.x,
+                            scroll_rect.y + 30,
+                            scroll_rect.width,
+                            114,
+                        ),
+                    )
+                    def scroll_pixels(name: str) -> list[list[int]]:
+                        # Scroll edge masks use colour 15 for transparent
+                        # pixels.  In this black-backed preview those pixels
+                        # should remain black rather than the palette's
+                        # diagnostic magenta.
+                        return [
+                            [0 if value == TRANSPARENT_INDEX else value for value in row]
+                            for row in champion_assets.scroll_edges[name].pixels
+                        ]
+
+                    edge_top = scroll_pixels("top")
+                    edge_bottom = scroll_pixels("bottom")
+                    edge_left = scroll_pixels("left")[:57]
+                    edge_right = scroll_pixels("right")[:57]
+                    draw_scaled_indexed(
+                        pygame, screen, edge_top,
+                        pygame.Rect(scroll_rect.x, scroll_rect.y, 192, 30),
+                    )
+                    draw_scaled_indexed(
+                        pygame, screen, edge_bottom,
+                        pygame.Rect(scroll_rect.x, scroll_rect.bottom - 30, 192, 30),
+                    )
+                    draw_scaled_indexed(
+                        pygame, screen, edge_left,
+                        pygame.Rect(scroll_rect.x, scroll_rect.y + 30, 32, 114),
+                    )
+                    draw_scaled_indexed(
+                        pygame, screen, edge_right,
+                        pygame.Rect(scroll_rect.x + 160, scroll_rect.y + 30, 32, 114),
+                    )
+
+                    # adrEA00CBD2 is a Print_fflim_text command stream.  Draw
+                    # its visible content using the exact palette indices and
+                    # the raw GameFont glyphs $00/$01 around the level value.
+                    game_font_data = champion_assets.game_font
+                    advance = 16
+
+                    def stat_segments(
+                        y: int,
+                        segments: Sequence[tuple[str | Sequence[int], int]],
+                    ) -> None:
+                        x = scroll_rect.x + 32
+                        for value, palette_index in segments:
+                            if isinstance(value, str):
+                                codes = tuple(ord(character) for character in value)
+                            else:
+                                codes = tuple(value)
+                            draw_gamefont_codes(
+                                pygame,
+                                screen,
+                                game_font_data,
+                                codes,
+                                x,
+                                y,
+                                GAME_PALETTE_RGB8[palette_index],
+                                scale=2,
+                            )
+                            x += len(codes) * advance
+
+                    stat_segments(
+                        scroll_rect.y + 32,
+                        (
+                            ("LEVEL", 13),
+                            ((0x00, 0x01), 1),
+                            (f"{record.byte(0x00):02d}", 14),
+                        ),
+                    )
+                    stat_segments(
+                        scroll_rect.y + 50,
+                        (
+                            ("ST", 7),
+                            (f"{record.byte(0x01):02d}", 13),
+                            ("-", 1),
+                            ("AG", 7),
+                            (f"{record.byte(0x02):02d}", 13),
+                        ),
+                    )
+                    stat_segments(
+                        scroll_rect.y + 68,
+                        (
+                            ("IN", 7),
+                            (f"{record.byte(0x03):02d}", 13),
+                            ("-", 1),
+                            ("CH", 7),
+                            (f"{record.byte(0x04):02d}", 13),
+                        ),
+                    )
+                    stat_segments(
+                        scroll_rect.y + 86,
+                        (
+                            ("HP", 0),
+                            (f"{record.byte(0x05):3d}", 14),
+                            ("/", 1),
+                            (f"{record.byte(0x06):3d}", 6),
+                        ),
+                    )
+                    stat_segments(
+                        scroll_rect.y + 104,
+                        (
+                            ("VI ", 0),
+                            (f"{record.byte(0x07):2d}", 14),
+                            ("/", 1),
+                            (f"{record.byte(0x08):2d}", 6),
+                        ),
+                    )
+
+                    # Click_ShowStats prints adrEA00E9E8 beneath the main
+                    # statistics.  Its six blank character cells define the
+                    # 48-pixel native food-bar span between glyphs $02/$03.
+                    draw_gamefont_text(
+                        pygame,
+                        screen,
+                        game_font_data,
+                        "FOOD",
+                        scroll_rect.x + 64,
+                        scroll_rect.y + 118,
+                        GAME_PALETTE_RGB8[13],
+                        scale=2,
+                    )
+                    draw_gamefont_codes(
+                        pygame,
+                        screen,
+                        game_font_data,
+                        (0x02,),
+                        scroll_rect.x + 60,
+                        scroll_rect.y + 134,
+                        GAME_PALETTE_RGB8[4],
+                        scale=2,
+                    )
+                    draw_gamefont_codes(
+                        pygame,
+                        screen,
+                        game_font_data,
+                        (0x03,),
+                        scroll_rect.x + 172,
+                        scroll_rect.y + 134,
+                        GAME_PALETTE_RGB8[4],
+                        scale=2,
+                    )
+                    food_width = min(
+                        96,
+                        (record.byte(0x10) * 96) // 0xC7,
+                    )
+                    if food_width:
+                        pygame.draw.rect(
+                            screen,
+                            GAME_PALETTE_RGB8[9],
+                            pygame.Rect(
+                                scroll_rect.x + 76,
+                                scroll_rect.y + 135,
+                                food_width,
+                                8,
+                            ),
+                        )
+
+                    # The inventory/object panel is intentionally limited to
+                    # the spellbook until pocket contents are implemented.
+                    inventory_rect = pygame.Rect(820, 145, 210, 148)
+                    pygame.draw.rect(screen, (0, 0, 0), inventory_rect)
+                    book = champion_assets.pockets.custom("inventory_spellbook_open")
+                    draw_scaled_indexed(
+                        pygame,
+                        screen,
+                        [
+                            [
+                                0 if value == TRANSPARENT_INDEX else value
+                                for value in row
+                            ]
+                            for row in book.pixels
+                        ],
+                        pygame.Rect(inventory_rect.x + 4, inventory_rect.y + 8, 196, 128),
+                    )
+
+                    profession = PROFESSION_NAMES[profession_index]
+                    magic_class = MAGIC_CLASS_NAMES[magic_index]
+                    pygame.draw.rect(
+                        screen, (20, 22, 27), pygame.Rect(270, 306, 870, 58)
+                    )
+                    screen.blit(
+                        font.render("Profession", True, (170, 174, 184)),
+                        (284, 316),
+                    )
+                    screen.blit(
+                        font.render(profession.title(), True, (240, 240, 245)),
+                        (378, 316),
+                    )
+                    screen.blit(
+                        font.render("Magic alignment", True, (170, 174, 184)),
+                        (554, 316),
+                    )
+                    pygame.draw.rect(
+                        screen, magic_colours[magic_index], (690, 315, 18, 18)
+                    )
+                    screen.blit(
+                        font.render(magic_class.title(), True, (240, 240, 245)),
+                        (716, 316),
+                    )
+                    screen.blit(
+                        small_font.render(
+                            "Inventory uses blank Pockets.gfx icons only; object decoding comes later.",
+                            True,
+                            (170, 174, 184),
+                        ),
+                        (284, 341),
+                    )
+
+                    data_rect = pygame.Rect(270, 378, 930, 326)
+                    pygame.draw.rect(screen, (10, 12, 14), data_rect)
+                    pygame.draw.rect(screen, (83, 88, 96), data_rect, 2)
+                    for index, rect in enumerate(champion_page_rects):
+                        active = index == champion_data_page
+                        colour = (
+                            (61, 110, 174)
+                            if active
+                            else (
+                                (58, 61, 70)
+                                if rect.collidepoint(mouse)
+                                else (43, 46, 54)
+                            )
+                        )
+                        pygame.draw.rect(screen, colour, rect, border_radius=4)
+                        label = small_font.render(
+                            CHAMPION_DATA_PAGE_NAMES[index], True, (242, 244, 248)
+                        )
+                        screen.blit(label, label.get_rect(center=rect.center))
+                    page_title, page_lines = champion_data_page_lines(
+                        record,
+                        champion_assets.pocket_record(selected_character),
+                        champion_data_page,
+                    )
+                    screen.blit(
+                        font.render(page_title, True, (240, 214, 92)),
+                        (286, 428),
+                    )
+                    rows_per_column = 9
+                    for index, (name, value) in enumerate(page_lines):
+                        column = index // rows_per_column
+                        row = index % rows_per_column
+                        x = 286 + column * 300
+                        y = 462 + row * 24
+                        screen.blit(
+                            small_font.render(name, True, (160, 165, 176)),
+                            (x, y),
+                        )
+                        screen.blit(
+                            small_font.render(value, True, (226, 228, 234)),
+                            (x + 132, y),
+                        )
+                    screen.blit(
+                        small_font.render(
+                            "Read-only SPS 439 champion record. The lower panel is split ready for future editing.",
+                            True,
+                            (178, 181, 189),
+                        ),
+                        (270, 716),
+                    )
+
+                pygame.display.flip()
+                if screenshot_path is not None:
+                    screenshot_path.parent.mkdir(parents=True, exist_ok=True)
+                    pygame.image.save(screen, str(screenshot_path))
+                    running = False
+                for event in pygame.event.get():
+                    if event.type == pygame.QUIT:
+                        running = False
+                    elif event.type == pygame.KEYDOWN:
+                        if event.key == pygame.K_ESCAPE:
+                            running = False
+                        elif event.key in {pygame.K_LEFT, pygame.K_UP}:
+                            selected_character = (selected_character - 1) & 0x0F
+                        elif event.key in {pygame.K_RIGHT, pygame.K_DOWN}:
+                            selected_character = (selected_character + 1) & 0x0F
+                    elif event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
+                        if overlay_rect.collidepoint(event.pos) and modified_available:
+                            try:
+                                reload_dataset(not use_modified)
+                            except (
+                                OSError,
+                                ValueError,
+                                RuntimeError,
+                                IndexError,
+                            ) as error:
+                                overlay_error = str(error)
+                            continue
+                        if category_left_rect.collidepoint(event.pos):
+                            select_category(
+                                cycle_enabled_category(selected_category, -1)
+                            )
+                            continue
+                        if category_right_rect.collidepoint(event.pos):
+                            select_category(
+                                cycle_enabled_category(selected_category, 1)
+                            )
+                            continue
+                        for index, rectangle in visible_category_rects():
+                            if rectangle.collidepoint(event.pos):
+                                select_category(index)
+                                break
+                        for champion, rectangle in enumerate(champion_rects):
+                            if rectangle.collidepoint(event.pos):
+                                selected_character = champion
+                                break
+                        for page_index, rectangle in enumerate(champion_page_rects):
+                            if rectangle.collidepoint(event.pos):
+                                champion_data_page = page_index
+                                break
+                        if back_rect.collidepoint(event.pos):
+                            running = False
+                clock.tick(60)
+                continue
+
             screen.fill((24, 26, 31))
             screen.blit(
                 title_font.render("Bloodwych Data Viewer", True, (240, 240, 245)),
@@ -2166,17 +3275,36 @@ def main() -> None:
         help="open the Dungeon Graphics category",
     )
     parser.add_argument(
+        "--champions",
+        action="store_true",
+        help="open the read-only Champion Data category",
+    )
+    parser.add_argument(
+        "--objects",
+        action="store_true",
+        help="open the read-only Object Data category",
+    )
+    parser.add_argument(
         "--dungeon-feature",
         choices=tuple(feature.key for feature in DUNGEON_FEATURES),
         default="stone",
         help="initial dungeon option (primarily useful with --screenshot)",
     )
     args = parser.parse_args()
+    initial_category = (
+        "object"
+        if args.objects
+        else (
+            "champion"
+            if args.champions
+            else ("dungeon" if args.dungeon else "character")
+        )
+    )
     launch_graphics_viewer(
         args.data_root,
         screenshot_path=args.screenshot,
         prefer_modified=args.modified,
-        initial_category="dungeon" if args.dungeon else "character",
+        initial_category=initial_category,
         initial_dungeon_feature=args.dungeon_feature,
     )
 

@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import re
 import tempfile
 import unittest
 from pathlib import Path
@@ -9,10 +10,48 @@ import pandas as pd
 
 from tools.resource_layout import resource_layouts
 from tools.tool_common import ToolError
-from tools.tool_relabel import relabel_segments
+from tools.tool_relabel import (
+    _reference_pattern,
+    _undefined_legacy_labels,
+    relabel_segments,
+)
 
 
 class ResourceLayoutTests(unittest.TestCase):
+    def test_relabel_reference_pattern_supports_question_mark_labels(self) -> None:
+        source = "add.b Monster_Grades?_5FD6(pc,d2.w),d3"
+        rewritten = re.sub(
+            _reference_pattern("Monster_Grades?_5FD6"),
+            "Shield_ArmourBonuses",
+            source,
+        )
+        self.assertEqual(
+            rewritten,
+            "add.b Shield_ArmourBonuses(pc,d2.w),d3",
+        )
+
+    def test_relabel_reference_pattern_preserves_operand_size_suffix(self) -> None:
+        source = "lea adrEA00D988.l,a0"
+        rewritten = re.sub(
+            _reference_pattern("adrEA00D988"),
+            "Data_Woundflash",
+            source,
+        )
+        self.assertEqual(rewritten, "lea Data_Woundflash.l,a0")
+
+    def test_relabel_integrity_check_finds_renamed_definition_with_old_reference(
+        self,
+    ) -> None:
+        self.assertEqual(
+            _undefined_legacy_labels(
+                [
+                    "Data_Woundflash:",
+                    "\tlea\tadrEA00D988.l,a0\t; old reference",
+                ]
+            ),
+            ["adrEA00D988"],
+        )
+
     def test_append_accepts_internal_source_label(self) -> None:
         frame = pd.DataFrame(
             (

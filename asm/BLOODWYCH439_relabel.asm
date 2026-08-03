@@ -41,6 +41,72 @@ ciacra:			equ	$00000E00
 ; ReSource: generated EQU definitions from segments.xlsx/EQUATES
 DiskReadTimeoutCount:		equ	$000186A0
 	; ReSource: Disk-read timeout counter used while waiting for DMA completion.
+Object_EmptySlot:		equ	$00
+	; ReSource: Empty object-slot code.
+Object_Coinage:		equ	$01
+	; ReSource: Coinage object code.
+Object_CommonKeys:		equ	$02
+	; ReSource: Common-key object code.
+Object_Arrows_First:		equ	$03
+	; ReSource: First arrow object code.
+Object_Food_First:		equ	$05
+	; ReSource: First food object and exclusive end of counted objects.
+Object_Drinks_First:		equ	$0E
+	; ReSource: First drink-like food object.
+Object_Neggs_First:		equ	$14
+	; ReSource: First high-value N'Egg food object.
+Object_TradeValueTable_First:		equ	$14
+	; ReSource: First object represented by the trade-value lookup table.
+Object_PocketGraphicBankSize:		equ	$14
+	; ReSource: Number of pocket graphics in each source-bank step.
+Object_Potions_First:		equ	$17
+	; ReSource: First potion object code and exclusive end of food.
+Object_Armour_First:		equ	$1B
+	; ReSource: First body-armour object and exclusive end of potions.
+Object_SmallShields_First:		equ	$24
+	; ReSource: First small-shield object and exclusive end of body armour.
+Object_LargeShields_First:		equ	$27
+	; ReSource: First large-shield object.
+Object_Gloves_First:		equ	$2B
+	; ReSource: First glove object and exclusive end of all shields.
+Object_Blades_First:		equ	$30
+	; ReSource: First blade object and exclusive end of gloves.
+Object_Swords_First:		equ	$32
+	; ReSource: First sword object.
+Object_Axes_First:		equ	$38
+	; ReSource: First axe object.
+Object_Staffs_First:		equ	$3D
+	; ReSource: First staff object.
+Object_Remains_First:		equ	$40
+	; ReSource: First champion-remains object and first normally non-tradable object.
+Object_Keys_First:		equ	$50
+	; ReSource: First named-key object.
+Object_Wands_First:		equ	$57
+	; ReSource: First wand object.
+Object_Bows_First:		equ	$5C
+	; ReSource: First bow object.
+Object_Permit:		equ	$5F
+	; ReSource: Permit object and exclusive end of bows.
+Object_Crystals_First:		equ	$60
+	; ReSource: First crystal object.
+Object_StackMaximum:		equ	$63
+	; ReSource: Highest stored quantity for a counted object.
+Object_StackLimitExclusive:		equ	$64
+	; ReSource: Exclusive counted-object quantity limit.
+Object_Gems_First:		equ	$64
+	; ReSource: First gem object.
+Object_Rings_First:		equ	$68
+	; ReSource: First member of the complete ring family.
+Object_DepletedRing:		equ	$68
+	; ReSource: Depleted-ring object code.
+Object_MagicRings_First:		equ	$69
+	; ReSource: First rechargeable magic-ring object.
+Object_BookOfSkulls:		equ	$6D
+	; ReSource: Book of Skulls object and exclusive end of magic rings.
+Object_ChaosGloves:		equ	$2B
+	; ReSource: Chaos Gloves object code.
+Object_AceOfSwords:		equ	$37
+	; ReSource: Ace of Swords object code.
 ; ReSource: end generated EQU definitions
 
 ****************************************************************************
@@ -2066,7 +2132,7 @@ adrCd001A84:
 	move.l	a4,-(sp)	;2F0C
 	move.w	d1,-(sp)	;3F01
 	move.w	#$FFFF,adrW_00628A.l	;33FCFFFF0000628A
-	bsr	adrCd0061DA	;61004734
+	bsr	Resolve_PhysicalAttack	;61004734
 	move.w	(sp)+,d0	;301F
 	move.w	$0000(a6),d5	;3A2E0000
 	bsr	adrCd002298	;610007E8
@@ -3685,7 +3751,7 @@ adrCd002B0A:
 	move.b	#$07,$001B(a4)	;197C0007001B
 	move.l	a4,-(sp)	;2F0C
 	move.w	d1,-(sp)	;3F01
-	bsr	adrCd0061DA	;610036C4
+	bsr	Resolve_PhysicalAttack	;610036C4
 	move.w	(sp)+,d0	;301F
 	move.w	$0000(a6),d5	;3A2E0000
 	bsr	adrCd002298	;6100F778
@@ -3718,20 +3784,22 @@ adrLp002B3E:
 	add.b	d2,d0	;D002
 	move.b	$00(a0,d5.w),d5	;1A305000
 	sub.w	#$005C,d5	;0445005C
-	move.b	adrB_002B80(pc,d5.w),d2	;143B5016
+	move.b	Bow_ActionBitShiftCounts(pc,d5.w),d2	;143B5016
 	lsr.w	d2,d0	;E468
-	add.b	adrB_002B83(pc,d5.w),d0	;D03B5013
+	add.b	Bow_ActionValueAdjustments(pc,d5.w),d0	;D03B5013
 	add.w	d0,d0	;D040
 	move.w	d0,d7	;3E00
 	bsr	adrCd005328	;610027B0
 	moveq	#$01,d4	;7801
 	bra	Call_DoorToggleRoutine_AI_TBC	;6000FEC6
 
-adrB_002B80:
+Bow_ActionBitShiftCounts:
+	; ReSource: Selects the bit shift applied by each of the three bow object types.
 	dc.b	$01	;01
 	dc.b	$00	;00
 	dc.b	$01	;01
-adrB_002B83:
+Bow_ActionValueAdjustments:
+	; ReSource: Adds the final per-bow adjustment after the bow action value is shifted.
 	dc.b	$00	;00
 	dc.b	$00	;00
 	dc.b	$01	;01
@@ -4399,7 +4467,7 @@ adrCd003232:
 Trade_Offer_TBC:
 	move.b	d0,$0009(a4)	;19400009
 	and.w	#$007F,d0	;0240007F
-	jsr	adrCd00CEC4.l	;4EB90000CEC4
+	jsr	Convert_ByteToDecimalText.l	;4EB90000CEC4
 	lea	adrEA0031D9.w,a6	;4DF831D9	;Short Absolute converted to symbol!
 	moveq	#$06,d2	;7406
 	ror.w	#$08,d1	;E059
@@ -4965,7 +5033,7 @@ adrCd0038DC:
 	jmp	Print_npc_message.l	;4EF90000D81C
 
 adrCd0038F4:
-	lea	Object_DataTable.l,a0	;41F90000E4C4
+	lea	Object_Definition_Table+$02.l,a0	;41F90000E4C4
 	add.w	d0,d0	;D040
 	add.w	d0,d0	;D040
 	add.w	d0,a0	;D0C0
@@ -5270,7 +5338,7 @@ AnswerList_22:
 	bra.s	adrCd003D74	;6022
 
 adrCd003D52:
-	lea	Object_DataTable.l,a0	;41F90000E4C4
+	lea	Object_Definition_Table+$02.l,a0	;41F90000E4C4
 	add.w	d1,d1	;D241
 	add.w	d1,d1	;D241
 	add.w	d1,a0	;D0C1
@@ -6387,7 +6455,7 @@ adrCd0048AA:
 	moveq	#$00,d3	;7600
 	jsr	BW_draw_bar.l	;4EB90000DA68
 	move.b	$0044(a5),d0	;102D0044
-	bsr	adrCd006900	;61001FFA
+	bsr	Character_GetClassIndex	;61001FFA
 	lea	adrEA00463A.w,a6	;4DF8463A	;Short Absolute converted to symbol!
 	move.b	$00(a6,d0.w),adrB_00D92B.l	;13F600000000D92B
 	add.w	#$0064,d0	;06400064
@@ -6405,7 +6473,7 @@ adrCd0048AA:
 	lea	adrEA004A5E.l,a6	;4DF900004A5E
 	add.w	#$0030,d1	;06410030
 	move.b	d1,$000E(a6)	;1D41000E
-	jsr	adrCd00CEC4.l	;4EB90000CEC4
+	jsr	Convert_ByteToDecimalText.l	;4EB90000CEC4
 	move.w	d1,$0012(a6)	;3D410012
 	jsr	Print_fflim_text.l	;4EB90000D0C6
 	moveq	#$00,d0	;7000
@@ -6918,7 +6986,7 @@ adrCd004EC8:
 	tst.b	d0	;4A00
 	bne.s	adrCd004EFA	;6612
 	move.b	$0013(a4),d0	;102C0013
-	bsr	adrCd006900	;61001A12
+	bsr	Character_GetClassIndex	;61001A12
 	lea	RingUses.l,a0	;41F90000EE32
 	subq.b	#$01,$00(a0,d0.w)	;53300000
 adrCd004EFA:
@@ -8006,7 +8074,7 @@ MainWall_Action_02_WallDecoration:
 MainWall_Action_02_Scrolls:
 	move.w	d1,-(sp)	;3F01
 	moveq	#$38,d5	;7A38
-	bsr	adrCd00CC3A	;6100731A
+	bsr	Draw_ScrollFrame	;6100731A
 	move.w	(sp)+,d1	;321F
 	move.w	CurrentTower.l,d0	;30390000EE2E
 	add.b	Scroll_TowerOffsets_DataTable(pc,d0.w),d1	;D23B0026
@@ -8755,7 +8823,7 @@ adrCd005FC4:
 	and.w	#$0003,d1	;02410003
 	mulu	#$0460,d1	;C2FC0460
 	add.w	d1,a1	;D2C1
-	bsr	adrCd006900	;6100090C
+	bsr	Character_GetClassIndex	;6100090C
 	move.b	adrB_00600C(pc,d0.w),d3	;163B0014
 	move.w	d7,d0	;3007
 	add.w	d0,d0	;D040
@@ -8931,7 +8999,7 @@ adrCd006178:
 	addq.w	#$01,d2	;5242
 adrCd006190:
 	swap	d0	;4840
-	bsr	adrCd00CEC4	;61006D30
+	bsr	Convert_ByteToDecimalText	;61006D30
 	move.b	d1,d0	;1001
 	ror.w	#$08,d1	;E059
 	tst.w	d3	;4A43
@@ -8960,11 +9028,12 @@ adrCd0061D0:
 	beq	adrCd00332A	;6700D154
 	rts	;4E75
 
-adrCd0061DA:
+Resolve_PhysicalAttack:
+	; ReSource: Performs the opposed attack roll, calculates weapon damage, subtracts armour and applies the hit-quality multiplier.
 	moveq	#$02,d0	;7002
 	bsr	PlaySound	;610026E0
 	bsr.s	adrCd0061B6	;61D4
-	bsr	adrCd00641C	;61000238
+	bsr	Prepare_AttackAndDefenceScores	;61000238
 	clr.w	$0000(a6)	;426E0000
 	clr.w	adrW_00230A.w	;4278230A	;Short Absolute converted to symbol!
 	bsr	RandomGen_100	;6100F3C8
@@ -9039,7 +9108,8 @@ adrCd006288:
 adrW_00628A:
 	dc.w	$0000	;0000
 
-adrCd00628C:
+Load_CombatantCombatValues:
+	; ReSource: Loads champion or monster combat statistics and applies equipment and active-spell modifiers.
 	moveq	#$00,d4	;7800
 	moveq	#$00,d5	;7A00
 	moveq	#$00,d6	;7C00
@@ -9072,8 +9142,8 @@ adrCd0062C6:
 	clr.b	$0007(a4)	;422C0007
 adrCd0062D6:
 	move.w	d1,d0	;3001
-	bsr.s	adrCd00631E	;6144
-	bsr	adrCd006382	;610000A6
+	bsr.s	Calculate_CharacterArmourLevel	;6144
+	bsr	Calculate_WeaponCombatBonuses	;610000A6
 	bsr	SpellCost_SelectOrComputeFallback_AI_TBC	;6100A644
 	tst.w	adrW_00628A.w	;4A78628A	;Short Absolute converted to symbol!
 	bne.s	adrCd0062EA	;6602
@@ -9102,7 +9172,8 @@ adrCd006312:
 	move.b	$0002(a4),d2	;142C0002
 	rts	;4E75
 
-adrCd00631E:
+Calculate_CharacterArmourLevel:
+	; ReSource: Combines body armour, worn gloves and shield values into the character's effective armour level.
 	lea	Character_Pockets_DataTable.l,a1	;43F90000ED2A
 	asl.w	#$04,d0	;E940
 	add.w	d0,a1	;D2C0
@@ -9138,11 +9209,12 @@ adrCd006362:
 	bcs.s	adrCd006378	;650A
 	cmpi.w	#$0007,d2	;0C420007
 	bcc.s	adrCd006378	;6404
-	add.b	Monster_Grades?_5FD6(pc,d2.w),d3	;D63B2004
+	add.b	Shield_ArmourBonuses(pc,d2.w),d3	;D63B2004
 adrCd006378:
 	rts	;4E75
 
-Monster_Grades?_5FD6:
+Shield_ArmourBonuses:
+	; ReSource: Maps shield objects $24-$2A to armour contributions; the eighth byte is unused by the seven-entry range.
 	dc.b	$01	;01
 	dc.b	$02	;02
 	dc.b	$04	;04
@@ -9152,7 +9224,8 @@ Monster_Grades?_5FD6:
 	dc.b	$07	;07
 	dc.b	$00	;00
 
-adrCd006382:
+Calculate_WeaponCombatBonuses:
+	; ReSource: Checks the two held-object slots for weapon objects $30-$3F and loads their combat adjustments.
 	moveq	#$00,d0			;7000
 	move.b	(a1),d0			;1011
 	sub.b	#$30,d0			;04000030
@@ -9166,7 +9239,7 @@ adrCd006392:
 	cmpi.b	#$10,d0			;0C000010
 	bcc.s	adrCd0063DA		;6438
 adrCd0063A2:
-	lea	adrEA0063DC.l,a0	;41F9000063DC
+	lea	Weapon_CombatModifiers.l,a0	;41F9000063DC
 	asl.w	#$02,d0			;E540
 	add.w	d0,a0			;D0C0
 	move.b	(a0)+,d4		;1818
@@ -9189,7 +9262,8 @@ adrCd0063C6:
 adrCd0063DA:
 	rts	;4E75
 
-adrEA0063DC:
+Weapon_CombatModifiers:
+	; ReSource: Sixteen four-byte records for weapons $30-$3F: random damage range, fixed damage bonus, attack bonus and defence bonus.
 	dc.w	$0400	;0400
 	dc.w	$0000	;0000
 	dc.w	$0603	;0603
@@ -9223,13 +9297,14 @@ adrEA0063DC:
 	dc.w	$0C02	;0C02
 	dc.w	$1928	;1928
 
-adrCd00641C:
+Prepare_AttackAndDefenceScores:
+	; ReSource: Builds the attacker score and defender score, including weapon attack, weapon defence and effective armour values.
 	lea	adrEA016B6C.l,a6	;4DF900016B6C
 	move.w	d1,-(sp)	;3F01
 	move.w	d3,d0	;3003
-	bsr	adrCd00645A	;61000032
+	bsr	Calculate_AttackerCombatScore	;61000032
 	move.w	(sp)+,d0	;301F
-	bsr	adrCd00628C	;6100FE5E
+	bsr	Load_CombatantCombatValues	;6100FE5E
 	move.b	d7,$000C(a6)	;1D47000C
 	move.b	d3,$000D(a6)	;1D43000D
 	lsr.w	#$03,d2	;E64A
@@ -9249,8 +9324,9 @@ adrCd006452:
 adrW_006458:
 	dc.w	$0000	;0000
 
-adrCd00645A:
-	bsr	adrCd00628C	;6100FE30
+Calculate_AttackerCombatScore:
+	; ReSource: Calculates an attacker score from level, strength, agility and the equipped weapon’s attack bonus.
+	bsr	Load_CombatantCombatValues	;6100FE30
 	move.b	d6,$000B(a6)	;1D46000B
 	move.b	d5,$000A(a6)	;1D45000A
 	move.b	d4,$0006(a6)	;1D440006
@@ -9413,10 +9489,11 @@ adrCd006608:
 	bra	adrCd007B50	;6000153C
 
 Click_ShowStats:
+	; ReSource: Selects statistics mode, draws the tall scroll using D5=$38, prints ChampionStatsScroll_FoodTextTemplate and draws the champion food bar from record byte $10.
 	move.w	#$0001,$0014(a5)	;3B7C00010014
 	moveq	#$38,d5	;7A38
-	bsr	adrCd00CB2A	;6100650A
-	lea	adrEA00E9E8.l,a6	;4DF90000E9E8
+	bsr	Draw_ChampionStats	;6100650A
+	lea	ChampionStatsScroll_FoodTextTemplate.l,a6	;4DF90000E9E8
 	bsr	Print_fflim_text	;61006A9C
 	asl.w	#$05,d7	;EB47
 	lea	Character_Stats_DataTable.l,a6	;4DF90000EB2A
@@ -9426,7 +9503,7 @@ Click_ShowStats:
 	move.w	#$00C7,d1	;323C00C7
 	moveq	#$30,d2	;7430
 	move.l	#$002F00F9,d4	;283C002F00F9
-	bsr	adrCd008144	;61001AFA
+	bsr	Scale_ValueToBarLength	;61001AFA
 	move.l	#$0004004A,d5	;2A3C0004004A	;Long Addr replaced with Symbol
 	add.w	$0008(a5),d5	;DA6D0008
 	moveq	#$09,d3	;7609
@@ -9476,7 +9553,7 @@ adrCd0066B8:
 	bra	adrCd00CAEA	;6000642E
 
 adrCd0066BE:
-	bsr	adrCd006900	;61000240
+	bsr	Character_GetClassIndex	;61000240
 	add.w	#$0064,d0	;06400064
 	bsr	adrCd00CAEA	;61006422
 	moveq	#$03,d7	;7E03
@@ -9485,7 +9562,7 @@ adrLp0066CC:
 	bsr	adrCd00CAEA	;61006418
 	dbra	d7,adrLp0066CC	;51CFFFF6
 	move.b	$0013(a4),d0	;102C0013
-	bsr	adrCd006900	;61000222
+	bsr	Character_GetClassIndex	;61000222
 	add.w	#$0064,d0	;06400064
 	bsr	adrCd00CAEA	;61006404
 	moveq	#$00,d0	;7000
@@ -9496,7 +9573,7 @@ adrCd0066F6:
 	or.b	#$04,$0054(a5)	;002D00040054
 	bsr	adrCd00688C	;6100018E
 	lea	adrEA00EA36.l,a6	;4DF90000EA36
-	bsr	adrCd00CEC4	;610067BC
+	bsr	Convert_ByteToDecimalText	;610067BC
 	move.w	d1,$0010(a6)	;3D410010
 	bsr	Print_fflim_text	;610069B6
 adrCd006712:
@@ -9520,7 +9597,7 @@ adrCd006736:
 	move.l	#$0004005A,d5	;2A3C0004005A	;Long Addr replaced with Symbol
 	add.w	$0008(a5),d5	;DA6D0008
 	move.l	#$0033009F,d4	;283C0033009F
-	bsr	adrCd008144	;610019EE
+	bsr	Scale_ValueToBarLength	;610019EE
 	moveq	#$0C,d3	;760C
 	bra	BW_draw_bar	;6000730C
 
@@ -9552,7 +9629,7 @@ adrB_006760:
 	bsr	adrCd006660	;6100FEEA
 adrCd006778:
 	move.b	$0013(a4),d0	;102C0013
-	bsr	adrCd006900	;61000182
+	bsr	Character_GetClassIndex	;61000182
 	move.w	d0,-(sp)	;3F00
 	move.l	a4,d0	;200C
 	sub.l	#Character_Stats_DataTable,d0	;04800000EB2A
@@ -9561,7 +9638,7 @@ adrCd006778:
 	add.w	d0,a0	;D0C0
 	lsr.w	#$04,d0	;E848
 	move.w	d0,d1	;3200
-	bsr	adrCd006900	;61000166
+	bsr	Character_GetClassIndex	;61000166
 	moveq	#$00,d7	;7E00
 	cmp.w	(sp),d0	;B057
 	bne.s	adrCd0067AC	;660A
@@ -9612,7 +9689,7 @@ adrCd0067EA:
 	add.b	$0014(a4),d7	;DE2C0014
 	move.w	d4,d0	;3004
 	move.w	d6,d4	;3806
-	bsr	adrCd006900	;610000FE
+	bsr	Character_GetClassIndex	;610000FE
 	move.w	d4,d6	;3C04
 	cmp.w	(sp)+,d0	;B05F
 	bne.s	adrCd00681A	;6610
@@ -9729,7 +9806,7 @@ adrCd00688C:
 	add.w	d0,a0	;D0C0
 	moveq	#$00,d0	;7000
 	move.b	$0013(a4),d0	;102C0013
-	bsr.s	adrCd006900	;615A
+	bsr.s	Character_GetClassIndex	;615A
 	add.w	#$0069,d0	;06400069
 	cmp.b	(a0),d0	;B010
 	beq.s	adrCd0068B4	;6706
@@ -9767,7 +9844,8 @@ adrCd0068F8:
 	bcc.s	adrCd0068CC	;64CE
 	rts	;4E75
 
-adrCd006900:
+Character_GetClassIndex:
+	; ReSource: Converts a champion or character number into one of the four class indices.
 	move.w	d0,d6	;3C00
 	cmpi.b	#$10,d0	;0C000010
 	bcs.s	adrCd00690A	;6502
@@ -9785,7 +9863,7 @@ Click_Item_17_to_1A_Potions:
 	cmpi.w	#$001B,d0	;0C40001B
 	bcc.s	adrCd006912	;64F2
 	cmpi.w	#$0017,d0	;0C400017
-	bcs.s	adrCd00699A	;6574
+	bcs.s	Use_FoodOrCountedObject	;6574
 	sub.w	#$0017,d0	;04400017
 	move.w	d0,d1	;3200
 	clr.l	$002C(a5)	;42AD002C
@@ -9834,7 +9912,8 @@ adrCd006984:
 	move.b	d0,$00(a4,d4.w)	;19804000
 	rts	;4E75
 
-adrCd00699A:
+Use_FoodOrCountedObject:
+	; ReSource: Dispatches counted objects, ordinary food/drink and the $14-$16 high-value food actions.
 	cmpi.w	#$0005,d0	;0C400005
 	bcs	Click_CountedObject	;65000076
 	cmpi.w	#$0014,d0	;0C400014
@@ -10103,11 +10182,12 @@ adrCd006C58:
 	cmpi.w	#$0005,d0	;0C400005
 	bcs.s	adrCd006C90	;6506
 	cmpi.w	#$0017,d0	;0C400017
-	bcs.s	adrCd006C92	;6502
+	bcs.s	Draw_FoodStatus	;6502
 adrCd006C90:
 	rts	;4E75
 
-adrCd006C92:
+Draw_FoodStatus:
+	; ReSource: Draws the FOOD label and the food-level bar scaled against the $00-$C7 food value.
 	lea	adrEA00E998.l,a6	;4DF90000E998
 	bsr	Print_fflim_text	;6100642C
 adrCd006C9C:
@@ -10121,17 +10201,18 @@ adrCd006C9C:
 	move.l	#$0004005A,d5	;2A3C0004005A	;Long Addr replaced with Symbol
 	add.w	$0008(a5),d5	;DA6D0008
 	move.l	#$00390098,d4	;283C00390098
-	bsr	adrCd008144	;6100147A
+	bsr	Scale_ValueToBarLength	;6100147A
 	moveq	#$09,d3	;7609
 	bra	BW_draw_bar	;60006D98
 
 adrCd006CD2:
 	move.w	$002E(a5),d0	;302D002E
-	bne.s	adrCd006CE2	;660A
+	bne.s	Prepare_HeldObjectDescription	;660A
 	lea	NullString.l,a6	;4DF90000CAE9
 	bra	LowerText	;600062D8
 
-adrCd006CE2:
+Prepare_HeldObjectDescription:
+	; ReSource: Handles champion-remains ownership before resolving and printing the held object's description.
 	move.w	d0,d1	;3200
 	sub.w	#$0040,d1	;04410040
 	bcs.s	adrCd006D08	;651E
@@ -10145,7 +10226,7 @@ adrCd006CE2:
 	bclr	#$05,$18(a5,d1.w)	;08B500051018
 	clr.l	$002C(a5)	;42AD002C
 adrCd006D08:
-	lea	Object_DataTable.l,a6	;4DF90000E4C4
+	lea	Object_Definition_Table+$02.l,a6	;4DF90000E4C4
 	asl.w	#$02,d0	;E540
 	add.w	d0,a6	;DCC0
 	move.w	#$0006,adrW_00D92A.l	;33FC00060000D92A
@@ -10182,7 +10263,7 @@ adrCd006D44:
 adrCd006D6E:
 	move.l	#$00020016,d5	;2A3C00020016	;Long Addr replaced with Symbol
 	move.l	#$00000088,a3	;267C00000088
-	bra	adrCd00CCB8	;60005F3C
+	bra	Draw_PlanarGraphic	;60005F3C
 
 Arrow_Highlights_Y_Offsets:
 	dc.w	$0050	;0050
@@ -11660,7 +11741,7 @@ adrCd007BE8:
 	add.w	#$0DE8,a0	;D0FC0DE8
 	add.w	$000A(a5),a0	;D0ED000A
 	lea	$0070.w,a3	;47F80070
-	bra	adrCd00CCB8	;600050AC
+	bra	Draw_PlanarGraphic	;600050AC
 
 adrEA007C0E:
 	dc.b	$5F	;5F
@@ -12119,7 +12200,7 @@ adrCd007F86:
 	lea	GFX_Pockets+$5070.l,a1	;43F900051772
 	move.l	#$00010028,d5	;2A3C00010028	;Long Addr replaced with Symbol
 	move.l	#$00000090,a3	;267C00000090
-	bsr	adrCd00CCB8	;61004D0A
+	bsr	Draw_PlanarGraphic	;61004D0A
 	move.w	(sp)+,d7	;3E1F
 adrCd007FB2:
 	link	a3,#-$0020	;4E53FFE0
@@ -12210,7 +12291,7 @@ adrCd007FF8:
 	add.w	$000A(a5),a0	;D0ED000A
 	add.w	#$0286,a0	;D0FC0286
 	move.l	#$00020005,d5	;2A3C00020005	;Long Addr replaced with Symbol
-	bsr	adrCd00CCB8	;61004BF0
+	bsr	Draw_PlanarGraphic	;61004BF0
 adrCd0080CA:
 	tst.w	$0042(a5)	;4A6D0042
 	bpl	adrCd008256	;6A000186
@@ -12250,7 +12331,8 @@ adrCd008132:
 adrCd00813C:
 	move.l	#$00220037,d4	;283C00220037
 	moveq	#$23,d2	;7423
-adrCd008144:
+Scale_ValueToBarLength:
+	; ReSource: Scales D0 against maximum D1 to a D2-pixel bar length. Used here to scale food $00-$C7 across 48 pixels.
 	swap	d4	;4844
 	cmp.b	d1,d0	;B001
 	bcc.s	adrCd008158	;640E
@@ -12282,7 +12364,7 @@ adrLp00816C:
 	moveq	#$14,d4	;7814
 	swap	d4	;4844
 	moveq	#$15,d2	;7415
-	bsr.s	adrCd008144	;61B0
+	bsr.s	Scale_ValueToBarLength	;61B0
 	swap	d4	;4844
 	moveq	#$2C,d2	;742C
 	sub.w	d4,d2	;9444
@@ -12293,7 +12375,7 @@ adrLp00816C:
 	add.w	$0008(a5),d5	;DA6D0008
 	move.b	$18(a5,d6.w),d0	;10356018
 	and.w	#$000F,d0	;0240000F
-	bsr	adrCd006900	;6100E74E
+	bsr	Character_GetClassIndex	;6100E74E
 	move.b	adrB_0081CA(pc,d0.w),d3	;163B0014
 	bsr	BW_draw_bar	;610058AE
 	movem.l	(sp)+,d3-d6	;4CDF0078
@@ -12324,7 +12406,7 @@ Load_MapPosition_AI_TBC:
 	move.b	$0013(a4),d2	;142C0013
 	bmi.s	adrCd008206	;6B0A
 	move.w	d2,d0	;3002
-	bsr	adrCd006900	;6100E700
+	bsr	Character_GetClassIndex	;6100E700
 	add.w	#$0064,d0	;06400064
 adrCd008206:
 	bra	adrCd00CAEA	;600048E2
@@ -12410,7 +12492,7 @@ adrCd0082BA:
 	lea	GFX_Pockets+$67C0.l,a1	;43F900052EC2
 	move.l	#$00000080,a3	;267C00000080
 	move.l	#$00030015,d5	;2A3C00030015	;Long Addr replaced with Symbol
-	bsr	adrCd00CCB8	;610049C6
+	bsr	Draw_PlanarGraphic	;610049C6
 	add.w	#$0028,a0	;D0FC0028
 	lea	GFX_Pockets+$67E0.l,a1	;43F900052EE2
 	btst	#$00,(a5)	;08150000
@@ -12418,7 +12500,7 @@ adrCd0082BA:
 	add.w	#$0020,a1	;D2FC0020
 adrCd008308:
 	move.l	#$0003001E,d5	;2A3C0003001E	;Long Addr replaced with Symbol
-	bsr	adrCd00CCB8	;610049A8
+	bsr	Draw_PlanarGraphic	;610049A8
 	bsr	Load_MapPosition_AI_TBC	;6100FEBA
 	move.w	#$0062,d0	;303C0062
 	bsr	adrCd00CAEA	;610047CE
@@ -12446,7 +12528,7 @@ adrCd008358:
 	move.l	#$00050006,d5	;2A3C00050006	;Long Addr replaced with Symbol
 	add.l	screen_ptr.l,a0	;D1F900008D36
 	add.w	$000A(a5),a0	;D0ED000A
-	bra	adrCd00CCB8	;60004942
+	bra	Draw_PlanarGraphic	;60004942
 
 ;fiX Label expected
 	move.w	d0,d2	;3400
@@ -12529,7 +12611,7 @@ adrCd00842C:
 
 adrCd008430:
 	move.w	d0,d1	;3200
-	bsr	adrCd006900	;6100E4CC
+	bsr	Character_GetClassIndex	;6100E4CC
 	move.w	d0,d6	;3C00
 	move.w	d1,d0	;3001
 	addq.w	#$01,d6	;5246
@@ -12552,6 +12634,7 @@ adrEA00846A:
 	dc.w	$0004	;0004
 	dc.w	$030E	;030E
 ClassColours:
+	; ReSource: Four colour-mask records used when composing champion shield avatars.
 	dc.w	$0006	;0006
 	dc.w	$050E	;050E
 	dc.w	$000D	;000D
@@ -14369,7 +14452,7 @@ adrLp009662:
 	movem.l	d0/d6/d7/a0/a3,-(sp)	;48E78390
 	moveq	#$00,d2	;7400
 	move.b	(a0),d2	;1410
-	bsr.s	adrCd0096BE	;6152
+	bsr.s	Draw_ObjectOnFloor	;6152
 	movem.l	(sp)+,d0/d6/d7/a0/a3	;4CDF09C1
 	addq.w	#$02,a0	;5448
 	dbra	d7,adrLp009662	;51CFFFEE
@@ -14381,7 +14464,8 @@ adrCd009676:
 adrCd009680:
 	rts	;4E75
 
-adrB_009682:
+GFX_ObjectsOnFloor_SubpositionRotation:
+	; ReSource: Maps viewer facing and object mini-space to the rotated mini-space used by floor-object projection.
 	dc.b	$00	;00
 	dc.b	$01	;01
 	dc.b	$02	;02
@@ -14398,12 +14482,14 @@ adrB_009682:
 	dc.b	$03	;03
 	dc.b	$00	;00
 	dc.b	$02	;02
-adrB_009692:
+GFX_ObjectsOnFloor_SubpositionDepthBias:
+	; ReSource: Adds the front/back mini-space depth bias before selecting a projected floor graphic.
 	dc.b	$01	;01
 	dc.b	$01	;01
 	dc.b	$00	;00
 	dc.b	$00	;00
-adrB_009696:
+GFX_ObjectsOnFloor_ViewCellDepthBase:
+	; ReSource: Maps the 19 dungeon view cells to projection depth bases; $FF means that a floor object is not visible.
 	dc.b	$FF	;FF
 	dc.b	$FF	;FF
 	dc.b	$FF	;FF
@@ -14423,7 +14509,8 @@ adrB_009696:
 	dc.b	$04	;04
 	dc.b	$02	;02
 	dc.b	$00	;00
-adrB_0096A9:
+GFX_ObjectsOnFloor_ProjectionGroups:
+	; ReSource: Converts depth plus mini-space bias into projected graphic groups 0-4; $FF suppresses drawing.
 	dc.b	$FF	;FF
 	dc.b	$00	;00
 	dc.b	$01	;01
@@ -14432,13 +14519,15 @@ adrB_0096A9:
 	dc.b	$03	;03
 	dc.b	$04	;04
 	dc.b	$04	;04
-adrB_0096B1:
+GFX_ObjectsOnFloor_ViewY:
+	; ReSource: Base Y positions for the five floor-object projection groups, ordered nearest to furthest.
 	dc.b	$4F	;4F
 	dc.b	$47	;47
 	dc.b	$41	;41
 	dc.b	$3D	;3D
 	dc.b	$38	;38
-adrB_0096B6:
+GFX_ObjectsOnFloor_SpecialYAdjustments:
+	; ReSource: Alternative Y adjustments used by the renderer's special placement path.
 	dc.b	$1D	;1D
 	dc.b	$10	;10
 	dc.b	$00	;00
@@ -14448,40 +14537,42 @@ adrB_0096B6:
 	dc.b	$0E	;0E
 	dc.b	$08	;08
 
-adrCd0096BE:
+Draw_ObjectOnFloor:
+	; ReSource: Resolves object mini-space, view cell and distance into one of five projected floor graphics and its screen position.
 	move.w	-$000A(a3),d0	;302BFFF6
 	add.w	d0,d0	;D040
 	add.w	d0,d0	;D040
 	add.w	d6,d0	;D046
-	move.b	adrB_009682(pc,d0.w),d6	;1C3B00B8
+	move.b	GFX_ObjectsOnFloor_SubpositionRotation(pc,d0.w),d6	;1C3B00B8
 	moveq	#$00,d1	;7200
 	move.b	-$0016(a3),d1	;122BFFEA
-	move.b	adrB_009696(pc,d1.w),d0	;103B10C2
+	move.b	GFX_ObjectsOnFloor_ViewCellDepthBase(pc,d1.w),d0	;103B10C2
 	bmi.s	adrCd009680	;6BA8
-	add.b	adrB_009692(pc,d6.w),d0	;D03B60B8
-	move.b	adrB_0096A9(pc,d0.w),d0	;103B00CB
+	add.b	GFX_ObjectsOnFloor_SubpositionDepthBias(pc,d6.w),d0	;D03B60B8
+	move.b	GFX_ObjectsOnFloor_ProjectionGroups(pc,d0.w),d0	;103B00CB
 	bmi.s	adrCd009680	;6B9E
 	asl.w	#$02,d1	;E541
 	add.w	d6,d1	;D246
 	moveq	#$00,d5	;7A00
 	moveq	#$00,d4	;7800
-	move.b	adrB_0096B1(pc,d0.w),d5	;1A3B00C5
+	move.b	GFX_ObjectsOnFloor_ViewY(pc,d0.w),d5	;1A3B00C5
 	add.w	$0008(a5),d5	;DA6D0008
-	lea	adrEA0097BC.l,a0	;41F9000097BC
+	lea	GFX_ObjectsOnFloor_XPositions.l,a0	;41F9000097BC
 	move.b	$00(a0,d1.w),d4	;18301000
 	move.w	-$0012(a3),d3	;362BFFEE
 	and.w	#$0007,d3	;02430007
 	subq.w	#$01,d3	;5343
-	bne.s	adrCd009722	;661A
+	bne.s	Draw_ObjectOnFloor_ResolveGraphic	;661A
 	subq.w	#$04,d6	;5946
 	move.w	d0,d3	;3600
 	add.w	d3,d3	;D643
 	add.w	d6,d3	;D646
-	sub.b	adrB_0096B6(pc,d3.w),d5	;9A3B30A4
-	lea	adrEA009808.l,a0	;41F900009808
+	sub.b	GFX_ObjectsOnFloor_SpecialYAdjustments(pc,d3.w),d5	;9A3B30A4
+	lea	GFX_ObjectsOnFloor_SpecialXPositions.l,a0	;41F900009808
 	move.b	-$0016(a3),d3	;162BFFEA
 	move.b	$00(a0,d3.w),d4	;18303000
-adrCd009722:
+Draw_ObjectOnFloor_ResolveGraphic:
+	; ReSource: Loads the object's floor shape, recolour definition, graphics offset and selected projection.
 	cmpi.b	#$80,d4	;0C040080
 	beq	adrCd009680	;6700FF58
 	lea	Object_Floor_Colours.l,a6	;4DF90000E770
@@ -14501,19 +14592,21 @@ adrCd009722:
 	lea	GFX_ObjectsOnFloor.l,a1	;43F900032F60
 	add.w	$00(a0,d6.w),a1	;D2F06000
 	cmpi.b	#$12,d3	;0C030012
-	bcs.s	adrCd009774	;6504
+	bcs.s	Draw_ObjectOnFloor_ResolveWidth	;6504
 	add.w	#$0CB8,a1	;D2FC0CB8
-adrCd009774:
+Draw_ObjectOnFloor_ResolveWidth:
+	; ReSource: Selects the normal or wide floor-object drawing width.
 	moveq	#$00,d7	;7E00
 	cmpi.b	#$12,d3	;0C030012
-	bcs.s	adrCd009780	;6504
+	bcs.s	Draw_ObjectOnFloor_Blit	;6504
 	move.b	GFX_ObjectsOnFloor_Widths(pc,d0.w),d7	;1E3B0038
-adrCd009780:
+Draw_ObjectOnFloor_Blit:
+	; ReSource: Applies the shape-specific Y adjustment and draws the recoloured floor-object graphic.
 	swap	d7	;4847
 	lsr.w	#$01,d6	;E24E
 	lea	GFX_ObjectsOnFloor_Heights.l,a0	;41F90000E6E8
 	move.b	$00(a0,d6.w),d7	;1E306000
-	lea	adrEA00981C.l,a0	;41F90000981C
+	lea	GFX_ObjectsOnFloor_YAdjustments.l,a0	;41F90000981C
 	add.b	$00(a0,d6.w),d5	;DA306000
 	move.b	d4,d6	;1C04
 	add.b	#$60,d4	;06040060
@@ -14525,13 +14618,15 @@ adrCd009780:
 	rts	;4E75
 
 GFX_ObjectsOnFloor_Widths:
+	; ReSource: Per-projection width selectors used by the wide floor-object graphic shapes.
 	dc.b	$01	;01
 	dc.b	$01	;01
 	dc.b	$01	;01
 	dc.b	$00	;00
 	dc.b	$00	;00
 	dc.b	$00	;00
-adrEA0097BC:
+GFX_ObjectsOnFloor_XPositions:
+	; ReSource: X positions for 19 view cells multiplied by four rotated object mini-spaces; $80 suppresses drawing.
 	dc.b	$80	;80
 	dc.b	$80	;80
 	dc.b	$80	;80
@@ -14608,7 +14703,8 @@ adrEA0097BC:
 	dc.b	$4C	;4C
 	dc.b	$80	;80
 	dc.b	$80	;80
-adrEA009808:
+GFX_ObjectsOnFloor_SpecialXPositions:
+	; ReSource: Alternative X positions used by the special floor-object placement path.
 	dc.b	$80	;80
 	dc.b	$80	;80
 	dc.b	$80	;80
@@ -14629,7 +14725,8 @@ adrEA009808:
 	dc.b	$34	;34
 	dc.b	$80	;80
 	dc.b	$00	;00
-adrEA00981C:
+GFX_ObjectsOnFloor_YAdjustments:
+	; ReSource: Per-shape and per-projection Y adjustments: 27 shapes multiplied by five views, followed by one spare byte.
 	dc.b	$00	;00
 	dc.b	$00	;00
 	dc.b	$00	;00
@@ -16623,10 +16720,11 @@ Draw_Character:
 	bcc.s	adrCd00A7F2	;646C
 	sub.w	#$001B,d7	;0447001B
 	bcs.s	adrCd00A7F2	;6566
-	move.b	Unknown_DataTable(pc,d7.w),d6	;1C3B7004
+	move.b	Character_WornArmour_RenderOverrides(pc,d7.w),d6	;1C3B7004
 	bra.s	adrCd00A7F2	;6060
 
-Unknown_DataTable:
+Character_WornArmour_RenderOverrides:
+	; ReSource: Maps worn body armour $1B-$23 to the alternate character body and colour override flags.
 	dc.b	$01	;01
 	dc.b	$02	;02
 	dc.b	$03	;03
@@ -17054,7 +17152,7 @@ adrCd00AABC:
 	add.w	d1,d1	;D241
 	cmp.b	#$FF,$00(a0,d1.w)	;0C3000FF1000
 	beq.s	adrCd00AAD8	;6704
-	bsr.s	adrCd00AB44	;616E
+	bsr.s	Prepare_CharacterComponentColourMask	;616E
 	bra.s	adrCd00AAF8	;6020
 
 adrCd00AAD8:
@@ -17113,14 +17211,15 @@ Character_ArmAnimationPositions:
 	dc.w	$0209	;0209
 	dc.w	$FE00	;FE00
 
-adrCd00AB44:
+Prepare_CharacterComponentColourMask:
+	; ReSource: Builds a character-component colour mask and applies worn-armour material and character-specific palette substitutions.
 	lea	Buffer_Colour_Mask.l,a6	;4DF90000B4C0
 	move.l	$00(a0,d1.w),(a6)	;2CB01000
 	move.b	-$001C(a3),d1	;122BFFE4
 	rol.b	#$02,d1	;E519
 	and.w	#$0003,d1	;02410003
 	beq.s	adrCd00AB7C	;6722
-	move.b	adrB_00ABA2(pc,d1.w),d1	;123B1046
+	move.b	Character_ArmourMaterial_PalettePairEnds(pc,d1.w),d1	;123B1046
 	moveq	#$03,d2	;7403
 adrLp00AB60:
 	move.b	d1,d3	;1601
@@ -17148,7 +17247,8 @@ adrCd00AB9C:
 	dbra	d2,adrLp00AB8C	;51CAFFEE
 	rts	;4E75
 
-adrB_00ABA2:
+Character_ArmourMaterial_PalettePairEnds:
+	; ReSource: Maps ordinary, Mithril, Adamant and Crystal armour material codes to the brighter palette index of each adjacent dark/light colour pair.
 	dc.b	$00	;00
 	dc.b	$08	;08
 	dc.b	$06	;06
@@ -17417,7 +17517,7 @@ adrCd00ACE4:
 	beq.s	adrCd00AD08	;6706
 	lea	adrEA00AC5E.l,a0	;41F90000AC5E
 adrCd00AD08:
-	bsr	adrCd00AB44	;6100FE3A
+	bsr	Prepare_CharacterComponentColourMask	;6100FE3A
 	bra.s	adrCd00AD26	;6018
 
 adrCd00AD0E:
@@ -19779,7 +19879,7 @@ adrCd00C060:
 	move.w	$0010(a5),d3	;362D0010
 	bsr	BW_draw_bar	;610019E4
 	moveq	#$2A,d5	;7A2A
-	bsr	adrCd00CC3A	;61000BB0
+	bsr	Draw_ScrollFrame	;61000BB0
 	move.l	#$00970001,d3	;263C00970001
 	move.w	#$00A8,d4	;383C00A8
 	moveq	#$54,d5	;7A54
@@ -20103,7 +20203,7 @@ adrCd00C482:
 adrJT00C484:
 	dc.l	adrJA00C938	;0000C938
 	dc.l	adrJA00C852	;0000C852
-	dc.l	adrJA00CB28	;0000CB28
+	dc.l	Draw_ChampionStats_DefaultPosition	;0000CB28
 
 Click_SelectChampion:
 	clr.w	adrW_00EEC8.l	;42790000EEC8
@@ -20127,7 +20227,7 @@ adrCd00C4BA:
 	move.w	#$0005,adrW_00EEC6.l	;33FC00050000EEC6
 adrCd00C4E0:
 	moveq	#$2A,d5	;7A2A
-	bsr	adrCd00CC3A	;61000756
+	bsr	Draw_ScrollFrame	;61000756
 	move.b	(a5),d0	;1015
 	and.w	#$0001,d0	;02400001
 	add.b	#$31,d0	;06000031
@@ -20151,7 +20251,7 @@ Click_ViewObject:
 	add.w	d0,a6	;DCC0
 	move.w	$000E(a5),d0	;302D000E
 	move.b	$00(a6,d0.w),d0	;10360000
-	lea	Object_DataTable.l,a6	;4DF90000E4C4
+	lea	Object_Definition_Table+$02.l,a6	;4DF90000E4C4
 	add.w	d0,d0	;D040
 	add.w	d0,d0	;D040
 	add.w	d0,a6	;DCC0
@@ -20168,7 +20268,7 @@ Click_SelectionAvatar:
 	clr.w	d4	;4244
 	move.l	#$00000296,a0	;207C00000296
 	move.w	$0006(a5),d7	;3E2D0006
-	bsr	adrCd00CD1C	;610007B8
+	bsr	Draw_ChampionLargeAvatar	;610007B8
 	bsr	adrCd00CFF0	;61000A88
 	bsr	adrCd00665C	;6100A0F0
 	move.b	#$FF,$0013(a4)	;197C00FF0013
@@ -20406,7 +20506,7 @@ adrCd00C7C8:
 	move.l	#$00000070,a3	;267C00000070
 	move.l	#$0005003D,d5	;2A3C0005003D	;Long Addr replaced with Symbol
 	lea	GFX_Pockets+$4100.l,a1	;43F900050802
-	bsr	adrCd00CCB8	;610004CA
+	bsr	Draw_PlanarGraphic	;610004CA
 	asl.w	#$05,d7	;EB47
 	lea	Character_Stats_DataTable.l,a4	;49F90000EB2A
 	add.w	d7,a4	;D8C7
@@ -20427,13 +20527,13 @@ adrCd00C820:
 	bsr	adrCd00665C	;61009E3A
 	or.b	#$0C,$0054(a5)	;002D000C0054
 	move.b	$0009(a4),d0	;102C0009
-	bsr	adrCd00CEC4	;61000694
+	bsr	Convert_ByteToDecimalText	;61000694
 	move.b	$000A(a4),d0	;102C000A
 	lea	adrEA00EA00.l,a6	;4DF90000EA00
 	move.b	d1,$000E(a6)	;1D41000E
 	ror.w	#$08,d1	;E059
 	move.b	d1,$000D(a6)	;1D41000D
-	bsr	adrCd00CEC4	;6100067C
+	bsr	Convert_ByteToDecimalText	;6100067C
 	move.w	d1,$0010(a6)	;3D410010
 	bra	Print_fflim_text	;60000876
 
@@ -20517,7 +20617,7 @@ adrCd00C906:
 	moveq	#$0E,d6	;7C0E
 	cmp.b	$0013(a4),d0	;B02C0013
 	beq.s	adrCd00C932	;6708
-	bsr	adrCd006900	;61009FD4
+	bsr	Character_GetClassIndex	;61009FD4
 	move.b	adrB_00C934(pc,d0.w),d6	;1C3B0004
 adrCd00C932:
 	rts	;4E75
@@ -20551,7 +20651,7 @@ adrCd00C984:
 	move.w	d7,d0	;3007
 	bsr	adrCd006660	;61009CD8
 	move.w	d7,d0	;3007
-	bsr	adrCd00631E	;61009990
+	bsr	Calculate_CharacterArmourLevel	;61009990
 	move.b	#$2B,d1	;123C002B
 	moveq	#$0A,d0	;700A
 	sub.b	d3,d0	;9003
@@ -20561,7 +20661,7 @@ adrCd00C984:
 adrCd00C9A0:
 	lea	adrEA00EA25.l,a6	;4DF90000EA25
 	move.b	d1,$000C(a6)	;1D41000C
-	bsr	adrCd00CEC4	;61000518
+	bsr	Convert_ByteToDecimalText	;61000518
 	move.b	d1,$000E(a6)	;1D41000E
 	ror.w	#$08,d1	;E059
 	move.b	d1,$000D(a6)	;1D41000D
@@ -20593,7 +20693,7 @@ adrCd00C9DC:
 	moveq	#$00,d0	;7000
 	move.b	$0012(a1),d0	;10290012
 	beq.s	adrCd00CA14	;6712
-	lea	adrEA00E4C3.l,a1	;43F90000E4C3
+	lea	Object_Definition_Table+$01.l,a1	;43F90000E4C3
 	asl.w	#$02,d0	;E540
 	move.b	$00(a1,d0.w),d3	;16310000
 	moveq	#$1A,d0	;701A
@@ -20655,7 +20755,7 @@ ObjectGraphic:
 	moveq	#$68,d0	;7068
 .SkipRings:
 	asl.w	#$02,d0	;E540
-	lea	adrEA00E4C2.l,a1	;43F90000E4C2
+	lea	Object_Definition_Table.l,a1	;43F90000E4C2
 	moveq	#$00,d3	;7600
 	move.b	$01(a1,d0.w),d3	;16310001
 	move.b	$00(a1,d0.w),d0	;10310000
@@ -20665,7 +20765,7 @@ NumberedObject:
 	move.l	a0,-(sp)	;2F08
 	move.w	d0,-(sp)	;3F00
 	move.b	d1,d0	;1001
-	bsr	adrCd00CEC4	;61000416
+	bsr	Convert_ByteToDecimalText	;61000416
 	move.w	d1,adrEA00CAE6.l	;33C10000CAE6
 	move.w	(sp),d0	;3017
 	bsr.s	adrCd00CAEA	;6130
@@ -20713,28 +20813,31 @@ adrCd00CB1C:
 	move.l	#$0000000F,-(sp)	;2F3C0000000F
 	jmp	adrCd00CE28.l	;4EF90000CE28
 
-adrJA00CB28:
+Draw_ChampionStats_DefaultPosition:
+	; ReSource: Sets the default scroll Y position to $2A, then enters Draw_ChampionStats.
 	moveq	#$2A,d5	;7A2A
-adrCd00CB2A:
+Draw_ChampionStats:
+	; ReSource: Draws the scroll frame, inserts fields from the selected 32-byte champion record into ChampionStatsScroll_TextTemplate, then calls Print_fflim_text. D5 supplies the scroll Y position.
 	move.w	$0006(a5),-(sp)	;3F2D0006
-	bsr	adrCd00CC3A	;6100010A
+	bsr	Draw_ScrollFrame	;6100010A
 	move.w	(sp),d0	;3017
-	lea	adrEA00CBD2.l,a6	;4DF90000CBD2
+	lea	ChampionStatsScroll_TextTemplate.l,a6	;4DF90000CBD2
 	asl.w	#$05,d0	;EB40
 	lea	Character_Stats_DataTable.l,a0	;41F90000EB2A
 	add.w	d0,a0	;D0C0
-	lea	adrEA00CBC4.l,a2	;45F90000CBC4
+	lea	ChampionStatsScroll_FieldAndTextOffsets.l,a2	;45F90000CBC4
 	moveq	#$06,d7	;7E06
 	moveq	#$00,d0	;7000
-adrLp00CB4E:
+ChampionStats_InsertFieldsLoop:
+	; ReSource: Copies seven champion fields into their corresponding positions within the writable formatted-text template.
 	move.b	$00(a2,d7.w),d0	;10327000
 	move.b	$00(a0,d0.w),d0	;10300000
-	bsr	adrCd00CEC4	;6100036C
+	bsr	Convert_ByteToDecimalText	;6100036C
 	move.b	$07(a2,d7.w),d0	;10327007
 	move.b	d1,$01(a6,d0.w)	;1D810001
 	ror.w	#$08,d1	;E059
 	move.b	d1,$00(a6,d0.w)	;1D810000
-	dbra	d7,adrLp00CB4E	;51CFFFE4
+	dbra	d7,ChampionStats_InsertFieldsLoop	;51CFFFE4
 	move.w	(sp)+,d7	;3E1F
 	move.b	$0005(a0),d0	;10280005
 	divu	#$0064,d0	;80FC0064
@@ -20745,7 +20848,7 @@ adrCd00CB7E:
 	add.b	#$30,d0	;06000030
 	move.b	d0,$0049(a6)	;1D400049
 	swap	d0	;4840
-	bsr	adrCd00CEC4	;6100033A
+	bsr	Convert_ByteToDecimalText	;6100033A
 	move.w	d1,$004A(a6)	;3D41004A
 	move.b	#$20,$0053(a6)	;1D7C00200053
 	moveq	#$51,d2	;7451
@@ -20759,13 +20862,14 @@ adrCd00CB7E:
 	addq.w	#$01,d2	;5242
 adrCd00CBB0:
 	swap	d0	;4840
-	bsr	adrCd00CEC4	;61000310
+	bsr	Convert_ByteToDecimalText	;61000310
 	move.b	d1,$01(a6,d2.w)	;1D812001
 	ror.w	#$08,d1	;E059
 	move.b	d1,$00(a6,d2.w)	;1D812000
 	bra	Print_fflim_text	;60000504
 
-adrEA00CBC4:
+ChampionStatsScroll_FieldAndTextOffsets:
+	; ReSource: Two parallel seven-byte tables: champion-record field offsets followed by destination offsets within ChampionStatsScroll_TextTemplate.
 	dc.b	$00	;00
 	dc.b	$01	;01
 	dc.b	$02	;02
@@ -20780,7 +20884,8 @@ adrEA00CBC4:
 	dc.b	$3E	;3E
 	dc.b	$5E	;5E
 	dc.b	$65	;65
-adrEA00CBD2:
+ChampionStatsScroll_TextTemplate:
+	; ReSource: Writable Print_fflim_text command stream for the stats scroll. $FC sets coordinates, $FE ink, $FD background and $FF terminates; runtime code inserts the selected champion’s values.
 	dc.b	$FC	;FC
 	dc.b	$1E	;1E
 	dc.b	$03	;03
@@ -20865,7 +20970,8 @@ adrEA00CBD2:
 	dc.b	'  '	;2020
 	dc.b	$FF	;FF
 
-adrCd00CC3A:
+Draw_ScrollFrame:
+	; ReSource: Generic scroll-frame renderer used outside the champion screen too. Draws colour-$3 background, 96x15 caps and 16x58 sides at X offsets 0 and 80; applies player-specific screen offsets.
 	or.b	#$0C,$0054(a5)	;002D000C0054
 	swap	d5	;4845
 	move.w	#$0018,d5	;3A3C0018
@@ -20881,23 +20987,24 @@ adrCd00CC3A:
 	clr.w	d5	;4245
 	swap	d5	;4845
 	move.l	d5,-(sp)	;2F05
-	bsr.s	adrCd00CCB8	;6144
+	bsr.s	Draw_PlanarGraphic	;6144
 	move.l	(sp)+,d5	;2A1F
 	lea	GFX_Scroll_Edge_Right.l,a1	;43F90001992E
 	move.l	screen_ptr.l,a0	;207900008D36
 	add.w	#$03E6,a0	;D0FC03E6
 	add.w	$000A(a5),a0	;D0ED000A
-	bsr.s	adrCd00CCB8	;612C
+	bsr.s	Draw_PlanarGraphic	;612C
 	sub.w	#$000A,a0	;90FC000A
 	lea	GFX_Scroll_Edge_Bottom.l,a1	;43F90001948E
 	move.l	#$0005000E,d5	;2A3C0005000E	;Long Addr replaced with Symbol
-	bsr.s	adrCd00CCB8	;611A
+	bsr.s	Draw_PlanarGraphic	;611A
 	lea	GFX_Scroll_Edge_Top.l,a1	;43F9000191BE
 	move.l	screen_ptr.l,a0	;207900008D36
 	add.w	#$0184,a0	;D0FC0184
 	add.w	$000A(a5),a0	;D0ED000A
 	move.l	#$0005000E,d5	;2A3C0005000E	;Long Addr replaced with Symbol
-adrCd00CCB8:
+Draw_PlanarGraphic:
+	; ReSource: Pushes the packed DBRA width/height counts from D5 and enters the generic four-plane graphic renderer.
 	move.l	d5,-(sp)	;2F05
 	bra	adrCd00CE28	;6000016C
 
@@ -20908,7 +21015,7 @@ adrCd00CCBE:
 	move.w	$0006(a5),d7	;3E2D0006
 	moveq	#-$01,d4	;78FF
 	move.l	#$000002A9,a0	;207C000002A9
-	bsr.s	adrCd00CD1C	;6144
+	bsr.s	Draw_ChampionLargeAvatar	;6144
 adrCd00CCD8:
 	btst	#$00,$003E(a5)	;082D0000003E
 	bne.s	adrCd00CD12	;6632
@@ -20940,7 +21047,8 @@ adrB_00CD14:
 	dc.b	$0D	;0D
 	dc.b	$08	;08
 
-adrCd00CD1C:
+Draw_ChampionLargeAvatar:
+	; ReSource: Selects and draws one 32×30 large champion avatar.
 	add.l	screen_ptr.l,a0	;D1F900008D36
 	add.w	$000A(a5),a0	;D0ED000A
 	lea	GFX_Avatars_Large.l,a1	;43F900041D30
@@ -20956,7 +21064,8 @@ adrCd00CD1C:
 	bne	adrCd00CE28	;660000E4
 	bra	adrCd00CE28	;600000E0
 
-adrCd00CD4A:
+Get_ChampionShieldScreenPosition:
+	; ReSource: Calculates the screen destination for a champion shield/avatar slot.
 	move.w	d7,d5	;3A07
 	and.w	#$0003,d5	;02450003
 	move.w	d5,d0	;3005
@@ -20978,7 +21087,7 @@ adrCd00CD4A:
 adrCd00CD78:
 	lea	GFX_Shield_Clicked.l,a1	;43F900019BFE
 	sub.l	a3,a3	;97CB
-	bsr.s	adrCd00CD4A	;61C8
+	bsr.s	Get_ChampionShieldScreenPosition	;61C8
 	move.l	#$00010028,d5	;2A3C00010028	;Long Addr replaced with Symbol
 	bra	adrCd00CE26	;6000009C
 
@@ -20993,7 +21102,7 @@ ExitAvatarDrawing:
 Draw_Select_Avatars:
 	cmpi.w	#$0010,d7	;0C470010
 	bcc.s	ExitAvatarDrawing	;64F8
-	bsr.s	adrCd00CD4A	;61AC
+	bsr.s	Get_ChampionShieldScreenPosition	;61AC
 	moveq	#$04,d3	;7604
 Draw_ShieldAvatar:
 	move.l	#$00020103,d0	;203C00020103	;Long Addr replaced with Symbol
@@ -21001,7 +21110,7 @@ Draw_ShieldAvatar:
 	beq.s	adrCd00CDBC	;6712
 	lea	ClassColours.l,a6	;4DF90000846E
 	move.w	d7,d0	;3007
-	bsr	adrCd006900	;61009B4C
+	bsr	Character_GetClassIndex	;61009B4C
 	asl.w	#$02,d0	;E540
 	move.l	$00(a6,d0.w),d0	;20360000
 adrCd00CDBC:
@@ -21096,7 +21205,8 @@ adrCd00CE86:
 	or.l	d6,d1	;8286
 	rts	;4E75
 
-adrB_00CEBC:
+ConvertByteToDecimal_HighNibbleAdjustments:
+	; ReSource: Adjustment table used while converting a binary byte into printable decimal digits.
 	dc.b	$00	;00
 	dc.b	$16	;16
 	dc.b	$32	;32
@@ -21106,31 +21216,34 @@ adrB_00CEBC:
 	dc.b	$96	;96
 	dc.b	$00	;00
 
-adrCd00CEC4:
+Convert_ByteToDecimalText:
+	; ReSource: Converts the byte in D0 into two ASCII decimal digits returned in D1 for insertion into formatted text.
 	move.b	d0,d1	;1200
 	lsr.b	#$04,d1	;E809
 	and.w	#$000F,d1	;0241000F
-	move.b	adrB_00CEBC(pc,d1.w),d1	;123B10EE
+	move.b	ConvertByteToDecimal_HighNibbleAdjustments(pc,d1.w),d1	;123B10EE
 	and.w	#$000F,d0	;0240000F
 	move.w	#$0004,ccr	;44FC0004
 	abcd	d1,d0	;C101
 	clr.b	d1	;4201
 	abcd	d1,d0	;C101
-	bra.s	adrCd00CEEA	;600A
+	bra.s	Convert_PackedBCDToASCII	;600A
 
 ;fiX Label expected
 	move.w	d0,-(sp)	;3F00
 	ror.w	#$08,d0	;E058
-	bsr.s	adrCd00CEEA	;6104
+	bsr.s	Convert_PackedBCDToASCII	;6104
 	swap	d1	;4841
 	move.w	(sp)+,d0	;301F
-adrCd00CEEA:
+Convert_PackedBCDToASCII:
+	; ReSource: Converts both nibbles of the packed value into ASCII characters.
 	move.b	d0,d1	;1200
 	ror.b	#$04,d1	;E819
-	bsr.s	adrCd00CEF4	;6104
+	bsr.s	Convert_NibbleToASCII	;6104
 	rol.w	#$08,d1	;E159
 	move.b	d0,d1	;1200
-adrCd00CEF4:
+Convert_NibbleToASCII:
+	; ReSource: Converts a hexadecimal nibble to its ASCII character representation.
 	and.b	#$0F,d1	;0201000F
 	cmpi.b	#$0A,d1	;0C01000A
 	bcs.s	adrCd00CF02	;6504
@@ -23286,11 +23399,10 @@ Msg_SelectThyChamp:
 	dc.b	'PLAYER 0 SELECT THY CHAMPION....'	;504C4159455220302053454C45435420544859204348414D50494F4E2E2E2E2E
 	dc.b	$FF	;FF
 	dc.b	$00	;00
-adrEA00E4C2:
+Object_Definition_Table:
+	; ReSource: Complete $6E × 4 object-definition table: pocket graphic, pocket colour, first name word and second name word.
 	dc.b	$00	;00
-adrEA00E4C3:
 	dc.b	$00	;00
-Object_DataTable:
 	dc.w	$0001	;0001
 	dc.w	$0100	;0100
 	dc.w	$02FF	;02FF
@@ -23953,7 +24065,8 @@ BeginGameScroll:
 	dc.b	$07	;07
 	dc.b	'THY QUEST'	;544859205155455354
 	dc.b	$FF	;FF
-adrEA00E9E8:
+ChampionStatsScroll_FoodTextTemplate:
+	; ReSource: Print_fflim_text stream for FOOD. Uses ink $D for the heading and ink $4 for raw GameFont glyphs $02/$03 surrounding six bar cells.
 	dc.b	$FC	;FC
 	dc.b	' '	;20
 	dc.b	$08	;08

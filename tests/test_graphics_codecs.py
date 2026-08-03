@@ -133,6 +133,8 @@ class GraphicsCodecTests(unittest.TestCase):
             (
                 "Character/Monster Graphics",
                 "Dungeon Graphics",
+                "Champion Data",
+                "Object Data",
                 "Avatars",
                 "Icons",
             ),
@@ -153,10 +155,12 @@ class GraphicsCodecTests(unittest.TestCase):
         self.assertEqual(category_offset_for_selection(1, 3, category_count=7), 1)
 
     def test_category_arrows_cycle_only_enabled_sections(self) -> None:
-        self.assertEqual(CATEGORY_ENABLED, (True, True, False, False))
+        self.assertEqual(CATEGORY_ENABLED, (True, True, True, True, False, False))
         self.assertEqual(cycle_enabled_category(0, 1), 1)
-        self.assertEqual(cycle_enabled_category(1, 1), 0)
-        self.assertEqual(cycle_enabled_category(0, -1), 1)
+        self.assertEqual(cycle_enabled_category(1, 1), 2)
+        self.assertEqual(cycle_enabled_category(2, 1), 3)
+        self.assertEqual(cycle_enabled_category(3, 1), 0)
+        self.assertEqual(cycle_enabled_category(0, -1), 3)
         self.assertEqual(
             cycle_enabled_category(2, 1, (True, False, True, False, True)),
             4,

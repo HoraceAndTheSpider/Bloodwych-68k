@@ -361,11 +361,13 @@ def _replacement_lines(replacement: Replacement) -> list[str]:
     for part_index, part in enumerate(replacement.parts):
         if part_index:
             generated.append(f"{part.output_label}:")
-        if part.size % 2:
-            # Devpac pads every odd-length INCBIN with a zero byte. Emit the
-            # extracted bytes directly so splitting a source block at an odd
-            # boundary remains byte-exact. Rerunning Inspect refreshes these
-            # lines from the corresponding external data file.
+        if part.size % 2 or (part.offset is not None and part.offset % 2):
+            # Devpac word-aligns INCBIN data and pads every odd-length INCBIN
+            # with a zero byte. An even-sized file beginning at an odd address
+            # is therefore just as unsafe as an odd-sized file. Emit either
+            # case directly so grouped layouts remain byte-exact across every
+            # internal boundary. Rerunning Inspect refreshes these lines from
+            # the corresponding external data file.
             for start in range(0, len(part.data), 16):
                 values = ",".join(
                     f"${value:02X}" for value in part.data[start : start + 16]
@@ -424,7 +426,8 @@ def inspect_source(
     ``data_start`` row plus its immediately following ``data_append`` rows form
     one atomic layout: their files are concatenated for validation, while each
     receives its own label and generated data directive. Even-sized resources
-    use INCBIN; odd-sized resources use exact dc.b data because Devpac otherwise
+    use INCBIN only when both their start address and size are even; resources
+    at odd boundaries use exact dc.b data because Devpac otherwise inserts or
     appends a padding byte. ``extract_only`` rows remain available to extraction
     but never replace or patch source data.
     """

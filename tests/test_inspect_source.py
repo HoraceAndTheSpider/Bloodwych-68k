@@ -187,7 +187,7 @@ class InspectSourceTests(unittest.TestCase):
                 "Beholder_CentralEye_Near:\n"
                 "\tdc.b\t$05\n"
                 "Beholder_CentralEye_Far:\n"
-                '\tINCBIN "/far.gfx"',
+                "\tdc.b\t$06,$07",
                 generated,
             )
             self.assertNotIn("Old_Internal_1:", generated)

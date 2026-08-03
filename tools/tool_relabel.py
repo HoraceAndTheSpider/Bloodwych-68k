@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 import re
-import shutil
 from pathlib import Path
 
 from .resource_layout import (
@@ -23,6 +22,44 @@ from .source_rules import (
 from .tool_common import ToolError, asm_path, load_segments, require_columns
 
 
+def _reference_pattern(label: str) -> str:
+    """Match one assembler label, including legacy names ending in ``?``.
+
+    A dot is deliberately *not* an identifier boundary character here. In the
+    Devpac source, ``.b``, ``.w`` and ``.l`` immediately following a symbol are
+    operand-size suffixes (for example ``adrEA00D988.l``), not part of that
+    symbol. Treating the dot as an identifier character renames the definition
+    while leaving these references behind, producing an undefined symbol.
+    """
+
+    identifier_character = r"A-Za-z0-9_$?"
+    return (
+        rf"(?<![{identifier_character}])"
+        rf"{re.escape(label)}"
+        rf"(?![{identifier_character}])"
+    )
+
+
+def _undefined_legacy_labels(lines: list[str]) -> list[str]:
+    """Return referenced ``adr...`` symbols which no longer have definitions."""
+
+    symbol_pattern = r"adr[A-Za-z0-9_?]+"
+    definitions: set[str] = set()
+    references: set[str] = set()
+    for line in lines:
+        code = line.split(";", 1)[0]
+        definition = re.match(rf"\s*({symbol_pattern})\s*(?::|\bequ\b)", code)
+        if definition:
+            definitions.add(definition.group(1))
+        references.update(
+            re.findall(
+                rf"(?<![A-Za-z0-9_$?])({symbol_pattern})(?![A-Za-z0-9_$?])",
+                code,
+            )
+        )
+    return sorted(references - definitions)
+
+
 def relabel_segments(master: str, sheet: str | Path) -> Path:
     frame = load_segments(sheet, master)
     require_columns(frame, ("label", "relabel"))
@@ -32,10 +69,12 @@ def relabel_segments(master: str, sheet: str | Path) -> Path:
     if not original.is_file():
         raise ToolError(f"ASM source not found: {original}")
     destination = asm_path(master, "relabel")
-    shutil.copy2(original, destination)
-    print(f"Created relabel copy '{destination}'")
+    print(f"Building relabel copy '{destination}'")
 
-    lines = destination.read_text(encoding="utf-8", errors="ignore").splitlines()
+    # Work in memory and only replace the generated file after every relabel and
+    # integrity check succeeds. A failed run must not leave an original or
+    # partially relabelled source masquerading as the generated output.
+    lines = original.read_text(encoding="utf-8", errors="ignore").splitlines()
     layouts = resource_layouts(frame)  # Validate before changing the source.
     internal_append_indices = {
         index
@@ -91,7 +130,7 @@ def relabel_segments(master: str, sheet: str | Path) -> Path:
         else:
             print(f"Cannot safely delete definition '{label}'; skipping offset replacement")
             continue
-        reference_pattern = rf"\b{re.escape(label)}\b"
+        reference_pattern = _reference_pattern(label)
         lines = [re.sub(reference_pattern, replacement, line) for line in lines]
         print(f"Replaced '{label}' references with '{replacement}'")
 
@@ -104,7 +143,7 @@ def relabel_segments(master: str, sheet: str | Path) -> Path:
         if not any(re.match(definition_pattern, line) for line in lines):
             print(f"Label '{label}' not found, skipping")
             continue
-        reference_pattern = rf"\b{re.escape(label)}\b"
+        reference_pattern = _reference_pattern(label)
         lines = [re.sub(reference_pattern, new_label, line) for line in lines]
         print(f"Relabeled '{label}' to '{new_label}'")
 
@@ -112,6 +151,16 @@ def relabel_segments(master: str, sheet: str | Path) -> Path:
     lines = insert_generated_equates(lines, equates)
     lines = apply_source_comments(lines, frame)
     lines = insert_temporary_aliases(lines, layouts)
+    undefined_legacy_labels = _undefined_legacy_labels(lines)
+    if undefined_legacy_labels:
+        preview = ", ".join(undefined_legacy_labels[:10])
+        remainder = len(undefined_legacy_labels) - 10
+        if remainder > 0:
+            preview += f", ... ({remainder} more)"
+        raise ToolError(
+            "Relabel integrity check found referenced legacy labels without "
+            f"definitions: {preview}"
+        )
     destination.write_text("\n".join(lines) + "\n", encoding="utf-8")
     print(f"Saved relabeled ASM to '{destination}'")
     return destination
