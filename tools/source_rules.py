@@ -238,6 +238,14 @@ def _normalise_opcode(value: str) -> str:
     return re.sub(r"[^0-9a-f]", "", value.casefold())
 
 
+def _opcode_matches(expected: str, actual: str) -> bool:
+    """Compare an expected opcode while tolerating Excel-dropped zeroes."""
+
+    if len(expected) > len(actual):
+        return False
+    return expected.zfill(len(actual)) == actual
+
+
 def apply_source_rules(
     lines: list[str],
     equates: tuple[EquateDefinition, ...],
@@ -285,7 +293,7 @@ def apply_source_rules(
                 actual_opcode = _normalise_opcode(
                     opcode_match.group(1) if opcode_match else ""
                 )
-                if actual_opcode != expected_opcode:
+                if not _opcode_matches(expected_opcode, actual_opcode):
                     raise ToolError(
                         f"Source rule '{rule.rule_id}' opcode mismatch at ASM line "
                         f"{index + 1}: expected {rule.expected_opcode}, found "

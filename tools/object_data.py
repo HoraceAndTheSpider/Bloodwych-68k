@@ -118,8 +118,26 @@ OBJECT_GROUP_BY_KEY = {group.key: group for group in OBJECT_GROUPS}
 # than repeated literals.  If food gains an extra entry during a source rebuild,
 # potions and every later group move together.
 COUNTED_OBJECT_END = OBJECT_GROUP_BY_KEY["food"].first
+COUNTED_OBJECT_BELOW_FIRST = OBJECT_GROUP_BY_KEY["arrows"].first
 EDIBLE_OBJECT_START = OBJECT_GROUP_BY_KEY["food"].first
 EDIBLE_OBJECT_END = OBJECT_GROUP_BY_KEY["food"].end_exclusive
+PORTIONED_FOOD_END = OBJECT_GROUP_BY_KEY["potions"].first - 3
+WHOLE_FOOD_START = PORTIONED_FOOD_END
+WHOLE_FOOD_END = OBJECT_GROUP_BY_KEY["potions"].first
+POTION_START = WHOLE_FOOD_END
+POTION_END = OBJECT_GROUP_BY_KEY["armour"].first
+PORTIONED_FOOD_GROUP_SIZE = 3
+SOLID_FOOD_VALUE = 0x20
+DRINK_FOOD_VALUE = 0x14
+WHOLE_FOOD_VALUE_STEP = 0x42
+FOOD_LEVEL_MAXIMUM = 0xC7
+
+POTION_EFFECTS = {
+    0x17: "Restores hit points to maximum",
+    0x18: "Restores half of each HP, vitality and spell-point deficit; clears spell cooldown",
+    0x19: "Restores vitality to maximum",
+    0x1A: "Restores spell points to maximum; clears spell cooldown",
+}
 
 
 def _read_words(path: Path) -> tuple[int, ...]:
@@ -193,8 +211,79 @@ class ObjectDefinition:
         return 0 < self.code < COUNTED_OBJECT_END
 
     @property
+    def quantity_position(self) -> str | None:
+        """Return the source-defined pocket count placement for this object.
+
+        NumberedObject uses the first text position for coinage/common keys,
+        then adds $118 to the screen pointer for the two arrow objects.
+        """
+
+        if not self.displays_quantity:
+            return None
+        if self.code < COUNTED_OBJECT_BELOW_FIRST:
+            return "above"
+        return "below"
+
+    @property
+    def quantity_cell_y(self) -> int | None:
+        """Return the exact source Y coordinate within the 16x16 pocket cell.
+
+        NumberedObject adds $50 for coinage/common keys and another $118 for
+        arrows.  BW_xy_to_offset maps coordinates as ``(320*y + x) / 8``, so
+        those destinations are respectively (0, 2) and (0, 9).
+        """
+
+        position = self.quantity_position
+        if position is None:
+            return None
+        return 2 if position == "above" else 9
+
+    @property
     def edible(self) -> bool:
         return EDIBLE_OBJECT_START <= self.code < EDIBLE_OBJECT_END
+
+    @property
+    def use_kind(self) -> str | None:
+        if EDIBLE_OBJECT_START <= self.code < PORTIONED_FOOD_END:
+            return "portioned_food"
+        if WHOLE_FOOD_START <= self.code < WHOLE_FOOD_END:
+            return "whole_food"
+        if POTION_START <= self.code < POTION_END:
+            return "potion"
+        return None
+
+    @property
+    def object_after_use(self) -> int | None:
+        """Return the held object code after one complete use action."""
+
+        if self.use_kind == "portioned_food":
+            group_offset = self.code - EDIBLE_OBJECT_START
+            if group_offset % PORTIONED_FOOD_GROUP_SIZE == 0:
+                return 0
+            return self.code - 1
+        if self.use_kind in {"whole_food", "potion"}:
+            return 0
+        return None
+
+    @property
+    def food_value_gain(self) -> int | None:
+        if self.use_kind == "portioned_food":
+            if self.code < OBJECT_GROUP_BY_KEY["food"].first + 9:
+                return SOLID_FOOD_VALUE
+            return DRINK_FOOD_VALUE
+        if self.use_kind == "whole_food":
+            return (self.code - WHOLE_FOOD_START + 1) * WHOLE_FOOD_VALUE_STEP
+        return None
+
+    @property
+    def use_effect(self) -> str | None:
+        if self.use_kind == "portioned_food":
+            assert self.food_value_gain is not None
+            return f"Three-stage food: adds ${self.food_value_gain:02X} food"
+        if self.use_kind == "whole_food":
+            assert self.food_value_gain is not None
+            return f"Whole food: adds ${self.food_value_gain:02X} food"
+        return POTION_EFFECTS.get(self.code)
 
 
 class ObjectAssets:

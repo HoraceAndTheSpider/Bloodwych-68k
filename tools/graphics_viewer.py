@@ -1517,8 +1517,11 @@ def launch_graphics_viewer(
                     )
                     screen.blit(heading, (270, 108))
 
-                    pocket_frame = pygame.Rect(270, 150, 170, 260)
-                    floor_frame = pygame.Rect(460, 150, 510, 260)
+                    # Keep previews compact: this page will gain editing
+                    # controls, so these panels deliberately do not consume
+                    # the available window height.
+                    pocket_frame = pygame.Rect(270, 150, 170, 130)
+                    floor_frame = pygame.Rect(460, 150, 510, 130)
                     pygame.draw.rect(screen, (7, 8, 10), pocket_frame)
                     pygame.draw.rect(screen, (7, 8, 10), floor_frame)
                     pygame.draw.rect(screen, (68, 72, 82), pocket_frame, 2)
@@ -1540,28 +1543,26 @@ def launch_graphics_viewer(
 
                     pocket = object_assets.pocket_sprite(selected_object)
                     pocket_surface = indexed_to_surface(pygame, pocket.pixels)
-                    pocket_surface = pygame.transform.scale(pocket_surface, (32, 32))
+                    pocket_surface = pygame.transform.scale(pocket_surface, (64, 64))
+                    quantity_position = definition.quantity_position
+                    pocket_y = pocket_frame.y + 36
                     pocket_position = (
-                        pocket_frame.centerx - 16,
-                        pocket_frame.y + 92,
+                        pocket_frame.centerx - 32,
+                        pocket_y,
                     )
                     screen.blit(pocket_surface, pocket_position)
-                    if definition.displays_quantity:
+                    if quantity_position is not None:
+                        quantity_cell_y = definition.quantity_cell_y
+                        assert quantity_cell_y is not None
                         draw_gamefont_text(
                             pygame,
                             screen,
                             object_assets.game_font,
                             "05",
-                            pocket_frame.centerx - 16,
-                            pocket_frame.y + 148,
-                            GAME_PALETTE_RGB8[14],
-                            scale=2,
-                        )
-                        screen.blit(
-                            tiny_font.render(
-                                "example quantity", True, (142, 146, 155)
-                            ),
-                            (pocket_frame.x + 35, pocket_frame.y + 177),
+                            pocket_frame.centerx - 32,
+                            pocket_y + quantity_cell_y * 4,
+                            GAME_PALETTE_RGB8[6],
+                            scale=4,
                         )
 
                     floor_preview, floor_placements = object_assets.floor_preview(
@@ -1580,12 +1581,12 @@ def launch_graphics_viewer(
                             pygame, floor_preview
                         )
                         floor_surface = pygame.transform.scale(
-                            floor_surface, (VIEW_WIDTH * 3, len(floor_preview) * 3)
+                            floor_surface, (VIEW_WIDTH * 2, len(floor_preview) * 2)
                         )
                         screen.blit(
                             floor_surface,
                             floor_surface.get_rect(
-                                center=(floor_frame.centerx, floor_frame.centery + 8)
+                                center=(floor_frame.centerx, floor_frame.centery + 5)
                             ),
                         )
                         view_legend = "0 NEAR   1   2   3   4 FAR"
@@ -1613,6 +1614,12 @@ def launch_graphics_viewer(
                             if definition.edible
                             else "Outside food/status range"
                         ),
+                        definition.use_effect or "No direct consume/use action",
+                        (
+                            f"After use: ${definition.object_after_use:02X}"
+                            if definition.object_after_use is not None
+                            else "Held object is unchanged"
+                        ),
                     )
                     for row, value in enumerate(summary_lines):
                         for wrapped_row, line in enumerate(
@@ -1624,7 +1631,7 @@ def launch_graphics_viewer(
                                 (detail_x, y),
                             )
 
-                    panel = pygame.Rect(270, 430, 700, 238)
+                    panel = pygame.Rect(270, 300, 700, 238)
                     pygame.draw.rect(screen, (8, 10, 12), panel)
                     pygame.draw.rect(screen, (72, 77, 88), panel, 2)
                     screen.blit(
@@ -1633,7 +1640,7 @@ def launch_graphics_viewer(
                             True,
                             (246, 211, 72),
                         ),
-                        (286, 446),
+                        (286, 316),
                     )
                     fields = (
                         ("Pocket graphic", f"${definition.pocket_icon:02X}", "Pockets.gfx icon"),
@@ -1656,7 +1663,7 @@ def launch_graphics_viewer(
                         row = index // 2
                         field_rect = pygame.Rect(
                             286 + column * 330,
-                            480 + row * 62,
+                            350 + row * 62,
                             314,
                             52,
                         )

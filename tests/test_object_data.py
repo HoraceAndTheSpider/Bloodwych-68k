@@ -23,6 +23,16 @@ class ObjectDataTests(unittest.TestCase):
         self.assertTrue(self.assets.definition(0x01).displays_quantity)
         self.assertTrue(self.assets.definition(0x04).displays_quantity)
         self.assertFalse(self.assets.definition(0x05).displays_quantity)
+        self.assertEqual(self.assets.definition(0x01).quantity_position, "above")
+        self.assertEqual(self.assets.definition(0x02).quantity_position, "above")
+        self.assertEqual(self.assets.definition(0x03).quantity_position, "below")
+        self.assertEqual(self.assets.definition(0x04).quantity_position, "below")
+        self.assertIsNone(self.assets.definition(0x05).quantity_position)
+        self.assertEqual(self.assets.definition(0x01).quantity_cell_y, 2)
+        self.assertEqual(self.assets.definition(0x02).quantity_cell_y, 2)
+        self.assertEqual(self.assets.definition(0x03).quantity_cell_y, 9)
+        self.assertEqual(self.assets.definition(0x04).quantity_cell_y, 9)
+        self.assertIsNone(self.assets.definition(0x05).quantity_cell_y)
         self.assertTrue(self.assets.definition(0x05).edible)
         self.assertTrue(self.assets.definition(0x16).edible)
         self.assertFalse(self.assets.definition(0x17).edible)
@@ -75,6 +85,45 @@ class ObjectDataTests(unittest.TestCase):
         coin = self.assets.definition(0x01)
         self.assertEqual(coin.resolved_word(coin.first_name_index), "COINAGE")
         self.assertEqual(coin.resolved_word(coin.second_name_index), "NONE")
+
+    def test_portioned_food_descends_within_each_three_object_family(self) -> None:
+        expected = {
+            0x05: 0x00,
+            0x06: 0x05,
+            0x07: 0x06,
+            0x08: 0x00,
+            0x09: 0x08,
+            0x0A: 0x09,
+            0x0B: 0x00,
+            0x0C: 0x0B,
+            0x0D: 0x0C,
+            0x0E: 0x00,
+            0x0F: 0x0E,
+            0x10: 0x0F,
+            0x11: 0x00,
+            0x12: 0x11,
+            0x13: 0x12,
+        }
+        for code, after_use in expected.items():
+            definition = self.assets.definition(code)
+            self.assertEqual(definition.use_kind, "portioned_food")
+            self.assertEqual(definition.object_after_use, after_use)
+            self.assertEqual(
+                definition.food_value_gain,
+                0x20 if code < 0x0E else 0x14,
+            )
+
+    def test_whole_food_and_potions_are_removed_after_one_use(self) -> None:
+        self.assertEqual(
+            tuple(self.assets.definition(code).food_value_gain for code in range(0x14, 0x17)),
+            (0x42, 0x84, 0xC6),
+        )
+        for code in range(0x14, 0x1B):
+            self.assertEqual(self.assets.definition(code).object_after_use, 0)
+        self.assertIn("hit points", self.assets.definition(0x17).use_effect)
+        self.assertIn("half", self.assets.definition(0x18).use_effect)
+        self.assertIn("vitality", self.assets.definition(0x19).use_effect)
+        self.assertIn("spell points", self.assets.definition(0x1A).use_effect)
 
     def test_gamefont_is_available_for_counted_object_quantities(self) -> None:
         self.assertEqual(len(self.assets.game_font), 0x280)

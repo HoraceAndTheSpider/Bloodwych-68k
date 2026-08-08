@@ -77,6 +77,14 @@ class SourceRuleTests(unittest.TestCase):
                 self.lines, (equate(),), (rule(expected_opcode="DEADBEEF"),)
             )
 
+    def test_opcode_comparison_accepts_excel_dropped_leading_zero(self) -> None:
+        excel_lines = list(self.lines)
+        excel_lines[4] = "\tmove.l\t#adrL_0186A0,d1\t;02400003"
+        result = apply_source_rules(
+            excel_lines, (equate(),), (rule(expected_opcode="2400003"),)
+        )
+        self.assertIn("\tmove.l\t#DiskReadTimeoutCount,d1\t;02400003", result)
+
     def test_ambiguous_match_count_fails_closed(self) -> None:
         duplicated = list(self.lines)
         duplicated.insert(5, "\tmove.l\t#adrL_0186A0,d1\t;223C000186A0")

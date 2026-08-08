@@ -107,6 +107,60 @@ Object_ChaosGloves:		equ	$2B
 	; ReSource: Chaos Gloves object code.
 Object_AceOfSwords:		equ	$37
 	; ReSource: Ace of Swords object code.
+Character_ProfessionMask:		equ	$03
+	; ReSource: Low two bits used to select one of the four character professions.
+PhysicalAttack_CooldownInitial:		equ	$07
+	; ReSource: Initial cooldown written whenever a champion performs a physical attack.
+PhysicalAttack_VitalityCost:		equ	$03
+	; ReSource: Vitality removed when champion combat values are loaded for physical combat.
+Weapon_CombatModifierRecordCount:		equ	$10
+	; ReSource: Number of four-byte records in Weapon_CombatModifiers.
+Weapon_BackstabEligibleByteLimit:		equ	$08
+	; ReSource: Exclusive byte-offset limit for weapon records which preserve a Cutpurse backstab.
+Weapon_AceOfSwordsRecordOffset:		equ	$1C
+	; ReSource: Byte offset of the Ace of Swords record within Weapon_CombatModifiers.
+Object_PowerStaff:		equ	$3F
+	; ReSource: Power Staff object code.
+PowerStaff_SpellCastingBonus:		equ	$05
+	; ReSource: Spell-casting quality bonus supplied by a held Power Staff.
+WornSpell_Warpower:		equ	$02
+	; ReSource: Low three-bit worn-spell type used for Warpower.
+SpellCasting_VitalityCost:		equ	$04
+	; ReSource: Vitality removed when a champion launches a spell.
+Combat_StrengthBias:		equ	$08
+	; ReSource: Internal Strength bias applied before physical-combat thresholds.
+ChampionStat_HitPointsCurrent:		equ	$05
+	; ReSource: Offset of current hit points in a 32-byte character-stat record.
+ChampionStat_HitPointsMaximum:		equ	$06
+	; ReSource: Offset of maximum hit points in a character-stat record.
+ChampionStat_VitalityCurrent:		equ	$07
+	; ReSource: Offset of current vitality in a character-stat record.
+ChampionStat_VitalityMaximum:		equ	$08
+	; ReSource: Offset of maximum vitality in a character-stat record.
+ChampionStat_SpellPointsCurrent:		equ	$09
+	; ReSource: Offset of current spell points in a character-stat record.
+ChampionStat_SpellPointsMaximum:		equ	$0A
+	; ReSource: Offset of maximum spell points in a character-stat record.
+ChampionStat_FoodLevel:		equ	$10
+	; ReSource: Offset of food level in a character-stat record.
+ChampionStat_SpellCooldown:		equ	$15
+	; ReSource: Offset of the spell cooldown in a character-stat record.
+HeldItem_StateOffset:		equ	$2C
+	; ReSource: Offset of the combined held-item quantity and object-code state.
+HeldItem_ObjectCodeOffset:		equ	$2E
+	; ReSource: Offset of the currently held object code in the interface state.
+Food_PortionGroupSize:		equ	$03
+	; ReSource: Number of visual consumption stages in each portioned-food family.
+Food_SolidPortionValue:		equ	$20
+	; ReSource: Food-level increase for each `$05-$0D` solid-food portion.
+Food_DrinkPortionValue:		equ	$14
+	; ReSource: Food-level increase for each `$0E-$13` drink portion.
+Food_WholeValueStep:		equ	$42
+	; ReSource: Food-level step applied once, twice or three times by objects `$14-$16`.
+Food_LevelMaximum:		equ	$C7
+	; ReSource: Highest stored character food level.
+Food_LevelLimitExclusive:		equ	$C8
+	; ReSource: Exclusive upper limit used before clamping food level to `$C7`.
 ; ReSource: end generated EQU definitions
 
 ****************************************************************************
@@ -426,7 +480,7 @@ LoadGameFromMenu:
 	jsr	adrCd008DA8.l				;4EB900008DA8
 	move.l	screen_ptr.l,a0				;207900008D36
 	add.w	#$0E10,a0				;D0FC0E10
-	lea	InsertLoadDiskMsg.l,a6	;		4DF9000044E5
+	lea	Msg_InstertLoadDisk.l,a6	;		4DF9000044E5
 	jsr	Print_fflim_text.l				;4EB90000D0C6
 	jsr	adrCd008CCA.l	;4EB900008CCA
 	clr.b	KeyboardKeyCode.w	;423805C9	;Short Absolute converted to symbol!
@@ -600,7 +654,7 @@ CharacterFillLoop:
 	move.b	#$FF,$001D(a4)	;197C00FF001D
 	move.w	d6,d0	;3006
 	eor.b	#$0F,d0	;0A00000F
-	bsr	adrCd004BCE	;6100420C
+	bsr	Recalculate_CharacterDerivedStats	;6100420C
 	move.b	$000A(a4),$0009(a4)	;196C000A0009
 	moveq	#$00,d0	;7000
 	move.b	$001A(a4),d0	;102C001A
@@ -1510,12 +1564,12 @@ adrCd0013C6:
 	move.w	CurrentTower.l,d0	;30390000EE2E
 	cmp.b	$001F(a4),d0	;B02C001F
 	bne.s	adrCd0013C0	;66EE
-	bsr	adrCd002984	;610015B0
+	bsr	Update_CharacterAttackCooldown	;610015B0
 	bra.s	adrCd0013EE	;6016
 
 adrCd0013D8:
 	move.b	$0005(a4),d0	;102C0005
-	bsr	adrCd002972	;61001594
+	bsr	Decrement_CharacterTimerLowBits	;61001594
 	move.b	$0005(a4),d1	;122C0005
 	and.b	#$60,d1	;02010060
 	or.b	d1,d0	;8001
@@ -1937,7 +1991,7 @@ adrCd001842:
 	rts	;4E75
 
 adrCd00185C:
-	clr.w	adrW_006458.l	;427900006458
+	clr.w	PhysicalAttack_DoubleDefenceFlag.l	;427900006458
 	jsr	adrCd0098A4.l	;4EB9000098A4
 	bcc	adrCd001BB8	;6400034E
 	tst.b	d0	;4A00
@@ -2131,7 +2185,7 @@ adrCd001A84:
 	move.b	#$07,$0005(a4)	;197C00070005
 	move.l	a4,-(sp)	;2F0C
 	move.w	d1,-(sp)	;3F01
-	move.w	#$FFFF,adrW_00628A.l	;33FCFFFF0000628A
+	move.w	#$FFFF,PhysicalAttack_BackstabState.l	;33FCFFFF0000628A
 	bsr	Resolve_PhysicalAttack	;61004734
 	move.w	(sp)+,d0	;301F
 	move.w	$0000(a6),d5	;3A2E0000
@@ -2153,7 +2207,7 @@ adrCd001AB6:
 	move.w	d1,d0	;3001
 	bsr	adrCd004078	;6100259C
 	bclr	d1,$003C(a5)	;03AD003C
-	clr.w	adrW_006458.l	;427900006458
+	clr.w	PhysicalAttack_DoubleDefenceFlag.l	;427900006458
 	movem.l	(sp)+,d0/d1/a5	;4CDF2003
 	bra	adrCd001984	;6000FE96
 
@@ -3319,7 +3373,7 @@ Quickstart_FallbackHandler_AI_TBC:
 	move.w	(sp)+,d0		;301F
 	addq.w	#$04,d4			;5844
 	addq.w	#$03,d5			;5645
-	lea	NumHitsMsg.l,a6		;4DF900006174
+	lea	Notice_NumberOfHits.l,a6		;4DF900006174
 	moveq	#$00,d2			;7400
 	bsr	adrCd006178		;61003AA4
 	moveq	#$08,d0			;7008
@@ -3585,13 +3639,13 @@ adrCd002960:
 	move.w	d3,d0	;3003
 	bsr	adrCd006660	;61003CFC
 	move.w	d7,-(sp)	;3F07
-	bsr.s	adrCd00299A	;6130
+	bsr.s	Update_CharacterActionTimers	;6130
 	move.w	(sp)+,d7	;3E1F
 adrCd00296C:
 	dbra	d7,adrLp00292A	;51CFFFBC
 	rts	;4E75
 
-adrCd002972:
+Decrement_CharacterTimerLowBits:
 	move.b	d0,d1	;1200
 	bmi.s	adrCd002982	;6B0C
 	and.w	#$0007,d1	;02410007
@@ -3602,17 +3656,17 @@ adrCd002972:
 adrCd002982:
 	rts	;4E75
 
-adrCd002984:
+Update_CharacterAttackCooldown:
 	move.b	$001B(a4),d0	;102C001B
-	bsr.s	adrCd002972	;61E8
+	bsr.s	Decrement_CharacterTimerLowBits	;61E8
 	move.b	$001B(a4),d1	;122C001B
 	and.b	#$20,d1	;02010020
 	or.b	d1,d0	;8001
 	move.b	d0,$001B(a4)	;1940001B
 	rts	;4E75
 
-adrCd00299A:
-	bsr.s	adrCd002984	;61E8
+Update_CharacterActionTimers:
+	bsr.s	Update_CharacterAttackCooldown	;61E8
 	move.b	$0019(a4),d0	;102C0019
 	move.b	d0,d1	;1200
 	and.w	#$000F,d1	;0241000F
@@ -3670,7 +3724,7 @@ adrCd002A28:
 	cmpi.w	#$0002,d2	;0C420002
 	bcc	adrCd002B26	;640000F8
 	movem.l	a4/a5,-(sp)	;48E7000C
-	bsr	Clear_LaunchPadFlag_AI_TBC	;61000084
+	bsr	Prepare_PhysicalAttackContext	;61000084
 	movem.l	(sp)+,a4/a5	;4CDF3000
 	move.w	adrEA016B6C.l,d5	;3A3900016B6C
 	moveq	#$00,d4	;7800
@@ -3720,18 +3774,18 @@ PostDoorToggle_Default_AI_TBC:
 	moveq	#-$01,d1	;72FF
 	rts	;4E75
 
-Clear_LaunchPadFlag_AI_TBC:
-	clr.w	adrW_006458.l	;427900006458
+Prepare_PhysicalAttackContext:
+	clr.w	PhysicalAttack_DoubleDefenceFlag.l	;427900006458
 	move.w	$0020(a5),d1	;322D0020
 	tst.b	d0	;4A00
-	bpl.s	Reset_LaunchPadPost_AI_TBC	;6A14
+	bpl.s	PhysicalAttack_TargetFacingPath	;6A14
 	sub.w	$0020(a1),d1	;92690020
-	move.w	d1,adrW_00628A.l	;33C10000628A
+	move.w	d1,PhysicalAttack_BackstabState.l	;33C10000628A
 	move.w	$0020(a5),d0	;302D0020
 	bsr	adrCd006018	;61003540
-	bra.s	Restore_LaunchPadState_AI_TBC	;601C
+	bra.s	Apply_CutpurseBackstabEligibility	;601C
 
-Reset_LaunchPadPost_AI_TBC:
+PhysicalAttack_TargetFacingPath:
 	move.b	$0002(a1),d2	;14290002
 	cmpi.b	#$10,d0	;0C000010
 	bcc.s	adrCd002AEA	;6404
@@ -3739,16 +3793,16 @@ Reset_LaunchPadPost_AI_TBC:
 adrCd002AEA:
 	and.w	#$0003,d2	;02420003
 	sub.w	d2,d1	;9242
-	move.w	d1,adrW_00628A.l	;33C10000628A
+	move.w	d1,PhysicalAttack_BackstabState.l	;33C10000628A
 	move.w	d0,d1	;3200
-Restore_LaunchPadState_AI_TBC:
+Apply_CutpurseBackstabEligibility:
 	move.w	d3,d0	;3003
 	not.w	d0	;4640
-	and.w	#$0003,d0	;02400003
-	beq.s	adrCd002B0A	;6708
-	move.w	#$FFFF,adrW_00628A.l	;33FCFFFF0000628A
-adrCd002B0A:
-	move.b	#$07,$001B(a4)	;197C0007001B
+	and.w	#Character_ProfessionMask,d0	;02400003
+	beq.s	Execute_PhysicalAttack	;6708
+	move.w	#$FFFF,PhysicalAttack_BackstabState.l	;33FCFFFF0000628A
+Execute_PhysicalAttack:
+	move.b	#PhysicalAttack_CooldownInitial,$001B(a4)	;197C0007001B
 	move.l	a4,-(sp)	;2F0C
 	move.w	d1,-(sp)	;3F01
 	bsr	Resolve_PhysicalAttack	;610036C4
@@ -3946,7 +4000,7 @@ adrJA002CE4:
 	cmp.b	#$07,$0006(a4)	;0C2C00070006
 	bcs	Comms_Champion_TBC	;650000AC
 adrCd002CFC:
-	lea	NotMyFriendMsg.l,a6	;4DF900003162
+	lea	Msg_ThinkNot.l,a6	;4DF900003162
 	bra.s	adrCd002D34	;6030
 
 adrCd002D04:
@@ -3966,7 +4020,7 @@ adrCd002D1E:
 	bcc.s	adrCd002D3A	;6414
 	cmp.b	#$05,$0006(a4)	;0C2C00050006
 	bcs.s	Comms_Champion_TBC	;6578
-	lea	KeepTalkingMsg.l,a6	;4DF900003147
+	lea	Msg_KeepTalking.l,a6	;4DF900003147
 adrCd002D34:
 	jmp	WriteMessage.l	;4EF90000D03A
 
@@ -4001,7 +4055,7 @@ adrCd002D92:
 	bra	adrCd008246	;600054AA
 
 adrCd002D9E:
-	lea	PartyFullMsg.l,a6	;4DF900003100
+	lea	Msg_PartyFull.l,a6	;4DF900003100
 	bra.s	adrCd002D34	;608E
 
 Comms_Champion_TBC:
@@ -4023,13 +4077,13 @@ adrJA002DBE:
 	bcs.s	adrCd002DA8	;65E2
 	cmp.b	#$05,$0006(a4)	;0C2C00050006
 	bcs.s	Comms_Champion_TBC	;65D8
-	lea	NameNotImportantMsg.l,a6	;4DF900003178
+	lea	Msg_NameNotImportant.l,a6	;4DF900003178
 	lea	BigMonsterList.l,a1	;43F900016A7E
 	asl.w	#$04,d0	;E940
 Zendik_Named:
 	cmp.b	#$40,$0B(a1,d0.w)	;0C310040000B
 	bne.s	NotNamed	;6606
-	lea	ZendikMsg.l,a6	;4DF900003191
+	lea	Msg_Zendik.l,a6	;4DF900003191
 NotNamed:
 	bra	adrCd002D34	;6000FF48
 
@@ -4094,7 +4148,7 @@ adrCd002E76:
 	clr.l	$002C(a5)					;42AD002C
 adrCd002E7A:
 	bsr	adrCd0035FA					;6100077E
-	bra	adrCd006C34					;60003DB4
+	bra	Refresh_HeldItemDisplay					;60003DB4
 
 adrJA002E82:
 	move.w	$002C(a5),d4	;382D002C
@@ -4231,7 +4285,7 @@ adrCd002FD8:
 	bpl.s	adrCd002FE2	;6A04
 	clr.b	$0006(a4)	;422C0006
 adrCd002FE2:
-	lea	RipMeOffMsg.l,a6	;4DF900003112
+	lea	Msg_RipOff.l,a6	;4DF900003112
 	jmp	WriteMessage.l	;4EF90000D03A
 
 adrCd002FEE:
@@ -4269,7 +4323,7 @@ adrCd003016:
 adrCd00303E:
 	bpl.s	adrCd003054	;6A14
 	clr.b	$0008(a4)	;422C0008
-	lea	TooGreedyMsg.l,a6	;4DF9000031B4
+	lea	Msg_TooGreet.l,a6	;4DF9000031B4
 	move.b	#$19,$0001(a4)	;197C00190001
 	bra	adrCd002D34	;6000FCE2
 
@@ -4332,28 +4386,28 @@ adrJA0030D2:
 	moveq	#$0B,d1	;720B
 	bra	adrCd002DA8	;6000FCAA
 
-PartyFullMsg:
+Msg_PartyFull:
 	dc.b	'THY PARTY IS FULL'	;5448592050415254592049532046554C4C
 	dc.b	$FF	;FF
-RipMeOffMsg:
+Msg_RipOff:
 	dc.b	'WOULDST THOU RIP ME OFF?'	;574F554C4453542054484F5520524950204D45204F46463F
 	dc.b	$FF	;FF
 NeverTrustUnnaturalMsg:
 	dc.b	'I NEVER TRUST THE UNNATURAL'	;49204E455645522054525553542054484520554E4E41545552414C
 	dc.b	$FF	;FF
-KeepTalkingMsg:
+Msg_KeepTalking:
 	dc.b	'KEEP TALKING AND WE''LL SEE'	;4B4545502054414C4B494E4720414E44205745274C4C20534545
 	dc.b	$FF	;FF
-NotMyFriendMsg:
+Msg_ThinkNot:
 	dc.b	'I THINK NOT MY FRIEND'	;49205448494E4B204E4F54204D5920465249454E44
 	dc.b	$FF	;FF
-NameNotImportantMsg:
+Msg_NameNotImportant:
 	dc.b	'MY NAME IS NOT IMPORTANT'	;4D59204E414D45204953204E4F5420494D504F5254414E54
 	dc.b	$FF	;FF
-ZendikMsg:
+Msg_Zendik:
 	dc.b	'I AM ZENDIK THE MASTER OF CREATION'	;4920414D205A454E44494B20544845204D4153544552204F46204352454154494F4E
 	dc.b	$FF	;FF
-TooGreedyMsg:
+Msg_TooGreet:
 	dc.b	'METHINKS THOU ART TOO GREEDY!'	;4D455448494E4B532054484F552041525420544F4F2047524545445921
 	dc.b	$FF	;FF
 adrEA0031D2:
@@ -4755,7 +4809,7 @@ adrJT003526:
 	dc.w	adrJA003568-adrJB00355C	;000C
 
 adrJB00355C:
-	lea	Msg_ComeJoin.l,a6	;4DF900003E83
+	lea	Msg_Recruit.l,a6	;4DF900003E83
 	jmp	WriteMessage.l	;4EF90000D03A
 
 adrJA003568:
@@ -4801,7 +4855,7 @@ adrJA003596:
 adrCd0035D0:
 	move.b	#$18,$0001(a4)	;197C00180001
 	bsr.s	adrCd0035FA	;6122
-	bra	adrCd006C34	;6000365A
+	bra	Refresh_HeldItemDisplay	;6000365A
 
 adrCd0035DC:
 	move.b	$000A(a4),d0	;102C000A
@@ -4906,10 +4960,10 @@ adrJA0036F0:
 	jmp	Print_npc_message.l	;4EF90000D81C
 
 adrJA0036FC:
-	lea	WhatThyBusinessMsg.l,a6	;4DF900003708
+	lea	Msg_Ask_Business.l,a6	;4DF900003708
 	jmp	WriteMessage.l	;4EF90000D03A
 
-WhatThyBusinessMsg:
+Msg_Ask_Business:
 	dc.b	'WHAT BE THY BUSINESS?'	;574841542042452054485920425553494E4553533F
 	dc.b	$FF	;FF
 
@@ -4937,7 +4991,7 @@ adrCd00376C:
 	jmp	Print_npc_message.l	;4EF90000D81C
 
 adrJA003772:
-	lea	AnyLegendsMsg.l,a6	;4DF9000037A2
+	lea	Msg_Ask_Legends.l,a6	;4DF9000037A2
 	jmp	WriteMessage.l	;4EF90000D03A
 
 adrJA00377E:
@@ -4952,7 +5006,7 @@ adrJA003796:
 	lea	AnyPowerfulMsg.l,a6	;4DF900003809
 	jmp	WriteMessage.l	;4EF90000D03A
 
-AnyLegendsMsg:
+Msg_Ask_Legends:
 	dc.b	'HAST THOU HEARD ANY LEGENDS?'	;484153542054484F5520484541524420414E59204C4547454E44533F
 	dc.b	$FF	;FF
 AnyEnchantedMsg:
@@ -5523,7 +5577,7 @@ adrEA003E7B:
 	dc.b	$FA	;FA
 	dc.b	$3F	;3F
 	dc.b	$FF	;FF
-Msg_ComeJoin:
+Msg_Recruit:
 	dc.b	'COME JOIN MY MERRY BAND'	;434F4D45204A4F494E204D59204D455252592042414E44
 	dc.b	$FF	;FF
 	dc.b	$00	;00
@@ -6001,12 +6055,12 @@ Click_LoadSaveGame:
 	move.l	#$00067D00,screen_ptr.l	;23FC00067D0000008D36
 	move.l	#$00060000,framebuffer_ptr.l	;23FC0006000000008D3A
 	lea	Player1_Data.l,a5	;4BF90000EE7C
-	lea	F1_F2_F10_Msg.l,a6	;4DF9000044C4
+	lea	Msg_LoadSaveFunctionKeys.l,a6	;4DF9000044C4
 	jsr	WriteText.l	;4EB90000D08E
 	tst.w	MultiPlayer.l	;4A790000EE30
 	bne.s	.skipPlayer2	;6612
 	lea	Player2_Data.l,a5	;4BF90000EEDE
-	lea	F1_F2_F10_Msg.l,a6	;4DF9000044C4
+	lea	Msg_LoadSaveFunctionKeys.l,a6	;4DF9000044C4
 	jsr	WriteText.l	;4EB90000D08E
 .skipPlayer2:
 	clr.b	KeyboardKeyCode.w	;423805C9	;Short Absolute converted to symbol!
@@ -6044,10 +6098,10 @@ SaveGame:
 	bra.s	adrCd004396	;60CA
 
 AwaitDisk:
-	lea	InsertLoadDiskMsg.l,a6	;4DF9000044E5
+	lea	Msg_InstertLoadDisk.l,a6	;4DF9000044E5
 	tst.w	d0	;4A40
 	beq.s	.PickLoadSaveMessage	;6706
-	lea	InsertSaveDiskMsg.l,a6	;4DF90000450D
+	lea	Msg_InstertSaveDisk.l,a6	;4DF90000450D
 .PickLoadSaveMessage:
 	jmp	WriteText.l	;4EF90000D08E
 
@@ -6124,13 +6178,13 @@ adrCd004480:
 	moveq	#$00,d0	;7000
 	rts	;4E75
 
-F1_F2_F10_Msg:
+Msg_LoadSaveFunctionKeys:
 	dc.b	'F1 - LOAD, F2 - SAVE, F10 - EXIT'	;4631202D204C4F41442C204632202D20534156452C20463130202D2045584954
 	dc.b	$FF	;FF
-InsertLoadDiskMsg:
+Msg_InstertLoadDisk:
 	dc.b	'INSERT LOAD DISK AND RETURN, F10 - EXIT'	;494E53455254204C4F4144204449534B20414E442052455455524E2C20463130202D2045584954
 	dc.b	$FF	;FF
-InsertSaveDiskMsg:
+Msg_InstertSaveDisk:
 	dc.b	'INSERT SAVE DISK AND RETURN, F10 - EXIT'	;494E534552542053415645204449534B20414E442052455455524E2C20463130202D2045584954
 	dc.b	$FF	;FF
 	dc.b	$00	;00
@@ -6685,9 +6739,9 @@ adrCd004BB0:
 	move.w	d4,d0	;3004
 	and.w	#$0003,d4	;02440003
 	subq.w	#$01,d4	;5344
-	bne.s	adrCd004BCE	;6604
+	bne.s	Recalculate_CharacterDerivedStats	;6604
 	addq.b	#$01,$001E(a4)	;522C001E
-adrCd004BCE:
+Recalculate_CharacterDerivedStats:
 	bsr	SpellPractice_ComputeThreshold_AI_TBC	;6100BD34
 	moveq	#$00,d2	;7400
 	move.b	(a4),d2	;1414
@@ -6972,7 +7026,7 @@ adrCd004EA0:
 	bsr	adrCd00332A	;6100E472
 	movem.l	(sp)+,d0-d7/a0-a6	;4CDF7FFF
 adrCd004EBE:
-	subq.b	#$04,$0007(a4)	;592C0007
+	subq.b	#SpellCasting_VitalityCost,$0007(a4)	;592C0007
 	bcc.s	adrCd004EC8	;6404
 	clr.b	$0007(a4)	;422C0007
 adrCd004EC8:
@@ -6991,7 +7045,7 @@ adrCd004EC8:
 	subq.b	#$01,$00(a0,d0.w)	;53300000
 adrCd004EFA:
 	bsr	adrCd0080CA	;610031CE
-	bsr	adrCd006778	;61001878
+	bsr	Calculate_SpellCastingQuality	;61001878
 	moveq	#$00,d0	;7000
 	move.b	$0013(a4),d0	;102C0013
 	lea	SpellCost_DataTable.l,a6	;4DF90000685E
@@ -7053,7 +7107,7 @@ adrCd004FA8:
 	bra.s	adrCd004FBE	;600E
 
 adrCd004FB0:
-	lea	SpellFailedMsg.l,a6	;4DF90000504C
+	lea	Notice_SpellFailed.l,a6	;4DF90000504C
 	move.w	#$0004,adrW_00D92A.l	;33FC00040000D92A
 adrCd004FBE:
 	move.b	#$FF,$0013(a4)	;197C00FF0013
@@ -7073,11 +7127,11 @@ adrCd004FD6:
 	rts	;4E75
 
 adrCd004FEE:
-	lea	SpellFizzledMsg.l,a6	;4DF900004FFE
+	lea	Notice_SpellFizzle.l,a6	;4DF900004FFE
 	move.w	#$0008,adrW_00D92A.l	;33FC00080000D92A
 	bra.s	adrCd004FBE	;60C0
 
-SpellFizzledMsg:
+Notice_SpellFizzle:
 	dc.b	'SPELL FIZZLED'	;5350454C4C2046495A5A4C4544
 	dc.b	$FF	;FF
 Spells_LookupTable:
@@ -7113,7 +7167,7 @@ Spells_LookupTable:
 	dc.w	Spells_30_Summon-Spells_01_Armour	;048A
 	dc.w	Spells_31_Blaze-Spells_01_Armour	;0490
 	dc.w	Spells_32_Mindrock-Spells_01_Armour	;049E
-SpellFailedMsg:
+Notice_SpellFailed:
 	dc.b	'SPELL FAILED'	;5350454C4C204641494C4544
 	dc.b	$FF	;FF
 	dc.b	$00	;00
@@ -7223,7 +7277,7 @@ adrCd005150:
 	rts	;4E75
 
 Spells_08_Warpower:
-	moveq	#$02,d4	;7802
+	moveq	#WornSpell_Warpower,d4	;7802
 	bra	adrCd005060	;6000FF0A
 
 Spells_09_Missle:
@@ -7749,7 +7803,7 @@ Click_ViewSpell:
 
 adrCd0055F6:
 	move.l	a6,-(sp)	;2F0E
-	bsr	adrCd006778	;6100117E
+	bsr	Calculate_SpellCastingQuality	;6100117E
 	addq.b	#$03,d7	;5607
 	bmi.s	adrCd00561A	;6B1A
 	lea	SpellCost_DataTable.l,a0	;41F90000685E
@@ -8528,8 +8582,8 @@ adrJA005D3E:
 	bsr.s	adrCd005D52	;6112
 adrCd005D40:
 	cmp.w	#$0003,$0014(a5)	;0C6D00030014
-	beq	adrCd006C34	;67000EEC
-	bra	adrCd006CD2	;60000F86
+	beq	Refresh_HeldItemDisplay	;67000EEC
+	bra	Draw_HeldObjectDescription	;60000F86
 
 adrCd005D4E:
 	bsr.s	adrCd005D9E	;614E
@@ -8860,7 +8914,7 @@ adrCd006018:
 	move.w	$0006(a1),d1	;32290006
 adrCd006046:
 	and.w	#$000F,d1	;0241000F
-	clr.w	adrW_006458.l	;427900006458
+	clr.w	PhysicalAttack_DoubleDefenceFlag.l	;427900006458
 	movem.l	d0/d1/a1/a4/a5,-(sp)	;48E7C04C
 	move.w	d1,d0	;3001
 	move.l	a1,a5	;2A49
@@ -8881,7 +8935,7 @@ adrCd006074:
 	cmp.b	$0005(a4),d0	;B02C0005
 	bcs.s	adrCd006090	;650C
 adrCd006084:
-	move.w	#$FFFF,adrW_006458.l	;33FCFFFF00006458
+	move.w	#$FFFF,PhysicalAttack_DoubleDefenceFlag.l	;33FCFFFF00006458
 	bset	d1,$003C(a5)	;03ED003C
 adrCd006090:
 	movem.l	(sp)+,d0/d1/a1/a4/a5	;4CDF3203
@@ -8983,7 +9037,7 @@ OutcomeMsgs_4:
 	dc.b	$FF	;FF
 OutcomeMsgs_5:
 	dc.b	'HITS FOR '	;4849545320464F5220
-NumHitsMsg:
+Notice_NumberOfHits:
 	dc.b	'000'	;303030
 	dc.b	$FF	;FF
 
@@ -9069,7 +9123,7 @@ adrCd00621C:
 	lsr.w	#$03,d1	;E649
 	add.w	d1,d0	;D041
 adrCd00623E:
-	tst.w	adrW_00628A.l	;4A790000628A
+	tst.w	PhysicalAttack_BackstabState.l	;4A790000628A
 	bne.s	adrCd00624C	;6606
 	move.w	d0,d1	;3200
 	add.w	d0,d0	;D040
@@ -9105,7 +9159,7 @@ adrCd006284:
 adrCd006288:
 	rts	;4E75
 
-adrW_00628A:
+PhysicalAttack_BackstabState:
 	dc.w	$0000	;0000
 
 Load_CombatantCombatValues:
@@ -9115,7 +9169,7 @@ Load_CombatantCombatValues:
 	moveq	#$00,d6	;7C00
 	moveq	#$00,d7	;7E00
 	cmpi.w	#$0010,d0	;0C400010
-	bcs.s	adrCd0062C6	;652C
+	bcs.s	Load_ChampionCombatValues	;652C
 	sub.w	#$0010,d0	;04400010
 	asl.w	#$04,d0	;E940
 	lea	UnpackedMonsters.l,a4	;49F900016B7E
@@ -9134,27 +9188,27 @@ Load_CombatantCombatValues:
 	moveq	#$08,d4	;7808
 	rts	;4E75
 
-adrCd0062C6:
+Load_ChampionCombatValues:
 	move.w	d0,d1	;3200
 	bsr	adrCd006660	;61000396
-	subq.b	#$03,$0007(a4)	;572C0007
-	bcc.s	adrCd0062D6	;6404
+	subq.b	#PhysicalAttack_VitalityCost,$0007(a4)	;572C0007
+	bcc.s	Apply_ChampionCombatModifiers	;6404
 	clr.b	$0007(a4)	;422C0007
-adrCd0062D6:
+Apply_ChampionCombatModifiers:
 	move.w	d1,d0	;3001
 	bsr.s	Calculate_CharacterArmourLevel	;6144
 	bsr	Calculate_WeaponCombatBonuses	;610000A6
 	bsr	SpellCost_SelectOrComputeFallback_AI_TBC	;6100A644
-	tst.w	adrW_00628A.w	;4A78628A	;Short Absolute converted to symbol!
-	bne.s	adrCd0062EA	;6602
+	tst.w	PhysicalAttack_BackstabState.w	;4A78628A	;Short Absolute converted to symbol!
+	bne.s	Apply_WarpowerCombatModifiers	;6602
 	move.b	(a4),d0	;1014
-adrCd0062EA:
+Apply_WarpowerCombatModifiers:
 	moveq	#$00,d1	;7200
 	move.b	$0011(a4),d1	;122C0011
 	move.w	d1,d2	;3401
 	and.w	#$0007,d2	;02420007
-	subq.b	#$02,d2	;5502
-	bne.s	adrCd006312	;6618
+	subq.b	#WornSpell_Warpower,d2	;5502
+	bne.s	Load_NormalChampionCombatStats	;6618
 	lsr.b	#$03,d1	;E609
 	move.w	d1,d2	;3401
 	lsr.w	#$02,d2	;E44A
@@ -9162,13 +9216,13 @@ adrCd0062EA:
 	add.w	d2,d0	;D042
 	move.w	d1,d2	;3401
 	add.b	$0001(a4),d1	;D22C0001
-	addq.b	#$08,d1	;5001
+	addq.b	#Combat_StrengthBias,d1	;5001
 	add.b	$0002(a4),d2	;D42C0002
 	rts	;4E75
 
-adrCd006312:
+Load_NormalChampionCombatStats:
 	move.b	$0001(a4),d1	;122C0001
-	addq.b	#$08,d1	;5001
+	addq.b	#Combat_StrengthBias,d1	;5001
 	move.b	$0002(a4),d2	;142C0002
 	rts	;4E75
 
@@ -9228,15 +9282,15 @@ Calculate_WeaponCombatBonuses:
 	; ReSource: Checks the two held-object slots for weapon objects $30-$3F and loads their combat adjustments.
 	moveq	#$00,d0			;7000
 	move.b	(a1),d0			;1011
-	sub.b	#$30,d0			;04000030
+	sub.b	#Object_Blades_First,d0			;04000030
 	bcs.s	adrCd006392		;6506
-	cmpi.b	#$10,d0			;0C000010
+	cmpi.b	#Weapon_CombatModifierRecordCount,d0			;0C000010
 	bcs.s	adrCd0063A2		;6510
 adrCd006392:
 	move.b	$0001(a1),d0		;10290001
-	sub.b	#$30,d0			;04000030
+	sub.b	#Object_Blades_First,d0			;04000030
 	bcs.s	adrCd0063DA		;653E
-	cmpi.b	#$10,d0			;0C000010
+	cmpi.b	#Weapon_CombatModifierRecordCount,d0			;0C000010
 	bcc.s	adrCd0063DA		;6438
 adrCd0063A2:
 	lea	Weapon_CombatModifiers.l,a0	;41F9000063DC
@@ -9246,15 +9300,15 @@ adrCd0063A2:
 	move.b	(a0)+,d5		;1A18
 	move.b	(a0)+,d6		;1C18
 	move.b	(a0)+,d7		;1E18
-	tst.w	adrW_00628A.w		;4A78628A	;Short Absolute converted to symbol!
+	tst.w	PhysicalAttack_BackstabState.w		;4A78628A	;Short Absolute converted to symbol!
 	bne.s	adrCd0063C6		;660C
-	cmpi.b	#$08,d0			;0C000008
+	cmpi.b	#Weapon_BackstabEligibleByteLimit,d0			;0C000008
 	bcs.s	adrCd0063C6		;6506
-	move.w	#$FFFF,adrW_00628A.w	;31FCFFFF628A	;Short Absolute converted to symbol!
+	move.w	#$FFFF,PhysicalAttack_BackstabState.w	;31FCFFFF628A	;Short Absolute converted to symbol!
 adrCd0063C6:
-	cmpi.b	#$1C,d0	;0C00001C
+	cmpi.b	#Weapon_AceOfSwordsRecordOffset,d0	;0C00001C
 	bne.s	adrCd0063DA	;660E
-	cmp.b	#$2B,$0012(a4)	;0C2C002B0012
+	cmp.b	#Object_ChaosGloves,$0012(a4)	;0C2C002B0012
 	beq.s	adrCd0063DA	;6706
 	moveq	#$05,d6	;7C05
 	moveq	#$05,d7	;7E05
@@ -9314,14 +9368,14 @@ Prepare_AttackAndDefenceScores:
 	add.w	d1,d0	;D041
 	move.b	$000C(a6),d1	;122E000C
 	add.w	d1,d0	;D041
-	tst.w	adrW_006458.l	;4A7900006458
+	tst.w	PhysicalAttack_DoubleDefenceFlag.l	;4A7900006458
 	beq.s	adrCd006452	;6702
 	add.w	d0,d0	;D040
 adrCd006452:
 	move.w	d0,$0004(a6)	;3D400004
 	rts	;4E75
 
-adrW_006458:
+PhysicalAttack_DoubleDefenceFlag:
 	dc.w	$0000	;0000
 
 Calculate_AttackerCombatScore:
@@ -9351,7 +9405,7 @@ adrCd00648C:
 	add.w	d1,d0	;D041
 	move.b	$000B(a6),d1	;122E000B
 	add.w	d1,d0	;D041
-	tst.w	adrW_00628A.w	;4A78628A	;Short Absolute converted to symbol!
+	tst.w	PhysicalAttack_BackstabState.w	;4A78628A	;Short Absolute converted to symbol!
 	bne.s	adrCd0064A4	;6602
 	add.w	d0,d0	;D040
 adrCd0064A4:
@@ -9431,7 +9485,7 @@ adrCd006562:
 	cmp.w	#$0003,$0014(a5)	;0C6D00030014
 	bne.s	adrCd00657C	;660C
 	movem.l	d0/d2/a6,-(sp)	;48E7A002
-	bsr	adrCd006C42	;610006CC
+	bsr	Draw_HeldItemPanel	;610006CC
 	movem.l	(sp)+,d0/d2/a6	;4CDF4005
 adrCd00657C:
 	subq.w	#$01,d2	;5342
@@ -9443,10 +9497,10 @@ adrCd00657C:
 	bra	adrCd00CF96	;60006A04
 
 adrCd006594:
-	lea	Msg_DoorLocked.l,a6	;4DF90000659E
+	lea	Notice_DoorLocked.l,a6	;4DF90000659E
 	bra	WriteTimedText	;60006AEC
 
-Msg_DoorLocked:
+Notice_DoorLocked:
 	dc.b	'THE DOOR IS LOCKED'	;54484520444F4F52204953204C4F434B4544
 	dc.b	$FF	;FF
 	dc.b	$00	;00
@@ -9584,7 +9638,7 @@ adrCd006720:
 	tst.b	$0057(a5)	;4A2D0057
 	bmi.s	adrCd00675E	;6B38
 	or.b	#$10,$0054(a5)	;002D00100054
-	bsr	adrCd006778	;6100004A
+	bsr	Calculate_SpellCastingQuality	;6100004A
 	neg.b	d7	;4407
 	bpl.s	adrCd006736	;6A02
 	moveq	#$00,d7	;7E00
@@ -9627,7 +9681,7 @@ adrB_006760:
 	dc.b	$00	;00
 
 	bsr	adrCd006660	;6100FEEA
-adrCd006778:
+Calculate_SpellCastingQuality:
 	move.b	$0013(a4),d0	;102C0013
 	bsr	Character_GetClassIndex	;61000182
 	move.w	d0,-(sp)	;3F00
@@ -9644,7 +9698,7 @@ adrCd006778:
 	bne.s	adrCd0067AC	;660A
 	move.w	d1,d2	;3401
 	and.w	#$0003,d2	;02420003
-	move.b	adrB_0067E6(pc,d2.w),d7	;1E3B203C
+	move.b	SpellCasting_ProfessionBaseBonuses(pc,d2.w),d7	;1E3B203C
 adrCd0067AC:
 	move.l	#adrL_007E22,a1	;227C00007E22
 	add.l	a4,a1	;D3CC
@@ -9673,7 +9727,8 @@ adrCd0067E0:
 	addq.w	#$01,d3	;5243
 	bra.s	adrCd0067D8	;60F2
 
-adrB_0067E6:
+SpellCasting_ProfessionBaseBonuses:
+	; ReSource: Four profession-indexed casting bonuses used when the selected spell class matches the champion profession.
 	dc.b	$03	;03
 	dc.b	$05	;05
 	dc.b	$04	;04
@@ -9696,27 +9751,28 @@ adrCd0067EA:
 	add.w	#$0057,d0	;06400057
 	moveq	#$01,d1	;7201
 	cmp.b	(a0),d0	;B010
-	beq.s	adrCd00681C	;6708
+	beq.s	Apply_PowerStaffSpellCastingBonus	;6708
 	cmp.b	$0001(a0),d0	;B0280001
-	beq.s	adrCd00681C	;6702
+	beq.s	Apply_PowerStaffSpellCastingBonus	;6702
 adrCd00681A:
 	moveq	#$00,d1	;7200
-adrCd00681C:
+Apply_PowerStaffSpellCastingBonus:
 	move.b	$0015(a4),d0	;102C0015
 	lsr.b	d1,d0	;E228
 	sub.b	d0,d7	;9E00
-	moveq	#$05,d0	;7005
-	cmp.b	#$3F,(a0)	;0C10003F
+	moveq	#PowerStaff_SpellCastingBonus,d0	;7005
+	cmp.b	#Object_PowerStaff,(a0)	;0C10003F
 	beq.s	adrCd006836	;670A
-	cmp.b	#$3F,$0001(a0)	;0C28003F0001
+	cmp.b	#Object_PowerStaff,$0001(a0)	;0C28003F0001
 	beq.s	adrCd006836	;6702
 	moveq	#$00,d0	;7000
 adrCd006836:
 	add.b	d0,d7	;DE00
-	sub.b	adrB_00683E(pc,d6.w),d7	;9E3B6004
+	sub.b	SpellCasting_SpellDifficultyPenalties(pc,d6.w),d7	;9E3B6004
 	rts	;4E75
 
-adrB_00683E:
+SpellCasting_SpellDifficultyPenalties:
+	; ReSource: Sixteen spell-indexed values subtracted from the calculated spell-casting quality.
 	dc.b	$0E	;0E
 	dc.b	$0F	;0F
 	dc.b	$0E	;0E
@@ -9848,25 +9904,28 @@ Character_GetClassIndex:
 	; ReSource: Converts a champion or character number into one of the four class indices.
 	move.w	d0,d6	;3C00
 	cmpi.b	#$10,d0	;0C000010
-	bcs.s	adrCd00690A	;6502
+	bcs.s	Character_GetClassIndex_CombineBits	;6502
 	not.w	d0	;4640
-adrCd00690A:
+Character_GetClassIndex_CombineBits:
+	; ReSource: Combines the character-number bit groups before applying the four-profession mask.
 	lsr.w	#$02,d0	;E448
 	add.w	d6,d0	;D046
-	and.w	#$0003,d0	;02400003
-adrCd006912:
+	and.w	#Character_ProfessionMask,d0	;02400003
+Return_CharacterOrHeldItemAction:
+	; ReSource: Shared return used by character-class calculation and rejected held-item actions.
 	rts	;4E75
 
 Click_Item_17_to_1A_Potions:
-	move.w	$002E(a5),d0	;302D002E
-	beq.s	adrCd006912	;67F8
-	cmpi.w	#$001B,d0	;0C40001B
-	bcc.s	adrCd006912	;64F2
-	cmpi.w	#$0017,d0	;0C400017
+	; ReSource: Dispatches held food, counted objects and potions; potions $17-$1A are removed before applying their character-stat effect.
+	move.w	HeldItem_ObjectCodeOffset(a5),d0	;302D002E
+	beq.s	Return_CharacterOrHeldItemAction	;67F8
+	cmpi.w	#Object_Armour_First,d0	;0C40001B
+	bcc.s	Return_CharacterOrHeldItemAction	;64F2
+	cmpi.w	#Object_Potions_First,d0	;0C400017
 	bcs.s	Use_FoodOrCountedObject	;6574
-	sub.w	#$0017,d0	;04400017
+	sub.w	#Object_Potions_First,d0	;04400017
 	move.w	d0,d1	;3200
-	clr.l	$002C(a5)	;42AD002C
+	clr.l	HeldItem_StateOffset(a5)	;42AD002C
 	move.b	$000F(a5),d0	;102D000F
 	move.b	$18(a5,d0.w),d0	;10350018
 	bsr	adrCd006660	;6100FD26
@@ -9875,35 +9934,41 @@ Click_Item_17_to_1A_Potions:
 	add.w	Potion_LookupTable(pc,d1.w),a0	;D0FB100C
 	jsr	(a0)	;4E90
 	bsr	adrCd007FF8	;610016AC
-	bra	adrCd006C34	;600002E4
+	bra	Refresh_HeldItemDisplay	;600002E4
 
 Potion_LookupTable:
+	; ReSource: Four relative routine offsets for Serpent Slime, Brimstone Broth, Dragon Ale and Moon Elixir.
 	dc.w	Potion_1_SerpentSlime-Potion_1_SerpentSlime	;0000
 	dc.w	Potion_2_BrimstoneBroth-Potion_1_SerpentSlime	;001C
 	dc.w	Potion_3_DragonAle-Potion_1_SerpentSlime	;0008
 	dc.w	Potion_4_MoonElixir-Potion_1_SerpentSlime	;0010
 
 Potion_1_SerpentSlime:
-	move.b	$0006(a4),$0005(a4)	;196C00060005
+	; ReSource: Restores current hit points to the character's maximum hit points.
+	move.b	ChampionStat_HitPointsMaximum(a4),ChampionStat_HitPointsCurrent(a4)	;196C00060005
 	rts	;4E75
 
 Potion_3_DragonAle:
-	move.b	$0008(a4),$0007(a4)	;196C00080007
+	; ReSource: Restores current vitality to the character's maximum vitality.
+	move.b	ChampionStat_VitalityMaximum(a4),ChampionStat_VitalityCurrent(a4)	;196C00080007
 	rts	;4E75
 
 Potion_4_MoonElixir:
-	move.b	$000A(a4),$0009(a4)	;196C000A0009
-	clr.b	$0015(a4)	;422C0015
+	; ReSource: Restores current spell points to maximum and clears the spell cooldown.
+	move.b	ChampionStat_SpellPointsMaximum(a4),ChampionStat_SpellPointsCurrent(a4)	;196C000A0009
+	clr.b	ChampionStat_SpellCooldown(a4)	;422C0015
 	rts	;4E75
 
 Potion_2_BrimstoneBroth:
-	clr.b	$0015(a4)	;422C0015
-	moveq	#$05,d4	;7805
-	bsr.s	adrCd006984	;6106
-	moveq	#$07,d4	;7807
-	bsr.s	adrCd006984	;6102
-	moveq	#$09,d4	;7809
-adrCd006984:
+	; ReSource: Clears spell cooldown and restores half of each HP, vitality and spell-point deficit, rounded upward.
+	clr.b	ChampionStat_SpellCooldown(a4)	;422C0015
+	moveq	#ChampionStat_HitPointsCurrent,d4	;7805
+	bsr.s	Potion_2_RestoreStatHalfway	;6106
+	moveq	#ChampionStat_VitalityCurrent,d4	;7807
+	bsr.s	Potion_2_RestoreStatHalfway	;6102
+	moveq	#ChampionStat_SpellPointsCurrent,d4	;7809
+Potion_2_RestoreStatHalfway:
+	; ReSource: Moves one current statistic halfway towards its following maximum-statistic byte, rounding upward.
 	move.b	$01(a4,d4.w),d0	;10344001
 	sub.b	$00(a4,d4.w),d0	;90344000
 	addq.b	#$01,d0	;5200
@@ -9913,56 +9978,64 @@ adrCd006984:
 	rts	;4E75
 
 Use_FoodOrCountedObject:
-	; ReSource: Dispatches counted objects, ordinary food/drink and the $14-$16 high-value food actions.
-	cmpi.w	#$0005,d0	;0C400005
+	; ReSource: Dispatches counted objects below $05, three-stage food $05-$13 and whole N'Egg food $14-$16.
+	cmpi.w	#Object_Food_First,d0	;0C400005
 	bcs	Click_CountedObject	;65000076
-	cmpi.w	#$0014,d0	;0C400014
+	cmpi.w	#Object_Neggs_First,d0	;0C400014
 	bcs.s	Click_PortionedFood	;6512
 	moveq	#$00,d1	;7200
-	sub.w	#$0014,d0	;04400014
-adrLp0069AE:
-	add.w	#$0042,d1	;06410042
-	dbra	d0,adrLp0069AE	;51C8FFFA
+	sub.w	#Object_Neggs_First,d0	;04400014
+WholeFood_AddValueLoop:
+	; ReSource: Adds one $42 food-value step for each N'Egg size before consuming it completely.
+	add.w	#Food_WholeValueStep,d1	;06410042
+	dbra	d0,WholeFood_AddValueLoop	;51C8FFFA
 	moveq	#$00,d0	;7000
-	bra.s	adrCd0069D4	;601A
+	bra.s	ConsumeFood_StoreRemainingObject	;601A
 
 Click_PortionedFood:
-	moveq	#$14,d1	;7214
-	cmpi.w	#$000E,d0	;0C40000E
-	bcc.s	adrCd0069C4	;6402
-	moveq	#$20,d1	;7220
-adrCd0069C4:
+	; ReSource: Consumes one third of food or drink, selects its food-value increase and resolves the remaining object stage.
+	moveq	#Food_DrinkPortionValue,d1	;7214
+	cmpi.w	#Object_Drinks_First,d0	;0C40000E
+	bcc.s	PortionedFood_SelectNextObject	;6402
+	moveq	#Food_SolidPortionValue,d1	;7220
+PortionedFood_SelectNextObject:
+	; ReSource: Starts resolution of the previous portion graphic or the empty-object result.
 	move.w	d0,d2	;3400
-	subq.w	#$05,d0	;5B40
-	beq.s	adrCd0069D4	;670A
-adrCd0069CA:
-	subq.w	#$03,d0	;5740
-	beq.s	adrCd0069D4	;6706
-	bcc.s	adrCd0069CA	;64FA
+	subq.w	#Object_Food_First,d0	;5B40
+	beq.s	ConsumeFood_StoreRemainingObject	;670A
+PortionedFood_FindGroupStartLoop:
+	; ReSource: Tests three-object portion groups; each group start becomes empty and other stages decrement.
+	subq.w	#Food_PortionGroupSize,d0	;5740
+	beq.s	ConsumeFood_StoreRemainingObject	;6706
+	bcc.s	PortionedFood_FindGroupStartLoop	;64FA
 	move.w	d2,d0	;3002
 	subq.w	#$01,d0	;5340
-adrCd0069D4:
-	move.w	d0,$002E(a5)	;3B40002E
+ConsumeFood_StoreRemainingObject:
+	; ReSource: Stores the remaining portion object, or $00 when the food has been completely consumed.
+	move.w	d0,HeldItem_ObjectCodeOffset(a5)	;3B40002E
 	move.b	$000F(a5),d0	;102D000F
 	move.b	$18(a5,d0.w),d0	;10350018
 	bsr	adrCd006660	;6100FC7E
-	add.b	$0010(a4),d1	;D22C0010
-	bcs.s	adrCd0069F0	;6506
-	cmpi.w	#$00C8,d1	;0C4100C8
-	bcs.s	adrCd0069F4	;6504
-adrCd0069F0:
-	move.b	#$C7,d1	;123C00C7
-adrCd0069F4:
-	move.b	d1,$0010(a4)	;19410010
+	add.b	ChampionStat_FoodLevel(a4),d1	;D22C0010
+	bcs.s	ConsumeFood_ClampLevel	;6506
+	cmpi.w	#Food_LevelLimitExclusive,d1	;0C4100C8
+	bcs.s	ConsumeFood_StoreLevel	;6504
+ConsumeFood_ClampLevel:
+	; ReSource: Clamps food level to $C7 when addition carries or reaches the exclusive $C8 limit.
+	move.b	#Food_LevelMaximum,d1	;123C00C7
+ConsumeFood_StoreLevel:
+	; ReSource: Stores the updated food level and redraws the remaining held object.
+	move.b	d1,ChampionStat_FoodLevel(a4)	;19410010
 	move.l	screen_ptr.l,a0	;207900008D36
 	add.w	#$0B64,a0	;D0FC0B64
 	add.w	$000A(a5),a0	;D0ED000A
 	move.w	$002E(a5),d0	;302D002E
 	bsr	ObjectGraphic	;6100605A
-	bsr	adrCd006D1E	;6100030E
-	bra	adrCd006C9C	;60000288
+	bsr	Draw_SelectedInventorySlotFrame	;6100030E
+	bra	Draw_FoodLevelBar	;60000288
 
 Click_CountedObject:
+	; ReSource: Transfers one counted coin, key or arrow between the character count table and the held stack.
 	moveq	#$00,d7	;7E00
 	move.b	$000F(a5),d7	;1E2D000F
 	move.b	$18(a5,d7.w),d7	;1E357018
@@ -9971,17 +10044,20 @@ Click_CountedObject:
 	add.w	d7,a6	;DCC7
 	subq.b	#$01,$0B(a6,d0.w)	;5336000B
 	bcc.s	Stack_ObjectFromInventory	;6406
-adrCd006A30:
+Cancel_CountedObjectTransfer:
+	; ReSource: Restores a counted-object quantity when the transfer cannot proceed.
 	addq.b	#$01,$0B(a6,d0.w)	;5236000B
 	rts	;4E75
 
 Stack_ObjectFromInventory:
+	; ReSource: Adds one counted object to the held stack, up to the stored maximum of $63.
 	cmp.w	#$0063,$002C(a5)	;0C6D0063002C
-	bcc.s	adrCd006A30	;64F2
+	bcc.s	Cancel_CountedObjectTransfer	;64F2
 	addq.w	#$01,$002C(a5)	;526D002C
 	bra	Redraw_Inventory	;600001C6
 
 Click_ObjectInInventory:
+	; ReSource: Handles inventory-slot selection, counted stacks, armour restrictions, worn hand armour and held-object swapping.
 	moveq	#$00,d7	;7E00
 	move.b	$000E(a5),d7	;1E2D000E
 	moveq	#$00,d0	;7000
@@ -9997,38 +10073,41 @@ Click_ObjectInInventory:
 	moveq	#$00,d0	;7000
 	move.b	$000F(a5),d0	;102D000F
 	move.w	$002E(a5),d1	;322D002E
-	beq.s	adrCd006A98	;6720
+	beq.s	Check_BodyArmourInventorySlot	;6720
 	cmpi.b	#$03,d0	;0C000003
-	bne.s	adrCd006A98	;661A
+	bne.s	Check_BodyArmourInventorySlot	;661A
 	cmpi.w	#$0024,d1	;0C410024
-	bcs.s	adrCd006AAE	;652A
+	bcs.s	Reject_InventorySlotAction	;652A
 	cmpi.w	#$002B,d1	;0C41002B
-	bcc.s	adrCd006AAE	;6424
+	bcc.s	Reject_InventorySlotAction	;6424
 	btst	#$00,d2	;08020000
 	beq.s	Redraw_HeldItem	;6762
 	cmpi.w	#$0027,d1	;0C410027
 	bcs.s	Redraw_HeldItem	;655C
-	bra.s	adrCd006AAE	;6016
+	bra.s	Reject_InventorySlotAction	;6016
 
-adrCd006A98:
+Check_BodyArmourInventorySlot:
+	; ReSource: Allows only body-armour objects $1B-$23 in the dedicated body-armour slot.
 	cmpi.b	#$02,d0	;0C000002
-	bne.s	adrCd006AB4	;6616
+	bne.s	Check_WornHandArmourSlot	;6616
 	tst.w	d1	;4A41
 	beq.s	Redraw_HeldItem	;6750
 	cmpi.w	#$001B,d1	;0C41001B
-	bcs.s	adrCd006AAE	;6506
+	bcs.s	Reject_InventorySlotAction	;6506
 	cmpi.w	#$0024,d1	;0C410024
 	bcs.s	Redraw_HeldItem	;6544
-adrCd006AAE:
+Reject_InventorySlotAction:
+	; ReSource: Leaves the objects unchanged, selects the clicked inventory slot and returns.
 	move.w	d7,$000E(a5)	;3B47000E
 	rts	;4E75
 
-adrCd006AB4:
+Check_WornHandArmourSlot:
+	; ReSource: Handles Chaos Gloves and other worn hand-armour exchanges involving the two hand pockets.
 	bcc.s	Redraw_HeldItem	;643C
 	cmp.w	#$002B,$002E(a5)	;0C6D002B002E
-	bcs.s	adrCd006ADC	;651E
+	bcs.s	Unequip_WornHandArmourToEmptyHand	;651E
 	cmp.w	#$0030,$002E(a5)	;0C6D0030002E
-	bcc.s	adrCd006ADC	;6416
+	bcc.s	Unequip_WornHandArmourToEmptyHand	;6416
 	move.b	$0012(a4),d1	;122C0012
 	move.b	$002F(a5),$0012(a4)	;196D002F0012
 	move.b	d1,$002F(a5)	;1B41002F
@@ -10036,7 +10115,8 @@ adrCd006AB4:
 	clr.w	$002C(a5)	;426D002C
 	bra.s	Redraw_HeldItem	;6016
 
-adrCd006ADC:
+Unequip_WornHandArmourToEmptyHand:
+	; ReSource: Moves worn hand armour into an empty hand pocket when no object is currently held.
 	tst.b	$00(a6,d0.w)	;4A360000
 	bne.s	Redraw_HeldItem	;6610
 	tst.w	$002E(a5)	;4A6D002E
@@ -10046,56 +10126,63 @@ adrCd006ADC:
 Redraw_HeldItem:
 	moveq	#$00,d1	;7200
 	move.b	$00(a6,d0.w),d1	;12360000
-	beq	adrCd006B82	;67000088
+	beq	Return_HeldCountedObjectToInventory	;67000088
 	cmpi.w	#$0005,d1	;0C410005
-	bcc	adrCd006B82	;64000080
+	bcc	Return_HeldCountedObjectToInventory	;64000080
 	move.w	$002E(a5),d3	;362D002E
-	bne.s	adrCd006B1C	;6612
+	bne.s	Swap_HeldObjectForCountedStack	;6612
 	move.w	d1,$002E(a5)	;3B41002E
 	move.w	#$0001,$002C(a5)	;3B7C0001002C
 	subq.b	#$01,$0B(a6,d1.w)	;5336100B
-	bra	adrCd006BB8	;6000009E
+	bra	Refresh_InventoryAfterObjectChange	;6000009E
 
-adrCd006B1C:
+Swap_HeldObjectForCountedStack:
+	; ReSource: Picks up a complete counted-object stack while placing the previously held non-counted object into the pocket.
 	cmpi.w	#$0005,d3	;0C430005
-	bcs.s	adrCd006B30	;650E
+	bcs.s	Merge_MatchingCountedObjectStack	;650E
 	move.b	$0B(a6,d1.w),$002D(a5)	;1B76100B002D
 	clr.b	$0B(a6,d1.w)	;4236100B
 	bra	Wear_Object	;60000082
 
-adrCd006B30:
+Merge_MatchingCountedObjectStack:
+	; ReSource: Merges held and inventory quantities when both represent the same counted object.
 	cmp.w	d1,d3	;B641
-	bne.s	adrCd006B54	;6620
+	bne.s	Merge_DifferentCountedObjectStack	;6620
 	move.b	$0B(a6,d1.w),d2	;1436100B
 	add.b	$002D(a5),d2	;D42D002D
 	move.b	d2,$0B(a6,d1.w)	;1D82100B
 	cmpi.b	#$64,d2	;0C020064
-	bcc.s	adrCd006B4C	;6406
+	bcc.s	Clamp_MatchingCountedObjectStack	;6406
 	clr.l	$002C(a5)	;42AD002C
-	bra.s	adrCd006BB8	;606C
+	bra.s	Refresh_InventoryAfterObjectChange	;606C
 
-adrCd006B4C:
+Clamp_MatchingCountedObjectStack:
+	; ReSource: Clamps the merged inventory quantity to $63.
 	move.b	#$63,$0B(a6,d1.w)	;1DBC0063100B
-	bra.s	adrCd006B78	;6024
+	bra.s	Store_CountedObjectRemainder	;6024
 
-adrCd006B54:
+Merge_DifferentCountedObjectStack:
+	; ReSource: Adds the held quantity to its existing global count before picking up a different counted stack.
 	move.b	$0B(a6,d3.w),d2	;1436300B
 	add.b	$002D(a5),d2	;D42D002D
 	cmpi.b	#$64,d2	;0C020064
-	bcc.s	adrCd006B72	;6410
+	bcc.s	Clamp_CountedObjectStack	;6410
 	move.b	d2,$0B(a6,d3.w)	;1D82300B
 	move.b	$0B(a6,d1.w),$002D(a5)	;1B76100B002D
 	clr.b	$0B(a6,d1.w)	;4236100B
-	bra.s	adrCd006BA0	;602E
+	bra.s	Remove_DuplicateCountedObjectSlots	;602E
 
-adrCd006B72:
+Clamp_CountedObjectStack:
+	; ReSource: Clamps a counted-object total to $63 before retaining the excess.
 	move.b	#$63,$0B(a6,d3.w)	;1DBC0063300B
-adrCd006B78:
+Store_CountedObjectRemainder:
+	; ReSource: Stores quantity remaining above the $63 inventory-count limit in the held stack.
 	sub.b	#$63,d2	;04020063
 	move.b	d2,$002D(a5)	;1B42002D
-	bra.s	adrCd006BB8	;6036
+	bra.s	Refresh_InventoryAfterObjectChange	;6036
 
-adrCd006B82:
+Return_HeldCountedObjectToInventory:
+	; ReSource: Returns a held counted stack to its global character count.
 	move.w	$002E(a5),d3	;362D002E
 	beq.s	Wear_Object	;6728
 	cmpi.w	#$0005,d3	;0C430005
@@ -10104,31 +10191,37 @@ adrCd006B82:
 	add.b	$002D(a5),d2	;D42D002D
 	move.b	d2,$0B(a6,d3.w)	;1D82300B
 	cmpi.b	#$64,d2	;0C020064
-	bcc.s	adrCd006B72	;64D2
-adrCd006BA0:
+	bcc.s	Clamp_CountedObjectStack	;64D2
+Remove_DuplicateCountedObjectSlots:
+	; ReSource: Removes redundant pocket entries for a counted object after returning its quantity.
 	moveq	#$0B,d2	;740B
-adrLp006BA2:
+Remove_DuplicateCountedObjectSlots_Loop:
+	; ReSource: Scans all twelve character pockets for duplicate counted-object codes.
 	cmp.b	$00(a6,d2.w),d3	;B6362000
-	bne.s	adrCd006BAC	;6604
+	bne.s	Remove_DuplicateCountedObjectSlots_Next	;6604
 	clr.b	$00(a6,d2.w)	;42362000
-adrCd006BAC:
-	dbra	d2,adrLp006BA2	;51CAFFF4
+Remove_DuplicateCountedObjectSlots_Next:
+	; ReSource: Advances the duplicate counted-object pocket scan.
+	dbra	d2,Remove_DuplicateCountedObjectSlots_Loop	;51CAFFF4
 Wear_Object:
 	move.b	d3,$00(a6,d0.w)	;1D830000
 	move.w	d1,$002E(a5)	;3B41002E
-adrCd006BB8:
+Refresh_InventoryAfterObjectChange:
+	; ReSource: Refreshes selection and inventory graphics after an object transfer.
 	cmp.b	#$02,$000F(a5)	;0C2D0002000F
-	bne.s	adrCd006BD8	;6618
+	bne.s	Finalize_InventoryObjectChange	;6618
 	btst	d7,$003E(a5)	;0F2D003E
-	beq.s	adrCd006BD8	;6712
+	beq.s	Finalize_InventoryObjectChange	;6712
 	move.w	d7,-(sp)	;3F07
 	bsr	adrCd007EF0	;61001326
 	tst.w	$0002(sp)	;4A6F0002
-	beq.s	adrCd006BD6	;6704
+	beq.s	Restore_SelectedInventorySlot	;6704
 	bsr	adrCd007ED2	;610012FE
-adrCd006BD6:
+Restore_SelectedInventorySlot:
+	; ReSource: Restores the selected slot number after auxiliary inventory handling.
 	move.w	(sp)+,d7	;3E1F
-adrCd006BD8:
+Finalize_InventoryObjectChange:
+	; ReSource: Normalises held counted-object state and redraws the inventory.
 	move.w	d7,$000E(a5)	;3B47000E
 	move.w	$002E(a5),d0	;302D002E
 	beq.s	Return_ObjectToInventory	;6706
@@ -10155,42 +10248,47 @@ Redraw_Inventory:
 	move.w	d7,d0	;3007
 	bsr	adrCd00CF08	;610062DC
 	move.w	#$0003,$0014(a5)	;3B7C00030014
-adrCd006C34:
-	bsr	adrCd006CD2	;6100009C
+Refresh_HeldItemDisplay:
+	; ReSource: Updates the held-item description, graphic, quantity and optional food bar.
+	bsr	Draw_HeldObjectDescription	;6100009C
 	cmp.b	#$03,$0015(a5)	;0C2D00030015
 	bne	Trigger_00_t00_Null	;660003D6
-adrCd006C42:
+Draw_HeldItemPanel:
+	; ReSource: Draws the held-item panel pieces followed by the held object's pocket graphic and quantity.
 	or.b	#$04,$0054(a5)	;002D00040054
 	move.l	screen_ptr.l,a0	;207900008D36
 	add.w	#$0B5C,a0	;D0FC0B5C
 	add.w	$000A(a5),a0	;D0ED000A
 	moveq	#$00,d7	;7E00
-adrCd006C58:
+Draw_HeldItemPanelPieces_Loop:
+	; ReSource: Draws the four fixed decorative pieces surrounding the held-item graphic.
 	bsr	adrCd008416	;610017BC
 	addq.w	#$01,d7	;5247
 	cmpi.w	#$0004,d7	;0C470004
-	bcs.s	adrCd006C58	;65F4
+	bcs.s	Draw_HeldItemPanelPieces_Loop	;65F4
 	move.w	$002E(a5),d0	;302D002E
 	move.w	$002C(a5),d1	;322D002C
 	bsr	ObjectGraphic	;61005DF8
 	move.w	$0012(a5),d3	;362D0012
 	moveq	#$74,d0	;7074
 	bsr	adrCd00CAEA	;61005E72
-	bsr	adrCd006D1E	;610000A2
+	bsr	Draw_SelectedInventorySlotFrame	;610000A2
 	move.w	$002E(a5),d0	;302D002E
-	beq.s	adrCd006C90	;670C
+	beq.s	Return_FromHeldItemDisplay	;670C
 	cmpi.w	#$0005,d0	;0C400005
-	bcs.s	adrCd006C90	;6506
+	bcs.s	Return_FromHeldItemDisplay	;6506
 	cmpi.w	#$0017,d0	;0C400017
 	bcs.s	Draw_FoodStatus	;6502
-adrCd006C90:
+Return_FromHeldItemDisplay:
+	; ReSource: Returns when the held item does not require the food-status display.
 	rts	;4E75
 
 Draw_FoodStatus:
 	; ReSource: Draws the FOOD label and the food-level bar scaled against the $00-$C7 food value.
 	lea	adrEA00E998.l,a6	;4DF90000E998
 	bsr	Print_fflim_text	;6100642C
-adrCd006C9C:
+Draw_FoodLevelBar:
+	; ReSource: Reads champion food byte $10 and draws its bar scaled from $00 to $C7.
 	or.b	#$14,$0054(a5)	;002D00140054
 	move.w	$000E(a5),d0	;302D000E
 	move.b	$18(a5,d0.w),d0	;10350018
@@ -10205,7 +10303,8 @@ adrCd006C9C:
 	moveq	#$09,d3	;7609
 	bra	BW_draw_bar	;60006D98
 
-adrCd006CD2:
+Draw_HeldObjectDescription:
+	; ReSource: Prints an empty description or prepares the selected held object's description.
 	move.w	$002E(a5),d0	;302D002E
 	bne.s	Prepare_HeldObjectDescription	;660A
 	lea	NullString.l,a6	;4DF90000CAE9
@@ -10215,24 +10314,26 @@ Prepare_HeldObjectDescription:
 	; ReSource: Handles champion-remains ownership before resolving and printing the held object's description.
 	move.w	d0,d1	;3200
 	sub.w	#$0040,d1	;04410040
-	bcs.s	adrCd006D08	;651E
+	bcs.s	Resolve_HeldObjectDescription	;651E
 	cmpi.w	#$0010,d1	;0C410010
-	bcc.s	adrCd006D08	;6418
+	bcc.s	Resolve_HeldObjectDescription	;6418
 	move.w	d1,d0	;3001
 	bsr	adrCd004078	;6100D384
 	move.w	$002E(a5),d0	;302D002E
 	tst.w	d1	;4A41
-	bmi.s	adrCd006D08	;6B0A
+	bmi.s	Resolve_HeldObjectDescription	;6B0A
 	bclr	#$05,$18(a5,d1.w)	;08B500051018
 	clr.l	$002C(a5)	;42AD002C
-adrCd006D08:
+Resolve_HeldObjectDescription:
+	; ReSource: Resolves the normal object-definition text after optional champion-remains ownership handling.
 	lea	Object_Definition_Table+$02.l,a6	;4DF90000E4C4
 	asl.w	#$02,d0	;E540
 	add.w	d0,a6	;DCC0
 	move.w	#$0006,adrW_00D92A.l	;33FC00060000D92A
 	bra	Print_item_desc_fresh	;60006AE2
 
-adrCd006D1E:
+Draw_SelectedInventorySlotFrame:
+	; ReSource: Draws the highlight frame around the selected character inventory slot.
 	moveq	#$0D,d3	;760D
 	move.l	#$000E0049,d5	;2A3C000E0049
 	add.w	$0008(a5),d5	;DA6D0008
@@ -12445,7 +12546,7 @@ adrCd008246:
 	move.b	$0015(a5),d0	;102D0015
 	beq	adrCd008396	;67000148
 	subq.b	#$03,d0	;5700
-	beq	adrCd006C34	;6700E9E0
+	beq	Refresh_HeldItemDisplay	;6700E9E0
 adrCd008256:
 	rts	;4E75
 
@@ -14465,7 +14566,7 @@ adrCd009680:
 	rts	;4E75
 
 GFX_ObjectsOnFloor_SubpositionRotation:
-	; ReSource: Maps viewer facing and object mini-space to the rotated mini-space used by floor-object projection.
+	; ReSource: Combined floor-object projection layout containing sub-position rotation, depth bias, view-cell depth, projection groups, base Y positions and shelf/special Y adjustments.
 	dc.b	$00	;00
 	dc.b	$01	;01
 	dc.b	$02	;02
@@ -14482,14 +14583,10 @@ GFX_ObjectsOnFloor_SubpositionRotation:
 	dc.b	$03	;03
 	dc.b	$00	;00
 	dc.b	$02	;02
-GFX_ObjectsOnFloor_SubpositionDepthBias:
-	; ReSource: Adds the front/back mini-space depth bias before selecting a projected floor graphic.
 	dc.b	$01	;01
 	dc.b	$01	;01
 	dc.b	$00	;00
 	dc.b	$00	;00
-GFX_ObjectsOnFloor_ViewCellDepthBase:
-	; ReSource: Maps the 19 dungeon view cells to projection depth bases; $FF means that a floor object is not visible.
 	dc.b	$FF	;FF
 	dc.b	$FF	;FF
 	dc.b	$FF	;FF
@@ -14509,8 +14606,6 @@ GFX_ObjectsOnFloor_ViewCellDepthBase:
 	dc.b	$04	;04
 	dc.b	$02	;02
 	dc.b	$00	;00
-GFX_ObjectsOnFloor_ProjectionGroups:
-	; ReSource: Converts depth plus mini-space bias into projected graphic groups 0-4; $FF suppresses drawing.
 	dc.b	$FF	;FF
 	dc.b	$00	;00
 	dc.b	$01	;01
@@ -14519,15 +14614,11 @@ GFX_ObjectsOnFloor_ProjectionGroups:
 	dc.b	$03	;03
 	dc.b	$04	;04
 	dc.b	$04	;04
-GFX_ObjectsOnFloor_ViewY:
-	; ReSource: Base Y positions for the five floor-object projection groups, ordered nearest to furthest.
 	dc.b	$4F	;4F
 	dc.b	$47	;47
 	dc.b	$41	;41
 	dc.b	$3D	;3D
 	dc.b	$38	;38
-GFX_ObjectsOnFloor_SpecialYAdjustments:
-	; ReSource: Alternative Y adjustments used by the renderer's special placement path.
 	dc.b	$1D	;1D
 	dc.b	$10	;10
 	dc.b	$00	;00
@@ -14546,16 +14637,16 @@ Draw_ObjectOnFloor:
 	move.b	GFX_ObjectsOnFloor_SubpositionRotation(pc,d0.w),d6	;1C3B00B8
 	moveq	#$00,d1	;7200
 	move.b	-$0016(a3),d1	;122BFFEA
-	move.b	GFX_ObjectsOnFloor_ViewCellDepthBase(pc,d1.w),d0	;103B10C2
+	move.b	GFX_ObjectsOnFloor_SubpositionRotation+$14(pc,d1.w),d0	;103B10C2
 	bmi.s	adrCd009680	;6BA8
-	add.b	GFX_ObjectsOnFloor_SubpositionDepthBias(pc,d6.w),d0	;D03B60B8
-	move.b	GFX_ObjectsOnFloor_ProjectionGroups(pc,d0.w),d0	;103B00CB
+	add.b	GFX_ObjectsOnFloor_SubpositionRotation+$10(pc,d6.w),d0	;D03B60B8
+	move.b	GFX_ObjectsOnFloor_SubpositionRotation+$27(pc,d0.w),d0	;103B00CB
 	bmi.s	adrCd009680	;6B9E
 	asl.w	#$02,d1	;E541
 	add.w	d6,d1	;D246
 	moveq	#$00,d5	;7A00
 	moveq	#$00,d4	;7800
-	move.b	GFX_ObjectsOnFloor_ViewY(pc,d0.w),d5	;1A3B00C5
+	move.b	GFX_ObjectsOnFloor_SubpositionRotation+$2F(pc,d0.w),d5	;1A3B00C5
 	add.w	$0008(a5),d5	;DA6D0008
 	lea	GFX_ObjectsOnFloor_XPositions.l,a0	;41F9000097BC
 	move.b	$00(a0,d1.w),d4	;18301000
@@ -14567,7 +14658,7 @@ Draw_ObjectOnFloor:
 	move.w	d0,d3	;3600
 	add.w	d3,d3	;D643
 	add.w	d6,d3	;D646
-	sub.b	GFX_ObjectsOnFloor_SpecialYAdjustments(pc,d3.w),d5	;9A3B30A4
+	sub.b	GFX_ObjectsOnFloor_SubpositionRotation+$34(pc,d3.w),d5	;9A3B30A4
 	lea	GFX_ObjectsOnFloor_SpecialXPositions.l,a0	;41F900009808
 	move.b	-$0016(a3),d3	;162BFFEA
 	move.b	$00(a0,d3.w),d4	;18303000
@@ -19854,7 +19945,7 @@ GFX_Wooden_Doors_Positions:
 	dc.w	$0135	;0135
 
 adrCd00C01E:
-	lea	Msg_SelectChamps.l,a6	;4DF90000E480
+	lea	Notice_SelectChampions.l,a6	;4DF90000E480
 	tst.w	MultiPlayer.l	;4A790000EE30
 	beq.s	adrCd00C032	;6706
 	move.b	#$2E,$001B(a6)	;1D7C002E001B
@@ -20209,7 +20300,7 @@ Click_SelectChampion:
 	clr.w	adrW_00EEC8.l	;42790000EEC8
 	move.l	screen_ptr.l,a0	;207900008D36
 	add.w	#$0050,a0	;D0FC0050
-	lea	Msg_SelectThyChamp.l,a6	;4DF90000E4A0
+	lea	Notice_SelectChampion.l,a6	;4DF90000E4A0
 	moveq	#$27,d6	;7C27
 	tst.w	adrW_00C514.l	;4A790000C514
 	bne.s	adrCd00C4BA	;660A
@@ -23392,10 +23483,10 @@ Objects_Texts:
 	dc.b	'TAN'	;54414E
 	dc.b	$03	;03
 	dc.b	'GEM'	;47454D
-Msg_SelectChamps:
+Notice_SelectChampions:
 	dc.b	'PLEASE SELECT YOUR CHAMPIONS...'	;504C454153452053454C45435420594F5552204348414D50494F4E532E2E2E
 	dc.b	$FF	;FF
-Msg_SelectThyChamp:
+Notice_SelectChampion:
 	dc.b	'PLAYER 0 SELECT THY CHAMPION....'	;504C4159455220302053454C45435420544859204348414D50494F4E2E2E2E2E
 	dc.b	$FF	;FF
 	dc.b	$00	;00
