@@ -1,6 +1,8 @@
 from __future__ import annotations
 
 import unittest
+from contextlib import redirect_stderr
+from io import StringIO
 from unittest.mock import patch
 
 import main
@@ -63,6 +65,20 @@ class ProjectStructureTests(unittest.TestCase):
             self.assertEqual(main.main(), 0)
         self.assertEqual(launch_gui.call_count, 5)
         self.assertEqual(commands, ["extract", "relabel", "inspect", "patch"])
+
+    def test_front_page_tool_error_is_reported_and_returns_to_launcher(self) -> None:
+        error_output = StringIO()
+        with (
+            patch("sys.argv", ["main.py"]),
+            patch("main.launch_gui", side_effect=["relabel", "profiles", None])
+            as launch_gui,
+            patch("main.run", side_effect=[ToolError("bad equate"), 0]) as run,
+            redirect_stderr(error_output),
+        ):
+            self.assertEqual(main.main(), 0)
+        self.assertEqual(launch_gui.call_count, 3)
+        self.assertEqual(run.call_count, 2)
+        self.assertIn("Error: bad equate", error_output.getvalue())
 
     def test_graphics_viewer_returns_to_launcher(self) -> None:
         with (

@@ -5,6 +5,7 @@ from __future__ import annotations
 
 import argparse
 from pathlib import Path
+import sys
 
 from tools.tool_common import (
     DEFAULT_SEGMENTS_FILE,
@@ -200,14 +201,18 @@ def run(args: argparse.Namespace, parser: argparse.ArgumentParser) -> int:
 def main() -> int:
     parser = build_parser()
     args = parser.parse_args()
-    try:
-        if args.command is not None:
+    if args.command is not None:
+        try:
             return run(args, parser)
+        except ToolError as error:
+            parser.exit(2, f"Error: {error}\n")
 
-        while True:
-            selected = launch_gui()
-            if selected is None:
-                return 0
+    while True:
+        selected = launch_gui()
+        if selected is None:
+            return 0
+        args.command = selected
+        try:
             if selected in {"graphics", "maps"}:
                 if selected == "maps":
                     from tools.map_editor.app import MapEditorError, launch_map_editor
@@ -224,16 +229,14 @@ def main() -> int:
                 except GraphicsViewerError as error:
                     raise ToolError(str(error)) from error
                 continue
-            args.command = selected
-            try:
-                run(args, parser)
-            finally:
-                # Commands selected from the launcher are one-shot jobs.  Reset
-                # the parsed command so the front menu is shown again when the
-                # tool completes; explicit CLI commands still exit normally.
-                args.command = None
-    except ToolError as error:
-        parser.exit(2, f"Error: {error}\n")
+            run(args, parser)
+        except ToolError as error:
+            print(f"Error: {error}", file=sys.stderr)
+        finally:
+            # Commands selected from the launcher are one-shot jobs. Reset the
+            # parsed command so errors and successful runs both return to the
+            # front menu; explicit CLI commands still exit normally.
+            args.command = None
 
 
 if __name__ == "__main__":

@@ -2,6 +2,9 @@ from __future__ import annotations
 
 import tempfile
 import unittest
+from contextlib import redirect_stdout
+from dataclasses import replace
+from io import StringIO
 from pathlib import Path
 
 import pandas as pd
@@ -96,6 +99,54 @@ class SourceRuleTests(unittest.TestCase):
             self.lines, (equate(),), (rule(status="proposed"),)
         )
         self.assertEqual(result, self.lines)
+
+    def test_relabelled_scope_and_operand_names_are_used_as_fallbacks(self) -> None:
+        renamed = [
+            "NewStart:",
+            "\tmove.l\t#NewValue.l,d1\t;223C000186A0",
+            "NewEnd:",
+        ]
+        source_rule = SourceRule(
+            "BLOODWYCH439",
+            "renamed-labels",
+            "replace_operand",
+            "DiskReadTimeoutCount",
+            "OldStart",
+            "OldEnd",
+            "move.l",
+            "#OldValue.l,d1",
+            "223C000186A0",
+            "#DiskReadTimeoutCount,d1",
+            1,
+            "verified",
+        )
+        result = apply_source_rules(
+            renamed,
+            (equate(),),
+            (source_rule,),
+            label_relabels={
+                "OldStart": "NewStart",
+                "OldEnd": "NewEnd",
+                "OldValue": "NewValue",
+            },
+        )
+        self.assertIn("\tmove.l\t#DiskReadTimeoutCount,d1\t;223C000186A0", result)
+
+    def test_recoverable_rule_error_does_not_block_later_rules(self) -> None:
+        bad_rule = replace(
+            rule(), rule_id="missing-scope", scope_start="Missing"
+        )
+        output = StringIO()
+        with redirect_stdout(output):
+            result = apply_source_rules(
+                self.lines,
+                (equate(),),
+                (bad_rule, rule()),
+                continue_on_error=True,
+            )
+        self.assertIn("leaving this rule unchanged and continuing", output.getvalue())
+        self.assertIn("1 verified rule(s) failed safely", output.getvalue())
+        self.assertIn("\tmove.l\t#DiskReadTimeoutCount,d1\t;223C000186A0", result)
 
     def test_verified_equates_are_inserted_after_header(self) -> None:
         result = insert_generated_equates(

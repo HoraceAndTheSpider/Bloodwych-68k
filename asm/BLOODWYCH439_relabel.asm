@@ -146,7 +146,7 @@ ChampionStat_FoodLevel:		equ	$10
 ChampionStat_SpellCooldown:		equ	$15
 	; ReSource: Offset of the spell cooldown in a character-stat record.
 HeldItem_StateOffset:		equ	$2C
-	; ReSource: Offset of the combined held-item quantity and object-code state.
+	; ReSource: Offset of the four-byte held-item state containing the quantity word followed by the object-code word.
 HeldItem_ObjectCodeOffset:		equ	$2E
 	; ReSource: Offset of the currently held object code in the interface state.
 Food_PortionGroupSize:		equ	$03
@@ -161,6 +161,124 @@ Food_LevelMaximum:		equ	$C7
 	; ReSource: Highest stored character food level.
 Food_LevelLimitExclusive:		equ	$C8
 	; ReSource: Exclusive upper limit used before clamping food level to `$C7`.
+HeldItem_QuantityOffset:		equ	$2C
+	; ReSource: Offset of the held-object quantity word in player interface state.
+HeldItem_QuantityByteOffset:		equ	$2D
+	; ReSource: Offset of the low byte of the held-object quantity.
+HeldItem_ObjectCodeByteOffset:		equ	$2F
+	; ReSource: Offset of the low byte of the currently held object code.
+ChampionPocket_LeftHand:		equ	$00
+	; ReSource: Offset of the left-hand pocket in a sixteen-byte champion-pockets record.
+ChampionPocket_RightHand:		equ	$01
+	; ReSource: Offset of the right-hand pocket in a champion-pockets record.
+ChampionPocket_BodyArmour:		equ	$02
+	; ReSource: Offset of the dedicated body-armour pocket.
+ChampionPocket_Shield:		equ	$03
+	; ReSource: Offset of the dedicated shield pocket.
+ChampionPocket_CountedObjectCountsOffset:		equ	$0B
+	; ReSource: Base offset of the object-code-indexed counted-object quantities in a champion-pockets record.
+ChampionPocket_LastIndex:		equ	$0B
+	; ReSource: Highest ordinary pocket index in the twelve-pocket duplicate-removal scan.
+ChampionStat_WornHandArmour:		equ	$12
+	; ReSource: Offset of the worn hand-armour object in a champion-stat record.
+Champion_Count:		equ	$10
+	; ReSource: Number of standard champions and champion-remains objects.
+ChampionStat_Charisma:		equ	$04
+	; ReSource: Offset of Charisma in a thirty-two-byte champion-stat record.
+InterfaceMode_Communication:		equ	$08
+	; ReSource: Interface mode value active while communicating with another character.
+Comms_CharismaBaseline:		equ	$14
+	; ReSource: Charisma receives no initial communication bonus at or below this value.
+Comms_CharismaShift:		equ	$02
+	; ReSource: Right shift converting excess Charisma into an initial attitude bonus.
+Beguile_PowerShift:		equ	$02
+	; ReSource: Right shift converting Beguile spell power into its communication bonus.
+Beguile_BaseBonus:		equ	$01
+	; ReSource: Minimum attitude and patience bonus supplied by a successful Beguile spell.
+CommsState_PreviousActionOffset:		equ	$00
+	; ReSource: Offset of the action to which the other character is responding.
+CommsState_CurrentActionOffset:		equ	$01
+	; ReSource: Offset of the communication action currently being performed.
+CommsState_OtherCharacterOffset:		equ	$02
+	; ReSource: Offset of the addressed character identifier and its identity flags.
+CommsState_SpeakerIdentityOffset:		equ	$03
+	; ReSource: Offset of the speaker identifier and disclosed-name/profession flags.
+CommsState_TimerOffset:		equ	$04
+	; ReSource: Offset of the communication activity timer reset after an action.
+CommsState_FlagsOffset:		equ	$05
+	; ReSource: Offset of communication record flags.
+CommsState_AttitudeOffset:		equ	$06
+	; ReSource: Offset of mutable communication attitude or rapport.
+CommsState_PatienceOffset:		equ	$07
+	; ReSource: Offset of communication patience or remaining engagement.
+CommsState_TradeModeOffset:		equ	$08
+	; ReSource: Offset of the active communication trading mode.
+CommsState_TradeValueOffset:		equ	$09
+	; ReSource: Offset of the quoted or accepted trade value.
+CommsState_TradeObjectOffset:		equ	$0A
+	; ReSource: Offset of the object code involved in the active trade.
+CommsTradeMode_None:		equ	$00
+	; ReSource: No communication trade is pending.
+CommsTradeMode_Purchase:		equ	$01
+	; ReSource: Purchase communication mode.
+CommsTradeMode_Exchange:		equ	$02
+	; ReSource: Exchange communication mode.
+CommsTradeMode_Sell:		equ	$03
+	; ReSource: Sell communication mode.
+CommsAction_Recruit:		equ	$00
+	; ReSource: Communication action selected by Recruit.
+CommsAction_Identify:		equ	$01
+	; ReSource: Communication action opening the Identify submenu.
+CommsAction_Inquiry:		equ	$02
+	; ReSource: Communication action opening the Inquiry submenu.
+CommsAction_Whereabouts:		equ	$03
+	; ReSource: Communication action selected by Whereabouts.
+CommsAction_Trading:		equ	$04
+	; ReSource: Communication action opening the Trading submenu.
+CommsAction_Smalltalk:		equ	$05
+	; ReSource: Communication action opening the Smalltalk submenu.
+CommsAction_Yes:		equ	$06
+	; ReSource: Communication action selected by Yes.
+CommsAction_No:		equ	$07
+	; ReSource: Communication action selected by No.
+CommsAction_Bribe:		equ	$08
+	; ReSource: Communication action selected by Bribe.
+CommsAction_Threat:		equ	$09
+	; ReSource: Communication action selected by Threat.
+CommsAction_WhoGoes:		equ	$0A
+	; ReSource: Communication action selected by Who Goes.
+CommsAction_ThyTrade:		equ	$0B
+	; ReSource: Communication action selected by Thy Trade.
+CommsAction_NameSelf:		equ	$0C
+	; ReSource: Communication action selected by Name Self.
+CommsAction_RevealSelf:		equ	$0D
+	; ReSource: Communication action selected by Reveal Self.
+CommsAction_FolkLore:		equ	$0E
+	; ReSource: Communication action selected by Folk Lore.
+CommsAction_MagicItems:		equ	$0F
+	; ReSource: Communication action selected by Magic Items.
+CommsAction_Objects:		equ	$10
+	; ReSource: Communication action selected by Objects.
+CommsAction_Persons:		equ	$11
+	; ReSource: Communication action selected by Persons.
+CommsAction_Offer:		equ	$12
+	; ReSource: Communication action selected by Offer.
+CommsAction_Purchase:		equ	$13
+	; ReSource: Communication action selected by Purchase.
+CommsAction_Exchange:		equ	$14
+	; ReSource: Communication action selected by Exchange.
+CommsAction_Sell:		equ	$15
+	; ReSource: Communication action selected by Sell.
+CommsAction_Praise:		equ	$16
+	; ReSource: Communication action selected by Praise.
+CommsAction_Curse:		equ	$17
+	; ReSource: Communication action selected by Curse.
+CommsAction_Boast:		equ	$18
+	; ReSource: Communication action selected by Boast.
+CommsAction_Retort:		equ	$19
+	; ReSource: Communication action selected for a contextual Retort.
+CommsAction_Greeting:		equ	$1A
+	; ReSource: Initial communication action used when a conversation begins.
 ; ReSource: end generated EQU definitions
 
 ****************************************************************************
@@ -553,34 +671,38 @@ SpellsPracticed_ClearEntriesLoop_AI_TBC:
 	dbra	d0,SpellsPracticed_ClearEntriesLoop_AI_TBC	;51C8FFFC
 	rts	;4E75
 
-SpellPractice_CountInit_DATA_AI_TBC:
+Initialize_SpellPracticeThresholds:
+	; ReSource: Initialises calculated spell-practice values for all sixteen champion records.
 	moveq	#$0F,d7	;7E0F
-SpellPractice_UpdateCountLoop_AI_TBC:
+SpellPractice_ThresholdLoop:
 	move.w	d7,d0	;3007
-	bsr	SpellPractice_ComputeThreshold_AI_TBC	;6100000C
+	bsr	Calculate_SpellPracticeThreshold	;6100000C
 	move.b	d0,$0009(a4)	;19400009
-	dbra	d7,SpellPractice_UpdateCountLoop_AI_TBC	;51CFFFF4
+	dbra	d7,SpellPractice_ThresholdLoop	;51CFFFF4
 	rts	;4E75
 
-SpellPractice_ComputeThreshold_AI_TBC:
+Calculate_SpellPracticeThreshold:
+	; ReSource: Calculates a champion's spell-practice threshold from Wizard-weighted level and half Intelligence, clamped to $63.
 	move.w	d0,d1	;3200
-	bsr	adrCd006660	;61005D58
-	bsr.s	SpellCost_AlternateSelector_AI_TBC	;6132
+	bsr	Load_ChampionStatRecord	;61005D58
+	bsr.s	Calculate_WizardLevelContribution	;6132
 	asl.w	#$02,d0	;E540
 	move.b	$0003(a4),d1	;122C0003
 	lsr.b	#$01,d1	;E209
 	add.b	d1,d0	;D001
 	cmpi.b	#$64,d0	;0C000064
-	bcs.s	SpellPractice_ClampThreshold_AI_TBC	;6502
+	bcs.s	SpellPractice_StoreThreshold	;6502
 	moveq	#$63,d0	;7063
-SpellPractice_ClampThreshold_AI_TBC:
+SpellPractice_StoreThreshold:
+	; ReSource: Stores the calculated spell-practice threshold in the champion record.
 	move.b	d0,$000A(a4)	;1940000A
 	rts	;4E75
 
-SpellCost_SelectOrComputeFallback_AI_TBC:
+Calculate_WarriorLevelContribution:
+	; ReSource: Calculates the Warrior-weighted contribution of a champion's level.
 	and.w	#$0003,d1	;02410003
-	move.b	SpellCost_BasicValues_DATA_AI_TBC(pc,d1.w),d1	;123B1010
-	bpl.s	SpellCost_FinalizeCost_AI_TBC	;6A26
+	move.b	WarriorLevel_ChampionTypeShifts(pc,d1.w),d1	;123B1010
+	bpl.s	Calculate_ShiftedChampionLevel	;6A26
 	moveq	#$00,d0	;7000
 	move.b	(a4),d0	;1014
 	add.w	d0,d0	;D040
@@ -588,33 +710,39 @@ SpellCost_SelectOrComputeFallback_AI_TBC:
 	lsr.w	#$02,d0	;E448
 	rts	;4E75
 
-SpellCost_BasicValues_DATA_AI_TBC:
+WarriorLevel_ChampionTypeShifts:
+	; ReSource: Selects full, quarter or special three-quarter level weighting for each champion type.
 	dc.b	$00	;00
 	dc.b	$02	;02
 	dc.b	$FF	;FF
 	dc.b	$02	;02
 
-SpellCost_AlternateSelector_AI_TBC:
+Calculate_WizardLevelContribution:
+	; ReSource: Calculates the Wizard-weighted contribution of a champion's level.
 	and.w	#$0003,d1	;02410003
-	move.b	SpellCost_AlternateValues_DATA_AI_TBC(pc,d1.w),d1	;123B1004
-	bra.s	SpellCost_FinalizeCost_AI_TBC	;600C
+	move.b	WizardLevel_ChampionTypeShifts(pc,d1.w),d1	;123B1004
+	bra.s	Calculate_ShiftedChampionLevel	;600C
 
-SpellCost_AlternateValues_DATA_AI_TBC:
+WizardLevel_ChampionTypeShifts:
+	; ReSource: Selects quarter, full or half Wizard-level weighting for each champion type.
 	dc.b	$02	;02
 	dc.b	$00	;00
 	dc.b	$01	;01
 	dc.b	$02	;02
 
-SpellCost_ShiftSelector_AI_TBC:
+Calculate_CutpurseLevelContribution:
+	; ReSource: Calculates the Cutpurse-weighted contribution of a champion's level.
 	and.w	#$0003,d1	;02410003
-	move.b	SpellCost_ShiftFactors_DATA_AI_TBC(pc,d1.w),d1	;123B100A
-SpellCost_FinalizeCost_AI_TBC:
+	move.b	CutpurseLevel_ChampionTypeShifts(pc,d1.w),d1	;123B100A
+Calculate_ShiftedChampionLevel:
+	; ReSource: Loads the champion's level and applies the selected right-shift weighting.
 	moveq	#$00,d0	;7000
 	move.b	(a4),d0	;1014
 	lsr.w	d1,d0	;E268
 	rts	;4E75
 
-SpellCost_ShiftFactors_DATA_AI_TBC:
+CutpurseLevel_ChampionTypeShifts:
+	; ReSource: Selects quarter, half or full Cutpurse-level weighting for each champion type.
 	dc.b	$02	;02
 	dc.b	$02	;02
 	dc.b	$01	;01
@@ -791,7 +919,7 @@ adrB_000B22:
 	dc.b	$DC	;DC
 
 adrCd000B32:
-	bsr	adrCd00665C	;61005B28
+	bsr	Load_CurrentChampionStatRecord	;61005B28
 	moveq	#$00,d0	;7000
 	move.b	$0016(a4),d0	;102C0016
 	bmi.s	adrCd000B66	;6B28
@@ -1144,7 +1272,7 @@ adrLp000F4C:
 	bne.s	adrCd000FB8	;6660
 	and.w	#$000F,d0	;0240000F
 	move.w	d0,d1	;3200
-	bsr	adrCd006660	;61005700
+	bsr	Load_ChampionStatRecord	;61005700
 	btst	#$02,(a5)	;08150002
 	bne.s	TeamAvatar_UpdateLoop_AI_TBC	;6618
 	btst	#$06,$18(a5,d7.w)	;083500067018
@@ -1211,7 +1339,7 @@ adrLp00100E:
 	and.w	#$00E0,d0	;024000E0
 	bne.s	adrCd001046	;662E
 	move.b	$18(a5,d7.w),d0	;10357018
-	bsr	adrCd006660	;61005642
+	bsr	Load_ChampionStatRecord	;61005642
 	subq.b	#$06,$0015(a4)	;5D2C0015
 	bcc.s	adrCd00102A	;6404
 	clr.b	$0015(a4)	;422C0015
@@ -2112,7 +2240,7 @@ adrCd0019C2:
 adrCd0019C6:
 	move.w	d1,d0				;3001
 	move.l	a4,a2				;244C
-	bsr	adrCd006660			;61004C94
+	bsr	Load_ChampionStatRecord			;61004C94
 	exg	a4,a2				;C54C
 	move.b	$0011(a2),d0			;102A0011
 	and.w	#$0007,d0			;02400007
@@ -2604,7 +2732,7 @@ adrLp001F16:
 	bne.s	adrCd001F36	;6612
 	and.w	#$000F,d1	;0241000F
 	move.w	d1,d0	;3001
-	bsr	adrCd006660	;61004734
+	bsr	Load_ChampionStatRecord	;61004734
 	move.w	d1,d0	;3001
 	exg	a1,a4	;C949
 	bsr.s	adrCd001EDC	;61A8
@@ -2667,7 +2795,7 @@ adrLp001FAC:
 	bne.s	adrCd001FCC	;6612
 	and.w	#$000F,d1	;0241000F
 	move.w	d1,d0	;3001
-	bsr	adrCd006660	;6100469E
+	bsr	Load_ChampionStatRecord	;6100469E
 	move.w	d1,d0	;3001
 	exg	a1,a4	;C949
 	bsr.s	adrCd001F8C	;61C2
@@ -2742,7 +2870,7 @@ adrLp002060:
 	and.w	#$00E0,d0	;024000E0
 	bne.s	adrCd00207E	;6612
 	move.b	$18(a1,d7.w),d0	;10317018
-	bsr	adrCd006660	;610045EE
+	bsr	Load_ChampionStatRecord	;610045EE
 	move.b	$0005(a4),$00(a0,d7.w)	;11AC00057000
 	addq.b	#$01,$00(a0,d7.w)	;52307000
 adrCd00207E:
@@ -2787,7 +2915,7 @@ adrCd0020D4:
 	rts	;4E75
 
 adrCd0020D6:
-	bsr	adrCd00665C	;61004584
+	bsr	Load_CurrentChampionStatRecord	;61004584
 	moveq	#$05,d0	;7005
 	jsr	PlaySound.l	;4EB9000088BE
 	exg	a4,a1	;C34C
@@ -2863,7 +2991,7 @@ adrCd00216A:
 	moveq	#$03,d7	;7E03
 adrLp002176:
 	move.b	$18(a1,d7.w),d0	;10317018
-	bsr	adrCd006660	;610044E4
+	bsr	Load_ChampionStatRecord	;610044E4
 	move.b	$00(a0,d7.w),d5	;1A307000
 	exg	a1,a4	;C949
 	bsr.s	adrCd002128	;61A2
@@ -2882,7 +3010,7 @@ adrCd002194:
 	move.b	adrB_00EE3E.l,d0	;10390000EE3E
 	cmpi.b	#$10,d0	;0C000010
 	bcc.s	adrCd002192	;64E6
-	bsr	adrCd006660	;610044B2
+	bsr	Load_ChampionStatRecord	;610044B2
 	cmp.b	#$EC,$001C(a4)	;0C2C00EC001C
 	bcc.s	adrCd0021EC	;6434
 	move.w	$001C(a4),d2	;342C001C
@@ -2924,7 +3052,7 @@ adrLp002214:
 	and.w	#$00E0,d0	;024000E0
 	bne.s	adrCd002252	;6634
 	move.b	$18(a2,d7.w),d0	;10327018
-	bsr	adrCd006660	;6100443C
+	bsr	Load_ChampionStatRecord	;6100443C
 	move.b	$001C(a4),d0	;102C001C
 	cmpi.b	#$EC,d0	;0C0000EC
 	bcc.s	adrCd002252	;6422
@@ -2994,7 +3122,7 @@ adrCd002298:
 
 adrCd0022CA:
 	move.w	d0,d3	;3600
-	bsr	adrCd006660	;61004392
+	bsr	Load_ChampionStatRecord	;61004392
 	move.l	a4,a1	;224C
 	moveq	#$00,d7	;7E00
 	move.b	$0016(a1),d7	;1E290016
@@ -3200,7 +3328,7 @@ adrLp0024AE:
 
 adrCd0024BE:
 	move.b	$18(a1,d1.w),d0	;10311018
-	bsr	adrCd006660	;6100419C
+	bsr	Load_ChampionStatRecord	;6100419C
 	move.b	$0005(a4),d0	;102C0005
 	sub.b	$00(a0,d1.w),d0	;90301000
 	bcc.s	adrCd0024EE	;641E
@@ -3286,7 +3414,7 @@ End_InventoryLoop_AI_TBC:
 	bsr.s	Init_InventorySwap_AI_TBC	;61B0
 	bsr	Clear_TriggerProcessed_AI_TBC	;61000072
 	bclr	#$05,$0018(a5)	;08AD00050018
-	bsr	adrCd00665C	;6100409C
+	bsr	Load_CurrentChampionStatRecord	;6100409C
 	move.b	$0016(a4),$001D(a5)	;1B6C0016001D
 	move.b	$0017(a4),$001F(a5)	;1B6C0017001F
 	move.b	$001A(a4),$0059(a5)	;1B6C001A0059
@@ -3606,7 +3734,7 @@ adrCd0028D0:
 adrCd002904:
 	cmp.b	#$02,$0015(a5)	;0C2D00020015
 	bne.s	adrCd00291A	;660E
-	bsr	adrCd00665C	;61003D4E
+	bsr	Load_CurrentChampionStatRecord	;61003D4E
 	tst.b	$0013(a4)	;4A2C0013
 	bmi.s	adrCd00291A	;6B04
 	bsr	adrCd006720	;61003E08
@@ -3628,7 +3756,7 @@ adrLp00292A:
 	bne.s	adrCd00296C	;6624
 	move.w	d3,d0	;3003
 	move.w	d7,-(sp)	;3F07
-	bsr	adrCd006660	;61003D12
+	bsr	Load_ChampionStatRecord	;61003D12
 	moveq	#$16,d4	;7816
 	move.w	#$FFFF,adrW_0013C4.w	;31FCFFFF13C4	;Short Absolute converted to symbol!
 	bsr	adrCd0013C6	;6100EA6C
@@ -3637,7 +3765,7 @@ adrLp00292A:
 
 adrCd002960:
 	move.w	d3,d0	;3003
-	bsr	adrCd006660	;61003CFC
+	bsr	Load_ChampionStatRecord	;61003CFC
 	move.w	d7,-(sp)	;3F07
 	bsr.s	Update_CharacterActionTimers	;6130
 	move.w	(sp)+,d7	;3E1F
@@ -3694,7 +3822,7 @@ Check_DoorToggle_AI_TBC:
 adrCd0029D8:
 	move.w	d3,d0	;3003
 	move.b	d3,adrB_00EE3E.l	;13C30000EE3E
-	bsr	adrCd006660	;61003C7E
+	bsr	Load_ChampionStatRecord	;61003C7E
 	tst.b	$0013(a4)	;4A2C0013
 	bpl	adrCd002BB4	;6A0001CA
 	move.w	d3,d0	;3003
@@ -3726,7 +3854,7 @@ adrCd002A28:
 	movem.l	a4/a5,-(sp)	;48E7000C
 	bsr	Prepare_PhysicalAttackContext	;61000084
 	movem.l	(sp)+,a4/a5	;4CDF3000
-	move.w	adrEA016B6C.l,d5	;3A3900016B6C
+	move.w	PhysicalAttack_WorkingValues.l,d5	;3A3900016B6C
 	moveq	#$00,d4	;7800
 Call_DoorToggleRoutine_AI_TBC:
 	move.w	$0004(sp),d7	;3E2F0004
@@ -3815,7 +3943,7 @@ Execute_PhysicalAttack:
 adrCd002B26:
 	move.w	d3,d1	;3203
 	move.w	d1,d2	;3401
-	bsr	SpellCost_ShiftSelector_AI_TBC	;6100DE20
+	bsr	Calculate_CutpurseLevelContribution	;6100DE20
 	lea	Character_Pockets_DataTable.l,a0	;41F90000ED2A
 	asl.w	#$04,d2	;E942
 	add.w	d2,a0	;D0C2
@@ -3898,7 +4026,7 @@ adrCd002BD6:
 	rts	;4E75
 
 adrCd002BD8:
-	bsr	adrCd0041FA	;61001620
+	bsr	Comms_GetState	;61001620
 	and.b	#$3F,$0006(a4)	;022C003F0006
 	subq.b	#$01,$0004(a4)	;532C0004
 	bne.s	adrCd002BD6	;66EE
@@ -3933,9 +4061,9 @@ adrCd002C3C:
 adrCd002C40:
 	tst.b	$0006(a4)	;4A2C0006
 	beq	adrCd00332A	;670006E4
-	lea	adrJA002CE4.l,a0	;41F900002CE4
+	lea	Comms_Respond_Recruit.l,a0	;41F900002CE4
 	add.w	d0,d0	;D040
-	add.w	adrJT002CAE(pc,d0.w),a0	;D0FB005C
+	add.w	Comms_ResponseHandlerOffsets(pc,d0.w),a0	;D0FB005C
 	move.l	a4,-(sp)	;2F0C
 	moveq	#$00,d0	;7000
 	move.b	$0035(a5),d0	;102D0035
@@ -3950,7 +4078,7 @@ adrCd002C40:
 	move.b	$0035(a5),d0	;102D0035
 	cmpi.b	#$10,d0	;0C000010
 	bcs.s	adrCd002C98	;6512
-	bsr	adrCd006660	;610039D8
+	bsr	Load_ChampionStatRecord	;610039D8
 	and.b	#$F0,$0019(a4)	;022C00F00019
 	or.b	#$0A,$0019(a4)	;002C000A0019
 adrJA002C96:
@@ -3963,42 +4091,44 @@ adrCd002C98:
 	or.b	#$0A,$0003(a4)	;002C000A0003
 	rts	;4E75
 
-adrJT002CAE:
-	dc.w	adrJA002CE4-adrJA002CE4	;0000
-	dc.w	adrJA002C96-adrJA002CE4	;FFB2
-	dc.w	adrJA002C96-adrJA002CE4	;FFB2
-	dc.w	Comms_Champion_TBC-adrJA002CE4	;00C2
-	dc.w	adrJA002C96-adrJA002CE4	;FFB2
-	dc.w	adrJA002C96-adrJA002CE4	;FFB2
-	dc.w	Comms_Champion_TBC-adrJA002CE4	;00C2
-	dc.w	Comms_Champion_TBC-adrJA002CE4	;00C2
-	dc.w	Comms_Champion_TBC-adrJA002CE4	;00C2
-	dc.w	adrJA002DAC-adrJA002CE4	;00C8
-	dc.w	adrJA002DBE-adrJA002CE4	;00DA
-	dc.w	adrJA002DEE-adrJA002CE4	;010A
-	dc.w	adrJA002DBE-adrJA002CE4	;00DA
-	dc.w	adrJA002DEE-adrJA002CE4	;010A
-	dc.w	Comms_Champion_TBC-adrJA002CE4	;00C2
-	dc.w	Comms_Champion_TBC-adrJA002CE4	;00C2
-	dc.w	Comms_Champion_TBC-adrJA002CE4	;00C2
-	dc.w	adrJA002DF8-adrJA002CE4	;0114
-	dc.w	adrJA002E12-adrJA002CE4	;012E
-	dc.w	adrJA002F24-adrJA002CE4	;0240
-	dc.w	Trade_Exchange_TBC-adrJA002CE4	;026C
-	dc.w	adrJA002FC4-adrJA002CE4	;02E0
-	dc.w	adrJA00307E-adrJA002CE4	;039A
-	dc.w	adrJA00309A-adrJA002CE4	;03B6
-	dc.w	adrJA0030B4-adrJA002CE4	;03D0
-	dc.w	Comms_Champion_TBC-adrJA002CE4	;00C2
-	dc.w	adrJA0030D2-adrJA002CE4	;03EE
+Comms_ResponseHandlerOffsets:
+	; ReSource: Selects the response handler for the other character's preceding communication action.
+	dc.w	Comms_Respond_Recruit-Comms_Respond_Recruit	;0000
+	dc.w	adrJA002C96-Comms_Respond_Recruit	;FFB2
+	dc.w	adrJA002C96-Comms_Respond_Recruit	;FFB2
+	dc.w	Comms_RespondWithRetort-Comms_Respond_Recruit	;00C2
+	dc.w	adrJA002C96-Comms_Respond_Recruit	;FFB2
+	dc.w	adrJA002C96-Comms_Respond_Recruit	;FFB2
+	dc.w	Comms_RespondWithRetort-Comms_Respond_Recruit	;00C2
+	dc.w	Comms_RespondWithRetort-Comms_Respond_Recruit	;00C2
+	dc.w	Comms_RespondWithRetort-Comms_Respond_Recruit	;00C2
+	dc.w	Comms_Respond_LowAttitude-Comms_Respond_Recruit	;00C8
+	dc.w	Comms_Respond_WhoGoesOrNameSelf-Comms_Respond_Recruit	;00DA
+	dc.w	Comms_Respond_ThyTradeOrRevealSelf-Comms_Respond_Recruit	;010A
+	dc.w	Comms_Respond_WhoGoesOrNameSelf-Comms_Respond_Recruit	;00DA
+	dc.w	Comms_Respond_ThyTradeOrRevealSelf-Comms_Respond_Recruit	;010A
+	dc.w	Comms_RespondWithRetort-Comms_Respond_Recruit	;00C2
+	dc.w	Comms_RespondWithRetort-Comms_Respond_Recruit	;00C2
+	dc.w	Comms_RespondWithRetort-Comms_Respond_Recruit	;00C2
+	dc.w	Comms_Respond_Persons-Comms_Respond_Recruit	;0114
+	dc.w	Comms_Respond_Offer-Comms_Respond_Recruit	;012E
+	dc.w	Comms_Respond_Purchase-Comms_Respond_Recruit	;0240
+	dc.w	Comms_Respond_Exchange-Comms_Respond_Recruit	;026C
+	dc.w	Comms_Respond_Sell-Comms_Respond_Recruit	;02E0
+	dc.w	Comms_Respond_Praise-Comms_Respond_Recruit	;039A
+	dc.w	adrJA00309A-Comms_Respond_Recruit	;03B6
+	dc.w	adrJA0030B4-Comms_Respond_Recruit	;03D0
+	dc.w	Comms_RespondWithRetort-Comms_Respond_Recruit	;00C2
+	dc.w	adrJA0030D2-Comms_Respond_Recruit	;03EE
 
-adrJA002CE4:
+Comms_Respond_Recruit:
+	; ReSource: Handles the other character's response to Recruit, including attitude, patience and party-capacity checks.
 	tst.b	$0007(a4)	;4A2C0007
-	bmi	Comms_Champion_TBC	;6B0000BC
+	bmi	Comms_RespondWithRetort	;6B0000BC
 	cmpi.b	#$10,d0	;0C000010
 	bcs.s	adrCd002D04	;6512
 	cmp.b	#$07,$0006(a4)	;0C2C00070006
-	bcs	Comms_Champion_TBC	;650000AC
+	bcs	Comms_RespondWithRetort	;650000AC
 adrCd002CFC:
 	lea	Msg_ThinkNot.l,a6	;4DF900003162
 	bra.s	adrCd002D34	;6030
@@ -4019,7 +4149,7 @@ adrCd002D1E:
 	cmp.b	#$0A,$0006(a4)	;0C2C000A0006
 	bcc.s	adrCd002D3A	;6414
 	cmp.b	#$05,$0006(a4)	;0C2C00050006
-	bcs.s	Comms_Champion_TBC	;6578
+	bcs.s	Comms_RespondWithRetort	;6578
 	lea	Msg_KeepTalking.l,a6	;4DF900003147
 adrCd002D34:
 	jmp	WriteMessage.l	;4EF90000D03A
@@ -4034,7 +4164,7 @@ adrCd002D3A:
 	move.b	$0003(a4),d0	;102C0003
 	and.w	#$000F,d0	;0240000F
 	move.w	d0,d2	;3400
-	bsr	adrCd006660	;61003900
+	bsr	Load_ChampionStatRecord	;61003900
 	moveq	#$00,d7	;7E00
 	move.b	$0016(a4),d7	;1E2C0016
 	swap	d7	;4847
@@ -4058,103 +4188,112 @@ adrCd002D9E:
 	lea	Msg_PartyFull.l,a6	;4DF900003100
 	bra.s	adrCd002D34	;608E
 
-Comms_Champion_TBC:
-	moveq	#$19,d1	;7219
+Comms_RespondWithRetort:
+	; ReSource: Routes an action to the contextual Retort reply generator.
+	moveq	#CommsAction_Retort,d1	;7219
 adrCd002DA8:
-	bra	adrCd003510	;60000766
+	bra	Comms_RunAction	;60000766
 
-adrJA002DAC:
-	moveq	#$09,d1	;7209
+Comms_Respond_LowAttitude:
+	; ReSource: Selects a hostile or dismissive response when attitude is low.
+	moveq	#CommsAction_Threat,d1	;7209
 	tst.b	$0007(a4)	;4A2C0007
 	bmi.s	adrCd002DA8	;6BF4
 	cmp.b	#$0A,$0006(a4)	;0C2C000A0006
 	bcs.s	adrCd002DA8	;65EC
-	bra.s	Comms_Champion_TBC	;60E8
+	bra.s	Comms_RespondWithRetort	;60E8
 
-adrJA002DBE:
-	moveq	#$0C,d1	;720C
+Comms_Respond_WhoGoesOrNameSelf:
+	; ReSource: Responds to identity questions, revealing a champion name or special monster identity when permitted.
+	moveq	#CommsAction_NameSelf,d1	;720C
 	cmpi.b	#$10,d0	;0C000010
 	bcs.s	adrCd002DA8	;65E2
 	cmp.b	#$05,$0006(a4)	;0C2C00050006
-	bcs.s	Comms_Champion_TBC	;65D8
+	bcs.s	Comms_RespondWithRetort	;65D8
 	lea	Msg_NameNotImportant.l,a6	;4DF900003178
 	lea	BigMonsterList.l,a1	;43F900016A7E
 	asl.w	#$04,d0	;E940
 Zendik_Named:
 	cmp.b	#$40,$0B(a1,d0.w)	;0C310040000B
 	bne.s	NotNamed	;6606
-	lea	Msg_Zendik.l,a6	;4DF900003191
+	lea	Msg_WhoGoes_Zendik.l,a6	;4DF900003191
 NotNamed:
 	bra	adrCd002D34	;6000FF48
 
-adrJA002DEE:
+Comms_Respond_ThyTradeOrRevealSelf:
+	; ReSource: Responds to profession questions, revealing a champion profession when applicable.
 	cmpi.b	#$10,d0	;0C000010
-	bcc.s	Comms_Champion_TBC	;64B2
-	moveq	#$0D,d1	;720D
+	bcc.s	Comms_RespondWithRetort	;64B2
+	moveq	#CommsAction_RevealSelf,d1	;720D
 	bra.s	adrCd002DA8	;60B0
 
-adrJA002DF8:
+Comms_Respond_Persons:
+	; ReSource: Selects the response to the Persons inquiry according to attitude and randomness.
 	moveq	#-$02,d0	;70FE
 	cmp.b	#$0A,$0006(a4)	;0C2C000A0006
 	bcs.s	adrCd002E06	;6504
-	bra	adrJA003918	;60000B14
+	bra	Comms_Action_Praise	;60000B14
 
 adrCd002E06:
 	bsr	RandomGen_BytewithOffset	;610027A4
-	moveq	#$18,d1	;7218
+	moveq	#CommsAction_Boast,d1	;7218
 	tst.b	d0	;4A00
 	bmi.s	adrCd002DA8	;6B98
-	bra.s	Comms_Champion_TBC	;6094
+	bra.s	Comms_RespondWithRetort	;6094
 
-adrJA002E12:
+Comms_Respond_Offer:
+	; ReSource: Handles acceptance and transfer of an offered held object or coinage.
 	cmpi.b	#$10,d0						;0C000010
-	bcs.s	Comms_Champion_TBC					;658E
-	move.w	$002E(a5),d1					;322D002E
+	bcs.s	Comms_RespondWithRetort					;658E
+	move.w	HeldItem_ObjectCodeOffset(a5),d1					;322D002E
 	cmp.b	$000A(a4),d1					;B22C000A
 	bne	adrCd002FD8					;660001B6
 	tst.w	d1						;4A41
 	beq.s	adrCd002E52					;672A
-	cmpi.b	#$5F,d1						;0C01005F
+	cmpi.b	#Object_Permit,d1						;0C01005F
 	beq.s	adrCd002E36					;6708
-	cmpi.b	#$40,d1						;0C010040
-	bcc	ItemNotToTrade					;6400023A
+	cmpi.b	#Object_Remains_First,d1						;0C010040
+	bcc	Comms_RejectUntradeableObject					;6400023A
 adrCd002E36:
 	moveq	#$00,d2	;7400
 	move.b	$0008(a4),d2	;142C0008
-	lea	adrJB002E5C.l,a0	;41F900002E5C
+	lea	Comms_AcceptOfferedObject.l,a0	;41F900002E5C
 	add.w	d2,d2	;D442
-	add.w	adrJT002E4A(pc,d2.w),a0	;D0FB2004
+	add.w	Comms_TradeModeHandlerOffsets(pc,d2.w),a0	;D0FB2004
 	jmp	(a0)	;4ED0
 
-adrJT002E4A:
-	dc.w	adrJB002E5C-adrJB002E5C	;0000
-	dc.w	adrJA002E82-adrJB002E5C	;0026
-	dc.w	adrJA002EE4-adrJB002E5C	;0088
-	dc.w	adrJB002E5C-adrJB002E5C	;0000
+Comms_TradeModeHandlerOffsets:
+	; ReSource: Selects transfer behaviour for the active purchase, exchange or sell mode.
+	dc.w	Comms_AcceptOfferedObject-Comms_AcceptOfferedObject	;0000
+	dc.w	Comms_BuyOfferedObject-Comms_AcceptOfferedObject	;0026
+	dc.w	Comms_ExchangeOfferedObject-Comms_AcceptOfferedObject	;0088
+	dc.w	Comms_AcceptOfferedObject-Comms_AcceptOfferedObject	;0000
 
 adrCd002E52:
 	move.b	#$08,$0000(a4)	;197C00080000
-	bra	Comms_Champion_TBC	;6000FF4C
+	bra	Comms_RespondWithRetort	;6000FF4C
 
-adrJB002E5C:
-	cmpi.b	#$5F,d1						;0C01005F
+Comms_AcceptOfferedObject:
+	; ReSource: Accepts an offered object after its tradeability has been checked.
+	cmpi.b	#Object_Permit,d1						;0C01005F
 	beq.s	adrCd002E76					;6714
-	sub.w	#$0014,d1					;04410014
+	sub.w	#Object_TradeValueTable_First,d1					;04410014
 	bcs.s	adrCd002E76					;650E
-	lea	adrEA0031E6.l,a0				;41F9000031E6
+	lea	Comms_ObjectTradeValues.l,a0				;41F9000031E6
 	tst.b	$00(a0,d1.w)					;4A301000
-	bmi	ItemNotToTrade					;6B0001FA
+	bmi	Comms_RejectUntradeableObject					;6B0001FA
 adrCd002E76:
-	clr.l	$002C(a5)					;42AD002C
+	clr.l	HeldItem_StateOffset(a5)					;42AD002C
 adrCd002E7A:
 	bsr	adrCd0035FA					;6100077E
 	bra	Refresh_HeldItemDisplay					;60003DB4
 
-adrJA002E82:
+Comms_BuyOfferedObject:
+	; ReSource: Calculates the attitude-adjusted purchase price of an object offered by the player.
 	move.w	$002C(a5),d4	;382D002C
 	cmp.b	$0009(a4),d4	;B82C0009
 	bcs	adrCd002FD8	;6500014C
-	bsr	adrCd003232	;610003A2
+	bsr	Comms_GetMonsterTradeObject	;610003A2
 	move.w	$002C(a5),d4	;382D002C
 	move.w	d0,d3	;3600
 	moveq	#$01,d2	;7401
@@ -4166,7 +4305,7 @@ adrJA002E82:
 	bra.s	adrCd002EB4	;600A
 
 adrCd002EAA:
-	lea	adrEA0031E6.l,a1	;43F9000031E6
+	lea	Comms_ObjectTradeValues.l,a1	;43F9000031E6
 	move.b	$00(a1,d3.w),d2	;14313000
 adrCd002EB4:
 	moveq	#$6E,d3	;766E
@@ -4189,8 +4328,9 @@ adrCd002EDE:
 	moveq	#$07,d1	;7207
 	bra	adrCd002DA8	;6000FEC6
 
-adrJA002EE4:
-	lea	adrEA0031E6.l,a1		;43F9000031E6
+Comms_ExchangeOfferedObject:
+	; ReSource: Compares offered-object values and completes an acceptable exchange.
+	lea	Comms_ObjectTradeValues.l,a1		;43F9000031E6
 	moveq	#$02,d2				;7402
 	sub.w	#$0014,d1			;04410014
 	bcs.s	adrCd002F04			;6512
@@ -4203,7 +4343,7 @@ adrCd002EFC:
 	move.b	$00(a1,d1.w),d2	;14311000
 	bmi	adrCd00306A	;6B000168
 adrCd002F04:
-	bsr	adrCd003232	;6100032C
+	bsr	Comms_GetMonsterTradeObject	;6100032C
 	move.w	d0,d4	;3800
 	moveq	#$02,d3	;7602
 	sub.w	#$0014,d4	;04440014
@@ -4215,45 +4355,50 @@ adrCd002F16:
 	move.b	$002F(a5),$0C(a0,d1.w)	;11AD002F100C
 	bra.s	adrCd002ED2	;60AE
 
-adrJA002F24:
+Comms_Respond_Purchase:
+	; ReSource: Selects trader merchandise and produces the response to Purchase.
 	cmpi.b	#$10,d0	;0C000010
-	bcs	Comms_Champion_TBC	;6500FE7C
-MonsterCommsType:
-	bsr	adrCd003232	;61000304
+	bcs	Comms_RespondWithRetort	;6500FE7C
+Comms_SelectTraderStock:
+	; ReSource: Uses the monster type to select or initialise the object offered for sale.
+	bsr	Comms_GetMonsterTradeObject	;61000304
 	lea	$00(a0,d1.w),a1	;43F01000
 	cmp.b	#$15,$000B(a1)	;0C290015000B
-	bcs.s	MonsterCommsNotTraderTBC	;6510
+	bcs.s	Comms_PrintPurchaseObject	;6510
 	cmp.b	#$17,$000B(a1)	;0C290017000B
-	bcc.s	MonsterCommsNotTraderTBC	;6408
-	bsr	MonsterCommsTraderMaybe	;61000336
+	bcc.s	Comms_PrintPurchaseObject	;6408
+	bsr	Comms_InitialiseMonsterTrader	;61000336
 	move.b	$000C(a1),d0	;1029000C
-MonsterCommsNotTraderTBC:
+Comms_PrintPurchaseObject:
+	; ReSource: Builds the purchase response using the monster's currently offered object.
 	bra	adrCd0038D2	;60000984
 
-Trade_Exchange_TBC:
+Comms_Respond_Exchange:
+	; ReSource: Compares the offered and requested object values and begins an exchange when acceptable.
 	cmpi.b	#$10,d0	;0C000010
-	bcs	Comms_Champion_TBC	;6500FE50
+	bcs	Comms_RespondWithRetort	;6500FE50
 	move.w	$002E(a5),d1	;322D002E
 	cmp.b	$000A(a4),d1	;B22C000A
 	bne	adrCd002FD8	;66000076
 	tst.w	d1	;4A41
-	beq.s	MonsterCommsType	;67C4
-	lea	adrEA0031E6.l,a1	;43F9000031E6
+	beq.s	Comms_SelectTraderStock	;67C4
+	lea	Comms_ObjectTradeValues.l,a1	;43F9000031E6
 	cmpi.b	#$5F,d1	;0C01005F
-	bne.s	Comms_ObjectTrade	;6604
+	bne.s	Comms_CompareExchangeObject	;6604
 	moveq	#$5A,d2	;745A
 	bra.s	adrCd002F90	;6018
 
-Comms_ObjectTrade:
+Comms_CompareExchangeObject:
+	; ReSource: Loads the trade value of the held object for an exchange comparison.
 	cmpi.b	#$40,d1	;0C010040
-	bcc	ItemNotToTrade	;640000F0
+	bcc	Comms_RejectUntradeableObject	;640000F0
 	moveq	#$02,d2	;7402
 	sub.w	#$0014,d1	;04410014
 	bcs.s	adrCd002F90	;6508
 	move.b	$00(a1,d1.w),d2	;14311000
 	bmi	adrCd00306A	;6B0000DC
 adrCd002F90:
-	bsr	adrCd003232	;610002A0
+	bsr	Comms_GetMonsterTradeObject	;610002A0
 	move.w	d0,d1	;3200
 	moveq	#$02,d3	;7602
 	sub.w	#$0014,d1	;04410014
@@ -4266,16 +4411,17 @@ adrCd002FA2:
 	bra	adrCd00383E	;60000890
 
 adrCd002FB0:
-	lea	adrEA0031D2.l,a6	;4DF9000031D2
+	lea	Msg_Trade_OfferTooLow.l,a6	;4DF9000031D2
 	jmp	Print_npc_message.l	;4EF90000D81C
 
 adrCd002FBC:
 	clr.b	$0008(a4)	;422C0008
-	bra	Comms_Champion_TBC	;6000FDE4
+	bra	Comms_RespondWithRetort	;6000FDE4
 
-adrJA002FC4:
+Comms_Respond_Sell:
+	; ReSource: Handles the response to Sell and validates the held object and quoted value.
 	cmpi.b	#$10,d0	;0C000010
-	bcs	Comms_Champion_TBC	;6500FDDC
+	bcs	Comms_RespondWithRetort	;6500FDDC
 	move.w	$002E(a5),d0	;302D002E
 	beq.s	adrCd002FBC	;67EA
 	cmp.b	$000A(a4),d0	;B02C000A
@@ -4296,14 +4442,14 @@ adrCd002FEE:
 
 adrCd002FF8:
 	cmpi.b	#$40,d0	;0C000040
-	bcc.s	ItemNotToTrade	;6470
+	bcc.s	Comms_RejectUntradeableObject	;6470
 	sub.b	#$14,d0	;04000014
 	bcc.s	adrCd00300A	;6406
 	moveq	#$01,d0	;7001
-	bra	Trade_Offer_TBC	;6000023A
+	bra	Comms_PrintGoldOffer	;6000023A
 
 adrCd00300A:
-	lea	adrEA0031E6.l,a0	;41F9000031E6
+	lea	Comms_ObjectTradeValues.l,a0	;41F9000031E6
 	move.b	$00(a0,d0.w),d0	;10300000
 	bmi.s	adrCd00306A	;6B54
 adrCd003016:
@@ -4315,15 +4461,15 @@ adrCd003016:
 	sub.w	#$000A,d1	;0441000A
 	add.w	#$003C,d1	;0641003C
 	cmp.w	#$0064,d1	;B27C0064
-	bcc	Trade_Offer_TBC	;64000210
+	bcc	Comms_PrintGoldOffer	;64000210
 	mulu	d1,d0	;C0C1
 	divu	#$0064,d0	;80FC0064
-	bra	Trade_Offer_TBC	;60000206
+	bra	Comms_PrintGoldOffer	;60000206
 
 adrCd00303E:
 	bpl.s	adrCd003054	;6A14
 	clr.b	$0008(a4)	;422C0008
-	lea	Msg_TooGreet.l,a6	;4DF9000031B4
+	lea	Msg_Trade_TooGreedy.l,a6	;4DF9000031B4
 	move.b	#$19,$0001(a4)	;197C00190001
 	bra	adrCd002D34	;6000FCE2
 
@@ -4334,21 +4480,23 @@ adrCd003054:
 	lsr.b	#$01,d0	;E208
 	add.b	d2,d0	;D002
 	bset	#$07,d0	;08C00007
-	bra	Trade_Offer_TBC	;600001DA
+	bra	Comms_PrintGoldOffer	;600001DA
 
 adrCd00306A:
 	clr.b	$0008(a4)	;422C0008
-ItemNotToTrade:
+Comms_RejectUntradeableObject:
+	; ReSource: Rejects an object that cannot safely participate in trading.
 	move.b	#$07,$0001(a4)	;197C00070001
-	lea	NeverTrustUnnaturalMsg.l,a6	;4DF90000312B
+	lea	Msg_Trade_UnnaturalObject.l,a6	;4DF90000312B
 	bra	adrCd002D34	;6000FCB8
 
-adrJA00307E:
+Comms_Respond_Praise:
+	; ReSource: Selects a complimentary, neutral or hostile response to Praise from the current attitude.
 	moveq	#$16,d1	;7216
 	cmp.b	#$0A,$0006(a4)	;0C2C000A0006
 	bcc	adrCd002DA8	;6400FD20
 	cmp.b	#$05,$0006(a4)	;0C2C00050006
-	bcc	Comms_Champion_TBC	;6400FD14
+	bcc	Comms_RespondWithRetort	;6400FD14
 adrCd003094:
 	moveq	#$17,d1	;7217
 	bra	adrCd002DA8	;6000FD10
@@ -4358,27 +4506,27 @@ adrJA00309A:
 	cmp.b	#$05,$0006(a4)	;0C2C00050006
 	bcc	adrCd002DA8	;6400FD04
 	tst.b	$0007(a4)	;4A2C0007
-	bpl	Comms_Champion_TBC	;6A00FCFA
+	bpl	Comms_RespondWithRetort	;6A00FCFA
 	moveq	#$09,d1	;7209
 	bra	adrCd002DA8	;6000FCF6
 
 adrJA0030B4:
 	cmp.b	#$0A,$0006(a4)	;0C2C000A0006
-	bcc.s	adrJA00307E	;64C2
+	bcc.s	Comms_Respond_Praise	;64C2
 	moveq	#$18,d1	;7218
 	cmp.b	#$07,$0006(a4)	;0C2C00070006
 	bcc	adrCd002DA8	;6400FCE2
 	tst.b	$0007(a4)	;4A2C0007
 	bmi.s	adrJA00309A	;6BCC
-	bra	Comms_Champion_TBC	;6000FCD6
+	bra	Comms_RespondWithRetort	;6000FCD6
 
 adrJA0030D2:
 	cmp.b	#$02,$0006(a4)	;0C2C00020006
-	bcs	adrJA002DAC	;6500FCD2
+	bcs	Comms_Respond_LowAttitude	;6500FCD2
 	cmp.b	#$05,$0006(a4)	;0C2C00050006
 	bcs.s	adrJA00309A	;65B6
 	cmp.b	#$08,$0006(a4)	;0C2C00080006
-	bcs	Comms_Champion_TBC	;6500FCBA
+	bcs	Comms_RespondWithRetort	;6500FCBA
 	bsr	RandomGen_BytewithOffset	;610024BC
 	moveq	#$0A,d1	;720A
 	tst.b	d0	;4A00
@@ -4392,7 +4540,8 @@ Msg_PartyFull:
 Msg_RipOff:
 	dc.b	'WOULDST THOU RIP ME OFF?'	;574F554C4453542054484F5520524950204D45204F46463F
 	dc.b	$FF	;FF
-NeverTrustUnnaturalMsg:
+Msg_Trade_UnnaturalObject:
+	; ReSource: Character response rejecting an untradeable or unnatural object.
 	dc.b	'I NEVER TRUST THE UNNATURAL'	;49204E455645522054525553542054484520554E4E41545552414C
 	dc.b	$FF	;FF
 Msg_KeepTalking:
@@ -4404,13 +4553,16 @@ Msg_ThinkNot:
 Msg_NameNotImportant:
 	dc.b	'MY NAME IS NOT IMPORTANT'	;4D59204E414D45204953204E4F5420494D504F5254414E54
 	dc.b	$FF	;FF
-Msg_Zendik:
+Msg_WhoGoes_Zendik:
+	; ReSource: Special identity response used when the addressed monster is Zendik.
 	dc.b	'I AM ZENDIK THE MASTER OF CREATION'	;4920414D205A454E44494B20544845204D4153544552204F46204352454154494F4E
 	dc.b	$FF	;FF
-Msg_TooGreet:
+Msg_Trade_TooGreedy:
+	; ReSource: Character response when a trade request becomes too greedy.
 	dc.b	'METHINKS THOU ART TOO GREEDY!'	;4D455448494E4B532054484F552041525420544F4F2047524545445921
 	dc.b	$FF	;FF
-adrEA0031D2:
+Msg_Trade_OfferTooLow:
+	; ReSource: Packed-word character response rejecting an inadequate trade offer.
 	dc.b	$1A	;1A
 	dc.b	$19	;19
 	dc.b	$61	;61
@@ -4418,7 +4570,8 @@ adrEA0031D2:
 	dc.b	$B1	;B1
 	dc.b	$51	;51
 	dc.b	$FF	;FF
-adrEA0031D9:
+Msg_Trade_GoldOfferTemplate:
+	; ReSource: Writable packed-word template used to communicate a generated amount of gold.
 	dc.b	$CC	;CC
 	dc.b	$1A	;1A
 	dc.b	$1D	;1D
@@ -4432,7 +4585,8 @@ adrEA0031D9:
 	dc.b	$00	;00
 	dc.b	$00	;00
 	dc.b	$00	;00
-adrEA0031E6:
+Comms_ObjectTradeValues:
+	; ReSource: Trade values for object codes $14-$3F; $FF marks objects rejected by the trading logic.
 	dc.b	$04	;04
 	dc.b	$04	;04
 	dc.b	$06	;06
@@ -4477,7 +4631,8 @@ adrEA0031E6:
 	dc.b	$08	;08
 	dc.b	$0F	;0F
 	dc.b	$FF	;FF
-ArmouryList:
+Comms_TraderStockObjects:
+	; ReSource: Object-code pool used to choose merchandise for non-potion monster traders.
 	dc.b	$3D	;3D
 	dc.b	$33	;33
 	dc.b	$24	;24
@@ -4511,18 +4666,20 @@ ArmouryList:
 	dc.b	$3E	;3E
 	dc.b	$1F	;1F
 
-adrCd003232:
+Comms_GetMonsterTradeObject:
+	; ReSource: Returns the object stored in byte $0C of the selected monster record.
 	move.w	d0,d1	;3200
 	lea	BigMonsterList.l,a0	;41F900016A7E
 	asl.w	#$04,d1	;E941
 	move.b	$0C(a0,d1.w),d0	;1030100C
 	rts	;4E75
 
-Trade_Offer_TBC:
+Comms_PrintGoldOffer:
+	; ReSource: Formats a calculated trade value into the packed gold-offer message.
 	move.b	d0,$0009(a4)	;19400009
 	and.w	#$007F,d0	;0240007F
 	jsr	Convert_ByteToDecimalText.l	;4EB90000CEC4
-	lea	adrEA0031D9.w,a6	;4DF831D9	;Short Absolute converted to symbol!
+	lea	Msg_Trade_GoldOfferTemplate.w,a6	;4DF831D9	;Short Absolute converted to symbol!
 	moveq	#$06,d2	;7406
 	ror.w	#$08,d1	;E059
 	cmpi.b	#$30,d1	;0C010030
@@ -4537,7 +4694,8 @@ adrCd00326A:
 	addq.w	#$02,d2	;5442
 	bra	adrCd0038DC	;60000662
 
-MonsterCommsTraderMaybe:
+Comms_InitialiseMonsterTrader:
+	; ReSource: Initialises monster-trader stock and applies the monster's initial attitude penalty.
 	movem.w	d0/d1,-(sp)	;48A7C000
 	move.b	#$03,$0006(a4)	;197C00030006
 	cmp.b	#$40,$000B(a1)	;0C290040000B
@@ -4560,7 +4718,7 @@ MonsterCommsTraderMaybe:
 	bcc.s	.DontDivideList	;6402
 	lsr.w	#$01,d0	;E248
 .DontDivideList:
-	lea	ArmouryList.w,a0	;41F83212	;Short Absolute converted to symbol!
+	lea	Comms_TraderStockObjects.w,a0	;41F83212	;Short Absolute converted to symbol!
 	move.b	$00(a0,d0.w),$000C(a1)	;13700000000C
 	move.b	$0006(a1),d0	;10290006
 	and.w	#$007F,d0	;0240007F
@@ -4647,7 +4805,7 @@ adrJT0033A0:
 	dc.w	adrJA004144-adrJB0033B2	;0D92
 	dc.w	adrJA003F5C-adrJB0033B2	;0BAA
 	dc.w	adrJA003E9C-adrJB0033B2	;0AEA
-	dc.w	adrJA0034CC-adrJB0033B2	;011A
+	dc.w	Comms_HandleMenuSelection-adrJB0033B2	;011A
 
 adrJB0033B2:
 	clr.b	$004E(a5)	;422D004E
@@ -4676,20 +4834,21 @@ adrCd0033EC:
 
 adrJA0033EE:
 	bsr.s	adrCd0033BE	;61CE
-	bcs.s	adrCd003402	;6510
+	bcs.s	Comms_StartWithTarget	;6510
 adrCd0033F2:
 	lea	adrEA0041F3.l,a6	;4DF9000041F3
 	clr.w	$0042(a5)	;426D0042
 	jmp	Print_timed_message.l	;4EF90000D86A
 
-adrCd003402:
+Comms_StartWithTarget:
+	; ReSource: Initialises communication state for the selected champion or monster and prints the greeting.
 	move.w	d0,d1	;3200
-	bsr	adrCd00665C	;61003256
+	bsr	Load_CurrentChampionStatRecord	;61003256
 	move.b	#$17,$001B(a4)	;197C0017001B
 	move.w	d1,d0	;3001
-	bsr	adrCd0041FA	;61000DE8
+	bsr	Comms_GetState	;61000DE8
 	clr.b	$0006(a4)	;422C0006
-	move.b	#$1A,$0000(a4)	;197C001A0000
+	move.b	#CommsAction_Greeting,CommsState_PreviousActionOffset(a4)	;197C001A0000
 	bclr	#$07,$0005(a4)	;08AC00070005
 	tst.b	d0	;4A00
 	bmi.s	adrCd003458	;6B30
@@ -4700,7 +4859,7 @@ adrCd003402:
 	bcs.s	adrCd003444	;650C
 	tst.b	$000B(a1)	;4A29000B
 	bmi.s	adrCd0033F2	;6BB4
-	bsr	MonsterCommsTraderMaybe	;6100FE3C
+	bsr	Comms_InitialiseMonsterTrader	;6100FE3C
 	moveq	#$02,d4	;7802
 adrCd003444:
 	and.b	#$F0,$00(a1,d4.w)	;023100F04000
@@ -4717,35 +4876,36 @@ adrCd003462:
 	and.w	#$007F,d0	;0240007F
 	move.b	d0,$0002(a4)	;19400002
 	move.l	a4,-(sp)	;2F0C
-	bsr	adrCd00665C	;610031E8
-	move.b	$0004(a4),d2	;142C0004
+	bsr	Load_CurrentChampionStatRecord	;610031E8
+	move.b	ChampionStat_Charisma(a4),d2	;142C0004
 	move.l	(sp)+,a4	;285F
 	bsr	RandomGen_BytewithOffset	;6100212E
 	and.w	#$0007,d0	;02400007
 	addq.w	#$02,d0	;5440
-	sub.b	#$14,d2	;04020014
+	sub.b	#Comms_CharismaBaseline,d2	;04020014
 	bcc.s	adrCd00348E	;6402
 	moveq	#$00,d2	;7400
 adrCd00348E:
-	lsr.b	#$02,d2	;E40A
+	lsr.b	#Comms_CharismaShift,d2	;E40A
 	add.b	d2,d0	;D002
-	add.b	$0006(a4),d0	;D02C0006
+	add.b	CommsState_AttitudeOffset(a4),d0	;D02C0006
 	bpl.s	adrCd00349A	;6A02
 	moveq	#$00,d0	;7000
 adrCd00349A:
-	move.b	d0,$0006(a4)	;19400006
+	move.b	d0,CommsState_AttitudeOffset(a4)	;19400006
 	bsr	RandomGen_BytewithOffset	;6100210C
 	and.w	#$0007,d0	;02400007
 	addq.w	#$08,d0	;5040
-	move.b	d0,$0007(a4)	;19400007
+	move.b	d0,CommsState_PatienceOffset(a4)	;19400007
 	move.b	#$14,$0004(a4)	;197C00140004
 	clr.b	$0008(a4)	;422C0008
-	lea	adrEA003DF7.l,a6	;4DF900003DF7
+	lea	Msg_Greeting.l,a6	;4DF900003DF7
 	jsr	Print_npc_message.l	;4EB90000D81C
 	move.w	#$0004,$0044(a5)	;3B7C00040044
 	bra	adrCd003D9C	;600008D2
 
-adrJA0034CC:
+Comms_HandleMenuSelection:
+	; ReSource: Converts the visible communication menu and button into an action and runs it.
 	move.w	$0044(a5),d0	;302D0044
 	subq.w	#$04,d0	;5940
 	beq.s	adrCd0034E0	;670C
@@ -4756,9 +4916,9 @@ adrJA0034CC:
 	asl.w	#$02,d0	;E540
 	add.w	d0,d1	;D240
 adrCd0034E0:
-	bsr	adrCd0041FA	;61000D18
-	addq.b	#$01,$0006(a4)	;522C0006
-	bsr.s	adrCd003510	;6126
+	bsr	Comms_GetState	;61000D18
+	addq.b	#$01,CommsState_AttitudeOffset(a4)	;522C0006
+	bsr.s	Comms_RunAction	;6126
 	cmp.w	#$0006,$0044(a5)	;0C6D00060044
 	bcs.s	adrCd0034FE	;650C
 	cmp.b	#$06,$0001(a4)	;0C2C00060001
@@ -4766,81 +4926,91 @@ adrCd0034E0:
 	bsr	adrCd00331A	;6100FE1E
 adrCd0034FE:
 	move.b	#$14,$0004(a4)	;197C00140004
-	move.b	$0001(a4),$0000(a4)	;196C00010000
-	subq.b	#$01,$0007(a4)	;532C0007
+	move.b	CommsState_CurrentActionOffset(a4),CommsState_PreviousActionOffset(a4)	;196C00010000
+	subq.b	#$01,CommsState_PatienceOffset(a4)	;532C0007
 adrCd00350E:
 	rts	;4E75
 
-adrCd003510:
-	move.b	d1,$0001(a4)	;19410001
+Comms_RunAction:
+	; ReSource: Stores and dispatches one communication action.
+	move.b	d1,CommsState_CurrentActionOffset(a4)	;19410001
 	add.w	d1,d1	;D241
-	lea	adrJB00355C.l,a0	;41F90000355C
-	add.w	adrJT003526(pc,d1.w),a0	;D0FB1008
+	lea	Comms_Action_Recruit.l,a0	;41F90000355C
+	add.w	Comms_ActionHandlerOffsets(pc,d1.w),a0	;D0FB1008
 	bsr	RandomGen_BytewithOffset	;6100208A
 	jmp	(a0)	;4ED0
 
-adrJT003526:
-	dc.w	adrJB00355C-adrJB00355C	;0000
-	dc.w	adrJA00356A-adrJB00355C	;000E
-	dc.w	adrJA003572-adrJB00355C	;0016
-	dc.w	adrJA00357A-adrJB00355C	;001E
-	dc.w	adrJA003586-adrJB00355C	;002A
-	dc.w	adrJA00358E-adrJB00355C	;0032
-	dc.w	adrJA003596-adrJB00355C	;003A
-	dc.w	adrJA003604-adrJB00355C	;00A8
-	dc.w	adrJA00363E-adrJB00355C	;00E2
-	dc.w	adrJA00364A-adrJB00355C	;00EE
-	dc.w	adrJA0036F0-adrJB00355C	;0194
-	dc.w	adrJA0036FC-adrJB00355C	;01A0
-	dc.w	adrJA00371E-adrJB00355C	;01C2
-	dc.w	adrJA003744-adrJB00355C	;01E8
-	dc.w	adrJA003772-adrJB00355C	;0216
-	dc.w	adrJA00377E-adrJB00355C	;0222
-	dc.w	adrJA00378A-adrJB00355C	;022E
-	dc.w	adrJA003796-adrJB00355C	;023A
-	dc.w	adrJA00382C-adrJB00355C	;02D0
-	dc.w	adrJA0038A4-adrJB00355C	;0348
-	dc.w	adrJA0038B6-adrJB00355C	;035A
-	dc.w	adrJA003874-adrJB00355C	;0318
-	dc.w	adrJA003918-adrJB00355C	;03BC
-	dc.w	adrJA003924-adrJB00355C	;03C8
-	dc.w	adrJA003A0E-adrJB00355C	;04B2
-	dc.w	adrJA003A52-adrJB00355C	;04F6
-	dc.w	adrJA003568-adrJB00355C	;000C
+Comms_ActionHandlerOffsets:
+	; ReSource: Ordered handlers for communication action identifiers $00-$1A.
+	dc.w	Comms_Action_Recruit-Comms_Action_Recruit	;0000
+	dc.w	Comms_Action_Identify-Comms_Action_Recruit	;000E
+	dc.w	Comms_Action_Inquiry-Comms_Action_Recruit	;0016
+	dc.w	Comms_Action_Whereabouts-Comms_Action_Recruit	;001E
+	dc.w	Comms_Action_Trading-Comms_Action_Recruit	;002A
+	dc.w	Comms_Action_Smalltalk-Comms_Action_Recruit	;0032
+	dc.w	Comms_Action_Yes-Comms_Action_Recruit	;003A
+	dc.w	Comms_Action_No-Comms_Action_Recruit	;00A8
+	dc.w	Comms_Action_Bribe-Comms_Action_Recruit	;00E2
+	dc.w	Comms_Action_Threat-Comms_Action_Recruit	;00EE
+	dc.w	Comms_Action_WhoGoes-Comms_Action_Recruit	;0194
+	dc.w	Comms_Action_ThyTrade-Comms_Action_Recruit	;01A0
+	dc.w	Comms_Action_NameSelf-Comms_Action_Recruit	;01C2
+	dc.w	Comms_Action_RevealSelf-Comms_Action_Recruit	;01E8
+	dc.w	Comms_Action_FolkLore-Comms_Action_Recruit	;0216
+	dc.w	Comms_Action_MagicItems-Comms_Action_Recruit	;0222
+	dc.w	Comms_Action_Objects-Comms_Action_Recruit	;022E
+	dc.w	Comms_Action_Persons-Comms_Action_Recruit	;023A
+	dc.w	Comms_Action_Offer-Comms_Action_Recruit	;02D0
+	dc.w	Comms_Action_Purchase-Comms_Action_Recruit	;0348
+	dc.w	Comms_Action_Exchange-Comms_Action_Recruit	;035A
+	dc.w	Comms_Action_Sell-Comms_Action_Recruit	;0318
+	dc.w	Comms_Action_Praise-Comms_Action_Recruit	;03BC
+	dc.w	Comms_Action_Curse-Comms_Action_Recruit	;03C8
+	dc.w	Comms_Action_Boast-Comms_Action_Recruit	;04B2
+	dc.w	Comms_Action_Retort-Comms_Action_Recruit	;04F6
+	dc.w	Comms_Action_None-Comms_Action_Recruit	;000C
 
-adrJB00355C:
+Comms_Action_Recruit:
+	; ReSource: Communicates the Recruit request.
 	lea	Msg_Recruit.l,a6	;4DF900003E83
 	jmp	WriteMessage.l	;4EF90000D03A
 
-adrJA003568:
+Comms_Action_None:
+	; ReSource: No-operation handler used by the final communication action slot.
 	rts	;4E75
 
-adrJA00356A:
+Comms_Action_Identify:
+	; ReSource: Opens the Identify communication submenu.
 	addq.w	#$02,$0044(a5)	;546D0044
 	bra	adrCd003338	;6000FDC8
 
-adrJA003572:
+Comms_Action_Inquiry:
+	; ReSource: Opens the Inquiry communication submenu.
 	addq.w	#$03,$0044(a5)	;566D0044
 	bra	adrCd003338	;6000FDC0
 
-adrJA00357A:
-	lea	Msg_WhereIsThis.l,a6	;4DF900003E2F
+Comms_Action_Whereabouts:
+	; ReSource: Communicates the Whereabouts question.
+	lea	Msg_Whereabouts.l,a6	;4DF900003E2F
 	jmp	WriteMessage.l	;4EF90000D03A
 
-adrJA003586:
+Comms_Action_Trading:
+	; ReSource: Opens the Trading communication submenu.
 	addq.w	#$03,$0044(a5)	;566D0044
 	bra	adrCd003338	;6000FDAC
 
-adrJA00358E:
+Comms_Action_Smalltalk:
+	; ReSource: Opens the Smalltalk communication submenu.
 	addq.w	#$04,$0044(a5)	;586D0044
 	bra	adrCd003338	;6000FDA4
 
-adrJA003596:
+Comms_Action_Yes:
+	; ReSource: Communicates Yes and completes an accepted object or coinage transfer when one is pending.
 	move.b	$0008(a4),d2	;142C0008
-	subq.b	#$02,d2	;5502
+	subq.b	#CommsTradeMode_Exchange,d2	;5502
 	bcs.s	adrCd0035FE	;6560
 	bne.s	adrCd0035DC	;663C
-	cmp.b	#$12,$0000(a4)	;0C2C00120000
+	cmp.b	#CommsAction_Offer,CommsState_PreviousActionOffset(a4)	;0C2C00120000
 	bne.s	adrCd0035FE	;6656
 	move.w	$002E(a5),d0	;302D002E
 	cmp.b	$000A(a4),d0	;B02C000A
@@ -4848,12 +5018,12 @@ adrJA003596:
 	move.b	$0035(a5),d0	;102D0035
 	cmpi.b	#$10,d0	;0C000010
 	bcs.s	adrCd0035FE	;6542
-	bsr	adrCd003232	;6100FC74
+	bsr	Comms_GetMonsterTradeObject	;6100FC74
 	move.b	$002F(a5),$0C(a0,d1.w)	;11AD002F100C
 	move.b	d0,$002F(a5)	;1B40002F
 	move.w	#$0001,$002C(a5)	;3B7C0001002C
 adrCd0035D0:
-	move.b	#$18,$0001(a4)	;197C00180001
+	move.b	#CommsAction_Boast,CommsState_CurrentActionOffset(a4)	;197C00180001
 	bsr.s	adrCd0035FA	;6122
 	bra	Refresh_HeldItemDisplay	;6000365A
 
@@ -4872,19 +5042,20 @@ adrCd0035FE:
 	move.w	#$45FF,d0	;303C45FF
 	bra.s	adrCd003626	;6022
 
-adrJA003604:
+Comms_Action_No:
+	; ReSource: Communicates No and cancels or refuses the active trading mode.
 	move.w	#$3DFF,d0	;303C3DFF
 	move.b	$0008(a4),d1	;122C0008
 	beq.s	adrCd003626	;6718
-	add.b	#$12,d1	;06010012
+	add.b	#CommsAction_Offer,d1	;06010012
 	move.b	d1,$0001(a4)	;19410001
-	cmpi.b	#$15,d1	;0C010015
+	cmpi.b	#CommsAction_Sell,d1	;0C010015
 	bne.s	adrCd003626	;660A
-	subq.b	#$04,$0006(a4)	;592C0006
+	subq.b	#$04,CommsState_AttitudeOffset(a4)	;592C0006
 	bpl.s	adrCd003626	;6A04
 	clr.b	$0006(a4)	;422C0006
 adrCd003626:
-	subq.b	#$01,$0006(a4)	;532C0006
+	subq.b	#$01,CommsState_AttitudeOffset(a4)	;532C0006
 	bpl.s	adrCd003630	;6A04
 	clr.b	$0006(a4)	;422C0006
 adrCd003630:
@@ -4892,17 +5063,19 @@ adrCd003630:
 	move.w	d0,(a6)	;3C80
 	jmp	Print_npc_message.l	;4EF90000D81C
 
-adrJA00363E:
-	lea	adrEA003E26.l,a6	;4DF900003E26
+Comms_Action_Bribe:
+	; ReSource: Communicates the Bribe question.
+	lea	Msg_Bribe.l,a6	;4DF900003E26
 	jmp	Print_npc_message.l	;4EF90000D81C
 
-adrJA00364A:
-	lea	adrEA003DC0.l,a6	;4DF900003DC0
+Comms_Action_Threat:
+	; ReSource: Builds a randomized threat and reduces attitude.
+	lea	Comms_MessageBuffer.l,a6	;4DF900003DC0
 	and.w	#$0003,d0	;02400003
-	lea	adrEA003DDE.l,a3	;47F900003DDE
-	bsr	adrCd0036E0	;61000084
-	move.b	$0006(a4),d0	;102C0006
-	subq.b	#$03,$0006(a4)	;572C0006
+	lea	Comms_ThreatOpeningFragments.l,a3	;47F900003DDE
+	bsr	Comms_CopyThreatFragment	;61000084
+	move.b	CommsState_AttitudeOffset(a4),d0	;102C0006
+	subq.b	#$03,CommsState_AttitudeOffset(a4)	;572C0006
 	bpl.s	adrCd00366C	;6A04
 	clr.b	$0006(a4)	;422C0006
 adrCd00366C:
@@ -4933,8 +5106,8 @@ adrCd0036A2:
 	move.b	#$62,(a6)+	;1CFC0062
 	bsr	RandomGen_BytewithOffset	;61001F04
 	and.w	#$0003,d0	;02400003
-	lea	adrEA003DEE.l,a3	;47F900003DEE
-	bsr.s	adrCd0036E0	;612A
+	lea	Comms_ThreatConsequenceFragments.l,a3	;47F900003DEE
+	bsr.s	Comms_CopyThreatFragment	;612A
 	cmp.b	#$06,$0006(a4)	;0C2C00060006
 	bcc.s	adrCd003672	;64B4
 	move.b	#$1A,(a6)+	;1CFC001A
@@ -4944,10 +5117,11 @@ adrCd0036A2:
 	move.b	d0,(a6)+	;1CC0
 adrCd0036D0:
 	move.b	#$FF,(a6)	;1CBC00FF
-	lea	adrEA003DC0.l,a6	;4DF900003DC0
+	lea	Comms_MessageBuffer.l,a6	;4DF900003DC0
 	jmp	Print_npc_message.l	;4EF90000D81C
 
-adrCd0036E0:
+Comms_CopyThreatFragment:
+	; ReSource: Copies one length-prefixed threat fragment into the communication message buffer.
 	jsr	Proceed_in_stringtable.l	;4EB90000D7CC
 	subq.w	#$01,d5	;5345
 adrLp0036E8:
@@ -4955,20 +5129,24 @@ adrLp0036E8:
 	dbra	d5,adrLp0036E8	;51CDFFFC
 	rts	;4E75
 
-adrJA0036F0:
-	lea	adrEA003DFD.l,a6	;4DF900003DFD
+Comms_Action_WhoGoes:
+	; ReSource: Communicates the Who Goes identity question.
+	lea	Msg_WhoGoes.l,a6	;4DF900003DFD
 	jmp	Print_npc_message.l	;4EF90000D81C
 
-adrJA0036FC:
-	lea	Msg_Ask_Business.l,a6	;4DF900003708
+Comms_Action_ThyTrade:
+	; ReSource: Communicates the Thy Trade profession question.
+	lea	Msg_ThyTrade.l,a6	;4DF900003708
 	jmp	WriteMessage.l	;4EF90000D03A
 
-Msg_Ask_Business:
+Msg_ThyTrade:
+	; ReSource: Question communicated by the Thy Trade button.
 	dc.b	'WHAT BE THY BUSINESS?'	;574841542042452054485920425553494E4553533F
 	dc.b	$FF	;FF
 
-adrJA00371E:
-	lea	adrEA003DAA.l,a6	;4DF900003DAA
+Comms_Action_NameSelf:
+	; ReSource: Builds a message revealing the speaker's name and title.
+	lea	Msg_NameSelfTemplate.l,a6	;4DF900003DAA
 	move.b	$0003(a4),d1	;122C0003
 	or.b	#$80,$0003(a4)	;002C00800003
 	and.w	#$000F,d1	;0241000F
@@ -4977,8 +5155,9 @@ adrJA00371E:
 	move.b	d1,$0004(a6)	;1D410004
 	jmp	Print_npc_message.l	;4EF90000D81C
 
-adrJA003744:
-	lea	adrEA003E03.l,a6	;4DF900003E03
+Comms_Action_RevealSelf:
+	; ReSource: Builds a message revealing the speaker's profession.
+	lea	Msg_RevealSelfTemplate.l,a6	;4DF900003E03
 	move.b	$0003(a4),d0	;102C0003
 	or.b	#$40,$0003(a4)	;002C00400003
 	and.w	#$000F,d0	;0240000F
@@ -4990,37 +5169,46 @@ adrJA003744:
 adrCd00376C:
 	jmp	Print_npc_message.l	;4EF90000D81C
 
-adrJA003772:
-	lea	Msg_Ask_Legends.l,a6	;4DF9000037A2
+Comms_Action_FolkLore:
+	; ReSource: Communicates the Folk Lore inquiry.
+	lea	Msg_FolkLore.l,a6	;4DF9000037A2
 	jmp	WriteMessage.l	;4EF90000D03A
 
-adrJA00377E:
-	lea	AnyEnchantedMsg.l,a6	;4DF9000037BF
+Comms_Action_MagicItems:
+	; ReSource: Communicates the Magic Items inquiry.
+	lea	Msg_MagicItems.l,a6	;4DF9000037BF
 	jmp	WriteMessage.l	;4EF90000D03A
 
-adrJA00378A:
-	lea	AnyWeaponsMsg.l,a6	;4DF9000037E4
+Comms_Action_Objects:
+	; ReSource: Communicates the Objects inquiry.
+	lea	Msg_Objects.l,a6	;4DF9000037E4
 	jmp	WriteMessage.l	;4EF90000D03A
 
-adrJA003796:
-	lea	AnyPowerfulMsg.l,a6	;4DF900003809
+Comms_Action_Persons:
+	; ReSource: Communicates the Persons inquiry.
+	lea	Msg_Persons.l,a6	;4DF900003809
 	jmp	WriteMessage.l	;4EF90000D03A
 
-Msg_Ask_Legends:
+Msg_FolkLore:
+	; ReSource: Question communicated by the Folk Lore button.
 	dc.b	'HAST THOU HEARD ANY LEGENDS?'	;484153542054484F5520484541524420414E59204C4547454E44533F
 	dc.b	$FF	;FF
-AnyEnchantedMsg:
+Msg_MagicItems:
+	; ReSource: Question communicated by the Magic Items button.
 	dc.b	'KNOWEST THOU OF ANY ENCHANTED ITEMS?'	;4B4E4F574553542054484F55204F4620414E5920454E4348414E544544204954454D533F
 	dc.b	$FF	;FF
-AnyWeaponsMsg:
+Msg_Objects:
+	; ReSource: Question communicated by the Objects button.
 	dc.b	'KNOWEST THOU OF ANY WEAPONS OF NOTE?'	;4B4E4F574553542054484F55204F4620414E5920574541504F4E53204F46204E4F54453F
 	dc.b	$FF	;FF
-AnyPowerfulMsg:
+Msg_Persons:
+	; ReSource: Question communicated by the Persons button.
 	dc.b	'HAST HEARD OF ANY POWERFUL BEINGS?'	;48415354204845415244204F4620414E5920504F57455246554C204245494E47533F
 	dc.b	$FF	;FF
 
-adrJA00382C:
-	move.w	$002E(a5),d0	;302D002E
+Comms_Action_Offer:
+	; ReSource: Builds the Offer message from held coinage, a held object or the empty-hand template.
+	move.w	HeldItem_ObjectCodeOffset(a5),d0	;302D002E
 	move.b	d0,$000A(a4)	;1940000A
 	bne.s	adrCd00383E	;6608
 	clr.b	$0008(a4)	;422C0008
@@ -5028,65 +5216,69 @@ adrJA00382C:
 	bra.s	adrCd003894	;6056
 
 adrCd00383E:
-	cmpi.w	#$0001,d0	;0C400001
+	cmpi.w	#Object_Coinage,d0	;0C400001
 	bne.s	adrCd00385C	;6618
-	move.w	$002C(a5),d0	;302D002C
+	move.w	HeldItem_StateOffset(a5),d0	;302D002C
 	cmp.b	#$02,$0008(a4)	;0C2C00020008
-	bne	Trade_Offer_TBC	;6600F9F2
+	bne	Comms_PrintGoldOffer	;6600F9F2
 	move.b	#$01,$0008(a4)	;197C00010008
-	bra	Trade_Offer_TBC	;6000F9E8
+	bra	Comms_PrintGoldOffer	;6000F9E8
 
 adrCd00385C:
 	cmp.b	#$01,$0008(a4)	;0C2C00010008
 	bne.s	adrCd00386A	;6606
 	move.b	#$02,$0008(a4)	;197C00020008
 adrCd00386A:
-	lea	adrEA003E65.l,a6	;4DF900003E65
+	lea	Msg_OfferHeldItemTemplate.l,a6	;4DF900003E65
 	moveq	#$05,d2	;7405
 	bra.s	adrCd0038DA	;6066
 
-adrJA003874:
+Comms_Action_Sell:
+	; ReSource: Builds the Sell message and records the held object for the proposed trade.
 	move.b	#$03,$0008(a4)	;197C00030008
 	clr.b	$0009(a4)	;422C0009
-	move.w	$002E(a5),d0	;302D002E
+	move.w	HeldItem_ObjectCodeOffset(a5),d0	;302D002E
 	beq.s	adrCd003892	;670E
 	move.b	d0,$000A(a4)	;1940000A
-	lea	adrEA003E70.l,a6	;4DF900003E70
+	lea	Msg_SellHeldItemTemplate.l,a6	;4DF900003E70
 	moveq	#$05,d2	;7405
 	bra.s	adrCd0038DA	;6048
 
 adrCd003892:
 	moveq	#$57,d0	;7057
 adrCd003894:
-	lea	adrEA003E58.l,a6	;4DF900003E58
+	lea	Msg_OfferOrSellTemplate.l,a6	;4DF900003E58
 	move.b	d0,$0005(a6)	;1D400005
 	jmp	Print_npc_message.l	;4EF90000D81C
 
-adrJA0038A4:
-	lea	adrEA003E7B.l,a6	;4DF900003E7B
+Comms_Action_Purchase:
+	; ReSource: Communicates the Purchase question and enters purchase mode.
+	lea	Msg_Purchase.l,a6	;4DF900003E7B
 	move.b	#$01,$0008(a4)	;197C00010008
 	jmp	Print_npc_message.l	;4EF90000D81C
 
-adrJA0038B6:
+Comms_Action_Exchange:
+	; ReSource: Builds the Exchange question and enters exchange mode.
 	move.b	#$02,$0008(a4)	;197C00020008
-	move.w	$002E(a5),d0	;302D002E
+	move.w	HeldItem_ObjectCodeOffset(a5),d0	;302D002E
 	move.b	d0,$000A(a4)	;1940000A
 	bne.s	adrCd0038D2	;660C
-	lea	adrEA003E0B.l,a6	;4DF900003E0B
+	lea	Msg_Exchange.l,a6	;4DF900003E0B
 	jmp	Print_npc_message.l	;4EF90000D81C
 
 adrCd0038D2:
-	lea	adrEA003E15.l,a6	;4DF900003E15
+	lea	Msg_ExchangeHeldItemTemplate.l,a6	;4DF900003E15
 	moveq	#$0B,d2	;740B
 adrCd0038DA:
-	bsr.s	adrCd0038F4	;6118
+	bsr.s	Comms_AppendObjectName	;6118
 adrCd0038DC:
 	move.b	#$FA,$00(a6,d2.w)	;1DBC00FA2000
 	move.b	#$3F,$01(a6,d2.w)	;1DBC003F2001
 	move.b	#$FF,$02(a6,d2.w)	;1DBC00FF2002
 	jmp	Print_npc_message.l	;4EF90000D81C
 
-adrCd0038F4:
+Comms_AppendObjectName:
+	; ReSource: Appends an object's one- or two-part display name to a packed communication message.
 	lea	Object_Definition_Table+$02.l,a0	;41F90000E4C4
 	add.w	d0,d0	;D040
 	add.w	d0,d0	;D040
@@ -5101,31 +5293,34 @@ adrCd0038F4:
 adrCd003916:
 	rts	;4E75
 
-adrJA003918:
-	addq.b	#$01,$0006(a4)	;522C0006
-	lea	adrEA003A02.l,a0	;41F900003A02
+Comms_Action_Praise:
+	; ReSource: Builds a randomized compliment and raises attitude.
+	addq.b	#$01,CommsState_AttitudeOffset(a4)	;522C0006
+	lea	Comms_PraiseWordRanges.l,a0	;41F900003A02
 	bra.s	adrCd003934	;6010
 
-adrJA003924:
-	subq.b	#$04,$0006(a4)	;592C0006
+Comms_Action_Curse:
+	; ReSource: Builds a randomized insult and reduces attitude.
+	subq.b	#$04,CommsState_AttitudeOffset(a4)	;592C0006
 	bpl.s	adrCd00392E	;6A04
 	clr.b	$0006(a4)	;422C0006
 adrCd00392E:
-	lea	adrEA003A08.l,a0	;41F900003A08
+	lea	Comms_CurseWordRanges.l,a0	;41F900003A08
 adrCd003934:
-	bsr.s	adrCd00397E	;6148
+	bsr.s	Comms_BuildSmalltalk	;6148
 	moveq	#$02,d4	;7802
 adrLp003938:
 	asr.w	#$01,d7	;E247
 	bcc.s	adrCd00393E	;6402
-	bsr.s	adrCd003950	;6112
+	bsr.s	Comms_AppendSmalltalkWord	;6112
 adrCd00393E:
 	addq.w	#$02,a0	;5448
 	dbra	d4,adrLp003938	;51CCFFF6
 	move.b	#$FF,$00(a6,d2.w)	;1DBC00FF2000
 	jmp	Print_npc_message.l	;4EF90000D81C
 
-adrCd003950:
+Comms_AppendSmalltalkWord:
+	; ReSource: Selects and appends one optional word from a praise or curse word range.
 	bsr	RandomGen_BytewithOffset	;61001C5A
 	and.w	#$0007,d0	;02400007
 	tst.w	d7	;4A47
@@ -5143,18 +5338,19 @@ adrCd003972:
 	addq.w	#$01,d2	;5242
 	rts	;4E75
 
-adrCd00397E:
+Comms_BuildSmalltalk:
+	; ReSource: Builds a randomized praise or curse from a sentence pattern and three word ranges.
 	and.w	#$00FE,d0	;024000FE
 	moveq	#$00,d7	;7E00
 adrCd003984:
-	cmp.b	adrB_0039F6(pc,d7.w),d0	;B03B7070
+	cmp.b	Comms_SmalltalkPatternBands(pc,d7.w),d0	;B03B7070
 	bcs.s	adrCd00398E	;6504
 	addq.w	#$02,d7	;5447
 	bra.s	adrCd003984	;60F6
 
 adrCd00398E:
 	move.b	adrB_0039F7(pc,d7.w),d7	;1E3B7067
-	lea	adrEA003DC0.l,a6	;4DF900003DC0
+	lea	Comms_MessageBuffer.l,a6	;4DF900003DC0
 	move.b	#$1A,(a6)	;1CBC001A
 	moveq	#$01,d2	;7401
 	lsr.w	#$01,d7	;E24F
@@ -5191,7 +5387,8 @@ adrCd0039EC:
 adrCd0039F4:
 	rts	;4E75
 
-adrB_0039F6:
+Comms_SmalltalkPatternBands:
+	; ReSource: Upper bounds and bit masks selecting randomized smalltalk sentence patterns.
 	dc.b	$0C	;0C
 adrB_0039F7:
 	dc.b	$10	;10
@@ -5205,17 +5402,20 @@ adrB_0039F7:
 	dc.b	$13	;13
 	dc.b	$FF	;FF
 	dc.b	$1B	;1B
-adrEA003A02:
+Comms_PraiseWordRanges:
+	; ReSource: Three threshold and starting-word pairs for praise adverbs, adjectives and nouns.
 	dc.w	$048E	;048E
 	dc.w	$0796	;0796
 	dc.w	$079E	;079E
-adrEA003A08:
+Comms_CurseWordRanges:
+	; ReSource: Three threshold and starting-word pairs for curse adverbs, adjectives and nouns.
 	dc.w	$03A6	;03A6
 	dc.w	$07AE	;07AE
 	dc.w	$07B6	;07B6
 
-adrJA003A0E:
-	lea	adrEA003DBA.l,a6	;4DF900003DBA
+Comms_Action_Boast:
+	; ReSource: Builds a boast from a randomized personal attribute and superlative.
+	lea	Msg_BoastTemplate.l,a6	;4DF900003DBA
 	and.w	#$0007,d0	;02400007
 	add.w	#$0074,d0	;06400074
 	move.b	d0,$0002(a6)	;1D400002
@@ -5225,7 +5425,8 @@ adrJA003A0E:
 	move.b	d0,$0004(a6)	;1D400004
 	jmp	Print_npc_message.l	;4EF90000D81C
 
-adrB_003A36:
+Comms_ActionReplyIndexes:
+	; ReSource: Maps each preceding communication action to its contextual fixed-reply entry.
 	dc.b	$00	;00
 	dc.b	$00	;00
 	dc.b	$00	;00
@@ -5255,129 +5456,160 @@ adrB_003A36:
 	dc.b	$16	;16
 	dc.b	$00	;00
 
-adrJA003A52:
+Comms_Action_Retort:
+	; ReSource: Selects the contextual fixed reply or a randomized agreement fallback.
 	moveq	#$00,d0	;7000
 	move.b	$0000(a4),d0	;102C0000
-	move.b	adrB_003A36(pc,d0.w),d0	;103B00DC
+	move.b	Comms_ActionReplyIndexes(pc,d0.w),d0	;103B00DC
 	add.w	d0,d0	;D040
-	lea	AnswerList_00.l,a6	;4DF900003B1A
-	add.w	AnswerList_Offsets(pc,d0.w),a6	;DCFB0026
+	lea	Msg_Reply_Recruit.l,a6	;4DF900003B1A
+	add.w	Msg_ActionReplyOffsets(pc,d0.w),a6	;DCFB0026
 	tst.b	(a6)	;4A16
-	bpl.s	ReplyToQuestion	;6A12
-	lea	VeryPossibleMsg_0.l,a6	;4DF900003ABA
+	bpl.s	Comms_PrintActionReply	;6A12
+	lea	Msg_Agreement_00.l,a6	;4DF900003ABA
 	bsr	RandomGen_BytewithOffset	;61001B38
 	and.w	#$0006,d0	;02400006
-	add.w	NoAnswerList_Offsets(pc,d0.w),a6	;DCFB0008
-ReplyToQuestion:
+	add.w	Msg_AgreementOffsets(pc,d0.w),a6	;DCFB0008
+Comms_PrintActionReply:
+	; ReSource: Prints the fixed or fallback reply selected for the preceding communication action.
 	jmp	WriteMessage.l	;4EF90000D03A
 
-NoAnswerList_Offsets:
-	dc.w	VeryPossibleMsg_0-VeryPossibleMsg_0	;0000
-	dc.w	VeryPossibleMsg_1-VeryPossibleMsg_0	;0015
-	dc.w	VeryPossibleMsg_2-VeryPossibleMsg_0	;0028
-	dc.w	VeryPossibleMsg_3-VeryPossibleMsg_0	;003F
-AnswerList_Offsets:
-	dc.w	AnswerList_00-AnswerList_00	;0000
-	dc.w	AnswerList_01-AnswerList_00	;0022
-	dc.w	AnswerList_02-AnswerList_00	;003F
-	dc.w	AnswerList_03-AnswerList_00	;0040
-	dc.w	AnswerList_04-AnswerList_00	;004B
-	dc.w	AnswerList_05-AnswerList_00	;005D
-	dc.w	AnswerList_06-AnswerList_00	;0084
-	dc.w	AnswerList_07-AnswerList_00	;009D
-	dc.w	AnswerList_08-AnswerList_00	;00BB
-	dc.w	AnswerList_09-AnswerList_00	;00BC
-	dc.w	AnswerList_10-AnswerList_00	;00BD
-	dc.w	AnswerList_11-AnswerList_00	;00DB
-	dc.w	AnswerList_12-AnswerList_00	;00FD
-	dc.w	AnswerList_13-AnswerList_00	;011A
-	dc.w	AnswerList_14-AnswerList_00	;013D
-	dc.w	AnswerList_15-AnswerList_00	;014D
-	dc.w	AnswerList_16-AnswerList_00	;016C
-	dc.w	AnswerList_17-AnswerList_00	;0187
-	dc.w	AnswerList_18-AnswerList_00	;019C
-	dc.w	AnswerList_19-AnswerList_00	;019D
-	dc.w	AnswerList_20-AnswerList_00	;01C4
-	dc.w	AnswerList_21-AnswerList_00	;01DE
-	dc.w	AnswerList_22-AnswerList_00	;01DF
-VeryPossibleMsg_0:
+Msg_AgreementOffsets:
+	; ReSource: Offsets of the four randomized agreement fallback messages.
+	dc.w	Msg_Agreement_00-Msg_Agreement_00	;0000
+	dc.w	Msg_Agreement_01-Msg_Agreement_00	;0015
+	dc.w	Msg_Agreement_02-Msg_Agreement_00	;0028
+	dc.w	Msg_Agreement_03-Msg_Agreement_00	;003F
+Msg_ActionReplyOffsets:
+	; ReSource: Offsets of contextual fixed replies indexed by Comms_ActionReplyIndexes.
+	dc.w	Msg_Reply_Recruit-Msg_Reply_Recruit	;0000
+	dc.w	Msg_Reply_Whereabouts-Msg_Reply_Recruit	;0022
+	dc.w	Msg_Reply_Yes_UseAgreement-Msg_Reply_Recruit	;003F
+	dc.w	Msg_Reply_No-Msg_Reply_Recruit	;0040
+	dc.w	Msg_Reply_Bribe-Msg_Reply_Recruit	;004B
+	dc.w	Msg_Reply_Threat-Msg_Reply_Recruit	;005D
+	dc.w	Msg_Reply_WhoGoes-Msg_Reply_Recruit	;0084
+	dc.w	Msg_Reply_ThyTrade-Msg_Reply_Recruit	;009D
+	dc.w	Msg_Reply_NameSelf_UseAgreement-Msg_Reply_Recruit	;00BB
+	dc.w	Msg_Reply_RevealSelf_UseAgreement-Msg_Reply_Recruit	;00BC
+	dc.w	Msg_Reply_FolkLore-Msg_Reply_Recruit	;00BD
+	dc.w	Msg_Reply_MagicItems-Msg_Reply_Recruit	;00DB
+	dc.w	Msg_Reply_Objects-Msg_Reply_Recruit	;00FD
+	dc.w	Msg_Reply_Persons-Msg_Reply_Recruit	;011A
+	dc.w	Msg_Reply_Offer-Msg_Reply_Recruit	;013D
+	dc.w	Msg_Reply_Purchase-Msg_Reply_Recruit	;014D
+	dc.w	Msg_Reply_Exchange-Msg_Reply_Recruit	;016C
+	dc.w	Msg_Reply_Sell-Msg_Reply_Recruit	;0187
+	dc.w	Msg_Reply_Praise_UseAgreement-Msg_Reply_Recruit	;019C
+	dc.w	Msg_Reply_Curse-Msg_Reply_Recruit	;019D
+	dc.w	Msg_Reply_Boast-Msg_Reply_Recruit	;01C4
+	dc.w	Msg_Reply_Retort_UseAgreement-Msg_Reply_Recruit	;01DE
+	dc.w	Msg_Reply_Greeting-Msg_Reply_Recruit	;01DF
+Msg_Agreement_00:
+	; ReSource: Randomized agreement fallback: THAT'S VERY POSSIBLE.
 	dc.b	'THAT''S VERY POSSIBLE'	;544841542753205645525920504F535349424C45
 	dc.b	$FF	;FF
-VeryPossibleMsg_1:
+Msg_Agreement_01:
+	; ReSource: Randomized agreement fallback: I CANNOT BUT AGREE.
 	dc.b	'I CANNOT BUT AGREE'	;492043414E4E4F5420425554204147524545
 	dc.b	$FF	;FF
-VeryPossibleMsg_2:
+Msg_Agreement_02:
+	; ReSource: Randomized agreement fallback: THAT SEEMS VERY LIKELY.
 	dc.b	'THAT SEEMS VERY LIKELY'	;54484154205345454D532056455259204C494B454C59
 	dc.b	$FF	;FF
-VeryPossibleMsg_3:
+Msg_Agreement_03:
+	; ReSource: Randomized agreement fallback: I'M NOT ABOUT TO ARGUE WITH THEE.
 	dc.b	'I''M NOT ABOUT TO ARGUE WITH THEE'	;49274D204E4F542041424F555420544F20415247554520574954482054484545
 	dc.b	$FF	;FF
-AnswerList_00:
+Msg_Reply_Recruit:
+	; ReSource: Contextual reply to Recruit.
 	dc.b	'I DON''T KEEP COMPANY WITH MAGGOTS'	;4920444F4E2754204B45455020434F4D50414E592057495448204D4147474F5453
 	dc.b	$FF	;FF
-AnswerList_01:
+Msg_Reply_Whereabouts:
+	; ReSource: Contextual reply to Whereabouts.
 	dc.b	'LOOK TO THE TOWERS MY FRIEND'	;4C4F4F4B20544F2054484520544F57455253204D5920465249454E44
 	dc.b	$FF	;FF
-AnswerList_02:
+Msg_Reply_Yes_UseAgreement:
+	; ReSource: $FF sentinel selecting a randomized agreement after Yes.
 	dc.b	$FF	;FF
-AnswerList_03:
+Msg_Reply_No:
+	; ReSource: Contextual reply to No.
 	dc.b	'INDEED NOT'	;494E44454544204E4F54
 	dc.b	$FF	;FF
-AnswerList_04:
+Msg_Reply_Bribe:
+	; ReSource: Contextual reply to Bribe.
 	dc.b	'MAKE ME THY OFFER'	;4D414B45204D4520544859204F46464552
 	dc.b	$FF	;FF
-AnswerList_05:
+Msg_Reply_Threat:
+	; ReSource: Contextual reply to Threat.
 	dc.b	'PICK ON SOMEONE THY OWN SIZE THOU SLUG'	;5049434B204F4E20534F4D454F4E4520544859204F574E2053495A452054484F5520534C5547
 	dc.b	$FF	;FF
-AnswerList_06:
+Msg_Reply_WhoGoes:
+	; ReSource: Contextual reply to Who Goes.
 	dc.b	'I AM THY WORST NIGHTMARE'	;4920414D2054485920574F525354204E494748544D415245
 	dc.b	$FF	;FF
-AnswerList_07:
+Msg_Reply_ThyTrade:
+	; ReSource: Contextual reply to Thy Trade.
 	dc.b	'NONE OF THY BUSINESS I''M SURE'	;4E4F4E45204F462054485920425553494E4553532049274D2053555245
 	dc.b	$FF	;FF
-AnswerList_08:
+Msg_Reply_NameSelf_UseAgreement:
+	; ReSource: $FF sentinel selecting a randomized agreement after Name Self.
 	dc.b	$FF	;FF
-AnswerList_09:
+Msg_Reply_RevealSelf_UseAgreement:
+	; ReSource: $FF sentinel selecting a randomized agreement after Reveal Self.
 	dc.b	$FF	;FF
-AnswerList_10:
+Msg_Reply_FolkLore:
+	; ReSource: Contextual reply to Folk Lore.
 	dc.b	'NEWS IS SCARCE IN THESE PARTS'	;4E4557532049532053434152434520494E205448455345205041525453
 	dc.b	$FF	;FF
-AnswerList_11:
+Msg_Reply_MagicItems:
+	; ReSource: Contextual reply to Magic Items.
 	dc.b	'I HEAR CRYSTALS ARE WORTH SEEKING'	;492048454152204352595354414C532041524520574F525448205345454B494E47
 	dc.b	$FF	;FF
-AnswerList_12:
+Msg_Reply_Objects:
+	; ReSource: Contextual reply to Objects.
 	dc.b	'WHO CAN SAY WHAT IS OF NOTE?'	;57484F2043414E205341592057484154204953204F46204E4F54453F
 	dc.b	$FF	;FF
-AnswerList_13:
+Msg_Reply_Persons:
+	; ReSource: Contextual reply to Persons.
 	dc.b	'I HEAR ZENDIK IS NOT WHOLLY A WORM'	;492048454152205A454E44494B204953204E4F542057484F4C4C59204120574F524D
 	dc.b	$FF	;FF
-AnswerList_14:
+Msg_Reply_Offer:
+	; ReSource: Contextual reply to Offer.
 	dc.b	'GIVE ME A BREAK'	;47495645204D45204120425245414B
 	dc.b	$FF	;FF
-AnswerList_15:
+Msg_Reply_Purchase:
+	; ReSource: Contextual reply to Purchase.
 	dc.b	'THY COINAGE IS WORTHLESS TO ME'	;54485920434F494E41474520495320574F5254484C45535320544F204D45
 	dc.b	$FF	;FF
-AnswerList_16:
+Msg_Reply_Exchange:
+	; ReSource: Contextual reply to Exchange.
 	dc.b	'I DO NOT TRADE IN TRINKETS'	;4920444F204E4F5420545241444520494E205452494E4B455453
 	dc.b	$FF	;FF
-AnswerList_17:
+Msg_Reply_Sell:
+	; ReSource: Contextual reply to Sell.
 	dc.b	'I NEED NOT THY TRASH'	;49204E454544204E4F5420544859205452415348
 	dc.b	$FF	;FF
-AnswerList_18:
+Msg_Reply_Praise_UseAgreement:
+	; ReSource: $FF sentinel selecting a randomized agreement after Praise.
 	dc.b	$FF	;FF
-AnswerList_19:
+Msg_Reply_Curse:
+	; ReSource: Contextual reply to Curse.
 	dc.b	'MAYBE TRUE BUT THOU SHOULD BE SO LUCKY'	;4D415942452054525545204255542054484F552053484F554C4420424520534F204C55434B59
 	dc.b	$FF	;FF
-AnswerList_20:
+Msg_Reply_Boast:
+	; ReSource: Contextual reply to Boast.
 	dc.b	'I TRUST THIS PLEASES THEE'	;49205452555354205448495320504C45415345532054484545
 	dc.b	$FF	;FF
-AnswerList_21:
+Msg_Reply_Retort_UseAgreement:
+	; ReSource: $FF sentinel selecting a randomized agreement after Retort.
 	dc.b	$FF	;FF
-AnswerList_22:
+Msg_Reply_Greeting:
+	; ReSource: Contextual dismissive reply to the initial Greeting.
 	dc.b	'WHY DOST BURDEN ME WITH THY COMPANY?'	;57485920444F53542042555244454E204D4520574954482054485920434F4D50414E593F
 	dc.b	$FF	;FF
 
-	lea	adrEA003DC0.l,a6	;4DF900003DC0
+	lea	Comms_MessageBuffer.l,a6	;4DF900003DC0
 	move.b	#$33,(a6)	;1CBC0033
 	move.b	#$5F,$0001(a6)	;1D7C005F0001
 	move.b	#$FE,$0002(a6)	;1D7C00FE0002
@@ -5417,7 +5649,8 @@ adrCd003D9C:
 	bsr	adrCd003344	;6100F5A0
 	bra	adrCd007D6C	;60003FC4
 
-adrEA003DAA:
+Msg_NameSelfTemplate:
+	; ReSource: Packed-word template patched with the speaker's name and title.
 	dc.w	$5F4B	;5F4B
 	dc.w	$3500	;3500
 	dc.w	$00FF	;00FF
@@ -5426,11 +5659,13 @@ adrEA003DAA:
 	dc.w	$1C25	;1C25
 	dc.w	$FA45	;FA45
 	dc.w	$00FF	;00FF
-adrEA003DBA:
+Msg_BoastTemplate:
+	; ReSource: Packed-word template patched with a personal attribute and superlative.
 	dc.w	$335F	;335F
 	dc.w	$0035	;0035
 	dc.w	$00FF	;00FF
-adrEA003DC0:
+Comms_MessageBuffer:
+	; ReSource: Thirty-byte writable buffer used to assemble dynamic communication messages.
 	dc.w	$0000	;0000
 	dc.w	$0000	;0000
 	dc.w	$0000	;0000
@@ -5446,7 +5681,8 @@ adrEA003DC0:
 	dc.w	$0000	;0000
 	dc.w	$0000	;0000
 	dc.w	$0000	;0000
-adrEA003DDE:
+Comms_ThreatOpeningFragments:
+	; ReSource: Length-prefixed threat openings: BE ASIDE, DEPART, BEGONE and GO AWAY.
 	dc.w	$02BE	;02BE
 	dc.w	$BF01	;BF01
 	dc.w	$3007	;3007
@@ -5455,7 +5691,8 @@ adrEA003DDE:
 	dc.w	$4EFA	;4EFA
 	dc.w	$4502	;4502
 	dc.w	$3163	;3163
-adrEA003DEE:
+Comms_ThreatConsequenceFragments:
+	; ReSource: Length-prefixed threat consequences: SUFFER, DIE, BE SORRY and FIGHT.
 	dc.b	$01	;01
 	dc.b	$C0	;C0
 	dc.b	$01	;01
@@ -5465,21 +5702,24 @@ adrEA003DEE:
 	dc.b	$C2	;C2
 	dc.b	$01	;01
 	dc.b	$84	;84
-adrEA003DF7:
+Msg_Greeting:
+	; ReSource: Packed-word initial GREETINGS message.
 	dc.b	$49	;49
 	dc.b	$FB	;FB
 	dc.b	$4A	;4A
 	dc.b	$FA	;FA
 	dc.b	$53	;53
 	dc.b	$FF	;FF
-adrEA003DFD:
+Msg_WhoGoes:
+	; ReSource: Packed-word question communicated by the Who Goes button.
 	dc.b	$18	;18
 	dc.b	$8B	;8B
 	dc.b	$1A	;1A
 	dc.b	$FA	;FA
 	dc.b	$3F	;3F
 	dc.b	$FF	;FF
-adrEA003E03:
+Msg_RevealSelfTemplate:
+	; ReSource: Packed-word profession statement patched for Wizard, Adventurer, Cutpurse or Warrior.
 	dc.b	$CE	;CE
 	dc.b	$8D	;8D
 	dc.b	$FA	;FA
@@ -5488,7 +5728,8 @@ adrEA003E03:
 	dc.b	$99	;99
 	dc.b	$00	;00
 	dc.b	$FF	;FF
-adrEA003E0B:
+Msg_Exchange:
+	; ReSource: Packed-word Exchange question used when no object is held.
 	dc.b	$27	;27
 	dc.b	$1A	;1A
 	dc.b	$60	;60
@@ -5499,7 +5740,8 @@ adrEA003E0B:
 	dc.b	$FA	;FA
 	dc.b	$3F	;3F
 	dc.b	$FF	;FF
-adrEA003E15:
+Msg_ExchangeHeldItemTemplate:
+	; ReSource: Packed-word Exchange question patched with the held object name.
 	dc.b	$18	;18
 	dc.b	$FB	;FB
 	dc.b	$FA	;FA
@@ -5517,7 +5759,8 @@ adrEA003E15:
 	dc.b	$00	;00
 	dc.b	$00	;00
 	dc.b	$00	;00
-adrEA003E26:
+Msg_Bribe:
+	; ReSource: Packed-word question communicated by the Bribe button.
 	dc.b	$CC	;CC
 	dc.b	$1A	;1A
 	dc.b	$1D	;1D
@@ -5527,10 +5770,12 @@ adrEA003E26:
 	dc.b	$FA	;FA
 	dc.b	$3F	;3F
 	dc.b	$FF	;FF
-Msg_WhereIsThis:
+Msg_Whereabouts:
+	; ReSource: Question communicated by the Whereabouts button.
 	dc.b	'WHERE IS THIS OF WHICH THOU HAST SPOKEN?'	;57484552452049532054484953204F462057484943482054484F5520484153542053504F4B454E3F
 	dc.b	$FF	;FF
-adrEA003E58:
+Msg_OfferOrSellTemplate:
+	; ReSource: Packed-word template patched to ask about giving or selling an unspecified object.
 	dc.b	$2D	;2D
 	dc.b	$5F	;5F
 	dc.b	$FB	;FB
@@ -5544,7 +5789,8 @@ adrEA003E58:
 	dc.b	$FB	;FB
 	dc.b	$CB	;CB
 	dc.b	$FF	;FF
-adrEA003E65:
+Msg_OfferHeldItemTemplate:
+	; ReSource: Packed-word Offer question patched with the held object name.
 	dc.b	$CC	;CC
 	dc.b	$1A	;1A
 	dc.b	$1D	;1D
@@ -5556,7 +5802,8 @@ adrEA003E65:
 	dc.b	$00	;00
 	dc.b	$00	;00
 	dc.b	$00	;00
-adrEA003E70:
+Msg_SellHeldItemTemplate:
+	; ReSource: Packed-word Sell question patched with the held object name.
 	dc.b	$CC	;CC
 	dc.b	$1A	;1A
 	dc.b	$55	;55
@@ -5568,7 +5815,8 @@ adrEA003E70:
 	dc.b	$00	;00
 	dc.b	$00	;00
 	dc.b	$00	;00
-adrEA003E7B:
+Msg_Purchase:
+	; ReSource: Packed-word question communicated by the Purchase button.
 	dc.b	$27	;27
 	dc.b	$1A	;1A
 	dc.b	$60	;60
@@ -5578,6 +5826,7 @@ adrEA003E7B:
 	dc.b	$3F	;3F
 	dc.b	$FF	;FF
 Msg_Recruit:
+	; ReSource: Request communicated by the Recruit button.
 	dc.b	'COME JOIN MY MERRY BAND'	;434F4D45204A4F494E204D59204D455252592042414E44
 	dc.b	$FF	;FF
 	dc.b	$00	;00
@@ -5599,7 +5848,7 @@ adrCd003EC0:
 	move.w	$0058(a5),d0	;302D0058
 	cmp.w	$0058(a1),d0	;B0690058
 	bne	adrCd003F58	;6600007A
-	lea	adrEA003DC0.w,a6	;4DF83DC0	;Short Absolute converted to symbol!
+	lea	Comms_MessageBuffer.w,a6	;4DF83DC0	;Short Absolute converted to symbol!
 	move.b	#$CA,(a6)+	;1CFC00CA
 	move.b	#$C4,(a6)+	;1CFC00C4
 	move.l	$001C(a1),d1	;2229001C
@@ -5636,7 +5885,7 @@ adrCd003F36:
 	add.w	#$00C6,d3	;064300C6
 	move.b	d3,(a6)+	;1CC3
 	move.b	#$FF,(a6)	;1CBC00FF
-	lea	adrEA003DC0.w,a6	;4DF83DC0	;Short Absolute converted to symbol!
+	lea	Comms_MessageBuffer.w,a6	;4DF83DC0	;Short Absolute converted to symbol!
 	move.l	a5,-(sp)	;2F0D
 	move.l	a1,a5	;2A49
 	jsr	Print_timed_message.l	;4EB90000D86A
@@ -5683,7 +5932,7 @@ adrCd003F9C:
 adrCd003FCE:
 	move.b	$004F(a5),d0	;102D004F
 	move.b	d0,(a6)	;1C80
-	bsr	adrCd006660	;6100268A
+	bsr	Load_ChampionStatRecord	;6100268A
 	move.b	d7,$0017(a4)	;19470017
 	swap	d7	;4847
 	move.b	d7,$0016(a4)	;19470016
@@ -5960,8 +6209,9 @@ adrEA0041F3:
 	dc.b	$3B	;3B
 	dc.b	$FF	;FF
 
-adrCd0041FA:
-	lea	adrEA016B4C.l,a4	;49F900016B4C
+Comms_GetState:
+	; ReSource: Returns the active player's sixteen-byte communication state record.
+	lea	Comms_StateRecords.l,a4	;49F900016B4C
 	btst	#$00,(a5)	;08150000
 	beq.s	adrCd00420A	;6704
 	add.w	#$0010,a4	;D8FC0010
@@ -6201,7 +6451,7 @@ adrLp004554:
 	and.w	#$00C0,d0	;024000C0
 	bne.s	adrCd004574	;6616
 	move.b	$18(a5,d7.w),d0	;10357018
-	bsr	adrCd006660	;610020FC
+	bsr	Load_ChampionStatRecord	;610020FC
 	clr.b	$0011(a4)	;422C0011
 	move.b	#$FF,$0013(a4)	;197C00FF0013
 	clr.b	$0014(a4)	;422C0014
@@ -6323,7 +6573,7 @@ adrCd004686:
 	and.w	#$000F,d0	;0240000F
 	lea	adrEA004B14.l,a6	;4DF900004B14
 	move.b	d0,(a6)	;1C80
-	bsr	adrCd006660	;61001FB6
+	bsr	Load_ChampionStatRecord	;61001FB6
 	cmp.b	#$EC,$001C(a4)	;0C2C00EC001C
 	bcs.s	adrCd0046BC	;6508
 	cmp.b	#$0E,(a4)	;0C14000E
@@ -6404,7 +6654,7 @@ adrCd004792:
 	moveq	#$00,d0	;7000
 	move.b	$004F(a5),d0	;102D004F
 	move.b	$18(a5,d0.w),d0	;10350018
-	bsr	adrCd006660	;61001E9A
+	bsr	Load_ChampionStatRecord	;61001E9A
 	move.l	$000C(a4),d7	;2E2C000C
 	lea	adrEA00463E.w,a6	;4DF8463E	;Short Absolute converted to symbol!
 	move.w	(sp),d1	;3217
@@ -6533,7 +6783,7 @@ adrCd0048AA:
 	moveq	#$00,d0	;7000
 	move.b	$004F(a5),d0	;102D004F
 	move.b	$18(a5,d0.w),d0	;10350018
-	bsr	adrCd006660	;61001CEE
+	bsr	Load_ChampionStatRecord	;61001CEE
 	move.b	$0044(a5),$0013(a4)	;196D00440013
 	clr.b	$0015(a4)	;422C0015
 	bsr	adrCd006712	;61001D92
@@ -6598,7 +6848,7 @@ adrCd004A10:
 	sub.b	d2,d3	;9602
 	bcs.s	adrCd004A54	;6522
 	move.b	d3,$000C(a4)	;1943000C
-	bsr	adrCd006660	;61001C28
+	bsr	Load_ChampionStatRecord	;61001C28
 	eor.b	#$1F,d7	;0A07001F
 	move.l	$000C(a4),d0	;202C000C
 	bset	d7,d0	;0FC0
@@ -6742,7 +6992,7 @@ adrCd004BB0:
 	bne.s	Recalculate_CharacterDerivedStats	;6604
 	addq.b	#$01,$001E(a4)	;522C001E
 Recalculate_CharacterDerivedStats:
-	bsr	SpellPractice_ComputeThreshold_AI_TBC	;6100BD34
+	bsr	Calculate_SpellPracticeThreshold	;6100BD34
 	moveq	#$00,d2	;7400
 	move.b	(a4),d2	;1414
 	lea	adrEA004B1A.w,a6	;4DF84B1A	;Short Absolute converted to symbol!
@@ -6964,7 +7214,7 @@ adrCd004E12:
 	bsr	adrCd00587C	;61000A68
 	tst.w	$000C(a5)	;4A6D000C
 	bpl.s	adrCd004E4C	;6A30
-	bsr	adrCd00665C	;6100183E
+	bsr	Load_CurrentChampionStatRecord	;6100183E
 	tst.b	$0013(a4)	;4A2C0013
 	bmi.s	adrCd004E4C	;6B26
 	cmpi.w	#$0048,d1	;0C410048
@@ -7012,7 +7262,7 @@ adrCd004E8C:
 	rts	;4E75
 
 adrCd004E8E:
-	bsr	adrCd00665C	;610017CC
+	bsr	Load_CurrentChampionStatRecord	;610017CC
 	clr.w	adrW_00505A.l	;42790000505A
 	move.b	$0007(a5),adrB_00EE3E.l	;13ED00070000EE3E
 adrCd004EA0:
@@ -7138,7 +7388,7 @@ Spells_LookupTable:
 	dc.w	Spells_01_Armour-Spells_01_Armour	;0000
 	dc.w	Spells_02_Terror-Spells_01_Armour	;0022
 	dc.w	Spells_03_Vitalise-Spells_01_Armour	;002A
-	dc.w	Spells_04_Biguile-Spells_01_Armour	;0032
+	dc.w	Spells_04_Beguile-Spells_01_Armour	;0032
 	dc.w	Spells_05_Deflect-Spells_01_Armour	;0062
 	dc.w	Spells_06_Magelock-Spells_01_Armour	;0066
 	dc.w	Spells_07_Conceal-Spells_01_Armour	;00DA
@@ -7200,17 +7450,18 @@ Spells_03_Vitalise:
 	lsr.w	#$02,d7	;E44F
 	bra	adrCd005236	;600001AA
 
-Spells_04_Biguile:
-	cmp.w	#$0008,$0042(a5)	;0C6D00080042
+Spells_04_Beguile:
+	; ReSource: While communication is active, adds floor(spell power / 4) + 1 to both attitude and patience.
+	cmp.w	#InterfaceMode_Communication,$0042(a5)	;0C6D00080042
 	bne.s	adrCd0050BC	;6626
-	lsr.b	#$02,d7	;E40F
-	addq.w	#$01,d7	;5247
-	bsr	adrCd0041FA	;6100F15E
+	lsr.b	#Beguile_PowerShift,d7	;E40F
+	addq.w	#Beguile_BaseBonus,d7	;5247
+	bsr	Comms_GetState	;6100F15E
 	move.w	d7,d0	;3007
-	add.b	$0006(a4),d7	;DE2C0006
-	move.b	d7,$0006(a4)	;19470006
-	add.b	$0007(a4),d0	;D02C0007
-	move.b	d0,$0007(a4)	;19400007
+	add.b	CommsState_AttitudeOffset(a4),d7	;DE2C0006
+	move.b	d7,CommsState_AttitudeOffset(a4)	;19470006
+	add.b	CommsState_PatienceOffset(a4),d0	;D02C0007
+	move.b	d0,CommsState_PatienceOffset(a4)	;19400007
 	bsr	adrCd00847E	;610033CC
 	move.w	#$008D,d7	;3E3C008D
 	bra	adrCd001DBC	;6000CD02
@@ -7394,7 +7645,7 @@ adrLp00524C:
 	and.w	#$00E0,d0	;024000E0
 	bne.s	adrCd005276	;6620
 	move.b	$18(a5,d1.w),d0	;10351018
-	bsr	adrCd006660	;61001404
+	bsr	Load_ChampionStatRecord	;61001404
 	move.b	$00(a4,d4.w),d0	;10344000
 	add.b	d5,d0	;D005
 	bcc.s	adrCd005268	;6402
@@ -7684,7 +7935,7 @@ adrLp005504:
 	and.w	#$00E0,d0	;024000E0
 	bne.s	adrCd005540	;6632
 	move.b	$18(a5,d2.w),d0	;10352018
-	bsr	adrCd006660	;6100114C
+	bsr	Load_ChampionStatRecord	;6100114C
 	move.b	$0011(a4),d0	;102C0011
 	and.w	#$0007,d0	;02400007
 	sub.w	d1,d0	;9041
@@ -8253,7 +8504,7 @@ adrCd005A7C:
 adrLp005A84:
 	move.b	$18(a5,d7.w),d0	;10357018
 	bmi.s	adrCd005A94	;6B0A
-	bsr	adrCd006660	;61000BD4
+	bsr	Load_ChampionStatRecord	;61000BD4
 	move.b	$01(a4,d4.w),$00(a4,d4.w)	;19B440014000
 adrCd005A94:
 	dbra	d7,adrLp005A84	;51CFFFEE
@@ -8858,7 +9109,7 @@ adrCd005FA6:
 	bmi.s	adrCd005F92	;6BE2
 	swap	d3	;4843
 	move.w	d3,d0	;3003
-	bsr	adrCd006660	;610006AA
+	bsr	Load_ChampionStatRecord	;610006AA
 	clr.b	$0011(a4)	;422C0011
 	bsr	Load_MapPosition_AI_TBC	;61002210
 	bra	adrCd007B50	;60001B8E
@@ -8929,7 +9180,7 @@ adrCd006046:
 	bra.s	adrCd006084	;6010
 
 adrCd006074:
-	bsr	adrCd006660	;610005EA
+	bsr	Load_ChampionStatRecord	;610005EA
 	move.b	$0006(a4),d0	;102C0006
 	lsr.b	#$01,d0	;E208
 	cmp.b	$0005(a4),d0	;B02C0005
@@ -8975,7 +9226,7 @@ adrCd0060CA:
 	add.w	$000A(a5),a0	;D0ED000A
 	move.l	a4,-(sp)	;2F0C
 	move.b	$18(a5,d7.w),d0	;10357018
-	bsr	adrCd006660	;61000584
+	bsr	Load_ChampionStatRecord	;61000584
 	move.b	$0019(a4),d0	;102C0019
 	move.l	(sp)+,a4	;285F
 	lsr.b	#$04,d0	;E808
@@ -9068,16 +9319,18 @@ adrCd0061AA:
 	move.b	#$FF,$01(a6,d2.w)	;1DBC00FF2001
 	rts	;4E75
 
-adrCd0061B6:
+Close_AttackedChampionCommunicationPanels:
+	; ReSource: Closes either player's communication panel when its selected target is the champion being attacked.
 	movem.l	d1/d3/a5,-(sp)	;48E75004
 	lea	Player1_Data.l,a5	;4BF90000EE7C
-	bsr.s	adrCd0061D0	;610E
+	bsr.s	Close_PlayerCommunicationIfTargetAttacked	;610E
 	lea	Player2_Data.l,a5	;4BF90000EEDE
-	bsr.s	adrCd0061D0	;6106
+	bsr.s	Close_PlayerCommunicationIfTargetAttacked	;6106
 	movem.l	(sp)+,d1/d3/a5	;4CDF200A
 	rts	;4E75
 
-adrCd0061D0:
+Close_PlayerCommunicationIfTargetAttacked:
+	; ReSource: Clears one player's communication state when the attacked champion matches the selected target.
 	cmp.b	$0035(a5),d1	;B22D0035
 	beq	adrCd00332A	;6700D154
 	rts	;4E75
@@ -9086,7 +9339,7 @@ Resolve_PhysicalAttack:
 	; ReSource: Performs the opposed attack roll, calculates weapon damage, subtracts armour and applies the hit-quality multiplier.
 	moveq	#$02,d0	;7002
 	bsr	PlaySound	;610026E0
-	bsr.s	adrCd0061B6	;61D4
+	bsr.s	Close_AttackedChampionCommunicationPanels	;61D4
 	bsr	Prepare_AttackAndDefenceScores	;61000238
 	clr.w	$0000(a6)	;426E0000
 	clr.w	adrW_00230A.w	;4278230A	;Short Absolute converted to symbol!
@@ -9096,21 +9349,22 @@ Resolve_PhysicalAttack:
 	bsr	RandomGen_100	;6100F3BE
 	add.w	$0004(a6),d0	;D06E0004
 	sub.w	d0,d2	;9440
-	bmi.s	adrCd006210	;6B0C
+	bmi.s	PhysicalAttack_HandleDefenderRollWin	;6B0C
 	move.w	d2,d0	;3002
 	moveq	#$40,d2	;7440
 	sub.w	d0,d2	;9440
-	bpl.s	adrCd00621C	;6A10
+	bpl.s	PhysicalAttack_CalculateDamage	;6A10
 	moveq	#$01,d2	;7401
-	bra.s	adrCd00621C	;600C
+	bra.s	PhysicalAttack_CalculateDamage	;600C
 
-adrCd006210:
+PhysicalAttack_HandleDefenderRollWin:
 	neg.w	d2	;4442
 	move.w	d2,d0	;3002
 	moveq	#$40,d2	;7440
 	cmp.w	d2,d0	;B042
-	bpl	adrCd006288	;6A00006E
-adrCd00621C:
+	bpl	PhysicalAttack_Return	;6A00006E
+PhysicalAttack_CalculateDamage:
+	; ReSource: Calculates base damage from weapon range, level, fixed weapon damage and effective Strength.
 	move.w	$0006(a6),d1	;322E0006
 	bsr	RandomGen	;6100F39A
 	addq.w	#$01,d0	;5240
@@ -9119,44 +9373,48 @@ adrCd00621C:
 	moveq	#$00,d1	;7200
 	move.b	$0009(a6),d1	;122E0009
 	sub.w	#$0014,d1	;04410014
-	bcs.s	adrCd00623E	;6504
+	bcs.s	PhysicalAttack_ApplyBackstabDamage	;6504
 	lsr.w	#$03,d1	;E649
 	add.w	d1,d0	;D041
-adrCd00623E:
+PhysicalAttack_ApplyBackstabDamage:
+	; ReSource: Triples damage when the attack retains backstab eligibility.
 	tst.w	PhysicalAttack_BackstabState.l	;4A790000628A
-	bne.s	adrCd00624C	;6606
+	bne.s	PhysicalAttack_CalculateArmourReduction	;6606
 	move.w	d0,d1	;3200
 	add.w	d0,d0	;D040
 	add.w	d1,d0	;D041
-adrCd00624C:
+PhysicalAttack_CalculateArmourReduction:
+	; ReSource: Calculates the defender's armour reduction, including conditional upward rounding.
 	moveq	#$00,d4	;7800
 	move.b	$000D(a6),d4	;182E000D
 	lsr.b	#$01,d4	;E20C
-	bcc.s	adrCd006264	;640E
+	bcc.s	PhysicalAttack_ApplyArmourReduction	;640E
 	move.w	d2,d1	;3202
 	and.w	#$000F,d1	;0241000F
-	beq.s	adrCd006262	;6704
+	beq.s	PhysicalAttack_RoundArmourReductionUp	;6704
 	subq.w	#$08,d1	;5141
-	bcs.s	adrCd006264	;6502
-adrCd006262:
+	bcs.s	PhysicalAttack_ApplyArmourReduction	;6502
+PhysicalAttack_RoundArmourReductionUp:
 	addq.w	#$01,d4	;5244
-adrCd006264:
+PhysicalAttack_ApplyArmourReduction:
+	; ReSource: Subtracts effective armour before applying hit-quality damage multipliers.
 	sub.w	d4,d0	;9044
-	bcs.s	adrCd006288	;6520
-	beq.s	adrCd006288	;671E
+	bcs.s	PhysicalAttack_Return	;6520
+	beq.s	PhysicalAttack_Return	;671E
 	move.w	d0,d1	;3200
 	cmpi.w	#$0028,d2	;0C420028
-	bcc.s	adrCd006284	;6412
+	bcc.s	PhysicalAttack_StoreDamage	;6412
 	add.w	d1,d0	;D041
 	cmpi.w	#$0019,d2	;0C420019
-	bcc.s	adrCd006284	;640A
+	bcc.s	PhysicalAttack_StoreDamage	;640A
 	add.w	d1,d0	;D041
 	cmpi.w	#$000A,d2	;0C42000A
-	bcc.s	adrCd006284	;6402
+	bcc.s	PhysicalAttack_StoreDamage	;6402
 	add.w	d1,d0	;D041
-adrCd006284:
+PhysicalAttack_StoreDamage:
+	; ReSource: Stores the final positive damage in the physical-attack working values.
 	move.w	d0,$0000(a6)	;3D400000
-adrCd006288:
+PhysicalAttack_Return:
 	rts	;4E75
 
 PhysicalAttack_BackstabState:
@@ -9190,7 +9448,7 @@ Load_CombatantCombatValues:
 
 Load_ChampionCombatValues:
 	move.w	d0,d1	;3200
-	bsr	adrCd006660	;61000396
+	bsr	Load_ChampionStatRecord	;61000396
 	subq.b	#PhysicalAttack_VitalityCost,$0007(a4)	;572C0007
 	bcc.s	Apply_ChampionCombatModifiers	;6404
 	clr.b	$0007(a4)	;422C0007
@@ -9198,7 +9456,7 @@ Apply_ChampionCombatModifiers:
 	move.w	d1,d0	;3001
 	bsr.s	Calculate_CharacterArmourLevel	;6144
 	bsr	Calculate_WeaponCombatBonuses	;610000A6
-	bsr	SpellCost_SelectOrComputeFallback_AI_TBC	;6100A644
+	bsr	Calculate_WarriorLevelContribution	;6100A644
 	tst.w	PhysicalAttack_BackstabState.w	;4A78628A	;Short Absolute converted to symbol!
 	bne.s	Apply_WarpowerCombatModifiers	;6602
 	move.b	(a4),d0	;1014
@@ -9235,36 +9493,40 @@ Calculate_CharacterArmourLevel:
 	move.w	d3,d2	;3403
 	lsr.b	#$03,d2	;E60A
 	and.w	#$0007,d3	;02430007
-	beq.s	adrCd006338	;6702
+	beq.s	Armour_SelectInnateOrSpellValue	;6702
 	moveq	#$00,d2	;7400
-adrCd006338:
+Armour_SelectInnateOrSpellValue:
+	; ReSource: Selects the greater of innate armour and an active Armour-spell magnitude.
 	move.b	$000B(a4),d3	;162C000B
 	cmp.b	d3,d2	;B403
-	bcs.s	adrCd006342	;6502
+	bcs.s	Armour_ApplyBodyArmour	;6502
 	move.b	d2,d3	;1602
-adrCd006342:
+Armour_ApplyBodyArmour:
+	; ReSource: Replaces the base armour value when the worn body armour provides greater protection.
 	move.b	$0002(a1),d2	;14290002
-	beq.s	adrCd006356	;670E
+	beq.s	Armour_ApplyWornHandArmour	;670E
 	sub.b	#$1B,d2	;0402001B
 	add.b	d2,d2	;D402
 	addq.b	#$03,d2	;5602
 	cmp.b	d2,d3	;B602
-	bcc.s	adrCd006356	;6402
+	bcc.s	Armour_ApplyWornHandArmour	;6402
 	move.b	d2,d3	;1602
-adrCd006356:
+Armour_ApplyWornHandArmour:
+	; ReSource: Adds the contribution of the champion's worn hand-armour object.
 	move.b	$0012(a4),d2	;142C0012
-	beq.s	adrCd006362	;6706
+	beq.s	Armour_ApplyShield	;6706
 	sub.b	#$2B,d2	;0402002B
 	add.b	d2,d3	;D602
-adrCd006362:
+Armour_ApplyShield:
+	; ReSource: Adds the equipped shield's armour contribution.
 	moveq	#$00,d2	;7400
 	move.b	$0003(a1),d2	;14290003
 	sub.b	#$24,d2	;04020024
-	bcs.s	adrCd006378	;650A
+	bcs.s	Armour_Return	;650A
 	cmpi.w	#$0007,d2	;0C420007
-	bcc.s	adrCd006378	;6404
+	bcc.s	Armour_Return	;6404
 	add.b	Shield_ArmourBonuses(pc,d2.w),d3	;D63B2004
-adrCd006378:
+Armour_Return:
 	rts	;4E75
 
 Shield_ArmourBonuses:
@@ -9283,16 +9545,18 @@ Calculate_WeaponCombatBonuses:
 	moveq	#$00,d0			;7000
 	move.b	(a1),d0			;1011
 	sub.b	#Object_Blades_First,d0			;04000030
-	bcs.s	adrCd006392		;6506
+	bcs.s	Weapon_CheckRightHand		;6506
 	cmpi.b	#Weapon_CombatModifierRecordCount,d0			;0C000010
-	bcs.s	adrCd0063A2		;6510
-adrCd006392:
+	bcs.s	Weapon_LoadCombatModifiers		;6510
+Weapon_CheckRightHand:
+	; ReSource: Checks the right-hand pocket after the left hand does not contain a recognised weapon.
 	move.b	$0001(a1),d0		;10290001
 	sub.b	#Object_Blades_First,d0			;04000030
-	bcs.s	adrCd0063DA		;653E
+	bcs.s	Weapon_ReturnCombatModifiers		;653E
 	cmpi.b	#Weapon_CombatModifierRecordCount,d0			;0C000010
-	bcc.s	adrCd0063DA		;6438
-adrCd0063A2:
+	bcc.s	Weapon_ReturnCombatModifiers		;6438
+Weapon_LoadCombatModifiers:
+	; ReSource: Loads random damage, fixed damage, attack and defence modifiers from the selected weapon record.
 	lea	Weapon_CombatModifiers.l,a0	;41F9000063DC
 	asl.w	#$02,d0			;E540
 	add.w	d0,a0			;D0C0
@@ -9301,19 +9565,20 @@ adrCd0063A2:
 	move.b	(a0)+,d6		;1C18
 	move.b	(a0)+,d7		;1E18
 	tst.w	PhysicalAttack_BackstabState.w		;4A78628A	;Short Absolute converted to symbol!
-	bne.s	adrCd0063C6		;660C
+	bne.s	Weapon_ApplyAceOfSwordsRestriction		;660C
 	cmpi.b	#Weapon_BackstabEligibleByteLimit,d0			;0C000008
-	bcs.s	adrCd0063C6		;6506
+	bcs.s	Weapon_ApplyAceOfSwordsRestriction		;6506
 	move.w	#$FFFF,PhysicalAttack_BackstabState.w	;31FCFFFF628A	;Short Absolute converted to symbol!
-adrCd0063C6:
+Weapon_ApplyAceOfSwordsRestriction:
+	; ReSource: Reduces the Ace of Swords combat modifiers unless Chaos Gloves are worn.
 	cmpi.b	#Weapon_AceOfSwordsRecordOffset,d0	;0C00001C
-	bne.s	adrCd0063DA	;660E
+	bne.s	Weapon_ReturnCombatModifiers	;660E
 	cmp.b	#Object_ChaosGloves,$0012(a4)	;0C2C002B0012
-	beq.s	adrCd0063DA	;6706
+	beq.s	Weapon_ReturnCombatModifiers	;6706
 	moveq	#$05,d6	;7C05
 	moveq	#$05,d7	;7E05
 	moveq	#$00,d5	;7A00
-adrCd0063DA:
+Weapon_ReturnCombatModifiers:
 	rts	;4E75
 
 Weapon_CombatModifiers:
@@ -9353,7 +9618,7 @@ Weapon_CombatModifiers:
 
 Prepare_AttackAndDefenceScores:
 	; ReSource: Builds the attacker score and defender score, including weapon attack, weapon defence and effective armour values.
-	lea	adrEA016B6C.l,a6	;4DF900016B6C
+	lea	PhysicalAttack_WorkingValues.l,a6	;4DF900016B6C
 	move.w	d1,-(sp)	;3F01
 	move.w	d3,d0	;3003
 	bsr	Calculate_AttackerCombatScore	;61000032
@@ -9369,9 +9634,10 @@ Prepare_AttackAndDefenceScores:
 	move.b	$000C(a6),d1	;122E000C
 	add.w	d1,d0	;D041
 	tst.w	PhysicalAttack_DoubleDefenceFlag.l	;4A7900006458
-	beq.s	adrCd006452	;6702
+	beq.s	DefenderScore_StoreResult	;6702
 	add.w	d0,d0	;D040
-adrCd006452:
+DefenderScore_StoreResult:
+	; ReSource: Stores the completed defender score in the physical-attack working values.
 	move.w	d0,$0004(a6)	;3D400004
 	rts	;4E75
 
@@ -9389,15 +9655,17 @@ Calculate_AttackerCombatScore:
 	move.b	d1,$0009(a6)	;1D410009
 	add.w	d0,d0	;D040
 	sub.w	#$0010,d1	;04410010
-	bcc.s	adrCd006480	;6402
+	bcc.s	AttackerScore_AddStrengthContribution	;6402
 	moveq	#$00,d1	;7200
-adrCd006480:
+AttackerScore_AddStrengthContribution:
+	; ReSource: Adds the thresholded effective-Strength contribution to the attacker score.
 	lsr.w	#$04,d1	;E849
 	add.w	d1,d0	;D041
 	sub.w	#$0014,d2	;04420014
-	bcc.s	adrCd00648C	;6402
+	bcc.s	AttackerScore_AddAgilityContribution	;6402
 	moveq	#$00,d2	;7400
-adrCd00648C:
+AttackerScore_AddAgilityContribution:
+	; ReSource: Adds the thresholded effective-Agility contribution to the attacker score.
 	lsr.w	#$04,d2	;E84A
 	add.w	d2,d0	;D042
 	move.w	d0,d1	;3200
@@ -9406,14 +9674,15 @@ adrCd00648C:
 	move.b	$000B(a6),d1	;122E000B
 	add.w	d1,d0	;D041
 	tst.w	PhysicalAttack_BackstabState.w	;4A78628A	;Short Absolute converted to symbol!
-	bne.s	adrCd0064A4	;6602
+	bne.s	AttackerScore_StoreResult	;6602
 	add.w	d0,d0	;D040
-adrCd0064A4:
+AttackerScore_StoreResult:
+	; ReSource: Stores the completed attacker score in the physical-attack working values.
 	move.w	d0,$0002(a6)	;3D400002
 	rts	;4E75
 
 Click_MultiFunctionButton:
-	bsr	adrCd00665C	;610001B0
+	bsr	Load_CurrentChampionStatRecord	;610001B0
 	tst.b	$0011(a4)	;4A2C0011
 	beq.s	adrCd0064C2	;670E
 	clr.b	$0011(a4)	;422C0011
@@ -9563,9 +9832,11 @@ Click_ShowStats:
 	moveq	#$09,d3	;7609
 	bra	BW_draw_bar	;6000740E
 
-adrCd00665C:
+Load_CurrentChampionStatRecord:
+	; ReSource: Loads the current player champion number before resolving its statistics record.
 	move.w	$0006(a5),d0	;302D0006
-adrCd006660:
+Load_ChampionStatRecord:
+	; ReSource: Converts champion number D0 into a pointer to its 32-byte statistics record in A4.
 	and.w	#$000F,d0	;0240000F
 	asl.w	#$05,d0	;EB40
 	lea	Character_Stats_DataTable.l,a4	;49F90000EB2A
@@ -9680,7 +9951,7 @@ adrB_006760:
 	dc.b	$01	;01
 	dc.b	$00	;00
 
-	bsr	adrCd006660	;6100FEEA
+	bsr	Load_ChampionStatRecord	;6100FEEA
 Calculate_SpellCastingQuality:
 	move.b	$0013(a4),d0	;102C0013
 	bsr	Character_GetClassIndex	;61000182
@@ -9738,7 +10009,7 @@ adrCd0067EA:
 	lsr.w	d3,d0	;E668
 	add.w	d0,d7	;DE40
 	move.w	d1,d4	;3801
-	bsr	SpellCost_AlternateSelector_AI_TBC	;6100A14C
+	bsr	Calculate_WizardLevelContribution	;6100A14C
 	add.b	d0,d7	;DE00
 	add.b	d0,d7	;DE00
 	add.b	$0014(a4),d7	;DE2C0014
@@ -9928,7 +10199,7 @@ Click_Item_17_to_1A_Potions:
 	clr.l	HeldItem_StateOffset(a5)	;42AD002C
 	move.b	$000F(a5),d0	;102D000F
 	move.b	$18(a5,d0.w),d0	;10350018
-	bsr	adrCd006660	;6100FD26
+	bsr	Load_ChampionStatRecord	;6100FD26
 	lea	Potion_1_SerpentSlime.l,a0	;41F90000695A
 	add.w	d1,d1	;D241
 	add.w	Potion_LookupTable(pc,d1.w),a0	;D0FB100C
@@ -10015,7 +10286,7 @@ ConsumeFood_StoreRemainingObject:
 	move.w	d0,HeldItem_ObjectCodeOffset(a5)	;3B40002E
 	move.b	$000F(a5),d0	;102D000F
 	move.b	$18(a5,d0.w),d0	;10350018
-	bsr	adrCd006660	;6100FC7E
+	bsr	Load_ChampionStatRecord	;6100FC7E
 	add.b	ChampionStat_FoodLevel(a4),d1	;D22C0010
 	bcs.s	ConsumeFood_ClampLevel	;6506
 	cmpi.w	#Food_LevelLimitExclusive,d1	;0C4100C8
@@ -10029,7 +10300,7 @@ ConsumeFood_StoreLevel:
 	move.l	screen_ptr.l,a0	;207900008D36
 	add.w	#$0B64,a0	;D0FC0B64
 	add.w	$000A(a5),a0	;D0ED000A
-	move.w	$002E(a5),d0	;302D002E
+	move.w	HeldItem_ObjectCodeOffset(a5),d0	;302D002E
 	bsr	ObjectGraphic	;6100605A
 	bsr	Draw_SelectedInventorySlotFrame	;6100030E
 	bra	Draw_FoodLevelBar	;60000288
@@ -10050,10 +10321,10 @@ Cancel_CountedObjectTransfer:
 	rts	;4E75
 
 Stack_ObjectFromInventory:
-	; ReSource: Adds one counted object to the held stack, up to the stored maximum of $63.
-	cmp.w	#$0063,$002C(a5)	;0C6D0063002C
+	; ReSource: Transfers one counted object from the champion count table to the held stack, provided the held quantity is below $63.
+	cmp.w	#Object_StackMaximum,HeldItem_QuantityOffset(a5)	;0C6D0063002C
 	bcc.s	Cancel_CountedObjectTransfer	;64F2
-	addq.w	#$01,$002C(a5)	;526D002C
+	addq.w	#$01,HeldItem_QuantityOffset(a5)	;526D002C
 	bra	Redraw_Inventory	;600001C6
 
 Click_ObjectInInventory:
@@ -10072,30 +10343,30 @@ Click_ObjectInInventory:
 	add.w	d0,a4	;D8C0
 	moveq	#$00,d0	;7000
 	move.b	$000F(a5),d0	;102D000F
-	move.w	$002E(a5),d1	;322D002E
+	move.w	HeldItem_ObjectCodeOffset(a5),d1	;322D002E
 	beq.s	Check_BodyArmourInventorySlot	;6720
-	cmpi.b	#$03,d0	;0C000003
+	cmpi.b	#ChampionPocket_Shield,d0	;0C000003
 	bne.s	Check_BodyArmourInventorySlot	;661A
-	cmpi.w	#$0024,d1	;0C410024
+	cmpi.w	#Object_SmallShields_First,d1	;0C410024
 	bcs.s	Reject_InventorySlotAction	;652A
-	cmpi.w	#$002B,d1	;0C41002B
+	cmpi.w	#Object_Gloves_First,d1	;0C41002B
 	bcc.s	Reject_InventorySlotAction	;6424
 	btst	#$00,d2	;08020000
-	beq.s	Redraw_HeldItem	;6762
-	cmpi.w	#$0027,d1	;0C410027
-	bcs.s	Redraw_HeldItem	;655C
+	beq.s	Handle_SelectedPocketObject	;6762
+	cmpi.w	#Object_LargeShields_First,d1	;0C410027
+	bcs.s	Handle_SelectedPocketObject	;655C
 	bra.s	Reject_InventorySlotAction	;6016
 
 Check_BodyArmourInventorySlot:
 	; ReSource: Allows only body-armour objects $1B-$23 in the dedicated body-armour slot.
-	cmpi.b	#$02,d0	;0C000002
+	cmpi.b	#ChampionPocket_BodyArmour,d0	;0C000002
 	bne.s	Check_WornHandArmourSlot	;6616
 	tst.w	d1	;4A41
-	beq.s	Redraw_HeldItem	;6750
-	cmpi.w	#$001B,d1	;0C41001B
+	beq.s	Handle_SelectedPocketObject	;6750
+	cmpi.w	#Object_Armour_First,d1	;0C41001B
 	bcs.s	Reject_InventorySlotAction	;6506
-	cmpi.w	#$0024,d1	;0C410024
-	bcs.s	Redraw_HeldItem	;6544
+	cmpi.w	#Object_SmallShields_First,d1	;0C410024
+	bcs.s	Handle_SelectedPocketObject	;6544
 Reject_InventorySlotAction:
 	; ReSource: Leaves the objects unchanged, selects the clicked inventory slot and returns.
 	move.w	d7,$000E(a5)	;3B47000E
@@ -10103,98 +10374,99 @@ Reject_InventorySlotAction:
 
 Check_WornHandArmourSlot:
 	; ReSource: Handles Chaos Gloves and other worn hand-armour exchanges involving the two hand pockets.
-	bcc.s	Redraw_HeldItem	;643C
-	cmp.w	#$002B,$002E(a5)	;0C6D002B002E
+	bcc.s	Handle_SelectedPocketObject	;643C
+	cmp.w	#Object_Gloves_First,HeldItem_ObjectCodeOffset(a5)	;0C6D002B002E
 	bcs.s	Unequip_WornHandArmourToEmptyHand	;651E
-	cmp.w	#$0030,$002E(a5)	;0C6D0030002E
+	cmp.w	#Object_Blades_First,HeldItem_ObjectCodeOffset(a5)	;0C6D0030002E
 	bcc.s	Unequip_WornHandArmourToEmptyHand	;6416
-	move.b	$0012(a4),d1	;122C0012
-	move.b	$002F(a5),$0012(a4)	;196D002F0012
-	move.b	d1,$002F(a5)	;1B41002F
-	bne.s	Redraw_HeldItem	;661C
-	clr.w	$002C(a5)	;426D002C
-	bra.s	Redraw_HeldItem	;6016
+	move.b	ChampionStat_WornHandArmour(a4),d1	;122C0012
+	move.b	HeldItem_ObjectCodeByteOffset(a5),ChampionStat_WornHandArmour(a4)	;196D002F0012
+	move.b	d1,HeldItem_ObjectCodeByteOffset(a5)	;1B41002F
+	bne.s	Handle_SelectedPocketObject	;661C
+	clr.w	HeldItem_QuantityOffset(a5)	;426D002C
+	bra.s	Handle_SelectedPocketObject	;6016
 
 Unequip_WornHandArmourToEmptyHand:
 	; ReSource: Moves worn hand armour into an empty hand pocket when no object is currently held.
 	tst.b	$00(a6,d0.w)	;4A360000
-	bne.s	Redraw_HeldItem	;6610
-	tst.w	$002E(a5)	;4A6D002E
-	bne.s	Redraw_HeldItem	;660A
-	move.b	$0012(a4),$00(a6,d0.w)	;1DAC00120000
-	clr.b	$0012(a4)	;422C0012
-Redraw_HeldItem:
+	bne.s	Handle_SelectedPocketObject	;6610
+	tst.w	HeldItem_ObjectCodeOffset(a5)	;4A6D002E
+	bne.s	Handle_SelectedPocketObject	;660A
+	move.b	ChampionStat_WornHandArmour(a4),$00(a6,d0.w)	;1DAC00120000
+	clr.b	ChampionStat_WornHandArmour(a4)	;422C0012
+Handle_SelectedPocketObject:
+	; ReSource: Processes the object in the selected champion pocket, including counted-object pickup, merging and ordinary held-object swapping.
 	moveq	#$00,d1	;7200
 	move.b	$00(a6,d0.w),d1	;12360000
 	beq	Return_HeldCountedObjectToInventory	;67000088
-	cmpi.w	#$0005,d1	;0C410005
+	cmpi.w	#Object_Food_First,d1	;0C410005
 	bcc	Return_HeldCountedObjectToInventory	;64000080
-	move.w	$002E(a5),d3	;362D002E
+	move.w	HeldItem_ObjectCodeOffset(a5),d3	;362D002E
 	bne.s	Swap_HeldObjectForCountedStack	;6612
-	move.w	d1,$002E(a5)	;3B41002E
-	move.w	#$0001,$002C(a5)	;3B7C0001002C
+	move.w	d1,HeldItem_ObjectCodeOffset(a5)	;3B41002E
+	move.w	#$0001,HeldItem_QuantityOffset(a5)	;3B7C0001002C
 	subq.b	#$01,$0B(a6,d1.w)	;5336100B
 	bra	Refresh_InventoryAfterObjectChange	;6000009E
 
 Swap_HeldObjectForCountedStack:
 	; ReSource: Picks up a complete counted-object stack while placing the previously held non-counted object into the pocket.
-	cmpi.w	#$0005,d3	;0C430005
+	cmpi.w	#Object_Food_First,d3	;0C430005
 	bcs.s	Merge_MatchingCountedObjectStack	;650E
-	move.b	$0B(a6,d1.w),$002D(a5)	;1B76100B002D
+	move.b	ChampionPocket_CountedObjectCountsOffset(a6,d1.w),HeldItem_QuantityByteOffset(a5)	;1B76100B002D
 	clr.b	$0B(a6,d1.w)	;4236100B
-	bra	Wear_Object	;60000082
+	bra	Swap_HeldObjectWithPocket	;60000082
 
 Merge_MatchingCountedObjectStack:
 	; ReSource: Merges held and inventory quantities when both represent the same counted object.
 	cmp.w	d1,d3	;B641
 	bne.s	Merge_DifferentCountedObjectStack	;6620
 	move.b	$0B(a6,d1.w),d2	;1436100B
-	add.b	$002D(a5),d2	;D42D002D
+	add.b	HeldItem_QuantityByteOffset(a5),d2	;D42D002D
 	move.b	d2,$0B(a6,d1.w)	;1D82100B
-	cmpi.b	#$64,d2	;0C020064
+	cmpi.b	#Object_StackLimitExclusive,d2	;0C020064
 	bcc.s	Clamp_MatchingCountedObjectStack	;6406
-	clr.l	$002C(a5)	;42AD002C
+	clr.l	HeldItem_StateOffset(a5)	;42AD002C
 	bra.s	Refresh_InventoryAfterObjectChange	;606C
 
 Clamp_MatchingCountedObjectStack:
 	; ReSource: Clamps the merged inventory quantity to $63.
-	move.b	#$63,$0B(a6,d1.w)	;1DBC0063100B
+	move.b	#Object_StackMaximum,ChampionPocket_CountedObjectCountsOffset(a6,d1.w)	;1DBC0063100B
 	bra.s	Store_CountedObjectRemainder	;6024
 
 Merge_DifferentCountedObjectStack:
 	; ReSource: Adds the held quantity to its existing global count before picking up a different counted stack.
 	move.b	$0B(a6,d3.w),d2	;1436300B
-	add.b	$002D(a5),d2	;D42D002D
-	cmpi.b	#$64,d2	;0C020064
+	add.b	HeldItem_QuantityByteOffset(a5),d2	;D42D002D
+	cmpi.b	#Object_StackLimitExclusive,d2	;0C020064
 	bcc.s	Clamp_CountedObjectStack	;6410
 	move.b	d2,$0B(a6,d3.w)	;1D82300B
-	move.b	$0B(a6,d1.w),$002D(a5)	;1B76100B002D
+	move.b	ChampionPocket_CountedObjectCountsOffset(a6,d1.w),HeldItem_QuantityByteOffset(a5)	;1B76100B002D
 	clr.b	$0B(a6,d1.w)	;4236100B
 	bra.s	Remove_DuplicateCountedObjectSlots	;602E
 
 Clamp_CountedObjectStack:
 	; ReSource: Clamps a counted-object total to $63 before retaining the excess.
-	move.b	#$63,$0B(a6,d3.w)	;1DBC0063300B
+	move.b	#Object_StackMaximum,ChampionPocket_CountedObjectCountsOffset(a6,d3.w)	;1DBC0063300B
 Store_CountedObjectRemainder:
 	; ReSource: Stores quantity remaining above the $63 inventory-count limit in the held stack.
-	sub.b	#$63,d2	;04020063
-	move.b	d2,$002D(a5)	;1B42002D
+	sub.b	#Object_StackMaximum,d2	;04020063
+	move.b	d2,HeldItem_QuantityByteOffset(a5)	;1B42002D
 	bra.s	Refresh_InventoryAfterObjectChange	;6036
 
 Return_HeldCountedObjectToInventory:
 	; ReSource: Returns a held counted stack to its global character count.
-	move.w	$002E(a5),d3	;362D002E
-	beq.s	Wear_Object	;6728
-	cmpi.w	#$0005,d3	;0C430005
-	bcc.s	Wear_Object	;6422
+	move.w	HeldItem_ObjectCodeOffset(a5),d3	;362D002E
+	beq.s	Swap_HeldObjectWithPocket	;6728
+	cmpi.w	#Object_Food_First,d3	;0C430005
+	bcc.s	Swap_HeldObjectWithPocket	;6422
 	move.b	$0B(a6,d3.w),d2	;1436300B
-	add.b	$002D(a5),d2	;D42D002D
+	add.b	HeldItem_QuantityByteOffset(a5),d2	;D42D002D
 	move.b	d2,$0B(a6,d3.w)	;1D82300B
-	cmpi.b	#$64,d2	;0C020064
+	cmpi.b	#Object_StackLimitExclusive,d2	;0C020064
 	bcc.s	Clamp_CountedObjectStack	;64D2
 Remove_DuplicateCountedObjectSlots:
 	; ReSource: Removes redundant pocket entries for a counted object after returning its quantity.
-	moveq	#$0B,d2	;740B
+	moveq	#ChampionPocket_LastIndex,d2	;740B
 Remove_DuplicateCountedObjectSlots_Loop:
 	; ReSource: Scans all twelve character pockets for duplicate counted-object codes.
 	cmp.b	$00(a6,d2.w),d3	;B6362000
@@ -10203,9 +10475,10 @@ Remove_DuplicateCountedObjectSlots_Loop:
 Remove_DuplicateCountedObjectSlots_Next:
 	; ReSource: Advances the duplicate counted-object pocket scan.
 	dbra	d2,Remove_DuplicateCountedObjectSlots_Loop	;51CAFFF4
-Wear_Object:
+Swap_HeldObjectWithPocket:
+	; ReSource: Stores the previous held object in the selected pocket and makes the pocket object the new held object.
 	move.b	d3,$00(a6,d0.w)	;1D830000
-	move.w	d1,$002E(a5)	;3B41002E
+	move.w	d1,HeldItem_ObjectCodeOffset(a5)	;3B41002E
 Refresh_InventoryAfterObjectChange:
 	; ReSource: Refreshes selection and inventory graphics after an object transfer.
 	cmp.b	#$02,$000F(a5)	;0C2D0002000F
@@ -10223,12 +10496,13 @@ Restore_SelectedInventorySlot:
 Finalize_InventoryObjectChange:
 	; ReSource: Normalises held counted-object state and redraws the inventory.
 	move.w	d7,$000E(a5)	;3B47000E
-	move.w	$002E(a5),d0	;302D002E
-	beq.s	Return_ObjectToInventory	;6706
-	cmpi.w	#$0005,d0	;0C400005
+	move.w	HeldItem_ObjectCodeOffset(a5),d0	;302D002E
+	beq.s	Normalize_HeldNonCountedObjectQuantity	;6706
+	cmpi.w	#Object_Food_First,d0	;0C400005
 	bcs.s	Redraw_Inventory	;6522
-Return_ObjectToInventory:
-	move.w	#$0001,$002C(a5)	;3B7C0001002C
+Normalize_HeldNonCountedObjectQuantity:
+	; ReSource: Sets the held quantity to one when the resulting held state is empty or contains a non-counted object.
+	move.w	#$0001,HeldItem_QuantityOffset(a5)	;3B7C0001002C
 	bra.s	Redraw_Inventory	;601A
 
 Click_OpenInventory:
@@ -10267,7 +10541,7 @@ Draw_HeldItemPanelPieces_Loop:
 	cmpi.w	#$0004,d7	;0C470004
 	bcs.s	Draw_HeldItemPanelPieces_Loop	;65F4
 	move.w	$002E(a5),d0	;302D002E
-	move.w	$002C(a5),d1	;322D002C
+	move.w	HeldItem_QuantityOffset(a5),d1	;322D002C
 	bsr	ObjectGraphic	;61005DF8
 	move.w	$0012(a5),d3	;362D0012
 	moveq	#$74,d0	;7074
@@ -10275,9 +10549,9 @@ Draw_HeldItemPanelPieces_Loop:
 	bsr	Draw_SelectedInventorySlotFrame	;610000A2
 	move.w	$002E(a5),d0	;302D002E
 	beq.s	Return_FromHeldItemDisplay	;670C
-	cmpi.w	#$0005,d0	;0C400005
+	cmpi.w	#Object_Food_First,d0	;0C400005
 	bcs.s	Return_FromHeldItemDisplay	;6506
-	cmpi.w	#$0017,d0	;0C400017
+	cmpi.w	#Object_Potions_First,d0	;0C400017
 	bcs.s	Draw_FoodStatus	;6502
 Return_FromHeldItemDisplay:
 	; ReSource: Returns when the held item does not require the food-status display.
@@ -10292,9 +10566,9 @@ Draw_FoodLevelBar:
 	or.b	#$14,$0054(a5)	;002D00140054
 	move.w	$000E(a5),d0	;302D000E
 	move.b	$18(a5,d0.w),d0	;10350018
-	bsr	adrCd006660	;6100F9B4
-	move.b	$0010(a4),d0	;102C0010
-	move.w	#$00C7,d1	;323C00C7
+	bsr	Load_ChampionStatRecord	;6100F9B4
+	move.b	ChampionStat_FoodLevel(a4),d0	;102C0010
+	move.w	#Food_LevelMaximum,d1	;323C00C7
 	moveq	#$3A,d2	;743A
 	move.l	#$0004005A,d5	;2A3C0004005A	;Long Addr replaced with Symbol
 	add.w	$0008(a5),d5	;DA6D0008
@@ -10305,7 +10579,7 @@ Draw_FoodLevelBar:
 
 Draw_HeldObjectDescription:
 	; ReSource: Prints an empty description or prepares the selected held object's description.
-	move.w	$002E(a5),d0	;302D002E
+	move.w	HeldItem_ObjectCodeOffset(a5),d0	;302D002E
 	bne.s	Prepare_HeldObjectDescription	;660A
 	lea	NullString.l,a6	;4DF90000CAE9
 	bra	LowerText	;600062D8
@@ -10313,17 +10587,17 @@ Draw_HeldObjectDescription:
 Prepare_HeldObjectDescription:
 	; ReSource: Handles champion-remains ownership before resolving and printing the held object's description.
 	move.w	d0,d1	;3200
-	sub.w	#$0040,d1	;04410040
+	sub.w	#Object_Remains_First,d1	;04410040
 	bcs.s	Resolve_HeldObjectDescription	;651E
-	cmpi.w	#$0010,d1	;0C410010
+	cmpi.w	#Champion_Count,d1	;0C410010
 	bcc.s	Resolve_HeldObjectDescription	;6418
 	move.w	d1,d0	;3001
 	bsr	adrCd004078	;6100D384
-	move.w	$002E(a5),d0	;302D002E
+	move.w	HeldItem_ObjectCodeOffset(a5),d0	;302D002E
 	tst.w	d1	;4A41
 	bmi.s	Resolve_HeldObjectDescription	;6B0A
 	bclr	#$05,$18(a5,d1.w)	;08B500051018
-	clr.l	$002C(a5)	;42AD002C
+	clr.l	HeldItem_StateOffset(a5)	;42AD002C
 Resolve_HeldObjectDescription:
 	; ReSource: Resolves the normal object-definition text after optional champion-remains ownership handling.
 	lea	Object_Definition_Table+$02.l,a6	;4DF90000E4C4
@@ -10578,7 +10852,7 @@ TeamAvatar_LoopBody_AI_TBC:
 	move.w	d1,d0	;3001
 	and.w	#$00E0,d1	;024100E0
 	bne.s	TeamAvatar_LoopEnd_AI_TBC	;6608
-	bsr	adrCd006660	;6100F6CC
+	bsr	Load_ChampionStatRecord	;6100F6CC
 	clr.b	$0011(a4)	;422C0011
 TeamAvatar_LoopEnd_AI_TBC:
 	dbra	d7,TeamAvatar_LoopBody_AI_TBC	;51CFFFEA
@@ -11509,7 +11783,7 @@ adrCd00785A:
 	bpl.s	adrCd0078A0	;6A24
 	move.l	(sp)+,a5	;2A5F
 adrCd00787E:
-	bsr	adrCd006660	;6100EDE0
+	bsr	Load_ChampionStatRecord	;6100EDE0
 	move.b	d2,$0017(a4)	;19420017
 	swap	d2	;4842
 	move.b	d2,$0016(a4)	;19420016
@@ -11565,7 +11839,7 @@ adrLp007910:
 	beq.s	adrCd007958	;6732
 	move.w	d0,-(sp)	;3F00
 	move.b	$18(a5,d0.w),d0	;10350018
-	bsr	adrCd006660	;6100ED32
+	bsr	Load_ChampionStatRecord	;6100ED32
 	move.b	#$05,$0007(a4)	;197C00050007
 	move.b	#$05,$0005(a4)	;197C00050005
 	move.w	(sp)+,d0	;301F
@@ -12499,7 +12773,7 @@ Load_MapPosition_AI_TBC:
 	move.l	screen_ptr.l,a0	;207900008D36
 	add.w	#$054C,a0	;D0FC054C
 	add.w	$000A(a5),a0	;D0ED000A
-	bsr	adrCd00665C	;6100E472
+	bsr	Load_CurrentChampionStatRecord	;6100E472
 	moveq	#$63,d0	;7063
 	moveq	#$00,d2	;7400
 	move.b	$0011(a4),d2	;142C0011
@@ -13860,7 +14134,7 @@ adrCd008FB8:
 	bpl.s	adrCd008FA4	;6AD8
 	move.b	$0053(a5),d0	;102D0053
 	bmi.s	adrCd009042	;6B70
-	bsr	adrCd006660	;6100D68C
+	bsr	Load_ChampionStatRecord	;6100D68C
 	link	a3,#-$0020	;4E53FFE0
 	moveq	#$00,d0	;7000
 	move.b	$0016(a4),d0	;102C0016
@@ -13908,7 +14182,7 @@ adrCd009042:
 	link	a3,#-$0020	;4E53FFE0
 	move.l	$001C(a5),-$0004(a3)	;276D001CFFFC
 	move.w	$0020(a5),-$000A(a3)	;376D0020FFF6
-	bsr	adrCd00665C	;6100D608
+	bsr	Load_CurrentChampionStatRecord	;6100D608
 	bsr.s	adrCd009000	;61A8
 	move.w	$0058(a5),d0	;302D0058
 adrCd00905C:
@@ -15269,7 +15543,7 @@ adrCd009B58:
 
 adrCd009B5E:
 	move.b	d0,-$0017(a3)	;1740FFE9
-	bsr	adrCd006660	;6100CAFC
+	bsr	Load_ChampionStatRecord	;6100CAFC
 	move.b	$001B(a4),d0	;102C001B
 	bsr.s	Decode_Monster_RenderFlags	;6154
 	bra	adrCd00A6EC	;60000B7E
@@ -20038,7 +20312,7 @@ adrCd00C168:
 	bsr	adrCd00C01E	;6100FEA4
 	move.w	#$0005,adrW_00EEC6.l	;33FC00050000EEC6
 	move.b	#$01,SyncFlagHighByte_AI_TBC.l	;13FC000100008C1F
-	jsr	SpellPractice_CountInit_DATA_AI_TBC.w	;4EB808F2	;Short Absolute converted to symbol!
+	jsr	Initialize_SpellPracticeThresholds.w	;4EB808F2	;Short Absolute converted to symbol!
 adrCd00C190:
 	move.w	adrW_00EEF2.l,d1	;32390000EEF2
 	lea	Player1_Data.l,a5	;4BF90000EE7C
@@ -20134,7 +20408,7 @@ adrCd00C298:
 	bra	adrCd00C85E	;600005B4
 
 adrCd00C2AC:
-	bsr	adrCd00665C	;6100A3AE
+	bsr	Load_CurrentChampionStatRecord	;6100A3AE
 	move.w	$002A(a5),d0	;302D002A
 	move.w	d0,d2	;3400
 	asl.w	#$02,d2	;E542
@@ -20361,7 +20635,7 @@ Click_SelectionAvatar:
 	move.w	$0006(a5),d7	;3E2D0006
 	bsr	Draw_ChampionLargeAvatar	;610007B8
 	bsr	adrCd00CFF0	;61000A88
-	bsr	adrCd00665C	;6100A0F0
+	bsr	Load_CurrentChampionStatRecord	;6100A0F0
 	move.b	#$FF,$0013(a4)	;197C00FF0013
 	move.l	screen_ptr.l,a0	;207900008D36
 	add.w	#$0A19,a0	;D0FC0A19
@@ -20615,7 +20889,7 @@ adrCd00C812:
 	add.w	#$0E2C,a0	;D0FC0E2C
 	add.w	$000A(a5),a0	;D0ED000A
 adrCd00C820:
-	bsr	adrCd00665C	;61009E3A
+	bsr	Load_CurrentChampionStatRecord	;61009E3A
 	or.b	#$0C,$0054(a5)	;002D000C0054
 	move.b	$0009(a4),d0	;102C0009
 	bsr	Convert_ByteToDecimalText	;61000694
@@ -20740,7 +21014,7 @@ adrJA00C938:
 	bsr	Print_fflim_text	;61000744
 adrCd00C984:
 	move.w	d7,d0	;3007
-	bsr	adrCd006660	;61009CD8
+	bsr	Load_ChampionStatRecord	;61009CD8
 	move.w	d7,d0	;3007
 	bsr	Calculate_CharacterArmourLevel	;61009990
 	move.b	#$2B,d1	;123C002B
@@ -21120,7 +21394,7 @@ adrCd00CCD8:
 
 adrCd00CCFE:
 	move.w	d7,d0	;3007
-	bsr	adrCd006660	;6100995E
+	bsr	Load_ChampionStatRecord	;6100995E
 	move.b	$0011(a4),d0	;102C0011
 	beq.s	adrCd00CD12	;6708
 	and.w	#$0007,d0	;02400007
@@ -21467,7 +21741,7 @@ adrCd00D042:
 	movem.l	a4/a5,-(sp)	;48E7000C
 	move.l	a0,a5	;2A48
 	move.b	$0001(a4),d0	;102C0001
-	jsr	adrCd0041FA.w	;4EB841FA	;Short Absolute converted to symbol!
+	jsr	Comms_GetState.w	;4EB841FA	;Short Absolute converted to symbol!
 	tst.b	$0005(a4)	;4A2C0005
 	bpl.s	adrCd00D07C	;6A04
 	move.b	d0,$0000(a4)	;19400000
@@ -22418,7 +22692,7 @@ adrCd00D846:
 	movem.l	a4/a5,-(sp)	;48E7000C
 	move.l	a0,a5	;2A48
 	move.b	$0001(a4),d0	;102C0001
-	jsr	adrCd0041FA.w	;4EB841FA	;Short Absolute converted to symbol!
+	jsr	Comms_GetState.w	;4EB841FA	;Short Absolute converted to symbol!
 	tst.b	$0005(a4)	;4A2C0005
 	bpl.s	adrCd00D85E	;6A04
 	move.b	d0,$0000(a4)	;19400000
@@ -40842,7 +41116,8 @@ BigMonsterList:
 	dc.w	$0000	;0000
 	dc.w	$0000	;0000
 	dc.w	$0000	;0000
-adrEA016B4C:
+Comms_StateRecords:
+	; ReSource: Two sixteen-byte communication state records, one for each player.
 	dc.w	$0000	;0000
 	dc.w	$0000	;0000
 	dc.w	$0000	;0000
@@ -40859,7 +41134,8 @@ adrEA016B4C:
 	dc.w	$0000	;0000
 	dc.w	$0000	;0000
 	dc.w	$0000	;0000
-adrEA016B6C:
+PhysicalAttack_WorkingValues:
+	; ReSource: Temporary physical-attack result, attacker, defender, weapon and armour values.
 	dc.w	$0000	;0000
 	dc.w	$0000	;0000
 	dc.w	$0000	;0000

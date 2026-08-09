@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from collections.abc import Mapping
 from dataclasses import dataclass
 from pathlib import Path
 import re
@@ -216,16 +217,35 @@ def load_source_metadata(
     return equates, tuple(rules)
 
 
-def _label_index(lines: list[str], label: str, rule_id: str) -> int:
-    matches = [
+def _label_matches(lines: list[str], label: str) -> list[int]:
+    return [
         index
         for index, line in enumerate(lines)
         if (match := LABEL_DEFINITION.match(line))
         and match.group(1).casefold() == label.casefold()
     ]
+
+
+def _label_index(
+    lines: list[str],
+    label: str,
+    rule_id: str,
+    label_relabels: Mapping[str, str],
+) -> int:
+    matches = _label_matches(lines, label)
+    fallback = label_relabels.get(label.casefold())
+    if not matches and fallback and fallback.casefold() != label.casefold():
+        matches = _label_matches(lines, fallback)
+        if len(matches) == 1:
+            print(
+                f"Source rule '{rule_id}' resolved relabelled scope "
+                f"'{label}' as '{fallback}'"
+            )
     if len(matches) != 1:
+        fallback_text = f" (or relabel '{fallback}')" if fallback else ""
         raise ToolError(
-            f"Source rule '{rule_id}' expected one label '{label}', found {len(matches)}"
+            f"Source rule '{rule_id}' expected one label '{label}'{fallback_text}, "
+            f"found {len(matches)}"
         )
     return matches[0]
 
@@ -246,72 +266,117 @@ def _opcode_matches(expected: str, actual: str) -> bool:
     return expected.zfill(len(actual)) == actual
 
 
+def _relabel_rule_operands(value: str, label_relabels: Mapping[str, str]) -> str:
+    """Mirror ordinary relabelling inside an EQU rule's source operand."""
+
+    result = value
+    identifier_character = r"A-Za-z0-9_$?"
+    for label, relabel in label_relabels.items():
+        pattern = (
+            rf"(?<![{identifier_character}])"
+            rf"{re.escape(label)}"
+            rf"(?![{identifier_character}])"
+        )
+        result = re.sub(pattern, relabel, result, flags=re.IGNORECASE)
+    return result
+
+
+def _apply_source_rule(
+    lines: list[str],
+    rule: SourceRule,
+    label_relabels: Mapping[str, str],
+) -> tuple[list[str], int]:
+    """Apply one rule atomically and return its updated source and match count."""
+
+    result = list(lines)
+    start = _label_index(result, rule.scope_start, rule.rule_id, label_relabels)
+    end = _label_index(result, rule.scope_end, rule.rule_id, label_relabels)
+    if end <= start:
+        raise ToolError(
+            f"Source rule '{rule.rule_id}' has scope_end before scope_start"
+        )
+    candidates: list[int] = []
+    parsed: dict[int, tuple[str, str, str]] = {}
+    match_operands = _relabel_rule_operands(rule.match_operands, label_relabels)
+    for index in range(start + 1, end):
+        source, separator, comment = result[index].partition(";")
+        match = re.match(r"^(\s*\S+\s+)(.*?)(\s*)$", source)
+        if not match:
+            continue
+        prefix, operands, trailing = match.groups()
+        mnemonic = prefix.strip()
+        if mnemonic.casefold() != rule.mnemonic.casefold():
+            continue
+        if _normalise_operands(operands) != _normalise_operands(match_operands):
+            continue
+        candidates.append(index)
+        parsed[index] = (prefix, trailing, comment if separator else "")
+    if len(candidates) != rule.expected_matches:
+        raise ToolError(
+            f"Source rule '{rule.rule_id}' expected {rule.expected_matches} match(es) "
+            f"between '{rule.scope_start}' and '{rule.scope_end}', found {len(candidates)}"
+        )
+    expected_opcode = _normalise_opcode(rule.expected_opcode)
+    for index in candidates:
+        if expected_opcode:
+            _, _, comment = parsed[index]
+            opcode_match = re.match(r"\s*([0-9A-Fa-f]+)", comment)
+            actual_opcode = _normalise_opcode(
+                opcode_match.group(1) if opcode_match else ""
+            )
+            if not _opcode_matches(expected_opcode, actual_opcode):
+                raise ToolError(
+                    f"Source rule '{rule.rule_id}' opcode mismatch at ASM line "
+                    f"{index + 1}: expected {rule.expected_opcode}, found "
+                    f"{actual_opcode.upper() or 'none'}"
+                )
+        prefix, trailing, comment = parsed[index]
+        suffix = f";{comment}" if comment else ""
+        result[index] = f"{prefix}{rule.replacement_operands}{trailing}{suffix}"
+    return result, len(candidates)
+
+
 def apply_source_rules(
     lines: list[str],
     equates: tuple[EquateDefinition, ...],
     rules: tuple[SourceRule, ...],
+    *,
+    label_relabels: Mapping[str, str] | None = None,
+    continue_on_error: bool = False,
 ) -> list[str]:
     """Apply verified operand rewrites inside fail-closed labelled scopes."""
 
     result = list(lines)
+    relabels = {
+        label.casefold(): relabel
+        for label, relabel in (label_relabels or {}).items()
+    }
     applied = 0
+    failed = 0
     proposed = sum(rule.status == PROPOSED for rule in rules)
     for rule in rules:
         if rule.status != VERIFIED:
             continue
-        start = _label_index(result, rule.scope_start, rule.rule_id)
-        end = _label_index(result, rule.scope_end, rule.rule_id)
-        if end <= start:
-            raise ToolError(
-                f"Source rule '{rule.rule_id}' has scope_end before scope_start"
+        try:
+            updated, match_count = _apply_source_rule(result, rule, relabels)
+        except ToolError as error:
+            if not continue_on_error:
+                raise
+            failed += 1
+            print(
+                f"Error applying {error}; leaving this rule unchanged and continuing"
             )
-        candidates: list[int] = []
-        parsed: dict[int, tuple[str, str, str]] = {}
-        for index in range(start + 1, end):
-            source, separator, comment = result[index].partition(";")
-            match = re.match(r"^(\s*\S+\s+)(.*?)(\s*)$", source)
-            if not match:
-                continue
-            prefix, operands, trailing = match.groups()
-            mnemonic = prefix.strip()
-            if mnemonic.casefold() != rule.mnemonic.casefold():
-                continue
-            if _normalise_operands(operands) != _normalise_operands(rule.match_operands):
-                continue
-            candidates.append(index)
-            parsed[index] = (prefix, trailing, comment if separator else "")
-        if len(candidates) != rule.expected_matches:
-            raise ToolError(
-                f"Source rule '{rule.rule_id}' expected {rule.expected_matches} match(es) "
-                f"between '{rule.scope_start}' and '{rule.scope_end}', found {len(candidates)}"
-            )
-        expected_opcode = _normalise_opcode(rule.expected_opcode)
-        for index in candidates:
-            if expected_opcode:
-                _, _, comment = parsed[index]
-                opcode_match = re.match(r"\s*([0-9A-Fa-f]+)", comment)
-                actual_opcode = _normalise_opcode(
-                    opcode_match.group(1) if opcode_match else ""
-                )
-                if not _opcode_matches(expected_opcode, actual_opcode):
-                    raise ToolError(
-                        f"Source rule '{rule.rule_id}' opcode mismatch at ASM line "
-                        f"{index + 1}: expected {rule.expected_opcode}, found "
-                        f"{actual_opcode.upper() or 'none'}"
-                    )
-            prefix, trailing, comment = parsed[index]
-            suffix = f";{comment}" if comment else ""
-            result[index] = (
-                f"{prefix}{rule.replacement_operands}{trailing}{suffix}"
-            )
-            applied += 1
+            continue
+        result = updated
+        applied += match_count
         print(
             f"Applied source rule '{rule.rule_id}' "
-            f"({len(candidates)} instruction(s))"
+            f"({match_count} instruction(s))"
         )
     if equates or rules:
         print(
             f"Source rules: {applied} instruction(s) applied, "
+            f"{failed} verified rule(s) failed safely, "
             f"{proposed} proposed rule(s) ignored"
         )
     return result

@@ -80,6 +80,14 @@ Do not patch a modified resource into an incompatible binary profile. Larger res
 
 The user generally prefers to enter spreadsheet changes manually. When proposing additions, provide a complete, copy-ready table using the exact columns of the relevant sheet, including blank cells. Do not provide a shortened selection of columns that makes duplicate anchors or actions ambiguous.
 
+For label/relabel proposals on a profile sheet, include every column from column A (`label`) through column K (`source_comment`), retaining any blank cells between them. For `BLOODWYCH439`, the required chat-table columns are:
+
+```text
+label | relabel | Type | DATA BLOCK FILE | name | BW439 Position | offset | size | Length (Hexidecimal) | data_action | source_comment
+```
+
+Do not shorten label proposals to only the populated columns, and do not include the trailing blank, separator, or `Unnamed` spreadsheet columns after `source_comment`.
+
 For each extractable resource, propose:
 
 - a human-readable relabel;

@@ -147,7 +147,18 @@ def relabel_segments(master: str, sheet: str | Path) -> Path:
         lines = [re.sub(reference_pattern, new_label, line) for line in lines]
         print(f"Relabeled '{label}' to '{new_label}'")
 
-    lines = apply_source_rules(lines, equates, source_rules)
+    label_relabels = {
+        label: new_label
+        for label, new_label in rows
+        if not new_label.casefold().startswith(("_delete", "_offset_"))
+    }
+    lines = apply_source_rules(
+        lines,
+        equates,
+        source_rules,
+        label_relabels=label_relabels,
+        continue_on_error=True,
+    )
     lines = insert_generated_equates(lines, equates)
     lines = apply_source_comments(lines, frame)
     lines = insert_temporary_aliases(lines, layouts)
