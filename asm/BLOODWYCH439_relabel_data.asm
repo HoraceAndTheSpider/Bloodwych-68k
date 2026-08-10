@@ -1,301 +1,164 @@
 
-dsksync:		equ	$0000007E
-copjmp1:		equ	$00000088
-aud:			equ	$000000A0
-ac_vol:			equ	$00000008
-adkcon:			equ	$0000009E
-_custom:		equ	$00DFF000
-ddfstop:		equ	$00000094
-bplcon2:		equ	$00000104
-diwstrt:		equ	$0000008E
-ac_per:			equ	$00000006
-intreq:			equ	$0000009C
-bplcon0:		equ	$00000100
-bplcon1:		equ	$00000102
-aud0:			equ	$000000A0
-diwstop:		equ	$00000090
-cli_SIZEOF:		equ	$00000040
-ddfstrt:		equ	$00000092
-SYSBASESIZE:		equ	$00000278
-tv_TrapInstrVects:	equ	$00000080
-ciaprb:			equ	$00000100
-intena:			equ	$0000009A
-intreqr:		equ	$0000001E
-joy0dat:		equ	$0000000A
-ac_dat:			equ	$0000000A
-joy1dat:		equ	$0000000C
-bpl2mod:		equ	$0000010A
-color:			equ	$00000180
-bltddat:		equ	$00000000
-bpl1mod:		equ	$00000108
-ciaicr:			equ	$00000D00
-dskpt:			equ	$00000020
-cop1lc:			equ	$00000080
-_ciaa:			equ	$00BFE001
-_ciab:			equ	$00BFD000
-dmacon:			equ	$00000096
-wd_SIZEOF:		equ	$00000088
-dsklen:			equ	$00000024
-ac_len:			equ	$00000004
-ciacra:			equ	$00000E00
+dsksync:									equ	$0000007E
+copjmp1:									equ	$00000088
+aud:										equ	$000000A0
+ac_vol:										equ	$00000008
+adkcon:										equ	$0000009E
+_custom:									equ	$00DFF000
+ddfstop:									equ	$00000094
+bplcon2:									equ	$00000104
+diwstrt:									equ	$0000008E
+ac_per:										equ	$00000006
+intreq:										equ	$0000009C
+bplcon0:									equ	$00000100
+bplcon1:									equ	$00000102
+aud0:										equ	$000000A0
+diwstop:									equ	$00000090
+cli_SIZEOF:									equ	$00000040
+ddfstrt:									equ	$00000092
+SYSBASESIZE:								equ	$00000278
+tv_TrapInstrVects:							equ	$00000080
+ciaprb:										equ	$00000100
+intena:										equ	$0000009A
+intreqr:									equ	$0000001E
+joy0dat:									equ	$0000000A
+ac_dat:										equ	$0000000A
+joy1dat:									equ	$0000000C
+bpl2mod:									equ	$0000010A
+color:										equ	$00000180
+bltddat:									equ	$00000000
+bpl1mod:									equ	$00000108
+ciaicr:										equ	$00000D00
+dskpt:										equ	$00000020
+cop1lc:										equ	$00000080
+_ciaa:										equ	$00BFE001
+_ciab:										equ	$00BFD000
+dmacon:										equ	$00000096
+wd_SIZEOF:									equ	$00000088
+dsklen:										equ	$00000024
+ac_len:										equ	$00000004
+ciacra:										equ	$00000E00
 ; ReSource: generated EQU definitions from segments.xlsx/EQUATES
-DiskReadTimeoutCount:		equ	$000186A0
-	; ReSource: Disk-read timeout counter used while waiting for DMA completion.
-Object_EmptySlot:		equ	$00
-	; ReSource: Empty object-slot code.
-Object_Coinage:		equ	$01
-	; ReSource: Coinage object code.
-Object_CommonKeys:		equ	$02
-	; ReSource: Common-key object code.
-Object_Arrows_First:		equ	$03
-	; ReSource: First arrow object code.
-Object_Food_First:		equ	$05
-	; ReSource: First food object and exclusive end of counted objects.
-Object_Drinks_First:		equ	$0E
-	; ReSource: First drink-like food object.
-Object_Neggs_First:		equ	$14
-	; ReSource: First high-value N'Egg food object.
-Object_TradeValueTable_First:		equ	$14
-	; ReSource: First object represented by the trade-value lookup table.
-Object_PocketGraphicBankSize:		equ	$14
-	; ReSource: Number of pocket graphics in each source-bank step.
-Object_Potions_First:		equ	$17
-	; ReSource: First potion object code and exclusive end of food.
-Object_Armour_First:		equ	$1B
-	; ReSource: First body-armour object and exclusive end of potions.
-Object_SmallShields_First:		equ	$24
-	; ReSource: First small-shield object and exclusive end of body armour.
-Object_LargeShields_First:		equ	$27
-	; ReSource: First large-shield object.
-Object_Gloves_First:		equ	$2B
-	; ReSource: First glove object and exclusive end of all shields.
-Object_Blades_First:		equ	$30
-	; ReSource: First blade object and exclusive end of gloves.
-Object_Swords_First:		equ	$32
-	; ReSource: First sword object.
-Object_Axes_First:		equ	$38
-	; ReSource: First axe object.
-Object_Staffs_First:		equ	$3D
-	; ReSource: First staff object.
-Object_Remains_First:		equ	$40
-	; ReSource: First champion-remains object and first normally non-tradable
-	; object.
-Object_Keys_First:		equ	$50
-	; ReSource: First named-key object.
-Object_Wands_First:		equ	$57
-	; ReSource: First wand object.
-Object_Bows_First:		equ	$5C
-	; ReSource: First bow object.
-Object_Permit:		equ	$5F
-	; ReSource: Permit object and exclusive end of bows.
-Object_Crystals_First:		equ	$60
-	; ReSource: First crystal object.
-Object_StackMaximum:		equ	$63
-	; ReSource: Highest stored quantity for a counted object.
-Object_StackLimitExclusive:		equ	$64
-	; ReSource: Exclusive counted-object quantity limit.
-Object_Gems_First:		equ	$64
-	; ReSource: First gem object.
-Object_Rings_First:		equ	$68
-	; ReSource: First member of the complete ring family.
-Object_DepletedRing:		equ	$68
-	; ReSource: Depleted-ring object code.
-Object_MagicRings_First:		equ	$69
-	; ReSource: First rechargeable magic-ring object.
-Object_BookOfSkulls:		equ	$6D
-	; ReSource: Book of Skulls object and exclusive end of magic rings.
-Object_ChaosGloves:		equ	$2B
-	; ReSource: Chaos Gloves object code.
-Object_AceOfSwords:		equ	$37
-	; ReSource: Ace of Swords object code.
-Character_ProfessionMask:		equ	$03
-	; ReSource: Low two bits used to select one of the four character professions.
-PhysicalAttack_CooldownInitial:		equ	$07
-	; ReSource: Initial cooldown written whenever a champion performs a physical
-	; attack.
-PhysicalAttack_VitalityCost:		equ	$03
-	; ReSource: Vitality removed when champion combat values are loaded for
-	; physical combat.
-Weapon_CombatModifierRecordCount:		equ	$10
-	; ReSource: Number of four-byte records in Weapon_CombatModifiers.
-Weapon_BackstabEligibleByteLimit:		equ	$08
-	; ReSource: Exclusive byte-offset limit for weapon records which preserve a
-	; Cutpurse backstab.
-Weapon_AceOfSwordsRecordOffset:		equ	$1C
-	; ReSource: Byte offset of the Ace of Swords record within
-	; Weapon_CombatModifiers.
-Object_PowerStaff:		equ	$3F
-	; ReSource: Power Staff object code.
-PowerStaff_SpellCastingBonus:		equ	$05
-	; ReSource: Spell-casting quality bonus supplied by a held Power Staff.
-WornSpell_Warpower:		equ	$02
-	; ReSource: Low three-bit worn-spell type used for Warpower.
-SpellCasting_VitalityCost:		equ	$04
-	; ReSource: Vitality removed when a champion launches a spell.
-Combat_StrengthBias:		equ	$08
-	; ReSource: Internal Strength bias applied before physical-combat thresholds.
-ChampionStat_HitPointsCurrent:		equ	$05
-	; ReSource: Offset of current hit points in a 32-byte character-stat record.
-ChampionStat_HitPointsMaximum:		equ	$06
-	; ReSource: Offset of maximum hit points in a character-stat record.
-ChampionStat_VitalityCurrent:		equ	$07
-	; ReSource: Offset of current vitality in a character-stat record.
-ChampionStat_VitalityMaximum:		equ	$08
-	; ReSource: Offset of maximum vitality in a character-stat record.
-ChampionStat_SpellPointsCurrent:		equ	$09
-	; ReSource: Offset of current spell points in a character-stat record.
-ChampionStat_SpellPointsMaximum:		equ	$0A
-	; ReSource: Offset of maximum spell points in a character-stat record.
-ChampionStat_FoodLevel:		equ	$10
-	; ReSource: Offset of food level in a character-stat record.
-ChampionStat_SpellCooldown:		equ	$15
-	; ReSource: Offset of the spell cooldown in a character-stat record.
-HeldItem_StateOffset:		equ	$2C
-	; ReSource: Offset of the four-byte held-item state containing the quantity
-	; word followed by the object-code word.
-HeldItem_ObjectCodeOffset:		equ	$2E
-	; ReSource: Offset of the currently held object code in the interface state.
-Food_PortionGroupSize:		equ	$03
-	; ReSource: Number of visual consumption stages in each portioned-food family.
-Food_SolidPortionValue:		equ	$20
-	; ReSource: Food-level increase for each `$05-$0D` solid-food portion.
-Food_DrinkPortionValue:		equ	$14
-	; ReSource: Food-level increase for each `$0E-$13` drink portion.
-Food_WholeValueStep:		equ	$42
-	; ReSource: Food-level step applied once, twice or three times by objects
-	; `$14-$16`.
-Food_LevelMaximum:		equ	$C7
-	; ReSource: Highest stored character food level.
-Food_LevelLimitExclusive:		equ	$C8
-	; ReSource: Exclusive upper limit used before clamping food level to `$C7`.
-HeldItem_QuantityOffset:		equ	$2C
-	; ReSource: Offset of the held-object quantity word in player interface state.
-HeldItem_QuantityByteOffset:		equ	$2D
-	; ReSource: Offset of the low byte of the held-object quantity.
-HeldItem_ObjectCodeByteOffset:		equ	$2F
-	; ReSource: Offset of the low byte of the currently held object code.
-ChampionPocket_LeftHand:		equ	$00
-	; ReSource: Offset of the left-hand pocket in a sixteen-byte champion-pockets
-	; record.
-ChampionPocket_RightHand:		equ	$01
-	; ReSource: Offset of the right-hand pocket in a champion-pockets record.
-ChampionPocket_BodyArmour:		equ	$02
-	; ReSource: Offset of the dedicated body-armour pocket.
-ChampionPocket_Shield:		equ	$03
-	; ReSource: Offset of the dedicated shield pocket.
-ChampionPocket_CountedObjectCountsOffset:		equ	$0B
-	; ReSource: Base offset of the object-code-indexed counted-object quantities in
-	; a champion-pockets record.
-ChampionPocket_LastIndex:		equ	$0B
-	; ReSource: Highest ordinary pocket index in the twelve-pocket
-	; duplicate-removal scan.
-ChampionStat_WornHandArmour:		equ	$12
-	; ReSource: Offset of the worn hand-armour object in a champion-stat record.
-Champion_Count:		equ	$10
-	; ReSource: Number of standard champions and champion-remains objects.
-ChampionStat_Charisma:		equ	$04
-	; ReSource: Offset of Charisma in a thirty-two-byte champion-stat record.
-InterfaceMode_Communication:		equ	$08
-	; ReSource: Interface mode value active while communicating with another
-	; character.
-Comms_CharismaBaseline:		equ	$14
-	; ReSource: Charisma receives no initial communication bonus at or below this
-	; value.
-Comms_CharismaShift:		equ	$02
-	; ReSource: Right shift converting excess Charisma into an initial attitude
-	; bonus.
-Beguile_PowerShift:		equ	$02
-	; ReSource: Right shift converting Beguile spell power into its communication
-	; bonus.
-Beguile_BaseBonus:		equ	$01
-	; ReSource: Minimum attitude and patience bonus supplied by a successful
-	; Beguile spell.
-CommsState_PreviousActionOffset:		equ	$00
-	; ReSource: Offset of the action to which the other character is responding.
-CommsState_CurrentActionOffset:		equ	$01
-	; ReSource: Offset of the communication action currently being performed.
-CommsState_OtherCharacterOffset:		equ	$02
-	; ReSource: Offset of the addressed character identifier and its identity
-	; flags.
-CommsState_SpeakerIdentityOffset:		equ	$03
-	; ReSource: Offset of the speaker identifier and disclosed-name/profession
-	; flags.
-CommsState_TimerOffset:		equ	$04
-	; ReSource: Offset of the communication activity timer reset after an action.
-CommsState_FlagsOffset:		equ	$05
-	; ReSource: Offset of communication record flags.
-CommsState_AttitudeOffset:		equ	$06
-	; ReSource: Offset of mutable communication attitude or rapport.
-CommsState_PatienceOffset:		equ	$07
-	; ReSource: Offset of communication patience or remaining engagement.
-CommsState_TradeModeOffset:		equ	$08
-	; ReSource: Offset of the active communication trading mode.
-CommsState_TradeValueOffset:		equ	$09
-	; ReSource: Offset of the quoted or accepted trade value.
-CommsState_TradeObjectOffset:		equ	$0A
-	; ReSource: Offset of the object code involved in the active trade.
-CommsTradeMode_None:		equ	$00
-	; ReSource: No communication trade is pending.
-CommsTradeMode_Purchase:		equ	$01
-	; ReSource: Purchase communication mode.
-CommsTradeMode_Exchange:		equ	$02
-	; ReSource: Exchange communication mode.
-CommsTradeMode_Sell:		equ	$03
-	; ReSource: Sell communication mode.
-CommsAction_Recruit:		equ	$00
-	; ReSource: Communication action selected by Recruit.
-CommsAction_Identify:		equ	$01
-	; ReSource: Communication action opening the Identify submenu.
-CommsAction_Inquiry:		equ	$02
-	; ReSource: Communication action opening the Inquiry submenu.
-CommsAction_Whereabouts:		equ	$03
-	; ReSource: Communication action selected by Whereabouts.
-CommsAction_Trading:		equ	$04
-	; ReSource: Communication action opening the Trading submenu.
-CommsAction_Smalltalk:		equ	$05
-	; ReSource: Communication action opening the Smalltalk submenu.
-CommsAction_Yes:		equ	$06
-	; ReSource: Communication action selected by Yes.
-CommsAction_No:		equ	$07
-	; ReSource: Communication action selected by No.
-CommsAction_Bribe:		equ	$08
-	; ReSource: Communication action selected by Bribe.
-CommsAction_Threat:		equ	$09
-	; ReSource: Communication action selected by Threat.
-CommsAction_WhoGoes:		equ	$0A
-	; ReSource: Communication action selected by Who Goes.
-CommsAction_ThyTrade:		equ	$0B
-	; ReSource: Communication action selected by Thy Trade.
-CommsAction_NameSelf:		equ	$0C
-	; ReSource: Communication action selected by Name Self.
-CommsAction_RevealSelf:		equ	$0D
-	; ReSource: Communication action selected by Reveal Self.
-CommsAction_FolkLore:		equ	$0E
-	; ReSource: Communication action selected by Folk Lore.
-CommsAction_MagicItems:		equ	$0F
-	; ReSource: Communication action selected by Magic Items.
-CommsAction_Objects:		equ	$10
-	; ReSource: Communication action selected by Objects.
-CommsAction_Persons:		equ	$11
-	; ReSource: Communication action selected by Persons.
-CommsAction_Offer:		equ	$12
-	; ReSource: Communication action selected by Offer.
-CommsAction_Purchase:		equ	$13
-	; ReSource: Communication action selected by Purchase.
-CommsAction_Exchange:		equ	$14
-	; ReSource: Communication action selected by Exchange.
-CommsAction_Sell:		equ	$15
-	; ReSource: Communication action selected by Sell.
-CommsAction_Praise:		equ	$16
-	; ReSource: Communication action selected by Praise.
-CommsAction_Curse:		equ	$17
-	; ReSource: Communication action selected by Curse.
-CommsAction_Boast:		equ	$18
-	; ReSource: Communication action selected by Boast.
-CommsAction_Retort:		equ	$19
-	; ReSource: Communication action selected for a contextual Retort.
-CommsAction_Greeting:		equ	$1A
-	; ReSource: Initial communication action used when a conversation begins.
+DiskReadTimeoutCount:						equ	$000186A0	; ReSource: Disk-read timeout counter used while waiting for DMA completion.
+Object_EmptySlot:							equ	$00			; ReSource: Empty object-slot code.
+Object_Coinage:								equ	$01			; ReSource: Coinage object code.
+Object_CommonKeys:							equ	$02			; ReSource: Common-key object code.
+Object_Arrows_First:						equ	$03			; ReSource: First arrow object code.
+Object_Food_First:							equ	$05			; ReSource: First food object and exclusive end of counted objects.
+Object_Drinks_First:						equ	$0E			; ReSource: First drink-like food object.
+Object_Neggs_First:							equ	$14			; ReSource: First high-value N'Egg food object.
+Object_TradeValueTable_First:				equ	$14			; ReSource: First object represented by the trade-value lookup table.
+Object_PocketGraphicBankSize:				equ	$14			; ReSource: Number of pocket graphics in each source-bank step.
+Object_Potions_First:						equ	$17			; ReSource: First potion object code and exclusive end of food.
+Object_Armour_First:						equ	$1B			; ReSource: First body-armour object and exclusive end of potions.
+Object_SmallShields_First:					equ	$24			; ReSource: First small-shield object and exclusive end of body armour.
+Object_LargeShields_First:					equ	$27			; ReSource: First large-shield object.
+Object_Gloves_First:						equ	$2B			; ReSource: First glove object and exclusive end of all shields.
+Object_Blades_First:						equ	$30			; ReSource: First blade object and exclusive end of gloves.
+Object_Swords_First:						equ	$32			; ReSource: First sword object.
+Object_Axes_First:							equ	$38			; ReSource: First axe object.
+Object_Staffs_First:						equ	$3D			; ReSource: First staff object.
+Object_Remains_First:						equ	$40			; ReSource: First champion-remains object and first normally non-tradable object.
+Object_Keys_First:							equ	$50			; ReSource: First named-key object.
+Object_Wands_First:							equ	$57			; ReSource: First wand object.
+Object_Bows_First:							equ	$5C			; ReSource: First bow object.
+Object_Permit:								equ	$5F			; ReSource: Permit object and exclusive end of bows.
+Object_Crystals_First:						equ	$60			; ReSource: First crystal object.
+Object_StackMaximum:						equ	$63			; ReSource: Highest stored quantity for a counted object.
+Object_StackLimitExclusive:					equ	$64			; ReSource: Exclusive counted-object quantity limit.
+Object_Gems_First:							equ	$64			; ReSource: First gem object.
+Object_Rings_First:							equ	$68			; ReSource: First member of the complete ring family.
+Object_DepletedRing:						equ	$68			; ReSource: Depleted-ring object code.
+Object_MagicRings_First:					equ	$69			; ReSource: First rechargeable magic-ring object.
+Object_BookOfSkulls:						equ	$6D			; ReSource: Book of Skulls object and exclusive end of magic rings.
+Object_ChaosGloves:							equ	$2B			; ReSource: Chaos Gloves object code.
+Object_AceOfSwords:							equ	$37			; ReSource: Ace of Swords object code.
+Character_ProfessionMask:					equ	$03			; ReSource: Low two bits used to select one of the four character professions.
+PhysicalAttack_CooldownInitial:				equ	$07			; ReSource: Initial cooldown written whenever a champion performs a physical attack.
+PhysicalAttack_VitalityCost:				equ	$03			; ReSource: Vitality removed when champion combat values are loaded for physical combat.
+Weapon_CombatModifierRecordCount:			equ	$10			; ReSource: Number of four-byte records in Weapon_CombatModifiers.
+Weapon_BackstabEligibleByteLimit:			equ	$08			; ReSource: Exclusive byte-offset limit for weapon records which preserve a Cutpurse backstab.
+Weapon_AceOfSwordsRecordOffset:				equ	$1C			; ReSource: Byte offset of the Ace of Swords record within Weapon_CombatModifiers.
+Object_PowerStaff:							equ	$3F			; ReSource: Power Staff object code.
+PowerStaff_SpellCastingBonus:				equ	$05			; ReSource: Spell-casting quality bonus supplied by a held Power Staff.
+WornSpell_Warpower:							equ	$02			; ReSource: Low three-bit worn-spell type used for Warpower.
+SpellCasting_VitalityCost:					equ	$04			; ReSource: Vitality removed when a champion launches a spell.
+Combat_StrengthBias:						equ	$08			; ReSource: Internal Strength bias applied before physical-combat thresholds.
+ChampionStat_HitPointsCurrent:				equ	$05			; ReSource: Offset of current hit points in a 32-byte character-stat record.
+ChampionStat_HitPointsMaximum:				equ	$06			; ReSource: Offset of maximum hit points in a character-stat record.
+ChampionStat_VitalityCurrent:				equ	$07			; ReSource: Offset of current vitality in a character-stat record.
+ChampionStat_VitalityMaximum:				equ	$08			; ReSource: Offset of maximum vitality in a character-stat record.
+ChampionStat_SpellPointsCurrent:			equ	$09			; ReSource: Offset of current spell points in a character-stat record.
+ChampionStat_SpellPointsMaximum:			equ	$0A			; ReSource: Offset of maximum spell points in a character-stat record.
+ChampionStat_FoodLevel:						equ	$10			; ReSource: Offset of food level in a character-stat record.
+ChampionStat_SpellCooldown:					equ	$15			; ReSource: Offset of the spell cooldown in a character-stat record.
+HeldItem_StateOffset:						equ	$2C			; ReSource: Offset of the four-byte held-item state containing the quantity word followed by the object-code word.
+HeldItem_ObjectCodeOffset:					equ	$2E			; ReSource: Offset of the currently held object code in the interface state.
+Food_PortionGroupSize:						equ	$03			; ReSource: Number of visual consumption stages in each portioned-food family.
+Food_SolidPortionValue:						equ	$20			; ReSource: Food-level increase for each `$05-$0D` solid-food portion.
+Food_DrinkPortionValue:						equ	$14			; ReSource: Food-level increase for each `$0E-$13` drink portion.
+Food_WholeValueStep:						equ	$42			; ReSource: Food-level step applied once, twice or three times by objects `$14-$16`.
+Food_LevelMaximum:							equ	$C7			; ReSource: Highest stored character food level.
+Food_LevelLimitExclusive:					equ	$C8			; ReSource: Exclusive upper limit used before clamping food level to `$C7`.
+HeldItem_QuantityOffset:					equ	$2C			; ReSource: Offset of the held-object quantity word in player interface state.
+HeldItem_QuantityByteOffset:				equ	$2D			; ReSource: Offset of the low byte of the held-object quantity.
+HeldItem_ObjectCodeByteOffset:				equ	$2F			; ReSource: Offset of the low byte of the currently held object code.
+ChampionPocket_LeftHand:					equ	$00			; ReSource: Offset of the left-hand pocket in a sixteen-byte champion-pockets record.
+ChampionPocket_RightHand:					equ	$01			; ReSource: Offset of the right-hand pocket in a champion-pockets record.
+ChampionPocket_BodyArmour:					equ	$02			; ReSource: Offset of the dedicated body-armour pocket.
+ChampionPocket_Shield:						equ	$03			; ReSource: Offset of the dedicated shield pocket.
+ChampionPocket_CountedObjectCountsOffset:	equ	$0B			; ReSource: Base offset of the object-code-indexed counted-object quantities in a champion-pockets record.
+ChampionPocket_LastIndex:					equ	$0B			; ReSource: Highest ordinary pocket index in the twelve-pocket duplicate-removal scan.
+ChampionStat_WornHandArmour:				equ	$12			; ReSource: Offset of the worn hand-armour object in a champion-stat record.
+Champion_Count:								equ	$10			; ReSource: Number of standard champions and champion-remains objects.
+ChampionStat_Charisma:						equ	$04			; ReSource: Offset of Charisma in a thirty-two-byte champion-stat record.
+InterfaceMode_Communication:				equ	$08			; ReSource: Interface mode value active while communicating with another character.
+Comms_CharismaBaseline:						equ	$14			; ReSource: Charisma receives no initial communication bonus at or below this value.
+Comms_CharismaShift:						equ	$02			; ReSource: Right shift converting excess Charisma into an initial attitude bonus.
+Beguile_PowerShift:							equ	$02			; ReSource: Right shift converting Beguile spell power into its communication bonus.
+Beguile_BaseBonus:							equ	$01			; ReSource: Minimum attitude and patience bonus supplied by a successful Beguile spell.
+CommsState_PreviousActionOffset:			equ	$00			; ReSource: Offset of the action to which the other character is responding.
+CommsState_CurrentActionOffset:				equ	$01			; ReSource: Offset of the communication action currently being performed.
+CommsState_OtherCharacterOffset:			equ	$02			; ReSource: Offset of the addressed character identifier and its identity flags.
+CommsState_SpeakerIdentityOffset:			equ	$03			; ReSource: Offset of the speaker identifier and disclosed-name/profession flags.
+CommsState_TimerOffset:						equ	$04			; ReSource: Offset of the communication activity timer reset after an action.
+CommsState_FlagsOffset:						equ	$05			; ReSource: Offset of communication record flags.
+CommsState_AttitudeOffset:					equ	$06			; ReSource: Offset of mutable communication attitude or rapport.
+CommsState_PatienceOffset:					equ	$07			; ReSource: Offset of communication patience or remaining engagement.
+CommsState_TradeModeOffset:					equ	$08			; ReSource: Offset of the active communication trading mode.
+CommsState_TradeValueOffset:				equ	$09			; ReSource: Offset of the quoted or accepted trade value.
+CommsState_TradeObjectOffset:				equ	$0A			; ReSource: Offset of the object code involved in the active trade.
+CommsTradeMode_None:						equ	$00			; ReSource: No communication trade is pending.
+CommsTradeMode_Purchase:					equ	$01			; ReSource: Purchase communication mode.
+CommsTradeMode_Exchange:					equ	$02			; ReSource: Exchange communication mode.
+CommsTradeMode_Sell:						equ	$03			; ReSource: Sell communication mode.
+CommsAction_Recruit:						equ	$00			; ReSource: Communication action selected by Recruit.
+CommsAction_Identify:						equ	$01			; ReSource: Communication action opening the Identify submenu.
+CommsAction_Inquiry:						equ	$02			; ReSource: Communication action opening the Inquiry submenu.
+CommsAction_Whereabouts:					equ	$03			; ReSource: Communication action selected by Whereabouts.
+CommsAction_Trading:						equ	$04			; ReSource: Communication action opening the Trading submenu.
+CommsAction_Smalltalk:						equ	$05			; ReSource: Communication action opening the Smalltalk submenu.
+CommsAction_Yes:							equ	$06			; ReSource: Communication action selected by Yes.
+CommsAction_No:								equ	$07			; ReSource: Communication action selected by No.
+CommsAction_Bribe:							equ	$08			; ReSource: Communication action selected by Bribe.
+CommsAction_Threat:							equ	$09			; ReSource: Communication action selected by Threat.
+CommsAction_WhoGoes:						equ	$0A			; ReSource: Communication action selected by Who Goes.
+CommsAction_ThyTrade:						equ	$0B			; ReSource: Communication action selected by Thy Trade.
+CommsAction_NameSelf:						equ	$0C			; ReSource: Communication action selected by Name Self.
+CommsAction_RevealSelf:						equ	$0D			; ReSource: Communication action selected by Reveal Self.
+CommsAction_FolkLore:						equ	$0E			; ReSource: Communication action selected by Folk Lore.
+CommsAction_MagicItems:						equ	$0F			; ReSource: Communication action selected by Magic Items.
+CommsAction_Objects:						equ	$10			; ReSource: Communication action selected by Objects.
+CommsAction_Persons:						equ	$11			; ReSource: Communication action selected by Persons.
+CommsAction_Offer:							equ	$12			; ReSource: Communication action selected by Offer.
+CommsAction_Purchase:						equ	$13			; ReSource: Communication action selected by Purchase.
+CommsAction_Exchange:						equ	$14			; ReSource: Communication action selected by Exchange.
+CommsAction_Sell:							equ	$15			; ReSource: Communication action selected by Sell.
+CommsAction_Praise:							equ	$16			; ReSource: Communication action selected by Praise.
+CommsAction_Curse:							equ	$17			; ReSource: Communication action selected by Curse.
+CommsAction_Boast:							equ	$18			; ReSource: Communication action selected by Boast.
+CommsAction_Retort:							equ	$19			; ReSource: Communication action selected for a contextual Retort.
+CommsAction_Greeting:						equ	$1A			; ReSource: Initial communication action used when a conversation begins.
 ; ReSource: end generated EQU definitions
 
 ****************************************************************************
@@ -11893,7 +11756,7 @@ adrCd007E12:
 	clr.b	InputStateFlag_AI_TBC.l												;42390000EE2D
 	move.l	(sp)+,a0															;205F
 	add.w	#$0140,a0															;D0FC0140
-adrL_007E22:	equ	*-2
+adrL_007E22:								equ	*-2
 	addq.w	#$01,d7																;5247
 	cmpi.w	#$0004,d7															;0C470004
 	bcs.s	adrCd007E12															;65E6
@@ -17803,7 +17666,7 @@ adrCd00C252:
 	asl.w	#$02,d0																;E540
 	lea		adrJB00C262.l,a0													;41F90000C262
 	move.l	$00(a0,d0.w),a0														;20700000
-adrJB00C262:	equ	*-2
+adrJB00C262:								equ	*-2
 	jmp		(a0)																;4ED0
 
 ChampionPreviews_LookupTable:
