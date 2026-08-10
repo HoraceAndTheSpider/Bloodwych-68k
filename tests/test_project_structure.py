@@ -24,7 +24,7 @@ class ProjectStructureTests(unittest.TestCase):
     def test_gui_commands_follow_the_source_generation_workflow(self) -> None:
         self.assertEqual(
             main.GUI_COMMANDS,
-            ("extract", "relabel", "inspect", "patch", "graphics", "maps"),
+            ("extract", "relabel", "inspect", "format", "patch", "graphics", "maps"),
         )
         self.assertEqual(main.GUI_LABELS["inspect"], "Inspect / Data")
         self.assertEqual(main.GUI_LABELS["graphics"], "Data Viewer")
@@ -58,13 +58,13 @@ class ProjectStructureTests(unittest.TestCase):
             patch("sys.argv", ["main.py"]),
             patch(
                 "main.launch_gui",
-                side_effect=["extract", "relabel", "inspect", "patch", None],
+                side_effect=["extract", "relabel", "inspect", "format", "patch", None],
             ) as launch_gui,
             patch("main.run", side_effect=record_command),
         ):
             self.assertEqual(main.main(), 0)
-        self.assertEqual(launch_gui.call_count, 5)
-        self.assertEqual(commands, ["extract", "relabel", "inspect", "patch"])
+        self.assertEqual(launch_gui.call_count, 6)
+        self.assertEqual(commands, ["extract", "relabel", "inspect", "format", "patch"])
 
     def test_front_page_tool_error_is_reported_and_returns_to_launcher(self) -> None:
         error_output = StringIO()

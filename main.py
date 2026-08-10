@@ -13,19 +13,22 @@ from tools.tool_common import (
     PROJECT_ROOT,
     WHDLOAD_DIR,
     ToolError,
+    asm_path,
     get_profile,
 )
 from tools.tool_extract import extract_segments
 from tools.tool_inspect import inspect_source
 from tools.tool_patch import patch_segments
 from tools.tool_relabel import relabel_segments
+from tools.source_formatter import format_relabel_data
 
 
-GUI_COMMANDS = ("extract", "relabel", "inspect", "patch", "graphics", "maps")
+GUI_COMMANDS = ("extract", "relabel", "inspect", "format", "patch", "graphics", "maps")
 GUI_LABELS = {
     "extract": "Extract",
     "relabel": "Relabel",
     "inspect": "Inspect / Data",
+    "format": "Format Source",
     "patch": "Patch",
     "graphics": "Data Viewer",
     "maps": "Map Viewer / Editor",
@@ -44,7 +47,7 @@ def launch_gui() -> str | None:
 
     pygame.init()
     try:
-        window_size = (400, 360)
+        window_size = (400, 420)
         surface = pygame.display.set_mode(window_size)
         pygame.display.set_caption("Bloodwych ReSource")
         font = pygame.font.SysFont(None, 24)
@@ -119,6 +122,9 @@ def build_parser() -> argparse.ArgumentParser:
     inspect.add_argument("--debug", action="store_true")
 
     subparsers.add_parser("relabel", help="Generate asm/<binary>_relabel.asm")
+    subparsers.add_parser(
+        "format", help="Format asm/<binary>_relabel_data.asm without changing code"
+    )
     graphics = subparsers.add_parser("graphics", help="Open the extracted graphics viewer")
     graphics.add_argument(
         "--modified",
@@ -161,6 +167,12 @@ def run(args: argparse.Namespace, parser: argparse.ArgumentParser) -> int:
         )
     elif args.command == "relabel":
         relabel_segments(args.master, args.sheet)
+    elif args.command == "format":
+        try:
+            destination = format_relabel_data(asm_path(args.master, "data"))
+        except FileNotFoundError as error:
+            raise ToolError(str(error)) from error
+        print(f"Formatted ASM source at '{destination}'")
     elif args.command == "graphics":
         from tools.graphics_viewer import GraphicsViewerError, launch_graphics_viewer
 

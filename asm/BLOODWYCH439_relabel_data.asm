@@ -823,7 +823,7 @@ adrCd000B32:		; Memory Address ($0B32) and binary offset [$07AE]
 adrCd000B66:		; Memory Address ($0B66) and binary offset [$07E2]
 	rts																			;4E75
 
-Load_LevelLookupTable_AI_TBC:		; Memory Address ($0B68) and binary offset [$07E4]
+Load_LevelLookupTable_AI_TBC:
 	move.w	CurrentTower.l,d0													;30390000EE2E
 	add.w	d0,d0																;D040
 	lea		LevelData_LookupTable.l,a0											;41F900000B96
@@ -6016,7 +6016,7 @@ adrCd00417E:		; Memory Address ($417E) and binary offset [$3DFA]
 	lsr.w	#$01,d1																;E249
 	rts																			;4E75
 
-adrCd004196:		; Memory Address ($4196) and binary offset [$3E12]
+adrCd004196:
 	move.w	#$FFFF,$000C(a5)													;3B7CFFFF000C
 	addq.w	#$04,sp																;584F
 	rts																			;4E75
@@ -6206,7 +6206,7 @@ adrCd0042F6:		; Memory Address ($42F6) and binary offset [$3F72]
 	move.w	#$FFFF,FrameSyncFlagWord_AI_TBC.l									;33FCFFFF00008C1E
 	rts																			;4E75
 
-adrCd00430A:		; Memory Address ($430A) and binary offset [$3F86]
+adrCd00430A:
 	and.b	#$01,(a5)															;02150001
 	clr.b	$0056(a5)															;422D0056
 	clr.w	$0014(a5)															;426D0014
@@ -6988,7 +6988,7 @@ adrCd004C88:		; Memory Address ($4C88) and binary offset [$4904]
 	move.w	d0,$0040(a5)														;3B400040
 	bra		adrCd007D6C															;600030DE
 
-adrCd004C90:		; Memory Address ($4C90) and binary offset [$490C]
+adrCd004C90:
 	move.w	#$FFFF,$000C(a5)													;3B7CFFFF000C
 	move.w	$0022(a5),$0024(a5)													;3B6D00220024
 	btst	#$06,$0018(a5)														;082D00060018
@@ -7038,7 +7038,7 @@ adrCd004D1A:		; Memory Address ($4D1A) and binary offset [$4996]
 	beq		adrCd00465E															;6700F932
 	bra		adrJA004DEA															;600000BA
 
-adrCd004D32:		; Memory Address ($4D32) and binary offset [$49AE]
+adrCd004D32:
 	moveq	#$00,d0																;7000
 	move.b	$0056(a5),d0														;102D0056
 	beq.s	adrCd004D4E															;6714
@@ -7083,7 +7083,7 @@ adrJA004DAA:		; Memory Address ($4DAA) and binary offset [$4A26]
 	lea		adrEA00EA72.l,a6													;4DF90000EA72
 	moveq	#$00,d0																;7000
 	moveq	#$11,d2																;7411
-adrCd004DB4:		; Memory Address ($4DB4) and binary offset [$4A30]
+adrCd004DB4:
 	move.l	$0002(a5),d1														;222D0002
 	sub.w	$0008(a5),d1														;926D0008
 adrCd004DBC:		; Memory Address ($4DBC) and binary offset [$4A38]
@@ -7099,7 +7099,7 @@ adrCd004DCA:		; Memory Address ($4DCA) and binary offset [$4A46]
 	cmp.w	$0002(a6),d1														;B26E0002
 	beq.s	adrCd004DD8															;6702
 	bcc.s	adrCd004DDE															;6406
-adrCd004DD8:		; Memory Address ($4DD8) and binary offset [$4A54]
+adrCd004DD8:
 	move.w	d0,$000C(a5)														;3B40000C
 	rts																			;4E75
 
@@ -7112,7 +7112,7 @@ adrCd004DE0:		; Memory Address ($4DE0) and binary offset [$4A5C]
 	bcs.s	adrCd004DBC															;65D4
 	rts																			;4E75
 
-adrJA004DEA:		; Memory Address ($4DEA) and binary offset [$4A66]
+adrJA004DEA:
 	moveq	#$00,d0																;7000
 	move.b	$0014(a5),d0														;102D0014
 	bne.s	adrCd004E0C															;661A
@@ -7178,7 +7178,7 @@ adrCd004E86:		; Memory Address ($4E86) and binary offset [$4B02]
 adrCd004E8C:		; Memory Address ($4E8C) and binary offset [$4B08]
 	rts																			;4E75
 
-adrCd004E8E:		; Memory Address ($4E8E) and binary offset [$4B0A]
+adrCd004E8E:
 	bsr		Load_CurrentChampionStatRecord										;610017CC
 	clr.w	adrW_00505A.l														;42790000505A
 	move.b	$0007(a5),adrB_00EE3E.l												;13ED00070000EE3E
@@ -8144,7 +8144,7 @@ adrCd005782:		; Memory Address ($5782) and binary offset [$53FE]
 	move.b	d7,(a1)+															;12C7
 	swap	d7																	;4847
 	move.b	d7,(a1)+															;12C7
-adrCd005792:		; Memory Address ($5792) and binary offset [$540E]
+adrCd005792:
 	rts																			;4E75
 
 MovementOffsetTable:		; Memory Address ($5794) and binary offset [$5410]
@@ -8161,11 +8161,11 @@ Click_CloseCurrentPage:		; Memory Address ($57A4) and binary offset [$5420]
 	clr.w	$0014(a5)															;426D0014
 	bra		adrCd008278															;60002ACE
 
-adrCd0057AC:		; Memory Address ($57AC) and binary offset [$5428]
+adrCd0057AC:
 	btst	#$06,$0018(a5)														;082D00060018
 	bne.s	adrCd005792															;66DE
 	pea		adrL_008226.l														;487900008226
-adrCd0057BA:		; Memory Address ($57BA) and binary offset [$5436]
+adrCd0057BA:
 	move.w	$000C(a5),d0														;302D000C
 	bmi.s	adrCd005792															;6BD2
 	asl.w	#$02,d0																;E540
@@ -8173,7 +8173,7 @@ adrCd0057BA:		; Memory Address ($57BA) and binary offset [$5436]
 	move.l	$00(a0,d0.w),a0														;20700000
 	jmp		(a0)																;4ED0
 
-InterfaceButtons:		; Memory Address ($57CE) and binary offset [$544A]
+InterfaceButtons:
 	dc.l	adrJA006684	;00006684
 	dc.l	Click_ShowStats	;00006616
 	dc.l	Click_MultiFunctionButton	;000064AA
@@ -8229,7 +8229,7 @@ adrEA005864:		; Memory Address ($5864) and binary offset [$54E0]
 	dc.w	$001C	;001C
 	dc.w	$0048	;0048
 
-adrCd00587C:		; Memory Address ($587C) and binary offset [$54F8]
+adrCd00587C:
 	moveq	#$22,d0																;7022
 	moveq	#$26,d2																;7426
 	lea		adrEA005864.w,a6													;4DF85864	;Short Absolute converted to symbol!
@@ -8240,7 +8240,7 @@ Click_Display:		; Memory Address ($588E) and binary offset [$550A]
 	bsr.s	adrCd00587C															;61EC
 	bra		adrCd0057BA															;6000FF28
 
-adrJA005894:		; Memory Address ($5894) and binary offset [$5510]
+adrJA005894:
 	bsr		adrCd00847E															;61002BE8
 	cmp.w	adrW_00EE72.l,d7													;BE790000EE72
 	bcc.s	adrCd0058EA															;644A
@@ -8804,10 +8804,10 @@ Click_Display_Centre:		; Memory Address ($5F94) and binary offset [$5C10]
 	bset	#$03,(a5)															;08D50003
 	bra.s	adrCd005FA6															;6008
 
-adrJA005F9E:		; Memory Address ($5F9E) and binary offset [$5C1A]
+adrJA005F9E:
 	and.b	#$01,(a5)															;02150001
 	bset	#$01,(a5)															;08D50001
-adrCd005FA6:		; Memory Address ($5FA6) and binary offset [$5C22]
+adrCd005FA6:
 	moveq	#$03,d1																;7203
 	bsr		adrCd005500															;6100F556
 	tst.w	d3																	;4A43
@@ -9380,7 +9380,7 @@ Click_MultiFunctionButton:		; Memory Address ($64AA) and binary offset [$6126]
 	bsr		adrCd00CCD8															;6100681A
 	bra.s	adrCd0064CC															;600A
 
-adrCd0064C2:		; Memory Address ($64C2) and binary offset [$613E]
+adrCd0064C2:
 	tst.b	$0013(a4)															;4A2C0013
 	bmi.s	adrJA0064D0															;6B08
 	bsr		adrCd004E8E															;6100E9C4
@@ -9433,7 +9433,7 @@ adrCd00654A:		; Memory Address ($654A) and binary offset [$61C6]
 adrCd006550:		; Memory Address ($6550) and binary offset [$61CC]
 	rts																			;4E75
 
-adrCd006552:		; Memory Address ($6552) and binary offset [$61CE]
+adrCd006552:
 	cmp.w	$002E(a5),d3														;B66D002E
 	bne.s	adrCd00657C															;6624
 	subq.w	#$01,$002C(a5)														;536D002C
@@ -9455,7 +9455,7 @@ adrCd00657C:		; Memory Address ($657C) and binary offset [$61F8]
 	bsr		PlaySound															;61002330
 	bra		adrCd00CF96															;60006A04
 
-adrCd006594:		; Memory Address ($6594) and binary offset [$6210]
+adrCd006594:
 	lea		Notice_DoorLocked.l,a6												;4DF90000659E
 	bra		WriteTimedText														;60006AEC
 
@@ -17647,7 +17647,7 @@ adrCd00C1F6:		; Memory Address ($C1F6) and binary offset [$BE72]
 	bpl.s	ExitOrLoop															;6AC6
 	bra		adrCd00C650															;60000420
 
-adrCd00C232:		; Memory Address ($C232) and binary offset [$BEAE]
+adrCd00C232:
 	move.w	$0014(a5),d0														;302D0014
 	bmi.s	ExitOrLoop															;6BBC
 	cmpi.b	#$03,d0																;0C000003
@@ -17660,13 +17660,13 @@ adrCd00C232:		; Memory Address ($C232) and binary offset [$BEAE]
 
 adrCd00C24E:		; Memory Address ($C24E) and binary offset [$BECA]
 	move.w	d0,$000C(a5)														;3B40000C
-adrCd00C252:		; Memory Address ($C252) and binary offset [$BECE]
+adrCd00C252:
 	move.w	$000C(a5),d0														;302D000C
 	beq.s	ExitOrLoop															;679C
 	asl.w	#$02,d0																;E540
 	lea		adrJB00C262.l,a0													;41F90000C262
 	move.l	$00(a0,d0.w),a0														;20700000
-adrJB00C262:								equ	*-2			; Memory Address ($C262) and binary offset [$BEDE]
+adrJB00C262:								equ	*-2
 	jmp		(a0)																;4ED0
 
 ChampionPreviews_LookupTable:		; Memory Address ($C266) and binary offset [$BEE2]
@@ -21040,7 +21040,7 @@ adrB_00EE3E:		; Memory Address ($EE3E) and binary offset [$EABA]
 	dc.b	$00	;00
 adrB_00EE3F:		; Memory Address ($EE3F) and binary offset [$EABB]
 	dc.b	$00	;00
-adrEA00EE40:		; Memory Address ($EE40) and binary offset [$EABC]
+adrEA00EE40:
 	dc.w	$0000	;0000
 	dc.w	$0000	;0000
 	dc.w	$0000	;0000
@@ -21079,7 +21079,7 @@ adrB_00EE73:		; Memory Address ($EE73) and binary offset [$EAEF]
 	dc.b	$00	;00
 adrW_00EE76:		; Memory Address ($EE76) and binary offset [$EAF2]
 	dc.w	$0000	;0000
-adrL_00EE78:		; Memory Address ($EE78) and binary offset [$EAF4]
+adrL_00EE78:
 	dc.l	$0000EF78	;0000EF78	;Long Addr replaced with Symbol *Fix stored address **
 Player1_Data:
 	dc.b	$00	;00
@@ -21144,7 +21144,7 @@ adrB_00EECE:		; Memory Address ($EECE) and binary offset [$EB4A]
 	dc.b	$FF	;FF
 	dc.b	$00	;00
 	dc.b	$00	;00
-adrB_00EED2:		; Memory Address ($EED2) and binary offset [$EB4E]
+adrB_00EED2:
 	dc.b	$00	;00
 	dc.b	$00	;00
 	dc.b	$00	;00
@@ -21213,7 +21213,7 @@ adrW_00EF18:		; Memory Address ($EF18) and binary offset [$EB94]
 	dc.w	$0000	;0000
 	dc.w	$00FF	;00FF
 	dc.w	$0000	;0000
-adrB_00EF34:		; Memory Address ($EF34) and binary offset [$EBB0]
+adrB_00EF34:
 	dc.b	$00	;00
 	dc.b	$00	;00
 	dc.b	$00	;00
@@ -23299,13 +23299,13 @@ GFX_Scroll_Edge_Right:		; Memory Address ($1992E) and binary offset [$195AA]
 	dc.w	$FCFF	;FCFF
 GFX_Shield_Clicked:		; Memory Address ($19BFE) and binary offset [$1987A]
 	INCBIN "/data/BLOODWYCH439-clean/gfx/Shield_Clicked.gfx"
-SpellNames:
+SpellNames:		; Memory Address ($19E8E) and binary offset [$19B0A]
 	dc.b	'ARMOUR  TERROR  VITALISEBEGUILE DEFLECT MAGELOCKCONCEAL WARPOWERMISSILE VANISH  PARALYZEALCHEMY CONFUSE LEVITATEANTIMAGERECH'	;41524D4F55522020544552524F522020564954414C49534542454755494C45204445464C454354204D4147454C4F434B434F4E4345414C2057415
 *04F5745524D495353494C452056414E4953482020504152414C595A45414C4348454D5920434F4E46555345204C45564954415445414E54494D41474552454348
 	dc.b	'ARGETRUEVIEWRENEW   VIVIFY  DISPELL FIREPATHILLUSIONCOMPASS SPELLTAPDISRUPT FIREBALLWYCHWINDARC BOLTFORMWALLSUMMON  BLAZE   '	;41524745545255455649455752454E4557202020564956494659202044495350454C4C204649524550415448494C4C5553494F4E434F4D5041535
 *05350454C4C54415044495352555054204649524542414C4C5759434857494E4441524320424F4C54464F524D57414C4C53554D4D4F4E2020424C415A45202020
 	dc.b	'MINDROCK'	;4D494E44524F434B
-SpellDescriptions:
+SpellDescriptions:		; Memory Address ($19F8F) and binary offset [$19C0B]
 	dc.b	$1A	;1A
 	dc.b	'WEAR THIS SPELL WITH PRIDE'	;574541522054484953205350454C4C2057495448205052494445
 	dc.b	$04	;04
