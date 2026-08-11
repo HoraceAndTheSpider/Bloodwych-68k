@@ -829,10 +829,12 @@ Map_Traps_ProcessingDone_AI_TBC:		; Memory Address ($0994) and binary offset [$0
 	rts	;4E75
 
 PrepareCharacters:
+	; ReSource: Initialises all sixteen champion-stat records for the current tower, recalculates derived values, and marks placed champions on the working map.
 	bsr	Select_CurrentTowerMapData	;610001D0
 	lea	Character_Stats_DataTable.l,a4	;49F90000EB2A
 	moveq	#$0F,d6	;7C0F
-CharacterFillLoop:
+PrepareCharacters_ChampionLoop:
+	; ReSource: Processes the sixteen champion records in table order.
 	clr.b	$0011(a4)	;422C0011
 	move.b	#$FF,$0013(a4)	;197C00FF0013
 	clr.b	$001E(a4)	;422C001E
@@ -847,28 +849,32 @@ CharacterFillLoop:
 	jsr	adrCd0084DA.l	;4EB9000084DA
 	moveq	#$00,d7	;7E00
 	move.b	$0016(a4),d7	;1E2C0016
-	bmi.s	adrCd0009EE	;6B10
+	bmi.s	.PrepareCharacters_NextChampion	;6B10
 	swap	d7	;4847
 	move.b	$0017(a4),d7	;1E2C0017
 	bsr	CoordToMap	;61007AB6
 	bset	#$07,$01(a6,d0.w)	;08F600070001
-adrCd0009EE:		; Memory Address ($09EE) and binary offset [$066A]
+.PrepareCharacters_NextChampion:		; Memory Address ($09EE) and binary offset [$066A]
+	; ReSource: Advances to the next champion record after the optional map update.
 	add.w	#$0020,a4	;D8FC0020
-	dbra	d6,CharacterFillLoop	;51CEFFAE
-MonsterTransfer:		; Memory Address ($09F6) and binary offset [$0672]
+	dbra	d6,PrepareCharacters_ChampionLoop	;51CEFFAE
+UnpackTowerMonsters:		; Memory Address ($09F6) and binary offset [$0672]
+	; ReSource: Clears transient state and expands the current tower’s packed monster records into live records.
 	bsr	Map_Traps_InitProcessing_AI_TBC	;6100FF68
-	lea	adrEA017390.l,a4	;49F900017390
+	lea	MonsterTeamIndexTable.l,a4	;49F900017390
 	moveq	#-$01,d6	;7CFF
 	move.w	d6,-$0002(a4)	;3946FFFE
 	moveq	#$18,d0	;7018
-adrLp000A08:		; Memory Address ($0A08) and binary offset [$0684]
+.ClearMonsterTeamIndexLoop:		; Memory Address ($0A08) and binary offset [$0684]
+	; ReSource: Clears the twenty-five four-member team slots.
 	move.l	d6,(a4)+	;28C6
-	dbra	d0,adrLp000A08	;51C8FFFC
+	dbra	d0,.ClearMonsterTeamIndexLoop	;51C8FFFC
 	lea	UnpackedMonsters.l,a4	;49F900016B7E
 	move.w	#$01FF,d0	;303C01FF
-.ClearMonstersLoop:
+.ClearLiveMonsterRecordsLoop:
+	; ReSource: Clears the live-monster workspace before unpacking.
 	move.l	d6,(a4)+	;28C6
-	dbra	d0,.ClearMonstersLoop	;51C8FFFC
+	dbra	d0,.ClearLiveMonsterRecordsLoop	;51C8FFFC
 	move.w	CurrentTower.l,d0	;30390000EE2E
 	move.w	d0,d1	;3200
 	add.w	d0,d0	;D040
@@ -882,7 +888,8 @@ adrLp000A08:		; Memory Address ($0A08) and binary offset [$0684]
 	lea	MonsterBlock_mod0.l,a3	;47F900017584
 	add.w	d0,a3	;D6C0
 	moveq	#$00,d4	;7800
-.FillMonstersLoop:
+.UnpackNextMonsterRecord:
+	; ReSource: Expands one packed six-byte monster record into a sixteen-byte live record.
 	clr.b	$0005(a4)	;422C0005
 	clr.b	$0002(a4)	;422C0002
 	move.b	(a3)+,d0	;101B
@@ -900,65 +907,73 @@ adrLp000A08:		; Memory Address ($0A08) and binary offset [$0684]
 	move.b	(a3)+,d7	;1E1B
 	move.b	d7,$0001(a4)	;19470001
 	btst	#$17,d7	;08070017
-	bne.s	.MarkedOnMap	;660A
+	bne.s	.MonsterPositionHandled	;660A
 	bsr	CoordToMap	;61007A16
 	bset	#$07,$01(a6,d0.w)	;08F600070001
-.MarkedOnMap:		; Memory Address ($0A8E) and binary offset [$070A]
+.MonsterPositionHandled:		; Memory Address ($0A8E) and binary offset [$070A]
+	; ReSource: Continues after packed-coordinate map handling.
 	moveq	#$00,d0	;7000
 	move.b	(a3)+,d0			;101B
 	move.b	d0,$0006(a4)			;19400006
 	move.b	d0,$0007(a4)			;19400007
 	moveq	#$0E,d1				;720E
 	sub.b	d0,d1				;9200
-	bcs.s	.SkipSomething1_TEMP			;6506
+	bcs.s	.UseMinimumActionCountdown			;6506
 	cmpi.b	#$08,d1				;0C010008
-	bcc.s	.SkipSomething2_TEMP		;6402
-.SkipSomething1_TEMP:		; Memory Address ($0AA6) and binary offset [$0722]
+	bcc.s	.StoreActionCountdown		;6402
+.UseMinimumActionCountdown:		; Memory Address ($0AA6) and binary offset [$0722]
+	; ReSource: Uses the minimum encoded action countdown.
 	moveq	#$08,d1	;7208
-.SkipSomething2_TEMP:		; Memory Address ($0AA8) and binary offset [$0724]
+.StoreActionCountdown:		; Memory Address ($0AA8) and binary offset [$0724]
+	; ReSource: Stores the level-derived action countdown.
 	asl.b	#$04,d1	;E901
 	move.b	d1,$0003(a4)	;19410003
 	move.w	#$0190,d1	;323C0190
 	cmpi.b	#$19,d0	;0C000019
-	bcc.s	.SkipSomething3_TEMP	;640E
+	bcc.s	.StoreStartingHitPoints	;640E
 	move.w	#$00FA,d1	;323C00FA
 	cmpi.b	#$10,d0	;0C000010
-	bcc.s	.SkipSomething3_TEMP	;6404
-	move.b	adrB_000B22(pc,d0.w),d1	;123B005E
-.SkipSomething3_TEMP:		; Memory Address ($0AC6) and binary offset [$0742]
+	bcc.s	.StoreStartingHitPoints	;6404
+	move.b	MonsterLevelHitPointMultipliers(pc,d0.w),d1	;123B005E
+.StoreStartingHitPoints:		; Memory Address ($0AC6) and binary offset [$0742]
+	; ReSource: Calculates starting hit points from the monster level.
 	mulu	d1,d0	;C0C1
 	add.w	#$0019,d0	;06400019
 	move.w	d0,$0008(a4)	;39400008
 	move.b	(a3)+,$000B(a4)	;195B000B
-	bpl.s	.SpecialObjects	;6A08
+	bpl.s	.CheckCarriedObject	;6A08
 	move.b	#$10,$0003(a4)	;197C00100003
-	bra.s	.SkipSomething4_TEMP	;600E
+	bra.s	.StoreTeamData	;600E
 
-.SpecialObjects:
+.CheckCarriedObject:
+	; ReSource: Checks the special form that receives a fixed carried object.
 	cmp.b	#$40,$000B(a4)	;0C2C0040000B	;
-	bne.s	.SkipSomething4_TEMP	;6606
+	bne.s	.StoreTeamData	;6606
 	move.b	#$37,$000C(a4)	;197C0037000C
-.SkipSomething4_TEMP:		; Memory Address ($0AEC) and binary offset [$0768]
+.StoreTeamData:		; Memory Address ($0AEC) and binary offset [$0768]
+	; ReSource: Stores the team-group index derived from packed team-data.
 	moveq	#$00,d0	;7000
 	move.b	(a3)+,d0	;101B
 	cmpi.b	#$FF,d0	;0C0000FF
-	beq.s	.SkipSomething5_TEMP	;6720
-	lea	adrEA017390.l,a0	;41F900017390
+	beq.s	.AdvanceToNextMonster	;6720
+	lea	MonsterTeamIndexTable.l,a0	;41F900017390
 	move.b	d4,$00(a0,d0.w)	;11840000
 	move.b	d0,d1	;1200
 	and.b	#$03,d1	;02010003
 	tst.b	$0000(a4)	;4A2C0000
-	bmi.s	.SkipSomething5_TEMP	;6B0A
+	bmi.s	.AdvanceToNextMonster	;6B0A
 	addq.w	#$01,-$0002(a0)	;5268FFFE
 	lsr.b	#$02,d0	;E408
 	move.b	d0,$000D(a4)	;1940000D
-.SkipSomething5_TEMP:		; Memory Address ($0B16) and binary offset [$0792]
+.AdvanceToNextMonster:		; Memory Address ($0B16) and binary offset [$0792]
+	; ReSource: Advances to the next packed and live monster record.
 	add.w	#$0010,a4	;D8FC0010
 	addq.w	#$01,d4	;5244
-	dbra	d6,.FillMonstersLoop	;51CEFF30
+	dbra	d6,.UnpackNextMonsterRecord	;51CEFF30
 	rts	;4E75
 
-adrB_000B22:		; Memory Address ($0B22) and binary offset [$079E]
+MonsterLevelHitPointMultipliers:		; Memory Address ($0B22) and binary offset [$079E]
+	; ReSource: Per-level hit-point multipliers for lower monster levels.
 	dc.b	$00	;00
 	dc.b	$32	;32
 	dc.b	$37	;37
@@ -976,11 +991,12 @@ adrB_000B22:		; Memory Address ($0B22) and binary offset [$079E]
 	dc.b	$C8	;C8
 	dc.b	$DC	;DC
 
-adrCd000B32:		; Memory Address ($0B32) and binary offset [$07AE]
+TransferChampionStartPosition:		; Memory Address ($0B32) and binary offset [$07AE]
+	; ReSource: Copies a champion’s saved start position into the active player record.
 	bsr	Load_CurrentChampionStatRecord	;61005B28
 	moveq	#$00,d0	;7000
 	move.b	$0016(a4),d0	;102C0016
-	bmi.s	adrCd000B66	;6B28
+	bmi.s	.NoChampionStartPosition	;6B28
 	move.b	#$FF,$0016(a4)	;197C00FF0016
 	move.w	d0,$001C(a5)	;3B40001C
 	move.b	$0017(a4),d0	;102C0017
@@ -990,10 +1006,12 @@ adrCd000B32:		; Memory Address ($0B32) and binary offset [$07AE]
 	move.w	d0,$0020(a5)	;3B400020
 	move.b	$001A(a4),d0	;102C001A
 	move.w	d0,$0058(a5)	;3B400058
-adrCd000B66:		; Memory Address ($0B66) and binary offset [$07E2]
+.NoChampionStartPosition:		; Memory Address ($0B66) and binary offset [$07E2]
+	; ReSource: Returns when the champion has no saved position.
 	rts	;4E75
 
 Select_CurrentTowerMapData:		; Memory Address ($0B68) and binary offset [$07E4]
+	; ReSource: Copies the selected tower’s map-pointer block into working memory.
 	move.w	CurrentTower.l,d0	;30390000EE2E
 	add.w	d0,d0	;D040
 	lea	Current_TowerMapOffsets.l,a0	;41F900000B96
@@ -1001,13 +1019,15 @@ Select_CurrentTowerMapData:		; Memory Address ($0B68) and binary offset [$07E4]
 	add.w	$00(a0,d0.w),a6	;DCF00000
 	lea	Current_TowerMapHeaderCache.l,a0	;41F90000EE40
 	moveq	#$0D,d0	;700D
-adrLp000B88:		; Memory Address ($0B88) and binary offset [$0804]
+.CopyCurrentTowerMapPointerLoop:		; Memory Address ($0B88) and binary offset [$0804]
+	; ReSource: Copies the fourteen map pointers for the selected tower.
 	move.l	(a6)+,(a0)+	;20DE
-	dbra	d0,adrLp000B88	;51C8FFFC
+	dbra	d0,.CopyCurrentTowerMapPointerLoop	;51C8FFFC
 	move.l	a6,Current_TowerMapDataBase.l	;23CE0000EE78
 	rts	;4E75
 
 Current_TowerMapOffsets:
+	; ReSource: Six word offsets selecting the map resource for CurrentTower values 0 through 5. The offsets are relative to MapData1 and include the intervening tower-specific object data. Relative offsets from MapData1 to each tower map-pointer block.
 	dc.w	MapData1-MapData1	;0000
 	dc.w	MapData2-MapData1	;1402
 	dc.w	MapData3-MapData1	;2804
@@ -1044,7 +1064,7 @@ adrLp000C18:		; Memory Address ($0C18) and binary offset [$0894]
 	clr.w	$0014(a5)	;426D0014
 	move.w	#$FFFF,$0042(a5)	;3B7CFFFF0042
 	move.w	#$FFFF,$0040(a5)	;3B7CFFFF0040
-	bsr	adrCd000B32	;6100FF08
+	bsr	TransferChampionStartPosition	;6100FF08
 	bset	#$04,$0018(a5)	;08ED00040018
 	lea	Player1_Data.l,a5	;4BF90000EE7C
 	dbra	d7,adrLp000C18	;51CFFFDE
@@ -1443,7 +1463,7 @@ adrCd00108E:		; Memory Address ($108E) and binary offset [$0D0A]
 adrCd001090:		; Memory Address ($1090) and binary offset [$0D0C]
 	moveq	#$00,d6	;7C00
 	lea	UnpackedMonsters.l,a3	;47F900016B7E
-	lea	adrEA017390.l,a0	;41F900017390
+	lea	MonsterTeamIndexTable.l,a0	;41F900017390
 	move.w	-$0002(a0),d7	;3E28FFFE
 	bmi.s	adrCd00108E	;6BEA
 adrLp0010A4:		; Memory Address ($10A4) and binary offset [$0D20]
@@ -1484,7 +1504,7 @@ adrLp0010F4:		; Memory Address ($10F4) and binary offset [$0D70]
 adrCd0010F6:		; Memory Address ($10F6) and binary offset [$0D72]
 	dbra	d1,adrLp0010F4	;51C9FFFC
 	move.l	#$FFFFFFFF,(a2)	;24BCFFFFFFFF
-	subq.w	#$01,adrW_01738E.l	;53790001738E
+	subq.w	#$01,MonsterTeamGroupCount.l	;53790001738E
 	addq.w	#$01,d6	;5246
 	bra.s	adrCd00116E	;6064
 
@@ -2231,7 +2251,7 @@ adrCd0018F6:		; Memory Address ($18F6) and binary offset [$1572]
 	moveq	#$00,d3	;7600
 	move.b	$000D(a1),d3	;1629000D
 	bpl.s	adrCd00193C	;6A26
-	lea	adrEA017390.l,a0	;41F900017390
+	lea	MonsterTeamIndexTable.l,a0	;41F900017390
 	addq.w	#$01,-$0002(a0)	;5268FFFE
 	move.w	-$0002(a0),d3	;3628FFFE
 	move.b	d3,$000D(a1)	;1343000D
@@ -2242,7 +2262,7 @@ adrCd0018F6:		; Memory Address ($18F6) and binary offset [$1572]
 	lsr.w	#$02,d3	;E44B
 adrCd00193C:		; Memory Address ($193C) and binary offset [$15B8]
 	asl.w	#$02,d3	;E543
-	lea	adrEA017390.l,a0	;41F900017390
+	lea	MonsterTeamIndexTable.l,a0	;41F900017390
 	add.w	d3,a0	;D0C3
 	moveq	#$03,d2	;7403
 adrLp001948:		; Memory Address ($1948) and binary offset [$15C4]
@@ -2345,7 +2365,7 @@ adrCd001A4A:		; Memory Address ($1A4A) and binary offset [$16C6]
 	bmi.s	adrCd001A84	;6B32
 	move.l	a4,-(sp)	;2F0C
 	asl.w	#$02,d3	;E543
-	lea	adrEA017390.l,a0	;41F900017390
+	lea	MonsterTeamIndexTable.l,a0	;41F900017390
 	add.w	d3,a0	;D0C3
 	moveq	#$01,d0	;7001
 adrLp001A60:		; Memory Address ($1A60) and binary offset [$16DC]
@@ -3224,7 +3244,7 @@ adrCd002324:		; Memory Address ($2324) and binary offset [$1FA0]
 	move.b	$000D(a1),d1	;1229000D
 	bmi.s	adrCd002374	;6B42
 	asl.w	#$02,d1	;E541
-	lea	adrEA017390.l,a0	;41F900017390
+	lea	MonsterTeamIndexTable.l,a0	;41F900017390
 	add.w	d1,a0	;D0C1
 	moveq	#$03,d7	;7E03
 adrLp00233E:		; Memory Address ($233E) and binary offset [$1FBA]
@@ -3728,7 +3748,7 @@ adrCd002848:		; Memory Address ($2848) and binary offset [$24C4]
 	lea	Player2_Data.l,a0	;41F90000EEDE
 	bsr.s	adrCd00282C	;61D4
 	sub.w	#$0010,d0	;04400010
-	lea	adrEA017390.l,a0	;41F900017390
+	lea	MonsterTeamIndexTable.l,a0	;41F900017390
 	move.w	-$0002(a0),d2	;3428FFFE
 	bmi.s	adrCd00282A	;6BC2
 	move.w	d5,-(sp)	;3F05
@@ -11500,7 +11520,7 @@ adrCd007408:		; Memory Address ($7408) and binary offset [$7084]
 	move.l	$001C(a5),$0008(sp)	;2F6D001C0008
 	move.l	a6,$000C(sp)	;2F4E000C
 	bset	#$07,$01(a6,d0.w)	;08F600070001
-	bra	MonsterTransfer	;600095A4
+	bra	UnpackTowerMonsters	;600095A4
 
 Trigger_09_t12_Tower_Entrance_SidePad:		; Memory Address ($7454) and binary offset [$70D0]
 	tst.w	MultiPlayer.l	;4A790000EE30
@@ -11546,7 +11566,7 @@ adrCd00748C:		; Memory Address ($748C) and binary offset [$7108]
 	bsr	adrCd008498	;61000FBC
 	bset	#$07,$01(a6,d0.w)	;08F600070001
 	exg	a1,a5	;CB49
-	bra	MonsterTransfer	;6000950E
+	bra	UnpackTowerMonsters	;6000950E
 
 Tower_Start_XY_DataTable:		; Memory Address ($74EA) and binary offset [$7166]
 	dc.w	$0000	;0000
@@ -11980,7 +12000,7 @@ adrLp0079B4:		; Memory Address ($79B4) and binary offset [$7630]
 	move.b	$000B(a4),(a3)+	;16EC000B
 	move.b	$000D(a4),d3	;162C000D
 	bmi.s	adrCd007A06	;6B28
-	lea	adrEA017390.l,a6	;4DF900017390
+	lea	MonsterTeamIndexTable.l,a6	;4DF900017390
 	asl.w	#$02,d3	;E543
 	add.w	d3,a6	;DCC3
 	moveq	#$03,d2	;7403
@@ -15518,7 +15538,7 @@ adrCd009A2A:		; Memory Address ($9A2A) and binary offset [$96A6]
 	move.b	$0002(a1),d2	;14290002
 	and.w	#$0003,d2	;02420003
 	asl.w	#$02,d0	;E540
-	lea	adrEA017390.l,a1	;43F900017390
+	lea	MonsterTeamIndexTable.l,a1	;43F900017390
 	add.w	d0,a1	;D2C0
 	moveq	#$03,d1	;7203
 adrLp009A46:		; Memory Address ($9A46) and binary offset [$96C2]
@@ -24698,6 +24718,7 @@ adrEA00EAFA:		; Memory Address ($EAFA) and binary offset [$E776]
 	dc.w	$003A	;003A
 	dc.w	$0057	;0057
 Character_Stats_DataTable:		; Memory Address ($EB2A) and binary offset [$E7A6]
+	; ReSource: Sixteen 32-byte champion-stat records.
 	dc.b	$01	;01
 	dc.b	$23	;23
 	dc.b	$11	;11
@@ -41236,6 +41257,7 @@ PhysicalAttack_WorkingValues:		; Memory Address ($16B6C) and binary offset [$167
 	dc.w	$0000	;0000
 	dc.w	$FFFF	;FFFF
 UnpackedMonsters:
+	; ReSource: Live monster workspace at $16B7E, preceded by a two-byte count.
 	dc.w	$0000	;0000
 	dc.w	$0000	;0000
 	dc.w	$0000	;0000
@@ -42269,9 +42291,11 @@ adrEA01737E:		; Memory Address ($1737E) and binary offset [$16FFA]
 	dc.w	$0000	;0000
 	dc.w	$0000	;0000
 	dc.w	$0000	;0000
-adrW_01738E:		; Memory Address ($1738E) and binary offset [$1700A]
+MonsterTeamGroupCount:		; Memory Address ($1738E) and binary offset [$1700A]
+	; ReSource: Count of populated team groups in MonsterTeamIndexTable.
 	dc.w	$FFFF	;FFFF
-adrEA017390:		; Memory Address ($17390) and binary offset [$1700C]
+MonsterTeamIndexTable:		; Memory Address ($17390) and binary offset [$1700C]
+	; ReSource: Twenty-five four-byte team groups; $FF marks an empty member slot.
 	dc.w	$0000	;0000
 	dc.w	$0000	;0000
 	dc.w	$0000	;0000
