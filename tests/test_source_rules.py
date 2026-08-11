@@ -161,10 +161,16 @@ class SourceRuleTests(unittest.TestCase):
 
     def test_verified_equates_are_inserted_after_header(self) -> None:
         result = insert_generated_equates(
-            self.lines, (equate(), equate("Character_Zendik", 0x40, "proposed"))
+            self.lines,
+            (
+                equate(),
+                equate("NegativeRecordOffset", -2),
+                equate("Character_Zendik", 0x40, "proposed"),
+            ),
         )
         generated = "\n".join(result)
         self.assertIn("DiskReadTimeoutCount:\t\tequ\t$000186A0", generated)
+        self.assertIn("NegativeRecordOffset:\t\tequ\t-$02", generated)
         self.assertNotIn("Character_Zendik:", generated)
         self.assertLess(
             result.index("DiskReadTimeoutCount:\t\tequ\t$000186A0"),
@@ -208,6 +214,34 @@ class SourceRuleTests(unittest.TestCase):
         self.assertEqual(equates[0].value, 0x186A0)
         self.assertEqual(rules[0].equ_name, "DiskReadTimeoutCount")
         self.assertEqual(rules[0].notes, "Retained free-form notes.")
+
+    def test_workbook_accepts_negative_amiga_hex_equ_value(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary_directory:
+            workbook = Path(temporary_directory) / "segments.xlsx"
+            with pd.ExcelWriter(workbook) as writer:
+                pd.DataFrame({"label": ["A"]}).to_excel(
+                    writer, sheet_name="BLOODWYCH439", index=False
+                )
+                pd.DataFrame(
+                    ({
+                        "profile": "BLOODWYCH439",
+                        "equ_name": "MonsterLive_RecordCountOffset",
+                        "equ_value": "-$02",
+                        "scope_start": "",
+                        "scope_end": "",
+                        "source_match": "",
+                        "expected_opcode": "",
+                        "expected_matches": "",
+                        "source_replace": "",
+                        "status": "proposed",
+                        "source_comment": "Offset of the record count.",
+                        "notes": "Signed displacement.",
+                    },)
+                ).to_excel(writer, sheet_name="EQUATES", index=False)
+            equates, rules = load_source_metadata(workbook, "BLOODWYCH439")
+        self.assertEqual(equates[0].value, -2)
+        self.assertEqual(equates[0].value_text, "-$02")
+        self.assertEqual(rules, ())
 
     def test_source_replace_must_reference_declared_equ(self) -> None:
         with tempfile.TemporaryDirectory() as temporary_directory:

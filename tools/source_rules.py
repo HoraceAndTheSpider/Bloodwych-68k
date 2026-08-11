@@ -40,13 +40,15 @@ class EquateDefinition:
 
     @property
     def value_text(self) -> str:
-        if self.value <= 0xFF:
+        magnitude = abs(self.value)
+        if magnitude <= 0xFF:
             digits = 2
-        elif self.value <= 0xFFFF:
+        elif magnitude <= 0xFFFF:
             digits = 4
         else:
             digits = 8
-        return f"${self.value:0{digits}X}"
+        sign = "-" if self.value < 0 else ""
+        return f"{sign}${magnitude:0{digits}X}"
 
 
 @dataclass(frozen=True)
@@ -143,7 +145,7 @@ def load_source_metadata(
         status = cell_text(row, "status").casefold()
         if not name or not SYMBOL.fullmatch(name):
             raise ToolError(f"EQUATES row {excel_row} has an invalid equ_name")
-        if value is None or value < 0:
+        if value is None:
             raise ToolError(f"EQUATES row {excel_row} has an invalid equ_value")
         if status not in VALID_STATUSES:
             raise ToolError(f"EQUATES row {excel_row} has an invalid status '{status}'")

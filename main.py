@@ -169,7 +169,9 @@ def run(args: argparse.Namespace, parser: argparse.ArgumentParser) -> int:
         relabel_segments(args.master, args.sheet)
     elif args.command == "format":
         try:
-            destination = format_relabel_data(asm_path(args.master, "data"))
+            destination = format_relabel_data(
+                asm_path(args.master, "data"), args.sheet, args.master
+            )
         except FileNotFoundError as error:
             raise ToolError(str(error)) from error
         print(f"Formatted ASM source at '{destination}'")

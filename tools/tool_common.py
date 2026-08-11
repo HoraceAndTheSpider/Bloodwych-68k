@@ -60,7 +60,7 @@ PROFILES = (
 
 
 def parse_int(value: object) -> int | None:
-    """Parse spreadsheet decimal, ``0x`` hexadecimal, or Amiga ``$`` values."""
+    """Parse signed spreadsheet decimal, ``0x`` hex, or Amiga ``$`` values."""
     try:
         if pd.isna(value):
             return None
@@ -68,10 +68,19 @@ def parse_int(value: object) -> int | None:
             text = value.strip()
             if not text:
                 return None
+            sign = 1
+            if text[0] in "+-":
+                if text[0] == "-":
+                    sign = -1
+                text = text[1:].strip()
+                if not text:
+                    return None
             if text.startswith("$"):
-                return int(text[1:], 16)
+                return sign * int(text[1:], 16)
             if text.lower().startswith("0x"):
-                return int(text, 16)
+                return sign * int(text, 16)
+            if sign < 0:
+                text = f"-{text}"
             return int(text)
         return int(value)
     except (TypeError, ValueError, OverflowError):

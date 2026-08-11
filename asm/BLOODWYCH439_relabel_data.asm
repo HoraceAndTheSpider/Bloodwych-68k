@@ -387,8 +387,8 @@ KeyboardAction:		; Memory Address ($062E) and binary offset [$02AA]
 	addq.w	#$06,d1																;5C41
 	lea		Player2_Data.l,a0													;41F90000EEDE
 .skipPlayer2:
-	add.w	#InterfaceAction_MoveForward,d1										;0641000A
-	move.b	d1,Player_PendingActionOffset(a0)									;11410056
+	add.w	#InterfaceAction_MoveForward,d1										;Base dungeon action added to the raw-key index so keyboard movement begins with Move Forward.
+	move.b	d1,Player_PendingActionOffset(a0)									;Offset of the pending action byte written by keyboard input.
 	rts																			;4E75
 
 RawKeyCodes:
@@ -3844,11 +3844,11 @@ adrCd002AEA:		; Memory Address ($2AEA) and binary offset [$2766]
 Apply_CutpurseBackstabEligibility:		; Memory Address ($2AF8) and binary offset [$2774]
 	move.w	d3,d0																;3003
 	not.w	d0																	;4640
-	and.w	#Character_ProfessionMask,d0										;02400003
+	and.w	#Character_ProfessionMask,d0										;Low two bits used to select one of the four character professions.
 	beq.s	Execute_PhysicalAttack												;6708
 	move.w	#$FFFF,PhysicalAttack_BackstabState.l								;33FCFFFF0000628A
 Execute_PhysicalAttack:		; Memory Address ($2B0A) and binary offset [$2786]
-	move.b	#PhysicalAttack_CooldownInitial,$001B(a4)							;197C0007001B
+	move.b	#PhysicalAttack_CooldownInitial,$001B(a4)							;Initial cooldown written whenever a champion performs a physical attack.
 	move.l	a4,-(sp)															;2F0C
 	move.w	d1,-(sp)															;3F01
 	bsr		Resolve_PhysicalAttack												;610036C4
@@ -4108,13 +4108,13 @@ adrCd002D9E:		; Memory Address ($2D9E) and binary offset [$2A1A]
 
 Comms_RespondWithRetort:
 	; ReSource: Routes an action to the contextual Retort reply generator.
-	moveq	#CommsAction_Retort,d1												;7219
+	moveq	#CommsAction_Retort,d1												;Communication action selected for a contextual Retort.
 adrCd002DA8:		; Memory Address ($2DA8) and binary offset [$2A24]
 	bra		Comms_RunAction														;60000766
 
 Comms_Respond_LowAttitude:		; Memory Address ($2DAC) and binary offset [$2A28]
 	; ReSource: Selects a hostile or dismissive response when attitude is low.
-	moveq	#CommsAction_Threat,d1												;7209
+	moveq	#CommsAction_Threat,d1												;Communication action selected by Threat.
 	tst.b	$0007(a4)															;4A2C0007
 	bmi.s	adrCd002DA8															;6BF4
 	cmp.b	#$0A,$0006(a4)														;0C2C000A0006
@@ -4124,7 +4124,7 @@ Comms_Respond_LowAttitude:		; Memory Address ($2DAC) and binary offset [$2A28]
 Comms_Respond_WhoGoesOrNameSelf:		; Memory Address ($2DBE) and binary offset [$2A3A]
 	; ReSource: Responds to identity questions, revealing a champion name or
 	; special monster identity when permitted.
-	moveq	#CommsAction_NameSelf,d1											;720C
+	moveq	#CommsAction_NameSelf,d1											;Communication action selected by Name Self.
 	cmpi.b	#$10,d0																;0C000010
 	bcs.s	adrCd002DA8															;65E2
 	cmp.b	#$05,$0006(a4)														;0C2C00050006
@@ -4144,7 +4144,7 @@ Comms_Respond_ThyTradeOrRevealSelf:		; Memory Address ($2DEE) and binary offset 
 	; when applicable.
 	cmpi.b	#$10,d0																;0C000010
 	bcc.s	Comms_RespondWithRetort												;64B2
-	moveq	#CommsAction_RevealSelf,d1											;720D
+	moveq	#CommsAction_RevealSelf,d1											;Communication action selected by Reveal Self.
 	bra.s	adrCd002DA8															;60B0
 
 Comms_Respond_Persons:		; Memory Address ($2DF8) and binary offset [$2A74]
@@ -4157,7 +4157,7 @@ Comms_Respond_Persons:		; Memory Address ($2DF8) and binary offset [$2A74]
 
 adrCd002E06:		; Memory Address ($2E06) and binary offset [$2A82]
 	bsr		RandomGen_BytewithOffset											;610027A4
-	moveq	#CommsAction_Boast,d1												;7218
+	moveq	#CommsAction_Boast,d1												;Communication action selected by Boast.
 	tst.b	d0																	;4A00
 	bmi.s	adrCd002DA8															;6B98
 	bra.s	Comms_RespondWithRetort												;6094
@@ -4167,14 +4167,14 @@ Comms_Respond_Offer:		; Memory Address ($2E12) and binary offset [$2A8E]
 	; coinage.
 	cmpi.b	#$10,d0																;0C000010
 	bcs.s	Comms_RespondWithRetort												;658E
-	move.w	HeldItem_ObjectCodeOffset(a5),d1									;322D002E
+	move.w	HeldItem_ObjectCodeOffset(a5),d1									;Offset of the currently held object code in the interface state.
 	cmp.b	$000A(a4),d1														;B22C000A
 	bne		adrCd002FD8															;660001B6
 	tst.w	d1																	;4A41
 	beq.s	adrCd002E52															;672A
-	cmpi.b	#Object_Permit,d1													;0C01005F
+	cmpi.b	#Object_Permit,d1													;Permit object and exclusive end of bows.
 	beq.s	adrCd002E36															;6708
-	cmpi.b	#Object_Remains_First,d1											;0C010040
+	cmpi.b	#Object_Remains_First,d1											;First champion-remains object and first normally non-tradable object.
 	bcc		Comms_RejectUntradeableObject										;6400023A
 adrCd002E36:		; Memory Address ($2E36) and binary offset [$2AB2]
 	moveq	#$00,d2																;7400
@@ -4198,15 +4198,15 @@ adrCd002E52:		; Memory Address ($2E52) and binary offset [$2ACE]
 
 Comms_AcceptOfferedObject:		; Memory Address ($2E5C) and binary offset [$2AD8]
 	; ReSource: Accepts an offered object after its tradeability has been checked.
-	cmpi.b	#Object_Permit,d1													;0C01005F
+	cmpi.b	#Object_Permit,d1													;Permit object and exclusive end of bows.
 	beq.s	adrCd002E76															;6714
-	sub.w	#Object_TradeValueTable_First,d1									;04410014
+	sub.w	#Object_TradeValueTable_First,d1									;First object represented by the trade-value lookup table.
 	bcs.s	adrCd002E76															;650E
 	lea		Comms_ObjectTradeValues.l,a0										;41F9000031E6
 	tst.b	$00(a0,d1.w)														;4A301000
 	bmi		Comms_RejectUntradeableObject										;6B0001FA
 adrCd002E76:		; Memory Address ($2E76) and binary offset [$2AF2]
-	clr.l	HeldItem_StateOffset(a5)											;42AD002C
+	clr.l	HeldItem_StateOffset(a5)											;Offset of the combined held-item quantity and object-code state.
 adrCd002E7A:		; Memory Address ($2E7A) and binary offset [$2AF6]
 	bsr		adrCd0035FA															;6100077E
 	bra		Refresh_HeldItemDisplay												;60003DB4
@@ -4423,7 +4423,7 @@ Comms_RejectUntradeableObject:
 Comms_Respond_Praise:		; Memory Address ($307E) and binary offset [$2CFA]
 	; ReSource: Selects a complimentary, neutral or hostile response to Praise from
 	; the current attitude.
-	moveq	#CommsAction_Praise,d1												;7216
+	moveq	#CommsAction_Praise,d1												;Communication action selected by Praise.
 	cmp.b	#$0A,$0006(a4)														;0C2C000A0006
 	bcc		adrCd002DA8															;6400FD20
 	cmp.b	#$05,$0006(a4)														;0C2C00050006
@@ -4435,7 +4435,7 @@ adrCd003094:		; Memory Address ($3094) and binary offset [$2D10]
 Comms_Respond_Curse:		; Memory Address ($309A) and binary offset [$2D16]
 	; ReSource: Selects a curse, retort or threat response according to attitude
 	; and patience.
-	moveq	#CommsAction_Curse,d1												;7217
+	moveq	#CommsAction_Curse,d1												;Communication action selected by Curse.
 	cmp.b	#$05,$0006(a4)														;0C2C00050006
 	bcc		adrCd002DA8															;6400FD04
 	tst.b	$0007(a4)															;4A2C0007
@@ -4447,7 +4447,7 @@ Comms_Respond_Boast:		; Memory Address ($30B4) and binary offset [$2D30]
 	; ReSource: Selects a praise, boast, retort or hostile response to Boast.
 	cmp.b	#$0A,$0006(a4)														;0C2C000A0006
 	bcc.s	Comms_Respond_Praise												;64C2
-	moveq	#CommsAction_Boast,d1												;7218
+	moveq	#CommsAction_Boast,d1												;Communication action selected by Boast.
 	cmp.b	#$07,$0006(a4)														;0C2C00070006
 	bcc		adrCd002DA8															;6400FCE2
 	tst.b	$0007(a4)															;4A2C0007
@@ -4464,10 +4464,10 @@ Comms_Respond_Greeting:		; Memory Address ($30D2) and binary offset [$2D4E]
 	cmp.b	#$08,$0006(a4)														;0C2C00080006
 	bcs		Comms_RespondWithRetort												;6500FCBA
 	bsr		RandomGen_BytewithOffset											;610024BC
-	moveq	#CommsAction_WhoGoes,d1												;720A
+	moveq	#CommsAction_WhoGoes,d1												;Communication action selected by Who Goes.
 	tst.b	d0																	;4A00
 	bmi		adrCd002DA8															;6B00FCB0
-	moveq	#CommsAction_ThyTrade,d1											;720B
+	moveq	#CommsAction_ThyTrade,d1											;Communication action selected by Thy Trade.
 	bra		adrCd002DA8															;6000FCAA
 
 Msg_Recruit_PartyFull:
@@ -4800,7 +4800,7 @@ Comms_StartWithTarget:		; Memory Address ($3402) and binary offset [$307E]
 	move.w	d1,d0																;3001
 	bsr		Comms_GetState														;61000DE8
 	clr.b	$0006(a4)															;422C0006
-	move.b	#CommsAction_Greeting,CommsState_PreviousActionOffset(a4)			;197C001A0000
+	move.b	#CommsAction_Greeting,CommsState_PreviousActionOffset(a4)			;Initial communication action used when a conversation begins.
 	bclr	#$07,$0005(a4)														;08AC00070005
 	tst.b	d0																	;4A00
 	bmi.s	adrCd003458															;6B30
@@ -4829,26 +4829,26 @@ adrCd003462:		; Memory Address ($3462) and binary offset [$30DE]
 	move.b	d0,$0002(a4)														;19400002
 	move.l	a4,-(sp)															;2F0C
 	bsr		Load_CurrentChampionStatRecord										;610031E8
-	move.b	ChampionStat_Charisma(a4),d2										;142C0004
+	move.b	ChampionStat_Charisma(a4),d2										;Offset of Charisma in a thirty-two-byte champion-stat record.
 	move.l	(sp)+,a4															;285F
 	bsr		RandomGen_BytewithOffset											;6100212E
 	and.w	#$0007,d0															;02400007
 	addq.w	#$02,d0																;5440
-	sub.b	#Comms_CharismaBaseline,d2											;04020014
+	sub.b	#Comms_CharismaBaseline,d2											;Charisma receives no initial communication bonus at or below this value.
 	bcc.s	adrCd00348E															;6402
 	moveq	#$00,d2																;7400
 adrCd00348E:		; Memory Address ($348E) and binary offset [$310A]
-	lsr.b	#Comms_CharismaShift,d2												;E40A
+	lsr.b	#Comms_CharismaShift,d2												;Right shift converting excess Charisma into an initial attitude bonus.
 	add.b	d2,d0																;D002
-	add.b	CommsState_AttitudeOffset(a4),d0									;D02C0006
+	add.b	CommsState_AttitudeOffset(a4),d0									;Offset of mutable communication attitude or rapport.
 	bpl.s	adrCd00349A															;6A02
 	moveq	#$00,d0																;7000
 adrCd00349A:		; Memory Address ($349A) and binary offset [$3116]
-	move.b	d0,CommsState_AttitudeOffset(a4)									;19400006
+	move.b	d0,CommsState_AttitudeOffset(a4)									;Offset of mutable communication attitude or rapport.
 	bsr		RandomGen_BytewithOffset											;6100210C
 	and.w	#$0007,d0															;02400007
 	addq.w	#$08,d0																;5040
-	move.b	d0,CommsState_PatienceOffset(a4)									;19400007
+	move.b	d0,CommsState_PatienceOffset(a4)									;Offset of communication patience or remaining engagement.
 	move.b	#$14,$0004(a4)														;197C00140004
 	clr.b	$0008(a4)															;422C0008
 	lea		Msg_Greeting.l,a6													;4DF900003DF7
@@ -4870,7 +4870,7 @@ Comms_HandleMenuSelection:		; Memory Address ($34CC) and binary offset [$3148]
 	add.w	d0,d1																;D240
 adrCd0034E0:		; Memory Address ($34E0) and binary offset [$315C]
 	bsr		Comms_GetState														;61000D18
-	addq.b	#$01,CommsState_AttitudeOffset(a4)									;522C0006
+	addq.b	#$01,CommsState_AttitudeOffset(a4)									;Offset of mutable communication attitude or rapport.
 	bsr.s	Comms_RunAction														;6126
 	cmp.w	#$0006,$0044(a5)													;0C6D00060044
 	bcs.s	adrCd0034FE															;650C
@@ -4879,14 +4879,14 @@ adrCd0034E0:		; Memory Address ($34E0) and binary offset [$315C]
 	bsr		adrCd00331A															;6100FE1E
 adrCd0034FE:		; Memory Address ($34FE) and binary offset [$317A]
 	move.b	#$14,$0004(a4)														;197C00140004
-	move.b	CommsState_CurrentActionOffset(a4),CommsState_PreviousActionOffset(a4)	;196C00010000
-	subq.b	#$01,CommsState_PatienceOffset(a4)									;532C0007
+	move.b	CommsState_CurrentActionOffset(a4),CommsState_PreviousActionOffset(a4)	;Offset of the communication action currently being performed.
+	subq.b	#$01,CommsState_PatienceOffset(a4)									;Offset of communication patience or remaining engagement.
 adrCd00350E:		; Memory Address ($350E) and binary offset [$318A]
 	rts																			;4E75
 
 Comms_RunAction:		; Memory Address ($3510) and binary offset [$318C]
 	; ReSource: Stores and dispatches one communication action.
-	move.b	d1,CommsState_CurrentActionOffset(a4)								;19410001
+	move.b	d1,CommsState_CurrentActionOffset(a4)								;Offset of the communication action currently being performed.
 	add.w	d1,d1																;D241
 	lea		Comms_Action_Recruit.l,a0											;41F90000355C
 	add.w	Comms_ActionHandlerOffsets(pc,d1.w),a0								;D0FB1008
@@ -4961,10 +4961,10 @@ Comms_Action_Yes:		; Memory Address ($3596) and binary offset [$3212]
 	; ReSource: Communicates Yes and completes an accepted object or coinage
 	; transfer when one is pending.
 	move.b	$0008(a4),d2														;142C0008
-	subq.b	#CommsTradeMode_Exchange,d2											;5502
+	subq.b	#CommsTradeMode_Exchange,d2											;Exchange communication mode.
 	bcs.s	adrCd0035FE															;6560
 	bne.s	adrCd0035DC															;663C
-	cmp.b	#CommsAction_Offer,CommsState_PreviousActionOffset(a4)				;0C2C00120000
+	cmp.b	#CommsAction_Offer,CommsState_PreviousActionOffset(a4)				;Communication action selected by Offer.
 	bne.s	adrCd0035FE															;6656
 	move.w	$002E(a5),d0														;302D002E
 	cmp.b	$000A(a4),d0														;B02C000A
@@ -4977,7 +4977,7 @@ Comms_Action_Yes:		; Memory Address ($3596) and binary offset [$3212]
 	move.b	d0,$002F(a5)														;1B40002F
 	move.w	#$0001,$002C(a5)													;3B7C0001002C
 adrCd0035D0:		; Memory Address ($35D0) and binary offset [$324C]
-	move.b	#CommsAction_Boast,CommsState_CurrentActionOffset(a4)				;197C00180001
+	move.b	#CommsAction_Boast,CommsState_CurrentActionOffset(a4)				;Communication action selected by Boast.
 	bsr.s	adrCd0035FA															;6122
 	bra		Refresh_HeldItemDisplay												;6000365A
 
@@ -5001,15 +5001,15 @@ Comms_Action_No:		; Memory Address ($3604) and binary offset [$3280]
 	move.w	#$3DFF,d0															;303C3DFF
 	move.b	$0008(a4),d1														;122C0008
 	beq.s	adrCd003626															;6718
-	add.b	#CommsAction_Offer,d1												;06010012
+	add.b	#CommsAction_Offer,d1												;Communication action selected by Offer.
 	move.b	d1,$0001(a4)														;19410001
-	cmpi.b	#CommsAction_Sell,d1												;0C010015
+	cmpi.b	#CommsAction_Sell,d1												;Communication action selected by Sell.
 	bne.s	adrCd003626															;660A
-	subq.b	#$04,CommsState_AttitudeOffset(a4)									;592C0006
+	subq.b	#$04,CommsState_AttitudeOffset(a4)									;Offset of mutable communication attitude or rapport.
 	bpl.s	adrCd003626															;6A04
 	clr.b	$0006(a4)															;422C0006
 adrCd003626:		; Memory Address ($3626) and binary offset [$32A2]
-	subq.b	#$01,CommsState_AttitudeOffset(a4)									;532C0006
+	subq.b	#$01,CommsState_AttitudeOffset(a4)									;Offset of mutable communication attitude or rapport.
 	bpl.s	adrCd003630															;6A04
 	clr.b	$0006(a4)															;422C0006
 adrCd003630:		; Memory Address ($3630) and binary offset [$32AC]
@@ -5028,8 +5028,8 @@ Comms_Action_Threat:		; Memory Address ($364A) and binary offset [$32C6]
 	and.w	#$0003,d0															;02400003
 	lea		Comms_ThreatOpeningFragments.l,a3									;47F900003DDE
 	bsr		Comms_CopyThreatFragment											;61000084
-	move.b	CommsState_AttitudeOffset(a4),d0									;102C0006
-	subq.b	#$03,CommsState_AttitudeOffset(a4)									;572C0006
+	move.b	CommsState_AttitudeOffset(a4),d0									;Offset of mutable communication attitude or rapport.
+	subq.b	#$03,CommsState_AttitudeOffset(a4)									;Offset of mutable communication attitude or rapport.
 	bpl.s	adrCd00366C															;6A04
 	clr.b	$0006(a4)															;422C0006
 adrCd00366C:		; Memory Address ($366C) and binary offset [$32E8]
@@ -5164,7 +5164,7 @@ Msg_Persons:
 Comms_Action_Offer:		; Memory Address ($382C) and binary offset [$34A8]
 	; ReSource: Builds the Offer message from held coinage, a held object or the
 	; empty-hand template.
-	move.w	HeldItem_ObjectCodeOffset(a5),d0									;302D002E
+	move.w	HeldItem_ObjectCodeOffset(a5),d0									;Offset of the currently held object code in the interface state.
 	move.b	d0,$000A(a4)														;1940000A
 	bne.s	adrCd00383E															;6608
 	clr.b	$0008(a4)															;422C0008
@@ -5172,9 +5172,9 @@ Comms_Action_Offer:		; Memory Address ($382C) and binary offset [$34A8]
 	bra.s	adrCd003894															;6056
 
 adrCd00383E:		; Memory Address ($383E) and binary offset [$34BA]
-	cmpi.w	#Object_Coinage,d0													;0C400001
+	cmpi.w	#Object_Coinage,d0													;Coinage object code.
 	bne.s	adrCd00385C															;6618
-	move.w	HeldItem_StateOffset(a5),d0											;302D002C
+	move.w	HeldItem_StateOffset(a5),d0											;Offset of the combined held-item quantity and object-code state.
 	cmp.b	#$02,$0008(a4)														;0C2C00020008
 	bne		Comms_PrintGoldOffer												;6600F9F2
 	move.b	#$01,$0008(a4)														;197C00010008
@@ -5194,7 +5194,7 @@ Comms_Action_Sell:		; Memory Address ($3874) and binary offset [$34F0]
 	; proposed trade.
 	move.b	#$03,$0008(a4)														;197C00030008
 	clr.b	$0009(a4)															;422C0009
-	move.w	HeldItem_ObjectCodeOffset(a5),d0									;302D002E
+	move.w	HeldItem_ObjectCodeOffset(a5),d0									;Offset of the currently held object code in the interface state.
 	beq.s	adrCd003892															;670E
 	move.b	d0,$000A(a4)														;1940000A
 	lea		Msg_SellHeldItemTemplate.l,a6										;4DF900003E70
@@ -5217,7 +5217,7 @@ Comms_Action_Purchase:		; Memory Address ($38A4) and binary offset [$3520]
 Comms_Action_Exchange:		; Memory Address ($38B6) and binary offset [$3532]
 	; ReSource: Builds the Exchange question and enters exchange mode.
 	move.b	#$02,$0008(a4)														;197C00020008
-	move.w	HeldItem_ObjectCodeOffset(a5),d0									;302D002E
+	move.w	HeldItem_ObjectCodeOffset(a5),d0									;Offset of the currently held object code in the interface state.
 	move.b	d0,$000A(a4)														;1940000A
 	bne.s	adrCd0038D2															;660C
 	lea		Msg_Exchange.l,a6													;4DF900003E0B
@@ -5253,13 +5253,13 @@ adrCd003916:		; Memory Address ($3916) and binary offset [$3592]
 
 Comms_Action_Praise:		; Memory Address ($3918) and binary offset [$3594]
 	; ReSource: Builds a randomized compliment and raises attitude.
-	addq.b	#$01,CommsState_AttitudeOffset(a4)									;522C0006
+	addq.b	#$01,CommsState_AttitudeOffset(a4)									;Offset of mutable communication attitude or rapport.
 	lea		Comms_PraiseWordRanges.l,a0											;41F900003A02
 	bra.s	adrCd003934															;6010
 
 Comms_Action_Curse:		; Memory Address ($3924) and binary offset [$35A0]
 	; ReSource: Builds a randomized insult and reduces attitude.
-	subq.b	#$04,CommsState_AttitudeOffset(a4)									;592C0006
+	subq.b	#$04,CommsState_AttitudeOffset(a4)									;Offset of mutable communication attitude or rapport.
 	bpl.s	adrCd00392E															;6A04
 	clr.b	$0006(a4)															;422C0006
 adrCd00392E:		; Memory Address ($392E) and binary offset [$35AA]
@@ -6260,7 +6260,7 @@ Reset_PlayerActionState:		; Memory Address ($468E) and binary offset [$430A]
 	clr.b	$003C(a5)															;422D003C
 	clr.b	$003E(a5)															;422D003E
 	clr.b	$0050(a5)															;422D0050
-	move.w	#Player_ActionInvalid,$000C(a5)										;3B7CFFFF000C
+	move.w	#Player_ActionInvalid,$000C(a5)										;Value meaning no active action.
 	rts																			;4E75
 
 Click_LoadSaveGame:		; Memory Address ($432A) and binary offset [$3FA6]
@@ -7090,9 +7090,9 @@ Consume_PlayerPendingAction:		; Memory Address ($50B6) and binary offset [$4D32]
 	; ReSource: Copies PlayerX_Data+$56 into PlayerX_Data+$0C, then clears the
 	; pending byte.
 	moveq	#$00,d0																;7000
-	move.b	Player_PendingActionOffset(a5),d0									;102D0056
+	move.b	Player_PendingActionOffset(a5),d0									;Offset read when transferring a pending action into the active command.
 	beq.s	adrCd004D4E															;6714
-	move.w	d0,Player_ActionCommandOffset(a5)									;3B40000C
+	move.w	d0,Player_ActionCommandOffset(a5)									;Offset of the active per-player interface command.
 	clr.b	$0056(a5)															;422D0056
 	cmp.w	#$0004,$0014(a5)													;0C6D00040014
 	bne.s	adrCd004D4E															;6604
@@ -7250,7 +7250,7 @@ adrCd004EA0:		; Memory Address ($4EA0) and binary offset [$4B1C]
 	bsr		adrCd00332A															;6100E472
 	movem.l	(sp)+,d0-d7/a0-a6													;4CDF7FFF
 adrCd004EBE:		; Memory Address ($4EBE) and binary offset [$4B3A]
-	subq.b	#SpellCasting_VitalityCost,$0007(a4)								;592C0007
+	subq.b	#SpellCasting_VitalityCost,$0007(a4)								;Vitality removed when a champion launches a spell.
 	bcc.s	adrCd004EC8															;6404
 	clr.b	$0007(a4)															;422C0007
 adrCd004EC8:		; Memory Address ($4EC8) and binary offset [$4B44]
@@ -7426,16 +7426,16 @@ Spells_03_Vitalise:		; Memory Address ($5086) and binary offset [$4D02]
 Spells_04_Beguile:		; Memory Address ($508E) and binary offset [$4D0A]
 	; ReSource: While communication is active, adds floor(spell power / 4) + 1 to
 	; both attitude and patience.
-	cmp.w	#InterfaceMode_Communication,$0042(a5)								;0C6D00080042
+	cmp.w	#InterfaceMode_Communication,$0042(a5)								;Interface mode value active while communicating with another character.
 	bne.s	adrCd0050BC															;6626
-	lsr.b	#WornSpell_Beguile_PowerShift,d7									;E40F
-	addq.w	#WornSpell_Beguile_BaseBonus,d7										;5247
+	lsr.b	#WornSpell_Beguile_PowerShift,d7									;Right shift converting Beguile spell power into its communication bonus.
+	addq.w	#WornSpell_Beguile_BaseBonus,d7										;Minimum attitude and patience bonus supplied by a successful Beguile spell.
 	bsr		Comms_GetState														;6100F15E
 	move.w	d7,d0																;3007
-	add.b	CommsState_AttitudeOffset(a4),d7									;DE2C0006
-	move.b	d7,CommsState_AttitudeOffset(a4)									;19470006
-	add.b	CommsState_PatienceOffset(a4),d0									;D02C0007
-	move.b	d0,CommsState_PatienceOffset(a4)									;19400007
+	add.b	CommsState_AttitudeOffset(a4),d7									;Offset of mutable communication attitude or rapport.
+	move.b	d7,CommsState_AttitudeOffset(a4)									;Offset of mutable communication attitude or rapport.
+	add.b	CommsState_PatienceOffset(a4),d0									;Offset of communication patience or remaining engagement.
+	move.b	d0,CommsState_PatienceOffset(a4)									;Offset of communication patience or remaining engagement.
 	bsr		adrCd00847E															;610033CC
 	move.w	#$008D,d7															;3E3C008D
 	bra		adrCd001DBC															;6000CD02
@@ -7502,7 +7502,7 @@ adrCd005150:		; Memory Address ($5150) and binary offset [$4DCC]
 	rts																			;4E75
 
 Spells_08_Warpower:		; Memory Address ($5152) and binary offset [$4DCE]
-	moveq	#WornSpell_Warpower,d4												;7802
+	moveq	#WornSpell_Warpower,d4												;Low three-bit worn-spell type used for Warpower.
 	bra		adrCd005060															;6000FF0A
 
 Spells_09_Missle:		; Memory Address ($5158) and binary offset [$4DD4]
@@ -8227,9 +8227,9 @@ Dispatch_PlayerInterfaceActionGuarded:		; Memory Address ($5B30) and binary offs
 Dispatch_PlayerInterfaceAction:		; Memory Address ($5B3E) and binary offset [$57BA]
 	; ReSource: Indexes the dungeon InterfaceButtons jump table using
 	; PlayerX_Data+$0C.
-	move.w	Player_ActionCommandOffset(a5),d0									;302D000C
+	move.w	Player_ActionCommandOffset(a5),d0									;Offset used to dispatch the active player interface command.
 	bmi.s	Return_ActionDispatchBlocked										;6BD2
-	asl.w	#InterfaceAction_TableEntryShift,d0									;E540
+	asl.w	#InterfaceAction_TableEntryShift,d0									;Shift count converting an interface action index into a four-byte jump-table offset.
 	lea		DungeonInterfaceActionTable.l,a0									;41F9000057CE
 	move.l	$00(a0,d0.w),a0														;20700000
 	jmp		(a0)																;4ED0
@@ -8874,7 +8874,7 @@ Handle_PrimaryAttackAction:		; Memory Address ($6322) and binary offset [$5F9E]
 	; ReSource: Primary attack action handler; sets the primary attack state bit
 	; and continues through the common attack routine.
 	and.b	#$01,(a5)															;02150001
-	bset	#Player_AttackPrimaryStateBit,(a5)									;08D50001
+	bset	#Player_AttackPrimaryStateBit,(a5)									;State bit set by the primary attack handler.
 Select_AttackingChampion:		; Memory Address ($632A) and binary offset [$5FA6]
 	; ReSource: Common attack setup that selects the active champion/action
 	; participant.
@@ -9231,7 +9231,7 @@ Load_CombatantCombatValues:		; Memory Address ($628C) and binary offset [$5F08]
 Load_ChampionCombatValues:		; Memory Address ($62C6) and binary offset [$5F42]
 	move.w	d0,d1																;3200
 	bsr		Load_ChampionStatRecord												;61000396
-	subq.b	#PhysicalAttack_VitalityCost,$0007(a4)								;572C0007
+	subq.b	#PhysicalAttack_VitalityCost,$0007(a4)								;Vitality removed when champion combat values are loaded for physical combat.
 	bcc.s	Apply_ChampionCombatModifiers										;6404
 	clr.b	$0007(a4)															;422C0007
 Apply_ChampionCombatModifiers:		; Memory Address ($62D6) and binary offset [$5F52]
@@ -9247,7 +9247,7 @@ Apply_WarpowerCombatModifiers:		; Memory Address ($62EA) and binary offset [$5F6
 	move.b	$0011(a4),d1														;122C0011
 	move.w	d1,d2																;3401
 	and.w	#$0007,d2															;02420007
-	subq.b	#WornSpell_Warpower,d2												;5502
+	subq.b	#WornSpell_Warpower,d2												;Low three-bit worn-spell type used for Warpower.
 	bne.s	Load_NormalChampionCombatStats										;6618
 	lsr.b	#$03,d1																;E609
 	move.w	d1,d2																;3401
@@ -9256,13 +9256,13 @@ Apply_WarpowerCombatModifiers:		; Memory Address ($62EA) and binary offset [$5F6
 	add.w	d2,d0																;D042
 	move.w	d1,d2																;3401
 	add.b	$0001(a4),d1														;D22C0001
-	addq.b	#Combat_StrengthBias,d1												;5001
+	addq.b	#Combat_StrengthBias,d1												;Internal Strength bias applied before physical-combat thresholds.
 	add.b	$0002(a4),d2														;D42C0002
 	rts																			;4E75
 
 Load_NormalChampionCombatStats:		; Memory Address ($6312) and binary offset [$5F8E]
 	move.b	$0001(a4),d1														;122C0001
-	addq.b	#Combat_StrengthBias,d1												;5001
+	addq.b	#Combat_StrengthBias,d1												;Internal Strength bias applied before physical-combat thresholds.
 	move.b	$0002(a4),d2														;142C0002
 	rts																			;4E75
 
@@ -9324,17 +9324,17 @@ Calculate_WeaponCombatBonuses:		; Memory Address ($6382) and binary offset [$5FF
 	; loads their combat adjustments.
 	moveq	#$00,d0																;7000
 	move.b	(a1),d0																;1011
-	sub.b	#Object_Blades_First,d0												;04000030
+	sub.b	#Object_Blades_First,d0												;First blade object and exclusive end of gloves.
 	bcs.s	Weapon_CheckRightHand												;6506
-	cmpi.b	#Weapon_CombatModifierRecordCount,d0								;0C000010
+	cmpi.b	#Weapon_CombatModifierRecordCount,d0								;Number of four-byte records in Weapon_CombatModifiers.
 	bcs.s	Weapon_LoadCombatModifiers											;6510
 Weapon_CheckRightHand:		; Memory Address ($6392) and binary offset [$600E]
 	; ReSource: Checks the right-hand pocket after the left hand does not contain a
 	; recognised weapon.
 	move.b	$0001(a1),d0														;10290001
-	sub.b	#Object_Blades_First,d0												;04000030
+	sub.b	#Object_Blades_First,d0												;First blade object and exclusive end of gloves.
 	bcs.s	Weapon_ReturnCombatModifiers										;653E
-	cmpi.b	#Weapon_CombatModifierRecordCount,d0								;0C000010
+	cmpi.b	#Weapon_CombatModifierRecordCount,d0								;Number of four-byte records in Weapon_CombatModifiers.
 	bcc.s	Weapon_ReturnCombatModifiers										;6438
 Weapon_LoadCombatModifiers:		; Memory Address ($63A2) and binary offset [$601E]
 	; ReSource: Loads random damage, fixed damage, attack and defence modifiers
@@ -9348,15 +9348,15 @@ Weapon_LoadCombatModifiers:		; Memory Address ($63A2) and binary offset [$601E]
 	move.b	(a0)+,d7															;1E18
 	tst.w	PhysicalAttack_BackstabState.w										;4A78628A	;Short Absolute converted to symbol!
 	bne.s	Weapon_ApplyAceOfSwordsRestriction									;660C
-	cmpi.b	#Weapon_BackstabEligibleByteLimit,d0								;0C000008
+	cmpi.b	#Weapon_BackstabEligibleByteLimit,d0								;Exclusive byte-offset limit for weapon records which preserve a Cutpurse backstab.
 	bcs.s	Weapon_ApplyAceOfSwordsRestriction									;6506
 	move.w	#$FFFF,PhysicalAttack_BackstabState.w								;31FCFFFF628A	;Short Absolute converted to symbol!
 Weapon_ApplyAceOfSwordsRestriction:		; Memory Address ($63C6) and binary offset [$6042]
 	; ReSource: Reduces the Ace of Swords combat modifiers unless Chaos Gloves are
 	; worn.
-	cmpi.b	#Weapon_AceOfSwordsRecordOffset,d0									;0C00001C
+	cmpi.b	#Weapon_AceOfSwordsRecordOffset,d0									;Byte offset of the Ace of Swords record within Weapon_CombatModifiers.
 	bne.s	Weapon_ReturnCombatModifiers										;660E
-	cmp.b	#Object_ChaosGloves,$0012(a4)										;0C2C002B0012
+	cmp.b	#Object_ChaosGloves,$0012(a4)										;Chaos Gloves object code.
 	beq.s	Weapon_ReturnCombatModifiers										;6706
 	moveq	#$05,d6																;7C05
 	moveq	#$05,d7																;7E05
@@ -9795,10 +9795,10 @@ Apply_PowerStaffSpellCastingBonus:		; Memory Address ($681C) and binary offset [
 	move.b	$0015(a4),d0														;102C0015
 	lsr.b	d1,d0																;E228
 	sub.b	d0,d7																;9E00
-	moveq	#PowerStaff_SpellCastingBonus,d0									;7005
-	cmp.b	#Object_PowerStaff,(a0)												;0C10003F
+	moveq	#PowerStaff_SpellCastingBonus,d0									;Spell-casting quality bonus supplied by a held Power Staff.
+	cmp.b	#Object_PowerStaff,(a0)												;Power Staff object code.
 	beq.s	adrCd006836															;670A
-	cmp.b	#Object_PowerStaff,$0001(a0)										;0C28003F0001
+	cmp.b	#Object_PowerStaff,$0001(a0)										;Power Staff object code.
 	beq.s	adrCd006836															;6702
 	moveq	#$00,d0																;7000
 adrCd006836:		; Memory Address ($6836) and binary offset [$64B2]
@@ -9933,7 +9933,7 @@ Character_GetClassIndex_CombineBits:		; Memory Address ($690A) and binary offset
 	; four-profession mask.
 	lsr.w	#$02,d0																;E448
 	add.w	d6,d0																;D046
-	and.w	#Character_ProfessionMask,d0										;02400003
+	and.w	#Character_ProfessionMask,d0										;Low two bits used to select one of the four character professions.
 Return_CharacterOrHeldItemAction:		; Memory Address ($6912) and binary offset [$658E]
 	; ReSource: Shared return used by character-class calculation and rejected
 	; held-item actions.
@@ -9942,15 +9942,15 @@ Return_CharacterOrHeldItemAction:		; Memory Address ($6912) and binary offset [$
 Click_Item_17_to_1A_Potions:		; Memory Address ($6914) and binary offset [$6590]
 	; ReSource: Dispatches held food, counted objects and potions; potions $17-$1A
 	; are removed before applying their character-stat effect.
-	move.w	HeldItem_ObjectCodeOffset(a5),d0									;302D002E
+	move.w	HeldItem_ObjectCodeOffset(a5),d0									;Reads the currently held object code.
 	beq.s	Return_CharacterOrHeldItemAction									;67F8
-	cmpi.w	#Object_Armour_First,d0												;0C40001B
+	cmpi.w	#Object_Armour_First,d0												;Exclusive upper boundary of the potion range.
 	bcc.s	Return_CharacterOrHeldItemAction									;64F2
-	cmpi.w	#Object_Potions_First,d0											;0C400017
+	cmpi.w	#Object_Potions_First,d0											;Separates potion objects from food and counted objects.
 	bcs.s	Use_FoodOrCountedObject												;6574
-	sub.w	#Object_Potions_First,d0											;04400017
+	sub.w	#Object_Potions_First,d0											;Converts potion object code `$17-$1A` into lookup index `0-3`.
 	move.w	d0,d1																;3200
-	clr.l	HeldItem_StateOffset(a5)											;42AD002C
+	clr.l	HeldItem_StateOffset(a5)											;Consumes the complete held potion before applying its effect.
 	move.b	$000F(a5),d0														;102D000F
 	move.b	$18(a5,d0.w),d0														;10350018
 	bsr		Load_ChampionStatRecord												;6100FD26
@@ -9971,30 +9971,30 @@ Potion_LookupTable:		; Memory Address ($6952) and binary offset [$65CE]
 
 Potion_1_SerpentSlime:		; Memory Address ($695A) and binary offset [$65D6]
 	; ReSource: Restores current hit points to the character's maximum hit points.
-	move.b	ChampionStat_HitPointsMaximum(a4),ChampionStat_HitPointsCurrent(a4)	;196C00060005
+	move.b	ChampionStat_HitPointsMaximum(a4),ChampionStat_HitPointsCurrent(a4)	;Restores current hit points to maximum.
 	rts																			;4E75
 
 Potion_3_DragonAle:		; Memory Address ($6962) and binary offset [$65DE]
 	; ReSource: Restores current vitality to the character's maximum vitality.
-	move.b	ChampionStat_VitalityMaximum(a4),ChampionStat_VitalityCurrent(a4)	;196C00080007
+	move.b	ChampionStat_VitalityMaximum(a4),ChampionStat_VitalityCurrent(a4)	;Restores current vitality to maximum.
 	rts																			;4E75
 
 Potion_4_MoonElixir:		; Memory Address ($696A) and binary offset [$65E6]
 	; ReSource: Restores current spell points to maximum and clears the spell
 	; cooldown.
-	move.b	ChampionStat_SpellPointsMaximum(a4),ChampionStat_SpellPointsCurrent(a4)	;196C000A0009
-	clr.b	ChampionStat_SpellCooldown(a4)										;422C0015
+	move.b	ChampionStat_SpellPointsMaximum(a4),ChampionStat_SpellPointsCurrent(a4)	;Restores current spell points to maximum.
+	clr.b	ChampionStat_SpellCooldown(a4)										;Moon Elixir clears spell cooldown.
 	rts																			;4E75
 
 Potion_2_BrimstoneBroth:		; Memory Address ($6976) and binary offset [$65F2]
 	; ReSource: Clears spell cooldown and restores half of each HP, vitality and
 	; spell-point deficit, rounded upward.
-	clr.b	ChampionStat_SpellCooldown(a4)										;422C0015
-	moveq	#ChampionStat_HitPointsCurrent,d4									;7805
+	clr.b	ChampionStat_SpellCooldown(a4)										;Brimstone Broth clears spell cooldown.
+	moveq	#ChampionStat_HitPointsCurrent,d4									;Selects the current/max hit-point pair for halfway restoration.
 	bsr.s	Potion_2_RestoreStatHalfway											;6106
-	moveq	#ChampionStat_VitalityCurrent,d4									;7807
+	moveq	#ChampionStat_VitalityCurrent,d4									;Selects the current/max vitality pair for halfway restoration.
 	bsr.s	Potion_2_RestoreStatHalfway											;6102
-	moveq	#ChampionStat_SpellPointsCurrent,d4									;7809
+	moveq	#ChampionStat_SpellPointsCurrent,d4									;Selects the current/max spell-point pair for halfway restoration.
 Potion_2_RestoreStatHalfway:		; Memory Address ($6984) and binary offset [$6600]
 	; ReSource: Moves one current statistic halfway towards its following
 	; maximum-statistic byte, rounding upward.
@@ -10009,16 +10009,16 @@ Potion_2_RestoreStatHalfway:		; Memory Address ($6984) and binary offset [$6600]
 Use_FoodOrCountedObject:		; Memory Address ($699A) and binary offset [$6616]
 	; ReSource: Dispatches counted objects below $05, three-stage food $05-$13 and
 	; whole N'Egg food $14-$16.
-	cmpi.w	#Object_Food_First,d0												;0C400005
+	cmpi.w	#Object_Food_First,d0												;Objects below `$05` use counted-object logic.
 	bcs		Click_CountedObject													;65000076
-	cmpi.w	#Object_Neggs_First,d0												;0C400014
+	cmpi.w	#Object_Neggs_First,d0												;Separates three-stage food from whole N'Egg food.
 	bcs.s	Click_PortionedFood													;6512
 	moveq	#$00,d1																;7200
-	sub.w	#Object_Neggs_First,d0												;04400014
+	sub.w	#Object_Neggs_First,d0												;Converts N'Egg object code to whole-food size index.
 WholeFood_AddValueLoop:		; Memory Address ($69AE) and binary offset [$662A]
 	; ReSource: Adds one $42 food-value step for each N'Egg size before consuming
 	; it completely.
-	add.w	#Food_WholeValueStep,d1												;06410042
+	add.w	#Food_WholeValueStep,d1												;Adds one food-value step for each N'Egg size.
 	dbra	d0,WholeFood_AddValueLoop											;51C8FFFA
 	moveq	#$00,d0																;7000
 	bra.s	ConsumeFood_StoreRemainingObject									;601A
@@ -10026,20 +10026,20 @@ WholeFood_AddValueLoop:		; Memory Address ($69AE) and binary offset [$662A]
 Click_PortionedFood:		; Memory Address ($69BA) and binary offset [$6636]
 	; ReSource: Consumes one third of food or drink, selects its food-value
 	; increase and resolves the remaining object stage.
-	moveq	#Food_DrinkPortionValue,d1											;7214
-	cmpi.w	#Object_Drinks_First,d0												;0C40000E
+	moveq	#Food_DrinkPortionValue,d1											;Default portion value for Mead and Water.
+	cmpi.w	#Object_Drinks_First,d0												;Separates solid-food portions from drink portions.
 	bcc.s	PortionedFood_SelectNextObject										;6402
-	moveq	#Food_SolidPortionValue,d1											;7220
+	moveq	#Food_SolidPortionValue,d1											;Selects the larger solid-food portion value.
 PortionedFood_SelectNextObject:		; Memory Address ($69C4) and binary offset [$6640]
 	; ReSource: Starts resolution of the previous portion graphic or the
 	; empty-object result.
 	move.w	d0,d2																;3400
-	subq.w	#Object_Food_First,d0												;5B40
+	subq.w	#Object_Food_First,d0												;Normalises the portioned-food object code to a zero-based group offset.
 	beq.s	ConsumeFood_StoreRemainingObject									;670A
 PortionedFood_FindGroupStartLoop:		; Memory Address ($69CA) and binary offset [$6646]
 	; ReSource: Tests three-object portion groups; each group start becomes empty
 	; and other stages decrement.
-	subq.w	#Food_PortionGroupSize,d0											;5740
+	subq.w	#Food_PortionGroupSize,d0											;Finds whether the selected object is the first stage of a three-object food group.
 	beq.s	ConsumeFood_StoreRemainingObject									;6706
 	bcc.s	PortionedFood_FindGroupStartLoop									;64FA
 	move.w	d2,d0																;3002
@@ -10047,26 +10047,26 @@ PortionedFood_FindGroupStartLoop:		; Memory Address ($69CA) and binary offset [$
 ConsumeFood_StoreRemainingObject:		; Memory Address ($69D4) and binary offset [$6650]
 	; ReSource: Stores the remaining portion object, or $00 when the food has been
 	; completely consumed.
-	move.w	d0,HeldItem_ObjectCodeOffset(a5)									;3B40002E
+	move.w	d0,HeldItem_ObjectCodeOffset(a5)									;Stores the decremented portion or empty object code.
 	move.b	$000F(a5),d0														;102D000F
 	move.b	$18(a5,d0.w),d0														;10350018
 	bsr		Load_ChampionStatRecord												;6100FC7E
-	add.b	ChampionStat_FoodLevel(a4),d1										;D22C0010
+	add.b	ChampionStat_FoodLevel(a4),d1										;Adds the consumed food value to the character's current food level.
 	bcs.s	ConsumeFood_ClampLevel												;6506
-	cmpi.w	#Food_LevelLimitExclusive,d1										;0C4100C8
+	cmpi.w	#Food_LevelLimitExclusive,d1										;Tests whether food level must be clamped.
 	bcs.s	ConsumeFood_StoreLevel												;6504
 ConsumeFood_ClampLevel:		; Memory Address ($69F0) and binary offset [$666C]
 	; ReSource: Clamps food level to $C7 when addition carries or reaches the
 	; exclusive $C8 limit.
-	move.b	#Food_LevelMaximum,d1												;123C00C7
+	move.b	#Food_LevelMaximum,d1												;Clamps food level to its maximum.
 ConsumeFood_StoreLevel:		; Memory Address ($69F4) and binary offset [$6670]
 	; ReSource: Stores the updated food level and redraws the remaining held
 	; object.
-	move.b	d1,ChampionStat_FoodLevel(a4)										;19410010
+	move.b	d1,ChampionStat_FoodLevel(a4)										;Stores the updated food level.
 	move.l	screen_ptr.l,a0														;207900008D36
 	add.w	#$0B64,a0															;D0FC0B64
 	add.w	$000A(a5),a0														;D0ED000A
-	move.w	HeldItem_ObjectCodeOffset(a5),d0									;302D002E
+	move.w	HeldItem_ObjectCodeOffset(a5),d0									;Offset of the currently held object code in the interface state.
 	bsr		ObjectGraphic														;6100605A
 	bsr		Draw_SelectedInventorySlotFrame										;6100030E
 	bra		Draw_FoodLevelBar													;60000288
@@ -10091,9 +10091,9 @@ Cancel_CountedObjectTransfer:		; Memory Address ($6A30) and binary offset [$66AC
 Stack_ObjectFromInventory:		; Memory Address ($6A36) and binary offset [$66B2]
 	; ReSource: Transfers one counted object from the champion count table to the
 	; held stack, provided the held quantity is below $63.
-	cmp.w	#Object_StackMaximum,HeldItem_QuantityOffset(a5)					;0C6D0063002C
+	cmp.w	#Object_StackMaximum,HeldItem_QuantityOffset(a5)					;Offset of the held-object quantity word.
 	bcc.s	Cancel_CountedObjectTransfer										;64F2
-	addq.w	#$01,HeldItem_QuantityOffset(a5)									;526D002C
+	addq.w	#$01,HeldItem_QuantityOffset(a5)									;Offset of the held-object quantity word.
 	bra		Redraw_Inventory													;600001C6
 
 Click_ObjectInInventory:		; Memory Address ($6A46) and binary offset [$66C2]
@@ -10113,30 +10113,30 @@ Click_ObjectInInventory:		; Memory Address ($6A46) and binary offset [$66C2]
 	add.w	d0,a4																;D8C0
 	moveq	#$00,d0																;7000
 	move.b	$000F(a5),d0														;102D000F
-	move.w	HeldItem_ObjectCodeOffset(a5),d1									;322D002E
+	move.w	HeldItem_ObjectCodeOffset(a5),d1									;Offset of the currently held object code in the interface state.
 	beq.s	Check_BodyArmourInventorySlot										;6720
-	cmpi.b	#ChampionPocket_Shield,d0											;0C000003
+	cmpi.b	#ChampionPocket_Shield,d0											;Offset of the dedicated shield pocket.
 	bne.s	Check_BodyArmourInventorySlot										;661A
-	cmpi.w	#Object_SmallShields_First,d1										;0C410024
+	cmpi.w	#Object_SmallShields_First,d1										;First small-shield object and exclusive end of body armour.
 	bcs.s	Reject_InventorySlotAction											;652A
-	cmpi.w	#Object_Gloves_First,d1												;0C41002B
+	cmpi.w	#Object_Gloves_First,d1												;First glove object and exclusive end of all shields.
 	bcc.s	Reject_InventorySlotAction											;6424
 	btst	#$00,d2																;08020000
 	beq.s	Handle_SelectedPocketObject											;6762
-	cmpi.w	#Object_LargeShields_First,d1										;0C410027
+	cmpi.w	#Object_LargeShields_First,d1										;First large-shield object.
 	bcs.s	Handle_SelectedPocketObject											;655C
 	bra.s	Reject_InventorySlotAction											;6016
 
 Check_BodyArmourInventorySlot:		; Memory Address ($6A98) and binary offset [$6714]
 	; ReSource: Allows only body-armour objects $1B-$23 in the dedicated
 	; body-armour slot.
-	cmpi.b	#ChampionPocket_BodyArmour,d0										;0C000002
+	cmpi.b	#ChampionPocket_BodyArmour,d0										;Offset of the dedicated body-armour pocket.
 	bne.s	Check_WornHandArmourSlot											;6616
 	tst.w	d1																	;4A41
 	beq.s	Handle_SelectedPocketObject											;6750
-	cmpi.w	#Object_Armour_First,d1												;0C41001B
+	cmpi.w	#Object_Armour_First,d1												;First body-armour object and exclusive end of potions.
 	bcs.s	Reject_InventorySlotAction											;6506
-	cmpi.w	#Object_SmallShields_First,d1										;0C410024
+	cmpi.w	#Object_SmallShields_First,d1										;First small-shield object and exclusive end of body armour.
 	bcs.s	Handle_SelectedPocketObject											;6544
 Reject_InventorySlotAction:		; Memory Address ($6AAE) and binary offset [$672A]
 	; ReSource: Leaves the objects unchanged, selects the clicked inventory slot
@@ -10152,9 +10152,9 @@ Check_WornHandArmourSlot:		; Memory Address ($6AB4) and binary offset [$6730]
 	bcs.s	Unequip_WornHandArmourToEmptyHand									;651E
 	cmp.w	#Object_Blades_First,HeldItem_ObjectCodeOffset(a5)					;0C6D0030002E
 	bcc.s	Unequip_WornHandArmourToEmptyHand									;6416
-	move.b	ChampionStat_WornHandArmour(a4),d1									;122C0012
-	move.b	HeldItem_ObjectCodeByteOffset(a5),ChampionStat_WornHandArmour(a4)	;196D002F0012
-	move.b	d1,HeldItem_ObjectCodeByteOffset(a5)								;1B41002F
+	move.b	ChampionStat_WornHandArmour(a4),d1									;Offset of the worn hand-armour object in a champion-stat record.
+	move.b	HeldItem_ObjectCodeByteOffset(a5),ChampionStat_WornHandArmour(a4)	;Offset of the low byte of the held object code.
+	move.b	d1,HeldItem_ObjectCodeByteOffset(a5)								;Offset of the low byte of the held object code.
 	bne.s	Handle_SelectedPocketObject											;661C
 	clr.w	HeldItem_QuantityOffset(a5)											;426D002C
 	bra.s	Handle_SelectedPocketObject											;6016
@@ -10166,29 +10166,29 @@ Unequip_WornHandArmourToEmptyHand:		; Memory Address ($6ADC) and binary offset [
 	bne.s	Handle_SelectedPocketObject											;6610
 	tst.w	HeldItem_ObjectCodeOffset(a5)										;4A6D002E
 	bne.s	Handle_SelectedPocketObject											;660A
-	move.b	ChampionStat_WornHandArmour(a4),$00(a6,d0.w)						;1DAC00120000
-	clr.b	ChampionStat_WornHandArmour(a4)										;422C0012
+	move.b	ChampionStat_WornHandArmour(a4),$00(a6,d0.w)						;Offset of the worn hand-armour object in a champion-stat record.
+	clr.b	ChampionStat_WornHandArmour(a4)										;Offset of the worn hand-armour object in a champion-stat record.
 Handle_SelectedPocketObject:		; Memory Address ($6AF2) and binary offset [$676E]
 	; ReSource: Processes the object in the selected champion pocket, including
 	; counted-object pickup, merging and ordinary held-object swapping.
 	moveq	#$00,d1																;7200
 	move.b	$00(a6,d0.w),d1														;12360000
 	beq		Return_HeldCountedObjectToInventory									;67000088
-	cmpi.w	#Object_Food_First,d1												;0C410005
+	cmpi.w	#Object_Food_First,d1												;First food object and exclusive end of counted objects.
 	bcc		Return_HeldCountedObjectToInventory									;64000080
-	move.w	HeldItem_ObjectCodeOffset(a5),d3									;362D002E
+	move.w	HeldItem_ObjectCodeOffset(a5),d3									;Offset of the currently held object code in the interface state.
 	bne.s	Swap_HeldObjectForCountedStack										;6612
-	move.w	d1,HeldItem_ObjectCodeOffset(a5)									;3B41002E
-	move.w	#$0001,HeldItem_QuantityOffset(a5)									;3B7C0001002C
+	move.w	d1,HeldItem_ObjectCodeOffset(a5)									;Offset of the currently held object code in the interface state.
+	move.w	#$0001,HeldItem_QuantityOffset(a5)									;Offset of the held-object quantity word.
 	subq.b	#$01,$0B(a6,d1.w)													;5336100B
 	bra		Refresh_InventoryAfterObjectChange									;6000009E
 
 Swap_HeldObjectForCountedStack:		; Memory Address ($6B1C) and binary offset [$6798]
 	; ReSource: Picks up a complete counted-object stack while placing the
 	; previously held non-counted object into the pocket.
-	cmpi.w	#Object_Food_First,d3												;0C430005
+	cmpi.w	#Object_Food_First,d3												;First food object and exclusive end of counted objects.
 	bcs.s	Merge_MatchingCountedObjectStack									;650E
-	move.b	ChampionPocket_CountedObjectCountsOffset(a6,d1.w),HeldItem_QuantityByteOffset(a5)	;1B76100B002D
+	move.b	ChampionPocket_CountedObjectCountsOffset(a6,d1.w),HeldItem_QuantityByteOffset(a5)	;Offset of the low byte of the held-object quantity.
 	clr.b	$0B(a6,d1.w)														;4236100B
 	bra		Swap_HeldObjectWithPocket											;60000082
 
@@ -10198,55 +10198,55 @@ Merge_MatchingCountedObjectStack:		; Memory Address ($6B30) and binary offset [$
 	cmp.w	d1,d3																;B641
 	bne.s	Merge_DifferentCountedObjectStack									;6620
 	move.b	$0B(a6,d1.w),d2														;1436100B
-	add.b	HeldItem_QuantityByteOffset(a5),d2									;D42D002D
+	add.b	HeldItem_QuantityByteOffset(a5),d2									;Offset of the low byte of the held-object quantity.
 	move.b	d2,$0B(a6,d1.w)														;1D82100B
-	cmpi.b	#Object_StackLimitExclusive,d2										;0C020064
+	cmpi.b	#Object_StackLimitExclusive,d2										;Exclusive counted-object quantity limit.
 	bcc.s	Clamp_MatchingCountedObjectStack									;6406
-	clr.l	HeldItem_StateOffset(a5)											;42AD002C
+	clr.l	HeldItem_StateOffset(a5)											;Offset of the complete four-byte held-item state.
 	bra.s	Refresh_InventoryAfterObjectChange									;606C
 
 Clamp_MatchingCountedObjectStack:		; Memory Address ($6B4C) and binary offset [$67C8]
 	; ReSource: Clamps the merged inventory quantity to $63.
-	move.b	#Object_StackMaximum,ChampionPocket_CountedObjectCountsOffset(a6,d1.w)	;1DBC0063100B
+	move.b	#Object_StackMaximum,ChampionPocket_CountedObjectCountsOffset(a6,d1.w)	;Highest stored quantity for a counted object.
 	bra.s	Store_CountedObjectRemainder										;6024
 
 Merge_DifferentCountedObjectStack:		; Memory Address ($6B54) and binary offset [$67D0]
 	; ReSource: Adds the held quantity to its existing global count before picking
 	; up a different counted stack.
 	move.b	$0B(a6,d3.w),d2														;1436300B
-	add.b	HeldItem_QuantityByteOffset(a5),d2									;D42D002D
-	cmpi.b	#Object_StackLimitExclusive,d2										;0C020064
+	add.b	HeldItem_QuantityByteOffset(a5),d2									;Offset of the low byte of the held-object quantity.
+	cmpi.b	#Object_StackLimitExclusive,d2										;Exclusive counted-object quantity limit.
 	bcc.s	Clamp_CountedObjectStack											;6410
 	move.b	d2,$0B(a6,d3.w)														;1D82300B
-	move.b	ChampionPocket_CountedObjectCountsOffset(a6,d1.w),HeldItem_QuantityByteOffset(a5)	;1B76100B002D
+	move.b	ChampionPocket_CountedObjectCountsOffset(a6,d1.w),HeldItem_QuantityByteOffset(a5)	;Offset of the low byte of the held-object quantity.
 	clr.b	$0B(a6,d1.w)														;4236100B
 	bra.s	Remove_DuplicateCountedObjectSlots									;602E
 
 Clamp_CountedObjectStack:		; Memory Address ($6B72) and binary offset [$67EE]
 	; ReSource: Clamps a counted-object total to $63 before retaining the excess.
-	move.b	#Object_StackMaximum,ChampionPocket_CountedObjectCountsOffset(a6,d3.w)	;1DBC0063300B
+	move.b	#Object_StackMaximum,ChampionPocket_CountedObjectCountsOffset(a6,d3.w)	;Highest stored quantity for a counted object.
 Store_CountedObjectRemainder:		; Memory Address ($6B78) and binary offset [$67F4]
 	; ReSource: Stores quantity remaining above the $63 inventory-count limit in
 	; the held stack.
-	sub.b	#Object_StackMaximum,d2												;04020063
-	move.b	d2,HeldItem_QuantityByteOffset(a5)									;1B42002D
+	sub.b	#Object_StackMaximum,d2												;Highest stored quantity for a counted object.
+	move.b	d2,HeldItem_QuantityByteOffset(a5)									;Offset of the low byte of the held-object quantity.
 	bra.s	Refresh_InventoryAfterObjectChange									;6036
 
 Return_HeldCountedObjectToInventory:		; Memory Address ($6B82) and binary offset [$67FE]
 	; ReSource: Returns a held counted stack to its global character count.
-	move.w	HeldItem_ObjectCodeOffset(a5),d3									;362D002E
+	move.w	HeldItem_ObjectCodeOffset(a5),d3									;Offset of the currently held object code in the interface state.
 	beq.s	Swap_HeldObjectWithPocket											;6728
-	cmpi.w	#Object_Food_First,d3												;0C430005
+	cmpi.w	#Object_Food_First,d3												;First food object and exclusive end of counted objects.
 	bcc.s	Swap_HeldObjectWithPocket											;6422
 	move.b	$0B(a6,d3.w),d2														;1436300B
-	add.b	HeldItem_QuantityByteOffset(a5),d2									;D42D002D
+	add.b	HeldItem_QuantityByteOffset(a5),d2									;Offset of the low byte of the held-object quantity.
 	move.b	d2,$0B(a6,d3.w)														;1D82300B
-	cmpi.b	#Object_StackLimitExclusive,d2										;0C020064
+	cmpi.b	#Object_StackLimitExclusive,d2										;Exclusive counted-object quantity limit.
 	bcc.s	Clamp_CountedObjectStack											;64D2
 Remove_DuplicateCountedObjectSlots:		; Memory Address ($6BA0) and binary offset [$681C]
 	; ReSource: Removes redundant pocket entries for a counted object after
 	; returning its quantity.
-	moveq	#ChampionPocket_LastIndex,d2										;740B
+	moveq	#ChampionPocket_LastIndex,d2										;Highest ordinary pocket index in the twelve-pocket scan.
 Remove_DuplicateCountedObjectSlots_Loop:		; Memory Address ($6BA2) and binary offset [$681E]
 	; ReSource: Scans all twelve character pockets for duplicate counted-object
 	; codes.
@@ -10260,7 +10260,7 @@ Swap_HeldObjectWithPocket:		; Memory Address ($6BB0) and binary offset [$682C]
 	; ReSource: Stores the previous held object in the selected pocket and makes
 	; the pocket object the new held object.
 	move.b	d3,$00(a6,d0.w)														;1D830000
-	move.w	d1,HeldItem_ObjectCodeOffset(a5)									;3B41002E
+	move.w	d1,HeldItem_ObjectCodeOffset(a5)									;Offset of the currently held object code in the interface state.
 Refresh_InventoryAfterObjectChange:		; Memory Address ($6BB8) and binary offset [$6834]
 	; ReSource: Refreshes selection and inventory graphics after an object
 	; transfer.
@@ -10280,14 +10280,14 @@ Restore_SelectedInventorySlot:		; Memory Address ($6BD6) and binary offset [$685
 Finalize_InventoryObjectChange:		; Memory Address ($6BD8) and binary offset [$6854]
 	; ReSource: Normalises held counted-object state and redraws the inventory.
 	move.w	d7,$000E(a5)														;3B47000E
-	move.w	HeldItem_ObjectCodeOffset(a5),d0									;302D002E
+	move.w	HeldItem_ObjectCodeOffset(a5),d0									;Offset of the currently held object code in the interface state.
 	beq.s	Normalize_HeldNonCountedObjectQuantity								;6706
-	cmpi.w	#Object_Food_First,d0												;0C400005
+	cmpi.w	#Object_Food_First,d0												;First food object and exclusive end of counted objects.
 	bcs.s	Redraw_Inventory													;6522
 Normalize_HeldNonCountedObjectQuantity:		; Memory Address ($6BE8) and binary offset [$6864]
 	; ReSource: Sets the held quantity to one when the resulting held state is
 	; empty or contains a non-counted object.
-	move.w	#$0001,HeldItem_QuantityOffset(a5)									;3B7C0001002C
+	move.w	#$0001,HeldItem_QuantityOffset(a5)									;Offset of the held-object quantity word.
 	bra.s	Redraw_Inventory													;601A
 
 Click_OpenInventory:		; Memory Address ($6BF0) and binary offset [$686C]
@@ -10328,18 +10328,18 @@ Draw_HeldItemPanelPieces_Loop:		; Memory Address ($6C58) and binary offset [$68D
 	addq.w	#$01,d7																;5247
 	cmpi.w	#$0004,d7															;0C470004
 	bcs.s	Draw_HeldItemPanelPieces_Loop										;65F4
-	move.w	HeldItem_ObjectCodeOffset(a5),d0									;302D002E
-	move.w	HeldItem_QuantityOffset(a5),d1										;322D002C
+	move.w	HeldItem_ObjectCodeOffset(a5),d0									;Offset of the currently held object code in the interface state.
+	move.w	HeldItem_QuantityOffset(a5),d1										;Offset of the held-object quantity word.
 	bsr		ObjectGraphic														;61005DF8
 	move.w	$0012(a5),d3														;362D0012
 	moveq	#$74,d0																;7074
 	bsr		adrCd00CAEA															;61005E72
 	bsr		Draw_SelectedInventorySlotFrame										;610000A2
-	move.w	HeldItem_ObjectCodeOffset(a5),d0									;302D002E
+	move.w	HeldItem_ObjectCodeOffset(a5),d0									;Offset of the currently held object code in the interface state.
 	beq.s	Return_FromHeldItemDisplay											;670C
-	cmpi.w	#Object_Food_First,d0												;0C400005
+	cmpi.w	#Object_Food_First,d0												;First food object and exclusive end of counted objects.
 	bcs.s	Return_FromHeldItemDisplay											;6506
-	cmpi.w	#Object_Potions_First,d0											;0C400017
+	cmpi.w	#Object_Potions_First,d0											;First potion object and exclusive end of food.
 	bcs.s	Draw_FoodStatus														;6502
 Return_FromHeldItemDisplay:		; Memory Address ($6C90) and binary offset [$690C]
 	; ReSource: Returns when the held item does not require the food-status
@@ -10358,8 +10358,8 @@ Draw_FoodLevelBar:		; Memory Address ($6C9C) and binary offset [$6918]
 	move.w	$000E(a5),d0														;302D000E
 	move.b	$18(a5,d0.w),d0														;10350018
 	bsr		Load_ChampionStatRecord												;6100F9B4
-	move.b	ChampionStat_FoodLevel(a4),d0										;102C0010
-	move.w	#Food_LevelMaximum,d1												;323C00C7
+	move.b	ChampionStat_FoodLevel(a4),d0										;Offset of food level in a character-stat record.
+	move.w	#Food_LevelMaximum,d1												;Highest stored character food level.
 	moveq	#$3A,d2																;743A
 	move.l	#$0004005A,d5														;2A3C0004005A	;Long Addr replaced with Symbol
 	add.w	$0008(a5),d5														;DA6D0008
@@ -10371,7 +10371,7 @@ Draw_FoodLevelBar:		; Memory Address ($6C9C) and binary offset [$6918]
 Draw_HeldObjectDescription:		; Memory Address ($6CD2) and binary offset [$694E]
 	; ReSource: Prints an empty description or prepares the selected held object's
 	; description.
-	move.w	HeldItem_ObjectCodeOffset(a5),d0									;302D002E
+	move.w	HeldItem_ObjectCodeOffset(a5),d0									;Offset of the currently held object code in the interface state.
 	bne.s	Prepare_HeldObjectDescription										;660A
 	lea		NullString.l,a6														;4DF90000CAE9
 	bra		LowerText															;600062D8
@@ -10380,17 +10380,17 @@ Prepare_HeldObjectDescription:		; Memory Address ($6CE2) and binary offset [$695
 	; ReSource: Handles champion-remains ownership before resolving and printing
 	; the held object's description.
 	move.w	d0,d1																;3200
-	sub.w	#Object_Remains_First,d1											;04410040
+	sub.w	#Object_Remains_First,d1											;First champion-remains object.
 	bcs.s	Resolve_HeldObjectDescription										;651E
-	cmpi.w	#Champion_Count,d1													;0C410010
+	cmpi.w	#Champion_Count,d1													;Number of standard champions and champion-remains objects.
 	bcc.s	Resolve_HeldObjectDescription										;6418
 	move.w	d1,d0																;3001
 	bsr		adrCd004078															;6100D384
-	move.w	HeldItem_ObjectCodeOffset(a5),d0									;302D002E
+	move.w	HeldItem_ObjectCodeOffset(a5),d0									;Offset of the currently held object code in the interface state.
 	tst.w	d1																	;4A41
 	bmi.s	Resolve_HeldObjectDescription										;6B0A
 	bclr	#$05,$18(a5,d1.w)													;08B500051018
-	clr.l	HeldItem_StateOffset(a5)											;42AD002C
+	clr.l	HeldItem_StateOffset(a5)											;Offset of the complete four-byte held-item state.
 Resolve_HeldObjectDescription:		; Memory Address ($6D08) and binary offset [$6984]
 	; ReSource: Resolves the normal object-definition text after optional
 	; champion-remains ownership handling.
@@ -12703,7 +12703,7 @@ adrCd0087EA:		; Memory Address ($87EA) and binary offset [$8466]
 	beq.s	adrCd0087EA															;67F4
 	move.w	#$9F40,_custom+dsklen.l												;33FC9F4000DFF024
 	move.w	#$9F40,_custom+dsklen.l												;33FC9F4000DFF024
-	move.l	#DiskReadTimeoutCount,d1											;223C000186A0
+	move.l	#DiskReadTimeoutCount,d1											;Disk-read timeout counter used while waiting for DMA completion.
 adrCd00880C:		; Memory Address ($880C) and binary offset [$8488]
 	move.w	_custom+intreqr.l,d0												;303900DFF01E
 	btst	#$01,d0																;08000001

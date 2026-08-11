@@ -171,6 +171,48 @@ class InspectSourceTests(unittest.TestCase):
             self.assertIn("Storage:\n\tds.b\t$4\nNextData:", generated)
             self.assertIn("NextData:\n\tdc.w\t$1234", generated)
 
+    def test_comms_state_records_comments_do_not_block_zero_block_detection(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary_directory:
+            root = Path(temporary_directory)
+            clean_dir = root / "data"
+            clean_dir.mkdir()
+            relabel_source = root / "GAME_relabel.asm"
+            state_words = "\n".join("\tdc.w\t$0000\t;0000" for _ in range(16))
+            relabel_source.write_text(
+                "Comms_StateRecords:\t\t; Memory Address ($16B4C) and binary offset [$167C8]\n"
+                "\t; ReSource: Two sixteen-byte communication state records, one for each player.\n"
+                f"{state_words}\n"
+                "PhysicalAttack_WorkingValues:\t\n"
+                "\tdc.w\t$0000\n"
+                "After:\n"
+                "\trts\n",
+                encoding="utf-8",
+            )
+            segments = pd.DataFrame(columns=["label", "relabel", "name", "size"])
+
+            def fake_asm_path(_master: str, stage: str) -> Path:
+                if stage == "relabel":
+                    return relabel_source
+                return root / "GAME.asm"
+
+            with (
+                patch(
+                    "tools.tool_inspect.get_profile",
+                    return_value=SimpleNamespace(clean_dir=clean_dir),
+                ),
+                patch("tools.tool_inspect.project_asm_path", side_effect=fake_asm_path),
+                patch("tools.tool_inspect.load_segments", return_value=segments),
+            ):
+                output_path = inspect_source("GAME", root / "segments.xlsx")
+
+            generated = output_path.read_text(encoding="utf-8")
+            self.assertIn(
+                "Comms_StateRecords:\t\t; Memory Address ($16B4C) and binary offset [$167C8]\n"
+                "\tds.b\t$20\n"
+                "PhysicalAttack_WorkingValues:",
+                generated,
+            )
+
     def test_unlabelled_zero_tail_after_resource_uses_ds_b(self) -> None:
         with tempfile.TemporaryDirectory() as temporary_directory:
             root = Path(temporary_directory)
@@ -217,7 +259,46 @@ class InspectSourceTests(unittest.TestCase):
                 output_path = inspect_source("GAME", root / "segments.xlsx")
 
             generated = output_path.read_text(encoding="utf-8")
-            self.assertIn("Storage:\n\tds.b\t$4\n\tds.b\t$2\nAfter:", generated)
+            self.assertIn("Storage:\n\tds.b\t$6\nAfter:", generated)
+
+    def test_zero_middle_of_mixed_label_block_is_retained(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary_directory:
+            root = Path(temporary_directory)
+            clean_dir = root / "data"
+            clean_dir.mkdir()
+            relabel_source = root / "GAME_relabel.asm"
+            relabel_source.write_text(
+                "Mixed:\n"
+                "\tdc.b\t$00,$00,$00,$00,$00,$00\n"
+                "\tdc.w\t$0007\n"
+                "\tdc.w\t$0008\n"
+                "\tdc.b\t$00,$00\n"
+                "\tdc.w\t$FFFF\n"
+                "After:\n"
+                "\trts\n",
+                encoding="utf-8",
+            )
+            segments = pd.DataFrame(columns=["label", "relabel", "name", "size"])
+
+            def fake_asm_path(_master: str, stage: str) -> Path:
+                if stage == "relabel":
+                    return relabel_source
+                return root / "GAME.asm"
+
+            with (
+                patch(
+                    "tools.tool_inspect.get_profile",
+                    return_value=SimpleNamespace(clean_dir=clean_dir),
+                ),
+                patch("tools.tool_inspect.project_asm_path", side_effect=fake_asm_path),
+                patch("tools.tool_inspect.load_segments", return_value=segments),
+            ):
+                output_path = inspect_source("GAME", root / "segments.xlsx")
+
+            generated = output_path.read_text(encoding="utf-8")
+            self.assertNotIn("ds.b", generated)
+            self.assertIn("dc.b\t$00,$00,$00,$00,$00,$00", generated)
+            self.assertIn("dc.b\t$00,$00", generated)
 
     def test_grouped_layout_replaces_internal_labels_with_multiple_incbins(self) -> None:
         with tempfile.TemporaryDirectory() as temporary_directory:

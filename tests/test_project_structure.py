@@ -157,6 +157,9 @@ class ProjectStructureTests(unittest.TestCase):
     def test_parse_int(self) -> None:
         self.assertEqual(parse_int("$4C37E"), 0x4C37E)
         self.assertEqual(parse_int("0x4C37E"), 0x4C37E)
+        self.assertEqual(parse_int("-$02"), -2)
+        self.assertEqual(parse_int("-0x02"), -2)
+        self.assertEqual(parse_int("+ $02"), 2)
         self.assertEqual(parse_int(312190), 312190)
         self.assertIsNone(parse_int(""))
 

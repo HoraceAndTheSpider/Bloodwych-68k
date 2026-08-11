@@ -4,7 +4,14 @@ from pathlib import Path
 import tempfile
 import unittest
 
-from tools.source_formatter import _display_column, format_asm_lines, format_relabel_data
+import pandas as pd
+
+from tools.source_formatter import (
+    _display_column,
+    apply_instruction_comments,
+    format_asm_lines,
+    format_relabel_data,
+)
 
 
 class SourceFormatterTests(unittest.TestCase):
@@ -103,6 +110,53 @@ class SourceFormatterTests(unittest.TestCase):
             path.write_text("\tmove.w\td0,d1\t; test\n", encoding="utf-8")
             self.assertEqual(format_relabel_data(path), path)
             self.assertTrue(path.read_text(encoding="utf-8").endswith("\n"))
+
+    def test_instruction_comments_replace_hex_only_inside_scope(self):
+        frame = pd.DataFrame(
+            [
+                {
+                    "scope_start": "Routine_Start",
+                    "scope_end": "Routine_End",
+                    "source_match": "move.w HeldItem_ObjectCodeOffset(a5),d0",
+                    "source_comment": "Reads the currently held object code.",
+                    "expected_matches": 1,
+                }
+            ]
+        )
+        lines = [
+            "Routine_Start:",
+            "\tmove.w\tHeldItem_ObjectCodeOffset(a5),d0\t;302D002E",
+            "\tmove.w\td0,d1\t; handwritten comment",
+            "Routine_End:",
+        ]
+        self.assertEqual(
+            apply_instruction_comments(lines, frame),
+            [
+                "Routine_Start:",
+                "\tmove.w\tHeldItem_ObjectCodeOffset(a5),d0\t; Reads the currently held object code.",
+                "\tmove.w\td0,d1\t; handwritten comment",
+                "Routine_End:",
+            ],
+        )
+
+    def test_instruction_comments_require_expected_match_count(self):
+        frame = pd.DataFrame(
+            [
+                {
+                    "scope_start": "Start",
+                    "scope_end": "End",
+                    "source_match": "move.w d0,d1",
+                    "source_comment": "Explain the move.",
+                    "expected_matches": 2,
+                }
+            ]
+        )
+        lines = [
+            "Start:",
+            "\tmove.w\td0,d1\t;1234",
+            "End:",
+        ]
+        self.assertEqual(apply_instruction_comments(lines, frame), lines)
 
 
 if __name__ == "__main__":

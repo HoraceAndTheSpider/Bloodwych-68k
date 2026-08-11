@@ -34,6 +34,7 @@ from .tool_common import (
 
 LABEL_DEFINITION = re.compile(r"^\s*([A-Za-z_.$?][\w.$?]*)\s*:(.*)$")
 DC_DIRECTIVE = re.compile(r"^\s*dc\.(b|w|l)\s+(.+)$", re.IGNORECASE)
+DS_DIRECTIVE = re.compile(r"^\s*ds\.(b|w|l)\s+(.+)$", re.IGNORECASE)
 
 
 @dataclass(frozen=True)
@@ -174,6 +175,19 @@ def _parse_dc_bytes(source: str) -> bytes | None:
     if len(comment_hex) != fallback_width * 2:
         return None
     return bytes.fromhex(comment_hex)
+
+
+def _parse_ds_bytes(source: str) -> bytes | None:
+    """Return zero bytes represented by one numeric ``ds.*`` directive."""
+    statement, _ = _split_comment(source)
+    match = DS_DIRECTIVE.match(statement)
+    if not match:
+        return None
+    count = _numeric_value(match.group(2))
+    if count is None or count < 0:
+        return None
+    width = {"b": 1, "w": 2, "l": 4}[match.group(1).casefold()]
+    return bytes(count * width)
 
 
 def _find_label(lines: list[str], candidates: list[str]) -> tuple[int, str] | None:
@@ -385,38 +399,38 @@ def _replacement_lines(replacement: Replacement) -> list[str]:
 
 
 def _compress_zero_data_blocks(lines: list[str]) -> int:
-    """Replace bounded all-zero ``dc.*`` runs with exact-size ``ds.b``.
+    """Replace whole label-to-label all-zero data blocks with exact ``ds.b``.
 
-    Labels, blank/comment lines, and non-data directives are hard boundaries.
-    This handles the usual label-to-label case while also allowing a trailing
-    unlabelled run to follow a spreadsheet-backed resource. Every replacement
-    is made only after parsing the original ``dc.*`` bytes, so no source size
-    is inferred from an assembler alignment rule.
+    A mixed block is deliberately retained verbatim: zero values in the
+    middle of surrounding ``dc.*`` data are not storage blocks. Existing DS.B
+    output is understood so a spreadsheet-backed zero resource can be joined
+    to an immediately following zero tail only when the complete label-bounded
+    block is zero. Unlabelled data remains governed by its spreadsheet size.
     """
+    label_indices = [
+        index for index, line in enumerate(lines) if LABEL_DEFINITION.match(line)
+    ]
     replacements: list[tuple[int, int, int]] = []
 
-    run_start: int | None = None
-    run_size = 0
-
-    def flush(end: int) -> None:
-        nonlocal run_start, run_size
-        if run_start is not None:
-            replacements.append((run_start, end, run_size))
-            run_start = None
-            run_size = 0
-
-    for index, line in enumerate(lines):
-        if LABEL_DEFINITION.match(line):
-            flush(index)
-            continue
-        block = _parse_dc_bytes(line)
-        if block is None or any(block):
-            flush(index)
-            continue
-        if run_start is None:
-            run_start = index
-        run_size += len(block)
-    flush(len(lines))
+    for start, end in zip(label_indices, label_indices[1:]):
+        data_size = 0
+        valid = True
+        for index in range(start + 1, end):
+            content = lines[index].strip()
+            if not content or content.startswith(";"):
+                continue
+            block = _parse_dc_bytes(lines[index])
+            if block is None:
+                block = _parse_ds_bytes(lines[index])
+            if block is None:
+                valid = False
+                break
+            data_size += len(block)
+            if any(block):
+                valid = False
+                break
+        if valid and data_size:
+            replacements.append((start + 1, end, data_size))
 
     for start, end, size in reversed(replacements):
         lines[start:end] = [f"\tds.b\t${size:X}"]
@@ -645,5 +659,5 @@ def inspect_source(
         f"{skipped_count} skipped"
     )
     if zero_block_count:
-        print(f"Compressed {zero_block_count} zero data run(s) to DS.B")
+        print(f"Compressed {zero_block_count} whole zero block(s) to DS.B")
     return new_name

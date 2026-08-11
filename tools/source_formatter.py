@@ -6,6 +6,15 @@ import re
 import textwrap
 from pathlib import Path
 
+import pandas as pd
+
+from .tool_common import (
+    ToolError,
+    get_profile,
+    parse_int,
+    resolve_project_path,
+)
+from .resource_layout import cell_text
 
 # The ASM is conventionally viewed with four-character tab stops. Keeping
 # this explicit matters because a tab count that aligns at eight columns does
@@ -20,6 +29,16 @@ EQU_LINE = re.compile(
     r"^\s*(?P<label>[A-Za-z_.$][A-Za-z0-9_.$]*:?)\s+"
     r"(?P<opcode>equ|equate)\s+(?P<value>.+?)\s*$",
     re.IGNORECASE,
+)
+LABEL_DEFINITION = re.compile(r"^\s*([A-Za-z_.$?][\w.$?]*)\s*:")
+COMMENTS_SHEET = "COMMENTS"
+COMMENT_COLUMNS = (
+    "profile",
+    "scope_start",
+    "scope_end",
+    "source_match",
+    "source_comment",
+    "expected_matches",
 )
 
 
@@ -155,6 +174,143 @@ def _split_instruction(line: str) -> tuple[str, str, str] | None:
     return opcode, operands, (comment.strip() if separator else "")
 
 
+def _split_source_comment(line: str) -> tuple[str, str]:
+    """Split an ASM line at its first comment delimiter."""
+    code, separator, comment = line.partition(";")
+    return code, comment if separator else ""
+
+
+def _normalise_source_match(value: str) -> str:
+    """Compare instruction text without making spreadsheet whitespace significant."""
+    return re.sub(r"\s+", "", value).casefold()
+
+
+def _label_indices(lines: list[str]) -> dict[str, list[int]]:
+    indices: dict[str, list[int]] = {}
+    for index, line in enumerate(lines):
+        match = LABEL_DEFINITION.match(line)
+        if match:
+            indices.setdefault(match.group(1).casefold(), []).append(index)
+    return indices
+
+
+def _comment_rows(sheet: str | Path, master: str) -> pd.DataFrame:
+    """Load the profile's COMMENTS rows, or an empty frame if the tab is absent."""
+    path = resolve_project_path(sheet)
+    if path.suffix.casefold() == ".csv":
+        return pd.DataFrame(columns=COMMENT_COLUMNS)
+    with pd.ExcelFile(path) as book:
+        sheet_name = next(
+            (
+                name
+                for name in book.sheet_names
+                if name.casefold() == COMMENTS_SHEET.casefold()
+            ),
+            None,
+        )
+        if sheet_name is None:
+            return pd.DataFrame(columns=COMMENT_COLUMNS)
+        frame = pd.read_excel(book, sheet_name=sheet_name)
+    frame.columns = [str(column).strip().casefold() for column in frame.columns]
+    missing = [column for column in COMMENT_COLUMNS if column not in frame.columns]
+    if missing:
+        raise ToolError(
+            f"COMMENTS sheet is missing column(s): {', '.join(missing)}"
+        )
+    profile = get_profile(master).filename.casefold()
+    return frame[
+        frame["profile"].fillna("").astype(str).str.strip().str.casefold() == profile
+    ].copy()
+
+
+def apply_instruction_comments(
+    lines: list[str], frame: pd.DataFrame
+) -> list[str]:
+    """Replace generated HEX instruction comments from the COMMENTS sheet.
+
+    Matching is performed against the final instruction text, after relabelling
+    and EQU substitutions. Scope boundaries follow source rules: the labels
+    themselves are excluded and the end label is not part of the scope. A rule
+    only edits a line whose existing comment is a hexadecimal byte block, so
+    data declarations and handwritten comments remain untouched.
+    """
+    if frame.empty:
+        return list(lines)
+
+    labels = _label_indices(lines)
+    result = list(lines)
+    for row_index, row in frame.iterrows():
+        source_match = cell_text(row, "source_match")
+        source_comment = cell_text(row, "source_comment")
+        if not source_match or not source_comment:
+            continue
+
+        expected = parse_int(row.get("expected_matches"))
+        if expected is None:
+            expected = 1
+        if expected < 1:
+            raise ToolError(
+                f"COMMENTS row {row_index + 2} has invalid expected_matches '{expected}'"
+            )
+
+        scope_start = cell_text(row, "scope_start")
+        scope_end = cell_text(row, "scope_end")
+        if scope_start:
+            starts = labels.get(scope_start.casefold(), [])
+            if len(starts) != 1:
+                print(
+                    f"Error applying instruction comment at COMMENTS row {row_index + 2}: "
+                    f"expected one label '{scope_start}', found {len(starts)}; "
+                    "leaving this rule unchanged and continuing"
+                )
+                continue
+            start = starts[0]
+        else:
+            start = -1
+        if scope_end:
+            ends = labels.get(scope_end.casefold(), [])
+            if len(ends) != 1:
+                print(
+                    f"Error applying instruction comment at COMMENTS row {row_index + 2}: "
+                    f"expected one label '{scope_end}', found {len(ends)}; "
+                    "leaving this rule unchanged and continuing"
+                )
+                continue
+            end = ends[0]
+        else:
+            end = len(result)
+        if end <= start:
+            print(
+                f"Error applying instruction comment at COMMENTS row {row_index + 2}: "
+                "scope_end is before scope_start; leaving this rule unchanged "
+                "and continuing"
+            )
+            continue
+
+        wanted = _normalise_source_match(source_match)
+        candidates: list[int] = []
+        for index in range(start + 1, end):
+            code, _comment = _split_source_comment(result[index])
+            if _normalise_source_match(code.strip()) == wanted:
+                candidates.append(index)
+        if len(candidates) != expected:
+            print(
+                f"Error applying instruction comment at COMMENTS row {row_index + 2}: "
+                f"expected {expected} match(es) between '{scope_start}' and "
+                f"'{scope_end}', found {len(candidates)}; leaving this rule "
+                "unchanged and continuing"
+            )
+            continue
+
+        for index in candidates:
+            code, _comment = _split_source_comment(result[index])
+            existing = _comment.strip()
+            if existing and not re.fullmatch(r"[0-9A-Fa-f]+", existing):
+                continue
+            result[index] = code.rstrip() + f"\t; {source_comment}"
+    return result
+
+
 def format_asm_lines(lines: list[str]) -> list[str]:
     """Format relabel-data ASM lines while changing whitespace/comments only."""
     lines = _format_equ_lines(lines)
@@ -186,13 +342,19 @@ def format_asm_lines(lines: list[str]) -> list[str]:
     return result
 
 
-def format_relabel_data(asm_path: Path) -> Path:
-    """Format one existing ``*_relabel_data.asm`` file in place."""
+def format_relabel_data(
+    asm_path: Path,
+    sheet: str | Path | None = None,
+    master: str | None = None,
+) -> Path:
+    """Apply COMMENTS and format one existing ``*_relabel_data.asm`` file."""
     if not asm_path.is_file():
         raise FileNotFoundError(f"Relabel-data ASM not found: {asm_path}")
     original = asm_path.read_text(encoding="utf-8")
     had_final_newline = original.endswith("\n")
     lines = original.splitlines()
+    if sheet is not None and master is not None:
+        lines = apply_instruction_comments(lines, _comment_rows(sheet, master))
     formatted = "\n".join(format_asm_lines(lines))
     if had_final_newline:
         formatted += "\n"

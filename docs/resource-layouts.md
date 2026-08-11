@@ -40,12 +40,12 @@ generated `dc.b` lines. `ds.b` is exact-size storage in the existing `CODE_C`
 section; no separate BSS section is needed. The external file remains
 authoritative: rerunning `inspect` refreshes those bytes after edits.
 
-The inspector also compresses unlisted source regions when each contiguous
-`dc.*` run is bounded by labels, comments, blank lines, or other directives
-and every value in the run is zero. Labels remain in place and the exact run
-becomes one `ds.b`, so a trailing unlabelled zero run is handled safely too.
-Non-zero unlabelled data still needs a spreadsheet row with an explicit
-`size`; a following label is not required for ordinary resource replacement.
+The inspector also compresses an unlisted source region only when the complete
+label-to-label block consists of zero-valued `dc.*` or generated `ds.*` data.
+Zero values in the middle of a mixed block are retained as `dc.*`; they are
+not treated as storage areas. Unlabelled data remains governed by its
+spreadsheet row and explicit `size`; a following label is not required for
+ordinary resource replacement.
 
 The inspector also checks labels removed from inside the consumed source span.
 If any such label is still referenced by source that will remain in the output,
