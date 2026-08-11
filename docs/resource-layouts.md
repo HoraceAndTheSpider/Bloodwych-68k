@@ -34,9 +34,18 @@ failure, byte mismatch, duplicate output label, or overlapping replacement
 leaves the source data intact.
 
 Devpac automatically appends a zero byte to every odd-length `INCBIN`. To keep
-the generated executable byte-exact, `inspect` emits even-length resources as
-`INCBIN` and odd-length resources as generated `dc.b` lines. The external file
-remains authoritative: rerunning `inspect` refreshes those bytes after edits.
+the generated executable byte-exact, `inspect` emits all-zero resources as
+`ds.b`, even-length resources as `INCBIN`, and resources at odd boundaries as
+generated `dc.b` lines. `ds.b` is exact-size storage in the existing `CODE_C`
+section; no separate BSS section is needed. The external file remains
+authoritative: rerunning `inspect` refreshes those bytes after edits.
+
+The inspector also compresses unlisted source regions when each contiguous
+`dc.*` run is bounded by labels, comments, blank lines, or other directives
+and every value in the run is zero. Labels remain in place and the exact run
+becomes one `ds.b`, so a trailing unlabelled zero run is handled safely too.
+Non-zero unlabelled data still needs a spreadsheet row with an explicit
+`size`; a following label is not required for ordinary resource replacement.
 
 The inspector also checks labels removed from inside the consumed source span.
 If any such label is still referenced by source that will remain in the output,

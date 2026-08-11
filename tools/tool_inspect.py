@@ -361,7 +361,12 @@ def _replacement_lines(replacement: Replacement) -> list[str]:
     for part_index, part in enumerate(replacement.parts):
         if part_index:
             generated.append(f"{part.output_label}:")
-        if part.size % 2 or (part.offset is not None and part.offset % 2):
+        if not any(part.data):
+            # DS.B reserves the exact byte count without Devpac's INCBIN
+            # alignment behaviour. It is also the most compact representation
+            # for large, deliberately blank storage areas.
+            generated.append(f"\tds.b\t${part.size:X}")
+        elif part.size % 2 or (part.offset is not None and part.offset % 2):
             # Devpac word-aligns INCBIN data and pads every odd-length INCBIN
             # with a zero byte. An even-sized file beginning at an odd address
             # is therefore just as unsafe as an odd-sized file. Emit either
@@ -377,6 +382,45 @@ def _replacement_lines(replacement: Replacement) -> list[str]:
             relative_path = str(relative_to_root(part.path)).replace("\\", "/")
             generated.append(f'\tINCBIN "/{relative_path.lstrip("/")}"')
     return generated
+
+
+def _compress_zero_data_blocks(lines: list[str]) -> int:
+    """Replace bounded all-zero ``dc.*`` runs with exact-size ``ds.b``.
+
+    Labels, blank/comment lines, and non-data directives are hard boundaries.
+    This handles the usual label-to-label case while also allowing a trailing
+    unlabelled run to follow a spreadsheet-backed resource. Every replacement
+    is made only after parsing the original ``dc.*`` bytes, so no source size
+    is inferred from an assembler alignment rule.
+    """
+    replacements: list[tuple[int, int, int]] = []
+
+    run_start: int | None = None
+    run_size = 0
+
+    def flush(end: int) -> None:
+        nonlocal run_start, run_size
+        if run_start is not None:
+            replacements.append((run_start, end, run_size))
+            run_start = None
+            run_size = 0
+
+    for index, line in enumerate(lines):
+        if LABEL_DEFINITION.match(line):
+            flush(index)
+            continue
+        block = _parse_dc_bytes(line)
+        if block is None or any(block):
+            flush(index)
+            continue
+        if run_start is None:
+            run_start = index
+        run_size += len(block)
+    flush(len(lines))
+
+    for start, end, size in reversed(replacements):
+        lines[start:end] = [f"\tds.b\t${size:X}"]
+    return len(replacements)
 
 
 def _removed_labels(lines: list[str], replacement: Replacement) -> tuple[str, ...]:
@@ -422,7 +466,9 @@ def inspect_source(
 ) -> Path:
     """Validate spreadsheet resources and write a verified ``*_data.asm``.
 
-    Ordinary rows replace one exact-size dc.* region with one INCBIN. A
+    Ordinary rows replace one exact-size dc.* region with one INCBIN or, for
+    all-zero data, one DS.B. Label-to-label source regions containing only
+    zero-valued dc.* data are also emitted as DS.B. A
     ``data_start`` row plus its immediately following ``data_append`` rows form
     one atomic layout: their files are concatenated for validation, while each
     receives its own label and generated data directive. Even-sized resources
@@ -586,6 +632,7 @@ def inspect_source(
     working_lines = remove_temporary_aliases(
         working_lines, emitted_append_labels
     )
+    zero_block_count = _compress_zero_data_blocks(working_lines)
     working_lines = apply_source_comments(working_lines, frame)
 
     new_name = asm_path.with_name(f"{asm_path.stem}_data{asm_path.suffix}")
@@ -597,4 +644,6 @@ def inspect_source(
         f"{failed_count} failed/retained, "
         f"{skipped_count} skipped"
     )
+    if zero_block_count:
+        print(f"Compressed {zero_block_count} zero data run(s) to DS.B")
     return new_name

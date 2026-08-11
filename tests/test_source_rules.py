@@ -94,6 +94,17 @@ class SourceRuleTests(unittest.TestCase):
         with self.assertRaisesRegex(ToolError, "found 2"):
             apply_source_rules(duplicated, (equate(),), (rule(),))
 
+    def test_expected_match_count_can_replace_multiple_confirmed_instructions(self) -> None:
+        duplicated = list(self.lines)
+        duplicated.insert(5, "\tmove.l\t#adrL_0186A0,d1\t;223C000186A0")
+        result = apply_source_rules(
+            duplicated, (equate(),), (rule(expected_matches=2),)
+        )
+        self.assertEqual(
+            result.count("\tmove.l\t#DiskReadTimeoutCount,d1\t;223C000186A0"),
+            2,
+        )
+
     def test_proposed_rule_is_not_applied(self) -> None:
         result = apply_source_rules(
             self.lines, (equate(),), (rule(status="proposed"),)
@@ -186,6 +197,7 @@ class SourceRuleTests(unittest.TestCase):
                         "scope_end": "DiskWaitLoop",
                         "source_match": "move.l #adrL_0186A0,d1",
                         "expected_opcode": "223C000186A0",
+                        "expected_matches": 1,
                         "source_replace": "move.l #DiskReadTimeoutCount,d1",
                         "status": "verified",
                         "source_comment": "Timeout load.",
@@ -196,6 +208,63 @@ class SourceRuleTests(unittest.TestCase):
         self.assertEqual(equates[0].value, 0x186A0)
         self.assertEqual(rules[0].equ_name, "DiskReadTimeoutCount")
         self.assertEqual(rules[0].notes, "Retained free-form notes.")
+
+    def test_source_replace_must_reference_declared_equ(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary_directory:
+            workbook = Path(temporary_directory) / "segments.xlsx"
+            with pd.ExcelWriter(workbook) as writer:
+                pd.DataFrame({"label": ["A"]}).to_excel(
+                    writer, sheet_name="BLOODWYCH439", index=False
+                )
+                pd.DataFrame(
+                    [
+                        {
+                            "profile": "BLOODWYCH439",
+                            "equ_name": "RenamedTimeout",
+                            "equ_value": "$000186A0",
+                            "scope_start": "WaitForDisk",
+                            "scope_end": "DiskWaitLoop",
+                            "source_match": "move.l #adrL_0186A0,d1",
+                            "expected_opcode": "223C000186A0",
+                            "expected_matches": 1,
+                            "source_replace": "move.l #OldTimeout,d1",
+                            "status": "verified",
+                            "source_comment": "Timeout load.",
+                        }
+                    ]
+                ).to_excel(writer, sheet_name="EQUATES", index=False)
+            with self.assertRaisesRegex(
+                ToolError, "source_replace must reference equ_name 'RenamedTimeout'"
+            ):
+                load_source_metadata(workbook, "BLOODWYCH439")
+
+    def test_source_replace_accepts_equ_in_expression(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary_directory:
+            workbook = Path(temporary_directory) / "segments.xlsx"
+            with pd.ExcelWriter(workbook) as writer:
+                pd.DataFrame({"label": ["A"]}).to_excel(
+                    writer, sheet_name="BLOODWYCH439", index=False
+                )
+                pd.DataFrame(
+                    [
+                        {
+                            "profile": "BLOODWYCH439",
+                            "equ_name": "RenamedTimeout",
+                            "equ_value": "$000186A0",
+                            "scope_start": "WaitForDisk",
+                            "scope_end": "DiskWaitLoop",
+                            "source_match": "move.l #adrL_0186A0,d1",
+                            "expected_opcode": "223C000186A0",
+                            "expected_matches": 1,
+                            "source_replace": "move.l #RenamedTimeout+1,d1",
+                            "status": "verified",
+                            "source_comment": "Timeout load.",
+                        }
+                    ]
+                ).to_excel(writer, sheet_name="EQUATES", index=False)
+            equates, rules = load_source_metadata(workbook, "BLOODWYCH439")
+        self.assertEqual(equates[0].name, "RenamedTimeout")
+        self.assertEqual(rules[0].replacement_operands, "#RenamedTimeout+1,d1")
 
     def test_repeated_equ_name_allows_multiple_scoped_uses(self) -> None:
         with tempfile.TemporaryDirectory() as temporary_directory:
@@ -210,6 +279,7 @@ class SourceRuleTests(unittest.TestCase):
                     "scope_end": end,
                     "source_match": "cmpi.b #$40,d0",
                     "expected_opcode": "0C000040",
+                    "expected_matches": 1,
                     "source_replace": "cmpi.b #Character_Zendik,d0",
                     "status": "verified",
                     "source_comment": "Zendik check.",

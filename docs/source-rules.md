@@ -6,8 +6,8 @@ also identify one confirmed instruction where it replaces a literal or
 misleading disassembly label.
 
 The columns are `profile`, `equ_name`, `equ_value`, `scope_start`, `scope_end`,
-`source_match`, `expected_opcode`, `source_replace`, `status`,
-`source_comment`, and optional `notes`.
+`source_match`, `expected_opcode`, `source_replace`, `expected_matches`,
+`status`, `source_comment`, and optional `notes`.
 
 The Relabel step treats this worksheet as optional. A workbook without it
 continues to use the original label workflow.
@@ -22,10 +22,13 @@ Rules never use source line numbers. Each verified replacement specifies:
 1. start and end labels defining a narrow source scope;
 2. the complete original instruction;
 3. the original opcode bytes from the disassembly comment;
-4. the complete replacement instruction containing the named EQU.
+4. the complete replacement instruction containing the named EQU;
+5. the number of expected matches within the scope.
 
-Every rule must match exactly once. Relabel aborts if a scope label is missing,
-the match count differs, or the opcode fingerprint has changed. This prevents
+`expected_matches` defaults to `1` when blank. Set it above `1` only when every
+matching instruction is independently confirmed to use the same EQU. Relabel
+aborts if a scope label is missing, the match count differs, or the opcode
+fingerprint has changed. This prevents
 a contextual value such as `#$40` from being replaced globally when only one
 occurrence denotes the Zendik character form.
 

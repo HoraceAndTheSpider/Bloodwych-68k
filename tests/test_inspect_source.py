@@ -89,6 +89,136 @@ class InspectSourceTests(unittest.TestCase):
                 output_log.getvalue(),
             )
 
+    def test_zero_resource_uses_ds_b(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary_directory:
+            root = Path(temporary_directory)
+            clean_dir = root / "data"
+            clean_dir.mkdir()
+            relabel_source = root / "GAME_relabel.asm"
+            relabel_source.write_text(
+                "Storage:\n"
+                "\tdc.w\t$0000\n"
+                "\tdc.w\t$0000\n"
+                "After:\n"
+                "\trts\n",
+                encoding="utf-8",
+            )
+            (clean_dir / "storage.block").write_bytes(b"\0" * 4)
+            segments = pd.DataFrame(
+                (
+                    {
+                        "label": "Storage",
+                        "relabel": "Storage",
+                        "name": "storage.block",
+                        "size": 4,
+                    },
+                )
+            )
+
+            def fake_asm_path(_master: str, stage: str) -> Path:
+                if stage == "relabel":
+                    return relabel_source
+                return root / "GAME.asm"
+
+            with (
+                patch(
+                    "tools.tool_inspect.get_profile",
+                    return_value=SimpleNamespace(clean_dir=clean_dir),
+                ),
+                patch("tools.tool_inspect.project_asm_path", side_effect=fake_asm_path),
+                patch("tools.tool_inspect.load_segments", return_value=segments),
+            ):
+                output_path = inspect_source("GAME", root / "segments.xlsx")
+
+            generated = output_path.read_text(encoding="utf-8")
+            self.assertIn("Storage:\n\tds.b\t$4", generated)
+            self.assertNotIn("INCBIN", generated)
+
+    def test_label_to_label_zero_blocks_use_ds_b_without_spreadsheet_rows(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary_directory:
+            root = Path(temporary_directory)
+            clean_dir = root / "data"
+            clean_dir.mkdir()
+            relabel_source = root / "GAME_relabel.asm"
+            relabel_source.write_text(
+                "Storage:\n"
+                "\tdc.w\t$0000\n"
+                "\tdc.w\t$0000\n"
+                "NextData:\n"
+                "\tdc.w\t$1234\n"
+                "After:\n"
+                "\trts\n",
+                encoding="utf-8",
+            )
+            segments = pd.DataFrame(columns=["label", "relabel", "name", "size"])
+
+            def fake_asm_path(_master: str, stage: str) -> Path:
+                if stage == "relabel":
+                    return relabel_source
+                return root / "GAME.asm"
+
+            with (
+                patch(
+                    "tools.tool_inspect.get_profile",
+                    return_value=SimpleNamespace(clean_dir=clean_dir),
+                ),
+                patch("tools.tool_inspect.project_asm_path", side_effect=fake_asm_path),
+                patch("tools.tool_inspect.load_segments", return_value=segments),
+            ):
+                output_path = inspect_source("GAME", root / "segments.xlsx")
+
+            generated = output_path.read_text(encoding="utf-8")
+            self.assertIn("Storage:\n\tds.b\t$4\nNextData:", generated)
+            self.assertIn("NextData:\n\tdc.w\t$1234", generated)
+
+    def test_unlabelled_zero_tail_after_resource_uses_ds_b(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary_directory:
+            root = Path(temporary_directory)
+            clean_dir = root / "data"
+            clean_dir.mkdir()
+            relabel_source = root / "GAME_relabel.asm"
+            relabel_source.write_text(
+                "Storage:\n"
+                "\tdc.b\t$00\n"
+                "\tdc.b\t$00\n"
+                "\tdc.b\t$00\n"
+                "\tdc.b\t$00\n"
+                "\tdc.b\t$00\n"
+                "\tdc.b\t$00\n"
+                "After:\n"
+                "\trts\n",
+                encoding="utf-8",
+            )
+            (clean_dir / "storage.block").write_bytes(b"\0" * 4)
+            segments = pd.DataFrame(
+                (
+                    {
+                        "label": "Storage",
+                        "relabel": "Storage",
+                        "name": "storage.block",
+                        "size": 4,
+                    },
+                )
+            )
+
+            def fake_asm_path(_master: str, stage: str) -> Path:
+                if stage == "relabel":
+                    return relabel_source
+                return root / "GAME.asm"
+
+            with (
+                patch(
+                    "tools.tool_inspect.get_profile",
+                    return_value=SimpleNamespace(clean_dir=clean_dir),
+                ),
+                patch("tools.tool_inspect.project_asm_path", side_effect=fake_asm_path),
+                patch("tools.tool_inspect.load_segments", return_value=segments),
+            ):
+                output_path = inspect_source("GAME", root / "segments.xlsx")
+
+            generated = output_path.read_text(encoding="utf-8")
+            self.assertIn("Storage:\n\tds.b\t$4\n\tds.b\t$2\nAfter:", generated)
+
     def test_grouped_layout_replaces_internal_labels_with_multiple_incbins(self) -> None:
         with tempfile.TemporaryDirectory() as temporary_directory:
             root = Path(temporary_directory)

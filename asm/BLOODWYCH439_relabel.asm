@@ -39,246 +39,304 @@ dsklen:			equ	$00000024
 ac_len:			equ	$00000004
 ciacra:			equ	$00000E00
 ; ReSource: generated EQU definitions from segments.xlsx/EQUATES
-DiskReadTimeoutCount:		equ	$000186A0
-	; ReSource: Disk-read timeout counter used while waiting for DMA completion.
-Object_EmptySlot:		equ	$00
-	; ReSource: Empty object-slot code.
-Object_Coinage:		equ	$01
-	; ReSource: Coinage object code.
-Object_CommonKeys:		equ	$02
-	; ReSource: Common-key object code.
-Object_Arrows_First:		equ	$03
-	; ReSource: First arrow object code.
-Object_Food_First:		equ	$05
-	; ReSource: First food object and exclusive end of counted objects.
-Object_Drinks_First:		equ	$0E
-	; ReSource: First drink-like food object.
-Object_Neggs_First:		equ	$14
-	; ReSource: First high-value N'Egg food object.
-Object_TradeValueTable_First:		equ	$14
-	; ReSource: First object represented by the trade-value lookup table.
-Object_PocketGraphicBankSize:		equ	$14
-	; ReSource: Number of pocket graphics in each source-bank step.
-Object_Potions_First:		equ	$17
-	; ReSource: First potion object code and exclusive end of food.
-Object_Armour_First:		equ	$1B
-	; ReSource: First body-armour object and exclusive end of potions.
-Object_SmallShields_First:		equ	$24
-	; ReSource: First small-shield object and exclusive end of body armour.
-Object_LargeShields_First:		equ	$27
-	; ReSource: First large-shield object.
-Object_Gloves_First:		equ	$2B
-	; ReSource: First glove object and exclusive end of all shields.
-Object_Blades_First:		equ	$30
-	; ReSource: First blade object and exclusive end of gloves.
-Object_Swords_First:		equ	$32
-	; ReSource: First sword object.
-Object_Axes_First:		equ	$38
-	; ReSource: First axe object.
-Object_Staffs_First:		equ	$3D
-	; ReSource: First staff object.
-Object_Remains_First:		equ	$40
-	; ReSource: First champion-remains object and first normally non-tradable object.
-Object_Keys_First:		equ	$50
-	; ReSource: First named-key object.
-Object_Wands_First:		equ	$57
-	; ReSource: First wand object.
-Object_Bows_First:		equ	$5C
-	; ReSource: First bow object.
-Object_Permit:		equ	$5F
-	; ReSource: Permit object and exclusive end of bows.
-Object_Crystals_First:		equ	$60
-	; ReSource: First crystal object.
-Object_StackMaximum:		equ	$63
-	; ReSource: Highest stored quantity for a counted object.
-Object_StackLimitExclusive:		equ	$64
-	; ReSource: Exclusive counted-object quantity limit.
-Object_Gems_First:		equ	$64
-	; ReSource: First gem object.
-Object_Rings_First:		equ	$68
-	; ReSource: First member of the complete ring family.
-Object_DepletedRing:		equ	$68
-	; ReSource: Depleted-ring object code.
-Object_MagicRings_First:		equ	$69
-	; ReSource: First rechargeable magic-ring object.
-Object_BookOfSkulls:		equ	$6D
-	; ReSource: Book of Skulls object and exclusive end of magic rings.
-Object_ChaosGloves:		equ	$2B
-	; ReSource: Chaos Gloves object code.
-Object_AceOfSwords:		equ	$37
-	; ReSource: Ace of Swords object code.
-Character_ProfessionMask:		equ	$03
-	; ReSource: Low two bits used to select one of the four character professions.
-PhysicalAttack_CooldownInitial:		equ	$07
-	; ReSource: Initial cooldown written whenever a champion performs a physical attack.
-PhysicalAttack_VitalityCost:		equ	$03
-	; ReSource: Vitality removed when champion combat values are loaded for physical combat.
-Weapon_CombatModifierRecordCount:		equ	$10
-	; ReSource: Number of four-byte records in Weapon_CombatModifiers.
-Weapon_BackstabEligibleByteLimit:		equ	$08
-	; ReSource: Exclusive byte-offset limit for weapon records which preserve a Cutpurse backstab.
-Weapon_AceOfSwordsRecordOffset:		equ	$1C
-	; ReSource: Byte offset of the Ace of Swords record within Weapon_CombatModifiers.
-Object_PowerStaff:		equ	$3F
-	; ReSource: Power Staff object code.
-PowerStaff_SpellCastingBonus:		equ	$05
-	; ReSource: Spell-casting quality bonus supplied by a held Power Staff.
-WornSpell_Warpower:		equ	$02
-	; ReSource: Low three-bit worn-spell type used for Warpower.
-SpellCasting_VitalityCost:		equ	$04
-	; ReSource: Vitality removed when a champion launches a spell.
-Combat_StrengthBias:		equ	$08
-	; ReSource: Internal Strength bias applied before physical-combat thresholds.
-ChampionStat_HitPointsCurrent:		equ	$05
-	; ReSource: Offset of current hit points in a 32-byte character-stat record.
-ChampionStat_HitPointsMaximum:		equ	$06
-	; ReSource: Offset of maximum hit points in a character-stat record.
-ChampionStat_VitalityCurrent:		equ	$07
-	; ReSource: Offset of current vitality in a character-stat record.
-ChampionStat_VitalityMaximum:		equ	$08
-	; ReSource: Offset of maximum vitality in a character-stat record.
-ChampionStat_SpellPointsCurrent:		equ	$09
-	; ReSource: Offset of current spell points in a character-stat record.
-ChampionStat_SpellPointsMaximum:		equ	$0A
-	; ReSource: Offset of maximum spell points in a character-stat record.
-ChampionStat_FoodLevel:		equ	$10
-	; ReSource: Offset of food level in a character-stat record.
-ChampionStat_SpellCooldown:		equ	$15
-	; ReSource: Offset of the spell cooldown in a character-stat record.
-HeldItem_StateOffset:		equ	$2C
-	; ReSource: Offset of the four-byte held-item state containing the quantity word followed by the object-code word.
-HeldItem_ObjectCodeOffset:		equ	$2E
-	; ReSource: Offset of the currently held object code in the interface state.
-Food_PortionGroupSize:		equ	$03
-	; ReSource: Number of visual consumption stages in each portioned-food family.
-Food_SolidPortionValue:		equ	$20
-	; ReSource: Food-level increase for each `$05-$0D` solid-food portion.
-Food_DrinkPortionValue:		equ	$14
-	; ReSource: Food-level increase for each `$0E-$13` drink portion.
-Food_WholeValueStep:		equ	$42
-	; ReSource: Food-level step applied once, twice or three times by objects `$14-$16`.
-Food_LevelMaximum:		equ	$C7
-	; ReSource: Highest stored character food level.
-Food_LevelLimitExclusive:		equ	$C8
-	; ReSource: Exclusive upper limit used before clamping food level to `$C7`.
-HeldItem_QuantityOffset:		equ	$2C
-	; ReSource: Offset of the held-object quantity word in player interface state.
-HeldItem_QuantityByteOffset:		equ	$2D
-	; ReSource: Offset of the low byte of the held-object quantity.
-HeldItem_ObjectCodeByteOffset:		equ	$2F
-	; ReSource: Offset of the low byte of the currently held object code.
-ChampionPocket_LeftHand:		equ	$00
-	; ReSource: Offset of the left-hand pocket in a sixteen-byte champion-pockets record.
-ChampionPocket_RightHand:		equ	$01
-	; ReSource: Offset of the right-hand pocket in a champion-pockets record.
+Champion_Count:		equ	$10
+	; ReSource: Number of standard champions and champion-remains objects.
 ChampionPocket_BodyArmour:		equ	$02
 	; ReSource: Offset of the dedicated body-armour pocket.
-ChampionPocket_Shield:		equ	$03
-	; ReSource: Offset of the dedicated shield pocket.
 ChampionPocket_CountedObjectCountsOffset:		equ	$0B
 	; ReSource: Base offset of the object-code-indexed counted-object quantities in a champion-pockets record.
 ChampionPocket_LastIndex:		equ	$0B
 	; ReSource: Highest ordinary pocket index in the twelve-pocket duplicate-removal scan.
-ChampionStat_WornHandArmour:		equ	$12
-	; ReSource: Offset of the worn hand-armour object in a champion-stat record.
-Champion_Count:		equ	$10
-	; ReSource: Number of standard champions and champion-remains objects.
+ChampionPocket_LeftHand:		equ	$00
+	; ReSource: Offset of the left-hand pocket in a sixteen-byte champion-pockets record.
+ChampionPocket_RightHand:		equ	$01
+	; ReSource: Offset of the right-hand pocket in a champion-pockets record.
+ChampionPocket_Shield:		equ	$03
+	; ReSource: Offset of the dedicated shield pocket.
+ChampionSelection_TableEntrySize:		equ	$04
+	; ReSource: Champion-selection action entries are longwords.
 ChampionStat_Charisma:		equ	$04
 	; ReSource: Offset of Charisma in a thirty-two-byte champion-stat record.
-InterfaceMode_Communication:		equ	$08
-	; ReSource: Interface mode value active while communicating with another character.
+ChampionStat_FoodLevel:		equ	$10
+	; ReSource: Offset of food level in a character-stat record.
+ChampionStat_HitPointsCurrent:		equ	$05
+	; ReSource: Offset of current hit points in a 32-byte character-stat record.
+ChampionStat_HitPointsMaximum:		equ	$06
+	; ReSource: Offset of maximum hit points in a character-stat record.
+ChampionStat_SpellCooldown:		equ	$15
+	; ReSource: Offset of the spell cooldown in a character-stat record.
+ChampionStat_SpellPointsCurrent:		equ	$09
+	; ReSource: Offset of current spell points in a character-stat record.
+ChampionStat_SpellPointsMaximum:		equ	$0A
+	; ReSource: Offset of maximum spell points in a character-stat record.
+ChampionStat_VitalityCurrent:		equ	$07
+	; ReSource: Offset of current vitality in a character-stat record.
+ChampionStat_VitalityMaximum:		equ	$08
+	; ReSource: Offset of maximum vitality in a character-stat record.
+ChampionStat_WornHandArmour:		equ	$12
+	; ReSource: Offset of the worn hand-armour object in a champion-stat record.
+Character_ProfessionMask:		equ	$03
+	; ReSource: Low two bits used to select one of the four character professions.
+Combat_StrengthBias:		equ	$08
+	; ReSource: Internal Strength bias applied before physical-combat thresholds.
 Comms_CharismaBaseline:		equ	$14
 	; ReSource: Charisma receives no initial communication bonus at or below this value.
 Comms_CharismaShift:		equ	$02
 	; ReSource: Right shift converting excess Charisma into an initial attitude bonus.
-Beguile_PowerShift:		equ	$02
-	; ReSource: Right shift converting Beguile spell power into its communication bonus.
-Beguile_BaseBonus:		equ	$01
-	; ReSource: Minimum attitude and patience bonus supplied by a successful Beguile spell.
-CommsState_PreviousActionOffset:		equ	$00
-	; ReSource: Offset of the action to which the other character is responding.
-CommsState_CurrentActionOffset:		equ	$01
-	; ReSource: Offset of the communication action currently being performed.
-CommsState_OtherCharacterOffset:		equ	$02
-	; ReSource: Offset of the addressed character identifier and its identity flags.
-CommsState_SpeakerIdentityOffset:		equ	$03
-	; ReSource: Offset of the speaker identifier and disclosed-name/profession flags.
-CommsState_TimerOffset:		equ	$04
-	; ReSource: Offset of the communication activity timer reset after an action.
-CommsState_FlagsOffset:		equ	$05
-	; ReSource: Offset of communication record flags.
-CommsState_AttitudeOffset:		equ	$06
-	; ReSource: Offset of mutable communication attitude or rapport.
-CommsState_PatienceOffset:		equ	$07
-	; ReSource: Offset of communication patience or remaining engagement.
-CommsState_TradeModeOffset:		equ	$08
-	; ReSource: Offset of the active communication trading mode.
-CommsState_TradeValueOffset:		equ	$09
-	; ReSource: Offset of the quoted or accepted trade value.
-CommsState_TradeObjectOffset:		equ	$0A
-	; ReSource: Offset of the object code involved in the active trade.
-CommsTradeMode_None:		equ	$00
-	; ReSource: No communication trade is pending.
-CommsTradeMode_Purchase:		equ	$01
-	; ReSource: Purchase communication mode.
-CommsTradeMode_Exchange:		equ	$02
-	; ReSource: Exchange communication mode.
-CommsTradeMode_Sell:		equ	$03
-	; ReSource: Sell communication mode.
-CommsAction_Recruit:		equ	$00
-	; ReSource: Communication action selected by Recruit.
+CommsAction_Boast:		equ	$18
+	; ReSource: Communication action selected by Boast.
+CommsAction_Bribe:		equ	$08
+	; ReSource: Communication action selected by Bribe.
+CommsAction_Curse:		equ	$17
+	; ReSource: Communication action selected by Curse.
+CommsAction_Exchange:		equ	$14
+	; ReSource: Communication action selected by Exchange.
+CommsAction_FolkLore:		equ	$0E
+	; ReSource: Communication action selected by Folk Lore.
+CommsAction_Greeting:		equ	$1A
+	; ReSource: Initial communication action used when a conversation begins.
 CommsAction_Identify:		equ	$01
 	; ReSource: Communication action opening the Identify submenu.
 CommsAction_Inquiry:		equ	$02
 	; ReSource: Communication action opening the Inquiry submenu.
-CommsAction_Whereabouts:		equ	$03
-	; ReSource: Communication action selected by Whereabouts.
-CommsAction_Trading:		equ	$04
-	; ReSource: Communication action opening the Trading submenu.
-CommsAction_Smalltalk:		equ	$05
-	; ReSource: Communication action opening the Smalltalk submenu.
-CommsAction_Yes:		equ	$06
-	; ReSource: Communication action selected by Yes.
-CommsAction_No:		equ	$07
-	; ReSource: Communication action selected by No.
-CommsAction_Bribe:		equ	$08
-	; ReSource: Communication action selected by Bribe.
-CommsAction_Threat:		equ	$09
-	; ReSource: Communication action selected by Threat.
-CommsAction_WhoGoes:		equ	$0A
-	; ReSource: Communication action selected by Who Goes.
-CommsAction_ThyTrade:		equ	$0B
-	; ReSource: Communication action selected by Thy Trade.
-CommsAction_NameSelf:		equ	$0C
-	; ReSource: Communication action selected by Name Self.
-CommsAction_RevealSelf:		equ	$0D
-	; ReSource: Communication action selected by Reveal Self.
-CommsAction_FolkLore:		equ	$0E
-	; ReSource: Communication action selected by Folk Lore.
 CommsAction_MagicItems:		equ	$0F
 	; ReSource: Communication action selected by Magic Items.
+CommsAction_NameSelf:		equ	$0C
+	; ReSource: Communication action selected by Name Self.
+CommsAction_No:		equ	$07
+	; ReSource: Communication action selected by No.
 CommsAction_Objects:		equ	$10
 	; ReSource: Communication action selected by Objects.
-CommsAction_Persons:		equ	$11
-	; ReSource: Communication action selected by Persons.
 CommsAction_Offer:		equ	$12
 	; ReSource: Communication action selected by Offer.
-CommsAction_Purchase:		equ	$13
-	; ReSource: Communication action selected by Purchase.
-CommsAction_Exchange:		equ	$14
-	; ReSource: Communication action selected by Exchange.
-CommsAction_Sell:		equ	$15
-	; ReSource: Communication action selected by Sell.
+CommsAction_Persons:		equ	$11
+	; ReSource: Communication action selected by Persons.
 CommsAction_Praise:		equ	$16
 	; ReSource: Communication action selected by Praise.
-CommsAction_Curse:		equ	$17
-	; ReSource: Communication action selected by Curse.
-CommsAction_Boast:		equ	$18
-	; ReSource: Communication action selected by Boast.
+CommsAction_Purchase:		equ	$13
+	; ReSource: Communication action selected by Purchase.
+CommsAction_Recruit:		equ	$00
+	; ReSource: Communication action selected by Recruit.
 CommsAction_Retort:		equ	$19
 	; ReSource: Communication action selected for a contextual Retort.
-CommsAction_Greeting:		equ	$1A
-	; ReSource: Initial communication action used when a conversation begins.
+CommsAction_RevealSelf:		equ	$0D
+	; ReSource: Communication action selected by Reveal Self.
+CommsAction_Sell:		equ	$15
+	; ReSource: Communication action selected by Sell.
+CommsAction_Smalltalk:		equ	$05
+	; ReSource: Communication action opening the Smalltalk submenu.
+CommsAction_Threat:		equ	$09
+	; ReSource: Communication action selected by Threat.
+CommsAction_ThyTrade:		equ	$0B
+	; ReSource: Communication action selected by Thy Trade.
+CommsAction_Trading:		equ	$04
+	; ReSource: Communication action opening the Trading submenu.
+CommsAction_Whereabouts:		equ	$03
+	; ReSource: Communication action selected by Whereabouts.
+CommsAction_WhoGoes:		equ	$0A
+	; ReSource: Communication action selected by Who Goes.
+CommsAction_Yes:		equ	$06
+	; ReSource: Communication action selected by Yes.
+CommsState_AttitudeOffset:		equ	$06
+	; ReSource: Offset of mutable communication attitude or rapport.
+CommsState_CurrentActionOffset:		equ	$01
+	; ReSource: Offset of the communication action currently being performed.
+CommsState_FlagsOffset:		equ	$05
+	; ReSource: Offset of communication record flags.
+CommsState_OtherCharacterOffset:		equ	$02
+	; ReSource: Offset of the addressed character identifier and its identity flags.
+CommsState_PatienceOffset:		equ	$07
+	; ReSource: Offset of communication patience or remaining engagement.
+CommsState_PreviousActionOffset:		equ	$00
+	; ReSource: Offset of the action to which the other character is responding.
+CommsState_SpeakerIdentityOffset:		equ	$03
+	; ReSource: Offset of the speaker identifier and disclosed-name/profession flags.
+CommsState_TimerOffset:		equ	$04
+	; ReSource: Offset of the communication activity timer reset after an action.
+CommsState_TradeModeOffset:		equ	$08
+	; ReSource: Offset of the active communication trading mode.
+CommsState_TradeObjectOffset:		equ	$0A
+	; ReSource: Offset of the object code involved in the active trade.
+CommsState_TradeValueOffset:		equ	$09
+	; ReSource: Offset of the quoted or accepted trade value.
+CommsTradeMode_Exchange:		equ	$02
+	; ReSource: Exchange communication mode.
+CommsTradeMode_None:		equ	$00
+	; ReSource: No communication trade is pending.
+CommsTradeMode_Purchase:		equ	$01
+	; ReSource: Purchase communication mode.
+CommsTradeMode_Sell:		equ	$03
+	; ReSource: Sell communication mode.
+DiskReadTimeoutCount:		equ	$000186A0
+	; ReSource: Disk-read timeout counter used while waiting for DMA completion.
+Food_DrinkPortionValue:		equ	$14
+	; ReSource: Food-level increase for each `$0E-$13` drink portion.
+Food_LevelLimitExclusive:		equ	$C8
+	; ReSource: Exclusive upper limit used before clamping food level to `$C7`.
+Food_LevelMaximum:		equ	$C7
+	; ReSource: Highest stored character food level.
+Food_PortionGroupSize:		equ	$03
+	; ReSource: Number of visual consumption stages in each portioned-food family.
+Food_SolidPortionValue:		equ	$20
+	; ReSource: Food-level increase for each `$05-$0D` solid-food portion.
+Food_WholeValueStep:		equ	$42
+	; ReSource: Food-level step applied once, twice or three times by objects `$14-$16`.
+HeldItem_ObjectCodeByteOffset:		equ	$2F
+	; ReSource: Offset of the low byte of the currently held object code.
+HeldItem_ObjectCodeOffset:		equ	$2E
+	; ReSource: Offset of the currently held object code in the interface state.
+HeldItem_QuantityByteOffset:		equ	$2D
+	; ReSource: Offset of the low byte of the held-object quantity.
+HeldItem_QuantityOffset:		equ	$2C
+	; ReSource: Offset of the held-object quantity word in player interface state.
+HeldItem_StateOffset:		equ	$2C
+	; ReSource: Offset of the four-byte held-item state containing the quantity word followed by the object-code word.
+InterfaceAction_BackLeftChampion:		equ	$09
+	; ReSource: Selects the back-left champion icon.
+InterfaceAction_BackRightChampion:		equ	$08
+	; ReSource: Selects the back-right champion icon.
+InterfaceAction_Display:		equ	$10
+	; ReSource: Displays the dungeon view.
+InterfaceAction_FrontLeftChampion:		equ	$06
+	; ReSource: Selects the front-left champion icon.
+InterfaceAction_FrontRightChampion:		equ	$07
+	; ReSource: Selects the front-right champion icon.
+InterfaceAction_Inventory:		equ	$03
+	; ReSource: Opens the inventory window.
+InterfaceAction_InventoryObject:		equ	$12
+	; ReSource: Handles the selected inventory object.
+InterfaceAction_InventoryRefresh:		equ	$11
+	; ReSource: Refreshes the inventory.
+InterfaceAction_LoadSave:		equ	$1D
+	; ReSource: Opens the load/save interface.
+InterfaceAction_MoveBackward:		equ	$0B
+	; ReSource: Moves the party backward.
+InterfaceAction_MoveForward:		equ	$0A
+	; ReSource: Base dungeon action added to the raw-key index so keyboard movement begins with Move Forward.
+InterfaceAction_MoveLeft:		equ	$0C
+	; ReSource: Moves the party left.
+InterfaceAction_MoveRight:		equ	$0D
+	; ReSource: Moves the party right.
+InterfaceAction_MultiFunction:		equ	$02
+	; ReSource: Context-sensitive command that can open a door.
+InterfaceAction_Pause:		equ	$1C
+	; ReSource: Pauses the game.
+InterfaceAction_PotionFood:		equ	$13
+	; ReSource: Handles potion or food inventory actions.
+InterfaceAction_PrimaryAttack:		equ	$04
+	; ReSource: Primary attack command.
+InterfaceAction_RotateLeft:		equ	$0E
+	; ReSource: Rotates the party left.
+InterfaceAction_RotateRight:		equ	$0F
+	; ReSource: Rotates the party right.
+InterfaceAction_Stats:		equ	$01
+	; ReSource: Opens the statistics window.
+InterfaceAction_TableEntryShift:		equ	$02
+	; ReSource: Shift count converting an interface action index into a four-byte jump-table offset.
+InterfaceAction_TableEntrySize:		equ	$04
+	; ReSource: Size in bytes of each dungeon action-table entry.
+InterfaceAction_WallClick:		equ	$23
+	; ReSource: Handles a clicked wall feature.
+InterfaceAction_WallFeature:		equ	$24
+	; ReSource: Direct contextual wall-feature action, including door interaction.
+InterfaceMode_Communication:		equ	$08
+	; ReSource: Interface mode value active while communicating with another character.
+Object_AceOfSwords:		equ	$37
+	; ReSource: Ace of Swords object code.
+Object_Armour_First:		equ	$1B
+	; ReSource: First body-armour object and exclusive end of potions.
+Object_Arrows_First:		equ	$03
+	; ReSource: First arrow object code.
+Object_Axes_First:		equ	$38
+	; ReSource: First axe object.
+Object_Blades_First:		equ	$30
+	; ReSource: First blade object and exclusive end of gloves.
+Object_BookOfSkulls:		equ	$6D
+	; ReSource: Book of Skulls object and exclusive end of magic rings.
+Object_Bows_First:		equ	$5C
+	; ReSource: First bow object.
+Object_ChaosGloves:		equ	$2B
+	; ReSource: Chaos Gloves object code.
+Object_Coinage:		equ	$01
+	; ReSource: Coinage object code.
+Object_CommonKeys:		equ	$02
+	; ReSource: Common-key object code.
+Object_Crystals_First:		equ	$60
+	; ReSource: First crystal object.
+Object_DepletedRing:		equ	$68
+	; ReSource: Depleted-ring object code.
+Object_Drinks_First:		equ	$0E
+	; ReSource: First drink-like food object.
+Object_EmptySlot:		equ	$00
+	; ReSource: Empty object-slot code.
+Object_Food_First:		equ	$05
+	; ReSource: First food object and exclusive end of counted objects.
+Object_Gems_First:		equ	$64
+	; ReSource: First gem object.
+Object_Gloves_First:		equ	$2B
+	; ReSource: First glove object and exclusive end of all shields.
+Object_Keys_First:		equ	$50
+	; ReSource: First named-key object.
+Object_LargeShields_First:		equ	$27
+	; ReSource: First large-shield object.
+Object_MagicRings_First:		equ	$69
+	; ReSource: First rechargeable magic-ring object.
+Object_Neggs_First:		equ	$14
+	; ReSource: First high-value N'Egg food object.
+Object_Permit:		equ	$5F
+	; ReSource: Permit object and exclusive end of bows.
+Object_PocketGraphicBankSize:		equ	$14
+	; ReSource: Number of pocket graphics in each source-bank step.
+Object_Potions_First:		equ	$17
+	; ReSource: First potion object code and exclusive end of food.
+Object_PowerStaff:		equ	$3F
+	; ReSource: Power Staff object code.
+Object_Remains_First:		equ	$40
+	; ReSource: First champion-remains object and first normally non-tradable object.
+Object_Rings_First:		equ	$68
+	; ReSource: First member of the complete ring family.
+Object_SmallShields_First:		equ	$24
+	; ReSource: First small-shield object and exclusive end of body armour.
+Object_StackLimitExclusive:		equ	$64
+	; ReSource: Exclusive counted-object quantity limit.
+Object_StackMaximum:		equ	$63
+	; ReSource: Highest stored quantity for a counted object.
+Object_Staffs_First:		equ	$3D
+	; ReSource: First staff object.
+Object_Swords_First:		equ	$32
+	; ReSource: First sword object.
+Object_TradeValueTable_First:		equ	$14
+	; ReSource: First object represented by the trade-value lookup table.
+Object_Wands_First:		equ	$57
+	; ReSource: First wand object.
+PhysicalAttack_CooldownInitial:		equ	$07
+	; ReSource: Initial cooldown written whenever a champion performs a physical attack.
+PhysicalAttack_VitalityCost:		equ	$03
+	; ReSource: Vitality removed when champion combat values are loaded for physical combat.
+Player_ActionCommandOffset:		equ	$0C
+	; ReSource: Offset of the active per-player interface command.
+Player_ActionInvalid:		equ	$FFFF
+	; ReSource: Value meaning no active action.
+Player_AttackPrimaryStateBit:		equ	$01
+	; ReSource: State bit set by the primary attack handler.
+Player_PendingActionOffset:		equ	$56
+	; ReSource: Offset of the pending action byte written by keyboard input.
+PowerStaff_SpellCastingBonus:		equ	$05
+	; ReSource: Spell-casting quality bonus supplied by a held Power Staff.
+SpellCasting_VitalityCost:		equ	$04
+	; ReSource: Vitality removed when a champion launches a spell.
+Weapon_AceOfSwordsRecordOffset:		equ	$1C
+	; ReSource: Byte offset of the Ace of Swords record within Weapon_CombatModifiers.
+Weapon_BackstabEligibleByteLimit:		equ	$08
+	; ReSource: Exclusive byte-offset limit for weapon records which preserve a Cutpurse backstab.
+Weapon_CombatModifierRecordCount:		equ	$10
+	; ReSource: Number of four-byte records in Weapon_CombatModifiers.
+WornSpell_Beguile_BaseBonus:		equ	$01
+	; ReSource: Minimum attitude and patience bonus supplied by a successful Beguile spell.
+WornSpell_Beguile_PowerShift:		equ	$02
+	; ReSource: Right shift converting Beguile spell power into its communication bonus.
+WornSpell_Warpower:		equ	$02
+	; ReSource: Low three-bit worn-spell type used for Warpower.
 ; ReSource: end generated EQU definitions
 
 ****************************************************************************
@@ -360,20 +418,20 @@ GameStart:
 	beq.s	PostMainMenu_ChampionSetup_AI_TBC	;6704
 	bra	adrCd000BA6	;60000752
 
-PostMainMenu_ChampionSetup_AI_TBC:
+PostMainMenu_ChampionSetup_AI_TBC:		; Memory Address ($0456) and binary offset [$00D2]
 	jsr	ChampionSelection_Main.l	;4EB90000C0FA
 	move.b	adrB_00EE83.l,Player1_ChampionCount.l	;13F90000EE830000EE94
 	move.b	Player2_ChampionCount.l,Player2_ChampionPointer.l	;13F90000EEE50000EEF6
 	move.l	Player1_ChampionCount.l,Player1_ChampionPointer.l	;23F90000EE940000EEA2
 	move.l	Player2_ChampionPointer.l,adrL_00EF04.l	;23F90000EEF60000EF04
 	moveq	#$0F,d0	;700F
-DBFWait1a:
+DBFWait1a:		; Memory Address ($0486) and binary offset [$0102]
 	dbra	d1,DBFWait1a	;51C9FFFE
 	dbra	d0,DBFWait1a	;51C8FFFA
-MainMenu_ReturnToStart_AI_TBC:
+MainMenu_ReturnToStart_AI_TBC:		; Memory Address ($048E) and binary offset [$010A]
 	bra	PrepareCharacterData_AI_TBC	;60000712
 
-Init_CustomChipRegisters_AI_TBC:
+Init_CustomChipRegisters_AI_TBC:		; Memory Address ($0492) and binary offset [$010E]
 	jsr	adrCd008DBA.l	;4EB900008DBA
 	move.w	#$4200,_custom+bplcon0.l	;33FC420000DFF100
 	move.w	#$0000,_custom+bplcon1.l	;33FC000000DFF102
@@ -391,7 +449,7 @@ Init_CustomChipRegisters_AI_TBC:
 	lea	Copper_SpriteOffsetTable_DATA_AI_TBC.l,a1	;43F9000005AA
 	lea	Sprite_PositionPointerTable_DATA_AI_TBC.l,a2	;45F9000005B2
 	moveq	#$07,d1	;7207
-Copper_SpriteInitLoop_AI_TBC:
+Copper_SpriteInitLoop_AI_TBC:		; Memory Address ($050E) and binary offset [$018A]
 	moveq	#$00,d0	;7000
 	move.b	$00(a1,d1.w),d0	;10311000
 	add.w	d0,d0	;D040
@@ -405,7 +463,7 @@ Copper_SpriteInitLoop_AI_TBC:
 	move.l	#adrL_008CC8,d0	;203C00008CC8
 	lea	$0060.w,a0	;41F80060	;Short Absolute replaced by symbol!
 	moveq	#$07,d1	;7207
-Interrupt_VectorInitLoop_AI_TBC:
+Interrupt_VectorInitLoop_AI_TBC:		; Memory Address ($0538) and binary offset [$01B4]
 	move.l	d0,(a0)+	;20C0
 	dbra	d1,Interrupt_VectorInitLoop_AI_TBC	;51C9FFFC
 	move.l	#VerticalBlankInterupt,$006C.w	;21FC00008C20006C	;Short Absolute converted to symbol!
@@ -424,28 +482,28 @@ Interrupt_VectorInitLoop_AI_TBC:
 	move.w	#$C038,_custom+intena.l	;33FCC03800DFF09A
 	rts	;4E75
 
-Copper_SpriteOffsetTable_DATA_AI_TBC:
+Copper_SpriteOffsetTable_DATA_AI_TBC:		; Memory Address ($05AA) and binary offset [$0226]
 	dc.w	$0404	;0404
 	dc.w	$0403	;0403
 	dc.w	$0402	;0402
 	dc.w	$0100	;0100
-Sprite_PositionPointerTable_DATA_AI_TBC:
+Sprite_PositionPointerTable_DATA_AI_TBC:		; Memory Address ($05B2) and binary offset [$022E]
 	dc.l	SpritePosition_00	;00008E84
 	dc.l	SpritePosition_01	;00008F14
 	dc.l	SpritePosition_04	;00008ECC
 	dc.l	SpritePosition_02	;00008F5C
 	dc.l	adrEA008EC8	;00008EC8
 	dc.w	$0000	;0000
-Level2Int_LastKeyScratch_AI_TBC:
+Level2Int_LastKeyScratch_AI_TBC:		; Memory Address ($05C8) and binary offset [$0244]
 	dc.b	$00	;00
-KeyboardKeyCode:
+KeyboardKeyCode:		; Memory Address ($05C9) and binary offset [$0245]
 	dc.b	$00	;00
 	dc.b	$00	;00
 	dc.b	$00	;00
 	dc.b	$00	;00
 	dc.b	$00	;00
 
-Level_2_Interrupt:
+Level_2_Interrupt:		; Memory Address ($05CE) and binary offset [$024A]
 	movem.l	d0/d1/a0,-(sp)	;48E7C080
 	lea	_ciaa.l,a0	;41F900BFE001
 	move.b	$0C00(a0),d0	;10280C00
@@ -457,7 +515,7 @@ Level_2_Interrupt:
 	move.b	$0100(a0),d1	;12280100
 	bsr.s	CheckKeyboard	;6128
 	moveq	#$2D,d0	;702D
-.L2InteruptLoop:
+.L2InteruptLoop:		; Memory Address ($05F6) and binary offset [$0272]
 	dbra	d0,.L2InteruptLoop	;51C8FFFE
 	lea	_ciaa.l,a0	;41F900BFE001
 	move.b	$0D00(a0),d0	;10280D00
@@ -467,24 +525,24 @@ Level_2_Interrupt:
 	move.w	#$0008,_custom+intreq.l	;33FC000800DFF09C
 	rte	;4E73
 
-CheckKeyboard:
+CheckKeyboard:		; Memory Address ($061C) and binary offset [$0298]
 	lea	RawKeyCodes.l,a0	;41F90000064A
 	moveq	#$0B,d1	;720B
-.keyboardloop:
+.keyboardloop:		; Memory Address ($0624) and binary offset [$02A0]
 	cmp.b	(a0)+,d0	;B018
 	beq.s	KeyboardAction	;6706
 	dbra	d1,.keyboardloop	;51C9FFFA
 	rts	;4E75
 
-KeyboardAction:
+KeyboardAction:		; Memory Address ($062E) and binary offset [$02AA]
 	lea	Player1_Data.l,a0	;41F90000EE7C
 	subq.w	#$06,d1	;5D41
 	bcc.s	.skipPlayer2	;6408
 	addq.w	#$06,d1	;5C41
 	lea	Player2_Data.l,a0	;41F90000EEDE
 .skipPlayer2:
-	add.w	#$000A,d1	;0641000A
-	move.b	d1,$0056(a0)	;11410056
+	add.w	#InterfaceAction_MoveForward,d1	;0641000A
+	move.b	d1,Player_PendingActionOffset(a0)	;11410056
 	rts	;4E75
 
 RawKeyCodes:
@@ -504,13 +562,13 @@ RawKeyCodes:
 MainMenuBuffer:
 	dc.b	$00	;00
 	dc.b	$00	;00
-MainMenuInitColours:
+MainMenuInitColours:		; Memory Address ($0658) and binary offset [$02D4]
 	dc.b	$00	;00
 	dc.b	$00	;00
 	dc.b	$FD	;FD
 	dc.b	$00	;00
 	dc.b	$F0	;F0
-MainMenuText:
+MainMenuText:		; Memory Address ($065D) and binary offset [$02D9]
 	dc.b	$FE	;FE
 	dc.b	$0C	;0C
 	dc.b	$FC	;FC
@@ -558,7 +616,7 @@ MainMenuText:
 	dc.b	$FF	;FF
 
 	EVEN
-MainMenu:
+MainMenu:		; Memory Address ($0746) and binary offset [$03C2]
 	clr.w	MainMenuBuffer.w	;42780656	;Short Absolute converted to symbol!
 	clr.w	MultiPlayer.l	;42790000EE30
 	jsr	adrCd008DA8.l	;4EB900008DA8
@@ -567,7 +625,7 @@ MainMenu:
 	tst.w	MainMenuInitColours.w	;4A780658	;Short Absolute converted to symbol!
 	bne.s	.menuscreen	;6602
 	subq.w	#$03,a6	;574E
-.menuscreen:
+.menuscreen:		; Memory Address ($0768) and binary offset [$03E4]
 	lea	Player1_Data.l,a5	;4BF90000EE7C
 	jsr	Print_fflim_text.l	;4EB90000D0C6
 	jsr	adrCd008CCA.l	;4EB900008CCA
@@ -608,7 +666,7 @@ LoadGameFromMenu:
 	bsr	adrCd004440	;61003C38
 	cmp.b	#$FF,Character_Stats_DataTable+$11.l	;0C3900FF0000EB3B
 	beq	MainMenu	;6700FF32
-	bsr	Load_LevelLookupTable_AI_TBC	;61000350
+	bsr	Select_CurrentTowerMapData	;61000350
 	move.w	#$0001,MainMenuBuffer.w	;31FC00010656	;Short Absolute converted to symbol!
 	rts	;4E75
 
@@ -652,13 +710,13 @@ QkPly2_Start:
 	move.b	d0,$0176(a0)	;11400176
 	rts	;4E75
 
-Init_DisplayDMA_AI_TBC:
+Init_DisplayDMA_AI_TBC:		; Memory Address ($08C4) and binary offset [$0540]
 	lea	BitReverse_LookupBuffer.l,a0	;41F90001684C
 	move.w	#$00FF,d7	;3E3C00FF
-SpellsPracticed_InitializeEntriesLoop_AI_TBC:
+SpellsPracticed_InitializeEntriesLoop_AI_TBC:		; Memory Address ($08CE) and binary offset [$054A]
 	move.w	d7,d0	;3007
 	moveq	#$07,d6	;7C07
-SpellsPracticed_AccumulateEntryBitsLoop_AI_TBC:
+SpellsPracticed_AccumulateEntryBitsLoop_AI_TBC:		; Memory Address ($08D2) and binary offset [$054E]
 	lsr.b	#$01,d0	;E208
 	addx.b	d1,d1	;D301
 	dbra	d6,SpellsPracticed_AccumulateEntryBitsLoop_AI_TBC	;51CEFFFA
@@ -666,22 +724,22 @@ SpellsPracticed_AccumulateEntryBitsLoop_AI_TBC:
 	dbra	d7,SpellsPracticed_InitializeEntriesLoop_AI_TBC	;51CFFFEE
 	lea	Spells_Practiced_DataTable.l,a0	;41F90001694C
 	moveq	#$7F,d0	;707F
-SpellsPracticed_ClearEntriesLoop_AI_TBC:
+SpellsPracticed_ClearEntriesLoop_AI_TBC:		; Memory Address ($08EA) and binary offset [$0566]
 	clr.l	(a0)+	;4298
 	dbra	d0,SpellsPracticed_ClearEntriesLoop_AI_TBC	;51C8FFFC
 	rts	;4E75
 
-Initialize_SpellPracticeThresholds:
+Initialize_SpellPracticeThresholds:		; Memory Address ($08F2) and binary offset [$056E]
 	; ReSource: Initialises calculated spell-practice values for all sixteen champion records.
 	moveq	#$0F,d7	;7E0F
-SpellPractice_ThresholdLoop:
+SpellPractice_ThresholdLoop:		; Memory Address ($08F4) and binary offset [$0570]
 	move.w	d7,d0	;3007
 	bsr	Calculate_SpellPracticeThreshold	;6100000C
 	move.b	d0,$0009(a4)	;19400009
 	dbra	d7,SpellPractice_ThresholdLoop	;51CFFFF4
 	rts	;4E75
 
-Calculate_SpellPracticeThreshold:
+Calculate_SpellPracticeThreshold:		; Memory Address ($0904) and binary offset [$0580]
 	; ReSource: Calculates a champion's spell-practice threshold from Wizard-weighted level and half Intelligence, clamped to $63.
 	move.w	d0,d1	;3200
 	bsr	Load_ChampionStatRecord	;61005D58
@@ -693,12 +751,12 @@ Calculate_SpellPracticeThreshold:
 	cmpi.b	#$64,d0	;0C000064
 	bcs.s	SpellPractice_StoreThreshold	;6502
 	moveq	#$63,d0	;7063
-SpellPractice_StoreThreshold:
+SpellPractice_StoreThreshold:		; Memory Address ($091E) and binary offset [$059A]
 	; ReSource: Stores the calculated spell-practice threshold in the champion record.
 	move.b	d0,$000A(a4)	;1940000A
 	rts	;4E75
 
-Calculate_WarriorLevelContribution:
+Calculate_WarriorLevelContribution:		; Memory Address ($0924) and binary offset [$05A0]
 	; ReSource: Calculates the Warrior-weighted contribution of a champion's level.
 	and.w	#$0003,d1	;02410003
 	move.b	WarriorLevel_ChampionTypeShifts(pc,d1.w),d1	;123B1010
@@ -710,50 +768,50 @@ Calculate_WarriorLevelContribution:
 	lsr.w	#$02,d0	;E448
 	rts	;4E75
 
-WarriorLevel_ChampionTypeShifts:
+WarriorLevel_ChampionTypeShifts:		; Memory Address ($093A) and binary offset [$05B6]
 	; ReSource: Selects full, quarter or special three-quarter level weighting for each champion type.
 	dc.b	$00	;00
 	dc.b	$02	;02
 	dc.b	$FF	;FF
 	dc.b	$02	;02
 
-Calculate_WizardLevelContribution:
+Calculate_WizardLevelContribution:		; Memory Address ($093E) and binary offset [$05BA]
 	; ReSource: Calculates the Wizard-weighted contribution of a champion's level.
 	and.w	#$0003,d1	;02410003
 	move.b	WizardLevel_ChampionTypeShifts(pc,d1.w),d1	;123B1004
 	bra.s	Calculate_ShiftedChampionLevel	;600C
 
-WizardLevel_ChampionTypeShifts:
+WizardLevel_ChampionTypeShifts:		; Memory Address ($0948) and binary offset [$05C4]
 	; ReSource: Selects quarter, full or half Wizard-level weighting for each champion type.
 	dc.b	$02	;02
 	dc.b	$00	;00
 	dc.b	$01	;01
 	dc.b	$02	;02
 
-Calculate_CutpurseLevelContribution:
+Calculate_CutpurseLevelContribution:		; Memory Address ($094C) and binary offset [$05C8]
 	; ReSource: Calculates the Cutpurse-weighted contribution of a champion's level.
 	and.w	#$0003,d1	;02410003
 	move.b	CutpurseLevel_ChampionTypeShifts(pc,d1.w),d1	;123B100A
-Calculate_ShiftedChampionLevel:
+Calculate_ShiftedChampionLevel:		; Memory Address ($0954) and binary offset [$05D0]
 	; ReSource: Loads the champion's level and applies the selected right-shift weighting.
 	moveq	#$00,d0	;7000
 	move.b	(a4),d0	;1014
 	lsr.w	d1,d0	;E268
 	rts	;4E75
 
-CutpurseLevel_ChampionTypeShifts:
+CutpurseLevel_ChampionTypeShifts:		; Memory Address ($095C) and binary offset [$05D8]
 	; ReSource: Selects quarter, half or full Cutpurse-level weighting for each champion type.
 	dc.b	$02	;02
 	dc.b	$02	;02
 	dc.b	$01	;01
 	dc.b	$00	;00
 
-Map_Traps_InitProcessing_AI_TBC:
+Map_Traps_InitProcessing_AI_TBC:		; Memory Address ($0960) and binary offset [$05DC]
 	moveq	#$00,d7	;7E00
 	moveq	#$00,d6	;7C00
-	move.l	adrL_00EE78.l,a6	;2C790000EE78
+	move.l	Current_TowerMapDataBase.l,a6	;2C790000EE78
 	lea	$0FCA(a6),a0	;41EE0FCA
-Map_Traps_ProcessNextEntryLoop_AI_TBC:
+Map_Traps_ProcessNextEntryLoop_AI_TBC:		; Memory Address ($096E) and binary offset [$05EA]
 	cmp.w	-$0002(a0),d7	;BE68FFFE
 	bcc.s	Map_Traps_ProcessingDone_AI_TBC	;6420
 	move.b	$00(a0,d7.w),d0	;10307000
@@ -767,11 +825,11 @@ Map_Traps_ProcessNextEntryLoop_AI_TBC:
 	add.w	d6,d7	;DE46
 	bra.s	Map_Traps_ProcessNextEntryLoop_AI_TBC	;60DA
 
-Map_Traps_ProcessingDone_AI_TBC:
+Map_Traps_ProcessingDone_AI_TBC:		; Memory Address ($0994) and binary offset [$0610]
 	rts	;4E75
 
 PrepareCharacters:
-	bsr	Load_LevelLookupTable_AI_TBC	;610001D0
+	bsr	Select_CurrentTowerMapData	;610001D0
 	lea	Character_Stats_DataTable.l,a4	;49F90000EB2A
 	moveq	#$0F,d6	;7C0F
 CharacterFillLoop:
@@ -794,16 +852,16 @@ CharacterFillLoop:
 	move.b	$0017(a4),d7	;1E2C0017
 	bsr	CoordToMap	;61007AB6
 	bset	#$07,$01(a6,d0.w)	;08F600070001
-adrCd0009EE:
+adrCd0009EE:		; Memory Address ($09EE) and binary offset [$066A]
 	add.w	#$0020,a4	;D8FC0020
 	dbra	d6,CharacterFillLoop	;51CEFFAE
-MonsterTransfer:
+MonsterTransfer:		; Memory Address ($09F6) and binary offset [$0672]
 	bsr	Map_Traps_InitProcessing_AI_TBC	;6100FF68
 	lea	adrEA017390.l,a4	;49F900017390
 	moveq	#-$01,d6	;7CFF
 	move.w	d6,-$0002(a4)	;3946FFFE
 	moveq	#$18,d0	;7018
-adrLp000A08:
+adrLp000A08:		; Memory Address ($0A08) and binary offset [$0684]
 	move.l	d6,(a4)+	;28C6
 	dbra	d0,adrLp000A08	;51C8FFFC
 	lea	UnpackedMonsters.l,a4	;49F900016B7E
@@ -845,7 +903,7 @@ adrLp000A08:
 	bne.s	.MarkedOnMap	;660A
 	bsr	CoordToMap	;61007A16
 	bset	#$07,$01(a6,d0.w)	;08F600070001
-.MarkedOnMap:
+.MarkedOnMap:		; Memory Address ($0A8E) and binary offset [$070A]
 	moveq	#$00,d0	;7000
 	move.b	(a3)+,d0			;101B
 	move.b	d0,$0006(a4)			;19400006
@@ -855,9 +913,9 @@ adrLp000A08:
 	bcs.s	.SkipSomething1_TEMP			;6506
 	cmpi.b	#$08,d1				;0C010008
 	bcc.s	.SkipSomething2_TEMP		;6402
-.SkipSomething1_TEMP:
+.SkipSomething1_TEMP:		; Memory Address ($0AA6) and binary offset [$0722]
 	moveq	#$08,d1	;7208
-.SkipSomething2_TEMP:
+.SkipSomething2_TEMP:		; Memory Address ($0AA8) and binary offset [$0724]
 	asl.b	#$04,d1	;E901
 	move.b	d1,$0003(a4)	;19410003
 	move.w	#$0190,d1	;323C0190
@@ -867,7 +925,7 @@ adrLp000A08:
 	cmpi.b	#$10,d0	;0C000010
 	bcc.s	.SkipSomething3_TEMP	;6404
 	move.b	adrB_000B22(pc,d0.w),d1	;123B005E
-.SkipSomething3_TEMP:
+.SkipSomething3_TEMP:		; Memory Address ($0AC6) and binary offset [$0742]
 	mulu	d1,d0	;C0C1
 	add.w	#$0019,d0	;06400019
 	move.w	d0,$0008(a4)	;39400008
@@ -880,7 +938,7 @@ adrLp000A08:
 	cmp.b	#$40,$000B(a4)	;0C2C0040000B	;
 	bne.s	.SkipSomething4_TEMP	;6606
 	move.b	#$37,$000C(a4)	;197C0037000C
-.SkipSomething4_TEMP:
+.SkipSomething4_TEMP:		; Memory Address ($0AEC) and binary offset [$0768]
 	moveq	#$00,d0	;7000
 	move.b	(a3)+,d0	;101B
 	cmpi.b	#$FF,d0	;0C0000FF
@@ -894,13 +952,13 @@ adrLp000A08:
 	addq.w	#$01,-$0002(a0)	;5268FFFE
 	lsr.b	#$02,d0	;E408
 	move.b	d0,$000D(a4)	;1940000D
-.SkipSomething5_TEMP:
+.SkipSomething5_TEMP:		; Memory Address ($0B16) and binary offset [$0792]
 	add.w	#$0010,a4	;D8FC0010
 	addq.w	#$01,d4	;5244
 	dbra	d6,.FillMonstersLoop	;51CEFF30
 	rts	;4E75
 
-adrB_000B22:
+adrB_000B22:		; Memory Address ($0B22) and binary offset [$079E]
 	dc.b	$00	;00
 	dc.b	$32	;32
 	dc.b	$37	;37
@@ -918,7 +976,7 @@ adrB_000B22:
 	dc.b	$C8	;C8
 	dc.b	$DC	;DC
 
-adrCd000B32:
+adrCd000B32:		; Memory Address ($0B32) and binary offset [$07AE]
 	bsr	Load_CurrentChampionStatRecord	;61005B28
 	moveq	#$00,d0	;7000
 	move.b	$0016(a4),d0	;102C0016
@@ -932,24 +990,24 @@ adrCd000B32:
 	move.w	d0,$0020(a5)	;3B400020
 	move.b	$001A(a4),d0	;102C001A
 	move.w	d0,$0058(a5)	;3B400058
-adrCd000B66:
+adrCd000B66:		; Memory Address ($0B66) and binary offset [$07E2]
 	rts	;4E75
 
-Load_LevelLookupTable_AI_TBC:
+Select_CurrentTowerMapData:		; Memory Address ($0B68) and binary offset [$07E4]
 	move.w	CurrentTower.l,d0	;30390000EE2E
 	add.w	d0,d0	;D040
-	lea	LevelData_LookupTable.l,a0	;41F900000B96
+	lea	Current_TowerMapOffsets.l,a0	;41F900000B96
 	lea	MapData1.l,a6	;4DF90000EF40
 	add.w	$00(a0,d0.w),a6	;DCF00000
-	lea	adrEA00EE40.l,a0	;41F90000EE40
+	lea	Current_TowerMapHeaderCache.l,a0	;41F90000EE40
 	moveq	#$0D,d0	;700D
-adrLp000B88:
+adrLp000B88:		; Memory Address ($0B88) and binary offset [$0804]
 	move.l	(a6)+,(a0)+	;20DE
 	dbra	d0,adrLp000B88	;51C8FFFC
-	move.l	a6,adrL_00EE78.l	;23CE0000EE78
+	move.l	a6,Current_TowerMapDataBase.l	;23CE0000EE78
 	rts	;4E75
 
-LevelData_LookupTable:
+Current_TowerMapOffsets:
 	dc.w	MapData1-MapData1	;0000
 	dc.w	MapData2-MapData1	;1402
 	dc.w	MapData3-MapData1	;2804
@@ -957,9 +1015,9 @@ LevelData_LookupTable:
 	dc.w	MapData5-MapData1	;5008
 	dc.w	MapData6-MapData1	;640A
 
-PrepareCharacterData_AI_TBC:
+PrepareCharacterData_AI_TBC:		; Memory Address ($0BA2) and binary offset [$081E]
 	bsr	PrepareCharacters	;6100FDF2
-adrCd000BA6:
+adrCd000BA6:		; Memory Address ($0BA6) and binary offset [$0822]
 	clr.w	FrameSyncFlagWord_AI_TBC.l	;427900008C1E
 	move.b	#$FF,adrB_00EE2C.l	;13FC00FF0000EE2C
 	lea	Player1_Data.l,a5	;4BF90000EE7C
@@ -975,14 +1033,14 @@ adrCd000BA6:
 	moveq	#$00,d7	;7E00
 	bra.s	adrLp000C18	;6022
 
-adrCd000BF6:
+adrCd000BF6:		; Memory Address ($0BF6) and binary offset [$0872]
 	lea	Player2_Data.l,a5	;4BF90000EEDE
 	move.l	#$00F00088,$0002(a5)	;2B7C00F000880002
 	move.w	#$BE68,$003A(a5)	;3B7CBE68003A
 	move.w	#$0068,$0008(a5)	;3B7C00680008
 	move.w	#$1040,$000A(a5)	;3B7C1040000A
 	moveq	#$01,d7	;7E01
-adrLp000C18:
+adrLp000C18:		; Memory Address ($0C18) and binary offset [$0894]
 	clr.w	$0014(a5)	;426D0014
 	move.w	#$FFFF,$0042(a5)	;3B7CFFFF0042
 	move.w	#$FFFF,$0040(a5)	;3B7CFFFF0040
@@ -992,26 +1050,26 @@ adrLp000C18:
 	dbra	d7,adrLp000C18	;51CFFFDE
 	bsr	adrCd0042BA	;6100367C
 	move.w	#$FFFF,FrameSyncFlagWord_AI_TBC.l	;33FCFFFF00008C1E
-Wait_FrameSync_AI_TBC:
+Wait_FrameSync_AI_TBC:		; Memory Address ($0C48) and binary offset [$08C4]
 	tst.b	FrameSyncFlagWord_AI_TBC.l	;4A3900008C1E
 	bne.s	Wait_FrameSync_AI_TBC	;66F8
-Menu_RenderLoop_AI_TBC:
+Menu_RenderLoop_AI_TBC:		; Memory Address ($0C50) and binary offset [$08CC]
 	lea	Player1_Data.l,a5	;4BF90000EE7C
 	bsr	adrCd0084D6	;6100787E
-	bsr	adrCd004C90	;61004034
-	bsr	adrCd0057AC	;61004B4C
+	bsr	Scan_PlayerInterfaceActions	;61004034
+	bsr	Dispatch_PlayerInterfaceActionGuarded	;61004B4C
 	tst.w	MultiPlayer.l	;4A790000EE30
 	bne.s	Menu_IdlePoll_AI_TBC	;661E
 	lea	Player2_Data.l,a5	;4BF90000EEDE
 	bsr	adrCd0084D6	;61007864
-	bsr	adrCd004C90	;6100401A
-	bsr	adrCd0057AC	;61004B32
+	bsr	Scan_PlayerInterfaceActions	;6100401A
+	bsr	Dispatch_PlayerInterfaceActionGuarded	;61004B32
 	jsr	adrCd008FB8.l	;4EB900008FB8
 	lea	Player1_Data.l,a5	;4BF90000EE7C
-Menu_IdlePoll_AI_TBC:
+Menu_IdlePoll_AI_TBC:		; Memory Address ($0C88) and binary offset [$0904]
 	jsr	adrCd008FB8.l	;4EB900008FB8
 	move.b	#$FF,FrameSyncFlagWord_AI_TBC.l	;13FC00FF00008C1E
-adrCd000C96:
+adrCd000C96:		; Memory Address ($0C96) and binary offset [$0912]
 	tst.b	FrameSyncFlagWord_AI_TBC.l	;4A3900008C1E
 	bne.s	adrCd000C96	;66F8
 	bsr.s	RelocateTraps_AI_TBC	;6164
@@ -1020,15 +1078,15 @@ adrCd000C96:
 	btst	#$06,d0	;08000006
 	beq.s	adrCd000CB4	;6702
 	bsr.s	DelayLoop1a_AI_TBC	;610E
-adrCd000CB4:
+adrCd000CB4:		; Memory Address ($0CB4) and binary offset [$0930]
 	move.w	#$0001,adrW_00505A.l	;33FC00010000505A
 	bsr	adrCd001238	;6100057A
 	bra.s	Menu_RenderLoop_AI_TBC	;608E
 
-DelayLoop1a_AI_TBC:
+DelayLoop1a_AI_TBC:		; Memory Address ($0CC2) and binary offset [$093E]
 	move.l	adrEA00EE36.l,-(sp)	;2F390000EE36
 	moveq	#$14,d0	;7014
-DBFWait1b:
+DBFWait1b:		; Memory Address ($0CCA) and binary offset [$0946]
 	dbra	d1,DBFWait1b	;51C9FFFE
 	dbra	d0,DBFWait1b	;51C8FFFA
 	move.l	#$FFFFFFFF,adrL_00EED6.l	;23FCFFFFFFFF0000EED6
@@ -1037,16 +1095,16 @@ DBFWait1b:
 	bsr	adrCd0042BA	;610035CC
 	clr.w	FrameSyncFlagWord_AI_TBC.l	;427900008C1E
 	moveq	#$14,d0	;7014
-DBFWait1c:
+DBFWait1c:		; Memory Address ($0CF8) and binary offset [$0974]
 	dbra	d1,DBFWait1c	;51C9FFFE
 	dbra	d0,DBFWait1c	;51C8FFFA
 	bra	LoadGame	;600036A2
 
-RelocateTraps_AI_TBC:
+RelocateTraps_AI_TBC:		; Memory Address ($0D04) and binary offset [$0980]
 	lea	Player1_Data.l,a5	;4BF90000EE7C
 	bsr.s	Setup_PlayerZOffset_AI_TBC	;6106
 	lea	Player2_Data.l,a5	;4BF90000EEDE
-Setup_PlayerZOffset_AI_TBC:
+Setup_PlayerZOffset_AI_TBC:		; Memory Address ($0D12) and binary offset [$098E]
 	and.b	#$7F,$0052(a5)	;022D007F0052
 	move.b	$0054(a5),d3	;162D0054
 	clr.b	$0054(a5)	;422D0054
@@ -1061,13 +1119,13 @@ Setup_PlayerZOffset_AI_TBC:
 	move.w	d6,d0	;3006
 	add.w	#$0DCC,d0	;06400DCC
 	bsr.s	Setup_ScreenFade_AI_TBC	;612C
-Player_HeightAdjust_AI_TBC:
+Player_HeightAdjust_AI_TBC:		; Memory Address ($0D3C) and binary offset [$09B8]
 	move.w	d6,d0	;3006
 	lsr.b	#$01,d3	;E20B
 	bcc.s	Player_HeightCheck_AI_TBC	;6406
 	add.w	#$000C,d0	;0640000C
 	bsr.s	Setup_ScreenFade_AI_TBC	;6120
-Player_HeightCheck_AI_TBC:
+Player_HeightCheck_AI_TBC:		; Memory Address ($0D48) and binary offset [$09C4]
 	move.w	d6,d0	;3006
 	lsr.b	#$01,d3	;E20B
 	bcc	adrCd000DEA	;6400009C
@@ -1078,7 +1136,7 @@ Player_HeightCheck_AI_TBC:
 	add.w	d0,a0	;D0C0
 	bra	adrCd000DEC	;60000086
 
-Setup_ScreenFade_AI_TBC:
+Setup_ScreenFade_AI_TBC:		; Memory Address ($0D68) and binary offset [$09E4]
 	move.l	screen_ptr.l,a0	;207900008D36
 	move.l	framebuffer_ptr.l,a1	;227900008D3A
 	add.w	d0,a1	;D2C0
@@ -1086,28 +1144,28 @@ Setup_ScreenFade_AI_TBC:
 	moveq	#$07,d0	;7007
 	bra	adrLp000DEE	;60000072
 
-ScreenFade_Control_AI_TBC:
+ScreenFade_Control_AI_TBC:		; Memory Address ($0D7E) and binary offset [$09FA]
 	moveq	#$06,d2	;7406
 	btst	#$05,d3	;08030005
 	bne.s	adrCd000D8C	;6606
 	moveq	#-$01,d2	;74FF
 	add.w	#$0118,d0	;06400118
-adrCd000D8C:
+adrCd000D8C:		; Memory Address ($0D8C) and binary offset [$0A08]
 	lsr.b	#$01,d3	;E20B
 	bcc.s	adrCd000D94	;6404
 	add.w	#$0051,d2	;06420051
-adrCd000D94:
+adrCd000D94:		; Memory Address ($0D94) and binary offset [$0A10]
 	lsr.b	#$01,d3	;E20B
 	bcc.s	adrCd000D9A	;6402
 	addq.w	#$08,d2	;5042
-adrCd000D9A:
+adrCd000D9A:		; Memory Address ($0D9A) and binary offset [$0A16]
 	tst.w	d2	;4A42
 	bmi.s	adrCd000DEA	;6B4C
 	move.l	screen_ptr.l,a0	;207900008D36
 	move.l	framebuffer_ptr.l,a1	;227900008D3A
 	add.w	d0,a1	;D2C0
 	add.w	d0,a0	;D0C0
-adrLp000DAE:
+adrLp000DAE:		; Memory Address ($0DAE) and binary offset [$0A2A]
 	lea	$5DC0(a1),a3	;47E95DC0
 	lea	$5DC0(a0),a2	;45E85DC0
 	move.l	(a3)+,(a2)+	;24DB
@@ -1129,12 +1187,12 @@ adrLp000DAE:
 	lea	$001C(a0),a0	;41E8001C
 	lea	$001C(a1),a1	;43E9001C
 	dbra	d2,adrLp000DAE	;51CAFFC6
-adrCd000DEA:
+adrCd000DEA:		; Memory Address ($0DEA) and binary offset [$0A66]
 	rts	;4E75
 
-adrCd000DEC:
+adrCd000DEC:		; Memory Address ($0DEC) and binary offset [$0A68]
 	moveq	#$4B,d0	;704B
-adrLp000DEE:
+adrLp000DEE:		; Memory Address ($0DEE) and binary offset [$0A6A]
 	lea	$5DC0(a1),a3	;47E95DC0
 	lea	$5DC0(a0),a2	;45E85DC0
 	move.l	(a3)+,(a2)+	;24DB
@@ -1162,7 +1220,7 @@ adrLp000DEE:
 	dbra	d0,adrLp000DEE	;51C8FFBE
 	rts	;4E75
 
-Keyboard_InterruptService_AI_TBC:
+Keyboard_InterruptService_AI_TBC:		; Memory Address ($0E34) and binary offset [$0AB0]
 	move.l	a4,d0	;200C
 	sub.l	#Character_Stats_DataTable,d0	;04800000EB2A
 	lsr.w	#$01,d0	;E248
@@ -1179,13 +1237,13 @@ Keyboard_InterruptService_AI_TBC:
 	movem.l	(sp)+,d0/d1/d7/a5	;4CDF2083
 	rts	;4E75
 
-CheckKeyboard_InputLoop_AI_TBC:
+CheckKeyboard_InputLoop_AI_TBC:		; Memory Address ($0E64) and binary offset [$0AE0]
 	movem.l	(sp)+,d0/d1/d7/a5	;4CDF2083
 	move.b	$0009(a4),d0	;102C0009
 	cmp.b	$000A(a4),d0	;B02C000A
 	beq.s	ProcessKeyCode_AI_TBC	;6704
 	addq.b	#$01,$0009(a4)	;522C0009
-ProcessKeyCode_AI_TBC:
+ProcessKeyCode_AI_TBC:		; Memory Address ($0E76) and binary offset [$0AF2]
 	move.b	(a4),d0	;1014
 	lsr.b	#$01,d0	;E208
 	cmp.b	#$5B,(a0)	;0C10005B
@@ -1193,16 +1251,16 @@ ProcessKeyCode_AI_TBC:
 	cmp.b	#$5B,$0001(a0)	;0C28005B0001
 	beq.s	adrCd000E8A	;6702
 	lsr.b	#$01,d0	;E208
-adrCd000E8A:
+adrCd000E8A:		; Memory Address ($0E8A) and binary offset [$0B06]
 	addq.b	#$01,d0	;5200
 	add.b	$0005(a4),d0	;D02C0005
 	bcc.s	adrCd000E94	;6402
 	moveq	#-$01,d0	;70FF
-adrCd000E94:
+adrCd000E94:		; Memory Address ($0E94) and binary offset [$0B10]
 	cmp.b	$0006(a4),d0	;B02C0006
 	bcs.s	adrCd000E9E	;6504
 	move.b	$0006(a4),d0	;102C0006
-adrCd000E9E:
+adrCd000E9E:		; Memory Address ($0E9E) and binary offset [$0B1A]
 	move.b	d0,$0005(a4)	;19400005
 	tst.b	$0007(a4)	;4A2C0007
 	bne.s	RandomWalk_NormalReturn_AI_TBC	;6626
@@ -1214,13 +1272,13 @@ adrCd000E9E:
 	bcs.s	RandomWalk_Init_AI_TBC	;6506
 	move.b	$0005(a4),d0	;102C0005
 	beq.s	adrCd000ECA	;6708
-RandomWalk_Init_AI_TBC:
+RandomWalk_Init_AI_TBC:		; Memory Address ($0EC2) and binary offset [$0B3E]
 	move.w	d0,d5	;3A00
 	move.w	d7,d0	;3007
 	bsr	adrCd002298	;610013D0
-adrCd000ECA:
+adrCd000ECA:		; Memory Address ($0ECA) and binary offset [$0B46]
 	movem.l	(sp)+,d7/a4/a5	;4CDF3080
-RandomWalk_NormalReturn_AI_TBC:
+RandomWalk_NormalReturn_AI_TBC:		; Memory Address ($0ECE) and binary offset [$0B4A]
 	move.b	$0010(a4),d0	;102C0010
 	bne.s	adrCd000EE0	;660C
 	subq.b	#$01,$0007(a4)	;532C0007
@@ -1228,22 +1286,22 @@ RandomWalk_NormalReturn_AI_TBC:
 	clr.b	$0007(a4)	;422C0007
 	bra.s	adrCd000EF6	;6016
 
-adrCd000EE0:
+adrCd000EE0:		; Memory Address ($0EE0) and binary offset [$0B5C]
 	lsr.b	#$06,d0	;EC08
 	addq.b	#$01,d0	;5200
 	add.b	$0007(a4),d0	;D02C0007
 	cmp.b	$0008(a4),d0	;B02C0008
 	bcs.s	adrCd000EF2	;6504
 	move.b	$0008(a4),d0	;102C0008
-adrCd000EF2:
+adrCd000EF2:		; Memory Address ($0EF2) and binary offset [$0B6E]
 	move.b	d0,$0007(a4)	;19400007
-adrCd000EF6:
+adrCd000EF6:		; Memory Address ($0EF6) and binary offset [$0B72]
 	rts	;4E75
 
-Stat_UpdateLoop_AI_TBC:
+Stat_UpdateLoop_AI_TBC:		; Memory Address ($0EF8) and binary offset [$0B74]
 	lea	Character_Stats_DataTable.l,a4	;49F90000EB2A
 	moveq	#$0F,d7	;7E0F
-adrLp000F00:
+adrLp000F00:		; Memory Address ($0F00) and binary offset [$0B7C]
 	movem.l	d7/a4,-(sp)	;48E70108
 	bsr	Keyboard_InterruptService_AI_TBC	;6100FF2E
 	movem.l	(sp)+,d7/a4	;4CDF1080
@@ -1257,15 +1315,15 @@ adrLp000F00:
 	tst.b	adrB_00EE3C.l	;4A390000EE3C
 	bpl.s	ChampionFlag_Reset_AI_TBC	;6A06
 	clr.b	adrB_00EE3C.l	;42390000EE3C
-ChampionFlag_Reset_AI_TBC:
+ChampionFlag_Reset_AI_TBC:		; Memory Address ($0F3C) and binary offset [$0BB8]
 	rts	;4E75
 
-ChampionFlag_Test_AI_TBC:
+ChampionFlag_Test_AI_TBC:		; Memory Address ($0F3E) and binary offset [$0BBA]
 	tst.b	adrB_00EE3C.l	;4A390000EE3C
 	bpl	adrCd00104A	;6A000104
 	moveq	#$00,d6	;7C00
 	moveq	#$03,d7	;7E03
-adrLp000F4C:
+adrLp000F4C:		; Memory Address ($0F4C) and binary offset [$0BC8]
 	move.b	$18(a5,d7.w),d0	;10357018
 	bmi.s	adrCd000FB8	;6B66
 	btst	#$06,d0	;08000006
@@ -1282,7 +1340,7 @@ adrLp000F4C:
 	subq.b	#$01,$0010(a4)	;532C0010
 	bcc.s	TeamAvatar_UpdateLoop_AI_TBC	;6404
 	clr.b	$0010(a4)	;422C0010
-TeamAvatar_UpdateLoop_AI_TBC:
+TeamAvatar_UpdateLoop_AI_TBC:		; Memory Address ($0F80) and binary offset [$0BFC]
 	move.b	$0011(a4),d0	;102C0011
 	and.w	#$0007,d0	;02400007
 	beq.s	adrCd000FB8	;672E
@@ -1292,19 +1350,19 @@ TeamAvatar_UpdateLoop_AI_TBC:
 	tst.w	d7	;4A47
 	bne.s	adrCd000F9A	;6602
 	addq.b	#$01,d6	;5206
-adrCd000F9A:
+adrCd000F9A:		; Memory Address ($0F9A) and binary offset [$0C16]
 	btst	d7,$003E(a5)	;0F2D003E
 	bne.s	adrCd000FB8	;6618
 	tst.w	d7	;4A47
 	beq.s	TriggerState_Reset_AI_TBC	;6706
 	tst.w	$0042(a5)	;4A6D0042
 	bpl.s	adrCd000FB8	;6A0E
-TriggerState_Reset_AI_TBC:
+TriggerState_Reset_AI_TBC:		; Memory Address ($0FAA) and binary offset [$0C26]
 	movem.w	d6/d7,-(sp)	;48A70300
 	bsr	adrCd007EF0	;61006F40
 	movem.w	(sp)+,d6/d7	;4C9F00C0
 	bset	d7,d6	;0FC6
-adrCd000FB8:
+adrCd000FB8:		; Memory Address ($0FB8) and binary offset [$0C34]
 	dbra	d7,adrLp000F4C	;51CFFF92
 	btst	#$00,d6	;08060000
 	beq.s	TriggerState_Check_AI_TBC	;670E
@@ -1313,13 +1371,13 @@ adrCd000FB8:
 	move.w	d6,-(sp)	;3F06
 	bsr	Load_MapPosition_AI_TBC	;61007202
 	move.w	(sp)+,d6	;3C1F
-TriggerState_Check_AI_TBC:
+TriggerState_Check_AI_TBC:		; Memory Address ($0FD0) and binary offset [$0C4C]
 	and.w	#$000E,d6	;0246000E
 	beq.s	adrCd00104A	;6774
 	bsr	adrCd007ED2	;61006EFA
 	bra.s	adrCd00104A	;606E
 
-FloorTrigger_Handler_AI_TBC:
+FloorTrigger_Handler_AI_TBC:		; Memory Address ($0FDC) and binary offset [$0C58]
 	btst	#$02,(a5)	;08150002
 	beq	adrCd00108E	;670000AC
 	clr.w	adrW_001062.l	;427900001062
@@ -1332,9 +1390,9 @@ FloorTrigger_Handler_AI_TBC:
 	tst.b	$00(a6,d0.w)	;4A360000
 	bne.s	adrCd00100C	;6608
 	move.w	#$FFFF,adrW_001062.l	;33FCFFFF00001062
-adrCd00100C:
+adrCd00100C:		; Memory Address ($100C) and binary offset [$0C88]
 	moveq	#$03,d7	;7E03
-adrLp00100E:
+adrLp00100E:		; Memory Address ($100E) and binary offset [$0C8A]
 	move.b	$18(a5,d7.w),d0	;10357018
 	and.w	#$00E0,d0	;024000E0
 	bne.s	adrCd001046	;662E
@@ -1343,18 +1401,18 @@ adrLp00100E:
 	subq.b	#$06,$0015(a4)	;5D2C0015
 	bcc.s	adrCd00102A	;6404
 	clr.b	$0015(a4)	;422C0015
-adrCd00102A:
+adrCd00102A:		; Memory Address ($102A) and binary offset [$0CA6]
 	movem.l	d7/a5,-(sp)	;48E70104
 	bsr	Keyboard_InterruptService_AI_TBC	;6100FE04
 	tst.w	adrW_001062.l	;4A7900001062
 	beq.s	adrCd001042	;6708
 	subq.b	#$01,$0009(a4)	;532C0009
 	bsr	Keyboard_InterruptService_AI_TBC	;6100FDF4
-adrCd001042:
+adrCd001042:		; Memory Address ($1042) and binary offset [$0CBE]
 	movem.l	(sp)+,d7/a5	;4CDF2080
-adrCd001046:
+adrCd001046:		; Memory Address ($1046) and binary offset [$0CC2]
 	dbra	d7,adrLp00100E	;51CFFFC6
-adrCd00104A:
+adrCd00104A:		; Memory Address ($104A) and binary offset [$0CC6]
 	bsr	adrCd0080CA	;6100707E
 	move.w	$0014(a5),d1	;322D0014
 	subq.w	#$01,d1	;5341
@@ -1363,37 +1421,37 @@ adrCd00104A:
 	bne.s	adrCd00108E	;6632
 	jmp	adrCd00C812.l	;4EF90000C812
 
-adrW_001062:
+adrW_001062:		; Memory Address ($1062) and binary offset [$0CDE]
 	dc.w	$0000	;0000
 
-adrCd001064:
+adrCd001064:		; Memory Address ($1064) and binary offset [$0CE0]
 	subq.b	#$01,adrB_00EE3D.l	;53390000EE3D
 	bpl.s	adrCd00108E	;6A22
 	move.b	#$07,adrB_00EE3D.l	;13FC00070000EE3D
 	moveq	#$0F,d7	;7E0F
 	lea	Character_Stats_DataTable.l,a4	;49F90000EB2A
-adrLp00107C:
+adrLp00107C:		; Memory Address ($107C) and binary offset [$0CF8]
 	subq.b	#$01,$0015(a4)	;532C0015
 	bcc.s	adrCd001086	;6404
 	clr.b	$0015(a4)	;422C0015
-adrCd001086:
+adrCd001086:		; Memory Address ($1086) and binary offset [$0D02]
 	add.w	#$0020,a4	;D8FC0020
 	dbra	d7,adrLp00107C	;51CFFFF0
-adrCd00108E:
+adrCd00108E:		; Memory Address ($108E) and binary offset [$0D0A]
 	rts	;4E75
 
-adrCd001090:
+adrCd001090:		; Memory Address ($1090) and binary offset [$0D0C]
 	moveq	#$00,d6	;7C00
 	lea	UnpackedMonsters.l,a3	;47F900016B7E
 	lea	adrEA017390.l,a0	;41F900017390
 	move.w	-$0002(a0),d7	;3E28FFFE
 	bmi.s	adrCd00108E	;6BEA
-adrLp0010A4:
+adrLp0010A4:		; Memory Address ($10A4) and binary offset [$0D20]
 	cmp.l	#$FFFFFFFF,(a0)	;0C90FFFFFFFF
 	beq.s	adrCd0010EA	;673E
 	moveq	#-$01,d4	;78FF
 	moveq	#$03,d1	;7203
-adrLp0010B0:
+adrLp0010B0:		; Memory Address ($10B0) and binary offset [$0D2C]
 	moveq	#$00,d2	;7400
 	move.b	$00(a0,d1.w),d2	;14301000
 	bmi.s	adrCd0010CA	;6B12
@@ -1404,7 +1462,7 @@ adrLp0010B0:
 	sub.b	d6,d3	;9606
 	move.b	d3,$0D(a3,d2.w)	;1783200D
 	move.w	d2,d5	;3A02
-adrCd0010CA:
+adrCd0010CA:		; Memory Address ($10CA) and binary offset [$0D46]
 	dbra	d1,adrLp0010B0	;51C9FFE4
 	tst.w	d4	;4A44
 	bne.s	adrCd00110A	;6638
@@ -1415,22 +1473,22 @@ adrCd0010CA:
 	asl.w	#$04,d4	;E944
 	or.w	d4,d2	;8444
 	move.b	d2,$02(a3,d5.w)	;17825002
-adrCd0010EA:
+adrCd0010EA:		; Memory Address ($10EA) and binary offset [$0D66]
 	lea	$0004(a0),a1	;43E80004
 	lea	(a0),a2	;45D0
 	move.w	d7,d1	;3207
 	bra.s	adrCd0010F6	;6002
 
-adrLp0010F4:
+adrLp0010F4:		; Memory Address ($10F4) and binary offset [$0D70]
 	move.l	(a1)+,(a2)+	;24D9
-adrCd0010F6:
+adrCd0010F6:		; Memory Address ($10F6) and binary offset [$0D72]
 	dbra	d1,adrLp0010F4	;51C9FFFC
 	move.l	#$FFFFFFFF,(a2)	;24BCFFFFFFFF
 	subq.w	#$01,adrW_01738E.l	;53790001738E
 	addq.w	#$01,d6	;5246
 	bra.s	adrCd00116E	;6064
 
-adrCd00110A:
+adrCd00110A:		; Memory Address ($110A) and binary offset [$0D86]
 	move.w	(a0),d0	;3010
 	and.w	#$8080,d0	;02408080
 	beq.s	adrCd00116C	;675A
@@ -1439,15 +1497,15 @@ adrCd00110A:
 	move.b	#$FF,$0003(a0)	;117C00FF0003
 	bra.s	adrCd00112A	;600A
 
-adrCd001120:
+adrCd001120:		; Memory Address ($1120) and binary offset [$0D9C]
 	move.b	$0002(a0),d2	;14280002
 	move.b	#$FF,$0002(a0)	;117C00FF0002
-adrCd00112A:
+adrCd00112A:		; Memory Address ($112A) and binary offset [$0DA6]
 	moveq	#$01,d1	;7201
 	tst.b	d0	;4A00
 	bmi.s	adrCd001132	;6B02
 	moveq	#$00,d1	;7200
-adrCd001132:
+adrCd001132:		; Memory Address ($1132) and binary offset [$0DAE]
 	move.b	d2,$00(a0,d1.w)	;11821000
 	move.w	d5,d3	;3605
 	lsr.w	#$04,d3	;E84B
@@ -1462,23 +1520,23 @@ adrCd001132:
 	move.b	$02(a3,d5.w),$02(a3,d3.w)	;17B350023002
 	move.b	$0D(a3,d5.w),$0D(a3,d3.w)	;17B3500D300D
 	move.b	#$FF,$0D(a3,d5.w)	;17BC00FF500D
-adrCd00116C:
+adrCd00116C:		; Memory Address ($116C) and binary offset [$0DE8]
 	addq.w	#$04,a0	;5848
-adrCd00116E:
+adrCd00116E:		; Memory Address ($116E) and binary offset [$0DEA]
 	dbra	d7,adrLp0010A4	;51CFFF34
 	rts	;4E75
 
-adrCd001174:
+adrCd001174:		; Memory Address ($1174) and binary offset [$0DF0]
 	clr.w	adrW_0020F4.l	;4279000020F4
 	moveq	#$00,d1	;7200
-	move.l	adrL_00EE78.l,a6	;2C790000EE78
+	move.l	Current_TowerMapDataBase.l,a6	;2C790000EE78
 	lea	adrEA0173F6.l,a0	;41F9000173F6
-adrCd001188:
+adrCd001188:		; Memory Address ($1188) and binary offset [$0E04]
 	cmp.w	-$0002(a0),d1	;B268FFFE
 	bcs.s	adrCd001190	;6502
 	rts	;4E75
 
-adrCd001190:
+adrCd001190:		; Memory Address ($1190) and binary offset [$0E0C]
 	move.w	$02(a0,d1.w),d0	;30301002
 	subq.b	#$04,$00(a6,d0.w)	;59360000
 	bcs.s	adrCd0011B6	;651C
@@ -1488,15 +1546,15 @@ adrCd001190:
 	bpl.s	adrCd0011B2	;6A0A
 	move.b	$01(a0,d1.w),adrB_00EE3E.l	;13F010010000EE3E
 	bsr.s	adrCd0011BA	;6108
-adrCd0011B2:
+adrCd0011B2:		; Memory Address ($11B2) and binary offset [$0E2E]
 	addq.w	#$04,d1	;5841
 	bra.s	adrCd001188	;60D2
 
-adrCd0011B6:
+adrCd0011B6:		; Memory Address ($11B6) and binary offset [$0E32]
 	bsr.s	adrCd001212	;615A
 	bra.s	adrCd001188	;60CE
 
-adrCd0011BA:
+adrCd0011BA:		; Memory Address ($11BA) and binary offset [$0E36]
 	movem.l	d1/a0/a5/a6,-(sp)	;48E74086
 	move.b	$00(a6,d0.w),d1	;12360000
 	lsr.b	#$02,d1	;E409
@@ -1509,14 +1567,14 @@ adrCd0011BA:
 	bcs.s	adrCd0011E0	;6506
 	tst.b	$000B(a1)	;4A29000B
 	bmi.s	adrCd001208	;6B28
-adrCd0011E0:
+adrCd0011E0:		; Memory Address ($11E0) and binary offset [$0E5C]
 	move.w	$0002(sp),d7	;3E2F0002
 	bsr	adrCd001E42	;61000C5C
 	move.w	(sp),d0	;3017
 	bsr	adrCd00230C	;61001120
 	bra.s	adrCd001208	;6018
 
-adrCd0011F0:
+adrCd0011F0:		; Memory Address ($11F0) and binary offset [$0E6C]
 	move.l	a1,a5	;2A49
 	moveq	#$05,d1	;7205
 	bsr	adrCd005500	;6100430A
@@ -1525,12 +1583,12 @@ adrCd0011F0:
 	move.w	$0002(sp),d7	;3E2F0002
 	bsr	adrCd001E42	;61000C40
 	bsr	adrCd00248C	;61001286
-adrCd001208:
+adrCd001208:		; Memory Address ($1208) and binary offset [$0E84]
 	movem.w	(sp)+,d0/d1	;4C9F0003
 	movem.l	(sp)+,d1/a0/a5/a6	;4CDF6102
 	rts	;4E75
 
-adrCd001212:
+adrCd001212:		; Memory Address ($1212) and binary offset [$0E8E]
 	and.w	#$00F8,$00(a6,d0.w)	;027600F80000
 	lea	$00(a0,d1.w),a1	;43F01000
 	lea	$0004(a1),a2	;45E90004
@@ -1540,14 +1598,14 @@ adrCd001212:
 	subq.w	#$01,d0	;5340
 	bra.s	adrCd00122E	;6002
 
-adrLp00122C:
+adrLp00122C:		; Memory Address ($122C) and binary offset [$0EA8]
 	move.l	(a2)+,(a1)+	;22DA
-adrCd00122E:
+adrCd00122E:		; Memory Address ($122E) and binary offset [$0EAA]
 	dbra	d0,adrLp00122C	;51C8FFFC
 	subq.w	#$04,-$0002(a0)	;5968FFFE
 	rts	;4E75
 
-adrCd001238:
+adrCd001238:		; Memory Address ($1238) and binary offset [$0EB4]
 	tst.w	adrEA00EE36.l	;4A790000EE36
 	bne.s	adrCd001286	;6646
 	move.w	#$012C,adrEA00EE36.l	;33FC012C0000EE36
@@ -1564,18 +1622,18 @@ adrCd001238:
 	bchg	#$01,adrB_00EE3F.l	;087900010000EE3F
 	beq.s	adrCd001286	;6704
 	bsr	Stat_UpdateLoop_AI_TBC	;6100FC74
-adrCd001286:
+adrCd001286:		; Memory Address ($1286) and binary offset [$0F02]
 	tst.w	adrW_00EE38.l	;4A790000EE38
 	bne	adrCd0013C0	;66000132
 	move.w	#$0007,adrW_00EE38.l	;33FC00070000EE38
 	bsr	adrCd001064	;6100FDCA
 	lea	adrEA0174F8.l,a0	;41F9000174F8
 	lea	-$0002(a0),a1	;43E8FFFE
-	move.l	adrL_00EE78.l,a6	;2C790000EE78
+	move.l	Current_TowerMapDataBase.l,a6	;2C790000EE78
 	move.w	-$0002(a0),d7	;3E28FFFE
 	bra.s	adrCd0012DA	;6028
 
-adrLp0012B2:
+adrLp0012B2:		; Memory Address ($12B2) and binary offset [$0F2E]
 	move.w	(a0)+,d0	;3018
 	subq.w	#$01,(a0)	;5350
 	move.w	(a0)+,d1	;3218
@@ -1589,12 +1647,12 @@ adrLp0012B2:
 	move.w	d7,d1	;3207
 	bra.s	adrCd0012D4	;6002
 
-adrLp0012D2:
+adrLp0012D2:		; Memory Address ($12D2) and binary offset [$0F4E]
 	move.l	(a3)+,(a2)+	;24DB
-adrCd0012D4:
+adrCd0012D4:		; Memory Address ($12D4) and binary offset [$0F50]
 	dbra	d1,adrLp0012D2	;51C9FFFC
 	subq.w	#$01,(a1)	;5351
-adrCd0012DA:
+adrCd0012DA:		; Memory Address ($12DA) and binary offset [$0F56]
 	dbra	d7,adrLp0012B2	;51CFFFD6
 	lea	Player1_Data.l,a5	;4BF90000EE7C
 	bsr	adrCd002904	;6100161E
@@ -1604,7 +1662,7 @@ adrCd0012DA:
 	move.w	#$FFFF,adrW_0013C2.l	;33FCFFFF000013C2
 	clr.w	adrW_0013C4.l	;4279000013C4
 	lea	Character_Stats_DataTable.l,a4	;49F90000EB2A
-adrCd001308:
+adrCd001308:		; Memory Address ($1308) and binary offset [$0F84]
 	move.w	d7,-(sp)	;3F07
 	move.w	d7,d0	;3007
 	move.w	d7,adrW_0013C2.l	;33C7000013C2
@@ -1613,7 +1671,7 @@ adrCd001308:
 	bpl.s	adrCd001320	;6A06
 	moveq	#$16,d4	;7816
 	bsr	adrCd0013C6	;610000A8
-adrCd001320:
+adrCd001320:		; Memory Address ($1320) and binary offset [$0F9C]
 	add.w	#$0020,a4	;D8FC0020
 	move.w	(sp)+,d7	;3E1F
 	addq.w	#$01,d7	;5247
@@ -1622,7 +1680,7 @@ adrCd001320:
 	lea	UnpackedMonsters.l,a4	;49F900016B7E
 	move.w	-$0002(a4),d7	;3E2CFFFE
 	bmi.s	adrCd001352	;6B18
-adrLp00133A:
+adrLp00133A:		; Memory Address ($133A) and binary offset [$0FB6]
 	move.w	d7,-(sp)	;3F07
 	addq.w	#$01,adrW_0013C2.l	;5279000013C2
 	moveq	#$00,d4	;7800
@@ -1630,14 +1688,14 @@ adrLp00133A:
 	add.w	#$0010,a4	;D8FC0010
 	move.w	(sp)+,d7	;3E1F
 	dbra	d7,adrLp00133A	;51CFFFEA
-adrCd001352:
+adrCd001352:		; Memory Address ($1352) and binary offset [$0FCE]
 	lea	Player1_Data.l,a5	;4BF90000EE7C
 	bsr.s	adrCd001360	;6106
 	lea	Player2_Data.l,a5	;4BF90000EEDE
-adrCd001360:
+adrCd001360:		; Memory Address ($1360) and binary offset [$0FDC]
 	moveq	#$03,d7	;7E03
 	moveq	#$00,d6	;7C00
-adrLp001364:
+adrLp001364:		; Memory Address ($1364) and binary offset [$0FE0]
 	tst.b	$5A(a5,d7.w)	;4A35705A
 	bmi.s	adrCd00137E	;6B14
 	subq.b	#$01,$5A(a5,d7.w)	;5335705A
@@ -1646,14 +1704,14 @@ adrLp001364:
 	movem.w	d6/d7,-(sp)	;48A70300
 	bsr	adrCd007EF0	;61006B78
 	movem.w	(sp)+,d6/d7	;4C9F00C0
-adrCd00137E:
+adrCd00137E:		; Memory Address ($137E) and binary offset [$0FFA]
 	dbra	d7,adrLp001364	;51CFFFE4
 	tst.w	d6	;4A46
 	beq	adrCd00138C	;67000006
 	bsr	adrCd007ED2	;61006B48
-adrCd00138C:
+adrCd00138C:		; Memory Address ($138C) and binary offset [$1008]
 	moveq	#$03,d7	;7E03
-adrLp00138E:
+adrLp00138E:		; Memory Address ($138E) and binary offset [$100A]
 	tst.b	$5E(a5,d7.w)	;4A35705E
 	bmi.s	adrCd0013A2	;6B0E
 	subq.b	#$01,$5E(a5,d7.w)	;5335705E
@@ -1661,16 +1719,16 @@ adrLp00138E:
 	move.w	d7,-(sp)	;3F07
 	bsr	adrCd006096	;61004CF8
 	move.w	(sp)+,d7	;3E1F
-adrCd0013A2:
+adrCd0013A2:		; Memory Address ($13A2) and binary offset [$101E]
 	dbra	d7,adrLp00138E	;51CFFFEA
 	rts	;4E75
 
-adrCd0013A8:
+adrCd0013A8:		; Memory Address ($13A8) and binary offset [$1024]
 	sub.w	d1,d0	;9041
 	move.w	d0,d1	;3200
 	bpl.s	adrCd0013B0	;6A02
 	neg.w	d0	;4440
-adrCd0013B0:
+adrCd0013B0:		; Memory Address ($13B0) and binary offset [$102C]
 	move.w	d0,d2	;3400
 	swap	d0	;4840
 	swap	d1	;4841
@@ -1678,47 +1736,47 @@ adrCd0013B0:
 	move.w	d0,d1	;3200
 	bpl.s	adrCd0013BE	;6A02
 	neg.w	d0	;4440
-adrCd0013BE:
+adrCd0013BE:		; Memory Address ($13BE) and binary offset [$103A]
 	add.w	d0,d2	;D440
-adrCd0013C0:
+adrCd0013C0:		; Memory Address ($13C0) and binary offset [$103C]
 	rts	;4E75
 
-adrW_0013C2:
+adrW_0013C2:		; Memory Address ($13C2) and binary offset [$103E]
 	dc.w	$0000	;0000
-adrW_0013C4:
+adrW_0013C4:		; Memory Address ($13C4) and binary offset [$1040]
 	dc.w	$0000	;0000
 
-adrCd0013C6:
+adrCd0013C6:		; Memory Address ($13C6) and binary offset [$1042]
 	move.w	CurrentTower.l,d0	;30390000EE2E
 	cmp.b	$001F(a4),d0	;B02C001F
 	bne.s	adrCd0013C0	;66EE
 	bsr	Update_CharacterAttackCooldown	;610015B0
 	bra.s	adrCd0013EE	;6016
 
-adrCd0013D8:
+adrCd0013D8:		; Memory Address ($13D8) and binary offset [$1054]
 	move.b	$0005(a4),d0	;102C0005
 	bsr	Decrement_CharacterTimerLowBits	;61001594
 	move.b	$0005(a4),d1	;122C0005
 	and.b	#$60,d1	;02010060
 	or.b	d1,d0	;8001
 	move.b	d0,$0005(a4)	;19400005
-adrCd0013EE:
+adrCd0013EE:		; Memory Address ($13EE) and binary offset [$106A]
 	move.b	$04(a4,d4.w),d0	;10344004
 	cmp.b	adrB_00EED5.l,d0	;B0390000EED5
 	beq.s	adrCd001402	;6708
 	cmp.b	adrB_00EF37.l,d0	;B0390000EF37
 	bne.s	adrCd001414	;6612
-adrCd001402:
+adrCd001402:		; Memory Address ($1402) and binary offset [$107E]
 	move.b	$03(a4,d4.w),d7	;1E344003
 	move.w	d7,d1	;3207
 	and.w	#$000F,d1	;0241000F
 	subq.w	#$01,d1	;5341
 	bcs.s	adrCd001416	;6506
 	subq.b	#$01,$03(a4,d4.w)	;53344003
-adrCd001414:
+adrCd001414:		; Memory Address ($1414) and binary offset [$1090]
 	rts	;4E75
 
-adrCd001416:
+adrCd001416:		; Memory Address ($1416) and binary offset [$1092]
 	move.w	d7,d1	;3207
 	lsr.b	#$04,d1	;E809
 	or.b	d7,d1	;8207
@@ -1730,7 +1788,7 @@ adrCd001416:
 	tst.w	d5	;4A45
 	bne.s	adrCd00143E	;6606
 	bclr	#$06,$05(a4,d4.w)	;08B400064005
-adrCd00143E:
+adrCd00143E:		; Memory Address ($143E) and binary offset [$10BA]
 	btst	#$05,$05(a4,d4.w)	;083400054005
 	beq.s	adrCd00146E	;6728
 	and.b	#$F0,$03(a4,d4.w)	;023400F04003
@@ -1741,7 +1799,7 @@ adrCd00143E:
 	bne.s	adrCd00146E	;660C
 	bclr	#$05,$05(a4,d4.w)	;08B400054005
 	or.b	#$0F,$03(a4,d4.w)	;0034000F4003
-adrCd00146E:
+adrCd00146E:		; Memory Address ($146E) and binary offset [$10EA]
 	tst.b	$05(a4,d4.w)	;4A344005
 	bpl.s	adrCd001498	;6A24
 	move.w	#$0014,adrW_0020F4.l	;33FC0014000020F4
@@ -1751,10 +1809,10 @@ adrCd00146E:
 	beq.s	adrCd001498	;670E
 	or.b	#$0F,$03(a4,d4.w)	;0034000F4003
 	bset	#$07,$05(a4,d4.w)	;08F400074005
-adrCd001496:
+adrCd001496:		; Memory Address ($1496) and binary offset [$1112]
 	rts	;4E75
 
-adrCd001498:
+adrCd001498:		; Memory Address ($1498) and binary offset [$1114]
 	moveq	#$00,d7	;7E00
 	move.b	$00(a4,d4.w),d7	;1E344000
 	bmi	adrCd001414	;6B00FF74
@@ -1776,10 +1834,10 @@ adrCd001498:
 	btst	#$00,(a5)	;08150000
 	beq.s	adrCd0014E4	;6706
 	lea	ReserveSpace_2.l,a6	;4DF900058C10
-adrCd0014E4:
+adrCd0014E4:		; Memory Address ($14E4) and binary offset [$1160]
 	bra	adrCd0016CE	;600001E8
 
-adrCd0014E8:
+adrCd0014E8:		; Memory Address ($14E8) and binary offset [$1164]
 	move.l	a4,a1	;224C
 	move.l	a1,d0	;2009
 	cmpi.w	#$0000,d4	;0C440000
@@ -1789,13 +1847,13 @@ adrCd0014E8:
 	add.w	#$0010,d0	;06400010
 	bra.s	adrCd001508	;6008
 
-adrCd001500:
+adrCd001500:		; Memory Address ($1500) and binary offset [$117C]
 	sub.l	#Character_Stats_DataTable,d0	;04800000EB2A
 	lsr.w	#$05,d0	;EA48
-adrCd001508:
+adrCd001508:		; Memory Address ($1508) and binary offset [$1184]
 	bra	adrCd0020F6	;60000BEC
 
-adrCd00150C:
+adrCd00150C:		; Memory Address ($150C) and binary offset [$1188]
 	move.b	$000B(a4),d2					;142C000B
 	bmi	adrCd001708					;6B0001F6
 	cmpi.b	#$40,d2						;0C020040
@@ -1804,13 +1862,13 @@ adrCd00150C:
 	bcc.s	adrCd001526					;6406
 	tst.b	$000D(a4)					;4A2C000D
 	bmi.s	adrCd00153A					;6B14
-adrCd001526:
+adrCd001526:		; Memory Address ($1526) and binary offset [$11A2]
 	and.b	#$03,$0002(a4)					;022C00030002
 	move.b	$0002(a4),d6					;1C2C0002
 	asl.b	#$04,d6						;E906
 	or.b	$0002(a4),d6					;8C2C0002
 	move.b	d6,$0002(a4)					;19460002
-adrCd00153A:
+adrCd00153A:		; Memory Address ($153A) and binary offset [$11B6]
 	bsr	adrCd001842	;61000306
 	bpl	adrCd001BCE	;6A00068E
 	move.w	adrW_0013C2.w,d1	;323813C2	;Short Absolute converted to symbol!
@@ -1835,7 +1893,7 @@ adrCd00153A:
 	bchg	#$07,$0007(a4)	;086C00070007
 	beq.s	adrCd001596	;6704
 	addq.b	#$01,$0007(a4)	;522C0007
-adrCd001596:
+adrCd001596:		; Memory Address ($1596) and binary offset [$1212]
 	move.b	$000A(a4),d1	;122C000A
 	add.w	d1,d1	;D241
 	lea	AttackType_NoSpells.l,a1	;43F90000166A
@@ -1843,20 +1901,20 @@ adrCd001596:
 	add.w	$00(a0,d1.w),a1	;D2F01000
 	jmp	(a1)	;4ED1
 
-MonsterAttackTypeTable:
+MonsterAttackTypeTable:		; Memory Address ($15AE) and binary offset [$122A]
 	dc.w	AttackType_NoSpells-AttackType_NoSpells	;0000
 	dc.w	AttackType_Spells-AttackType_NoSpells	;FF6C
 	dc.w	AttackType_Drone-AttackType_NoSpells	;00F0
 	dc.w	AttackType_DroneSpells-AttackType_NoSpells	;FF4E
 	dc.w	adrJA001664-AttackType_NoSpells	;FFFA
 
-AttackType_DroneSpells:
+AttackType_DroneSpells:		; Memory Address ($15B8) and binary offset [$1234]
 	bsr	RandomGen_BytewithOffset	;61003FF2
 	and.w	#$000F,d0	;0240000F
 	bne	AttackType_Drone	;66000198
 	bra.s	adrCd0015E0	;601A
 
-MonsterAttackSpells:
+MonsterAttackSpells:		; Memory Address ($15C6) and binary offset [$1242]
 	dc.b	$0A	;0A
 	dc.b	$0A	;0A
 	dc.b	$00	;00
@@ -1874,11 +1932,11 @@ MonsterAttackSpells:
 	dc.b	$00	;00
 	dc.b	$83	;83
 
-AttackType_Spells:
+AttackType_Spells:		; Memory Address ($15D6) and binary offset [$1252]
 	bsr	adrCd005556	;61003F7E
 	subq.b	#$02,d0	;5500
 	bcc	AttackType_NoSpells	;6400008C
-adrCd0015E0:
+adrCd0015E0:		; Memory Address ($15E0) and binary offset [$125C]
 	bsr	RandomGen_BytewithOffset	;61003FCA
 	and.w	#$000F,d0	;0240000F
 	move.b	$0007(a4),d3	;162C0007
@@ -1892,7 +1950,7 @@ adrCd0015E0:
 	cmpi.b	#$04,d3	;0C030004
 	bcc.s	adrCd001608	;6402
 	lsr.w	#$01,d0	;E248
-adrCd001608:
+adrCd001608:		; Memory Address ($1608) and binary offset [$1284]
 	move.b	MonsterAttackSpells(pc,d0.w),d0	;103B00BC
 	move.w	d0,d4	;3800
 	or.w	#$0080,d4	;00440080
@@ -1906,7 +1964,7 @@ adrCd001608:
 	cmpi.b	#$8E,d4	;0C04008E
 	beq.s	adrCd00162C	;6702
 	lsr.b	#$01,d3	;E20B
-adrCd00162C:
+adrCd00162C:		; Memory Address ($162C) and binary offset [$12A8]
 	move.b	$0002(a4),d0	;102C0002
 	and.w	#$0003,d0	;02400003
 	move.w	d0,d6	;3C00
@@ -1925,12 +1983,12 @@ adrCd00162C:
 	move.l	(sp)+,a4	;285F
 	rts	;4E75
 
-adrJA001664:
+adrJA001664:		; Memory Address ($1664) and binary offset [$12E0]
 	moveq	#$0C,d3	;760C
 	moveq	#$0B,d0	;700B
 	bra.s	adrCd001608	;609E
 
-AttackType_NoSpells:
+AttackType_NoSpells:		; Memory Address ($166A) and binary offset [$12E6]
 	moveq	#-$01,d2	;74FF
 	move.b	$0004(a4),d1	;122C0004
 	cmp.b	adrB_00EED5.l,d1	;B2390000EED5
@@ -1938,7 +1996,7 @@ AttackType_NoSpells:
 	move.l	adrL_00EE98.l,d0	;20390000EE98
 	move.l	d7,d1	;2207
 	bsr	adrCd0013A8	;6100FD26
-AttackType_ArcBoltMachine:
+AttackType_ArcBoltMachine:		; Memory Address ($1684) and binary offset [$1300]
 	move.w	d2,d3	;3602
 	moveq	#-$01,d2	;74FF
 	move.b	$0004(a4),d1	;122C0004
@@ -1947,7 +2005,7 @@ AttackType_ArcBoltMachine:
 	move.l	adrL_00EEFA.l,d0	;20390000EEFA
 	move.l	d7,d1	;2207
 	bsr	adrCd0013A8	;6100FD0A
-adrCd0016A0:
+adrCd0016A0:		; Memory Address ($16A0) and binary offset [$131C]
 	moveq	#$00,d4	;7800
 	tst.w	d2	;4A42
 	bmi.s	adrCd0016BE	;6B18
@@ -1958,12 +2016,12 @@ adrCd0016A0:
 	add.b	$0006(a4),d0	;D02C0006
 	and.w	#$0001,d0	;02400001
 	add.w	d0,d2	;D440
-adrCd0016BE:
+adrCd0016BE:		; Memory Address ($16BE) and binary offset [$133A]
 	lea	ReserveSpace_1.l,a6	;4DF900058828
 	cmp.w	d2,d3	;B642
 	bcs.s	adrCd0016CE	;6506
 	lea	ReserveSpace_2.l,a6	;4DF900058C10
-adrCd0016CE:
+adrCd0016CE:		; Memory Address ($16CE) and binary offset [$134A]
 	move.w	d7,d0	;3007
 	mulu	adrW_00EE70.l,d0			;C0F90000EE70
 	swap	d7					;4847
@@ -1984,13 +2042,13 @@ adrCd0016CE:
 	move.b	$02(a4,d4.w),d6				;1C344002
 	bra	adrCd001BC6				;600004C0
 
-adrCd001708:
+adrCd001708:		; Memory Address ($1708) and binary offset [$1384]
 	sub.b	#$84,d2					;04020084
 	bcs.s	AttackType_Drone				;654C
 	beq.s	adrCd001714				;6704
 	subq.b	#$03,d2					;5702
 	bne.s	AttackType_Drone				;6646
-adrCd001714:
+adrCd001714:		; Memory Address ($1714) and binary offset [$1390]
 	not.w	d1					;4641
 	and.w	#$0007,d1				;02410007
 	beq.s	adrCd001728				;670C
@@ -1998,7 +2056,7 @@ adrCd001714:
 	bne.s	AttackType_Drone				;6638
 	tst.b	$00(a6,d0.w)				;4A360000
 	bne.s	AttackType_Drone				;6632
-adrCd001728:
+adrCd001728:		; Memory Address ($1728) and binary offset [$13A4]
 	or.b	#$07,$01(a6,d0.w)			;003600070001
 	moveq	#$00,d1					;7200
 	move.b	$0006(a4),d1				;122C0006
@@ -2008,14 +2066,14 @@ adrCd001728:
 	cmpi.b	#$40,d1					;0C010040
 	bcs.s	adrCd001746				;6502
 	moveq	#$3F,d1					;723F
-adrCd001746:
+adrCd001746:		; Memory Address ($1746) and binary offset [$13C2]
 	asl.b	#$02,d1					;E501
 	addq.b	#$01,d1					;5201
 	move.b	d1,$00(a6,d0.w)	;1D810000
 	move.w	#$0100,d1	;323C0100
 	move.b	$000C(a4),d1	;122C000C
 	bsr	adrCd0054BE	;61003D66
-AttackType_Drone:
+AttackType_Drone:		; Memory Address ($175A) and binary offset [$13D6]
 	move.b	$02(a4,d4.w),d6	;1C344002
 	and.w	#$0003,d6	;02460003
 	bsr	Compute_NewMapIndex_AI_TBC	;610062E0
@@ -2024,7 +2082,7 @@ AttackType_Drone:
 	bne.s	adrCd001778	;6608
 	cmp.b	#$85,$000B(a4)	;0C2C0085000B
 	beq.s	adrCd0017EE	;6776
-adrCd001778:
+adrCd001778:		; Memory Address ($1778) and binary offset [$13F4]
 	move.b	d7,$01(a4,d4.w)	;19874001
 	swap	d7	;4847
 	move.b	d7,$00(a4,d4.w)	;19874000
@@ -2036,7 +2094,7 @@ adrCd001778:
 	bne.s	adrCd00179C	;6606
 	tst.b	$000B(a4)	;4A2C000B
 	bmi.s	adrCd0017EC	;6B50
-adrCd00179C:
+adrCd00179C:		; Memory Address ($179C) and binary offset [$1418]
 	bsr	CoordToMap	;61006CFE
 	move.w	$00(a6,d0.w),d1	;32360000
 	not.w	d1	;4641
@@ -2049,7 +2107,7 @@ adrCd00179C:
 	bne.s	adrCd0017EC	;6632
 	lea	adrEA0173F6.l,a0	;41F9000173F6
 	moveq	#-$04,d1	;72FC
-adrCd0017C2:
+adrCd0017C2:		; Memory Address ($17C2) and binary offset [$143E]
 	addq.w	#$04,d1	;5841
 	cmp.w	-$0002(a0),d1	;B268FFFE
 	bcc.s	adrCd0017EC	;6422
@@ -2062,10 +2120,10 @@ adrCd0017C2:
 	clr.w	adrW_0020F4.l	;4279000020F4
 	bsr	adrCd00230C	;61000B24
 	move.l	(sp)+,a4	;285F
-adrCd0017EC:
+adrCd0017EC:		; Memory Address ($17EC) and binary offset [$1468]
 	rts	;4E75
 
-adrCd0017EE:
+adrCd0017EE:		; Memory Address ($17EE) and binary offset [$146A]
 	move.w	$00(a6,d0.w),d1	;32360000
 	not.b	d1	;4601
 	and.w	#$0007,d1	;02410007
@@ -2074,7 +2132,7 @@ adrCd0017EE:
 	and.w	#$0003,d1	;02410003
 	subq.w	#$01,d1	;5341
 	beq	adrCd001778	;6700FF72
-adrCd001808:
+adrCd001808:		; Memory Address ($1808) and binary offset [$1484]
 	move.w	$00(a6,d2.w),d1	;32362000
 	not.b	d1	;4601
 	and.w	#$0007,d1	;02410007
@@ -2082,13 +2140,13 @@ adrCd001808:
 	move.b	#$80,$000B(a4)	;197C0080000B
 	bra	adrCd001778	;6000FF5C
 
-adrCd00181E:
+adrCd00181E:		; Memory Address ($181E) and binary offset [$149A]
 	bclr	#$07,$01(a6,d0.w)	;08B600070001
 	bset	#$07,$01(a6,d2.w)	;08F600072001
 	eor.b	#$02,$0002(a4)	;0A2C00020002
 	rts	;4E75
 
-Monster_Movement_DataTable:
+Monster_Movement_DataTable:		; Memory Address ($1832) and binary offset [$14AE]
 	dc.b	$B0	;B0
 	dc.b	$A0	;A0
 	dc.b	$10	;10
@@ -2106,7 +2164,7 @@ Monster_Movement_DataTable:
 	dc.b	$30	;30
 	dc.b	$A0	;A0
 
-adrCd001842:
+adrCd001842:		; Memory Address ($1842) and binary offset [$14BE]
 	moveq	#$00,d6	;7C00
 	move.b	$02(a4,d4.w),d6	;1C344002
 	move.w	d6,d0	;3006
@@ -2118,7 +2176,7 @@ adrCd001842:
 	move.b	Monster_Movement_DataTable(pc,d2.w),d0	;103B20DA
 	rts	;4E75
 
-adrCd00185C:
+adrCd00185C:		; Memory Address ($185C) and binary offset [$14D8]
 	clr.w	PhysicalAttack_DoubleDefenceFlag.l	;427900006458
 	jsr	adrCd0098A4.l	;4EB9000098A4
 	bcc	adrCd001BB8	;6400034E
@@ -2133,7 +2191,7 @@ adrCd00185C:
 	move.b	$000C(a4),adrB_00EE3E.l	;13EC000C0000EE3E
 	bra	adrCd001982	;600000F0
 
-adrCd001894:
+adrCd001894:		; Memory Address ($1894) and binary offset [$1510]
 	cmp.b	#$64,$000B(a1)				;0C290064000B
 	beq	adrCd001982				;670000E6
 	cmpi.b	#$40,d2					;0C020040
@@ -2163,7 +2221,7 @@ adrCd001894:
 	move.l	(sp)+,a4		;285F
 	rts				;4E75
 
-adrCd0018F6:
+adrCd0018F6:		; Memory Address ($18F6) and binary offset [$1572]
 	cmpi.b	#$40,d2	;0C020040
 	beq	adrCd001BB8	;670002BC
 	cmpi.b	#$67,d2	;0C020067
@@ -2182,18 +2240,18 @@ adrCd0018F6:
 	move.l	#$FFFFFFFF,$00(a0,d3.w)	;21BCFFFFFFFF3000
 	move.b	d0,$00(a0,d3.w)	;11803000
 	lsr.w	#$02,d3	;E44B
-adrCd00193C:
+adrCd00193C:		; Memory Address ($193C) and binary offset [$15B8]
 	asl.w	#$02,d3	;E543
 	lea	adrEA017390.l,a0	;41F900017390
 	add.w	d3,a0	;D0C3
 	moveq	#$03,d2	;7403
-adrLp001948:
+adrLp001948:		; Memory Address ($1948) and binary offset [$15C4]
 	tst.b	$00(a0,d2.w)	;4A302000
 	bmi.s	adrCd001956	;6B08
 	dbra	d2,adrLp001948	;51CAFFF8
 	bra	adrCd001BB8	;60000264
 
-adrCd001956:
+adrCd001956:		; Memory Address ($1956) and binary offset [$15D2]
 	move.l	a4,d0	;200C
 	sub.l	#UnpackedMonsters,d0	;048000016B7E
 	lsr.w	#$04,d0	;E848
@@ -2207,9 +2265,9 @@ adrCd001956:
 	bclr	#$07,$01(a6,d0.w)	;08B600070001
 	rts	;4E75
 
-adrCd001982:
+adrCd001982:		; Memory Address ($1982) and binary offset [$15FE]
 	move.w	d0,d1	;3200
-adrCd001984:
+adrCd001984:		; Memory Address ($1984) and binary offset [$1600]
 	move.b	$000B(a4),d0	;102C000B
 	bpl	adrCd001A4A	;6A0000C0
 	cmpi.b	#$10,d1	;0C010010
@@ -2218,7 +2276,7 @@ adrCd001984:
 	bpl	adrCd001A4A	;6A0000B2
 	rts	;4E75
 
-adrCd00199C:
+adrCd00199C:		; Memory Address ($199C) and binary offset [$1618]
 	movem.l	d1/a5,-(sp)	;48E74004
 	move.w	d1,d0	;3001
 	bsr	adrCd004066	;610026C2
@@ -2235,9 +2293,9 @@ adrCd00199C:
 	move.w	d3,d1	;3203
 	bra.s	adrCd0019C6	;6004
 
-adrCd0019C2:
+adrCd0019C2:		; Memory Address ($19C2) and binary offset [$163E]
 	movem.l	(sp)+,d1/a5			;4CDF2002
-adrCd0019C6:
+adrCd0019C6:		; Memory Address ($19C6) and binary offset [$1642]
 	move.w	d1,d0				;3001
 	move.l	a4,a2				;244C
 	bsr	Load_ChampionStatRecord			;61004C94
@@ -2259,7 +2317,7 @@ adrCd0019C6:
 	move.w	(sp)+,d1	;321F
 	tst.b	d0	;4A00
 	bmi	adrCd001A4A	;6B000046
-adrCd001A06:
+adrCd001A06:		; Memory Address ($1A06) and binary offset [$1682]
 	moveq	#$00,d4	;7800
 	move.b	$000B(a4),d4	;182C000B
 	move.b	$0002(a4),d0	;102C0002
@@ -2281,7 +2339,7 @@ adrCd001A06:
 	move.b	d1,adrB_00EE3E.l	;13C10000EE3E
 	bra	adrCd00533C	;600038F4
 
-adrCd001A4A:
+adrCd001A4A:		; Memory Address ($1A4A) and binary offset [$16C6]
 	moveq	#$00,d3	;7600
 	move.b	$000D(a4),d3	;162C000D
 	bmi.s	adrCd001A84	;6B32
@@ -2290,7 +2348,7 @@ adrCd001A4A:
 	lea	adrEA017390.l,a0	;41F900017390
 	add.w	d3,a0	;D0C3
 	moveq	#$01,d0	;7001
-adrLp001A60:
+adrLp001A60:		; Memory Address ($1A60) and binary offset [$16DC]
 	moveq	#$00,d3	;7600
 	move.b	$00(a0,d0.w),d3	;16300000
 	bmi.s	adrCd001A7C	;6B14
@@ -2300,12 +2358,12 @@ adrLp001A60:
 	add.w	d3,a4	;D8C3
 	bsr.s	adrCd001A84	;610C
 	movem.l	(sp)+,d0/d1/a0	;4CDF0103
-adrCd001A7C:
+adrCd001A7C:		; Memory Address ($1A7C) and binary offset [$16F8]
 	dbra	d0,adrLp001A60	;51C8FFE2
 	move.l	(sp)+,a4	;285F
 	rts	;4E75
 
-adrCd001A84:
+adrCd001A84:		; Memory Address ($1A84) and binary offset [$1700]
 	move.l	a4,d3	;260C
 	sub.l	#UnpackedMonsters,d3	;048300016B7E
 	lsr.w	#$04,d3	;E84B
@@ -2321,7 +2379,7 @@ adrCd001A84:
 	move.l	(sp)+,a4	;285F
 	rts	;4E75
 
-adrCd001AB6:
+adrCd001AB6:		; Memory Address ($1AB6) and binary offset [$1732]
 	bsr	RandomGen_BytewithOffset	;61003AF4
 	move.w	d0,d2	;3400
 	and.w	#$0001,d2	;02420001
@@ -2339,7 +2397,7 @@ adrCd001AB6:
 	movem.l	(sp)+,d0/d1/a5	;4CDF2003
 	bra	adrCd001984	;6000FE96
 
-adrCd001AF0:
+adrCd001AF0:		; Memory Address ($1AF0) and binary offset [$176C]
 	move.w	adrW_0013C2.w,d1	;323813C2	;Short Absolute converted to symbol!
 	cmp.b	adrB_00EEB1.l,d1	;B2390000EEB1
 	beq	adrCd001BD4	;670000D8
@@ -2367,18 +2425,18 @@ adrCd001AF0:
 	bne.s	adrCd001B5C	;660A
 	move.b	#$FF,$0053(a5)	;1B7C00FF0053
 	clr.b	$0014(a5)	;422D0014
-adrCd001B5C:
+adrCd001B5C:		; Memory Address ($1B5C) and binary offset [$17D8]
 	moveq	#$03,d7	;7E03
-adrLp001B5E:
+adrLp001B5E:		; Memory Address ($1B5E) and binary offset [$17DA]
 	tst.b	$26(a5,d7.w)	;4A357026
 	bmi.s	adrCd001B68	;6B04
 	dbra	d7,adrLp001B5E	;51CFFFF8
-adrCd001B68:
+adrCd001B68:		; Memory Address ($1B68) and binary offset [$17E4]
 	move.b	d0,$26(a5,d7.w)	;1B807026
 	move.b	#$FF,$0016(a4)	;197C00FF0016
 	rts	;4E75
 
-adrCd001B74:
+adrCd001B74:		; Memory Address ($1B74) and binary offset [$17F0]
 	tst.b	$000B(a4)	;4A2C000B
 	bmi	EquipStateOrArmorHandler_AI_TBC	;6B000182
 	cmp.b	#$15,$000B(a4)	;0C2C0015000B
@@ -2393,28 +2451,28 @@ adrCd001B74:
 	bne	adrCd001C02	;66000066
 	bra.s	adrCd001BD6	;6036
 
-adrCd001BA0:
+adrCd001BA0:		; Memory Address ($1BA0) and binary offset [$181C]
 	move.b	$01(a6,d0.w),d2	;14360001
 	bpl.s	adrCd001BB8	;6A12
 	move.b	#$FF,adrB_00EE3E.l	;13FC00FF0000EE3E
 	and.w	#$0007,d2	;02420007
 	subq.w	#$01,d2	;5342
 	bne	adrCd00185C	;6600FCA6
-adrCd001BB8:
+adrCd001BB8:		; Memory Address ($1BB8) and binary offset [$1834]
 	bsr	RandomGen_BytewithOffset	;610039F2
 	or.w	#$0001,d0	;00400001
 	move.b	$02(a4,d4.w),d6	;1C344002
 	add.w	d6,d0	;D046
-adrCd001BC6:
+adrCd001BC6:		; Memory Address ($1BC6) and binary offset [$1842]
 	and.w	#$0003,d0	;02400003
 	and.w	#$00F0,d6	;024600F0
-adrCd001BCE:
+adrCd001BCE:		; Memory Address ($1BCE) and binary offset [$184A]
 	or.b	d6,d0	;8006
 	move.b	d0,$02(a4,d4.w)	;19804002
-adrCd001BD4:
+adrCd001BD4:		; Memory Address ($1BD4) and binary offset [$1850]
 	rts	;4E75
 
-adrCd001BD6:
+adrCd001BD6:		; Memory Address ($1BD6) and binary offset [$1852]
 	move.b	$0002(a4),d6	;1C2C0002
 	and.w	#$0003,d6	;02460003
 	move.b	$00(a6,d0.w),d1	;12360000
@@ -2430,7 +2488,7 @@ adrCd001BD6:
 	bclr	d6,$00(a6,d0.w)	;0DB60000
 	rts	;4E75
 
-adrCd001C02:
+adrCd001C02:		; Memory Address ($1C02) and binary offset [$187E]
 	moveq	#$00,d7	;7E00
 	move.b	$0000(a4),d7	;1E2C0000
 	swap	d7	;4847
@@ -2454,16 +2512,16 @@ adrCd001C02:
 	bclr	d6,$00(a6,d0.w)	;0DB60000
 	rts	;4E75
 
-adrCd001C48:
+adrCd001C48:		; Memory Address ($1C48) and binary offset [$18C4]
 	cmp.w	d0,d2	;B440
 	bne	adrCd001C86	;6600003A
-adrCd001C4E:
+adrCd001C4E:		; Memory Address ($1C4E) and binary offset [$18CA]
 	move.b	$0002(a4),d6	;1C2C0002
 	and.w	#$0003,d6	;02460003
 	cmpi.w	#$0002,d6	;0C460002
 	bcs.s	adrCd001C60	;6504
 	eor.w	#$0001,d6	;0A460001
-adrCd001C60:
+adrCd001C60:		; Memory Address ($1C60) and binary offset [$18DC]
 	moveq	#$00,d1	;7200
 	move.b	$000B(a4),d1	;122C000B
 	sub.b	#$85,d1	;04010085
@@ -2477,7 +2535,7 @@ adrCd001C60:
 	move.w	d1,d5	;3A01
 	bra	adrCd005E88	;60004204
 
-adrCd001C86:
+adrCd001C86:		; Memory Address ($1C86) and binary offset [$1902]
 	moveq	#$00,d7	;7E00
 	move.b	$000B(a4),d7	;1E2C000B
 	bsr	adrCd001DBC	;6100012E
@@ -2486,11 +2544,11 @@ adrCd001C86:
 	eor.b	#$02,$0002(a4)	;0A2C00020002
 	bra.s	adrCd001C4E	;60B0
 
-adrCd001C9E:
+adrCd001C9E:		; Memory Address ($1C9E) and binary offset [$191A]
 	movem.l	a4/a5,-(sp)	;48E7000C
 	lea	adrEA01737E.l,a0	;41F90001737E
 	moveq	#$03,d1	;7203
-adrLp001CAA:
+adrLp001CAA:		; Memory Address ($1CAA) and binary offset [$1926]
 	move.l	(a4)+,(a0)+	;20DC
 	dbra	d1,adrLp001CAA	;51C9FFFC
 	sub.w	#$0010,a4	;98FC0010
@@ -2501,10 +2559,10 @@ adrLp001CAA:
 	move.b	$000C(a4),adrB_00EE3E.l	;13EC000C0000EE3E
 	bsr	adrCd00185C	;6100FB90
 	movem.l	(sp)+,a4/a5	;4CDF3000
-adrCd001CD2:
+adrCd001CD2:		; Memory Address ($1CD2) and binary offset [$194E]
 	rts	;4E75
 
-HandleArmorSubroutine_AI_TBC:
+HandleArmorSubroutine_AI_TBC:		; Memory Address ($1CD4) and binary offset [$1950]
 	bsr	adrCd001BB8	;6100FEE2
 	move.w	d0,d6	;3C00
 	and.w	#$0003,d6	;02460003
@@ -2515,13 +2573,13 @@ HandleArmorSubroutine_AI_TBC:
 	move.b	d7,$0000(a4)	;19470000
 	rts	;4E75
 
-CheckAndToggleProcessedFlag_AI_TBC:
+CheckAndToggleProcessedFlag_AI_TBC:		; Memory Address ($1CF0) and binary offset [$196C]
 	cmp.w	d0,d2	;B440
 	bne.s	EquipStateOrArmorHandler_AI_TBC	;6608
 	eor.b	#$02,$0002(a4)	;0A2C00020002
 	rts	;4E75
 
-EquipStateOrArmorHandler_AI_TBC:
+EquipStateOrArmorHandler_AI_TBC:		; Memory Address ($1CFC) and binary offset [$1978]
 	cmp.b	#$84,$000B(a4)	;0C2C0084000B
 	bne.s	CompareLastBlockedVSEquipCode_AI_TBC	;661A
 	move.b	#$85,$000B(a4)	;197C0085000B
@@ -2529,18 +2587,18 @@ EquipStateOrArmorHandler_AI_TBC:
 	addq.w	#$04,d1	;5841
 	asl.w	#$02,d1	;E541
 	move.b	d1,$0006(a4)	;19410006
-ClearOrTogglePlayerBit_AI_TBC:
+ClearOrTogglePlayerBit_AI_TBC:		; Memory Address ($1D16) and binary offset [$1992]
 	eor.b	#$02,$0002(a4)	;0A2C00020002
 	rts	;4E75
 
-CompareLastBlockedVSEquipCode_AI_TBC:
+CompareLastBlockedVSEquipCode_AI_TBC:		; Memory Address ($1D1E) and binary offset [$199A]
 	cmp.w	d2,d0	;B042
 	bne.s	EquipOrArmorDecisionLoop_AI_TBC	;6610
 	cmp.b	#$85,$000B(a4)	;0C2C0085000B
 	beq.s	ClearOrTogglePlayerBit_AI_TBC	;67EC
 	cmp.b	#$82,$000B(a4)	;0C2C0082000B
 	beq.s	HandleArmorSubroutine_AI_TBC	;67A2
-EquipOrArmorDecisionLoop_AI_TBC:
+EquipOrArmorDecisionLoop_AI_TBC:		; Memory Address ($1D32) and binary offset [$19AE]
 	cmp.b	#$85,$000B(a4)	;0C2C0085000B
 	bne.s	MarkMapCellProcessedFlag_AI_TBC	;6618
 	move.w	$00(a6,d0.w),d1	;32360000
@@ -2551,21 +2609,21 @@ EquipOrArmorDecisionLoop_AI_TBC:
 	and.w	#$0003,d1	;02410003
 	subq.w	#$01,d1	;5341
 	bne.s	ClearOrTogglePlayerBit_AI_TBC	;66C4
-MarkMapCellProcessedFlag_AI_TBC:
+MarkMapCellProcessedFlag_AI_TBC:		; Memory Address ($1D52) and binary offset [$19CE]
 	bclr	#$07,$01(a6,d2.w)	;08B600072001
-CheckEquipCostsAndAttrs_AI_TBC:
+CheckEquipCostsAndAttrs_AI_TBC:		; Memory Address ($1D58) and binary offset [$19D4]
 	cmp.b	#$88,$000B(a4)	;0C2C0088000B
 	bcs.s	ClampEquipOrTeleportCode_AI_TBC	;650A
 	cmp.b	#$8B,$000B(a4)	;0C2C008B000B
 	bcs	adrCd001C48	;6500FEE0
-ClampEquipOrTeleportCode_AI_TBC:
+ClampEquipOrTeleportCode_AI_TBC:		; Memory Address ($1D6A) and binary offset [$19E6]
 	moveq	#$00,d7	;7E00
 	move.b	$0006(a4),d7	;1E2C0006
 	swap	d7	;4847
 	move.b	$000B(a4),d7	;1E2C000B
 	bmi.s	PrepareTeleportOrEquipValue_AI_TBC	;6B02
 	clr.w	d7	;4247
-PrepareTeleportOrEquipValue_AI_TBC:
+PrepareTeleportOrEquipValue_AI_TBC:		; Memory Address ($1D7A) and binary offset [$19F6]
 	moveq	#$00,d1	;7200
 	move.b	$0004(a4),d1	;122C0004
 	move.w	d0,d4	;3800
@@ -2577,22 +2635,22 @@ PrepareTeleportOrEquipValue_AI_TBC:
 	moveq	#$04,d0	;7004
 	cmpi.b	#$8B,d7	;0C07008B
 	bcs.s	adrCd001DA0	;6502
-adrCd001D9E:
+adrCd001D9E:		; Memory Address ($1D9E) and binary offset [$1A1A]
 	moveq	#$05,d0	;7005
-adrCd001DA0:
+adrCd001DA0:		; Memory Address ($1DA0) and binary offset [$1A1C]
 	jsr	PlaySound.l	;4EB9000088BE
 	movem.l	(sp)+,d0/a0	;4CDF0101
-adrCd001DAA:
+adrCd001DAA:		; Memory Address ($1DAA) and binary offset [$1A26]
 	bsr	adrCd0027E0	;61000A34
 	move.w	d4,d0	;3004
 	move.l	a4,-(sp)	;2F0C
 	bsr.s	adrCd001DE0	;612C
 	move.l	(sp)+,a4	;285F
 	sub.w	#$0010,a4	;98FC0010
-adrCd001DBA:
+adrCd001DBA:		; Memory Address ($1DBA) and binary offset [$1A36]
 	rts	;4E75
 
-adrCd001DBC:
+adrCd001DBC:		; Memory Address ($1DBC) and binary offset [$1A38]
 	bset	#$05,$01(a6,d0.w)	;08F600050001
 	asl.b	#$02,d7	;E507
 	addq.w	#$02,d7	;5447
@@ -2604,7 +2662,7 @@ adrCd001DBC:
 	move.w	d7,$02(a0,d2.w)	;31872002
 	rts	;4E75
 
-adrCd001DE0:
+adrCd001DE0:		; Memory Address ($1DE0) and binary offset [$1A5C]
 	bsr.s	adrCd001DBC	;61DA
 	swap	d7	;4847
 	move.b	$01(a6,d0.w),d5	;1A360001
@@ -2619,7 +2677,7 @@ adrCd001DE0:
 	bclr	#$07,$01(a6,d0.w)	;08B600070001
 	bra.s	adrCd001DBA	;60B2
 
-adrCd001E08:
+adrCd001E08:		; Memory Address ($1E08) and binary offset [$1A84]
 	tst.b	d0	;4A00
 	bpl.s	adrCd001E28	;6A1C
 	swap	d7	;4847
@@ -2632,7 +2690,7 @@ adrCd001E08:
 	bcc.s	adrCd001E28	;6408
 	moveq	#$04,d0	;7004
 	jsr	PlaySound.l	;4EB9000088BE
-adrCd001E28:
+adrCd001E28:		; Memory Address ($1E28) and binary offset [$1AA4]
 	movem.l	(sp)+,d0-d7/a0-a6	;4CDF7FFF
 	move.b	d7,d5	;1A07
 	and.w	#$007F,d5	;0245007F
@@ -2642,12 +2700,12 @@ adrCd001E28:
 	bsr.s	adrCd001E42	;6104
 	bra	adrCd00230C	;600004CC
 
-adrCd001E42:
+adrCd001E42:		; Memory Address ($1E42) and binary offset [$1ABE]
 	move.w	#$FFFF,adrW_00230A.l	;33FCFFFF0000230A
 	move.w	d0,-(sp)	;3F00
 	move.w	d7,d5	;3A07
 	addq.w	#$01,d5	;5245
-adrLp001E50:
+adrLp001E50:		; Memory Address ($1E50) and binary offset [$1ACC]
 	bsr	adrCd005556	;61003704
 	add.w	d0,d5	;DA40
 	dbra	d7,adrLp001E50	;51CFFFF8
@@ -2656,10 +2714,10 @@ adrLp001E50:
 	cmpi.w	#$0100,d5	;0C450100
 	bcs.s	adrCd001E68	;6504
 	move.w	#$00FD,d5	;3A3C00FD
-adrCd001E68:
+adrCd001E68:		; Memory Address ($1E68) and binary offset [$1AE4]
 	moveq	#$03,d1	;7203
 	lea	adrEA002680.l,a0	;41F900002680
-adrLp001E70:
+adrLp001E70:		; Memory Address ($1E70) and binary offset [$1AEC]
 	move.b	d5,$00(a0,d1.w)	;11851000
 	dbra	d1,adrLp001E70	;51C9FFFA
 	move.w	(sp)+,d5	;3A1F
@@ -2668,7 +2726,7 @@ adrLp001E70:
 	swap	d5	;4845
 	rts	;4E75
 
-adrCd001E84:
+adrCd001E84:		; Memory Address ($1E84) and binary offset [$1B00]
 	swap	d7						;4847
 	lsr.b	#$02,d7						;E40F
 	cmpi.b	#$03,d7						;0C070003
@@ -2683,7 +2741,7 @@ adrCd001E84:
 	beq.s	adrCd001EB0					;6702
 	rts							;4E75
 
-adrCd001EB0:
+adrCd001EB0:		; Memory Address ($1EB0) and binary offset [$1B2C]
 	bsr	adrCd0098A4	;610079F2
 	bcc.s	adrCd001EDA	;6424
 	tst.b	d0	;4A00
@@ -2698,10 +2756,10 @@ adrCd001EB0:
 	tst.w	d5	;4A45
 	beq.s	adrCd001EDA	;6704
 	clr.b	$0007(a1)	;42290007
-adrCd001EDA:
+adrCd001EDA:		; Memory Address ($1EDA) and binary offset [$1B56]
 	rts	;4E75
 
-adrCd001EDC:
+adrCd001EDC:		; Memory Address ($1EDC) and binary offset [$1B58]
 	clr.b	$0011(a1)	;42290011
 	move.w	adrW_0020F4.l,d5	;3A39000020F4
 	bsr	adrCd0020F8	;61000210
@@ -2709,22 +2767,22 @@ adrCd001EDC:
 	sub.b	d5,d1	;9205
 	bcc.s	adrCd001EF4	;6402
 	moveq	#$00,d1	;7200
-adrCd001EF4:
+adrCd001EF4:		; Memory Address ($1EF4) and binary offset [$1B70]
 	move.b	d1,$0009(a1)	;13410009
 	move.b	$0015(a1),d1	;12290015
 	add.b	d5,d1	;D205
 	cmpi.b	#$64,d1	;0C010064
 	bcs.s	adrCd001F06	;6502
 	moveq	#$64,d1	;7264
-adrCd001F06:
+adrCd001F06:		; Memory Address ($1F06) and binary offset [$1B82]
 	move.b	d1,$0015(a1)	;13410015
 	rts	;4E75
 
-adrCd001F0C:
+adrCd001F0C:		; Memory Address ($1F0C) and binary offset [$1B88]
 	moveq	#$03,d7	;7E03
 	moveq	#$05,d0	;7005
 	jsr	PlaySound.l	;4EB9000088BE
-adrLp001F16:
+adrLp001F16:		; Memory Address ($1F16) and binary offset [$1B92]
 	moveq	#$00,d0	;7000
 	move.b	$18(a1,d7.w),d0	;10317018
 	move.w	d0,d1	;3200
@@ -2737,7 +2795,7 @@ adrLp001F16:
 	exg	a1,a4	;C949
 	bsr.s	adrCd001EDC	;61A8
 	exg	a1,a4	;C949
-adrCd001F36:
+adrCd001F36:		; Memory Address ($1F36) and binary offset [$1BB2]
 	dbra	d7,adrLp001F16	;51CFFFDE
 	move.l	a5,-(sp)	;2F0D
 	move.l	a1,a5	;2A49
@@ -2746,26 +2804,26 @@ adrCd001F36:
 	move.l	(sp)+,a5	;2A5F
 	rts	;4E75
 
-adrCd001F4A:
+adrCd001F4A:		; Memory Address ($1F4A) and binary offset [$1BC6]
 	bsr	adrCd0098A4	;61007958
 	bcc.s	adrCd001F76	;6426
-adrCd001F50:
+adrCd001F50:		; Memory Address ($1F50) and binary offset [$1BCC]
 	moveq	#$19,d4	;7819
 	tst.b	d0	;4A00
 	bmi.s	adrCd001F76	;6B20
 	cmpi.b	#$10,d0	;0C000010
 	bcs.s	adrCd001F5E	;6502
 	moveq	#$03,d4	;7803
-adrCd001F5E:
+adrCd001F5E:		; Memory Address ($1F5E) and binary offset [$1BDA]
 	and.b	#$F0,$00(a1,d4.w)	;023100F04000
 	bsr	adrCd00208C	;61000126
 	bclr	#$06,$03(a1,d4.w)	;08B100064003
 	beq.s	adrCd001F76	;6706
 	bset	#$05,$03(a1,d4.w)	;08F100054003
-adrCd001F76:
+adrCd001F76:		; Memory Address ($1F76) and binary offset [$1BF2]
 	rts	;4E75
 
-adrCd001F78:
+adrCd001F78:		; Memory Address ($1F78) and binary offset [$1BF4]
 	bsr	adrCd0098A4	;6100792A
 	bcc.s	adrCd001FA0	;6422
 	moveq	#$16,d4	;7816
@@ -2774,20 +2832,20 @@ adrCd001F78:
 	cmpi.b	#$10,d0	;0C000010
 	bcs.s	adrCd001F8C	;6502
 	moveq	#$00,d4	;7800
-adrCd001F8C:
+adrCd001F8C:		; Memory Address ($1F8C) and binary offset [$1C08]
 	bsr	adrCd0020F6	;61000168
 	tst.w	d5	;4A45
 	beq.s	adrCd001FA0	;670C
 	bset	#$07,$05(a1,d4.w)	;08F100074005
 	or.b	#$0F,$03(a1,d4.w)	;0031000F4003
-adrCd001FA0:
+adrCd001FA0:		; Memory Address ($1FA0) and binary offset [$1C1C]
 	rts	;4E75
 
-adrCd001FA2:
+adrCd001FA2:		; Memory Address ($1FA2) and binary offset [$1C1E]
 	moveq	#$03,d7	;7E03
 	moveq	#$05,d0	;7005
 	jsr	PlaySound.l	;4EB9000088BE
-adrLp001FAC:
+adrLp001FAC:		; Memory Address ($1FAC) and binary offset [$1C28]
 	moveq	#$00,d0	;7000
 	move.b	$18(a1,d7.w),d0	;10317018
 	move.w	d0,d1	;3200
@@ -2800,11 +2858,11 @@ adrLp001FAC:
 	exg	a1,a4	;C949
 	bsr.s	adrCd001F8C	;61C2
 	exg	a1,a4	;C949
-adrCd001FCC:
+adrCd001FCC:		; Memory Address ($1FCC) and binary offset [$1C48]
 	dbra	d7,adrLp001FAC	;51CFFFDE
 	rts	;4E75
 
-adrCd001FD2:
+adrCd001FD2:		; Memory Address ($1FD2) and binary offset [$1C4E]
 	move.w	#$FFFF,adrW_00230A.l	;33FCFFFF0000230A
 	movem.w	d0/d1,-(sp)	;48A7C000
 	moveq	#-$01,d5	;7AFF
@@ -2828,16 +2886,16 @@ adrCd001FD2:
 	beq.s	adrCd002010	;6706
 	bsr	adrCd0020F8	;610000EC
 	move.w	(sp),d0	;3017
-adrCd002010:
+adrCd002010:		; Memory Address ($2010) and binary offset [$1C8C]
 	bsr	adrCd0020F8	;610000E6
-adrCd002014:
+adrCd002014:		; Memory Address ($2014) and binary offset [$1C90]
 	movem.w	(sp)+,d0	;4C9F0001
 	bsr	adrCd0020F8	;610000DE
-adrCd00201C:
+adrCd00201C:		; Memory Address ($201C) and binary offset [$1C98]
 	movem.w	(sp)+,d0/d1	;4C9F0003
 	bra	adrCd00230C	;600002EA
 
-adrCd002024:
+adrCd002024:		; Memory Address ($2024) and binary offset [$1CA0]
 	tst.b	d0	;4A00
 	bmi.s	adrCd00204A	;6B22
 	cmpi.b	#$10,d0	;0C000010
@@ -2847,16 +2905,16 @@ adrCd002024:
 	bcc.s	adrCd00203E	;6406
 	move.w	$0008(a1),d5	;3A290008
 	addq.w	#$01,d5	;5245
-adrCd00203E:
+adrCd00203E:		; Memory Address ($203E) and binary offset [$1CBA]
 	rts	;4E75
 
-adrCd002040:
+adrCd002040:		; Memory Address ($2040) and binary offset [$1CBC]
 	clr.w	d5	;4245
 	move.b	$0005(a1),d5	;1A290005
 	addq.b	#$01,d5	;5205
 	rts	;4E75
 
-adrCd00204A:
+adrCd00204A:		; Memory Address ($204A) and binary offset [$1CC6]
 	moveq	#$05,d0	;7005
 	jsr	PlaySound.l	;4EB9000088BE
 	moveq	#$01,d2	;7401
@@ -2864,7 +2922,7 @@ adrCd00204A:
 	clr.l	(a0)	;4290
 	move.l	a4,-(sp)	;2F0C
 	moveq	#$03,d7	;7E03
-adrLp002060:
+adrLp002060:		; Memory Address ($2060) and binary offset [$1CDC]
 	moveq	#$00,d0	;7000
 	move.b	$18(a1,d7.w),d0	;10317018
 	and.w	#$00E0,d0	;024000E0
@@ -2873,16 +2931,16 @@ adrLp002060:
 	bsr	Load_ChampionStatRecord	;610045EE
 	move.b	$0005(a4),$00(a0,d7.w)	;11AC00057000
 	addq.b	#$01,$00(a0,d7.w)	;52307000
-adrCd00207E:
+adrCd00207E:		; Memory Address ($207E) and binary offset [$1CFA]
 	dbra	d7,adrLp002060	;51CFFFE0
 	move.l	(sp)+,a4	;285F
-adrCd002084:
+adrCd002084:		; Memory Address ($2084) and binary offset [$1D00]
 	rts	;4E75
 
-adrCd002086:
+adrCd002086:		; Memory Address ($2086) and binary offset [$1D02]
 	bsr	adrCd0098A4	;6100781C
 	bcc.s	adrCd002084	;64F8
-adrCd00208C:
+adrCd00208C:		; Memory Address ($208C) and binary offset [$1D08]
 	tst.b	d0	;4A00
 	bmi.s	adrCd0020D6	;6B46
 	moveq	#$18,d4	;7818
@@ -2891,7 +2949,7 @@ adrCd00208C:
 	tst.b	$000B(a1)	;4A29000B
 	bmi.s	adrCd0020D4	;6B36
 	moveq	#$02,d4	;7802
-adrCd0020A0:
+adrCd0020A0:		; Memory Address ($20A0) and binary offset [$1D1C]
 	move.b	$00(a1,d4.w),d7	;1E314000
 	bsr.s	adrCd0020B8	;6112
 	cmp.b	$00(a1,d4.w),d7	;BE314000
@@ -2900,7 +2958,7 @@ adrCd0020A0:
 	bset	#$06,$03(a1,d4.w)	;08F100064003
 	rts	;4E75
 
-adrCd0020B8:
+adrCd0020B8:		; Memory Address ($20B8) and binary offset [$1D34]
 	move.w	d0,d6	;3C00
 	bsr	adrCd0020F6	;6100003A
 	tst.w	d5	;4A45
@@ -2911,10 +2969,10 @@ adrCd0020B8:
 	tst.w	d5	;4A45
 	bne.s	adrCd0020D4	;6604
 	eor.b	#$01,d7	;0A070001
-adrCd0020D4:
+adrCd0020D4:		; Memory Address ($20D4) and binary offset [$1D50]
 	rts	;4E75
 
-adrCd0020D6:
+adrCd0020D6:		; Memory Address ($20D6) and binary offset [$1D52]
 	bsr	Load_CurrentChampionStatRecord	;61004584
 	moveq	#$05,d0	;7005
 	jsr	PlaySound.l	;4EB9000088BE
@@ -2925,19 +2983,19 @@ adrCd0020D6:
 	move.w	d7,$0020(a4)	;39470020
 	rts	;4E75
 
-adrW_0020F4:
+adrW_0020F4:		; Memory Address ($20F4) and binary offset [$1D70]
 	dc.w	$0000	;0000
 
-adrCd0020F6:
+adrCd0020F6:		; Memory Address ($20F6) and binary offset [$1D72]
 	moveq	#$01,d5	;7A01
-adrCd0020F8:
+adrCd0020F8:		; Memory Address ($20F8) and binary offset [$1D74]
 	tst.b	d0	;4A00
 	bmi.s	adrCd00212E	;6B32
 	cmpi.b	#$10,d0	;0C000010
 	bcs.s	adrCd002128	;6526
 	move.b	$0006(a1),d2	;14290006
 	and.w	#$007F,d2	;0242007F
-adrCd00210A:
+adrCd00210A:		; Memory Address ($210A) and binary offset [$1D86]
 	asl.w	#$03,d2	;E742
 	add.w	#$0064,d2	;06420064
 	move.w	adrW_0020F4.w,d0	;303820F4	;Short Absolute converted to symbol!
@@ -2945,20 +3003,20 @@ adrCd00210A:
 	sub.w	d0,d2	;9440
 	bpl.s	adrCd00211C	;6A02
 	moveq	#$0A,d2	;740A
-adrCd00211C:
+adrCd00211C:		; Memory Address ($211C) and binary offset [$1D98]
 	bsr	RandomGen_BytewithOffset	;6100348E
 	cmp.w	d0,d2	;B440
 	bcs.s	adrCd002126	;6502
 	lsr.w	#$01,d5	;E24D
-adrCd002126:
+adrCd002126:		; Memory Address ($2126) and binary offset [$1DA2]
 	rts	;4E75
 
-adrCd002128:
+adrCd002128:		; Memory Address ($2128) and binary offset [$1DA4]
 	moveq	#$00,d2	;7400
 	move.b	(a1),d2	;1411
 	bra.s	adrCd00210A	;60DC
 
-adrCd00212E:
+adrCd00212E:		; Memory Address ($212E) and binary offset [$1DAA]
 	moveq	#$06,d1	;7206
 	movem.l	a4/a5,-(sp)	;48E7000C
 	move.l	a1,a5	;2A49
@@ -2977,19 +3035,19 @@ adrCd00212E:
 	move.w	d3,adrW_0020F4.w	;31C320F4	;Short Absolute converted to symbol!
 	lsr.w	#$02,d7	;E44F
 	addq.w	#$01,d7	;5247
-adrLp00215E:
+adrLp00215E:		; Memory Address ($215E) and binary offset [$1DDA]
 	move.w	d7,-(sp)	;3F07
 	bsr.s	adrCd00216A	;6108
 	move.w	(sp)+,d7	;3E1F
 	dbra	d7,adrLp00215E	;51CFFFF8
 	rts	;4E75
 
-adrCd00216A:
+adrCd00216A:		; Memory Address ($216A) and binary offset [$1DE6]
 	lea	adrEA002680.l,a0	;41F900002680
 	move.l	a4,-(sp)	;2F0C
 	clr.w	d5	;4245
 	moveq	#$03,d7	;7E03
-adrLp002176:
+adrLp002176:		; Memory Address ($2176) and binary offset [$1DF2]
 	move.b	$18(a1,d7.w),d0	;10317018
 	bsr	Load_ChampionStatRecord	;610044E4
 	move.b	$00(a0,d7.w),d5	;1A307000
@@ -2999,10 +3057,10 @@ adrLp002176:
 	move.b	d5,$00(a0,d7.w)	;11857000
 	dbra	d7,adrLp002176	;51CFFFE8
 	move.l	(sp)+,a4	;285F
-adrCd002192:
+adrCd002192:		; Memory Address ($2192) and binary offset [$1E0E]
 	rts	;4E75
 
-adrCd002194:
+adrCd002194:		; Memory Address ($2194) and binary offset [$1E10]
 	move.b	$000B(a1),d0	;1029000B
 	bmi.s	adrCd002192	;6BF8
 	sub.b	#$64,d0	;04000064
@@ -3019,21 +3077,21 @@ adrCd002194:
 	bcs.s	adrCd0021CA	;6506
 	move.w	$0008(a1),d1	;32290008
 	addq.w	#$01,d1	;5241
-adrCd0021CA:
+adrCd0021CA:		; Memory Address ($21CA) and binary offset [$1E46]
 	tst.w	MultiPlayer.l	;4A790000EE30
 	beq.s	adrCd0021D6	;6704
 	addq.w	#$01,d1	;5241
 	lsr.w	#$01,d1	;E249
-adrCd0021D6:
+adrCd0021D6:		; Memory Address ($21D6) and binary offset [$1E52]
 	sub.w	d1,d2	;9441
 	bcs.s	adrCd0021E4	;650A
 	cmp.b	#$09,$0006(a1)	;0C2900090006
 	bcc.s	adrCd0021E4	;6402
 	sub.w	d1,d2	;9441
-adrCd0021E4:
+adrCd0021E4:		; Memory Address ($21E4) and binary offset [$1E60]
 	move.w	d2,$001C(a4)	;3942001C
 	bsr	adrCd002258	;6100006E
-adrCd0021EC:
+adrCd0021EC:		; Memory Address ($21EC) and binary offset [$1E68]
 	move.l	a5,a2	;244D
 	move.b	adrB_00EE3E.l,d0	;10390000EE3E
 	and.w	#$000F,d0	;0240000F
@@ -3047,7 +3105,7 @@ adrCd0021EC:
 	move.b	$0006(a1),d1	;12290006
 	and.w	#$007F,d1	;0241007F
 	moveq	#$03,d7	;7E03
-adrLp002214:
+adrLp002214:		; Memory Address ($2214) and binary offset [$1E90]
 	move.b	$18(a2,d7.w),d0	;10327018
 	and.w	#$00E0,d0	;024000E0
 	bne.s	adrCd002252	;6634
@@ -3066,16 +3124,16 @@ adrLp002214:
 	tst.w	MultiPlayer.l	;4A790000EE30
 	bne.s	adrCd00224A	;6602
 	add.w	d2,d2	;D442
-adrCd00224A:
+adrCd00224A:		; Memory Address ($224A) and binary offset [$1EC6]
 	sub.w	d2,d0	;9042
 	move.w	d0,$001C(a4)	;3940001C
 	bsr.s	adrCd002258	;6106
-adrCd002252:
+adrCd002252:		; Memory Address ($2252) and binary offset [$1ECE]
 	dbra	d7,adrLp002214	;51CFFFC0
-adrCd002256:
+adrCd002256:		; Memory Address ($2256) and binary offset [$1ED2]
 	rts	;4E75
 
-adrCd002258:
+adrCd002258:		; Memory Address ($2258) and binary offset [$1ED4]
 	tst.b	$001E(a4)	;4A2C001E
 	bmi.s	adrCd002296	;6B38
 	moveq	#$00,d2	;7400
@@ -3092,15 +3150,15 @@ adrCd002258:
 	beq.s	adrCd00228A	;6706
 	cmpi.w	#$0003,d3	;0C430003
 	bcs.s	adrCd002290	;6506
-adrCd00228A:
+adrCd00228A:		; Memory Address ($228A) and binary offset [$1F06]
 	btst	#$00,d2	;08020000
 	bne.s	adrCd002296	;6606
-adrCd002290:
+adrCd002290:		; Memory Address ($2290) and binary offset [$1F0C]
 	add.b	#$81,$001E(a4)	;062C0081001E
-adrCd002296:
+adrCd002296:		; Memory Address ($2296) and binary offset [$1F12]
 	rts	;4E75
 
-adrCd002298:
+adrCd002298:		; Memory Address ($2298) and binary offset [$1F14]
 	swap	d5	;4845
 	clr.w	d5	;4245
 	swap	d5	;4845
@@ -3120,7 +3178,7 @@ adrCd002298:
 	move.w	d1,d0	;3001
 	bra.s	adrCd002324	;605A
 
-adrCd0022CA:
+adrCd0022CA:		; Memory Address ($22CA) and binary offset [$1F46]
 	move.w	d0,d3	;3600
 	bsr	Load_ChampionStatRecord	;61004392
 	move.l	a4,a1	;224C
@@ -3137,7 +3195,7 @@ adrCd0022CA:
 	move.b	d5,$00(a0,d1.w)	;11851000
 	bra	adrCd00248C	;60000196
 
-adrCd0022F8:
+adrCd0022F8:		; Memory Address ($22F8) and binary offset [$1F74]
 	swap	d7	;4847
 	move.b	$0017(a1),d7	;1E290017
 	bsr	CoordToMap	;6100619C
@@ -3145,21 +3203,21 @@ adrCd0022F8:
 	move.w	d3,d0	;3003
 	bra	adrCd002414	;6000010C
 
-adrW_00230A:
+adrW_00230A:		; Memory Address ($230A) and binary offset [$1F86]
 	dc.w	$0000	;0000
 
-adrCd00230C:
+adrCd00230C:		; Memory Address ($230C) and binary offset [$1F88]
 	move.w	d0,d4	;3800
 	bsr	adrCd0098A4	;61007594
 	bcs.s	adrCd002316	;6502
 	rts	;4E75
 
-adrCd002316:
+adrCd002316:		; Memory Address ($2316) and binary offset [$1F92]
 	tst.b	d0	;4A00
 	bmi	adrCd00248C	;6B000172
 	cmpi.w	#$0010,d0	;0C400010
 	bcs	adrCd002414	;650000F2
-adrCd002324:
+adrCd002324:		; Memory Address ($2324) and binary offset [$1FA0]
 	tst.w	adrW_00230A.w	;4A78230A	;Short Absolute converted to symbol!
 	beq.s	adrCd002374	;674A
 	moveq	#$00,d1	;7200
@@ -3169,7 +3227,7 @@ adrCd002324:
 	lea	adrEA017390.l,a0	;41F900017390
 	add.w	d1,a0	;D0C1
 	moveq	#$03,d7	;7E03
-adrLp00233E:
+adrLp00233E:		; Memory Address ($233E) and binary offset [$1FBA]
 	moveq	#$00,d1	;7200
 	move.b	$00(a0,d7.w),d1	;12307000
 	bmi.s	adrCd002360	;6B1A
@@ -3181,29 +3239,29 @@ adrLp00233E:
 	movem.l	d4/d5/d7/a0/a6,-(sp)	;48E70D82
 	bsr.s	adrCd002374	;6118
 	movem.l	(sp)+,d4/d5/d7/a0/a6	;4CDF41B0
-adrCd002360:
+adrCd002360:		; Memory Address ($2360) and binary offset [$1FDC]
 	dbra	d7,adrLp00233E	;51CFFFDC
 	cmp.l	#$FFFFFFFF,(a0)	;0C90FFFFFFFF
 	beq.s	adrCd002394	;6728
 	bset	#$07,$01(a6,d4.w)	;08F600074001
 	rts	;4E75
 
-adrCd002374:
+adrCd002374:		; Memory Address ($2374) and binary offset [$1FF0]
 	movem.w	d0/d4,-(sp)	;48A78800
 	tst.l	d5	;4A85
 	bpl.s	adrCd002380	;6A04
 	bsr	adrCd0020F8	;6100FD7A
-adrCd002380:
+adrCd002380:		; Memory Address ($2380) and binary offset [$1FFC]
 	bsr	adrCd002194	;6100FE12
 	movem.w	(sp)+,d0/d4	;4C9F0011
 	move.w	$0008(a1),d1	;32290008
 	sub.w	d5,d1	;9245
 	bcs.s	adrCd002396	;6506
 	move.w	d1,$0008(a1)	;33410008
-adrCd002394:
+adrCd002394:		; Memory Address ($2394) and binary offset [$2010]
 	rts	;4E75
 
-adrCd002396:
+adrCd002396:		; Memory Address ($2396) and binary offset [$2012]
 	moveq	#$00,d2	;7400
 	move.b	$000C(a1),d2	;1429000C
 	swap	d2	;4842
@@ -3229,7 +3287,7 @@ adrCd002396:
 	move.w	d2,d5				;3A02
 	bra.s	_DropTheObject			;6020
 
-adrCd0023D6:
+adrCd0023D6:		; Memory Address ($23D6) and binary offset [$2052]
 	bsr	RandomGen_BytewithOffset			;610031D4
 	and.w	#$000F,d0			;0240000F
 	move.b	DroppedObjects_DataTable(pc,d0.w),d5		;1A3B0024
@@ -3240,13 +3298,13 @@ adrCd0023D6:
 	and.w	#$0007,d0			;02400007
 	swap	d0				;4840
 	add.l	d0,d5				;DA80
-_DropTheObject:
+_DropTheObject:		; Memory Address ($23F6) and binary offset [$2072]
 	move.w	d4,d0	;3004
-	move.l	adrL_00EE78.l,a6	;2C790000EE78
+	move.l	Current_TowerMapDataBase.l,a6	;2C790000EE78
 	moveq	#$00,d6	;7C00
 	bra	adrCd005E88	;60003A86
 
-DroppedObjects_DataTable:
+DroppedObjects_DataTable:		; Memory Address ($2404) and binary offset [$2080]
 	dc.b	$00	;00
 	dc.b	$01	;01
 	dc.b	$04	;04
@@ -3264,13 +3322,13 @@ DroppedObjects_DataTable:
 	dc.b	$0C	;0C
 	dc.b	$03	;03
 
-adrCd002414:
+adrCd002414:		; Memory Address ($2414) and binary offset [$2090]
 	tst.l	d5	;4A85
 	bpl.s	adrCd002420	;6A08
 	move.w	d0,-(sp)	;3F00
 	bsr	adrCd0020F8	;6100FCDC
 	move.w	(sp)+,d0	;301F
-adrCd002420:
+adrCd002420:		; Memory Address ($2420) and binary offset [$209C]
 	moveq	#$00,d1	;7200
 	move.b	$0005(a1),d1	;12290005
 	sub.w	d5,d1	;9245
@@ -3278,7 +3336,7 @@ adrCd002420:
 	move.b	d1,$0005(a1)	;13410005
 	rts	;4E75
 
-adrCd002430:
+adrCd002430:		; Memory Address ($2430) and binary offset [$20AC]
 	clr.b	$0005(a1)	;42290005
 	clr.b	$0007(a1)	;42290007
 	move.l	a5,-(sp)	;2F0D
@@ -3293,10 +3351,10 @@ adrCd002430:
 	bsr	adrCd007EF0	;61005A9A
 	bsr	adrCd007ED2	;61005A78
 	movem.l	(sp)+,d4/a1	;4CDF0210
-adrCd002460:
+adrCd002460:		; Memory Address ($2460) and binary offset [$20DC]
 	move.l	(sp)+,a5	;2A5F
 	move.b	#$FF,$0016(a1)	;137C00FF0016
-	move.l	adrL_00EE78.l,a6	;2C790000EE78
+	move.l	Current_TowerMapDataBase.l,a6	;2C790000EE78
 	move.w	d4,d0	;3004
 	bclr	#$07,$01(a6,d0.w)	;08B600070001
 	move.l	a1,d5	;2A09
@@ -3306,27 +3364,27 @@ adrCd002460:
 	moveq	#$00,d6	;7C00
 	bra	adrCd005E88	;600039FE
 
-adrCd00248C:
+adrCd00248C:		; Memory Address ($248C) and binary offset [$2108]
 	or.b	#$0F,$003E(a1)	;0029000F003E
 	bclr	#$02,(a1)	;08910002
 	beq.s	adrCd00249C	;6704
 	clr.w	$0014(a1)	;42690014
-adrCd00249C:
+adrCd00249C:		; Memory Address ($249C) and binary offset [$2118]
 	tst.l	d5	;4A85
 	bpl.s	adrCd0024A6	;6A06
 	moveq	#-$01,d0	;70FF
 	bsr	adrCd0020F8	;6100FC54
-adrCd0024A6:
+adrCd0024A6:		; Memory Address ($24A6) and binary offset [$2122]
 	moveq	#$03,d1	;7203
 	lea	adrEA002680.l,a0	;41F900002680
-adrLp0024AE:
+adrLp0024AE:		; Memory Address ($24AE) and binary offset [$212A]
 	move.b	$18(a1,d1.w),d0	;10311018
 	and.w	#$00E0,d0	;024000E0
 	beq.s	adrCd0024BE	;6706
 	clr.b	$00(a0,d1.w)	;42301000
 	bra.s	adrCd0024F2	;6034
 
-adrCd0024BE:
+adrCd0024BE:		; Memory Address ($24BE) and binary offset [$213A]
 	move.b	$18(a1,d1.w),d0	;10311018
 	bsr	Load_ChampionStatRecord	;6100419C
 	move.b	$0005(a4),d0	;102C0005
@@ -3340,14 +3398,14 @@ adrCd0024BE:
 	jsr	PlaySound.l	;4EB9000088BE
 	move.l	(sp)+,a0	;205F
 	moveq	#$00,d0	;7000
-adrCd0024EE:
+adrCd0024EE:		; Memory Address ($24EE) and binary offset [$216A]
 	move.b	d0,$0005(a4)	;19400005
-adrCd0024F2:
+adrCd0024F2:		; Memory Address ($24F2) and binary offset [$216E]
 	dbra	d1,adrLp0024AE	;51C9FFBA
 	move.l	a5,-(sp)	;2F0D
 	move.l	a1,a5	;2A49
 	moveq	#$03,d1	;7203
-adrLp0024FC:
+adrLp0024FC:		; Memory Address ($24FC) and binary offset [$2178]
 	move.b	$18(a5,d1.w),d0	;10351018
 	bmi.s	Loop_CheckSpecialFlag06_AI_TBC	;6B1E
 	btst	#$06,d0	;08000006
@@ -3359,17 +3417,17 @@ adrLp0024FC:
 	tst.w	d2	;4A42
 	bmi.s	Loop_CheckSpecialFlag06_AI_TBC	;6B06
 	move.b	#$FF,$26(a5,d2.w)	;1BBC00FF2026
-Loop_CheckSpecialFlag06_AI_TBC:
+Loop_CheckSpecialFlag06_AI_TBC:		; Memory Address ($2520) and binary offset [$219C]
 	dbra	d1,adrLp0024FC	;51C9FFDA
 	btst	#$06,$0018(a5)	;082D00060018
 	bne.s	Handle_SpecialFlag06_AI_TBC	;6608
 	bsr	adrCd008246	;61005D18
 	bra	Finalize_PartyAction_AI_TBC	;600000D8
 
-Handle_SpecialFlag06_AI_TBC:
+Handle_SpecialFlag06_AI_TBC:		; Memory Address ($2534) and binary offset [$21B0]
 	moveq	#$00,d1	;7200
 	moveq	#$00,d0	;7000
-Loop_InventoryAction_AI_TBC:
+Loop_InventoryAction_AI_TBC:		; Memory Address ($2538) and binary offset [$21B4]
 	move.b	$18(a5,d1.w),d0	;10351018
 	and.w	#$00E0,d0	;024000E0
 	bne.s	Adjust_InventoryIndex_AI_TBC	;6634
@@ -3382,30 +3440,30 @@ Loop_InventoryAction_AI_TBC:
 	bsr.s	Init_InventorySwap_AI_TBC	;6104
 	bra	Clear_PartyActionState_AI_TBC	;6000009C
 
-Init_InventorySwap_AI_TBC:
+Init_InventorySwap_AI_TBC:		; Memory Address ($2564) and binary offset [$21E0]
 	lea	adrEA002680.l,a0	;41F900002680
 	move.b	(a0),d0	;1010
 	move.b	$00(a0,d1.w),(a0)	;10B01000
 	move.b	d0,$00(a0,d1.w)	;11801000
 	rts	;4E75
 
-Adjust_InventoryIndex_AI_TBC:
+Adjust_InventoryIndex_AI_TBC:		; Memory Address ($2576) and binary offset [$21F2]
 	addq.w	#$01,d1	;5241
 	cmpi.w	#$0004,d1	;0C410004
 	bcs.s	Loop_InventoryAction_AI_TBC	;65BA
 	and.b	#$01,(a5)	;02150001
 	moveq	#$03,d1	;7203
-adrLp002584:
+adrLp002584:		; Memory Address ($2584) and binary offset [$2200]
 	move.b	$18(a5,d1.w),d0	;10351018
 	btst	#$05,d0	;08000005
 	beq.s	Store_InventoryState_AI_TBC	;6706
 	btst	#$06,d0	;08000006
 	beq.s	End_InventoryLoop_AI_TBC	;6706
-Store_InventoryState_AI_TBC:
+Store_InventoryState_AI_TBC:		; Memory Address ($2594) and binary offset [$2210]
 	dbra	d1,adrLp002584	;51C9FFEE
 	bra.s	Dispatch_PartyAction_AI_TBC	;6054
 
-End_InventoryLoop_AI_TBC:
+End_InventoryLoop_AI_TBC:		; Memory Address ($259A) and binary offset [$2216]
 	move.b	$0018(a5),$18(a5,d1.w)	;1BAD00181018
 	move.b	d0,$0018(a5)	;1B400018
 	bset	#$04,$0018(a5)	;08ED00040018
@@ -3424,16 +3482,16 @@ End_InventoryLoop_AI_TBC:
 	and.b	#$0F,$0026(a5)	;022D000F0026
 	bra.s	Clear_PartyActionState_AI_TBC	;6010
 
-Dispatch_PartyAction_AI_TBC:
+Dispatch_PartyAction_AI_TBC:		; Memory Address ($25EE) and binary offset [$226A]
 	bsr.s	Clear_TriggerProcessed_AI_TBC	;6138
 	move.b	#$FF,$001D(a5)	;1B7C00FF001D
 	bsr	adrCd00270E	;61000116
 	and.b	#$01,(a5)	;02150001
-Clear_PartyActionState_AI_TBC:
+Clear_PartyActionState_AI_TBC:		; Memory Address ($25FE) and binary offset [$227A]
 	clr.w	$0014(a5)	;426D0014
 	clr.b	$003E(a5)	;422D003E
 	bsr	adrCd008278	;61005C70
-Finalize_PartyAction_AI_TBC:
+Finalize_PartyAction_AI_TBC:		; Memory Address ($260A) and binary offset [$2286]
 	move.w	#$FFFF,$0042(a5)	;3B7CFFFF0042
 	move.w	#$FFFF,$0040(a5)	;3B7CFFFF0040
 	move.b	#$FF,$0035(a5)	;1B7C00FF0035
@@ -3442,11 +3500,11 @@ Finalize_PartyAction_AI_TBC:
 	move.l	(sp)+,a5	;2A5F
 	rts	;4E75
 
-Clear_TriggerProcessed_AI_TBC:
+Clear_TriggerProcessed_AI_TBC:		; Memory Address ($2628) and binary offset [$22A4]
 	bsr	adrCd008498	;61005E6E
 	bclr	#$07,$01(a6,d0.w)	;08B600070001
 	moveq	#$03,d1	;7203
-adrLp002634:
+adrLp002634:		; Memory Address ($2634) and binary offset [$22B0]
 	moveq	#$01,d5	;7A01
 	swap	d5	;4845
 	move.b	$18(a5,d1.w),d5	;1A351018
@@ -3459,13 +3517,13 @@ adrLp002634:
 	movem.l	d0/d1,-(sp)	;48E7C000
 	bsr	adrCd005E88	;61003832
 	movem.l	(sp)+,d0/d1	;4CDF0003
-Mark_TeamAvatarSlot_AI_TBC:
+Mark_TeamAvatarSlot_AI_TBC:		; Memory Address ($265C) and binary offset [$22D8]
 	dbra	d1,adrLp002634	;51C9FFD6
 	rts	;4E75
 
-Loop_TeamAvatarSlots_AI_TBC:
+Loop_TeamAvatarSlots_AI_TBC:		; Memory Address ($2662) and binary offset [$22DE]
 	moveq	#$03,d7	;7E03
-adrLp002664:
+adrLp002664:		; Memory Address ($2664) and binary offset [$22E0]
 	move.b	$18(a5,d7.w),d0	;10357018
 	bmi.s	Eval_TeamAvatarSlot_AI_TBC	;6B10
 	moveq	#$00,d0	;7000
@@ -3474,15 +3532,15 @@ adrLp002664:
 	move.w	d7,-(sp)	;3F07
 	bsr	Quickstart_FallbackHandler_AI_TBC	;6100000E
 	move.w	(sp)+,d7	;3E1F
-Eval_TeamAvatarSlot_AI_TBC:
+Eval_TeamAvatarSlot_AI_TBC:		; Memory Address ($267A) and binary offset [$22F6]
 	dbra	d7,adrLp002664	;51CFFFE8
 	rts	;4E75
 
-adrEA002680:
+adrEA002680:		; Memory Address ($2680) and binary offset [$22FC]
 	dc.w	$0000	;0000
 	dc.w	$0000	;0000
 
-Quickstart_FallbackHandler_AI_TBC:
+Quickstart_FallbackHandler_AI_TBC:		; Memory Address ($2684) and binary offset [$2300]
 	move.w	d0,-(sp)		;3F00
 	move.l	#$000D000C,adrW_00D92A.l	;23FC000D000C0000D92A
 	lea	GFX_Pockets+$7688.l,a1	;43F900053D8A
@@ -3511,9 +3569,9 @@ Quickstart_FallbackHandler_AI_TBC:
 	subq.w	#$01,d2			;5342
 	beq.s	adrCd0026E4		;6702
 	subq.w	#$04,d0			;5940
-adrCd0026E4:
+adrCd0026E4:		; Memory Address ($26E4) and binary offset [$2360]
 	add.w	d0,d4	;D840
-adrLp0026E6:
+adrLp0026E6:		; Memory Address ($26E6) and binary offset [$2362]
 	move.b	(a6)+,d0		;101E
 	movem.l	d1/d4/d5/a6,-(sp)	;48E74C02
 	jsr	Draw_woundflash_digit.l		;4EB90000D92E
@@ -3522,9 +3580,9 @@ adrLp0026E6:
 	dbra	d1,adrLp0026E6		;51C9FFEC
 	rts	;4E75
 
-adrW_0026FE:
+adrW_0026FE:		; Memory Address ($26FE) and binary offset [$237A]
 	dc.w	$000B	;000B
-adrW_002700:
+adrW_002700:		; Memory Address ($2700) and binary offset [$237C]
 	dc.w	$0013	;0013
 	dc.w	$0000	;0000
 	dc.w	$0040	;0040
@@ -3533,12 +3591,12 @@ adrW_002700:
 	dc.w	$0040	;0040
 	dc.w	$0040	;0040
 
-adrCd00270E:
+adrCd00270E:		; Memory Address ($270E) and binary offset [$238A]
 	bsr.s	adrCd002734		;6124
 	lea	ThouArtDead.l,a6	;4DF90000271C
 	jmp	Print_fflim_text.l		;4EF90000D0C6
 
-ThouArtDead:
+ThouArtDead:		; Memory Address ($271C) and binary offset [$2398]
 	dc.b	$FC		;FC
 	dc.b	$12		;12
 	dc.b	$04		;04
@@ -3554,7 +3612,7 @@ ThouArtDead:
 	dc.b	$FF		;FF
 	dc.b	$00		;00
 
-adrCd002734:
+adrCd002734:		; Memory Address ($2734) and binary offset [$23B0]
 	or.b	#$40,$0054(a5)	;002D00400054
 	moveq	#$00,d3	;7600
 	bsr	adrCd008FA4	;61006866
@@ -3565,13 +3623,13 @@ adrCd002734:
 	moveq	#$02,d2	;7402
 	bra.s	adrCd002760	;600A
 
-adrLp002756:
+adrLp002756:		; Memory Address ($2756) and binary offset [$23D2]
 	add.w	d2,d5	;DA42
 	swap	d5	;4845
 	sub.w	d2,d5	;9A42
 	subq.w	#$01,d5	;5345
 	swap	d5	;4845
-adrCd002760:
+adrCd002760:		; Memory Address ($2760) and binary offset [$23DC]
 	movem.l	d2-d5,-(sp)	;48E73C00
 	jsr	BW_draw_frame.l	;4EB90000DAD4
 	movem.l	(sp)+,d2-d5	;4CDF003C
@@ -3580,11 +3638,11 @@ adrCd002760:
 	dbra	d2,adrLp002756	;51CAFFDC
 	rts	;4E75
 
-adrCd00277E:
+adrCd00277E:		; Memory Address ($277E) and binary offset [$23FA]
 	movem.l	d0-d7/a0-a6,-(sp)	;48E7FFFE
 	lea	UnpackedMonsters.l,a4	;49F900016B7E
 	move.w	-$0002(a4),d6	;3C2CFFFE
-adrLp00278C:
+adrLp00278C:		; Memory Address ($278C) and binary offset [$2408]
 	move.w	d6,d0	;3006
 	asl.w	#$04,d0	;E940
 	lea	$00(a4,d0.w),a3	;47F40000
@@ -3592,7 +3650,7 @@ adrLp00278C:
 	bmi.s	adrCd0027A0	;6B06
 	cmpi.b	#$64,d0	;0C000064
 	bne.s	adrCd0027C6	;6626
-adrCd0027A0:
+adrCd0027A0:		; Memory Address ($27A0) and binary offset [$241C]
 	moveq	#$00,d0	;7000
 	move.b	$0004(a3),d0	;102B0004
 	bsr	adrCd0084DA	;61005D32
@@ -3606,7 +3664,7 @@ adrCd0027A0:
 	move.w	d6,d0	;3006
 	add.w	#$0010,d0	;06400010
 	bsr.s	adrCd0027F0	;612A
-adrCd0027C6:
+adrCd0027C6:		; Memory Address ($27C6) and binary offset [$2442]
 	dbra	d6,adrLp00278C	;51CEFFC4
 	movem.l	(sp),d0-d7/a0-a6	;4CD77FFF
 	move.w	d2,d0	;3002
@@ -3616,16 +3674,16 @@ adrCd0027C6:
 	movem.l	(sp)+,d0-d7/a0-a6	;4CDF7FFF
 	rts	;4E75
 
-adrCd0027E0:
+adrCd0027E0:		; Memory Address ($27E0) and binary offset [$245C]
 	move.l	a4,d0	;200C
 	sub.l	#UnpackedMonsters,d0	;048000016B7E
 	lsr.w	#$04,d0	;E848
 	add.w	#$0010,d0	;06400010
 	bra.s	adrCd0027F6	;6006
 
-adrCd0027F0:
+adrCd0027F0:		; Memory Address ($27F0) and binary offset [$246C]
 	bclr	#$07,$01(a6,d4.w)	;08B600074001
-adrCd0027F6:
+adrCd0027F6:		; Memory Address ($27F6) and binary offset [$2472]
 	bsr.s	adrCd002848	;6150
 	lea	UnpackedMonsters.l,a2	;45F900016B7E
 	move.w	-$0002(a2),d2	;342AFFFE
@@ -3636,22 +3694,22 @@ adrCd0027F6:
 	lea	$0010(a2),a3	;47EA0010
 	bra.s	adrCd00281C	;6008
 
-adrLp002814:
+adrLp002814:		; Memory Address ($2814) and binary offset [$2490]
 	move.l	(a3)+,(a2)+	;24DB
 	move.l	(a3)+,(a2)+	;24DB
 	move.l	(a3)+,(a2)+	;24DB
 	move.l	(a3)+,(a2)+	;24DB
-adrCd00281C:
+adrCd00281C:		; Memory Address ($281C) and binary offset [$2498]
 	dbra	d2,adrLp002814	;51CAFFF6
 	moveq	#-$01,d2	;74FF
 	move.l	d2,(a2)+	;24C2
 	move.l	d2,(a2)+	;24C2
 	move.l	d2,(a2)+	;24C2
 	move.l	d2,(a2)	;2482
-adrCd00282A:
+adrCd00282A:		; Memory Address ($282A) and binary offset [$24A6]
 	rts	;4E75
 
-adrCd00282C:
+adrCd00282C:		; Memory Address ($282C) and binary offset [$24A8]
 	tst.b	$0035(a0)	;4A280035
 	bmi.s	adrCd00282A	;6BF8
 	cmp.b	$0035(a0),d0	;B0280035
@@ -3659,12 +3717,12 @@ adrCd00282C:
 	move.b	#$FF,$0035(a0)	;117C00FF0035
 	rts	;4E75
 
-adrCd002840:
+adrCd002840:		; Memory Address ($2840) and binary offset [$24BC]
 	bcc.s	adrCd00282A	;64E8
 	subq.b	#$01,$0035(a0)	;53280035
 	rts	;4E75
 
-adrCd002848:
+adrCd002848:		; Memory Address ($2848) and binary offset [$24C4]
 	lea	Player1_Data.l,a0	;41F90000EE7C
 	bsr.s	adrCd00282C	;61DC
 	lea	Player2_Data.l,a0	;41F90000EEDE
@@ -3674,7 +3732,7 @@ adrCd002848:
 	move.w	-$0002(a0),d2	;3428FFFE
 	bmi.s	adrCd00282A	;6BC2
 	move.w	d5,-(sp)	;3F05
-adrLp00286A:
+adrLp00286A:		; Memory Address ($286A) and binary offset [$24E6]
 	movem.w	d0/d2,-(sp)	;48A7A000
 	bsr.s	adrCd00287C	;610C
 	movem.w	(sp)+,d0/d2	;4C9F0005
@@ -3682,10 +3740,10 @@ adrLp00286A:
 	move.w	(sp)+,d5	;3A1F
 	rts	;4E75
 
-adrCd00287C:
+adrCd00287C:		; Memory Address ($287C) and binary offset [$24F8]
 	moveq	#$03,d3	;7603
 	moveq	#$00,d2	;7400
-adrLp002880:
+adrLp002880:		; Memory Address ($2880) and binary offset [$24FC]
 	move.b	$00(a0,d3.w),d5	;1A303000
 	bmi.s	adrCd002896	;6B10
 	cmp.b	d5,d0	;B005
@@ -3693,9 +3751,9 @@ adrLp002880:
 	bne.s	adrCd002896	;660A
 	clr.b	$00(a0,d3.w)	;42303000
 	moveq	#$01,d2	;7401
-adrCd002892:
+adrCd002892:		; Memory Address ($2892) and binary offset [$250E]
 	subq.b	#$01,$00(a0,d3.w)	;53303000
-adrCd002896:
+adrCd002896:		; Memory Address ($2896) and binary offset [$2512]
 	dbra	d3,adrLp002880	;51CBFFE8
 	tst.w	d2	;4A42
 	beq.s	adrCd0028B8	;671A
@@ -3704,22 +3762,22 @@ adrCd002896:
 	tst.b	$0D(a2,d0.w)	;4A32000D
 	bmi.s	adrCd0028B8	;6B0C
 	moveq	#$03,d3	;7603
-adrLp0028AE:
+adrLp0028AE:		; Memory Address ($28AE) and binary offset [$252A]
 	tst.b	$00(a0,d3.w)	;4A303000
 	bpl.s	adrCd0028BC	;6A08
 	dbra	d3,adrLp0028AE	;51CBFFF8
-adrCd0028B8:
+adrCd0028B8:		; Memory Address ($28B8) and binary offset [$2534]
 	addq.w	#$04,a0	;5848
 	rts	;4E75
 
-adrCd0028BC:
+adrCd0028BC:		; Memory Address ($28BC) and binary offset [$2538]
 	bset	#$07,$01(a6,d4.w)	;08F600074001
 	move.b	$00(a0,d3.w),d3	;16303000
 	asl.w	#$04,d3	;E943
 	cmp.w	d0,d3	;B640
 	bcs.s	adrCd0028D0	;6504
 	add.w	#$0010,d3	;06430010
-adrCd0028D0:
+adrCd0028D0:		; Memory Address ($28D0) and binary offset [$254C]
 	lea	$00(a2,d3.w),a3	;47F23000
 	lea	$00(a2,d0.w),a2	;45F20000
 	move.b	$0000(a2),$0000(a3)	;176A00000000
@@ -3731,19 +3789,19 @@ adrCd0028D0:
 	move.b	#$FF,$0000(a2)	;157C00FF0000
 	bra.s	adrCd0028B8	;60B4
 
-adrCd002904:
+adrCd002904:		; Memory Address ($2904) and binary offset [$2580]
 	cmp.b	#$02,$0015(a5)	;0C2D00020015
 	bne.s	adrCd00291A	;660E
 	bsr	Load_CurrentChampionStatRecord	;61003D4E
 	tst.b	$0013(a4)	;4A2C0013
 	bmi.s	adrCd00291A	;6B04
 	bsr	adrCd006720	;61003E08
-adrCd00291A:
+adrCd00291A:		; Memory Address ($291A) and binary offset [$2596]
 	bsr	adrCd0084D6	;61005BBA
 	bsr	adrCd002BCE	;610002AE
 	move.b	#$FF,$0034(a5)	;1B7C00FF0034
 	moveq	#$03,d7	;7E03
-adrLp00292A:
+adrLp00292A:		; Memory Address ($292A) and binary offset [$25A6]
 	moveq	#$00,d0	;7000
 	move.b	$18(a5,d7.w),d0	;10357018
 	move.w	d0,d3	;3600
@@ -3763,17 +3821,17 @@ adrLp00292A:
 	move.w	(sp)+,d7	;3E1F
 	bra.s	adrCd00296C	;600C
 
-adrCd002960:
+adrCd002960:		; Memory Address ($2960) and binary offset [$25DC]
 	move.w	d3,d0	;3003
 	bsr	Load_ChampionStatRecord	;61003CFC
 	move.w	d7,-(sp)	;3F07
 	bsr.s	Update_CharacterActionTimers	;6130
 	move.w	(sp)+,d7	;3E1F
-adrCd00296C:
+adrCd00296C:		; Memory Address ($296C) and binary offset [$25E8]
 	dbra	d7,adrLp00292A	;51CFFFBC
 	rts	;4E75
 
-Decrement_CharacterTimerLowBits:
+Decrement_CharacterTimerLowBits:		; Memory Address ($2972) and binary offset [$25EE]
 	move.b	d0,d1	;1200
 	bmi.s	adrCd002982	;6B0C
 	and.w	#$0007,d1	;02410007
@@ -3781,10 +3839,10 @@ Decrement_CharacterTimerLowBits:
 	subq.w	#$01,d1	;5341
 	bcc.s	adrCd002982	;6402
 	moveq	#$00,d0	;7000
-adrCd002982:
+adrCd002982:		; Memory Address ($2982) and binary offset [$25FE]
 	rts	;4E75
 
-Update_CharacterAttackCooldown:
+Update_CharacterAttackCooldown:		; Memory Address ($2984) and binary offset [$2600]
 	move.b	$001B(a4),d0	;102C001B
 	bsr.s	Decrement_CharacterTimerLowBits	;61E8
 	move.b	$001B(a4),d1	;122C001B
@@ -3793,7 +3851,7 @@ Update_CharacterAttackCooldown:
 	move.b	d0,$001B(a4)	;1940001B
 	rts	;4E75
 
-Update_CharacterActionTimers:
+Update_CharacterActionTimers:		; Memory Address ($299A) and binary offset [$2616]
 	bsr.s	Update_CharacterAttackCooldown	;61E8
 	move.b	$0019(a4),d0	;102C0019
 	move.b	d0,d1	;1200
@@ -3801,10 +3859,10 @@ Update_CharacterActionTimers:
 	subq.w	#$01,d1	;5341
 	bcs.s	Check_DoorToggle_AI_TBC	;6506
 	subq.b	#$01,$0019(a4)	;532C0019
-adrCd0029AE:
+adrCd0029AE:		; Memory Address ($29AE) and binary offset [$262A]
 	rts	;4E75
 
-Check_DoorToggle_AI_TBC:
+Check_DoorToggle_AI_TBC:		; Memory Address ($29B0) and binary offset [$262C]
 	move.b	d0,d1	;1200
 	lsr.b	#$04,d1	;E809
 	or.b	d0,d1	;8200
@@ -3819,7 +3877,7 @@ Check_DoorToggle_AI_TBC:
 	bne.s	adrCd0029D8	;6608
 	cmp.b	#$02,$0015(a5)	;0C2D00020015
 	bcc.s	adrCd0029AE	;64D6
-adrCd0029D8:
+adrCd0029D8:		; Memory Address ($29D8) and binary offset [$2654]
 	move.w	d3,d0	;3003
 	move.b	d3,adrB_00EE3E.l	;13C30000EE3E
 	bsr	Load_ChampionStatRecord	;61003C7E
@@ -3832,15 +3890,15 @@ adrCd0029D8:
 	bmi.s	DoorToggle_Lower_AI_TBC	;6B06
 	bsr	adrCd0033BE	;610009C0
 	bcs.s	adrCd002A14	;6512
-DoorToggle_Lower_AI_TBC:
+DoorToggle_Lower_AI_TBC:		; Memory Address ($2A02) and binary offset [$267E]
 	movem.w	(sp)+,d2/d3/d7	;4C9F008C
-DoorToggle_Raise_AI_TBC:
+DoorToggle_Raise_AI_TBC:		; Memory Address ($2A06) and binary offset [$2682]
 	tst.w	d7	;4A47
 	bne	adrCd002B26	;6600011C
 	and.b	#$01,(a5)	;02150001
 	bra	adrCd002B26	;60000114
 
-adrCd002A14:
+adrCd002A14:		; Memory Address ($2A14) and binary offset [$2690]
 	movem.w	(sp)+,d2/d3/d7	;4C9F008C
 	tst.b	d0	;4A00
 	bmi.s	adrCd002A28	;6B0C
@@ -3848,7 +3906,7 @@ adrCd002A14:
 	bcs.s	adrCd002A28	;6506
 	tst.b	$000B(a1)	;4A29000B
 	bmi.s	DoorToggle_Raise_AI_TBC	;6BDE
-adrCd002A28:
+adrCd002A28:		; Memory Address ($2A28) and binary offset [$26A4]
 	cmpi.w	#$0002,d2	;0C420002
 	bcc	adrCd002B26	;640000F8
 	movem.l	a4/a5,-(sp)	;48E7000C
@@ -3856,19 +3914,19 @@ adrCd002A28:
 	movem.l	(sp)+,a4/a5	;4CDF3000
 	move.w	PhysicalAttack_WorkingValues.l,d5	;3A3900016B6C
 	moveq	#$00,d4	;7800
-Call_DoorToggleRoutine_AI_TBC:
+Call_DoorToggleRoutine_AI_TBC:		; Memory Address ($2A44) and binary offset [$26C0]
 	move.w	$0004(sp),d7	;3E2F0004
 	movem.w	d4-d7,-(sp)	;48A70F00
 	tst.w	d7	;4A47
 	bne.s	adrCd002A58	;6608
 	bsr	Load_MapPosition_AI_TBC	;6100577C
 	movem.w	(sp),d4-d7	;4C9700F0
-adrCd002A58:
+adrCd002A58:		; Memory Address ($2A58) and binary offset [$26D4]
 	bsr	adrCd005FC4	;6100356A
 	movem.w	(sp)+,d4-d7	;4C9F00F0
 	bra	adrCd0060CA	;60003668
 
-PostDoorToggle_Enter_AI_TBC:
+PostDoorToggle_Enter_AI_TBC:		; Memory Address ($2A64) and binary offset [$26E0]
 	bsr	adrCd008498	;61005A32
 	move.w	$00(a6,d0.w),d1	;32360000
 	and.w	#$0007,d1	;02410007
@@ -3878,7 +3936,7 @@ PostDoorToggle_Enter_AI_TBC:
 	add.w	d1,d1	;D241
 	btst	d1,$00(a6,d0.w)	;03360000
 	bne.s	PostDoorToggle_Default_AI_TBC	;6636
-PostDoorToggle_CheckExit_AI_TBC:
+PostDoorToggle_CheckExit_AI_TBC:		; Memory Address ($2A80) and binary offset [$26FC]
 	bsr	adrCd00847E	;610059FC
 	cmp.w	adrW_00EE72.l,d7	;BE790000EE72
 	bcc.s	PostDoorToggle_Default_AI_TBC	;642A
@@ -3894,15 +3952,15 @@ PostDoorToggle_CheckExit_AI_TBC:
 	add.w	d1,d1	;D241
 	btst	d1,$00(a6,d0.w)	;03360000
 	bne.s	PostDoorToggle_Default_AI_TBC	;6604
-PostDoorToggle_EndCase_AI_TBC:
+PostDoorToggle_EndCase_AI_TBC:		; Memory Address ($2AB2) and binary offset [$272E]
 	moveq	#$00,d1	;7200
 	rts	;4E75
 
-PostDoorToggle_Default_AI_TBC:
+PostDoorToggle_Default_AI_TBC:		; Memory Address ($2AB6) and binary offset [$2732]
 	moveq	#-$01,d1	;72FF
 	rts	;4E75
 
-Prepare_PhysicalAttackContext:
+Prepare_PhysicalAttackContext:		; Memory Address ($2ABA) and binary offset [$2736]
 	clr.w	PhysicalAttack_DoubleDefenceFlag.l	;427900006458
 	move.w	$0020(a5),d1	;322D0020
 	tst.b	d0	;4A00
@@ -3913,23 +3971,23 @@ Prepare_PhysicalAttackContext:
 	bsr	adrCd006018	;61003540
 	bra.s	Apply_CutpurseBackstabEligibility	;601C
 
-PhysicalAttack_TargetFacingPath:
+PhysicalAttack_TargetFacingPath:		; Memory Address ($2ADC) and binary offset [$2758]
 	move.b	$0002(a1),d2	;14290002
 	cmpi.b	#$10,d0	;0C000010
 	bcc.s	adrCd002AEA	;6404
 	move.b	$0018(a1),d2	;14290018
-adrCd002AEA:
+adrCd002AEA:		; Memory Address ($2AEA) and binary offset [$2766]
 	and.w	#$0003,d2	;02420003
 	sub.w	d2,d1	;9242
 	move.w	d1,PhysicalAttack_BackstabState.l	;33C10000628A
 	move.w	d0,d1	;3200
-Apply_CutpurseBackstabEligibility:
+Apply_CutpurseBackstabEligibility:		; Memory Address ($2AF8) and binary offset [$2774]
 	move.w	d3,d0	;3003
 	not.w	d0	;4640
 	and.w	#Character_ProfessionMask,d0	;02400003
 	beq.s	Execute_PhysicalAttack	;6708
 	move.w	#$FFFF,PhysicalAttack_BackstabState.l	;33FCFFFF0000628A
-Execute_PhysicalAttack:
+Execute_PhysicalAttack:		; Memory Address ($2B0A) and binary offset [$2786]
 	move.b	#PhysicalAttack_CooldownInitial,$001B(a4)	;197C0007001B
 	move.l	a4,-(sp)	;2F0C
 	move.w	d1,-(sp)	;3F01
@@ -3940,7 +3998,7 @@ Execute_PhysicalAttack:
 	move.l	(sp)+,a4	;285F
 	rts	;4E75
 
-adrCd002B26:
+adrCd002B26:		; Memory Address ($2B26) and binary offset [$27A2]
 	move.w	d3,d1	;3203
 	move.w	d1,d2	;3401
 	bsr	Calculate_CutpurseLevelContribution	;6100DE20
@@ -3950,7 +4008,7 @@ adrCd002B26:
 	moveq	#-$01,d4	;78FF
 	moveq	#-$01,d5	;7AFF
 	moveq	#$01,d3	;7601
-adrLp002B3E:
+adrLp002B3E:		; Memory Address ($2B3E) and binary offset [$27BA]
 	bsr.s	adrCd002B90	;6150
 	dbra	d3,adrLp002B3E	;51CBFFFC
 	move.w	d4,d3	;3604
@@ -3975,33 +4033,33 @@ adrLp002B3E:
 	moveq	#$01,d4	;7801
 	bra	Call_DoorToggleRoutine_AI_TBC	;6000FEC6
 
-Bow_ActionBitShiftCounts:
+Bow_ActionBitShiftCounts:		; Memory Address ($2B80) and binary offset [$27FC]
 	; ReSource: Selects the bit shift applied by each of the three bow object types.
 	dc.b	$01	;01
 	dc.b	$00	;00
 	dc.b	$01	;01
-Bow_ActionValueAdjustments:
+Bow_ActionValueAdjustments:		; Memory Address ($2B83) and binary offset [$27FF]
 	; ReSource: Adds the final per-bow adjustment after the bow action value is shifted.
 	dc.b	$00	;00
 	dc.b	$00	;00
 	dc.b	$01	;01
 
-adrCd002B86:
+adrCd002B86:		; Memory Address ($2B86) and binary offset [$2802]
 	clr.b	$00(a0,d4.w)	;42304000
 	clr.b	$0B(a0,d2.w)	;4230200B
 	rts	;4E75
 
-adrCd002B90:
+adrCd002B90:		; Memory Address ($2B90) and binary offset [$280C]
 	move.b	$00(a0,d3.w),d2	;14303000
 	cmpi.b	#$05,d2	;0C020005
 	bcc.s	adrCd002BA4	;640A
 	cmpi.b	#$03,d2	;0C020003
 	bcs.s	adrCd002BA2	;6502
 	move.w	d3,d4	;3803
-adrCd002BA2:
+adrCd002BA2:		; Memory Address ($2BA2) and binary offset [$281E]
 	rts	;4E75
 
-adrCd002BA4:
+adrCd002BA4:		; Memory Address ($2BA4) and binary offset [$2820]
 	cmpi.b	#$5C,d2	;0C02005C
 	bcs.s	adrCd002BA2	;65F8
 	cmpi.b	#$5F,d2	;0C02005F
@@ -4009,7 +4067,7 @@ adrCd002BA4:
 	move.w	d3,d5	;3A03
 	rts	;4E75
 
-adrCd002BB4:
+adrCd002BB4:		; Memory Address ($2BB4) and binary offset [$2830]
 	tst.b	$0013(a4)	;4A2C0013
 	bmi.s	adrCd002BD6	;6B1C
 	bsr	adrCd004EA0	;610022E4
@@ -4019,13 +4077,13 @@ adrCd002BB4:
 	addq.b	#$04,$0007(a4)	;582C0007
 	rts	;4E75
 
-adrCd002BCE:
+adrCd002BCE:		; Memory Address ($2BCE) and binary offset [$284A]
 	cmp.w	#$0008,$0042(a5)	;0C6D00080042
 	beq.s	adrCd002BD8	;6702
-adrCd002BD6:
+adrCd002BD6:		; Memory Address ($2BD6) and binary offset [$2852]
 	rts	;4E75
 
-adrCd002BD8:
+adrCd002BD8:		; Memory Address ($2BD8) and binary offset [$2854]
 	bsr	Comms_GetState	;61001620
 	and.b	#$3F,$0006(a4)	;022C003F0006
 	subq.b	#$01,$0004(a4)	;532C0004
@@ -4056,9 +4114,9 @@ adrCd002BD8:
 	movem.l	(sp)+,d0/a4/a5	;4CDF3001
 	bra	Click_ShowTeamAvatars	;600006A4
 
-adrCd002C3C:
+adrCd002C3C:		; Memory Address ($2C3C) and binary offset [$28B8]
 	movem.l	(sp)+,d0/a4/a5	;4CDF3001
-adrCd002C40:
+adrCd002C40:		; Memory Address ($2C40) and binary offset [$28BC]
 	tst.b	$0006(a4)	;4A2C0006
 	beq	adrCd00332A	;670006E4
 	lea	Comms_Respond_Recruit.l,a0	;41F900002CE4
@@ -4081,17 +4139,17 @@ adrCd002C40:
 	bsr	Load_ChampionStatRecord	;610039D8
 	and.b	#$F0,$0019(a4)	;022C00F00019
 	or.b	#$0A,$0019(a4)	;002C000A0019
-adrJA002C96:
+adrJA002C96:		; Memory Address ($2C96) and binary offset [$2912]
 	rts	;4E75
 
-adrCd002C98:
+adrCd002C98:		; Memory Address ($2C98) and binary offset [$2914]
 	lea	BigMonsterList.l,a4	;49F900016A7E
 	asl.w	#$04,d0	;E940
 	and.b	#$F0,$0003(a4)	;022C00F00003
 	or.b	#$0A,$0003(a4)	;002C000A0003
 	rts	;4E75
 
-Comms_ResponseHandlerOffsets:
+Comms_ResponseHandlerOffsets:		; Memory Address ($2CAE) and binary offset [$292A]
 	; ReSource: Selects the response handler for the other character's preceding communication action.
 	dc.w	Comms_Respond_Recruit-Comms_Respond_Recruit	;0000
 	dc.w	adrJA002C96-Comms_Respond_Recruit	;FFB2
@@ -4116,12 +4174,12 @@ Comms_ResponseHandlerOffsets:
 	dc.w	Comms_Respond_Exchange-Comms_Respond_Recruit	;026C
 	dc.w	Comms_Respond_Sell-Comms_Respond_Recruit	;02E0
 	dc.w	Comms_Respond_Praise-Comms_Respond_Recruit	;039A
-	dc.w	adrJA00309A-Comms_Respond_Recruit	;03B6
-	dc.w	adrJA0030B4-Comms_Respond_Recruit	;03D0
+	dc.w	Comms_Respond_Curse-Comms_Respond_Recruit	;03B6
+	dc.w	Comms_Respond_Boast-Comms_Respond_Recruit	;03D0
 	dc.w	Comms_RespondWithRetort-Comms_Respond_Recruit	;00C2
-	dc.w	adrJA0030D2-Comms_Respond_Recruit	;03EE
+	dc.w	Comms_Respond_Greeting-Comms_Respond_Recruit	;03EE
 
-Comms_Respond_Recruit:
+Comms_Respond_Recruit:		; Memory Address ($2CE4) and binary offset [$2960]
 	; ReSource: Handles the other character's response to Recruit, including attitude, patience and party-capacity checks.
 	tst.b	$0007(a4)	;4A2C0007
 	bmi	Comms_RespondWithRetort	;6B0000BC
@@ -4129,11 +4187,11 @@ Comms_Respond_Recruit:
 	bcs.s	adrCd002D04	;6512
 	cmp.b	#$07,$0006(a4)	;0C2C00070006
 	bcs	Comms_RespondWithRetort	;650000AC
-adrCd002CFC:
-	lea	Msg_ThinkNot.l,a6	;4DF900003162
+adrCd002CFC:		; Memory Address ($2CFC) and binary offset [$2978]
+	lea	Msg_Recruit_Refusal.l,a6	;4DF900003162
 	bra.s	adrCd002D34	;6030
 
-adrCd002D04:
+adrCd002D04:		; Memory Address ($2D04) and binary offset [$2980]
 	move.l	a5,-(sp)	;2F0D
 	bsr	adrCd004066	;6100135E
 	move.l	a5,a1	;224D
@@ -4145,16 +4203,16 @@ adrCd002D04:
 	move.b	#$FF,$0050(a5)	;1B7C00FF0050
 	rts	;4E75
 
-adrCd002D1E:
+adrCd002D1E:		; Memory Address ($2D1E) and binary offset [$299A]
 	cmp.b	#$0A,$0006(a4)	;0C2C000A0006
 	bcc.s	adrCd002D3A	;6414
 	cmp.b	#$05,$0006(a4)	;0C2C00050006
 	bcs.s	Comms_RespondWithRetort	;6578
-	lea	Msg_KeepTalking.l,a6	;4DF900003147
-adrCd002D34:
+	lea	Msg_Recruit_KeepTalking.l,a6	;4DF900003147
+adrCd002D34:		; Memory Address ($2D34) and binary offset [$29B0]
 	jmp	WriteMessage.l	;4EF90000D03A
 
-adrCd002D3A:
+adrCd002D3A:		; Memory Address ($2D3A) and binary offset [$29B6]
 	bsr	adrCd004054	;61001318
 	tst.b	$18(a5,d1.w)	;4A351018
 	bpl.s	adrCd002D9E	;6A5A
@@ -4175,26 +4233,26 @@ adrCd002D3A:
 	bsr	adrCd004054	;610012D4
 	move.b	d2,$18(a5,d1.w)	;1B821018
 	moveq	#$03,d0	;7003
-adrLp002D88:
+adrLp002D88:		; Memory Address ($2D88) and binary offset [$2A04]
 	tst.b	$26(a5,d0.w)	;4A350026
 	bmi.s	adrCd002D92	;6B04
 	dbra	d0,adrLp002D88	;51C8FFF8
-adrCd002D92:
+adrCd002D92:		; Memory Address ($2D92) and binary offset [$2A0E]
 	move.b	d2,$26(a5,d0.w)	;1B820026
 	bsr	adrCd00332A	;61000592
 	bra	adrCd008246	;600054AA
 
-adrCd002D9E:
-	lea	Msg_PartyFull.l,a6	;4DF900003100
+adrCd002D9E:		; Memory Address ($2D9E) and binary offset [$2A1A]
+	lea	Msg_Recruit_PartyFull.l,a6	;4DF900003100
 	bra.s	adrCd002D34	;608E
 
 Comms_RespondWithRetort:
 	; ReSource: Routes an action to the contextual Retort reply generator.
 	moveq	#CommsAction_Retort,d1	;7219
-adrCd002DA8:
+adrCd002DA8:		; Memory Address ($2DA8) and binary offset [$2A24]
 	bra	Comms_RunAction	;60000766
 
-Comms_Respond_LowAttitude:
+Comms_Respond_LowAttitude:		; Memory Address ($2DAC) and binary offset [$2A28]
 	; ReSource: Selects a hostile or dismissive response when attitude is low.
 	moveq	#CommsAction_Threat,d1	;7209
 	tst.b	$0007(a4)	;4A2C0007
@@ -4203,14 +4261,14 @@ Comms_Respond_LowAttitude:
 	bcs.s	adrCd002DA8	;65EC
 	bra.s	Comms_RespondWithRetort	;60E8
 
-Comms_Respond_WhoGoesOrNameSelf:
+Comms_Respond_WhoGoesOrNameSelf:		; Memory Address ($2DBE) and binary offset [$2A3A]
 	; ReSource: Responds to identity questions, revealing a champion name or special monster identity when permitted.
 	moveq	#CommsAction_NameSelf,d1	;720C
 	cmpi.b	#$10,d0	;0C000010
 	bcs.s	adrCd002DA8	;65E2
 	cmp.b	#$05,$0006(a4)	;0C2C00050006
 	bcs.s	Comms_RespondWithRetort	;65D8
-	lea	Msg_NameNotImportant.l,a6	;4DF900003178
+	lea	Msg_WhoGoes_NameUnimportant.l,a6	;4DF900003178
 	lea	BigMonsterList.l,a1	;43F900016A7E
 	asl.w	#$04,d0	;E940
 Zendik_Named:
@@ -4220,28 +4278,28 @@ Zendik_Named:
 NotNamed:
 	bra	adrCd002D34	;6000FF48
 
-Comms_Respond_ThyTradeOrRevealSelf:
+Comms_Respond_ThyTradeOrRevealSelf:		; Memory Address ($2DEE) and binary offset [$2A6A]
 	; ReSource: Responds to profession questions, revealing a champion profession when applicable.
 	cmpi.b	#$10,d0	;0C000010
 	bcc.s	Comms_RespondWithRetort	;64B2
 	moveq	#CommsAction_RevealSelf,d1	;720D
 	bra.s	adrCd002DA8	;60B0
 
-Comms_Respond_Persons:
+Comms_Respond_Persons:		; Memory Address ($2DF8) and binary offset [$2A74]
 	; ReSource: Selects the response to the Persons inquiry according to attitude and randomness.
 	moveq	#-$02,d0	;70FE
 	cmp.b	#$0A,$0006(a4)	;0C2C000A0006
 	bcs.s	adrCd002E06	;6504
 	bra	Comms_Action_Praise	;60000B14
 
-adrCd002E06:
+adrCd002E06:		; Memory Address ($2E06) and binary offset [$2A82]
 	bsr	RandomGen_BytewithOffset	;610027A4
 	moveq	#CommsAction_Boast,d1	;7218
 	tst.b	d0	;4A00
 	bmi.s	adrCd002DA8	;6B98
 	bra.s	Comms_RespondWithRetort	;6094
 
-Comms_Respond_Offer:
+Comms_Respond_Offer:		; Memory Address ($2E12) and binary offset [$2A8E]
 	; ReSource: Handles acceptance and transfer of an offered held object or coinage.
 	cmpi.b	#$10,d0						;0C000010
 	bcs.s	Comms_RespondWithRetort					;658E
@@ -4254,7 +4312,7 @@ Comms_Respond_Offer:
 	beq.s	adrCd002E36					;6708
 	cmpi.b	#Object_Remains_First,d1						;0C010040
 	bcc	Comms_RejectUntradeableObject					;6400023A
-adrCd002E36:
+adrCd002E36:		; Memory Address ($2E36) and binary offset [$2AB2]
 	moveq	#$00,d2	;7400
 	move.b	$0008(a4),d2	;142C0008
 	lea	Comms_AcceptOfferedObject.l,a0	;41F900002E5C
@@ -4262,18 +4320,18 @@ adrCd002E36:
 	add.w	Comms_TradeModeHandlerOffsets(pc,d2.w),a0	;D0FB2004
 	jmp	(a0)	;4ED0
 
-Comms_TradeModeHandlerOffsets:
+Comms_TradeModeHandlerOffsets:		; Memory Address ($2E4A) and binary offset [$2AC6]
 	; ReSource: Selects transfer behaviour for the active purchase, exchange or sell mode.
 	dc.w	Comms_AcceptOfferedObject-Comms_AcceptOfferedObject	;0000
 	dc.w	Comms_BuyOfferedObject-Comms_AcceptOfferedObject	;0026
 	dc.w	Comms_ExchangeOfferedObject-Comms_AcceptOfferedObject	;0088
 	dc.w	Comms_AcceptOfferedObject-Comms_AcceptOfferedObject	;0000
 
-adrCd002E52:
+adrCd002E52:		; Memory Address ($2E52) and binary offset [$2ACE]
 	move.b	#$08,$0000(a4)	;197C00080000
 	bra	Comms_RespondWithRetort	;6000FF4C
 
-Comms_AcceptOfferedObject:
+Comms_AcceptOfferedObject:		; Memory Address ($2E5C) and binary offset [$2AD8]
 	; ReSource: Accepts an offered object after its tradeability has been checked.
 	cmpi.b	#Object_Permit,d1						;0C01005F
 	beq.s	adrCd002E76					;6714
@@ -4282,13 +4340,13 @@ Comms_AcceptOfferedObject:
 	lea	Comms_ObjectTradeValues.l,a0				;41F9000031E6
 	tst.b	$00(a0,d1.w)					;4A301000
 	bmi	Comms_RejectUntradeableObject					;6B0001FA
-adrCd002E76:
+adrCd002E76:		; Memory Address ($2E76) and binary offset [$2AF2]
 	clr.l	HeldItem_StateOffset(a5)					;42AD002C
-adrCd002E7A:
+adrCd002E7A:		; Memory Address ($2E7A) and binary offset [$2AF6]
 	bsr	adrCd0035FA					;6100077E
 	bra	Refresh_HeldItemDisplay					;60003DB4
 
-Comms_BuyOfferedObject:
+Comms_BuyOfferedObject:		; Memory Address ($2E82) and binary offset [$2AFE]
 	; ReSource: Calculates the attitude-adjusted purchase price of an object offered by the player.
 	move.w	$002C(a5),d4	;382D002C
 	cmp.b	$0009(a4),d4	;B82C0009
@@ -4304,31 +4362,31 @@ Comms_BuyOfferedObject:
 	moveq	#$5A,d2	;745A
 	bra.s	adrCd002EB4	;600A
 
-adrCd002EAA:
+adrCd002EAA:		; Memory Address ($2EAA) and binary offset [$2B26]
 	lea	Comms_ObjectTradeValues.l,a1	;43F9000031E6
 	move.b	$00(a1,d3.w),d2	;14313000
-adrCd002EB4:
+adrCd002EB4:		; Memory Address ($2EB4) and binary offset [$2B30]
 	moveq	#$6E,d3	;766E
 	sub.b	$0006(a4),d3	;962C0006
 	cmp.b	#$50,d3	;B63C0050
 	bcc.s	adrCd002EC2	;6402
 	moveq	#$50,d3	;7650
-adrCd002EC2:
+adrCd002EC2:		; Memory Address ($2EC2) and binary offset [$2B3E]
 	mulu	d3,d2	;C4C3
 	divu	#$0064,d2	;84FC0064
 	cmp.b	d2,d4	;B802
 	bcs.s	adrCd002EDE	;6512
 	move.b	#$06,$0C(a0,d1.w)	;11BC0006100C
-adrCd002ED2:
+adrCd002ED2:		; Memory Address ($2ED2) and binary offset [$2B4E]
 	move.b	d0,$002F(a5)	;1B40002F
 	move.w	#$0001,$002C(a5)	;3B7C0001002C
 	bra.s	adrCd002E7A	;609C
 
-adrCd002EDE:
+adrCd002EDE:		; Memory Address ($2EDE) and binary offset [$2B5A]
 	moveq	#$07,d1	;7207
 	bra	adrCd002DA8	;6000FEC6
 
-Comms_ExchangeOfferedObject:
+Comms_ExchangeOfferedObject:		; Memory Address ($2EE4) and binary offset [$2B60]
 	; ReSource: Compares offered-object values and completes an acceptable exchange.
 	lea	Comms_ObjectTradeValues.l,a1		;43F9000031E6
 	moveq	#$02,d2				;7402
@@ -4339,23 +4397,23 @@ Comms_ExchangeOfferedObject:
 	moveq	#$5A,d2				;745A
 	bra.s	adrCd002F04			;6008
 
-adrCd002EFC:
+adrCd002EFC:		; Memory Address ($2EFC) and binary offset [$2B78]
 	move.b	$00(a1,d1.w),d2	;14311000
 	bmi	adrCd00306A	;6B000168
-adrCd002F04:
+adrCd002F04:		; Memory Address ($2F04) and binary offset [$2B80]
 	bsr	Comms_GetMonsterTradeObject	;6100032C
 	move.w	d0,d4	;3800
 	moveq	#$02,d3	;7602
 	sub.w	#$0014,d4	;04440014
 	bcs.s	adrCd002F16	;6504
 	move.b	$00(a1,d4.w),d3	;16314000
-adrCd002F16:
+adrCd002F16:		; Memory Address ($2F16) and binary offset [$2B92]
 	cmp.b	d3,d2	;B403
 	bcs	adrCd002FB0	;65000096
 	move.b	$002F(a5),$0C(a0,d1.w)	;11AD002F100C
 	bra.s	adrCd002ED2	;60AE
 
-Comms_Respond_Purchase:
+Comms_Respond_Purchase:		; Memory Address ($2F24) and binary offset [$2BA0]
 	; ReSource: Selects trader merchandise and produces the response to Purchase.
 	cmpi.b	#$10,d0	;0C000010
 	bcs	Comms_RespondWithRetort	;6500FE7C
@@ -4397,28 +4455,28 @@ Comms_CompareExchangeObject:
 	bcs.s	adrCd002F90	;6508
 	move.b	$00(a1,d1.w),d2	;14311000
 	bmi	adrCd00306A	;6B0000DC
-adrCd002F90:
+adrCd002F90:		; Memory Address ($2F90) and binary offset [$2C0C]
 	bsr	Comms_GetMonsterTradeObject	;610002A0
 	move.w	d0,d1	;3200
 	moveq	#$02,d3	;7602
 	sub.w	#$0014,d1	;04410014
 	bcs.s	adrCd002FA2	;6504
 	move.b	$00(a1,d1.w),d3	;16311000
-adrCd002FA2:
+adrCd002FA2:		; Memory Address ($2FA2) and binary offset [$2C1E]
 	cmp.b	d3,d2	;B403
 	bcs.s	adrCd002FB0	;650A
 	move.b	#$12,$0001(a4)	;197C00120001
 	bra	adrCd00383E	;60000890
 
-adrCd002FB0:
+adrCd002FB0:		; Memory Address ($2FB0) and binary offset [$2C2C]
 	lea	Msg_Trade_OfferTooLow.l,a6	;4DF9000031D2
 	jmp	Print_npc_message.l	;4EF90000D81C
 
-adrCd002FBC:
+adrCd002FBC:		; Memory Address ($2FBC) and binary offset [$2C38]
 	clr.b	$0008(a4)	;422C0008
 	bra	Comms_RespondWithRetort	;6000FDE4
 
-Comms_Respond_Sell:
+Comms_Respond_Sell:		; Memory Address ($2FC4) and binary offset [$2C40]
 	; ReSource: Handles the response to Sell and validates the held object and quoted value.
 	cmpi.b	#$10,d0	;0C000010
 	bcs	Comms_RespondWithRetort	;6500FDDC
@@ -4426,21 +4484,21 @@ Comms_Respond_Sell:
 	beq.s	adrCd002FBC	;67EA
 	cmp.b	$000A(a4),d0	;B02C000A
 	beq.s	adrCd002FEE	;6716
-adrCd002FD8:
+adrCd002FD8:		; Memory Address ($2FD8) and binary offset [$2C54]
 	subq.b	#$05,$0006(a4)	;5B2C0006
 	bpl.s	adrCd002FE2	;6A04
 	clr.b	$0006(a4)	;422C0006
-adrCd002FE2:
-	lea	Msg_RipOff.l,a6	;4DF900003112
+adrCd002FE2:		; Memory Address ($2FE2) and binary offset [$2C5E]
+	lea	Msg_Trade_RipOff.l,a6	;4DF900003112
 	jmp	WriteMessage.l	;4EF90000D03A
 
-adrCd002FEE:
+adrCd002FEE:		; Memory Address ($2FEE) and binary offset [$2C6A]
 	cmpi.b	#$5F,d0	;0C00005F
 	bne.s	adrCd002FF8	;6604
 	moveq	#$5A,d0	;705A
 	bra.s	adrCd003016	;601E
 
-adrCd002FF8:
+adrCd002FF8:		; Memory Address ($2FF8) and binary offset [$2C74]
 	cmpi.b	#$40,d0	;0C000040
 	bcc.s	Comms_RejectUntradeableObject	;6470
 	sub.b	#$14,d0	;04000014
@@ -4448,11 +4506,11 @@ adrCd002FF8:
 	moveq	#$01,d0	;7001
 	bra	Comms_PrintGoldOffer	;6000023A
 
-adrCd00300A:
+adrCd00300A:		; Memory Address ($300A) and binary offset [$2C86]
 	lea	Comms_ObjectTradeValues.l,a0	;41F9000031E6
 	move.b	$00(a0,d0.w),d0	;10300000
 	bmi.s	adrCd00306A	;6B54
-adrCd003016:
+adrCd003016:		; Memory Address ($3016) and binary offset [$2C92]
 	moveq	#$00,d2	;7400
 	move.b	$0009(a4),d2	;142C0009
 	bne.s	adrCd00303E	;6620
@@ -4466,14 +4524,14 @@ adrCd003016:
 	divu	#$0064,d0	;80FC0064
 	bra	Comms_PrintGoldOffer	;60000206
 
-adrCd00303E:
+adrCd00303E:		; Memory Address ($303E) and binary offset [$2CBA]
 	bpl.s	adrCd003054	;6A14
 	clr.b	$0008(a4)	;422C0008
 	lea	Msg_Trade_TooGreedy.l,a6	;4DF9000031B4
 	move.b	#$19,$0001(a4)	;197C00190001
 	bra	adrCd002D34	;6000FCE2
 
-adrCd003054:
+adrCd003054:		; Memory Address ($3054) and binary offset [$2CD0]
 	cmp.b	#$0F,$0006(a4)	;0C2C000F0006
 	bcs.s	adrCd003094	;6538
 	sub.b	d2,d0	;9002
@@ -4482,7 +4540,7 @@ adrCd003054:
 	bset	#$07,d0	;08C00007
 	bra	Comms_PrintGoldOffer	;600001DA
 
-adrCd00306A:
+adrCd00306A:		; Memory Address ($306A) and binary offset [$2CE6]
 	clr.b	$0008(a4)	;422C0008
 Comms_RejectUntradeableObject:
 	; ReSource: Rejects an object that cannot safely participate in trading.
@@ -4490,19 +4548,20 @@ Comms_RejectUntradeableObject:
 	lea	Msg_Trade_UnnaturalObject.l,a6	;4DF90000312B
 	bra	adrCd002D34	;6000FCB8
 
-Comms_Respond_Praise:
+Comms_Respond_Praise:		; Memory Address ($307E) and binary offset [$2CFA]
 	; ReSource: Selects a complimentary, neutral or hostile response to Praise from the current attitude.
-	moveq	#$16,d1	;7216
+	moveq	#CommsAction_Praise,d1	;7216
 	cmp.b	#$0A,$0006(a4)	;0C2C000A0006
 	bcc	adrCd002DA8	;6400FD20
 	cmp.b	#$05,$0006(a4)	;0C2C00050006
 	bcc	Comms_RespondWithRetort	;6400FD14
-adrCd003094:
+adrCd003094:		; Memory Address ($3094) and binary offset [$2D10]
 	moveq	#$17,d1	;7217
 	bra	adrCd002DA8	;6000FD10
 
-adrJA00309A:
-	moveq	#$17,d1	;7217
+Comms_Respond_Curse:		; Memory Address ($309A) and binary offset [$2D16]
+	; ReSource: Selects a curse, retort or threat response according to attitude and patience.
+	moveq	#CommsAction_Curse,d1	;7217
 	cmp.b	#$05,$0006(a4)	;0C2C00050006
 	bcc	adrCd002DA8	;6400FD04
 	tst.b	$0007(a4)	;4A2C0007
@@ -4510,47 +4569,54 @@ adrJA00309A:
 	moveq	#$09,d1	;7209
 	bra	adrCd002DA8	;6000FCF6
 
-adrJA0030B4:
+Comms_Respond_Boast:		; Memory Address ($30B4) and binary offset [$2D30]
+	; ReSource: Selects a praise, boast, retort or hostile response to Boast.
 	cmp.b	#$0A,$0006(a4)	;0C2C000A0006
 	bcc.s	Comms_Respond_Praise	;64C2
-	moveq	#$18,d1	;7218
+	moveq	#CommsAction_Boast,d1	;7218
 	cmp.b	#$07,$0006(a4)	;0C2C00070006
 	bcc	adrCd002DA8	;6400FCE2
 	tst.b	$0007(a4)	;4A2C0007
-	bmi.s	adrJA00309A	;6BCC
+	bmi.s	Comms_Respond_Curse	;6BCC
 	bra	Comms_RespondWithRetort	;6000FCD6
 
-adrJA0030D2:
+Comms_Respond_Greeting:		; Memory Address ($30D2) and binary offset [$2D4E]
+	; ReSource: Selects the initial reply, ranging from hostility to an identity or profession question.
 	cmp.b	#$02,$0006(a4)	;0C2C00020006
 	bcs	Comms_Respond_LowAttitude	;6500FCD2
 	cmp.b	#$05,$0006(a4)	;0C2C00050006
-	bcs.s	adrJA00309A	;65B6
+	bcs.s	Comms_Respond_Curse	;65B6
 	cmp.b	#$08,$0006(a4)	;0C2C00080006
 	bcs	Comms_RespondWithRetort	;6500FCBA
 	bsr	RandomGen_BytewithOffset	;610024BC
-	moveq	#$0A,d1	;720A
+	moveq	#CommsAction_WhoGoes,d1	;720A
 	tst.b	d0	;4A00
 	bmi	adrCd002DA8	;6B00FCB0
-	moveq	#$0B,d1	;720B
+	moveq	#CommsAction_ThyTrade,d1	;720B
 	bra	adrCd002DA8	;6000FCAA
 
-Msg_PartyFull:
+Msg_Recruit_PartyFull:
+	; ReSource: Character response when Recruit succeeds on attitude but the party has no free slot.
 	dc.b	'THY PARTY IS FULL'	;5448592050415254592049532046554C4C
 	dc.b	$FF	;FF
-Msg_RipOff:
+Msg_Trade_RipOff:
+	; ReSource: Character response when the held object or trade state no longer matches the proposed deal.
 	dc.b	'WOULDST THOU RIP ME OFF?'	;574F554C4453542054484F5520524950204D45204F46463F
 	dc.b	$FF	;FF
 Msg_Trade_UnnaturalObject:
 	; ReSource: Character response rejecting an untradeable or unnatural object.
 	dc.b	'I NEVER TRUST THE UNNATURAL'	;49204E455645522054525553542054484520554E4E41545552414C
 	dc.b	$FF	;FF
-Msg_KeepTalking:
+Msg_Recruit_KeepTalking:
+	; ReSource: Character response when Recruit attitude is promising but below the joining threshold.
 	dc.b	'KEEP TALKING AND WE''LL SEE'	;4B4545502054414C4B494E4720414E44205745274C4C20534545
 	dc.b	$FF	;FF
-Msg_ThinkNot:
+Msg_Recruit_Refusal:
+	; ReSource: Character response refusing recruitment or interaction.
 	dc.b	'I THINK NOT MY FRIEND'	;49205448494E4B204E4F54204D5920465249454E44
 	dc.b	$FF	;FF
-Msg_NameNotImportant:
+Msg_WhoGoes_NameUnimportant:
+	; ReSource: Monster response refusing to reveal a name.
 	dc.b	'MY NAME IS NOT IMPORTANT'	;4D59204E414D45204953204E4F5420494D504F5254414E54
 	dc.b	$FF	;FF
 Msg_WhoGoes_Zendik:
@@ -4561,7 +4627,7 @@ Msg_Trade_TooGreedy:
 	; ReSource: Character response when a trade request becomes too greedy.
 	dc.b	'METHINKS THOU ART TOO GREEDY!'	;4D455448494E4B532054484F552041525420544F4F2047524545445921
 	dc.b	$FF	;FF
-Msg_Trade_OfferTooLow:
+Msg_Trade_OfferTooLow:		; Memory Address ($31D2) and binary offset [$2E4E]
 	; ReSource: Packed-word character response rejecting an inadequate trade offer.
 	dc.b	$1A	;1A
 	dc.b	$19	;19
@@ -4570,7 +4636,7 @@ Msg_Trade_OfferTooLow:
 	dc.b	$B1	;B1
 	dc.b	$51	;51
 	dc.b	$FF	;FF
-Msg_Trade_GoldOfferTemplate:
+Msg_Trade_GoldOfferTemplate:		; Memory Address ($31D9) and binary offset [$2E55]
 	; ReSource: Writable packed-word template used to communicate a generated amount of gold.
 	dc.b	$CC	;CC
 	dc.b	$1A	;1A
@@ -4585,7 +4651,7 @@ Msg_Trade_GoldOfferTemplate:
 	dc.b	$00	;00
 	dc.b	$00	;00
 	dc.b	$00	;00
-Comms_ObjectTradeValues:
+Comms_ObjectTradeValues:		; Memory Address ($31E6) and binary offset [$2E62]
 	; ReSource: Trade values for object codes $14-$3F; $FF marks objects rejected by the trading logic.
 	dc.b	$04	;04
 	dc.b	$04	;04
@@ -4666,7 +4732,7 @@ Comms_TraderStockObjects:
 	dc.b	$3E	;3E
 	dc.b	$1F	;1F
 
-Comms_GetMonsterTradeObject:
+Comms_GetMonsterTradeObject:		; Memory Address ($3232) and binary offset [$2EAE]
 	; ReSource: Returns the object stored in byte $0C of the selected monster record.
 	move.w	d0,d1	;3200
 	lea	BigMonsterList.l,a0	;41F900016A7E
@@ -4687,7 +4753,7 @@ Comms_PrintGoldOffer:
 	move.b	d1,$00(a6,d2.w)	;1D812000
 	move.b	#$FA,$01(a6,d2.w)	;1DBC00FA2001
 	addq.w	#$02,d2	;5442
-adrCd00326A:
+adrCd00326A:		; Memory Address ($326A) and binary offset [$2EE6]
 	ror.w	#$08,d1	;E059
 	move.b	d1,$00(a6,d2.w)	;1D812000
 	move.b	#$54,$01(a6,d2.w)	;1DBC00542001
@@ -4708,7 +4774,7 @@ Comms_InitialiseMonsterTrader:
 	move.b	d0,$000C(a1)	;1340000C
 	bra.s	adrCd0032D8	;6030
 
-.Trader_NotPotionsButArms:
+.Trader_NotPotionsButArms:		; Memory Address ($32A8) and binary offset [$2F24]
 	and.w	#$001F,d0	;0240001F
 	move.b	$0006(a1),d1	;12290006
 	cmpi.b	#$08,d1	;0C010008
@@ -4717,24 +4783,24 @@ Comms_InitialiseMonsterTrader:
 	cmpi.b	#$04,d1	;0C010004
 	bcc.s	.DontDivideList	;6402
 	lsr.w	#$01,d0	;E248
-.DontDivideList:
+.DontDivideList:		; Memory Address ($32C0) and binary offset [$2F3C]
 	lea	Comms_TraderStockObjects.w,a0	;41F83212	;Short Absolute converted to symbol!
 	move.b	$00(a0,d0.w),$000C(a1)	;13700000000C
 	move.b	$0006(a1),d0	;10290006
 	and.w	#$007F,d0	;0240007F
 	neg.b	d0	;4400
 	move.b	d0,$0006(a4)	;19400006
-adrCd0032D8:
+adrCd0032D8:		; Memory Address ($32D8) and binary offset [$2F54]
 	movem.w	(sp)+,d0/d1	;4C9F0003
 	rts	;4E75
 
-Click_ShowTeamAvatars:
+Click_ShowTeamAvatars:		; Memory Address ($32DE) and binary offset [$2F5A]
 	move.b	#$01,$0052(a5)	;1B7C00010052
 	clr.b	$004A(a5)	;422D004A
 	tst.b	$004B(a5)	;4A2D004B
 	bmi.s	adrCd0032F4	;6B06
 	move.w	#$00FF,$004A(a5)	;3B7C00FF004A
-adrCd0032F4:
+adrCd0032F4:		; Memory Address ($32F4) and binary offset [$2F70]
 	cmp.w	#$0008,$0042(a5)	;0C6D00080042
 	beq.s	adrCd003312	;6716
 	tst.w	$0042(a5)	;4A6D0042
@@ -4743,27 +4809,27 @@ adrCd0032F4:
 	move.w	#$FFFF,$0040(a5)	;3B7CFFFF0040
 	bra	adrCd007B50	;60004840
 
-adrCd003312:
+adrCd003312:		; Memory Address ($3312) and binary offset [$2F8E]
 	cmp.w	#$0006,$0044(a5)	;0C6D00060044
 	bcs.s	adrCd00332A	;6510
-adrCd00331A:
+adrCd00331A:		; Memory Address ($331A) and binary offset [$2F96]
 	lsr.w	$0044(a5)	;E2ED0044
 	addq.w	#$01,$0044(a5)	;526D0044
 	bsr	adrCd003344	;61000020
 	bra	adrCd007D6C	;60004A44
 
-adrCd00332A:
+adrCd00332A:		; Memory Address ($332A) and binary offset [$2FA6]
 	clr.w	$0042(a5)	;426D0042
 	clr.w	$0044(a5)	;426D0044
 	move.b	#$FF,$0035(a5)	;1B7C00FF0035
-adrCd003338:
+adrCd003338:		; Memory Address ($3338) and binary offset [$2FB4]
 	move.l	#$003B003B,d7	;2E3C003B003B
 	bsr.s	adrCd00334A	;610A
 	bra	adrCd007D6C	;60004A2A
 
-adrCd003344:
+adrCd003344:		; Memory Address ($3344) and binary offset [$2FC0]
 	move.l	#$00760075,d7	;2E3C00760075
-adrCd00334A:
+adrCd00334A:		; Memory Address ($334A) and binary offset [$2FC6]
 	move.l	screen_ptr.l,a0	;207900008D36
 	add.w	#$0647,a0	;D0FC0647
 	add.w	$000A(a5),a0	;D0ED000A
@@ -4773,30 +4839,30 @@ adrCd00334A:
 	move.w	d7,d0	;3007
 	jmp	adrCd00CAEA.l	;4EF90000CAEA
 
-adrJA00336A:
+adrJA00336A:		; Memory Address ($336A) and binary offset [$2FE6]
 	move.l	$0046(a5),a6	;2C6D0046
 	moveq	#$00,d1	;7200
 	move.b	$0040(a5),d0	;102D0040
 	and.w	#$0003,d0	;02400003
 	subq.b	#$01,d0	;5300
 	bcs.s	adrCd00338A	;650E
-adrLp00337C:
+adrLp00337C:		; Memory Address ($337C) and binary offset [$2FF8]
 	addq.w	#$01,d1	;5241
 	cmp.b	#$5F,(a6)+	;0C1E005F
 	bcc.s	adrCd003386	;6402
 	addq.w	#$01,d1	;5241
-adrCd003386:
+adrCd003386:		; Memory Address ($3386) and binary offset [$3002]
 	dbra	d0,adrLp00337C	;51C8FFF4
-adrCd00338A:
+adrCd00338A:		; Memory Address ($338A) and binary offset [$3006]
 	add.b	$0041(a5),d1	;D22D0041
-adrCd00338E:
+adrCd00338E:		; Memory Address ($338E) and binary offset [$300A]
 	move.w	$0042(a5),d0	;302D0042
 	add.w	d0,d0	;D040
 	lea	adrJB0033B2.l,a0	;41F9000033B2
 	add.w	adrJT0033A0(pc,d0.w),a0	;D0FB0004
 	jmp	(a0)	;4ED0
 
-adrJT0033A0:
+adrJT0033A0:		; Memory Address ($33A0) and binary offset [$301C]
 	dc.w	adrJB0033B2-adrJB0033B2	;0000
 	dc.w	adrJA0033EE-adrJB0033B2	;003C
 	dc.w	adrJA004150-adrJB0033B2	;0D9E
@@ -4807,13 +4873,13 @@ adrJT0033A0:
 	dc.w	adrJA003E9C-adrJB0033B2	;0AEA
 	dc.w	Comms_HandleMenuSelection-adrJB0033B2	;011A
 
-adrJB0033B2:
+adrJB0033B2:		; Memory Address ($33B2) and binary offset [$302E]
 	clr.b	$004E(a5)	;422D004E
 	addq.w	#$01,d1	;5241
 	move.w	d1,$0042(a5)	;3B410042
 	bra.s	adrCd00338E	;60D0
 
-adrCd0033BE:
+adrCd0033BE:		; Memory Address ($33BE) and binary offset [$303A]
 	bsr	adrCd00847E	;610050BE
 	move.l	d7,d2	;2407
 	cmp.w	adrW_00EE72.l,d7	;BE790000EE72
@@ -4829,18 +4895,18 @@ adrCd0033BE:
 	move.w	$0058(a5),d1	;322D0058
 	bra	adrCd0098A8	;600064BE
 
-adrCd0033EC:
+adrCd0033EC:		; Memory Address ($33EC) and binary offset [$3068]
 	rts	;4E75
 
-adrJA0033EE:
+adrJA0033EE:		; Memory Address ($33EE) and binary offset [$306A]
 	bsr.s	adrCd0033BE	;61CE
 	bcs.s	Comms_StartWithTarget	;6510
-adrCd0033F2:
+adrCd0033F2:		; Memory Address ($33F2) and binary offset [$306E]
 	lea	adrEA0041F3.l,a6	;4DF9000041F3
 	clr.w	$0042(a5)	;426D0042
 	jmp	Print_timed_message.l	;4EF90000D86A
 
-Comms_StartWithTarget:
+Comms_StartWithTarget:		; Memory Address ($3402) and binary offset [$307E]
 	; ReSource: Initialises communication state for the selected champion or monster and prints the greeting.
 	move.w	d0,d1	;3200
 	bsr	Load_CurrentChampionStatRecord	;61003256
@@ -4861,17 +4927,17 @@ Comms_StartWithTarget:
 	bmi.s	adrCd0033F2	;6BB4
 	bsr	Comms_InitialiseMonsterTrader	;6100FE3C
 	moveq	#$02,d4	;7802
-adrCd003444:
+adrCd003444:		; Memory Address ($3444) and binary offset [$30C0]
 	and.b	#$F0,$00(a1,d4.w)	;023100F04000
 	or.b	$00(a1,d4.w),d1	;82314000
 	move.b	d1,$00(a1,d4.w)	;13814000
 	move.b	d0,$0035(a5)	;1B400035
 	bra.s	adrCd003462	;600A
 
-adrCd003458:
+adrCd003458:		; Memory Address ($3458) and binary offset [$30D4]
 	bset	#$07,$0005(a4)	;08EC00070005
 	move.w	$0006(a1),d0	;30290006
-adrCd003462:
+adrCd003462:		; Memory Address ($3462) and binary offset [$30DE]
 	move.b	$0007(a5),$0003(a4)	;196D00070003
 	and.w	#$007F,d0	;0240007F
 	move.b	d0,$0002(a4)	;19400002
@@ -4885,13 +4951,13 @@ adrCd003462:
 	sub.b	#Comms_CharismaBaseline,d2	;04020014
 	bcc.s	adrCd00348E	;6402
 	moveq	#$00,d2	;7400
-adrCd00348E:
+adrCd00348E:		; Memory Address ($348E) and binary offset [$310A]
 	lsr.b	#Comms_CharismaShift,d2	;E40A
 	add.b	d2,d0	;D002
 	add.b	CommsState_AttitudeOffset(a4),d0	;D02C0006
 	bpl.s	adrCd00349A	;6A02
 	moveq	#$00,d0	;7000
-adrCd00349A:
+adrCd00349A:		; Memory Address ($349A) and binary offset [$3116]
 	move.b	d0,CommsState_AttitudeOffset(a4)	;19400006
 	bsr	RandomGen_BytewithOffset	;6100210C
 	and.w	#$0007,d0	;02400007
@@ -4904,7 +4970,7 @@ adrCd00349A:
 	move.w	#$0004,$0044(a5)	;3B7C00040044
 	bra	adrCd003D9C	;600008D2
 
-Comms_HandleMenuSelection:
+Comms_HandleMenuSelection:		; Memory Address ($34CC) and binary offset [$3148]
 	; ReSource: Converts the visible communication menu and button into an action and runs it.
 	move.w	$0044(a5),d0	;302D0044
 	subq.w	#$04,d0	;5940
@@ -4915,7 +4981,7 @@ Comms_HandleMenuSelection:
 	addq.w	#$02,d1	;5441
 	asl.w	#$02,d0	;E540
 	add.w	d0,d1	;D240
-adrCd0034E0:
+adrCd0034E0:		; Memory Address ($34E0) and binary offset [$315C]
 	bsr	Comms_GetState	;61000D18
 	addq.b	#$01,CommsState_AttitudeOffset(a4)	;522C0006
 	bsr.s	Comms_RunAction	;6126
@@ -4924,14 +4990,14 @@ adrCd0034E0:
 	cmp.b	#$06,$0001(a4)	;0C2C00060001
 	bcs.s	adrCd00350E	;6514
 	bsr	adrCd00331A	;6100FE1E
-adrCd0034FE:
+adrCd0034FE:		; Memory Address ($34FE) and binary offset [$317A]
 	move.b	#$14,$0004(a4)	;197C00140004
 	move.b	CommsState_CurrentActionOffset(a4),CommsState_PreviousActionOffset(a4)	;196C00010000
 	subq.b	#$01,CommsState_PatienceOffset(a4)	;532C0007
-adrCd00350E:
+adrCd00350E:		; Memory Address ($350E) and binary offset [$318A]
 	rts	;4E75
 
-Comms_RunAction:
+Comms_RunAction:		; Memory Address ($3510) and binary offset [$318C]
 	; ReSource: Stores and dispatches one communication action.
 	move.b	d1,CommsState_CurrentActionOffset(a4)	;19410001
 	add.w	d1,d1	;D241
@@ -4940,7 +5006,7 @@ Comms_RunAction:
 	bsr	RandomGen_BytewithOffset	;6100208A
 	jmp	(a0)	;4ED0
 
-Comms_ActionHandlerOffsets:
+Comms_ActionHandlerOffsets:		; Memory Address ($3526) and binary offset [$31A2]
 	; ReSource: Ordered handlers for communication action identifiers $00-$1A.
 	dc.w	Comms_Action_Recruit-Comms_Action_Recruit	;0000
 	dc.w	Comms_Action_Identify-Comms_Action_Recruit	;000E
@@ -4970,41 +5036,41 @@ Comms_ActionHandlerOffsets:
 	dc.w	Comms_Action_Retort-Comms_Action_Recruit	;04F6
 	dc.w	Comms_Action_None-Comms_Action_Recruit	;000C
 
-Comms_Action_Recruit:
+Comms_Action_Recruit:		; Memory Address ($355C) and binary offset [$31D8]
 	; ReSource: Communicates the Recruit request.
 	lea	Msg_Recruit.l,a6	;4DF900003E83
 	jmp	WriteMessage.l	;4EF90000D03A
 
-Comms_Action_None:
+Comms_Action_None:		; Memory Address ($3568) and binary offset [$31E4]
 	; ReSource: No-operation handler used by the final communication action slot.
 	rts	;4E75
 
-Comms_Action_Identify:
+Comms_Action_Identify:		; Memory Address ($356A) and binary offset [$31E6]
 	; ReSource: Opens the Identify communication submenu.
 	addq.w	#$02,$0044(a5)	;546D0044
 	bra	adrCd003338	;6000FDC8
 
-Comms_Action_Inquiry:
+Comms_Action_Inquiry:		; Memory Address ($3572) and binary offset [$31EE]
 	; ReSource: Opens the Inquiry communication submenu.
 	addq.w	#$03,$0044(a5)	;566D0044
 	bra	adrCd003338	;6000FDC0
 
-Comms_Action_Whereabouts:
+Comms_Action_Whereabouts:		; Memory Address ($357A) and binary offset [$31F6]
 	; ReSource: Communicates the Whereabouts question.
 	lea	Msg_Whereabouts.l,a6	;4DF900003E2F
 	jmp	WriteMessage.l	;4EF90000D03A
 
-Comms_Action_Trading:
+Comms_Action_Trading:		; Memory Address ($3586) and binary offset [$3202]
 	; ReSource: Opens the Trading communication submenu.
 	addq.w	#$03,$0044(a5)	;566D0044
 	bra	adrCd003338	;6000FDAC
 
-Comms_Action_Smalltalk:
+Comms_Action_Smalltalk:		; Memory Address ($358E) and binary offset [$320A]
 	; ReSource: Opens the Smalltalk communication submenu.
 	addq.w	#$04,$0044(a5)	;586D0044
 	bra	adrCd003338	;6000FDA4
 
-Comms_Action_Yes:
+Comms_Action_Yes:		; Memory Address ($3596) and binary offset [$3212]
 	; ReSource: Communicates Yes and completes an accepted object or coinage transfer when one is pending.
 	move.b	$0008(a4),d2	;142C0008
 	subq.b	#CommsTradeMode_Exchange,d2	;5502
@@ -5022,12 +5088,12 @@ Comms_Action_Yes:
 	move.b	$002F(a5),$0C(a0,d1.w)	;11AD002F100C
 	move.b	d0,$002F(a5)	;1B40002F
 	move.w	#$0001,$002C(a5)	;3B7C0001002C
-adrCd0035D0:
+adrCd0035D0:		; Memory Address ($35D0) and binary offset [$324C]
 	move.b	#CommsAction_Boast,CommsState_CurrentActionOffset(a4)	;197C00180001
 	bsr.s	adrCd0035FA	;6122
 	bra	Refresh_HeldItemDisplay	;6000365A
 
-adrCd0035DC:
+adrCd0035DC:		; Memory Address ($35DC) and binary offset [$3258]
 	move.b	$000A(a4),d0	;102C000A
 	cmp.b	$002F(a5),d0	;B02D002F
 	bne.s	adrCd0035FA	;6614
@@ -5036,13 +5102,13 @@ adrCd0035DC:
 	move.w	#$0001,$002E(a5)	;3B7C0001002E
 	bra.s	adrCd0035D0	;60D6
 
-adrCd0035FA:
+adrCd0035FA:		; Memory Address ($35FA) and binary offset [$3276]
 	clr.b	$0008(a4)	;422C0008
-adrCd0035FE:
+adrCd0035FE:		; Memory Address ($35FE) and binary offset [$327A]
 	move.w	#$45FF,d0	;303C45FF
 	bra.s	adrCd003626	;6022
 
-Comms_Action_No:
+Comms_Action_No:		; Memory Address ($3604) and binary offset [$3280]
 	; ReSource: Communicates No and cancels or refuses the active trading mode.
 	move.w	#$3DFF,d0	;303C3DFF
 	move.b	$0008(a4),d1	;122C0008
@@ -5054,21 +5120,21 @@ Comms_Action_No:
 	subq.b	#$04,CommsState_AttitudeOffset(a4)	;592C0006
 	bpl.s	adrCd003626	;6A04
 	clr.b	$0006(a4)	;422C0006
-adrCd003626:
+adrCd003626:		; Memory Address ($3626) and binary offset [$32A2]
 	subq.b	#$01,CommsState_AttitudeOffset(a4)	;532C0006
 	bpl.s	adrCd003630	;6A04
 	clr.b	$0006(a4)	;422C0006
-adrCd003630:
+adrCd003630:		; Memory Address ($3630) and binary offset [$32AC]
 	lea	adrEA00CAE6.l,a6	;4DF90000CAE6
 	move.w	d0,(a6)	;3C80
 	jmp	Print_npc_message.l	;4EF90000D81C
 
-Comms_Action_Bribe:
+Comms_Action_Bribe:		; Memory Address ($363E) and binary offset [$32BA]
 	; ReSource: Communicates the Bribe question.
 	lea	Msg_Bribe.l,a6	;4DF900003E26
 	jmp	Print_npc_message.l	;4EF90000D81C
 
-Comms_Action_Threat:
+Comms_Action_Threat:		; Memory Address ($364A) and binary offset [$32C6]
 	; ReSource: Builds a randomized threat and reduces attitude.
 	lea	Comms_MessageBuffer.l,a6	;4DF900003DC0
 	and.w	#$0003,d0	;02400003
@@ -5078,17 +5144,17 @@ Comms_Action_Threat:
 	subq.b	#$03,CommsState_AttitudeOffset(a4)	;572C0006
 	bpl.s	adrCd00366C	;6A04
 	clr.b	$0006(a4)	;422C0006
-adrCd00366C:
+adrCd00366C:		; Memory Address ($366C) and binary offset [$32E8]
 	cmpi.b	#$0A,d0	;0C00000A
 	bcs.s	adrCd0036A2	;6530
-adrCd003672:
+adrCd003672:		; Memory Address ($3672) and binary offset [$32EE]
 	move.b	$0002(a4),d0	;102C0002
 	bpl.s	adrCd003680	;6A08
 	and.w	#$000F,d0	;0240000F
 	move.b	d0,(a6)+	;1CC0
 	bra.s	adrCd0036D0	;6050
 
-adrCd003680:
+adrCd003680:		; Memory Address ($3680) and binary offset [$32FC]
 	move.b	#$99,(a6)+	;1CFC0099
 	move.b	#$C3,d1	;123C00C3
 	btst	#$06,d0	;08000006
@@ -5098,11 +5164,11 @@ adrCd003680:
 	beq.s	adrCd00369E	;6706
 	add.b	#$5B,d0	;0600005B
 	move.b	d0,d1	;1200
-adrCd00369E:
+adrCd00369E:		; Memory Address ($369E) and binary offset [$331A]
 	move.b	d1,(a6)+	;1CC1
 	bra.s	adrCd0036D0	;602E
 
-adrCd0036A2:
+adrCd0036A2:		; Memory Address ($36A2) and binary offset [$331E]
 	move.b	#$62,(a6)+	;1CFC0062
 	bsr	RandomGen_BytewithOffset	;61001F04
 	and.w	#$0003,d0	;02400003
@@ -5115,26 +5181,26 @@ adrCd0036A2:
 	and.w	#$0007,d0	;02400007
 	add.b	#$B6,d0	;060000B6
 	move.b	d0,(a6)+	;1CC0
-adrCd0036D0:
+adrCd0036D0:		; Memory Address ($36D0) and binary offset [$334C]
 	move.b	#$FF,(a6)	;1CBC00FF
 	lea	Comms_MessageBuffer.l,a6	;4DF900003DC0
 	jmp	Print_npc_message.l	;4EF90000D81C
 
-Comms_CopyThreatFragment:
+Comms_CopyThreatFragment:		; Memory Address ($36E0) and binary offset [$335C]
 	; ReSource: Copies one length-prefixed threat fragment into the communication message buffer.
 	jsr	Proceed_in_stringtable.l	;4EB90000D7CC
 	subq.w	#$01,d5	;5345
-adrLp0036E8:
+adrLp0036E8:		; Memory Address ($36E8) and binary offset [$3364]
 	move.b	(a3)+,(a6)+	;1CDB
 	dbra	d5,adrLp0036E8	;51CDFFFC
 	rts	;4E75
 
-Comms_Action_WhoGoes:
+Comms_Action_WhoGoes:		; Memory Address ($36F0) and binary offset [$336C]
 	; ReSource: Communicates the Who Goes identity question.
 	lea	Msg_WhoGoes.l,a6	;4DF900003DFD
 	jmp	Print_npc_message.l	;4EF90000D81C
 
-Comms_Action_ThyTrade:
+Comms_Action_ThyTrade:		; Memory Address ($36FC) and binary offset [$3378]
 	; ReSource: Communicates the Thy Trade profession question.
 	lea	Msg_ThyTrade.l,a6	;4DF900003708
 	jmp	WriteMessage.l	;4EF90000D03A
@@ -5144,7 +5210,7 @@ Msg_ThyTrade:
 	dc.b	'WHAT BE THY BUSINESS?'	;574841542042452054485920425553494E4553533F
 	dc.b	$FF	;FF
 
-Comms_Action_NameSelf:
+Comms_Action_NameSelf:		; Memory Address ($371E) and binary offset [$339A]
 	; ReSource: Builds a message revealing the speaker's name and title.
 	lea	Msg_NameSelfTemplate.l,a6	;4DF900003DAA
 	move.b	$0003(a4),d1	;122C0003
@@ -5155,7 +5221,7 @@ Comms_Action_NameSelf:
 	move.b	d1,$0004(a6)	;1D410004
 	jmp	Print_npc_message.l	;4EF90000D81C
 
-Comms_Action_RevealSelf:
+Comms_Action_RevealSelf:		; Memory Address ($3744) and binary offset [$33C0]
 	; ReSource: Builds a message revealing the speaker's profession.
 	lea	Msg_RevealSelfTemplate.l,a6	;4DF900003E03
 	move.b	$0003(a4),d0	;102C0003
@@ -5166,25 +5232,25 @@ Comms_Action_RevealSelf:
 	beq.s	adrCd00376C	;6708
 	add.w	#$005B,d0	;0640005B
 	move.b	d0,$0006(a6)	;1D400006
-adrCd00376C:
+adrCd00376C:		; Memory Address ($376C) and binary offset [$33E8]
 	jmp	Print_npc_message.l	;4EF90000D81C
 
-Comms_Action_FolkLore:
+Comms_Action_FolkLore:		; Memory Address ($3772) and binary offset [$33EE]
 	; ReSource: Communicates the Folk Lore inquiry.
 	lea	Msg_FolkLore.l,a6	;4DF9000037A2
 	jmp	WriteMessage.l	;4EF90000D03A
 
-Comms_Action_MagicItems:
+Comms_Action_MagicItems:		; Memory Address ($377E) and binary offset [$33FA]
 	; ReSource: Communicates the Magic Items inquiry.
 	lea	Msg_MagicItems.l,a6	;4DF9000037BF
 	jmp	WriteMessage.l	;4EF90000D03A
 
-Comms_Action_Objects:
+Comms_Action_Objects:		; Memory Address ($378A) and binary offset [$3406]
 	; ReSource: Communicates the Objects inquiry.
 	lea	Msg_Objects.l,a6	;4DF9000037E4
 	jmp	WriteMessage.l	;4EF90000D03A
 
-Comms_Action_Persons:
+Comms_Action_Persons:		; Memory Address ($3796) and binary offset [$3412]
 	; ReSource: Communicates the Persons inquiry.
 	lea	Msg_Persons.l,a6	;4DF900003809
 	jmp	WriteMessage.l	;4EF90000D03A
@@ -5206,7 +5272,7 @@ Msg_Persons:
 	dc.b	'HAST HEARD OF ANY POWERFUL BEINGS?'	;48415354204845415244204F4620414E5920504F57455246554C204245494E47533F
 	dc.b	$FF	;FF
 
-Comms_Action_Offer:
+Comms_Action_Offer:		; Memory Address ($382C) and binary offset [$34A8]
 	; ReSource: Builds the Offer message from held coinage, a held object or the empty-hand template.
 	move.w	HeldItem_ObjectCodeOffset(a5),d0	;302D002E
 	move.b	d0,$000A(a4)	;1940000A
@@ -5215,7 +5281,7 @@ Comms_Action_Offer:
 	moveq	#$2E,d0	;702E
 	bra.s	adrCd003894	;6056
 
-adrCd00383E:
+adrCd00383E:		; Memory Address ($383E) and binary offset [$34BA]
 	cmpi.w	#Object_Coinage,d0	;0C400001
 	bne.s	adrCd00385C	;6618
 	move.w	HeldItem_StateOffset(a5),d0	;302D002C
@@ -5224,16 +5290,16 @@ adrCd00383E:
 	move.b	#$01,$0008(a4)	;197C00010008
 	bra	Comms_PrintGoldOffer	;6000F9E8
 
-adrCd00385C:
+adrCd00385C:		; Memory Address ($385C) and binary offset [$34D8]
 	cmp.b	#$01,$0008(a4)	;0C2C00010008
 	bne.s	adrCd00386A	;6606
 	move.b	#$02,$0008(a4)	;197C00020008
-adrCd00386A:
+adrCd00386A:		; Memory Address ($386A) and binary offset [$34E6]
 	lea	Msg_OfferHeldItemTemplate.l,a6	;4DF900003E65
 	moveq	#$05,d2	;7405
 	bra.s	adrCd0038DA	;6066
 
-Comms_Action_Sell:
+Comms_Action_Sell:		; Memory Address ($3874) and binary offset [$34F0]
 	; ReSource: Builds the Sell message and records the held object for the proposed trade.
 	move.b	#$03,$0008(a4)	;197C00030008
 	clr.b	$0009(a4)	;422C0009
@@ -5244,20 +5310,20 @@ Comms_Action_Sell:
 	moveq	#$05,d2	;7405
 	bra.s	adrCd0038DA	;6048
 
-adrCd003892:
+adrCd003892:		; Memory Address ($3892) and binary offset [$350E]
 	moveq	#$57,d0	;7057
-adrCd003894:
+adrCd003894:		; Memory Address ($3894) and binary offset [$3510]
 	lea	Msg_OfferOrSellTemplate.l,a6	;4DF900003E58
 	move.b	d0,$0005(a6)	;1D400005
 	jmp	Print_npc_message.l	;4EF90000D81C
 
-Comms_Action_Purchase:
+Comms_Action_Purchase:		; Memory Address ($38A4) and binary offset [$3520]
 	; ReSource: Communicates the Purchase question and enters purchase mode.
 	lea	Msg_Purchase.l,a6	;4DF900003E7B
 	move.b	#$01,$0008(a4)	;197C00010008
 	jmp	Print_npc_message.l	;4EF90000D81C
 
-Comms_Action_Exchange:
+Comms_Action_Exchange:		; Memory Address ($38B6) and binary offset [$3532]
 	; ReSource: Builds the Exchange question and enters exchange mode.
 	move.b	#$02,$0008(a4)	;197C00020008
 	move.w	HeldItem_ObjectCodeOffset(a5),d0	;302D002E
@@ -5266,18 +5332,18 @@ Comms_Action_Exchange:
 	lea	Msg_Exchange.l,a6	;4DF900003E0B
 	jmp	Print_npc_message.l	;4EF90000D81C
 
-adrCd0038D2:
+adrCd0038D2:		; Memory Address ($38D2) and binary offset [$354E]
 	lea	Msg_ExchangeHeldItemTemplate.l,a6	;4DF900003E15
 	moveq	#$0B,d2	;740B
-adrCd0038DA:
+adrCd0038DA:		; Memory Address ($38DA) and binary offset [$3556]
 	bsr.s	Comms_AppendObjectName	;6118
-adrCd0038DC:
+adrCd0038DC:		; Memory Address ($38DC) and binary offset [$3558]
 	move.b	#$FA,$00(a6,d2.w)	;1DBC00FA2000
 	move.b	#$3F,$01(a6,d2.w)	;1DBC003F2001
 	move.b	#$FF,$02(a6,d2.w)	;1DBC00FF2002
 	jmp	Print_npc_message.l	;4EF90000D81C
 
-Comms_AppendObjectName:
+Comms_AppendObjectName:		; Memory Address ($38F4) and binary offset [$3570]
 	; ReSource: Appends an object's one- or two-part display name to a packed communication message.
 	lea	Object_Definition_Table+$02.l,a0	;41F90000E4C4
 	add.w	d0,d0	;D040
@@ -5290,36 +5356,36 @@ Comms_AppendObjectName:
 	move.b	#$FE,$00(a6,d2.w)	;1DBC00FE2000
 	move.b	d0,$01(a6,d2.w)	;1D802001
 	addq.w	#$02,d2	;5442
-adrCd003916:
+adrCd003916:		; Memory Address ($3916) and binary offset [$3592]
 	rts	;4E75
 
-Comms_Action_Praise:
+Comms_Action_Praise:		; Memory Address ($3918) and binary offset [$3594]
 	; ReSource: Builds a randomized compliment and raises attitude.
 	addq.b	#$01,CommsState_AttitudeOffset(a4)	;522C0006
 	lea	Comms_PraiseWordRanges.l,a0	;41F900003A02
 	bra.s	adrCd003934	;6010
 
-Comms_Action_Curse:
+Comms_Action_Curse:		; Memory Address ($3924) and binary offset [$35A0]
 	; ReSource: Builds a randomized insult and reduces attitude.
 	subq.b	#$04,CommsState_AttitudeOffset(a4)	;592C0006
 	bpl.s	adrCd00392E	;6A04
 	clr.b	$0006(a4)	;422C0006
-adrCd00392E:
+adrCd00392E:		; Memory Address ($392E) and binary offset [$35AA]
 	lea	Comms_CurseWordRanges.l,a0	;41F900003A08
-adrCd003934:
+adrCd003934:		; Memory Address ($3934) and binary offset [$35B0]
 	bsr.s	Comms_BuildSmalltalk	;6148
 	moveq	#$02,d4	;7802
-adrLp003938:
+adrLp003938:		; Memory Address ($3938) and binary offset [$35B4]
 	asr.w	#$01,d7	;E247
 	bcc.s	adrCd00393E	;6402
 	bsr.s	Comms_AppendSmalltalkWord	;6112
-adrCd00393E:
+adrCd00393E:		; Memory Address ($393E) and binary offset [$35BA]
 	addq.w	#$02,a0	;5448
 	dbra	d4,adrLp003938	;51CCFFF6
 	move.b	#$FF,$00(a6,d2.w)	;1DBC00FF2000
 	jmp	Print_npc_message.l	;4EF90000D81C
 
-Comms_AppendSmalltalkWord:
+Comms_AppendSmalltalkWord:		; Memory Address ($3950) and binary offset [$35CC]
 	; ReSource: Selects and appends one optional word from a praise or curse word range.
 	bsr	RandomGen_BytewithOffset	;61001C5A
 	and.w	#$0007,d0	;02400007
@@ -5330,25 +5396,25 @@ Comms_AppendSmalltalkWord:
 	move.b	#$FA,$00(a6,d2.w)	;1DBC00FA2000
 	move.b	#$4E,$01(a6,d2.w)	;1DBC004E2001
 	addq.w	#$02,d2	;5442
-adrCd00396E:
+adrCd00396E:		; Memory Address ($396E) and binary offset [$35EA]
 	and.w	#$00FF,d7	;024700FF
-adrCd003972:
+adrCd003972:		; Memory Address ($3972) and binary offset [$35EE]
 	add.b	$0001(a0),d0	;D0280001
 	move.b	d0,$00(a6,d2.w)	;1D802000
 	addq.w	#$01,d2	;5242
 	rts	;4E75
 
-Comms_BuildSmalltalk:
+Comms_BuildSmalltalk:		; Memory Address ($397E) and binary offset [$35FA]
 	; ReSource: Builds a randomized praise or curse from a sentence pattern and three word ranges.
 	and.w	#$00FE,d0	;024000FE
 	moveq	#$00,d7	;7E00
-adrCd003984:
+adrCd003984:		; Memory Address ($3984) and binary offset [$3600]
 	cmp.b	Comms_SmalltalkPatternBands(pc,d7.w),d0	;B03B7070
 	bcs.s	adrCd00398E	;6504
 	addq.w	#$02,d7	;5447
 	bra.s	adrCd003984	;60F6
 
-adrCd00398E:
+adrCd00398E:		; Memory Address ($398E) and binary offset [$360A]
 	move.b	adrB_0039F7(pc,d7.w),d7	;1E3B7067
 	lea	Comms_MessageBuffer.l,a6	;4DF900003DC0
 	move.b	#$1A,(a6)	;1CBC001A
@@ -5361,10 +5427,10 @@ adrCd00398E:
 	addq.w	#$02,d0	;5440
 	bra.s	adrCd0039BA	;6008
 
-adrCd0039B2:
+adrCd0039B2:		; Memory Address ($39B2) and binary offset [$362E]
 	bsr	RandomGen_BytewithOffset	;61001BF8
 	and.w	#$0007,d0	;02400007
-adrCd0039BA:
+adrCd0039BA:		; Memory Address ($39BA) and binary offset [$3636]
 	move.w	#$0084,d1	;323C0084
 	add.w	d0,d1	;D240
 	move.b	d1,$0001(a6)	;1D410001
@@ -5374,23 +5440,23 @@ adrCd0039BA:
 	move.b	#$FA,$0002(a6)	;1D7C00FA0002
 	move.b	#$53,$0003(a6)	;1D7C00530003
 	moveq	#$04,d2	;7404
-adrCd0039DA:
+adrCd0039DA:		; Memory Address ($39DA) and binary offset [$3656]
 	ror.w	#$01,d7	;E25F
 	bpl.s	adrCd0039F4	;6A16
 	cmpi.w	#$0005,d0	;0C400005
 	bcc.s	adrCd0039EC	;6408
 	move.b	#$8C,$00(a6,d2.w)	;1DBC008C2000
 	addq.w	#$01,d2	;5242
-adrCd0039EC:
+adrCd0039EC:		; Memory Address ($39EC) and binary offset [$3668]
 	move.b	#$8D,$00(a6,d2.w)	;1DBC008D2000
 	addq.w	#$01,d2	;5242
-adrCd0039F4:
+adrCd0039F4:		; Memory Address ($39F4) and binary offset [$3670]
 	rts	;4E75
 
-Comms_SmalltalkPatternBands:
+Comms_SmalltalkPatternBands:		; Memory Address ($39F6) and binary offset [$3672]
 	; ReSource: Upper bounds and bit masks selecting randomized smalltalk sentence patterns.
 	dc.b	$0C	;0C
-adrB_0039F7:
+adrB_0039F7:		; Memory Address ($39F7) and binary offset [$3673]
 	dc.b	$10	;10
 	dc.b	$32	;32
 	dc.b	$1C	;1C
@@ -5402,18 +5468,18 @@ adrB_0039F7:
 	dc.b	$13	;13
 	dc.b	$FF	;FF
 	dc.b	$1B	;1B
-Comms_PraiseWordRanges:
+Comms_PraiseWordRanges:		; Memory Address ($3A02) and binary offset [$367E]
 	; ReSource: Three threshold and starting-word pairs for praise adverbs, adjectives and nouns.
 	dc.w	$048E	;048E
 	dc.w	$0796	;0796
 	dc.w	$079E	;079E
-Comms_CurseWordRanges:
+Comms_CurseWordRanges:		; Memory Address ($3A08) and binary offset [$3684]
 	; ReSource: Three threshold and starting-word pairs for curse adverbs, adjectives and nouns.
 	dc.w	$03A6	;03A6
 	dc.w	$07AE	;07AE
 	dc.w	$07B6	;07B6
 
-Comms_Action_Boast:
+Comms_Action_Boast:		; Memory Address ($3A0E) and binary offset [$368A]
 	; ReSource: Builds a boast from a randomized personal attribute and superlative.
 	lea	Msg_BoastTemplate.l,a6	;4DF900003DBA
 	and.w	#$0007,d0	;02400007
@@ -5425,7 +5491,7 @@ Comms_Action_Boast:
 	move.b	d0,$0004(a6)	;1D400004
 	jmp	Print_npc_message.l	;4EF90000D81C
 
-Comms_ActionReplyIndexes:
+Comms_ActionReplyIndexes:		; Memory Address ($3A36) and binary offset [$36B2]
 	; ReSource: Maps each preceding communication action to its contextual fixed-reply entry.
 	dc.b	$00	;00
 	dc.b	$00	;00
@@ -5456,7 +5522,7 @@ Comms_ActionReplyIndexes:
 	dc.b	$16	;16
 	dc.b	$00	;00
 
-Comms_Action_Retort:
+Comms_Action_Retort:		; Memory Address ($3A52) and binary offset [$36CE]
 	; ReSource: Selects the contextual fixed reply or a randomized agreement fallback.
 	moveq	#$00,d0	;7000
 	move.b	$0000(a4),d0	;102C0000
@@ -5623,7 +5689,7 @@ Msg_Reply_Greeting:
 	addq.w	#$01,d2	;5242
 	bra.s	adrCd003D74	;6022
 
-adrCd003D52:
+adrCd003D52:		; Memory Address ($3D52) and binary offset [$39CE]
 	lea	Object_Definition_Table+$02.l,a0	;41F90000E4C4
 	add.w	d1,d1	;D241
 	add.w	d1,d1	;D241
@@ -5635,7 +5701,7 @@ adrCd003D52:
 	move.b	#$FE,$00(a6,d2.w)	;1DBC00FE2000
 	move.b	d0,$01(a6,d2.w)	;1D802001
 	addq.w	#$02,d2	;5442
-adrCd003D74:
+adrCd003D74:		; Memory Address ($3D74) and binary offset [$39F0]
 	move.b	#$35,$00(a6,d2.w)	;1DBC00352000
 	bsr	RandomGen_BytewithOffset	;61001830
 	and.w	#$0007,d0	;02400007
@@ -5644,12 +5710,12 @@ adrCd003D74:
 	move.b	#$FF,$02(a6,d2.w)	;1DBC00FF2002
 	jsr	Print_npc_message.l	;4EB90000D81C
 	move.w	#$0006,$0044(a5)	;3B7C00060044
-adrCd003D9C:
+adrCd003D9C:		; Memory Address ($3D9C) and binary offset [$3A18]
 	move.w	#$0008,$0042(a5)	;3B7C00080042
 	bsr	adrCd003344	;6100F5A0
 	bra	adrCd007D6C	;60003FC4
 
-Msg_NameSelfTemplate:
+Msg_NameSelfTemplate:		; Memory Address ($3DAA) and binary offset [$3A26]
 	; ReSource: Packed-word template patched with the speaker's name and title.
 	dc.w	$5F4B	;5F4B
 	dc.w	$3500	;3500
@@ -5659,12 +5725,12 @@ Msg_NameSelfTemplate:
 	dc.w	$1C25	;1C25
 	dc.w	$FA45	;FA45
 	dc.w	$00FF	;00FF
-Msg_BoastTemplate:
+Msg_BoastTemplate:		; Memory Address ($3DBA) and binary offset [$3A36]
 	; ReSource: Packed-word template patched with a personal attribute and superlative.
 	dc.w	$335F	;335F
 	dc.w	$0035	;0035
 	dc.w	$00FF	;00FF
-Comms_MessageBuffer:
+Comms_MessageBuffer:		; Memory Address ($3DC0) and binary offset [$3A3C]
 	; ReSource: Thirty-byte writable buffer used to assemble dynamic communication messages.
 	dc.w	$0000	;0000
 	dc.w	$0000	;0000
@@ -5681,7 +5747,7 @@ Comms_MessageBuffer:
 	dc.w	$0000	;0000
 	dc.w	$0000	;0000
 	dc.w	$0000	;0000
-Comms_ThreatOpeningFragments:
+Comms_ThreatOpeningFragments:		; Memory Address ($3DDE) and binary offset [$3A5A]
 	; ReSource: Length-prefixed threat openings: BE ASIDE, DEPART, BEGONE and GO AWAY.
 	dc.w	$02BE	;02BE
 	dc.w	$BF01	;BF01
@@ -5691,7 +5757,7 @@ Comms_ThreatOpeningFragments:
 	dc.w	$4EFA	;4EFA
 	dc.w	$4502	;4502
 	dc.w	$3163	;3163
-Comms_ThreatConsequenceFragments:
+Comms_ThreatConsequenceFragments:		; Memory Address ($3DEE) and binary offset [$3A6A]
 	; ReSource: Length-prefixed threat consequences: SUFFER, DIE, BE SORRY and FIGHT.
 	dc.b	$01	;01
 	dc.b	$C0	;C0
@@ -5702,7 +5768,7 @@ Comms_ThreatConsequenceFragments:
 	dc.b	$C2	;C2
 	dc.b	$01	;01
 	dc.b	$84	;84
-Msg_Greeting:
+Msg_Greeting:		; Memory Address ($3DF7) and binary offset [$3A73]
 	; ReSource: Packed-word initial GREETINGS message.
 	dc.b	$49	;49
 	dc.b	$FB	;FB
@@ -5710,7 +5776,7 @@ Msg_Greeting:
 	dc.b	$FA	;FA
 	dc.b	$53	;53
 	dc.b	$FF	;FF
-Msg_WhoGoes:
+Msg_WhoGoes:		; Memory Address ($3DFD) and binary offset [$3A79]
 	; ReSource: Packed-word question communicated by the Who Goes button.
 	dc.b	$18	;18
 	dc.b	$8B	;8B
@@ -5718,7 +5784,7 @@ Msg_WhoGoes:
 	dc.b	$FA	;FA
 	dc.b	$3F	;3F
 	dc.b	$FF	;FF
-Msg_RevealSelfTemplate:
+Msg_RevealSelfTemplate:		; Memory Address ($3E03) and binary offset [$3A7F]
 	; ReSource: Packed-word profession statement patched for Wizard, Adventurer, Cutpurse or Warrior.
 	dc.b	$CE	;CE
 	dc.b	$8D	;8D
@@ -5728,7 +5794,7 @@ Msg_RevealSelfTemplate:
 	dc.b	$99	;99
 	dc.b	$00	;00
 	dc.b	$FF	;FF
-Msg_Exchange:
+Msg_Exchange:		; Memory Address ($3E0B) and binary offset [$3A87]
 	; ReSource: Packed-word Exchange question used when no object is held.
 	dc.b	$27	;27
 	dc.b	$1A	;1A
@@ -5740,7 +5806,7 @@ Msg_Exchange:
 	dc.b	$FA	;FA
 	dc.b	$3F	;3F
 	dc.b	$FF	;FF
-Msg_ExchangeHeldItemTemplate:
+Msg_ExchangeHeldItemTemplate:		; Memory Address ($3E15) and binary offset [$3A91]
 	; ReSource: Packed-word Exchange question patched with the held object name.
 	dc.b	$18	;18
 	dc.b	$FB	;FB
@@ -5759,7 +5825,7 @@ Msg_ExchangeHeldItemTemplate:
 	dc.b	$00	;00
 	dc.b	$00	;00
 	dc.b	$00	;00
-Msg_Bribe:
+Msg_Bribe:		; Memory Address ($3E26) and binary offset [$3AA2]
 	; ReSource: Packed-word question communicated by the Bribe button.
 	dc.b	$CC	;CC
 	dc.b	$1A	;1A
@@ -5774,7 +5840,7 @@ Msg_Whereabouts:
 	; ReSource: Question communicated by the Whereabouts button.
 	dc.b	'WHERE IS THIS OF WHICH THOU HAST SPOKEN?'	;57484552452049532054484953204F462057484943482054484F5520484153542053504F4B454E3F
 	dc.b	$FF	;FF
-Msg_OfferOrSellTemplate:
+Msg_OfferOrSellTemplate:		; Memory Address ($3E58) and binary offset [$3AD4]
 	; ReSource: Packed-word template patched to ask about giving or selling an unspecified object.
 	dc.b	$2D	;2D
 	dc.b	$5F	;5F
@@ -5789,7 +5855,7 @@ Msg_OfferOrSellTemplate:
 	dc.b	$FB	;FB
 	dc.b	$CB	;CB
 	dc.b	$FF	;FF
-Msg_OfferHeldItemTemplate:
+Msg_OfferHeldItemTemplate:		; Memory Address ($3E65) and binary offset [$3AE1]
 	; ReSource: Packed-word Offer question patched with the held object name.
 	dc.b	$CC	;CC
 	dc.b	$1A	;1A
@@ -5802,7 +5868,7 @@ Msg_OfferHeldItemTemplate:
 	dc.b	$00	;00
 	dc.b	$00	;00
 	dc.b	$00	;00
-Msg_SellHeldItemTemplate:
+Msg_SellHeldItemTemplate:		; Memory Address ($3E70) and binary offset [$3AEC]
 	; ReSource: Packed-word Sell question patched with the held object name.
 	dc.b	$CC	;CC
 	dc.b	$1A	;1A
@@ -5815,7 +5881,7 @@ Msg_SellHeldItemTemplate:
 	dc.b	$00	;00
 	dc.b	$00	;00
 	dc.b	$00	;00
-Msg_Purchase:
+Msg_Purchase:		; Memory Address ($3E7B) and binary offset [$3AF7]
 	; ReSource: Packed-word question communicated by the Purchase button.
 	dc.b	$27	;27
 	dc.b	$1A	;1A
@@ -5831,7 +5897,7 @@ Msg_Recruit:
 	dc.b	$FF	;FF
 	dc.b	$00	;00
 
-adrJA003E9C:
+adrJA003E9C:		; Memory Address ($3E9C) and binary offset [$3B18]
 	lea	adrEA0041D4.l,a6	;4DF9000041D4
 	jsr	Print_timed_message.l	;4EB90000D86A
 	move.b	#$FF,$0050(a5)	;1B7C00FF0050
@@ -5839,7 +5905,7 @@ adrJA003E9C:
 	btst	#$00,(a5)	;08150000
 	bne.s	adrCd003EC0	;6606
 	lea	Player2_Data.l,a1	;43F90000EEDE
-adrCd003EC0:
+adrCd003EC0:		; Memory Address ($3EC0) and binary offset [$3B3C]
 	btst	#$06,$0018(a1)	;082900060018
 	bne	adrCd003F58	;66000090
 	move.b	(a1),d0	;1011
@@ -5859,9 +5925,9 @@ adrCd003EC0:
 	cmpi.w	#$0009,d2	;0C420009
 	bcs.s	adrCd003F08	;6504
 	move.b	#$8E,(a6)+	;1CFC008E
-adrCd003F08:
+adrCd003F08:		; Memory Address ($3F08) and binary offset [$3B84]
 	move.b	#$C5,(a6)+	;1CFC00C5
-adrCd003F0C:
+adrCd003F0C:		; Memory Address ($3F0C) and binary offset [$3B88]
 	move.b	#$16,(a6)+	;1CFC0016
 	move.b	#$FA,(a6)+	;1CFC00FA
 	move.b	#$53,(a6)+	;1CFC0053
@@ -5874,12 +5940,12 @@ adrCd003F0C:
 	bcs.s	adrCd003F2E	;6504
 	moveq	#$01,d3	;7601
 	swap	d1	;4841
-adrCd003F2E:
+adrCd003F2E:		; Memory Address ($3F2E) and binary offset [$3BAA]
 	swap	d1	;4841
 	tst.w	d1	;4A41
 	bmi.s	adrCd003F36	;6B02
 	addq.b	#$02,d3	;5403
-adrCd003F36:
+adrCd003F36:		; Memory Address ($3F36) and binary offset [$3BB2]
 	add.w	$0020(a1),d3	;D6690020
 	and.w	#$0003,d3	;02430003
 	add.w	#$00C6,d3	;064300C6
@@ -5890,17 +5956,17 @@ adrCd003F36:
 	move.l	a1,a5	;2A49
 	jsr	Print_timed_message.l	;4EB90000D86A
 	move.l	(sp)+,a5	;2A5F
-adrCd003F58:
+adrCd003F58:		; Memory Address ($3F58) and binary offset [$3BD4]
 	bra	adrCd00332A	;6000F3D0
 
-adrJA003F5C:
+adrJA003F5C:		; Memory Address ($3F5C) and binary offset [$3BD8]
 	moveq	#$15,d7	;7E15
 	bra.s	adrCd003F66	;6006
 
-adrJA003F60:
+adrJA003F60:		; Memory Address ($3F60) and binary offset [$3BDC]
 	clr.b	$0050(a5)	;422D0050
 	moveq	#$13,d7	;7E13
-adrCd003F66:
+adrCd003F66:		; Memory Address ($3F66) and binary offset [$3BE2]
 	tst.b	$004E(a5)	;4A2D004E
 	beq	adrCd0040A0	;67000134
 	bsr	adrCd00417E	;6100020E
@@ -5916,7 +5982,7 @@ adrCd003F66:
 	jsr	Print_timed_message.l	;4EB90000D86A
 	bra	adrCd00332A	;6000F390
 
-adrCd003F9C:
+adrCd003F9C:		; Memory Address ($3F9C) and binary offset [$3C18]
 	bset	#$07,$01(a6,d2.w)	;08F600072001
 	move.b	$004F(a5),d0	;102D004F
 	bsr	adrCd004004	;6100005C
@@ -5929,7 +5995,7 @@ adrCd003F9C:
 	bset	#$05,d0	;08C00005
 	move.b	d0,$18(a5,d1.w)	;1B801018
 	lea	adrEA0041C1.l,a6	;4DF9000041C1
-adrCd003FCE:
+adrCd003FCE:		; Memory Address ($3FCE) and binary offset [$3C4A]
 	move.b	$004F(a5),d0	;102D004F
 	move.b	d0,(a6)	;1C80
 	bsr	Load_ChampionStatRecord	;6100268A
@@ -5943,16 +6009,16 @@ adrCd003FCE:
 	bsr	adrCd008246	;61004248
 	bra	adrCd00332A	;6000F328
 
-adrCd004004:
+adrCd004004:		; Memory Address ($4004) and binary offset [$3C80]
 	bsr	adrCd004092	;6100008C
 	move.b	#$FF,$26(a5,d2.w)	;1BBC00FF2026
 	cmp.w	$0016(a5),d2	;B46D0016
 	bne.s	adrCd00401A	;6606
 	move.w	#$FFFF,$0016(a5)	;3B7CFFFF0016
-adrCd00401A:
+adrCd00401A:		; Memory Address ($401A) and binary offset [$3C96]
 	bsr	adrCd004078	;6100005C
 	move.w	d1,d3	;3601
-adrCd004020:
+adrCd004020:		; Memory Address ($4020) and binary offset [$3C9C]
 	move.b	$19(a5,d1.w),$18(a5,d1.w)	;1BB510191018
 	addq.w	#$01,d1	;5241
 	cmpi.w	#$0003,d1	;0C410003
@@ -5967,83 +6033,83 @@ adrCd004020:
 	move.l	(sp)+,d7	;2E1F
 	rts	;4E75
 
-adrCd00404C:
+adrCd00404C:		; Memory Address ($404C) and binary offset [$3CC8]
 	bcc.s	adrCd004052	;6404
 	subq.b	#$01,$000F(a5)	;532D000F
-adrCd004052:
+adrCd004052:		; Memory Address ($4052) and binary offset [$3CCE]
 	rts	;4E75
 
-adrCd004054:
+adrCd004054:		; Memory Address ($4054) and binary offset [$3CD0]
 	moveq	#$00,d1	;7200
-adrCd004056:
+adrCd004056:		; Memory Address ($4056) and binary offset [$3CD2]
 	tst.b	$18(a5,d1.w)	;4A351018
 	bmi.s	adrCd004064	;6B08
 	addq.w	#$01,d1	;5241
 	cmpi.w	#$0003,d1	;0C410003
 	bcs.s	adrCd004056	;65F2
-adrCd004064:
+adrCd004064:		; Memory Address ($4064) and binary offset [$3CE0]
 	rts	;4E75
 
-adrCd004066:
+adrCd004066:		; Memory Address ($4066) and binary offset [$3CE2]
 	lea	Player1_Data.l,a5	;4BF90000EE7C
 	bsr.s	adrCd004078	;610A
 	tst.w	d1	;4A41
 	bpl.s	adrCd004064	;6AF2
 	lea	Player2_Data.l,a5	;4BF90000EEDE
-adrCd004078:
+adrCd004078:		; Memory Address ($4078) and binary offset [$3CF4]
 	move.w	d2,-(sp)	;3F02
 	moveq	#$03,d1	;7203
-adrLp00407C:
+adrLp00407C:		; Memory Address ($407C) and binary offset [$3CF8]
 	move.b	$18(a5,d1.w),d2	;14351018
 	bmi.s	adrCd00408A	;6B08
 	and.w	#$000F,d2	;0242000F
 	cmp.b	d2,d0	;B002
 	beq.s	adrCd00408E	;6704
-adrCd00408A:
+adrCd00408A:		; Memory Address ($408A) and binary offset [$3D06]
 	dbra	d1,adrLp00407C	;51C9FFF0
-adrCd00408E:
+adrCd00408E:		; Memory Address ($408E) and binary offset [$3D0A]
 	move.w	(sp)+,d2	;341F
 	rts	;4E75
 
-adrCd004092:
+adrCd004092:		; Memory Address ($4092) and binary offset [$3D0E]
 	moveq	#$03,d2	;7403
-adrLp004094:
+adrLp004094:		; Memory Address ($4094) and binary offset [$3D10]
 	cmp.b	$26(a5,d2.w),d0	;B0352026
 	beq.s	adrCd00409E	;6704
 	dbra	d2,adrLp004094	;51CAFFF8
-adrCd00409E:
+adrCd00409E:		; Memory Address ($409E) and binary offset [$3D1A]
 	rts	;4E75
 
-adrCd0040A0:
+adrCd0040A0:		; Memory Address ($40A0) and binary offset [$3D1C]
 	bsr	adrJA007CA6	;61003C04
 	tst.w	d2	;4A42
 	bne.s	adrCd0040BC	;6614
 	lea	adrEA0041CD.l,a6	;4DF9000041CD
 	move.b	d7,$0005(a6)	;1D470005
-adrCd0040B2:
+adrCd0040B2:		; Memory Address ($40B2) and binary offset [$3D2E]
 	clr.w	$0042(a5)	;426D0042
 	jmp	Print_timed_message.l	;4EF90000D86A
 
-adrCd0040BC:
+adrCd0040BC:		; Memory Address ($40BC) and binary offset [$3D38]
 	move.w	#$0001,$0044(a5)	;3B7C00010044
 	bra.s	adrCd0040CA	;6006
 
-adrCd0040C4:
+adrCd0040C4:		; Memory Address ($40C4) and binary offset [$3D40]
 	move.w	#$0003,$0044(a5)	;3B7C00030044
-adrCd0040CA:
+adrCd0040CA:		; Memory Address ($40CA) and binary offset [$3D46]
 	move.b	#$01,$004E(a5)	;1B7C0001004E
 	lea	adrEA0041A0.l,a6	;4DF9000041A0
 	move.b	d7,$0007(a6)	;1D470007
 	jsr	Print_fix_message.l	;4EB90000D870
 	bra	adrCd007D6C	;60003C8A
 
-adrJA0040E4:
+adrJA0040E4:		; Memory Address ($40E4) and binary offset [$3D60]
 	tst.b	$004E(a5)	;4A2D004E
 	bne.s	adrCd004114	;662A
 	moveq	#$12,d7	;7E12
 	moveq	#$03,d1	;7203
 	moveq	#$00,d2	;7400
-adrLp0040F0:
+adrLp0040F0:		; Memory Address ($40F0) and binary offset [$3D6C]
 	move.b	$18(a5,d1.w),d0	;10351018
 	bmi.s	adrCd004104	;6B0E
 	btst	#$06,d0	;08000006
@@ -6051,14 +6117,14 @@ adrLp0040F0:
 	btst	#$05,d0	;08000005
 	beq.s	adrCd004104	;6702
 	addq.w	#$01,d2	;5242
-adrCd004104:
+adrCd004104:		; Memory Address ($4104) and binary offset [$3D80]
 	dbra	d1,adrLp0040F0	;51C9FFEA
 	tst.w	d2	;4A42
 	bne.s	adrCd0040C4	;66B8
 	lea	adrEA0041E9.l,a6	;4DF9000041E9
 	bra.s	adrCd0040B2	;609E
 
-adrCd004114:
+adrCd004114:		; Memory Address ($4114) and binary offset [$3D90]
 	bsr	adrCd00417E	;61000068
 	move.b	d0,$0053(a5)	;1B400053
 	and.b	#$0F,$0053(a5)	;022D000F0053
@@ -6069,17 +6135,17 @@ adrCd004114:
 	move.w	#$0101,$0040(a5)	;3B7C01010040
 	bra	adrCd00332A	;6000F1E8
 
-adrJA004144:
+adrJA004144:		; Memory Address ($4144) and binary offset [$3DC0]
 	moveq	#$14,d7	;7E14
 	lea	adrEA0041B2.l,a6	;4DF9000041B2
 	moveq	#$10,d3	;7610
 	bra.s	adrCd00415A	;600A
 
-adrJA004150:
+adrJA004150:		; Memory Address ($4150) and binary offset [$3DCC]
 	lea	adrEA0041AB.l,a6	;4DF9000041AB
 	moveq	#$11,d7	;7E11
 	moveq	#$00,d3	;7600
-adrCd00415A:
+adrCd00415A:		; Memory Address ($415A) and binary offset [$3DD6]
 	tst.b	$004E(a5)	;4A2D004E
 	beq	adrCd0040A0	;6700FF40
 	bsr.s	adrCd00417E	;611A
@@ -6090,22 +6156,23 @@ adrCd00415A:
 	jsr	Print_timed_message.l	;4EB90000D86A
 	bra	adrCd00332A	;6000F1AE
 
-adrCd00417E:
+adrCd00417E:		; Memory Address ($417E) and binary offset [$3DFA]
 	lea	adrEA007C24.l,a1	;43F900007C24
 	and.w	#$0003,d1	;02410003
 	move.w	d1,d2	;3401
 	add.w	d1,d1	;D241
 	move.b	$00(a1,d1.w),d0	;10311000
-	bmi.s	adrCd004196	;6B04
+	bmi.s	Return_InvalidPlayerAction	;6B04
 	lsr.w	#$01,d1	;E249
 	rts	;4E75
 
-adrCd004196:
+Return_InvalidPlayerAction:		; Memory Address ($451A) and binary offset [$4196]
+	; ReSource: Returns from invalid or unavailable player-action processing.
 	move.w	#$FFFF,$000C(a5)	;3B7CFFFF000C
 	addq.w	#$04,sp	;584F
 	rts	;4E75
 
-adrEA0041A0:
+adrEA0041A0:		; Memory Address ($41A0) and binary offset [$3E1C]
 	dc.b	$18	;18
 	dc.b	$FA	;FA
 	dc.b	$4D	;4D
@@ -6117,7 +6184,7 @@ adrEA0041A0:
 	dc.b	$FA	;FA
 	dc.b	$3F	;3F
 	dc.b	$FF	;FF
-adrEA0041AB:
+adrEA0041AB:		; Memory Address ($41AB) and binary offset [$3E27]
 	dc.b	$00	;00
 	dc.b	$1D	;1D
 	dc.b	$FA	;FA
@@ -6125,7 +6192,7 @@ adrEA0041AB:
 	dc.b	$1E	;1E
 	dc.b	$1F	;1F
 	dc.b	$FF	;FF
-adrEA0041B2:
+adrEA0041B2:		; Memory Address ($41B2) and binary offset [$3E2E]
 	dc.b	$00	;00
 	dc.b	$21	;21
 	dc.b	$FA	;FA
@@ -6135,20 +6202,20 @@ adrEA0041B2:
 	dc.b	$FB	;FB
 	dc.b	$4A	;4A
 	dc.b	$FF	;FF
-adrEA0041BB:
+adrEA0041BB:		; Memory Address ($41BB) and binary offset [$3E37]
 	dc.b	$00	;00
 	dc.b	$35	;35
 	dc.b	$17	;17
 	dc.b	$1C	;1C
 	dc.b	$30	;30
 	dc.b	$FF	;FF
-adrEA0041C1:
+adrEA0041C1:		; Memory Address ($41C1) and binary offset [$3E3D]
 	dc.b	$00	;00
 	dc.b	$13	;13
 	dc.b	$FA	;FA
 	dc.b	$53	;53
 	dc.b	$FF	;FF
-adrEA0041C6:
+adrEA0041C6:		; Memory Address ($41C6) and binary offset [$3E42]
 	dc.b	$00	;00
 	dc.b	$24	;24
 	dc.b	$FA	;FA
@@ -6156,7 +6223,7 @@ adrEA0041C6:
 	dc.b	$25	;25
 	dc.b	$26	;26
 	dc.b	$FF	;FF
-adrEA0041CD:
+adrEA0041CD:		; Memory Address ($41CD) and binary offset [$3E49]
 	dc.b	$1A	;1A
 	dc.b	$27	;27
 	dc.b	$28	;28
@@ -6164,7 +6231,7 @@ adrEA0041CD:
 	dc.b	$1C	;1C
 	dc.b	$00	;00
 	dc.b	$FF	;FF
-adrEA0041D4:
+adrEA0041D4:		; Memory Address ($41D4) and binary offset [$3E50]
 	dc.b	$1A	;1A
 	dc.b	$19	;19
 	dc.b	$16	;16
@@ -6175,32 +6242,32 @@ adrEA0041D4:
 	dc.b	$FA	;FA
 	dc.b	$53	;53
 	dc.b	$FF	;FF
-adrEA0041DE:
+adrEA0041DE:		; Memory Address ($41DE) and binary offset [$3E5A]
 	dc.b	$00	;00
 	dc.b	$32	;32
 	dc.b	$25	;25
 	dc.b	$26	;26
 	dc.b	$FF	;FF
-adrEA0041E3:
+adrEA0041E3:		; Memory Address ($41E3) and binary offset [$3E5F]
 	dc.b	$12	;12
 	dc.b	$FB	;FB
 	dc.b	$4A	;4A
 	dc.b	$34	;34
 	dc.b	$00	;00
 	dc.b	$FF	;FF
-adrEA0041E9:
+adrEA0041E9:		; Memory Address ($41E9) and binary offset [$3E65]
 	dc.b	$20	;20
 	dc.b	$35	;35
 	dc.b	$36	;36
 	dc.b	$FF	;FF
-adrEA0041ED:
+adrEA0041ED:		; Memory Address ($41ED) and binary offset [$3E69]
 	dc.b	$37	;37
 	dc.b	$12	;12
 	dc.b	$FB	;FB
 	dc.b	$4A	;4A
 	dc.b	$38	;38
 	dc.b	$FF	;FF
-adrEA0041F3:
+adrEA0041F3:		; Memory Address ($41F3) and binary offset [$3E6F]
 	dc.b	$39	;39
 	dc.b	$35	;35
 	dc.b	$3D	;3D
@@ -6209,16 +6276,16 @@ adrEA0041F3:
 	dc.b	$3B	;3B
 	dc.b	$FF	;FF
 
-Comms_GetState:
+Comms_GetState:		; Memory Address ($41FA) and binary offset [$3E76]
 	; ReSource: Returns the active player's sixteen-byte communication state record.
 	lea	Comms_StateRecords.l,a4	;49F900016B4C
 	btst	#$00,(a5)	;08150000
 	beq.s	adrCd00420A	;6704
 	add.w	#$0010,a4	;D8FC0010
-adrCd00420A:
+adrCd00420A:		; Memory Address ($420A) and binary offset [$3E86]
 	rts	;4E75
 
-Click_CommsAndOptions:
+Click_CommsAndOptions:		; Memory Address ($420C) and binary offset [$3E88]
 	move.w	$0004(a5),d1	;322D0004
 	sub.w	$0008(a5),d1	;926D0008
 	cmpi.w	#$0037,d1	;0C410037
@@ -6227,13 +6294,13 @@ Click_CommsAndOptions:
 	lsr.w	#$05,d1	;EA49
 	and.w	#$0003,d1	;02410003
 	addq.w	#$01,d1	;5241
-adrCd004226:
+adrCd004226:		; Memory Address ($4226) and binary offset [$3EA2]
 	bchg	d1,$003E(a5)	;036D003E
 	move.w	d1,d7	;3E01
 	bsr	adrCd007EF0	;61003CC2
 	bra	adrCd007ED2	;60003CA0
 
-adrCd004234:
+adrCd004234:		; Memory Address ($4234) and binary offset [$3EB0]
 	moveq	#$00,d1	;7200
 	cmp.w	#$0030,$0002(a5)	;0C6D00300002
 	bcs.s	adrCd004226	;65E8
@@ -6246,13 +6313,13 @@ adrCd004234:
 	clr.b	$003E(a5)	;422D003E
 	bra	adrCd007B50	;600038F4
 
-Click_PauseGame:
+Click_PauseGame:		; Memory Address ($425E) and binary offset [$3EDA]
 	move.l	adrEA00EE36.l,d1	;22390000EE36
 	move.w	#$FFFF,Paused_Marker.l	;33FCFFFF00008C1C
 	lea	_custom+color.l,a0	;41F900DFF180
 	move.w	#$0400,(a0)	;30BC0400
 	move.w	#$0400,$001E(a0)	;317C0400001E
-.PauseLoop:
+.PauseLoop:		; Memory Address ($427C) and binary offset [$3EF8]
 	move.b	adrB_00EE7D.l,d0	;10390000EE7D
 	or.b	adrB_00EEDF.l,d0	;80390000EEDF
 	bpl.s	.PauseLoop	;6AF2
@@ -6261,45 +6328,46 @@ Click_PauseGame:
 	move.l	d1,adrEA00EE36.l	;23C10000EE36
 	and.b	#$7F,adrB_00EE7D.l	;0239007F0000EE7D
 	and.b	#$7F,adrB_00EEDF.l	;0239007F0000EEDF
-	clr.b	adrB_00EED2.l	;42390000EED2
-	clr.b	adrB_00EF34.l	;42390000EF34
+	clr.b	Player1_PendingAction.l	;42390000EED2
+	clr.b	Player2_PendingAction.l	;42390000EF34
 	clr.w	Paused_Marker.l	;427900008C1C
-ExitPause:
+ExitPause:		; Memory Address ($42B8) and binary offset [$3F34]
 	rts	;4E75
 
-adrCd0042BA:
+adrCd0042BA:		; Memory Address ($42BA) and binary offset [$3F36]
 	lea	Player1_Data.l,a5	;4BF90000EE7C
-	bsr	adrCd00430A	;61000048
+	bsr	Reset_PlayerActionState	;61000048
 	bsr	adrCd007B08	;61003842
 	btst	#$06,$0018(a5)	;082D00060018
 	beq.s	adrCd0042D4	;6704
 	bsr	adrCd00270E	;6100E43C
-adrCd0042D4:
+adrCd0042D4:		; Memory Address ($42D4) and binary offset [$3F50]
 	tst.w	MultiPlayer.l	;4A790000EE30
 	bmi.s	adrCd0042F6	;6B1A
 	lea	Player2_Data.l,a5	;4BF90000EEDE
-	bsr	adrCd00430A	;61000026
+	bsr	Reset_PlayerActionState	;61000026
 	bsr	adrCd007B22	;6100383A
 	btst	#$06,$0018(a5)	;082D00060018
 	beq.s	adrCd0042F6	;6704
 	bsr	adrCd00270E	;6100E41A
-adrCd0042F6:
+adrCd0042F6:		; Memory Address ($42F6) and binary offset [$3F72]
 	jsr	adrCd008CCA.l	;4EB900008CCA
 	bsr	adrCd008D88	;61004A8A
 	move.w	#$FFFF,FrameSyncFlagWord_AI_TBC.l	;33FCFFFF00008C1E
 	rts	;4E75
 
-adrCd00430A:
+Reset_PlayerActionState:		; Memory Address ($468E) and binary offset [$430A]
+	; ReSource: Resets per-player interface state, clears the active action, and restores the invalid-action value.
 	and.b	#$01,(a5)	;02150001
 	clr.b	$0056(a5)	;422D0056
 	clr.w	$0014(a5)	;426D0014
 	clr.b	$003C(a5)	;422D003C
 	clr.b	$003E(a5)	;422D003E
 	clr.b	$0050(a5)	;422D0050
-	move.w	#$FFFF,$000C(a5)	;3B7CFFFF000C
+	move.w	#Player_ActionInvalid,$000C(a5)	;3B7CFFFF000C
 	rts	;4E75
 
-Click_LoadSaveGame:
+Click_LoadSaveGame:		; Memory Address ($432A) and binary offset [$3FA6]
 	move.l	adrEA00EE36.l,-(sp)	;2F390000EE36
 	clr.w	FrameSyncFlagWord_AI_TBC.l	;427900008C1E
 	move.l	#$00067D00,screen_ptr.l	;23FC00067D0000008D36
@@ -6315,7 +6383,7 @@ Click_LoadSaveGame:
 .skipPlayer2:
 	clr.b	KeyboardKeyCode.w	;423805C9	;Short Absolute converted to symbol!
 	bsr	adrCd008CCA	;6100494E
-.PickLoadSaveGame_Loop:
+.PickLoadSaveGame_Loop:		; Memory Address ($437E) and binary offset [$3FFA]
 	move.b	KeyboardKeyCode.w,d0	;103805C9	;Short Absolute converted to symbol!
 	cmpi.b	#$50,d0	;0C000050
 	beq.s	LoadGame	;671C
@@ -6323,22 +6391,22 @@ Click_LoadSaveGame:
 	beq	SaveGame	;6700002C
 	cmpi.b	#$59,d0	;0C000059
 	bne.s	.PickLoadSaveGame_Loop	;66E8
-adrCd004396:
+adrCd004396:		; Memory Address ($4396) and binary offset [$4012]
 	move.l	(sp)+,adrEA00EE36.l	;23DF0000EE36
 	clr.b	KeyboardKeyCode.w	;423805C9	;Short Absolute converted to symbol!
 	bra	adrCd0042BA	;6000FF18
 
-LoadGame:
+LoadGame:		; Memory Address ($43A4) and binary offset [$4020]
 	moveq	#$00,d0	;7000
 	bsr	adrCd0043E2	;6100003A
 	bcs.s	adrCd004396	;65EA
 	bsr	adrCd004440	;61000092
 	tst.l	d0	;4A80
 	bmi.s	LoadGame	;6BF0
-	bsr	Load_LevelLookupTable_AI_TBC	;6100C7B2
+	bsr	Select_CurrentTowerMapData	;6100C7B2
 	bra.s	adrCd004396	;60DC
 
-SaveGame:
+SaveGame:		; Memory Address ($43BA) and binary offset [$4036]
 	moveq	#$01,d0	;7001
 	bsr	adrCd0043E2	;61000024
 	bcs.s	adrCd004396	;65D4
@@ -6347,15 +6415,15 @@ SaveGame:
 	bmi.s	SaveGame	;6BF0
 	bra.s	adrCd004396	;60CA
 
-AwaitDisk:
+AwaitDisk:		; Memory Address ($43CC) and binary offset [$4048]
 	lea	Msg_InstertLoadDisk.l,a6	;4DF9000044E5
 	tst.w	d0	;4A40
 	beq.s	.PickLoadSaveMessage	;6706
 	lea	Msg_InstertSaveDisk.l,a6	;4DF90000450D
-.PickLoadSaveMessage:
+.PickLoadSaveMessage:		; Memory Address ($43DC) and binary offset [$4058]
 	jmp	WriteText.l	;4EF90000D08E
 
-adrCd0043E2:
+adrCd0043E2:		; Memory Address ($43E2) and binary offset [$405E]
 	lea	Player1_Data.l,a5	;4BF90000EE7C
 	tst.w	MultiPlayer.l	;4A790000EE30
 	bne.s	.skipPlayer2	;660C
@@ -6367,7 +6435,7 @@ adrCd0043E2:
 	bsr.s	AwaitDisk	;61CE
 	clr.b	KeyboardKeyCode.w	;423805C9	;Short Absolute converted to symbol!
 	bsr	adrCd008CCA	;610048C6
-LoadSaveGame_Loop:
+LoadSaveGame_Loop:		; Memory Address ($4406) and binary offset [$4082]
 	move.b	KeyboardKeyCode.w,d0	;103805C9	;Short Absolute converted to symbol!
 	cmpi.b	#$44,d0			;0C000044
 	beq.s	LoadSaveGame_Action		;6712
@@ -6378,21 +6446,21 @@ LoadSaveGame_Loop:
 	sub.b	#$FF,d0			;040000FF
 	rts				;4E75
 
-LoadSaveGame_Action:
+LoadSaveGame_Action:		; Memory Address ($4422) and binary offset [$409E]
 	moveq	#$3C,d0			;703C
 	tst.w	MultiPlayer.l		;4A790000EE30
 	beq.s	adrCd00442E		;6702
 	moveq	#$46,d0			;7046
-adrCd00442E:
+adrCd00442E:		; Memory Address ($442E) and binary offset [$40AA]
 	move.w	d0,adrW_00447E.l	;33C00000447E
 	rts				;4E75
 
-adrCd004436:
+adrCd004436:		; Memory Address ($4436) and binary offset [$40B2]
 	jsr	adrCd008878.l		;4EB900008878
 	moveq	#-$01,d0		;70FF
 	rts				;4E75
 
-adrCd004440:
+adrCd004440:		; Memory Address ($4440) and binary offset [$40BC]
 	jsr	CopyProtection.l	;4EB90000D138
 	tst.l	d0	;4A80
 	beq.s	adrCd004436	;67EC
@@ -6407,10 +6475,10 @@ adrCd004440:
 	moveq	#$00,d0	;7000
 	rts	;4E75
 
-adrW_00447E:
+adrW_00447E:		; Memory Address ($447E) and binary offset [$40FA]
 	dc.w	$0000	;0000
 
-adrCd004480:
+adrCd004480:		; Memory Address ($4480) and binary offset [$40FC]
 	jsr	CopyProtection.l	;4EB90000D138
 	tst.l	d0	;4A80
 	beq.s	adrCd004436	;67AC
@@ -6439,14 +6507,14 @@ Msg_InstertSaveDisk:
 	dc.b	$FF	;FF
 	dc.b	$00	;00
 
-Click_SleepParty:
+Click_SleepParty:		; Memory Address ($4536) and binary offset [$41B2]
 	move.b	#$03,$004F(a5)	;1B7C0003004F
 	clr.w	$0014(a5)	;426D0014
 	move.w	#$FFFF,$0042(a5)	;3B7CFFFF0042
 	move.w	#$FFFF,$0040(a5)	;3B7CFFFF0040
 	move.b	#$FF,$0035(a5)	;1B7C00FF0035
 	moveq	#$03,d7	;7E03
-adrLp004554:
+adrLp004554:		; Memory Address ($4554) and binary offset [$41D0]
 	move.b	$18(a5,d7.w),d0	;10357018
 	and.w	#$00C0,d0	;024000C0
 	bne.s	adrCd004574	;6616
@@ -6455,11 +6523,11 @@ adrLp004554:
 	clr.b	$0011(a4)	;422C0011
 	move.b	#$FF,$0013(a4)	;197C00FF0013
 	clr.b	$0014(a4)	;422C0014
-adrCd004574:
+adrCd004574:		; Memory Address ($4574) and binary offset [$41F0]
 	dbra	d7,adrLp004554	;51CFFFDE
 	bsr	adrCd007B50	;610035D6
 	bsr	adrCd008278	;61003CFA
-adrCd004580:
+adrCd004580:		; Memory Address ($4580) and binary offset [$41FC]
 	bsr	adrCd002734	;6100E1B2
 	and.b	#$01,(a5)	;02150001
 	bset	#$02,(a5)	;08D50002
@@ -6471,12 +6539,12 @@ adrCd004580:
 	tst.b	$004B(a5)	;4A2D004B
 	bmi.s	adrCd0045B2	;6B06
 	move.w	#$00FF,$004A(a5)	;3B7C00FF004A
-adrCd0045B2:
+adrCd0045B2:		; Memory Address ($45B2) and binary offset [$422E]
 	lea	ThouArtAsleep.l,a6	;4DF9000045C4
 	jsr	Print_fflim_text.l	;4EB90000D0C6
 	jmp	adrCd00CF96.l	;4EF90000CF96
 
-ThouArtAsleep:
+ThouArtAsleep:		; Memory Address ($45C4) and binary offset [$4240]
 	dc.b	$FC	;FC
 	dc.b	$10	;10
 	dc.b	$04	;04
@@ -6492,7 +6560,7 @@ ThouArtAsleep:
 	dc.b	$FF	;FF
 	dc.b	$00	;00
 
-adrCd0045DE:
+adrCd0045DE:		; Memory Address ($45DE) and binary offset [$425A]
 	move.l	a4,-(sp)	;2F0C
 	asl.w	#$02,d0	;E540
 	lea	adrEA00462A.l,a6	;4DF90000462A
@@ -6518,7 +6586,7 @@ adrCd0045DE:
 	move.l	(sp)+,a4	;285F
 	rts	;4E75
 
-adrEA00462A:
+adrEA00462A:		; Memory Address ($462A) and binary offset [$42A6]
 	dc.w	$0504	;0504
 	dc.w	$0806	;0806
 	dc.w	$0B04	;0B04
@@ -6548,7 +6616,7 @@ adrEA00463E:
 	dc.w	$1006	;1006
 	dc.w	$0C03	;0C03
 
-adrCd00465E:
+adrCd00465E:		; Memory Address ($465E) and binary offset [$42DA]
 	move.b	$004E(a5),d0	;102D004E
 	beq.s	adrCd004674	;6710
 	subq.b	#$01,d0	;5300
@@ -6557,13 +6625,13 @@ adrCd00465E:
 	beq	adrCd004870	;67000202
 	bra	adrCd0049D6	;60000364
 
-adrCd004674:
+adrCd004674:		; Memory Address ($4674) and binary offset [$42F0]
 	tst.b	$003F(a5)	;4A2D003F
 	bmi	adrCd004AFE	;6B000484
 	subq.b	#$01,$003F(a5)	;532D003F
 	bpl	adrCd004AFE	;6A00047C
 	moveq	#$00,d7	;7E00
-adrCd004686:
+adrCd004686:		; Memory Address ($4686) and binary offset [$4302]
 	move.b	$004F(a5),d7	;1E2D004F
 	bmi	adrCd004AFE	;6B000472
 	move.b	$18(a5,d7.w),d0	;10357018
@@ -6578,22 +6646,22 @@ adrCd004686:
 	bcs.s	adrCd0046BC	;6508
 	cmp.b	#$0E,(a4)	;0C14000E
 	bcs	adrCd004AE8	;6500042E
-adrCd0046BC:
+adrCd0046BC:		; Memory Address ($46BC) and binary offset [$4338]
 	move.b	$001E(a4),d0	;102C001E
 	and.w	#$007F,d0	;0240007F
 	bne.s	adrCd0046CC	;6606
-adrCd0046C6:
+adrCd0046C6:		; Memory Address ($46C6) and binary offset [$4342]
 	subq.b	#$01,$004F(a5)	;532D004F
 	bra.s	adrCd004686	;60BA
 
-adrCd0046CC:
+adrCd0046CC:		; Memory Address ($46CC) and binary offset [$4348]
 	bsr	adrCd002734	;6100E066
 	jsr	adrCd00CF96.l	;4EB90000CF96
 	move.l	screen_ptr.l,a0	;207900008D36
 	add.w	$000A(a5),a0	;D0ED000A
 	add.w	#$0A86,a0	;D0FC0A86
 	moveq	#$03,d7	;7E03
-adrLp0046E6:
+adrLp0046E6:		; Memory Address ($46E6) and binary offset [$4362]
 	move.w	d7,d0	;3007
 	eor.w	#$0003,d0	;0A400003
 	add.w	#$0064,d0	;06400064
@@ -6618,7 +6686,7 @@ adrLp0046E6:
 	move.b	#$01,$004E(a5)	;1B7C0001004E
 	bra	adrCd004AFE	;600003B8
 
-adrCd004748:
+adrCd004748:		; Memory Address ($4748) and binary offset [$43C4]
 	bclr	#$07,$0001(a5)	;08AD00070001
 	beq	adrCd004AFE	;670003AE
 	move.l	$0002(a5),d1	;222D0002
@@ -6639,7 +6707,7 @@ adrCd004748:
 	subq.b	#$01,$004F(a5)	;532D004F
 	bra	adrCd004580	;6000FDF0
 
-adrCd004792:
+adrCd004792:		; Memory Address ($4792) and binary offset [$440E]
 	lsr.w	#$04,d1	;E849
 	move.w	d1,-(sp)	;3F01
 	bsr	adrCd002734	;6100DF9C
@@ -6663,7 +6731,7 @@ adrCd004792:
 	moveq	#$00,d0	;7000
 	moveq	#-$01,d2	;74FF
 	moveq	#$07,d1	;7207
-adrLp0047DC:
+adrLp0047DC:		; Memory Address ($47DC) and binary offset [$4458]
 	move.b	$00(a6,d1.w),d0	;10361000
 	eor.b	#$1F,d0	;0A00001F
 	btst	d0,d7	;0107
@@ -6673,21 +6741,21 @@ adrLp0047DC:
 	tst.l	d2	;4A82
 	bpl.s	adrCd004802	;6A10
 	swap	d2	;4842
-adrCd0047F4:
+adrCd0047F4:		; Memory Address ($47F4) and binary offset [$4470]
 	dbra	d1,adrLp0047DC	;51C9FFE6
 	move.w	#$FFFF,$0044(a5)	;3B7CFFFF0044
 	tst.l	d2	;4A82
 	bmi.s	adrCd004814	;6B12
-adrCd004802:
+adrCd004802:		; Memory Address ($4802) and binary offset [$447E]
 	move.b	d2,$0045(a5)	;1B420045
 	swap	d2	;4842
 	move.b	d2,$0044(a5)	;1B420044
 	lea	SelectNewSpellMsg.l,a6	;4DF900004AA2
 	bra.s	adrCd00481A	;6006
 
-adrCd004814:
+adrCd004814:		; Memory Address ($4814) and binary offset [$4490]
 	lea	ThouHastAllMsg.l,a6	;4DF900004AB9
-adrCd00481A:
+adrCd00481A:		; Memory Address ($481A) and binary offset [$4496]
 	bsr	adrCd0049AE	;61000192
 	move.w	(sp)+,d1	;321F
 	lea	adrEA00463A.w,a6	;4DF8463A	;Short Absolute converted to symbol!
@@ -6702,7 +6770,7 @@ adrCd00481A:
 	move.b	#$02,$004E(a5)	;1B7C0002004E
 	rts	;4E75
 
-adrCd004852:
+adrCd004852:		; Memory Address ($4852) and binary offset [$44CE]
 	tst.b	d0	;4A00
 	bmi.s	adrCd00486E	;6B18
 	and.w	#$00FF,d0	;024000FF
@@ -6712,10 +6780,10 @@ adrCd004852:
 	jsr	adrLp00CFDA.l	;4EB90000CFDA
 	move.l	(sp)+,a0	;205F
 	add.w	#$01B8,a0	;D0FC01B8
-adrCd00486E:
+adrCd00486E:		; Memory Address ($486E) and binary offset [$44EA]
 	rts	;4E75
 
-adrCd004870:
+adrCd004870:		; Memory Address ($4870) and binary offset [$44EC]
 	bclr	#$07,$0001(a5)	;08AD00070001
 	beq.s	adrCd00486E	;67F6
 	move.l	$0002(a5),d1	;222D0002
@@ -6735,7 +6803,7 @@ adrCd004870:
 	bcc.s	adrCd00486E	;64C8
 	bra	adrCd0046CC	;6000FE24
 
-adrCd0048AA:
+adrCd0048AA:		; Memory Address ($48AA) and binary offset [$4526]
 	swap	d1	;4841
 	sub.b	#$90,d1	;04010090
 	bcs.s	adrCd00486E	;65BC
@@ -6790,10 +6858,10 @@ adrCd0048AA:
 	move.b	#$FF,$0013(a4)	;197C00FF0013
 	or.b	#$40,$0054(a5)	;002D00400054
 	move.b	#$03,$004E(a5)	;1B7C0003004E
-adrCd004994:
+adrCd004994:		; Memory Address ($4994) and binary offset [$4610]
 	rts	;4E75
 
-adrCd004996:
+adrCd004996:		; Memory Address ($4996) and binary offset [$4612]
 	lea	SpellCost_DataTable.l,a0	;41F90000685E
 	moveq	#$00,d7	;7E00
 	move.b	$0044(a5),d7	;1E2D0044
@@ -6803,7 +6871,7 @@ adrCd004996:
 	add.b	d1,d0	;D001
 	rts	;4E75
 
-adrCd0049AE:
+adrCd0049AE:		; Memory Address ($49AE) and binary offset [$462A]
 	jsr	InitialiseText.l	;4EB90000D09A
 	jsr	Print_fflim_text.l	;4EB90000D0C6
 	moveq	#$00,d0	;7000
@@ -6814,7 +6882,7 @@ adrCd0049AE:
 	jsr	Print_wordstext.l	;4EB90000D7E6
 	jmp	TerminateText.l	;4EF90000D008
 
-adrCd0049D6:
+adrCd0049D6:		; Memory Address ($49D6) and binary offset [$4652]
 	bclr	#$07,$0001(a5)	;08AD00070001
 	beq.s	adrCd004994	;67B6
 	move.l	$0002(a5),d1	;222D0002
@@ -6834,7 +6902,7 @@ adrCd0049D6:
 	bcc.s	adrCd004994	;6488
 	bra	adrCd0046CC	;6000FCBE
 
-adrCd004A10:
+adrCd004A10:		; Memory Address ($4A10) and binary offset [$468C]
 	bsr.s	adrCd004996	;6184
 	move.w	d0,d2	;3400
 	moveq	#$00,d1	;7200
@@ -6857,11 +6925,11 @@ adrCd004A10:
 	subq.b	#$01,$004F(a5)	;532D004F
 	bra	adrCd004580	;6000FB2E
 
-adrCd004A54:
+adrCd004A54:		; Memory Address ($4A54) and binary offset [$46D0]
 	lea	PauperMsg.l,a6	;4DF900004AD0
 	bra	adrCd0049AE	;6000FF52
 
-adrEA004A5E:
+adrEA004A5E:		; Memory Address ($4A5E) and binary offset [$46DA]
 	dc.b	$FC	;FC
 	dc.b	$12	;12
 	dc.b	$04	;04
@@ -6899,7 +6967,7 @@ PauperMsg:
 	dc.b	$FF	;FF
 	dc.b	$00	;00
 
-adrCd004AE8:
+adrCd004AE8:		; Memory Address ($4AE8) and binary offset [$4764]
 	moveq	#$00,d0	;7000
 	move.b	(a6),d0	;1016
 	move.l	a6,-(sp)	;2F0E
@@ -6907,20 +6975,20 @@ adrCd004AE8:
 	move.l	(sp)+,a6	;2C5F
 	jsr	Print_timed_message.l	;4EB90000D86A
 	move.b	#$32,$003F(a5)	;1B7C0032003F
-adrCd004AFE:
+adrCd004AFE:		; Memory Address ($4AFE) and binary offset [$477A]
 	bclr	#$07,$0001(a5)	;08AD00070001
 	beq.s	adrCd004B12	;670C
 	clr.w	$0014(a5)	;426D0014
 	and.b	#$01,(a5)	;02150001
 	clr.b	$0056(a5)	;422D0056
-adrCd004B12:
+adrCd004B12:		; Memory Address ($4B12) and binary offset [$478E]
 	rts	;4E75
 
-adrEA004B14:
+adrEA004B14:		; Memory Address ($4B14) and binary offset [$4790]
 	dc.w	$002B	;002B
 	dc.w	$8D2C	;8D2C
 	dc.w	$FF00	;FF00
-adrEA004B1A:
+adrEA004B1A:		; Memory Address ($4B1A) and binary offset [$4796]
 	dc.w	$000B	;000B
 	dc.w	$1828	;1828
 	dc.w	$3235	;3235
@@ -6929,7 +6997,7 @@ adrEA004B1A:
 	dc.w	$4146	;4146
 	dc.w	$78B4	;78B4
 
-adrCd004B28:
+adrCd004B28:		; Memory Address ($4B28) and binary offset [$47A4]
 	addq.b	#$01,(a4)	;5214
 	moveq	#$00,d1	;7200
 	move.b	(a4),d1	;1214
@@ -6941,12 +7009,12 @@ adrCd004B28:
 	and.w	#$0001,d1	;02410001
 	beq.s	adrCd004B48	;6702
 	lsr.w	#$01,d0	;E248
-adrCd004B48:
+adrCd004B48:		; Memory Address ($4B48) and binary offset [$47C4]
 	add.w	#$0009,d0	;06400009
 	add.b	$0006(a4),d0	;D02C0006
 	bcc.s	adrCd004B56	;6404
 	move.b	#$FD,d0	;103C00FD
-adrCd004B56:
+adrCd004B56:		; Memory Address ($4B56) and binary offset [$47D2]
 	move.b	d0,$0006(a4)	;19400006
 	bsr	RandomGen_BytewithOffset	;61000A50
 	and.w	#$0007,d0	;02400007
@@ -6955,7 +7023,7 @@ adrCd004B56:
 	cmpi.w	#$0064,d0	;0C400064
 	bcs.s	adrCd004B70	;6502
 	moveq	#$63,d0	;7063
-adrCd004B70:
+adrCd004B70:		; Memory Address ($4B70) and binary offset [$47EC]
 	move.b	d0,$0008(a4)	;19400008
 	lea	adrEA004C00.l,a2	;45F900004C00
 	move.w	d4,d0	;3004
@@ -6963,25 +7031,25 @@ adrCd004B70:
 	asl.w	#$02,d0	;E540
 	add.w	d0,a2	;D4C0
 	moveq	#$03,d6	;7C03
-adrLp004B86:
+adrLp004B86:		; Memory Address ($4B86) and binary offset [$4802]
 	cmp.b	#$06,(a2)	;0C120006
 	bne.s	adrCd004B92	;6606
 	bsr	adrCd005556	;610009C8
 	bra.s	adrCd004BA2	;6010
 
-adrCd004B92:
+adrCd004B92:		; Memory Address ($4B92) and binary offset [$480E]
 	bsr	RandomGen_BytewithOffset	;61000A18
 	and.w	#$0007,d0	;02400007
 	cmp.b	#$04,(a2)	;0C120004
 	bne.s	adrCd004BA2	;6602
 	lsr.w	#$01,d0	;E248
-adrCd004BA2:
+adrCd004BA2:		; Memory Address ($4BA2) and binary offset [$481E]
 	addq.w	#$01,d0	;5240
 	add.b	$01(a4,d6.w),d0	;D0346001
 	cmpi.b	#$64,d0	;0C000064
 	bcs.s	adrCd004BB0	;6502
 	moveq	#$63,d0	;7063
-adrCd004BB0:
+adrCd004BB0:		; Memory Address ($4BB0) and binary offset [$482C]
 	move.b	d0,$01(a4,d6.w)	;19806001
 	addq.w	#$01,a2	;524A
 	dbra	d6,adrLp004B86	;51CEFFCE
@@ -6991,7 +7059,7 @@ adrCd004BB0:
 	subq.w	#$01,d4	;5344
 	bne.s	Recalculate_CharacterDerivedStats	;6604
 	addq.b	#$01,$001E(a4)	;522C001E
-Recalculate_CharacterDerivedStats:
+Recalculate_CharacterDerivedStats:		; Memory Address ($4BCE) and binary offset [$484A]
 	bsr	Calculate_SpellPracticeThreshold	;6100BD34
 	moveq	#$00,d2	;7400
 	move.b	(a4),d2	;1414
@@ -7006,12 +7074,12 @@ Recalculate_CharacterDerivedStats:
 	cmpi.b	#$08,d1	;0C010008
 	bcc.s	adrCd004BF8	;6402
 	moveq	#$08,d1	;7208
-adrCd004BF8:
+adrCd004BF8:		; Memory Address ($4BF8) and binary offset [$4874]
 	asl.b	#$04,d1	;E901
 	move.b	d1,$0019(a4)	;19410019
 	rts	;4E75
 
-adrEA004C00:
+adrEA004C00:		; Memory Address ($4C00) and binary offset [$487C]
 	dc.w	$0404	;0404
 	dc.w	$0608	;0608
 	dc.w	$0408	;0408
@@ -7021,7 +7089,7 @@ adrEA004C00:
 	dc.w	$0404	;0404
 	dc.w	$0806	;0806
 
-adrJA004C10:
+adrJA004C10:		; Memory Address ($4C10) and binary offset [$488C]
 	cmp.w	#$0008,$0042(a5)	;0C6D00080042
 	bne.s	adrCd004C3E	;6626
 	cmp.w	#$0006,$0044(a5)	;0C6D00060044
@@ -7029,24 +7097,24 @@ adrJA004C10:
 	eor.w	#$0001,$0044(a5)	;0A6D00010044
 	bra	adrCd007D6C	;60003144
 
-adrCd004C2A:
+adrCd004C2A:		; Memory Address ($4C2A) and binary offset [$48A6]
 	tst.w	$0042(a5)	;4A6D0042
 	bpl.s	adrCd004C40	;6A10
 	bclr	#$07,$0001(a5)	;08AD00070001
 	beq.s	adrCd004C3E	;6706
 	move.w	#$001A,$000C(a5)	;3B7C001A000C
-adrCd004C3E:
+adrCd004C3E:		; Memory Address ($4C3E) and binary offset [$48BA]
 	rts	;4E75
 
-adrCd004C40:
+adrCd004C40:		; Memory Address ($4C40) and binary offset [$48BC]
 	bclr	#$07,$0001(a5)	;08AD00070001
 	beq.s	adrCd004C56	;670E
 	lea	adrEA00EAFA.l,a6	;4DF90000EAFA
 	moveq	#$1C,d0	;701C
 	moveq	#$22,d2	;7422
-	bra	adrCd004DB4	;60000160
+	bra	HitTest_PlayerInterfaceActions	;60000160
 
-adrCd004C56:
+adrCd004C56:		; Memory Address ($4C56) and binary offset [$48D2]
 	moveq	#-$01,d0	;70FF
 	move.l	$0002(a5),d1	;222D0002
 	sub.w	$0008(a5),d1	;926D0008
@@ -7060,18 +7128,19 @@ adrCd004C56:
 	cmp.b	$00(a0,d0.w),d1	;B2300000
 	bcs.s	adrCd004C7E	;6504
 	add.w	#$0100,d0	;06400100
-adrCd004C7E:
+adrCd004C7E:		; Memory Address ($4C7E) and binary offset [$48FA]
 	ror.w	#$08,d0	;E058
-adrCd004C80:
+adrCd004C80:		; Memory Address ($4C80) and binary offset [$48FC]
 	cmp.w	$0040(a5),d0	;B06D0040
 	bne.s	adrCd004C88	;6602
 	rts	;4E75
 
-adrCd004C88:
+adrCd004C88:		; Memory Address ($4C88) and binary offset [$4904]
 	move.w	d0,$0040(a5)	;3B400040
 	bra	adrCd007D6C	;600030DE
 
-adrCd004C90:
+Scan_PlayerInterfaceActions:		; Memory Address ($5014) and binary offset [$4C90]
+	; ReSource: Scans interface state and resolves direct or pending player actions.
 	move.w	#$FFFF,$000C(a5)	;3B7CFFFF000C
 	move.w	$0022(a5),$0024(a5)	;3B6D00220024
 	btst	#$06,$0018(a5)	;082D00060018
@@ -7081,7 +7150,7 @@ adrCd004C90:
 	move.b	#$FF,$003D(a5)	;1B7C00FF003D
 	bra.s	adrCd004D08	;6056
 
-adrCd004CB2:
+adrCd004CB2:		; Memory Address ($4CB2) and binary offset [$492E]
 	moveq	#$05,d1	;7205
 	bsr	adrCd005500	;6100084A
 	tst.b	d3	;4A03
@@ -7106,31 +7175,32 @@ adrCd004CB2:
 	bsr	adrCd008498	;6100379E
 	bset	#$07,$01(a6,d0.w)	;08F600070001
 	move.b	#$02,$003D(a5)	;1B7C0002003D
-adrCd004D08:
+adrCd004D08:		; Memory Address ($4D08) and binary offset [$4984]
 	cmp.w	#$0008,$0042(a5)	;0C6D00080042
 	bne.s	adrCd004D1A	;660A
 	bsr	adrCd0033BE	;6100E6AC
 	bcs.s	adrCd004D1A	;6504
 	bsr	adrCd00332A	;6100E612
-adrCd004D1A:
+adrCd004D1A:		; Memory Address ($4D1A) and binary offset [$4996]
 	move.b	$0014(a5),d0		;102D0014
-	beq.s	adrCd004D32		;6712
+	beq.s	Consume_PlayerPendingAction		;6712
 	cmpi.b	#$01,d0			;0C000001
 	beq.s	adrCd004D8C		;6766
 	cmpi.b	#$02,d0			;0C000002
 	beq	adrCd00465E		;6700F932
-	bra	adrJA004DEA		;600000BA
+	bra	Resolve_PlayerContextAction		;600000BA
 
-adrCd004D32:
+Consume_PlayerPendingAction:		; Memory Address ($50B6) and binary offset [$4D32]
+	; ReSource: Copies PlayerX_Data+$56 into PlayerX_Data+$0C, then clears the pending byte.
 	moveq	#$00,d0	;7000
-	move.b	$0056(a5),d0	;102D0056
+	move.b	Player_PendingActionOffset(a5),d0	;102D0056
 	beq.s	adrCd004D4E	;6714
-	move.w	d0,$000C(a5)	;3B40000C
+	move.w	d0,Player_ActionCommandOffset(a5)	;3B40000C
 	clr.b	$0056(a5)	;422D0056
 	cmp.w	#$0004,$0014(a5)	;0C6D00040014
 	bne.s	adrCd004D4E	;6604
 	bsr	Click_CloseCurrentPage	;61000A58
-adrCd004D4E:
+adrCd004D4E:		; Memory Address ($4D4E) and binary offset [$49CA]
 	cmp.w	#$005E,$0002(a5)	;0C6D005E0002
 	bcs	adrCd004C2A	;6500FED4
 	moveq	#-$01,d0	;70FF
@@ -7144,14 +7214,14 @@ adrCd004D4E:
 	move.l	adrJT004D78(pc,d0.w),a0	;207B0004
 	jmp	(a0)	;4ED0
 
-adrJT004D78:
+adrJT004D78:		; Memory Address ($4D78) and binary offset [$49F4]
 	dc.l	adrJA004DAA	;00004DAA
 	dc.l	Click_CloseCurrentPage	;000057A4
-	dc.l	adrJA004DEA	;00004DEA
+	dc.l	Resolve_PlayerContextAction	;00004DEA
 	dc.l	adrJA005628	;00005628
 	dc.l	Click_CloseCurrentPage	;000057A4
 
-adrCd004D8C:
+adrCd004D8C:		; Memory Address ($4D8C) and binary offset [$4A08]
 	bclr	#$07,$0001(a5)	;08AD00070001
 	beq.s	adrCd004DA8	;6714
 	clr.b	$0014(a5)	;422D0014
@@ -7159,43 +7229,46 @@ adrCd004D8C:
 	lea	adrEA0041ED.w,a6	;4DF841ED	;Short Absolute converted to symbol!
 	jmp	Print_timed_message.l	;4EF90000D86A
 
-adrCd004DA8:
+adrCd004DA8:		; Memory Address ($4DA8) and binary offset [$4A24]
 	rts	;4E75
 
-adrJA004DAA:
+adrJA004DAA:		; Memory Address ($4DAA) and binary offset [$4A26]
 	lea	adrEA00EA72.l,a6	;4DF90000EA72
 	moveq	#$00,d0	;7000
 	moveq	#$11,d2	;7411
-adrCd004DB4:
+HitTest_PlayerInterfaceActions:		; Memory Address ($5138) and binary offset [$4DB4]
+	; ReSource: Tests pointer coordinates against interface rectangles and writes the resulting action directly to PlayerX_Data+$0C.
 	move.l	$0002(a5),d1	;222D0002
 	sub.w	$0008(a5),d1	;926D0008
-adrCd004DBC:
+adrCd004DBC:		; Memory Address ($4DBC) and binary offset [$4A38]
 	cmp.w	$0004(a6),d1	;B26E0004
 	bcs.s	adrCd004DE0	;651E
 	cmp.w	$0006(a6),d1	;B26E0006
 	beq.s	adrCd004DCA	;6702
 	bcc.s	adrCd004DE0	;6416
-adrCd004DCA:
+adrCd004DCA:		; Memory Address ($4DCA) and binary offset [$4A46]
 	swap	d1	;4841
 	cmp.w	(a6),d1	;B256
 	bcs.s	adrCd004DDE	;650E
 	cmp.w	$0002(a6),d1	;B26E0002
-	beq.s	adrCd004DD8	;6702
+	beq.s	Store_HitTestActionCommand	;6702
 	bcc.s	adrCd004DDE	;6406
-adrCd004DD8:
+Store_HitTestActionCommand:		; Memory Address ($515C) and binary offset [$4DD8]
+	; ReSource: Stores the action number selected by the interface hit test.
 	move.w	d0,$000C(a5)	;3B40000C
 	rts	;4E75
 
-adrCd004DDE:
+adrCd004DDE:		; Memory Address ($4DDE) and binary offset [$4A5A]
 	swap	d1	;4841
-adrCd004DE0:
+adrCd004DE0:		; Memory Address ($4DE0) and binary offset [$4A5C]
 	addq.w	#$08,a6	;504E
 	addq.w	#$01,d0	;5240
 	cmp.w	d2,d0	;B042
 	bcs.s	adrCd004DBC	;65D4
 	rts	;4E75
 
-adrJA004DEA:
+Resolve_PlayerContextAction:		; Memory Address ($516E) and binary offset [$4DEA]
+	; ReSource: Resolves context-dependent actions and may invoke the display-action hit-test routine.
 	moveq	#$00,d0	;7000
 	move.b	$0014(a5),d0	;102D0014
 	bne.s	adrCd004E0C	;661A
@@ -7206,12 +7279,12 @@ adrJA004DEA:
 	move.w	$000C(a5),d0	;302D000C
 	add.w	#$0011,d0	;06400011
 	move.b	d0,$0014(a5)	;1B400014
-adrCd004E0C:
+adrCd004E0C:		; Memory Address ($4E0C) and binary offset [$4A88]
 	move.w	d0,$000C(a5)	;3B40000C
 	rts	;4E75
 
-adrCd004E12:
-	bsr	adrCd00587C	;61000A68
+adrCd004E12:		; Memory Address ($4E12) and binary offset [$4A8E]
+	bsr	HitTest_DisplayAction	;61000A68
 	tst.w	$000C(a5)	;4A6D000C
 	bpl.s	adrCd004E4C	;6A30
 	bsr	Load_CurrentChampionStatRecord	;6100183E
@@ -7228,12 +7301,12 @@ adrCd004E12:
 	bcs.s	adrCd004E46	;6506
 	cmpi.w	#$0132,d1	;0C410132
 	bcs.s	adrCd004E4E	;6508
-adrCd004E46:
+adrCd004E46:		; Memory Address ($4E46) and binary offset [$4AC2]
 	move.w	#$0015,$000C(a5)	;3B7C0015000C
-adrCd004E4C:
+adrCd004E4C:		; Memory Address ($4E4C) and binary offset [$4AC8]
 	rts	;4E75
 
-adrCd004E4E:
+adrCd004E4E:		; Memory Address ($4E4E) and binary offset [$4ACA]
 	swap	d1	;4841
 	cmpi.w	#$0050,d1	;0C410050
 	bcs.s	adrCd004E4C	;65F6
@@ -7247,25 +7320,26 @@ adrCd004E4E:
 	addq.b	#$01,$0014(a4)	;522C0014
 	bra	adrCd0066F6	;60001886
 
-adrCd004E72:
+adrCd004E72:		; Memory Address ($4E72) and binary offset [$4AEE]
 	subq.b	#$01,$0014(a4)	;532C0014
 	bra	adrCd0066F6	;6000187E
 
-Click_LaunchSpellFromBook:
-	bsr.s	adrCd004E8E	;6112
+Click_LaunchSpellFromBook:		; Memory Address ($4E7A) and binary offset [$4AF6]
+	bsr.s	Resolve_MultiFunctionAction	;6112
 	bne.s	adrCd004E86	;6608
 	bsr	adrCd006698	;61001818
 	bsr	adrCd00C85E	;610079DA
-adrCd004E86:
+adrCd004E86:		; Memory Address ($4E86) and binary offset [$4B02]
 	move.w	#$0002,$0014(a5)	;3B7C00020014
-adrCd004E8C:
+adrCd004E8C:		; Memory Address ($4E8C) and binary offset [$4B08]
 	rts	;4E75
 
-adrCd004E8E:
+Resolve_MultiFunctionAction:		; Memory Address ($5212) and binary offset [$4E8E]
+	; ReSource: Resolves the context-sensitive multi-function command, including interactions such as opening a door.
 	bsr	Load_CurrentChampionStatRecord	;610017CC
 	clr.w	adrW_00505A.l	;42790000505A
 	move.b	$0007(a5),adrB_00EE3E.l	;13ED00070000EE3E
-adrCd004EA0:
+adrCd004EA0:		; Memory Address ($4EA0) and binary offset [$4B1C]
 	move.b	$0013(a4),d0	;102C0013
 	bmi.s	adrCd004E8C	;6BE6
 	subq.b	#$03,d0	;5700
@@ -7275,11 +7349,11 @@ adrCd004EA0:
 	movem.l	d0-d7/a0-a6,-(sp)	;48E7FFFE
 	bsr	adrCd00332A	;6100E472
 	movem.l	(sp)+,d0-d7/a0-a6	;4CDF7FFF
-adrCd004EBE:
+adrCd004EBE:		; Memory Address ($4EBE) and binary offset [$4B3A]
 	subq.b	#SpellCasting_VitalityCost,$0007(a4)	;592C0007
 	bcc.s	adrCd004EC8	;6404
 	clr.b	$0007(a4)	;422C0007
-adrCd004EC8:
+adrCd004EC8:		; Memory Address ($4EC8) and binary offset [$4B44]
 	move.b	#$0F,$001B(a4)	;197C000F001B
 	clr.b	$0011(a4)	;422C0011
 	bsr	adrCd00688C	;610019B8
@@ -7293,7 +7367,7 @@ adrCd004EC8:
 	bsr	Character_GetClassIndex	;61001A12
 	lea	RingUses.l,a0	;41F90000EE32
 	subq.b	#$01,$00(a0,d0.w)	;53300000
-adrCd004EFA:
+adrCd004EFA:		; Memory Address ($4EFA) and binary offset [$4B76]
 	bsr	adrCd0080CA	;610031CE
 	bsr	Calculate_SpellCastingQuality	;61001878
 	moveq	#$00,d0	;7000
@@ -7305,7 +7379,7 @@ adrCd004EFA:
 	cmpi.b	#$64,d1	;0C010064
 	bcs.s	adrCd004F20	;6502
 	moveq	#$64,d1	;7264
-adrCd004F20:
+adrCd004F20:		; Memory Address ($4F20) and binary offset [$4B9C]
 	move.b	d1,$0015(a4)	;19410015
 	add.w	d0,d0	;D040
 	lea	Spells_01_Armour.l,a0	;41F90000505C
@@ -7324,7 +7398,7 @@ adrCd004F20:
 	move.b	$00(a6,d0.w),d1	;12360000
 	and.w	#$0003,d1	;02410003
 	beq	adrCd004FEE	;67000092
-adrCd004F5E:
+adrCd004F5E:		; Memory Address ($4F5E) and binary offset [$4BDA]
 	move.l	a4,-(sp)	;2F0C
 	jsr	(a0)	;4E90
 	moveq	#$00,d0	;7000
@@ -7340,10 +7414,10 @@ adrCd004F5E:
 	bsr	adrCd007ED2	;61002F50
 	bra.s	adrCd004F8E	;6008
 
-adrCd004F86:
+adrCd004F86:		; Memory Address ($4F86) and binary offset [$4C02]
 	move.w	$0006(a5),d7	;3E2D0006
 	bsr	adrCd00CCD8	;61007D4C
-adrCd004F8E:
+adrCd004F8E:		; Memory Address ($4F8E) and binary offset [$4C0A]
 	move.l	(sp)+,a4	;285F
 	move.l	#adrL_007E22,a0	;207C00007E22
 	add.l	a4,a0	;D1CC
@@ -7352,23 +7426,23 @@ adrCd004F8E:
 	addq.b	#$01,$00(a0,d0.w)	;52300000
 	bcc.s	adrCd004FA8	;6404
 	subq.b	#$01,$00(a0,d0.w)	;53300000
-adrCd004FA8:
+adrCd004FA8:		; Memory Address ($4FA8) and binary offset [$4C24]
 	lea	NullString.l,a6	;4DF90000CAE9
 	bra.s	adrCd004FBE	;600E
 
-adrCd004FB0:
+adrCd004FB0:		; Memory Address ($4FB0) and binary offset [$4C2C]
 	lea	Notice_SpellFailed.l,a6	;4DF90000504C
 	move.w	#$0004,adrW_00D92A.l	;33FC00040000D92A
-adrCd004FBE:
+adrCd004FBE:		; Memory Address ($4FBE) and binary offset [$4C3A]
 	move.b	#$FF,$0013(a4)	;197C00FF0013
 	tst.b	adrB_00505B.l	;4A390000505B
 	bne.s	adrCd004FD4	;6608
 	jsr	LowerText.l	;4EB90000CFB8
 	moveq	#$00,d0	;7000
-adrCd004FD4:
+adrCd004FD4:		; Memory Address ($4FD4) and binary offset [$4C50]
 	rts	;4E75
 
-adrCd004FD6:
+adrCd004FD6:		; Memory Address ($4FD6) and binary offset [$4C52]
 	tst.b	adrB_00505B.l	;4A390000505B
 	bne.s	adrCd004FD4	;66F6
 	lea	Msg_CostTooHigh.l,a6	;4DF90000EA62
@@ -7376,7 +7450,7 @@ adrCd004FD6:
 	moveq	#$01,d0	;7001
 	rts	;4E75
 
-adrCd004FEE:
+adrCd004FEE:		; Memory Address ($4FEE) and binary offset [$4C6A]
 	lea	Notice_SpellFizzle.l,a6	;4DF900004FFE
 	move.w	#$0008,adrW_00D92A.l	;33FC00080000D92A
 	bra.s	adrCd004FBE	;60C0
@@ -7384,7 +7458,7 @@ adrCd004FEE:
 Notice_SpellFizzle:
 	dc.b	'SPELL FIZZLED'	;5350454C4C2046495A5A4C4544
 	dc.b	$FF	;FF
-Spells_LookupTable:
+Spells_LookupTable:		; Memory Address ($500C) and binary offset [$4C88]
 	dc.w	Spells_01_Armour-Spells_01_Armour	;0000
 	dc.w	Spells_02_Terror-Spells_01_Armour	;0022
 	dc.w	Spells_03_Vitalise-Spells_01_Armour	;002A
@@ -7421,19 +7495,19 @@ Notice_SpellFailed:
 	dc.b	'SPELL FAILED'	;5350454C4C204641494C4544
 	dc.b	$FF	;FF
 	dc.b	$00	;00
-adrW_00505A:
+adrW_00505A:		; Memory Address ($505A) and binary offset [$4CD6]
 	dc.b	$00	;00
-adrB_00505B:
+adrB_00505B:		; Memory Address ($505B) and binary offset [$4CD7]
 	dc.b	$00	;00
 
-Spells_01_Armour:
+Spells_01_Armour:		; Memory Address ($505C) and binary offset [$4CD8]
 	moveq	#$00,d4	;7800
 	addq.w	#$02,d7	;5447
-adrCd005060:
+adrCd005060:		; Memory Address ($5060) and binary offset [$4CDC]
 	cmpi.w	#$0040,d7	;0C470040
 	bcs.s	adrCd005068	;6502
 	moveq	#$3F,d7	;7E3F
-adrCd005068:
+adrCd005068:		; Memory Address ($5068) and binary offset [$4CE4]
 	asl.w	#$02,d7	;E547
 	and.w	#$00F8,d7	;024700F8
 	add.b	d4,d7	;DE04
@@ -7441,21 +7515,21 @@ adrCd005068:
 	move.b	#$02,adrB_00EE3C.l	;13FC00020000EE3C
 	rts	;4E75
 
-Spells_02_Terror:
+Spells_02_Terror:		; Memory Address ($507E) and binary offset [$4CFA]
 	move.w	#$008F,d4	;383C008F
 	bra	adrCd005316	;60000292
 
-Spells_03_Vitalise:
+Spells_03_Vitalise:		; Memory Address ($5086) and binary offset [$4D02]
 	moveq	#$07,d4	;7807
 	lsr.w	#$02,d7	;E44F
 	bra	adrCd005236	;600001AA
 
-Spells_04_Beguile:
+Spells_04_Beguile:		; Memory Address ($508E) and binary offset [$4D0A]
 	; ReSource: While communication is active, adds floor(spell power / 4) + 1 to both attitude and patience.
 	cmp.w	#InterfaceMode_Communication,$0042(a5)	;0C6D00080042
 	bne.s	adrCd0050BC	;6626
-	lsr.b	#Beguile_PowerShift,d7	;E40F
-	addq.w	#Beguile_BaseBonus,d7	;5247
+	lsr.b	#WornSpell_Beguile_PowerShift,d7	;E40F
+	addq.w	#WornSpell_Beguile_BaseBonus,d7	;5247
 	bsr	Comms_GetState	;6100F15E
 	move.w	d7,d0	;3007
 	add.b	CommsState_AttitudeOffset(a4),d7	;DE2C0006
@@ -7466,14 +7540,14 @@ Spells_04_Beguile:
 	move.w	#$008D,d7	;3E3C008D
 	bra	adrCd001DBC	;6000CD02
 
-adrCd0050BC:
+adrCd0050BC:		; Memory Address ($50BC) and binary offset [$4D38]
 	rts	;4E75
 
-Spells_05_Deflect:
+Spells_05_Deflect:		; Memory Address ($50BE) and binary offset [$4D3A]
 	moveq	#$01,d4	;7801
 	bra.s	adrCd005060	;609E
 
-Spells_06_Magelock:
+Spells_06_Magelock:		; Memory Address ($50C2) and binary offset [$4D3E]
 	bsr	adrCd008498	;610033D4
 	move.b	$01(a6,d0.w),d1	;12360001
 	and.w	#$0007,d1	;02410007
@@ -7487,7 +7561,7 @@ Spells_06_Magelock:
 	subq.w	#$01,d2	;5342
 	btst	d2,$00(a6,d0.w)	;05360000
 	bne.s	adrCd005134	;664C
-adrCd0050E8:
+adrCd0050E8:		; Memory Address ($50E8) and binary offset [$4D64]
 	bsr	adrCd00847E	;61003394
 	cmp.w	adrW_00EE72.l,d7	;BE790000EE72
 	bcc.s	adrCd005134	;6440
@@ -7505,46 +7579,46 @@ adrCd0050E8:
 	beq.s	adrCd00512E	;6714
 	rts	;4E75
 
-adrCd00511C:
+adrCd00511C:		; Memory Address ($511C) and binary offset [$4D98]
 	move.w	$0020(a5),d2	;342D0020
 	eor.w	#$0002,d2	;0A420002
 	add.w	d2,d2	;D442
 	addq.w	#$01,d2	;5242
 	btst	d2,$00(a6,d0.w)	;05360000
 	beq.s	adrCd005134	;6706
-adrCd00512E:
+adrCd00512E:		; Memory Address ($512E) and binary offset [$4DAA]
 	bchg	#$04,$01(a6,d0.w)	;087600040001
-adrCd005134:
+adrCd005134:		; Memory Address ($5134) and binary offset [$4DB0]
 	rts	;4E75
 
-Spells_07_Conceal:
+Spells_07_Conceal:		; Memory Address ($5136) and binary offset [$4DB2]
 	bsr	adrCd00847E	;61003346
 	cmp.w	adrW_00EE72.l,d7	;BE790000EE72
 	bcc.s	adrCd005150	;640E
 	cmp.w	adrW_00EE70.l,d7	;BE790000EE70
 	bcc.s	adrCd005150	;6406
 	bset	#$03,$01(a6,d0.w)	;08F600030001
-adrCd005150:
+adrCd005150:		; Memory Address ($5150) and binary offset [$4DCC]
 	rts	;4E75
 
-Spells_08_Warpower:
+Spells_08_Warpower:		; Memory Address ($5152) and binary offset [$4DCE]
 	moveq	#WornSpell_Warpower,d4	;7802
 	bra	adrCd005060	;6000FF0A
 
-Spells_09_Missle:
+Spells_09_Missle:		; Memory Address ($5158) and binary offset [$4DD4]
 	move.w	#$008A,d4	;383C008A
 	lsr.w	#$01,d7	;E24F
 	bra	adrCd005328	;600001C8
 
-Spells_10_Vanish:
+Spells_10_Vanish:		; Memory Address ($5162) and binary offset [$4DDE]
 	moveq	#$03,d4	;7803
 	bra	adrCd005060	;6000FEFA
 
-Spells_11_Paralyze:
+Spells_11_Paralyze:		; Memory Address ($5168) and binary offset [$4DE4]
 	move.w	#$008C,d4	;383C008C
 	bra	adrCd005316	;600001A8
 
-Spells_12_Alchemy:
+Spells_12_Alchemy:		; Memory Address ($5170) and binary offset [$4DEC]
 	moveq	#$00,d0	;7000
 	move.b	adrB_00EE3E.l,d0	;10390000EE3E
 	asl.w	#$04,d0	;E940
@@ -7556,45 +7630,45 @@ Spells_12_Alchemy:
 	bcs.s	adrCd005192	;6506
 	cmpi.b	#$3F,d1	;0C01003F
 	bcs.s	adrCd0051A4	;6512
-adrCd005192:
+adrCd005192:		; Memory Address ($5192) and binary offset [$4E0E]
 	move.b	$0001(a0),d1	;12280001
 	moveq	#$01,d0	;7001
 	cmpi.b	#$1B,d1	;0C01001B
 	bcs.s	adrCd0051CE	;6530
 	cmpi.b	#$3F,d1	;0C01003F
 	bcc.s	adrCd0051CE	;642A
-adrCd0051A4:
+adrCd0051A4:		; Memory Address ($51A4) and binary offset [$4E20]
 	addq.w	#$05,d7	;5A47
 	add.b	$000C(a0),d7	;DE28000C
 	cmpi.b	#$64,d7						;0C070064
 	bcs.s	adrCd0051B2	;6502
 	moveq	#$63,d7	;7E63
-adrCd0051B2:
+adrCd0051B2:		; Memory Address ($51B2) and binary offset [$4E2E]
 	move.b	d7,$000C(a0)	;1147000C
 	moveq	#$0B,d2	;740B
-adrLp0051B8:
+adrLp0051B8:		; Memory Address ($51B8) and binary offset [$4E34]
 	cmp.b	#$01,$00(a0,d2.w)	;0C3000012000
 	bne.s	adrCd0051C4	;6604
 	clr.b	$00(a0,d2.w)	;42302000
-adrCd0051C4:
+adrCd0051C4:		; Memory Address ($51C4) and binary offset [$4E40]
 	dbra	d2,adrLp0051B8	;51CAFFF2
 	move.b	#$01,$00(a0,d0.w)	;11BC00010000
-adrCd0051CE:
+adrCd0051CE:		; Memory Address ($51CE) and binary offset [$4E4A]
 	rts	;4E75
 
-Spells_13_Confuse:
+Spells_13_Confuse:		; Memory Address ($51D0) and binary offset [$4E4C]
 	move.w	#$008B,d4	;383C008B
 	bra	adrCd005316	;60000140
 
-Spells_14_Levitate:
+Spells_14_Levitate:		; Memory Address ($51D8) and binary offset [$4E54]
 	moveq	#$05,d4	;7805
 	bra	adrCd005060	;6000FE84
 
-Spells_15_Antimage:
+Spells_15_Antimage:		; Memory Address ($51DE) and binary offset [$4E5A]
 	moveq	#$06,d4	;7806
 	bra	adrCd005060	;6000FE7E
 
-Spells_16_Recharge:
+Spells_16_Recharge:		; Memory Address ($51E4) and binary offset [$4E60]
 	moveq	#$00,d0			;7000
 	move.b	adrB_00EE3E.l,d0	;10390000EE3E
 	asl.w	#$04,d0			;E940
@@ -7605,42 +7679,42 @@ Spells_16_Recharge:
 	bcs.s	adrCd005204		;6506
 	cmpi.b	#$6D,d0			;0C00006D
 	bcs.s	adrCd005214		;6510
-adrCd005204:
+adrCd005204:		; Memory Address ($5204) and binary offset [$4E80]
 	move.b	$0001(a0),d0		;10280001
 	cmpi.b	#$69,d0			;0C000069
 	bcs.s	adrCd005224		;6516
 	cmpi.b	#$6D,d0			;0C00006D
 	bcc.s	adrCd005224		;6410
-adrCd005214:
+adrCd005214:		; Memory Address ($5214) and binary offset [$4E90]
 	sub.w	#$0069,d0		;04400069
 	lea	RingUses.l,a0	;41F90000EE32
 	lsr.w	#$03,d7			;E64F
 	move.b	d7,$00(a0,d0.w)		;11870000
-adrCd005224:
+adrCd005224:		; Memory Address ($5224) and binary offset [$4EA0]
 	rts	;4E75
 
-Spells_17_Trueview:
+Spells_17_Trueview:		; Memory Address ($5226) and binary offset [$4EA2]
 	moveq	#$07,d4	;7807
 	bra	adrCd005060	;6000FE36
 
-Spells_18_Renew:
+Spells_18_Renew:		; Memory Address ($522C) and binary offset [$4EA8]
 	move.w	d7,d4	;3807
 	add.w	d7,d7	;DE47
 	add.w	d4,d7	;DE44
 	lsr.w	#$04,d7	;E84F
 	moveq	#$05,d4	;7805
-adrCd005236:
+adrCd005236:		; Memory Address ($5236) and binary offset [$4EB2]
 	move.w	d7,d5	;3A07
-adrLp005238:
+adrLp005238:		; Memory Address ($5238) and binary offset [$4EB4]
 	bsr	adrCd005556	;6100031C
 	add.w	d0,d5	;DA40
 	dbra	d7,adrLp005238	;51CFFFF8
 	cmpi.w	#$0100,d5	;0C450100
 	bcs.s	adrCd00524A	;6502
 	moveq	#-$01,d5	;7AFF
-adrCd00524A:
+adrCd00524A:		; Memory Address ($524A) and binary offset [$4EC6]
 	moveq	#$03,d1	;7203
-adrLp00524C:
+adrLp00524C:		; Memory Address ($524C) and binary offset [$4EC8]
 	move.b	$18(a5,d1.w),d0	;10351018
 	and.w	#$00E0,d0	;024000E0
 	bne.s	adrCd005276	;6620
@@ -7650,17 +7724,17 @@ adrLp00524C:
 	add.b	d5,d0	;D005
 	bcc.s	adrCd005268	;6402
 	moveq	#-$01,d0	;70FF
-adrCd005268:
+adrCd005268:		; Memory Address ($5268) and binary offset [$4EE4]
 	cmp.b	$01(a4,d4.w),d0	;B0344001
 	bcs.s	adrCd005272	;6504
 	move.b	$01(a4,d4.w),d0	;10344001
-adrCd005272:
+adrCd005272:		; Memory Address ($5272) and binary offset [$4EEE]
 	move.b	d0,$00(a4,d4.w)	;19804000
-adrCd005276:
+adrCd005276:		; Memory Address ($5276) and binary offset [$4EF2]
 	dbra	d1,adrLp00524C	;51C9FFD4
 	bra	adrCd0080CA	;60002E4E
 
-Spells_19_Vivify:
+Spells_19_Vivify:		; Memory Address ($527E) and binary offset [$4EFA]
 	bsr	adrCd008498	;61003218
 	bsr	adrCd0078FA	;61002676
 	bsr	adrCd0033BE	;6100E136
@@ -7672,10 +7746,10 @@ Spells_19_Vivify:
 	bsr	adrCd008498	;61003202
 	bsr	adrCd0078FA	;61002660
 	move.l	(sp)+,a5	;2A5F
-adrCd00529E:
+adrCd00529E:		; Memory Address ($529E) and binary offset [$4F1A]
 	rts	;4E75
 
-adrCd0052A0:
+adrCd0052A0:		; Memory Address ($52A0) and binary offset [$4F1C]
 	bsr	adrCd00847E	;610031DC
 	move.b	$01(a6,d0.w),d1	;12360001
 	and.w	#$0007,d1	;02410007
@@ -7683,7 +7757,7 @@ adrCd0052A0:
 	beq.s	adrCd00529E	;67EE
 	bra	adrCd007812	;60002560
 
-Spells_20_Dispell:
+Spells_20_Dispell:		; Memory Address ($52B4) and binary offset [$4F30]
 	bsr	adrCd00847E	;610031C8
 	bclr	#$03,$01(a6,d0.w)	;08B600030001
 	move.b	$01(a6,d0.w),d1	;12360001
@@ -7692,15 +7766,15 @@ Spells_20_Dispell:
 	bne.s	adrCd0052D8	;660E
 	btst	#$00,$00(a6,d0.w)	;083600000000
 	bne.s	adrCd0052DA	;6608
-adrCd0052D2:
+adrCd0052D2:		; Memory Address ($52D2) and binary offset [$4F4E]
 	and.w	#$00F8,$00(a6,d0.w)	;027600F80000
-adrCd0052D8:
+adrCd0052D8:		; Memory Address ($52D8) and binary offset [$4F54]
 	rts	;4E75
 
-adrCd0052DA:
+adrCd0052DA:		; Memory Address ($52DA) and binary offset [$4F56]
 	lea	adrEA0173F6.l,a0	;41F9000173F6
 	moveq	#-$04,d1	;72FC
-adrCd0052E2:
+adrCd0052E2:		; Memory Address ($52E2) and binary offset [$4F5E]
 	addq.w	#$04,d1	;5841
 	cmp.w	-$0002(a0),d1	;B268FFFE
 	bcc.s	adrCd0052D2	;64E8
@@ -7708,47 +7782,47 @@ adrCd0052E2:
 	bne.s	adrCd0052E2	;66F2
 	bra	adrCd001212	;6000BF20
 
-Spells_21_Firepath:
+Spells_21_Firepath:		; Memory Address ($52F4) and binary offset [$4F70]
 	move.w	#$0087,d4	;383C0087
 	addq.w	#$02,d7	;5447
 	bra.s	adrCd005316	;601A
 
-Spells_22_Illusion:
+Spells_22_Illusion:		; Memory Address ($52FC) and binary offset [$4F78]
 	moveq	#$65,d4	;7865
 	bra	adrCd005328	;60000028
 
-Spells_23_Compass:
+Spells_23_Compass:		; Memory Address ($5302) and binary offset [$4F7E]
 	moveq	#$04,d4	;7804
 	bra	adrCd005060	;6000FD5A
 
-Spells_24_Spelltap:
+Spells_24_Spelltap:		; Memory Address ($5308) and binary offset [$4F84]
 	move.w	#$008E,d4	;383C008E
 	bra.s	adrCd005316	;6008
 
-Spells_25_Disrupt:
+Spells_25_Disrupt:		; Memory Address ($530E) and binary offset [$4F8A]
 	move.w	#$0083,d4	;383C0083
 	addq.w	#$05,d7	;5A47
 	add.w	d7,d7	;DE47
-adrCd005316:
+adrCd005316:		; Memory Address ($5316) and binary offset [$4F92]
 	bset	#$08,d7	;08C70008
 	bra.s	adrCd005328	;600C
 
-Spells_26_Fireball:
+Spells_26_Fireball:		; Memory Address ($531C) and binary offset [$4F98]
 	move.w	#$0080,d4	;383C0080
-adrCd005320:
+adrCd005320:		; Memory Address ($5320) and binary offset [$4F9C]
 	move.w	d7,d3	;3607
 	add.w	d7,d7	;DE47
 	add.w	d3,d7	;DE43
 	lsr.w	#$01,d7	;E24F
-adrCd005328:
+adrCd005328:		; Memory Address ($5328) and binary offset [$4FA4]
 	move.w	$0020(a5),d6	;3C2D0020
 	swap	d6	;4846
 	move.w	$0020(a5),d6	;3C2D0020
-adrCd005332:
+adrCd005332:		; Memory Address ($5332) and binary offset [$4FAE]
 	move.w	d7,d3	;3607
 	move.l	$001C(a5),d7	;2E2D001C
 	move.w	$0058(a5),d5	;3A2D0058
-adrCd00533C:
+adrCd00533C:		; Memory Address ($533C) and binary offset [$4FB8]
 	move.w	d5,-(sp)	;3F05
 	bsr	Compute_NewMapIndex_AI_TBC	;61002704
 	bcc.s	adrCd005352	;640E
@@ -7758,12 +7832,12 @@ adrCd00533C:
 	bne.s	adrCd005358	;6608
 	rts	;4E75
 
-adrCd005352:
+adrCd005352:		; Memory Address ($5352) and binary offset [$4FCE]
 	clr.b	adrW_00505A.w	;4238505A	;Short Absolute converted to symbol!
 	move.w	(sp)+,d5	;3A1F
-adrCd005358:
+adrCd005358:		; Memory Address ($5358) and binary offset [$4FD4]
 	bset	#$07,$01(a6,d2.w)	;08F600072001
-adrCd00535E:
+adrCd00535E:		; Memory Address ($535E) and binary offset [$4FDA]
 	lea	UnpackedMonsters.l,a4	;49F900016B7E
 	addq.w	#$01,-$0002(a4)	;526CFFFE
 	move.w	-$0002(a4),d1	;322CFFFE
@@ -7773,7 +7847,7 @@ adrCd00535E:
 	bsr	adrCd00277E	;6100D406
 	bra.s	adrCd00535E	;60E2
 
-adrCd00537C:
+adrCd00537C:		; Memory Address ($537C) and binary offset [$4FF8]
 	asl.w	#$04,d1	;E941
 	add.w	d1,a4	;D8C1
 	move.b	d7,$0001(a4)	;19470001
@@ -7799,12 +7873,12 @@ adrCd00537C:
 	add.w	d3,d4	;D843
 	asl.w	#$03,d4	;E744
 	move.w	d4,$0008(a4)	;39440008
-adrCd0053D6:
+adrCd0053D6:		; Memory Address ($53D6) and binary offset [$5052]
 	lsr.w	#$02,d3	;E44B
 	cmpi.b	#$65,d4	;0C040065
 	bne.s	adrCd0053E2	;6604
 	bset	#$07,d3	;08C30007
-adrCd0053E2:
+adrCd0053E2:		; Memory Address ($53E2) and binary offset [$505E]
 	addq.w	#$02,d3	;5443
 	move.b	d3,$0006(a4)	;19430006
 	and.w	#$007F,d3	;0243007F
@@ -7813,22 +7887,22 @@ adrCd0053E2:
 	move.b	#$1F,$0005(a4)	;197C001F0005
 	bra.s	adrCd005412	;6014
 
-adrCd0053FE:
+adrCd0053FE:		; Memory Address ($53FE) and binary offset [$507A]
 	move.b	d3,$0006(a4)	;19430006
 	clr.b	$0007(a4)	;422C0007
 	btst	#$08,d3	;08030008
 	beq.s	adrCd005412	;6706
 	bset	#$07,$0006(a4)	;08EC00070006
-adrCd005412:
+adrCd005412:		; Memory Address ($5412) and binary offset [$508E]
 	tst.b	adrW_00505A.w	;4A38505A	;Short Absolute converted to symbol!
 	bne	CheckEquipCostsAndAttrs_AI_TBC	;6600C940
 	rts	;4E75
 
-Spells_27_Wychwind:
+Spells_27_Wychwind:		; Memory Address ($541C) and binary offset [$5098]
 	add.w	#$000A,d7	;0647000A
 	add.w	d7,d7	;DE47
 	moveq	#$07,d5	;7A07
-.wychwind_loop:
+.wychwind_loop:		; Memory Address ($5424) and binary offset [$50A0]
 	movem.w	d5/d7,-(sp)	;48A70500
 	move.w	#$0081,d4	;383C0081
 	move.w	$0020(a5),d6	;3C2D0020
@@ -7842,18 +7916,18 @@ Spells_27_Wychwind:
 	and.w	#$0003,d6	;02460003
 	bra.s	.wychwind_skip2	;600C
 
-.wychwind_skip1:
+.wychwind_skip1:		; Memory Address ($544C) and binary offset [$50C8]
 	subq.w	#$04,d6	;5946
 	add.w	$0020(a5),d6	;DC6D0020
 	and.w	#$0003,d6	;02460003
 	addq.w	#$04,d6	;5846
-.wychwind_skip2:
+.wychwind_skip2:		; Memory Address ($5458) and binary offset [$50D4]
 	bsr	adrCd005332	;6100FED8
 	movem.w	(sp)+,d5/d7	;4C9F00A0
 	dbra	d5,.wychwind_loop	;51CDFFC2
 	rts	;4E75
 
-.wychwind_data:
+.wychwind_data:		; Memory Address ($5466) and binary offset [$50E2]
 	dc.b	$00	;00
 	dc.b	$01	;01
 	dc.b	$02	;02
@@ -7863,13 +7937,13 @@ Spells_27_Wychwind:
 	dc.b	$02	;02
 	dc.b	$00	;00
 
-Spells_28_ArcBolt:
+Spells_28_ArcBolt:		; Memory Address ($546E) and binary offset [$50EA]
 	move.w	#$0082,d4	;383C0082
 	bra	adrCd005320	;6000FEAC
 
-Spells_29_Formwall:
+Spells_29_Formwall:		; Memory Address ($5476) and binary offset [$50F2]
 	moveq	#$03,d4	;7803
-adrCd005478:
+adrCd005478:		; Memory Address ($5478) and binary offset [$50F4]
 	move.w	d7,d3	;3607
 	addq.w	#$02,d3	;5443
 	asl.w	#$02,d3	;E543
@@ -7892,13 +7966,13 @@ adrCd005478:
 	subq.b	#$03,d4	;5704
 	bne.s	adrCd0054E4	;662A
 	move.w	#$03FF,d1	;323C03FF
-adrCd0054BE:
+adrCd0054BE:		; Memory Address ($54BE) and binary offset [$513A]
 	lea	adrEA0173F6.l,a0	;41F9000173F6
 	swap	d0	;4840
 	move.w	d1,d0	;3001
 	swap	d0	;4840
 	moveq	#$00,d1	;7200
-adrCd0054CC:
+adrCd0054CC:		; Memory Address ($54CC) and binary offset [$5148]
 	cmp.w	-$0002(a0),d1	;B268FFFE
 	bcc.s	adrCd0054DC	;640A
 	cmp.w	$02(a0,d1.w),d0	;B0701002
@@ -7906,31 +7980,31 @@ adrCd0054CC:
 	addq.w	#$04,d1	;5841
 	bra.s	adrCd0054CC	;60F0
 
-adrCd0054DC:
+adrCd0054DC:		; Memory Address ($54DC) and binary offset [$5158]
 	addq.w	#$04,-$0002(a0)	;5868FFFE
-adrCd0054E0:
+adrCd0054E0:		; Memory Address ($54E0) and binary offset [$515C]
 	move.l	d0,$00(a0,d1.w)	;21801000
-adrCd0054E4:
+adrCd0054E4:		; Memory Address ($54E4) and binary offset [$5160]
 	rts	;4E75
 
-Spells_30_Summon:
+Spells_30_Summon:		; Memory Address ($54E6) and binary offset [$5162]
 	moveq	#$64,d4	;7864
 	bra	adrCd005328	;6000FE3E
 
-Spells_31_Blaze:
+Spells_31_Blaze:		; Memory Address ($54EC) and binary offset [$5168]
 	move.w	#$0084,d4	;383C0084
 	add.w	#$000A,d7	;0647000A
 	lsr.w	#$01,d7	;E24F
 	bra	adrCd005328	;6000FE30
 
-Spells_32_Mindrock:
+Spells_32_Mindrock:		; Memory Address ($54FA) and binary offset [$5176]
 	moveq	#$02,d4	;7802
 	bra	adrCd005478	;6000FF7A
 
-adrCd005500:
+adrCd005500:		; Memory Address ($5500) and binary offset [$517C]
 	moveq	#-$01,d3	;76FF
 	moveq	#$03,d2	;7403
-adrLp005504:
+adrLp005504:		; Memory Address ($5504) and binary offset [$5180]
 	move.b	$18(a5,d2.w),d0	;10352018
 	and.w	#$00E0,d0	;024000E0
 	bne.s	adrCd005540	;6632
@@ -7945,7 +8019,7 @@ adrLp005504:
 	tst.b	d3	;4A03
 	bpl.s	adrCd00552E	;6A02
 	moveq	#$00,d3	;7600
-adrCd00552E:
+adrCd00552E:		; Memory Address ($552E) and binary offset [$51AA]
 	cmp.b	d3,d0	;B003
 	bcs.s	adrCd005540	;650E
 	move.b	d0,d3	;1600
@@ -7953,21 +8027,21 @@ adrCd00552E:
 	move.b	$18(a5,d2.w),d3	;16352018
 	and.w	#$000F,d3	;0243000F
 	swap	d3	;4843
-adrCd005540:
+adrCd005540:		; Memory Address ($5540) and binary offset [$51BC]
 	dbra	d2,adrLp005504	;51CAFFC2
 	rts	;4E75
 
-adrCd005546:
+adrCd005546:		; Memory Address ($5546) and binary offset [$51C2]
 	moveq	#$03,d6	;7C03
 	moveq	#$02,d5	;7A02
-adrLp00554A:
+adrLp00554A:		; Memory Address ($554A) and binary offset [$51C6]
 	bsr.s	adrCd005556	;610A
 	add.w	d0,d6	;DC40
 	dbra	d5,adrLp00554A	;51CDFFFA
 	move.w	d6,d0	;3006
 	rts	;4E75
 
-adrCd005556:
+adrCd005556:		; Memory Address ($5556) and binary offset [$51D2]
 	move.w	adrW_0055AA.l,d0	;3039000055AA
 	addq.w	#$01,d0	;5240
 	mulu	#$B640,d0	;C0FCB640
@@ -7976,7 +8050,7 @@ adrCd005556:
 	add.l	d1,d0	;D081
 	move.w	#$0511,d1	;323C0511
 	moveq	#$00,d3	;7600
-adrCd00556E:
+adrCd00556E:		; Memory Address ($556E) and binary offset [$51EA]
 	divu	d1,d0	;80C1
 	bvc.s	adrCd005580	;680E
 	move.w	d0,d2	;3400
@@ -7987,7 +8061,7 @@ adrCd00556E:
 	move.w	d2,d0	;3002
 	bra.s	adrCd00556E	;60EE
 
-adrCd005580:
+adrCd005580:		; Memory Address ($5580) and binary offset [$51FC]
 	subq.w	#$01,d1	;5341
 	swap	d0	;4840
 	move.w	d3,d0	;3003
@@ -7997,7 +8071,7 @@ adrCd005580:
 	swap	d0	;4840
 	move.w	d0,adrW_0055AA.l	;33C0000055AA
 	moveq	#$06,d1	;7206
-adrCd005596:
+adrCd005596:		; Memory Address ($5596) and binary offset [$5212]
 	divu	d1,d0	;80C1
 	bvc.s	adrCd0055A6	;680C
 	move.w	d0,d2	;3400
@@ -8007,25 +8081,25 @@ adrCd005596:
 	move.w	d2,d0	;3002
 	bra.s	adrCd005596	;60F0
 
-adrCd0055A6:
+adrCd0055A6:		; Memory Address ($55A6) and binary offset [$5222]
 	swap	d0	;4840
 	rts	;4E75
 
-adrW_0055AA:
+adrW_0055AA:		; Memory Address ($55AA) and binary offset [$5226]
 	dc.b	$03	;03
-RandomOffsetValue:
+RandomOffsetValue:		; Memory Address ($55AB) and binary offset [$5227]
 	dc.b	$E1	;E1
 
-RandomGen_BytewithOffset:
+RandomGen_BytewithOffset:		; Memory Address ($55AC) and binary offset [$5228]
 	moveq	#$01,d1	;7201
 	bsr.s	RandomGen	;610C
 	swap	d0	;4840
 	add.b	RandomOffsetValue(pc),d0	;D03AFFF7
 	rts	;4E75
 
-RandomGen_100:
+RandomGen_100:		; Memory Address ($55B8) and binary offset [$5234]
 	move.w	#$6400,d1	;323C6400
-RandomGen:
+RandomGen:		; Memory Address ($55BC) and binary offset [$5238]
 	swap	d1	;4841
 	moveq	#$00,d0	;7000
 	move.b	adrB_0055DE.l,d0	;1039000055DE
@@ -8040,11 +8114,11 @@ RandomGen:
 	swap	d0	;4840
 	rts	;4E75
 
-adrB_0055DE:
+adrB_0055DE:		; Memory Address ($55DE) and binary offset [$525A]
 	dc.b	$FF	;FF
 	dc.b	$FF	;FF
 
-Click_ViewSpell:
+Click_ViewSpell:		; Memory Address ($55E0) and binary offset [$525C]
 	move.w	#$0002,$0014(a5)	;3B7C00020014
 	bsr	adrCd00C2AC	;61006CC4
 	bpl.s	adrCd0055F6	;6A0A
@@ -8052,7 +8126,7 @@ Click_ViewSpell:
 	bsr	adrCd00CF96	;610079A4
 	bra.s	adrCd005624	;602E
 
-adrCd0055F6:
+adrCd0055F6:		; Memory Address ($55F6) and binary offset [$5272]
 	move.l	a6,-(sp)	;2F0E
 	bsr	Calculate_SpellCastingQuality	;6100117E
 	addq.b	#$03,d7	;5607
@@ -8064,22 +8138,22 @@ adrCd0055F6:
 	cmp.b	d7,d0	;B007
 	bcs.s	adrCd005614	;6502
 	move.b	d7,d0	;1007
-adrCd005614:
+adrCd005614:		; Memory Address ($5614) and binary offset [$5290]
 	neg.b	d0	;4400
 	move.b	d0,$0014(a4)	;19400014
-adrCd00561A:
+adrCd00561A:		; Memory Address ($561A) and binary offset [$5296]
 	bsr	adrCd006698	;6100107C
 	move.l	(sp)+,a6	;2C5F
 	bsr	adrCd00CFBC	;6100799A
-adrCd005624:
+adrCd005624:		; Memory Address ($5624) and binary offset [$52A0]
 	bra	adrCd00C85E	;60007238
 
-adrJA005628:
+adrJA005628:		; Memory Address ($5628) and binary offset [$52A4]
 	move.w	$000E(a5),d7	;3E2D000E
 	moveq	#-$01,d2	;74FF
 	bsr	adrCd00C714	;610070E4
 	bpl.s	adrCd005680	;6A4C
-	bsr	adrCd00587C	;61000246
+	bsr	HitTest_DisplayAction	;61000246
 	tst.w	$000C(a5)	;4A6D000C
 	bpl.s	adrCd005676	;6A38
 	cmpi.w	#$0048,d1	;0C410048
@@ -8099,19 +8173,19 @@ adrJA005628:
 	bne.s	adrCd005676	;660A
 	move.w	#$0011,$000C(a5)	;3B7C0011000C
 	move.w	d1,$000E(a5)	;3B41000E
-adrCd005676:
+adrCd005676:		; Memory Address ($5676) and binary offset [$52F2]
 	rts	;4E75
 
-adrCd005678:
+adrCd005678:		; Memory Address ($5678) and binary offset [$52F4]
 	move.w	#$0013,$000C(a5)	;3B7C0013000C
 	rts	;4E75
 
-adrCd005680:
+adrCd005680:		; Memory Address ($5680) and binary offset [$52FC]
 	move.w	#$0012,$000C(a5)	;3B7C0012000C
 	move.b	d7,$000E(a5)	;1B47000E
 	rts	;4E75
 
-adrB_00568C:
+adrB_00568C:		; Memory Address ($568C) and binary offset [$5308]
 	dc.b	$00	;00
 	dc.b	$FF	;FF
 	dc.b	$00	;00
@@ -8121,7 +8195,7 @@ adrB_00568C:
 	dc.b	$00	;00
 	dc.b	$00	;00
 
-adrCd005694:
+adrCd005694:		; Memory Address ($5694) and binary offset [$5310]
 	bsr	adrCd0084D6	;61002E40
 	moveq	#$03,d1	;7203
 	bsr	adrCd005500	;6100FE64
@@ -8132,30 +8206,30 @@ adrCd005694:
 	add.w	d3,d3	;D643
 	sub.w	d3,d2	;9443
 	bcs.s	adrCd005676	;65CA
-adrCd0056AC:
-	move.l	adrL_00EE78.l,a2	;24790000EE78
+adrCd0056AC:		; Memory Address ($56AC) and binary offset [$5328]
+	move.l	Current_TowerMapDataBase.l,a2	;24790000EE78
 	add.w	adrW_00EE76.l,a2	;D4F90000EE76
 	move.l	a6,a3	;264E
 	move.w	adrW_00EE72.l,d0	;30390000EE72
 	mulu	adrW_00EE70.l,d0	;C0F90000EE70
 	subq.w	#$01,d0	;5340
-adrLp0056C8:
+adrLp0056C8:		; Memory Address ($56C8) and binary offset [$5344]
 	move.w	(a2)+,d1	;321A
 	and.w	#$0007,d1	;02410007
 	cmpi.b	#$02,d1	;0C010002
 	bne.s	adrCd0056DC	;6608
 	btst	#$04,-$0001(a2)	;082A0004FFFF
 	bne.s	adrCd0056EE	;6612
-adrCd0056DC:
+adrCd0056DC:		; Memory Address ($56DC) and binary offset [$5358]
 	cmpi.b	#$07,d1	;0C010007
 	bne.s	adrCd0056F0	;660E
 	move.b	-$0002(a2),d1	;122AFFFE
 	and.w	#$0003,d1	;02410003
 	subq.w	#$01,d1	;5341
 	beq.s	adrCd0056F0	;6702
-adrCd0056EE:
+adrCd0056EE:		; Memory Address ($56EE) and binary offset [$536A]
 	moveq	#$01,d1	;7201
-adrCd0056F0:
+adrCd0056F0:		; Memory Address ($56F0) and binary offset [$536C]
 	move.b	adrB_00568C(pc,d1.w),(a3)+	;16FB109A
 	dbra	d0,adrLp0056C8	;51C8FFD2
 	lea	adrEA01674C.l,a2	;45F90001674C
@@ -8163,10 +8237,10 @@ adrCd0056F0:
 	move.b	$001F(a5),$0001(a2)	;156D001F0001
 	move.b	$001D(a5),(a2)	;14AD001D
 	move.b	#$FF,$0002(a2)	;157C00FF0002
-adrLp005714:
+adrLp005714:		; Memory Address ($5714) and binary offset [$5390]
 	move.l	a2,a0	;204A
 	move.l	a3,a1	;224B
-adrCd005718:
+adrCd005718:		; Memory Address ($5718) and binary offset [$5394]
 	moveq	#$00,d7	;7E00
 	move.b	(a0)+,d7	;1E18
 	bmi.s	adrCd00575A	;6B3C
@@ -8176,13 +8250,13 @@ adrCd005718:
 	bcs.s	adrCd00572A	;6504
 	moveq	#$02,d1	;7202
 	bsr.s	adrCd00576A	;6140
-adrCd00572A:
+adrCd00572A:		; Memory Address ($572A) and binary offset [$53A6]
 	addq.w	#$02,d7	;5447
 	cmp.w	adrW_00EE72.l,d7	;BE790000EE72
 	bcc.s	adrCd005738	;6404
 	moveq	#$00,d1	;7200
 	bsr.s	adrCd00576A	;6132
-adrCd005738:
+adrCd005738:		; Memory Address ($5738) and binary offset [$53B4]
 	subq.w	#$01,d7	;5347
 	swap	d7	;4847
 	addq.w	#$01,d7	;5247
@@ -8192,7 +8266,7 @@ adrCd005738:
 	moveq	#$03,d1	;7203
 	bsr.s	adrCd00576A	;611E
 	swap	d7	;4847
-adrCd00574E:
+adrCd00574E:		; Memory Address ($574E) and binary offset [$53CA]
 	subq.w	#$02,d7	;5547
 	bcs.s	adrCd005718	;65C6
 	swap	d7	;4847
@@ -8200,36 +8274,37 @@ adrCd00574E:
 	bsr.s	adrCd00576A	;6112
 	bra.s	adrCd005718	;60BE
 
-adrCd00575A:
+adrCd00575A:		; Memory Address ($575A) and binary offset [$53D6]
 	cmp.l	a1,a3	;B7C9
-	beq.s	adrCd005792	;6734
+	beq.s	Return_ActionDispatchBlocked	;6734
 	move.b	#$FF,(a1)	;12BC00FF
 	exg	a2,a3	;C74A
 	dbra	d2,adrLp005714	;51CAFFAE
 	rts	;4E75
 
-adrCd00576A:
+adrCd00576A:		; Memory Address ($576A) and binary offset [$53E6]
 	move.w	d7,d0	;3007
 	mulu	adrW_00EE70.l,d0	;C0F90000EE70
 	swap	d7	;4847
 	add.w	d7,d0	;D047
 	swap	d7	;4847
 	tst.b	$00(a6,d0.w)	;4A360000
-	bmi.s	adrCd005792	;6B14
+	bmi.s	Return_ActionDispatchBlocked	;6B14
 	beq.s	adrCd005782	;6702
 	rts	;4E75
 
-adrCd005782:
+adrCd005782:		; Memory Address ($5782) and binary offset [$53FE]
 	or.b	#$80,d1	;00010080
 	move.b	d1,$00(a6,d0.w)	;1D810000
 	swap	d7	;4847
 	move.b	d7,(a1)+	;12C7
 	swap	d7	;4847
 	move.b	d7,(a1)+	;12C7
-adrCd005792:
+Return_ActionDispatchBlocked:		; Memory Address ($5B16) and binary offset [$5792]
+	; ReSource: Exit used when interface-action dispatch is blocked by player state.
 	rts	;4E75
 
-MovementOffsetTable:
+MovementOffsetTable:		; Memory Address ($5794) and binary offset [$5410]
 	dc.w	$0001	;0001
 	dc.w	$00FF	;00FF
 	dc.w	$0101	;0101
@@ -8239,28 +8314,31 @@ MovementOffsetTable:
 	dc.w	$FF01	;FF01
 	dc.w	$01FF	;01FF
 
-Click_CloseCurrentPage:
+Click_CloseCurrentPage:		; Memory Address ($57A4) and binary offset [$5420]
 	clr.w	$0014(a5)	;426D0014
 	bra	adrCd008278	;60002ACE
 
-adrCd0057AC:
+Dispatch_PlayerInterfaceActionGuarded:		; Memory Address ($5B30) and binary offset [$57AC]
+	; ReSource: Checks player state before dispatching the active action.
 	btst	#$06,$0018(a5)	;082D00060018
-	bne.s	adrCd005792	;66DE
+	bne.s	Return_ActionDispatchBlocked	;66DE
 	pea	adrL_008226.l	;487900008226
-adrCd0057BA:
-	move.w	$000C(a5),d0	;302D000C
-	bmi.s	adrCd005792	;6BD2
-	asl.w	#$02,d0	;E540
-	lea	InterfaceButtons.l,a0	;41F9000057CE
+Dispatch_PlayerInterfaceAction:		; Memory Address ($5B3E) and binary offset [$57BA]
+	; ReSource: Indexes the dungeon InterfaceButtons jump table using PlayerX_Data+$0C.
+	move.w	Player_ActionCommandOffset(a5),d0	;302D000C
+	bmi.s	Return_ActionDispatchBlocked	;6BD2
+	asl.w	#InterfaceAction_TableEntryShift,d0	;E540
+	lea	DungeonInterfaceActionTable.l,a0	;41F9000057CE
 	move.l	$00(a0,d0.w),a0	;20700000
 	jmp	(a0)	;4ED0
 
-InterfaceButtons:
+DungeonInterfaceActionTable:		; Memory Address ($5B52) and binary offset [$57CE]
+	; ReSource: Dungeon action jump table indexed by PlayerX_Data+$0C.
 	dc.l	adrJA006684	;00006684
 	dc.l	Click_ShowStats	;00006616
 	dc.l	Click_MultiFunctionButton	;000064AA
 	dc.l	Click_OpenInventory	;00006BF0
-	dc.l	adrJA005F9E	;00005F9E
+	dc.l	Handle_PrimaryAttackAction	;00005F9E
 	dc.l	Click_Display_Centre	;00005F94
 	dc.l	Click_PartyMember	;000065B2
 	dc.l	Click_PartyMember	;000065B2
@@ -8291,13 +8369,13 @@ InterfaceButtons:
 	dc.l	adrJA004C10	;00004C10
 	dc.l	adrJA00336A	;0000336A
 	dc.l	adrJA005D3E	;00005D3E
-	dc.l	adrJA005894	;00005894
+	dc.l	Handle_WallFeatureClick	;00005894
 	dc.l	adrJA0064D0	;000064D0
 
-adrJA005862:
+adrJA005862:		; Memory Address ($5862) and binary offset [$54DE]
 	rts	;4E75
 
-adrEA005864:
+adrEA005864:		; Memory Address ($5864) and binary offset [$54E0]
 	dc.w	$0074	;0074
 	dc.w	$00CC	;00CC
 	dc.w	$0049	;0049
@@ -8311,18 +8389,20 @@ adrEA005864:
 	dc.w	$001C	;001C
 	dc.w	$0048	;0048
 
-adrCd00587C:
+HitTest_DisplayAction:		; Memory Address ($5C00) and binary offset [$587C]
+	; ReSource: Tests display-area rectangles and stores a resulting command in PlayerX_Data+$0C.
 	moveq	#$22,d0	;7022
 	moveq	#$26,d2	;7426
 	lea	adrEA005864.w,a6	;4DF85864	;Short Absolute converted to symbol!
 	move.w	#$FFFF,$000C(a5)	;3B7CFFFF000C
-	bra	adrCd004DB4	;6000F528
+	bra	HitTest_PlayerInterfaceActions	;6000F528
 
-Click_Display:
-	bsr.s	adrCd00587C	;61EC
-	bra	adrCd0057BA	;6000FF28
+Click_Display:		; Memory Address ($588E) and binary offset [$550A]
+	bsr.s	HitTest_DisplayAction	;61EC
+	bra	Dispatch_PlayerInterfaceAction	;6000FF28
 
-adrJA005894:
+Handle_WallFeatureClick:		; Memory Address ($5C18) and binary offset [$5894]
+	; ReSource: Handles a clicked wall feature and can route to the contextual wall-feature command.
 	bsr	adrCd00847E	;61002BE8
 	cmp.w	adrW_00EE72.l,d7	;BE790000EE72
 	bcc.s	adrCd0058EA	;644A
@@ -8350,16 +8430,16 @@ adrJA005894:
 	add.w	adrJT0058EC(pc,d3.w),a0	;D0FB3006
 	jmp	(a0)	;4ED0
 
-adrCd0058EA:
+adrCd0058EA:		; Memory Address ($58EA) and binary offset [$5566]
 	rts	;4E75
 
-adrJT0058EC:
+adrJT0058EC:		; Memory Address ($58EC) and binary offset [$5568]
 	dc.w	MainWall_Action_01_Shelf-MainWall_Action_01_Shelf	;0000
 	dc.w	MainWall_Action_02_WallDecoration-MainWall_Action_01_Shelf	;0018
 	dc.w	MainWall_Action_03_Switches-MainWall_Action_01_Shelf	;0236
 	dc.w	MainWall_Action_04_Sockets-MainWall_Action_01_Shelf	;0064
 
-MainWall_Action_01_Shelf:
+MainWall_Action_01_Shelf:		; Memory Address ($58F4) and binary offset [$5570]
 	move.w	$0004(a5),d1	;322D0004
 	sub.w	$0008(a5),d1	;926D0008
 	moveq	#$02,d6	;7C02
@@ -8368,7 +8448,7 @@ MainWall_Action_01_Shelf:
 	moveq	#$03,d6	;7C03
 	bra	adrCd005D4E	;60000444
 
-MainWall_Action_02_WallDecoration:
+MainWall_Action_02_WallDecoration:		; Memory Address ($590C) and binary offset [$5588]
 	moveq	#$00,d1	;7200
 	move.b	$00(a6,d0.w),d1	;12360000
 	lsr.b	#$02,d1	;E409
@@ -8376,7 +8456,7 @@ MainWall_Action_02_WallDecoration:
 	bcc.s	MainWall_Action_02_Scrolls	;6402
 	rts	;4E75
 
-MainWall_Action_02_Scrolls:
+MainWall_Action_02_Scrolls:		; Memory Address ($591A) and binary offset [$5596]
 	move.w	d1,-(sp)	;3F01
 	moveq	#$38,d5	;7A38
 	bsr	Draw_ScrollFrame	;6100731A
@@ -8391,7 +8471,7 @@ MainWall_Action_02_Scrolls:
 	move.l	#$00000003,adrW_00D92A.l	;23FC000000030000D92A
 	bra	Print_fflim_text	;60007776
 
-Scroll_TowerOffsets_DataTable:
+Scroll_TowerOffsets_DataTable:		; Memory Address ($5952) and binary offset [$55CE]
 	dc.b	$00	;00
 	dc.b	$15	;15
 	dc.b	$21	;21
@@ -8399,7 +8479,7 @@ Scroll_TowerOffsets_DataTable:
 	dc.b	$31	;31
 	dc.b	$3B	;3B
 
-MainWall_Action_04_Sockets:
+MainWall_Action_04_Sockets:		; Memory Address ($5958) and binary offset [$55D4]
 	moveq	#$00,d1	;7200
 	move.b	$00(a6,d0.w),d1	;12360000
 	btst	#$02,d1	;08010002
@@ -8413,10 +8493,10 @@ MainWall_Action_04_Sockets:
 	bset	#$02,$00(a6,d0.w)	;08F600020000
 	bra	adrCd005D40	;600003BE
 
-Socket_ClickExit:
+Socket_ClickExit:		; Memory Address ($5984) and binary offset [$5600]
 	rts	;4E75
 
-Sockets_Actions:
+Sockets_Actions:		; Memory Address ($5986) and binary offset [$5602]
 	lsr.w	#$03,d1	;E649
 	add.w	#$0060,d1	;06410060
 	cmp.w	$002E(a5),d1	;B26D002E
@@ -8434,7 +8514,7 @@ Sockets_Actions:
 	moveq	#$05,d0	;7005
 	bra	PlaySound	;60002F02
 
-Sockets_LookupTable:
+Sockets_LookupTable:		; Memory Address ($59BE) and binary offset [$563A]
 	dc.w	SocketActions_SerpentCrystal-SocketActions_SerpentCrystal	;0000
 	dc.w	SocketActions_ChaosCrystal-SocketActions_SerpentCrystal	;0024
 	dc.w	SocketActions_DragonCrystal-SocketActions_SerpentCrystal	;006A
@@ -8457,7 +8537,7 @@ Last_CrystalAction:
 Exit_SocketAction:
 	rts	;4E75
 
-SocketActions_ChaosCrystal:
+SocketActions_ChaosCrystal:		; Memory Address ($59F2) and binary offset [$566E]
 	bclr	#$02,$00(a6,d0.w)	;08B600020000
 	bsr	adrCd008498	;61002A9E
 	bsr	adrCd0078FA	;61001EFC
@@ -8472,11 +8552,11 @@ SocketActions_ChaosCrystal:
 	move.l	#$00090008,d7	;2E3C00090008
 	bsr	CoordToMap	;61002A74
 	bset	#$07,$01(a6,d0.w)	;08F600070001
-.EntropySummoned:
+.EntropySummoned:		; Memory Address ($5A30) and binary offset [$56AC]
 	move.l	#$00090003,d7	;2E3C00090003
 	bra.s	Last_CrystalAction	;60AE
 
-SocketActions_DragonCrystal:
+SocketActions_DragonCrystal:		; Memory Address ($5A38) and binary offset [$56B4]
 	moveq	#$07,d4	;7807
 	moveq	#$11,d6	;7C11
 	bsr.s	adrCd005A7C	;613E
@@ -8487,7 +8567,7 @@ SocketActions_DragonCrystal:
 	move.l	#$00040008,d7	;2E3C00040008	;
 	bra.s	Last_CrystalAction	;608E
 
-SocketActions_MoonCrystal:
+SocketActions_MoonCrystal:		; Memory Address ($5A58) and binary offset [$56D4]
 	moveq	#$09,d4	;7809
 	moveq	#$13,d6	;7C13
 	bsr.s	adrCd005A7C	;611E
@@ -8498,28 +8578,28 @@ SocketActions_MoonCrystal:
 	move.l	#$000F0009,d7	;2E3C000F0009
 	bra	Last_CrystalAction	;6000FF6C
 
-adrCd005A7C:
+adrCd005A7C:		; Memory Address ($5A7C) and binary offset [$56F8]
 	bclr	#$02,$00(a6,d0.w)	;08B600020000
 	moveq	#$03,d7	;7E03
-adrLp005A84:
+adrLp005A84:		; Memory Address ($5A84) and binary offset [$5700]
 	move.b	$18(a5,d7.w),d0	;10357018
 	bmi.s	adrCd005A94	;6B0A
 	bsr	Load_ChampionStatRecord	;61000BD4
 	move.b	$01(a4,d4.w),$00(a4,d4.w)	;19B440014000
-adrCd005A94:
+adrCd005A94:		; Memory Address ($5A94) and binary offset [$5710]
 	dbra	d7,adrLp005A84	;51CFFFEE
 	bsr	adrCd008498	;610029FE
 	move.w	d6,d7	;3E06
 	bsr	adrCd001DBC	;6100C31C
 	bra	adrCd007FF8	;60002554
 
-SocketActions_TanGem:
+SocketActions_TanGem:		; Memory Address ($5AA6) and binary offset [$5722]
 	lea	TanGemLocs.l,a0	;41F900005AFA
 	bra.s	TeleportGem	;6006
 
-SocketActions_BluishGem:
+SocketActions_BluishGem:		; Memory Address ($5AAE) and binary offset [$572A]
 	lea	BlueGemLocs.l,a0	;41F900005B12
-TeleportGem:
+TeleportGem:		; Memory Address ($5AB4) and binary offset [$5730]
 	move.w	CurrentTower.l,d1	;32390000EE2E
 	asl.w	#$02,d1	;E541
 	add.w	d1,a0	;D0C1
@@ -8532,7 +8612,7 @@ TeleportGem:
 	move.b	(a0)+,d6	;1C18
 	swap	d6	;4846
 	move.b	(a0),d6	;1C10
-adrCd005AD2:
+adrCd005AD2:		; Memory Address ($5AD2) and binary offset [$574E]
 	bsr	adrCd008498	;610029C4
 	bclr	#$07,$01(a6,d0.w)	;08B600070001
 	move.l	d6,$001C(a5)	;2B46001C
@@ -8543,7 +8623,7 @@ adrCd005AD2:
 	moveq	#$10,d7	;7E10
 	bra	adrCd001DBC	;6000C2C4
 
-TanGemLocs:
+TanGemLocs:		; Memory Address ($5AFA) and binary offset [$5776]
 	dc.w	$0100	;0100
 	dc.w	$0500	;0500
 	dc.w	$1111	;1111
@@ -8556,7 +8636,7 @@ TanGemLocs:
 	dc.w	$080C	;080C
 	dc.w	$0411	;0411
 	dc.w	$0B09	;0B09
-BlueGemLocs:
+BlueGemLocs:		; Memory Address ($5B12) and binary offset [$578E]
 	dc.w	$0C0C	;0C0C
 	dc.w	$0B0A	;0B0A
 	dc.w	$0C0E	;0C0E
@@ -8570,7 +8650,7 @@ BlueGemLocs:
 	dc.w	$0011	;0011
 	dc.w	$0802	;0802
 
-MainWall_Action_03_Switches:
+MainWall_Action_03_Switches:		; Memory Address ($5B2A) and binary offset [$57A6]
 	moveq	#$00,d1	;7200
 	move.b	$00(a6,d0.w),d1	;12360000
 	and.w	#$00F8,d1	;024100F8
@@ -8589,10 +8669,10 @@ MainWall_Action_03_Switches:
 	moveq	#$00,d0	;7000
 	bra	PlaySound	;60002D5A
 
-Switch_00_s00_Null:
+Switch_00_s00_Null:		; Memory Address ($5B66) and binary offset [$57E2]
 	rts	;4E75
 
-Switches_LookupTable:
+Switches_LookupTable:		; Memory Address ($5B68) and binary offset [$57E4]
 	dc.w	Switch_00_s00_Null-Switch_00_s00_Null	;0000
 	dc.w	Switch_01_s02_Trigger_11_t16_RemoveXY-Switch_00_s00_Null	;01AC
 	dc.w	Switch_02_s04_Trigger_23_t2E-Switch_00_s00_Null	;0196
@@ -8601,7 +8681,7 @@ Switches_LookupTable:
 	dc.w	Switch_05_s0A_Trigger_13_t1A_TogglePillar_XY-Switch_00_s00_Null	;1C06
 	dc.w	Switch_06_s0C_Trigger_18_t24_CreatePillar_XY-Switch_00_s00_Null	;1C02
 	dc.w	Switch_07_s0E_Trigger_26_t34_RotateWood_XY-Switch_00_s00_Null	;1BF2
-SwitchData_1:
+SwitchData_1:		; Memory Address ($5B78) and binary offset [$57F4]
 	dc.w	$0000	;0000
 	dc.w	$0000	;0000
 	dc.w	$0200	;0200
@@ -8634,7 +8714,7 @@ SwitchData_1:
 	dc.w	$1117	;1117
 	dc.w	$0000	;0000
 	dc.w	$0000	;0000
-SwitchData_2:
+SwitchData_2:		; Memory Address ($5BB8) and binary offset [$5834]
 	dc.w	$0000	;0000
 	dc.w	$0000	;0000
 	dc.w	$0200	;0200
@@ -8667,7 +8747,7 @@ SwitchData_2:
 	dc.w	$0000	;0000
 	dc.w	$0000	;0000
 	dc.w	$0000	;0000
-SwitchData_3:
+SwitchData_3:		; Memory Address ($5BF8) and binary offset [$5874]
 	dc.w	$0000	;0000
 	dc.w	$0000	;0000
 	dc.w	$0600	;0600
@@ -8700,7 +8780,7 @@ SwitchData_3:
 	dc.w	$0000	;0000
 	dc.w	$0000	;0000
 	dc.w	$0000	;0000
-SwitchData_4:
+SwitchData_4:		; Memory Address ($5C38) and binary offset [$58B4]
 	dc.w	$0000	;0000
 	dc.w	$0000	;0000
 	dc.w	$0E00	;0E00
@@ -8733,7 +8813,7 @@ SwitchData_4:
 	dc.w	$0000	;0000
 	dc.w	$0000	;0000
 	dc.w	$0000	;0000
-SwitchData_5:
+SwitchData_5:		; Memory Address ($5C78) and binary offset [$58F4]
 	dc.w	$0000	;0000
 	dc.w	$0000	;0000
 	dc.w	$0200	;0200
@@ -8766,7 +8846,7 @@ SwitchData_5:
 	dc.w	$0506	;0506
 	dc.w	$0200	;0200
 	dc.w	$0304	;0304
-SwitchData_6:
+SwitchData_6:		; Memory Address ($5CB8) and binary offset [$5934]
 	dc.w	$0000	;0000
 	dc.w	$0000	;0000
 	dc.w	$0200	;0200
@@ -8800,66 +8880,66 @@ SwitchData_6:
 	dc.w	$0000	;0000
 	dc.w	$0000	;0000
 
-Switch_00_s00_Trigger_15_t1E_ToggleWallXY:
+Switch_00_s00_Trigger_15_t1E_ToggleWallXY:		; Memory Address ($5CF8) and binary offset [$5974]
 	bsr	Switch_01_s02_Trigger_11_t16_RemoveXY	;61000018
-Switch_02_s04_Trigger_23_t2E:
+Switch_02_s04_Trigger_23_t2E:		; Memory Address ($5CFC) and binary offset [$5978]
 	bsr.s	adrCd005D2E	;6130
 	tst.b	$01(a6,d0.w)	;4A360001
 	bmi.s	adrCd005D10	;6B0C
 	and.w	#$00F9,$00(a6,d0.w)	;027600F90000
 	eor.b	#$01,$01(a6,d0.w)	;0A3600010001
-adrCd005D10:
+adrCd005D10:		; Memory Address ($5D10) and binary offset [$598C]
 	rts	;4E75
 
-Switch_01_s02_Trigger_11_t16_RemoveXY:
+Switch_01_s02_Trigger_11_t16_RemoveXY:		; Memory Address ($5D12) and binary offset [$598E]
 	bsr.s	adrCd005D2E	;611A
 	move.b	$01(a6,d0.w),d2	;14360001
 	and.w	#$0007,d2	;02420007
 	subq.w	#$01,d2	;5342
 	bne.s	adrCd005D26	;6606
 	and.b	#$4F,$01(a6,d0.w)	;0236004F0001
-adrCd005D26:
+adrCd005D26:		; Memory Address ($5D26) and binary offset [$59A2]
 	and.b	#$F8,$01(a6,d0.w)	;023600F80001
 	rts	;4E75
 
-adrCd005D2E:
+adrCd005D2E:		; Memory Address ($5D2E) and binary offset [$59AA]
 	moveq	#$00,d7	;7E00
 	move.b	$02(a1,d1.w),d7	;1E311002
 	swap	d7	;4847
 	move.b	$03(a1,d1.w),d7	;1E311003
 	bra	CoordToMap	;60002760
 
-adrJA005D3E:
+adrJA005D3E:		; Memory Address ($5D3E) and binary offset [$59BA]
 	bsr.s	adrCd005D52	;6112
-adrCd005D40:
+adrCd005D40:		; Memory Address ($5D40) and binary offset [$59BC]
 	cmp.w	#$0003,$0014(a5)	;0C6D00030014
 	beq	Refresh_HeldItemDisplay	;67000EEC
 	bra	Draw_HeldObjectDescription	;60000F86
 
-adrCd005D4E:
+adrCd005D4E:		; Memory Address ($5D4E) and binary offset [$59CA]
 	bsr.s	adrCd005D9E	;614E
 	bra.s	adrCd005D40	;60EE
 
-adrCd005D52:
+adrCd005D52:		; Memory Address ($5D52) and binary offset [$59CE]
 	move.l	$0002(a5),d1	;222D0002
 	sub.w	$0008(a5),d1	;926D0008
 	moveq	#$02,d6	;7C02
 	cmpi.w	#$0051,d1	;0C410051
 	bcs.s	adrCd005D64	;6502
 	subq.w	#$02,d6	;5546
-adrCd005D64:
+adrCd005D64:		; Memory Address ($5D64) and binary offset [$59E0]
 	swap	d1	;4841
 	cmpi.w	#$00A0,d1	;0C4100A0
 	bcs.s	adrCd005D6E	;6502
 	addq.w	#$01,d6	;5246
-adrCd005D6E:
+adrCd005D6E:		; Memory Address ($5D6E) and binary offset [$59EA]
 	move.l	$001C(a5),d7	;2E2D001C
 	cmpi.w	#$0002,d6	;0C460002
 	bcc.s	adrCd005D7E	;6406
 	bsr	CoordToMap	;61002722
 	bra.s	adrCd005D9E	;6020
 
-adrCd005D7E:
+adrCd005D7E:		; Memory Address ($5D7E) and binary offset [$59FA]
 	bsr	adrCd008482	;61002702
 	cmp.w	adrW_00EE72.l,d7	;BE790000EE72
 	bcc.s	adrCd005D9C	;6412
@@ -8869,10 +8949,10 @@ adrCd005D7E:
 	swap	d7	;4847
 	bsr	adrCd005E42	;610000AA
 	bcc.s	adrCd005D9E	;6402
-adrCd005D9C:
+adrCd005D9C:		; Memory Address ($5D9C) and binary offset [$5A18]
 	rts	;4E75
 
-adrCd005D9E:
+adrCd005D9E:		; Memory Address ($5D9E) and binary offset [$5A1A]
 	bclr	#$03,$01(a6,d0.w)	;08B600030001
 	tst.w	$002E(a5)	;4A6D002E
 	bne	adrCd005E7C	;660000D2
@@ -8896,12 +8976,12 @@ adrCd005D9E:
 	cmpi.b	#$64,d2	;0C020064
 	bcs.s	adrCd005DEC	;6502
 	moveq	#$63,d2	;7463
-adrCd005DEC:
+adrCd005DEC:		; Memory Address ($5DEC) and binary offset [$5A68]
 	move.w	d2,$002C(a5)	;3B42002C
 	sub.b	d2,d1	;9202
 	move.b	d1,$01(a1,d3.w)	;13813001
 	bne.s	adrCd005D9C	;66A4
-adrCd005DF8:
+adrCd005DF8:		; Memory Address ($5DF8) and binary offset [$5A74]
 	subq.b	#$01,-$0001(a1)	;5329FFFF
 	bcs.s	adrCd005E1E	;6520
 	lea	$00(a1,d3.w),a1	;43F13000
@@ -8909,33 +8989,33 @@ adrCd005DF8:
 	add.w	d3,d7	;DE43
 	addq.w	#$03,d7	;5647
 	subq.w	#$02,-$0002(a0)	;5568FFFE
-adrCd005E0E:
+adrCd005E0E:		; Memory Address ($5E0E) and binary offset [$5A8A]
 	move.w	-$0002(a0),d2	;3428FFFE
 	sub.w	d7,d2	;9447
 	bra.s	adrCd005E18	;6002
 
-adrLp005E16:
+adrLp005E16:		; Memory Address ($5E16) and binary offset [$5A92]
 	move.b	(a2)+,(a1)+	;12DA
-adrCd005E18:
+adrCd005E18:		; Memory Address ($5E18) and binary offset [$5A94]
 	dbra	d2,adrLp005E16	;51CAFFFC
 	rts	;4E75
 
-adrCd005E1E:
+adrCd005E1E:		; Memory Address ($5E1E) and binary offset [$5A9A]
 	lea	$00(a0,d7.w),a1	;43F07000
 	lea	$0005(a1),a2	;45E90005
 	subq.w	#$05,-$0002(a0)	;5B68FFFE
 	bsr.s	adrCd005E0E	;61E2
 	moveq	#$03,d5	;7A03
-adrLp005E2E:
+adrLp005E2E:		; Memory Address ($5E2E) and binary offset [$5AAA]
 	move.w	d5,d6	;3C05
 	bsr	adrCd005F5C	;6100012A
 	beq.s	adrCd005E40	;670A
 	dbra	d5,adrLp005E2E	;51CDFFF6
 	bclr	#$06,$01(a6,d0.w)	;08B600060001
-adrCd005E40:
+adrCd005E40:		; Memory Address ($5E40) and binary offset [$5ABC]
 	rts	;4E75
 
-adrCd005E42:
+adrCd005E42:		; Memory Address ($5E42) and binary offset [$5ABE]
 	swap	d6	;4846
 	move.w	$0020(a5),d6	;3C2D0020
 	move.w	d0,d2	;3400
@@ -8952,21 +9032,21 @@ adrCd005E42:
 	eor.w	#$0002,d6	;0A460002
 	bsr	adrCd007AF4	;61001C88
 	bcs.s	adrCd005E7A	;650A
-adrCd005E70:
+adrCd005E70:		; Memory Address ($5E70) and binary offset [$5AEC]
 	move.w	d2,d0	;3002
 	swap	d6	;4846
 	rts	;4E75
 
-adrCd005E76:
+adrCd005E76:		; Memory Address ($5E76) and binary offset [$5AF2]
 	sub.b	#$FF,d1	;040100FF
-adrCd005E7A:
+adrCd005E7A:		; Memory Address ($5E7A) and binary offset [$5AF6]
 	rts	;4E75
 
-adrCd005E7C:
+adrCd005E7C:		; Memory Address ($5E7C) and binary offset [$5AF8]
 	move.l	$002C(a5),d5	;2A2D002C
 	clr.l	$002C(a5)	;42AD002C
 	bsr	adrCd005F2E	;610000A8
-adrCd005E88:
+adrCd005E88:		; Memory Address ($5E88) and binary offset [$5B04]
 	bclr	#$03,$01(a6,d0.w)	;08B600030001
 	bsr	adrCd005F5C	;610000CC
 	bne	adrCd005F04	;66000070
@@ -8974,12 +9054,12 @@ adrCd005E88:
 	moveq	#$00,d3	;7600
 	move.b	-$0001(a1),d3	;1629FFFF
 	add.w	d3,d3	;D643
-adrCd005EA2:
+adrCd005EA2:		; Memory Address ($5EA2) and binary offset [$5B1E]
 	cmp.b	$00(a1,d3.w),d5	;BA313000
 	beq.s	adrCd005EE2	;673A
 	subq.w	#$02,d3	;5543
 	bcc.s	adrCd005EA2	;64F6
-adrCd005EAC:
+adrCd005EAC:		; Memory Address ($5EAC) and binary offset [$5B28]
 	move.w	-$0002(a0),d2	;3428FFFE
 	addq.w	#$02,-$0002(a0)	;5468FFFE
 	addq.b	#$01,-$0001(a1)	;5229FFFF
@@ -8993,16 +9073,16 @@ adrCd005EAC:
 	sub.w	d7,d2	;9447
 	bra.s	adrCd005ED2	;6002
 
-adrLp005ED0:
+adrLp005ED0:		; Memory Address ($5ED0) and binary offset [$5B4C]
 	move.b	-(a0),-(a2)	;1520
-adrCd005ED2:
+adrCd005ED2:		; Memory Address ($5ED2) and binary offset [$5B4E]
 	dbra	d2,adrLp005ED0	;51CAFFFC
 	move.b	d5,$00(a1,d3.w)	;13853000
 	swap	d5	;4845
 	move.b	d5,$01(a1,d3.w)	;13853001
 	rts	;4E75
 
-adrCd005EE2:
+adrCd005EE2:		; Memory Address ($5EE2) and binary offset [$5B5E]
 	swap	d5	;4845
 	add.b	$01(a1,d3.w),d5	;DA313001
 	tst.b	-$0001(a1)	;4A29FFFF
@@ -9010,7 +9090,7 @@ adrCd005EE2:
 	move.b	d5,$01(a1,d3.w)	;13853001
 	rts	;4E75
 
-adrCd005EF4:
+adrCd005EF4:		; Memory Address ($5EF4) and binary offset [$5B70]
 	swap	d5	;4845
 	move.w	d7,d1	;3207
 	bsr	adrCd005DF8	;6100FEFE
@@ -9018,7 +9098,7 @@ adrCd005EF4:
 	lea	$03(a0,d7.w),a1	;43F07003
 	bra.s	adrCd005EAC	;60A8
 
-adrCd005F04:
+adrCd005F04:		; Memory Address ($5F04) and binary offset [$5B80]
 	bset	#$06,$01(a6,d0.w)	;08F600060001
 	addq.w	#$05,-$0002(a0)	;5A68FFFE
 	move.w	d0,d1	;3200
@@ -9032,7 +9112,7 @@ adrCd005F04:
 	move.b	d5,$04(a0,d7.w)	;11857004
 	rts	;4E75
 
-adrCd005F2E:
+adrCd005F2E:		; Memory Address ($5F2E) and binary offset [$5BAA]
 	move.w	$0020(a5),d1	;322D0020
 	add.w	d1,d1	;D241
 	add.w	d1,d1	;D241
@@ -9040,7 +9120,7 @@ adrCd005F2E:
 	move.b	adrB_005F3E(pc,d1.w),d6	;1C3B1004
 	rts	;4E75
 
-adrB_005F3E:
+adrB_005F3E:		; Memory Address ($5F3E) and binary offset [$5BBA]
 	dc.b	$00	;00
 	dc.b	$01	;01
 	dc.b	$02	;02
@@ -9058,16 +9138,16 @@ adrB_005F3E:
 	dc.b	$03	;03
 	dc.b	$01	;01
 
-adrCd005F4E:
+adrCd005F4E:		; Memory Address ($5F4E) and binary offset [$5BCA]
 	lea	adrEA0174F8.l,a0	;41F9000174F8
-adrCd005F54:
+adrCd005F54:		; Memory Address ($5F54) and binary offset [$5BD0]
 	cmp.w	(a0),d0	;B050
 	beq.s	adrCd005F92	;673A
 	addq.w	#$04,a0	;5848
 	bra.s	adrCd005F54	;60F8
 
-adrCd005F5C:
-	move.l	adrL_00EE78.l,a0	;20790000EE78
+adrCd005F5C:		; Memory Address ($5F5C) and binary offset [$5BD8]
+	move.l	Current_TowerMapDataBase.l,a0	;20790000EE78
 	add.w	#$0FCA,a0	;D0FC0FCA
 	move.w	d0,d1	;3200
 	ror.w	#$08,d1	;E059
@@ -9075,34 +9155,36 @@ adrCd005F5C:
 	or.b	d6,d1	;8206
 	moveq	#$00,d7	;7E00
 	moveq	#$00,d2	;7400
-adrCd005F72:
+adrCd005F72:		; Memory Address ($5F72) and binary offset [$5BEE]
 	cmp.w	-$0002(a0),d7	;BE68FFFE
 	bcc.s	adrCd005F90	;6418
 	cmp.b	$01(a0,d7.w),d0	;B0307001
 	bne.s	adrCd005F84	;6606
 	cmp.b	$00(a0,d7.w),d1	;B2307000
 	beq.s	adrCd005F92	;670E
-adrCd005F84:
+adrCd005F84:		; Memory Address ($5F84) and binary offset [$5C00]
 	move.b	$02(a0,d7.w),d2	;14307002
 	add.w	d2,d2	;D442
 	add.w	d2,d7	;DE42
 	addq.w	#$05,d7	;5A47
 	bra.s	adrCd005F72	;60E2
 
-adrCd005F90:
+adrCd005F90:		; Memory Address ($5F90) and binary offset [$5C0C]
 	moveq	#$01,d1	;7201
-adrCd005F92:
+adrCd005F92:		; Memory Address ($5F92) and binary offset [$5C0E]
 	rts	;4E75
 
-Click_Display_Centre:
+Click_Display_Centre:		; Memory Address ($5F94) and binary offset [$5C10]
 	and.b	#$01,(a5)	;02150001
 	bset	#$03,(a5)	;08D50003
-	bra.s	adrCd005FA6	;6008
+	bra.s	Select_AttackingChampion	;6008
 
-adrJA005F9E:
+Handle_PrimaryAttackAction:		; Memory Address ($6322) and binary offset [$5F9E]
+	; ReSource: Primary attack action handler; sets the primary attack state bit and continues through the common attack routine.
 	and.b	#$01,(a5)	;02150001
-	bset	#$01,(a5)	;08D50001
-adrCd005FA6:
+	bset	#Player_AttackPrimaryStateBit,(a5)	;08D50001
+Select_AttackingChampion:		; Memory Address ($632A) and binary offset [$5FA6]
+	; ReSource: Common attack setup that selects the active champion/action participant.
 	moveq	#$03,d1	;7203
 	bsr	adrCd005500	;6100F556
 	tst.w	d3	;4A43
@@ -9114,7 +9196,7 @@ adrCd005FA6:
 	bsr	Load_MapPosition_AI_TBC	;61002210
 	bra	adrCd007B50	;60001B8E
 
-adrCd005FC4:
+adrCd005FC4:		; Memory Address ($5FC4) and binary offset [$5C40]
 	lea	GFX_Pockets+$6508.l,a1	;43F900052C0A
 	move.l	screen_ptr.l,a0	;207900008D36
 	add.w	$000A(a5),a0	;D0ED000A
@@ -9136,18 +9218,18 @@ adrCd005FC4:
 	move.l	#$00000006,-(sp)	;2F3C00000006
 	bra	adrCd007E62	;60001E58
 
-adrB_00600C:
+adrB_00600C:		; Memory Address ($600C) and binary offset [$5C88]
 	dc.b	$06	;06
 	dc.b	$0D	;0D
 	dc.b	$0C	;0C
 	dc.b	$08	;08
-adrW_006010:
+adrW_006010:		; Memory Address ($6010) and binary offset [$5C8C]
 	dc.w	$0DF4	;0DF4
 	dc.w	$0000	;0000
 	dc.w	$000D	;000D
 	dc.w	$001B	;001B
 
-adrCd006018:
+adrCd006018:		; Memory Address ($6018) and binary offset [$5C94]
 	sub.w	$0020(a1),d0	;90690020
 	addq.w	#$02,d0	;5440
 	eor.w	#$0001,d2	;0A420001
@@ -9163,7 +9245,7 @@ adrCd006018:
 	move.b	$26(a1,d0.w),d1	;12310026
 	bpl.s	adrCd006046	;6A04
 	move.w	$0006(a1),d1	;32290006
-adrCd006046:
+adrCd006046:		; Memory Address ($6046) and binary offset [$5CC2]
 	and.w	#$000F,d1	;0241000F
 	clr.w	PhysicalAttack_DoubleDefenceFlag.l	;427900006458
 	movem.l	d0/d1/a1/a4/a5,-(sp)	;48E7C04C
@@ -9179,26 +9261,26 @@ adrCd006046:
 	beq.s	adrCd006090	;671E
 	bra.s	adrCd006084	;6010
 
-adrCd006074:
+adrCd006074:		; Memory Address ($6074) and binary offset [$5CF0]
 	bsr	Load_ChampionStatRecord	;610005EA
 	move.b	$0006(a4),d0	;102C0006
 	lsr.b	#$01,d0	;E208
 	cmp.b	$0005(a4),d0	;B02C0005
 	bcs.s	adrCd006090	;650C
-adrCd006084:
+adrCd006084:		; Memory Address ($6084) and binary offset [$5D00]
 	move.w	#$FFFF,PhysicalAttack_DoubleDefenceFlag.l	;33FCFFFF00006458
 	bset	d1,$003C(a5)	;03ED003C
-adrCd006090:
+adrCd006090:		; Memory Address ($6090) and binary offset [$5D0C]
 	movem.l	(sp)+,d0/d1/a1/a4/a5	;4CDF3203
-adrCd006094:
+adrCd006094:		; Memory Address ($6094) and binary offset [$5D10]
 	rts	;4E75
 
-adrCd006096:
+adrCd006096:		; Memory Address ($6096) and binary offset [$5D12]
 	tst.b	d7	;4A07
 	bne.s	adrCd0060A2	;6608
 	cmp.b	#$02,$0015(a5)	;0C2D00020015
 	bcc.s	adrCd006094	;64F2
-adrCd0060A2:
+adrCd0060A2:		; Memory Address ($60A2) and binary offset [$5D1E]
 	or.b	#$B0,$0054(a5)	;002D00B00054
 	moveq	#$67,d4	;7867
 	moveq	#$06,d5	;7A06
@@ -9210,18 +9292,18 @@ adrCd0060A2:
 	moveq	#$00,d3	;7600
 	bra	BW_draw_bar	;600079A8
 
-adrB_0060C2:
+adrB_0060C2:		; Memory Address ($60C2) and binary offset [$5D3E]
 	dc.b	$60	;60
 	dc.b	$00	;00
 	dc.b	$68	;68
 	dc.b	$D8	;D8
-adrB_0060C6:
+adrB_0060C6:		; Memory Address ($60C6) and binary offset [$5D42]
 	dc.b	$59	;59
 	dc.b	$00	;00
 	dc.b	$00	;00
 	dc.b	$00	;00
 
-adrCd0060CA:
+adrCd0060CA:		; Memory Address ($60CA) and binary offset [$5D46]
 	move.l	screen_ptr.l,a0	;207900008D36
 	add.w	$000A(a5),a0	;D0ED000A
 	move.l	a4,-(sp)	;2F0C
@@ -9241,9 +9323,9 @@ adrCd0060CA:
 	or.b	#$10,$0054(a5)	;002D00100054
 	bra.s	adrCd006108	;6006
 
-adrCd006102:
+adrCd006102:		; Memory Address ($6102) and binary offset [$5D7E]
 	or.b	#$A0,$0054(a5)	;002D00A00054
-adrCd006108:
+adrCd006108:		; Memory Address ($6108) and binary offset [$5D84]
 	move.l	#$000D0000,adrW_00D92A.l	;23FC000D00000000D92A
 	lea	OutcomeMsgs_0.l,a6	;4DF900006142
 	move.b	OutcomeMsgOffsets(pc,d4.w),d4	;183B4022
@@ -9254,12 +9336,12 @@ adrCd006108:
 	moveq	#$09,d2	;7409
 	bsr.s	adrCd006178	;614C
 	moveq	#$00,d4	;7800
-adrCd00612E:
+adrCd00612E:		; Memory Address ($612E) and binary offset [$5DAA]
 	add.w	d4,a6	;DCC4
-adrCd006130:
+adrCd006130:		; Memory Address ($6130) and binary offset [$5DAC]
 	bra	adrLp00CFDA	;60006EA8
 
-adrW_006134:
+adrW_006134:		; Memory Address ($6134) and binary offset [$5DB0]
 	dc.w	$0E1D	;0E1D
 	dc.w	$0029	;0029
 	dc.w	$0036	;0036
@@ -9292,7 +9374,7 @@ Notice_NumberOfHits:
 	dc.b	'000'	;303030
 	dc.b	$FF	;FF
 
-adrCd006178:
+adrCd006178:		; Memory Address ($6178) and binary offset [$5DF4]
 	move.w	d0,d1	;3200
 	moveq	#$00,d0	;7000
 	move.w	d1,d0	;3001
@@ -9302,7 +9384,7 @@ adrCd006178:
 	add.b	#$30,d0	;06000030
 	move.b	d0,$00(a6,d2.w)	;1D802000
 	addq.w	#$01,d2	;5242
-adrCd006190:
+adrCd006190:		; Memory Address ($6190) and binary offset [$5E0C]
 	swap	d0	;4840
 	bsr	Convert_ByteToDecimalText	;61006D30
 	move.b	d1,d0	;1001
@@ -9311,15 +9393,15 @@ adrCd006190:
 	bne.s	adrCd0061A4	;6606
 	cmpi.b	#$30,d1	;0C010030
 	beq.s	adrCd0061AA	;6706
-adrCd0061A4:
+adrCd0061A4:		; Memory Address ($61A4) and binary offset [$5E20]
 	move.b	d1,$00(a6,d2.w)	;1D812000
 	addq.w	#$01,d2	;5242
-adrCd0061AA:
+adrCd0061AA:		; Memory Address ($61AA) and binary offset [$5E26]
 	move.b	d0,$00(a6,d2.w)	;1D802000
 	move.b	#$FF,$01(a6,d2.w)	;1DBC00FF2001
 	rts	;4E75
 
-Close_AttackedChampionCommunicationPanels:
+Close_AttackedChampionCommunicationPanels:		; Memory Address ($61B6) and binary offset [$5E32]
 	; ReSource: Closes either player's communication panel when its selected target is the champion being attacked.
 	movem.l	d1/d3/a5,-(sp)	;48E75004
 	lea	Player1_Data.l,a5	;4BF90000EE7C
@@ -9329,13 +9411,13 @@ Close_AttackedChampionCommunicationPanels:
 	movem.l	(sp)+,d1/d3/a5	;4CDF200A
 	rts	;4E75
 
-Close_PlayerCommunicationIfTargetAttacked:
+Close_PlayerCommunicationIfTargetAttacked:		; Memory Address ($61D0) and binary offset [$5E4C]
 	; ReSource: Clears one player's communication state when the attacked champion matches the selected target.
 	cmp.b	$0035(a5),d1	;B22D0035
 	beq	adrCd00332A	;6700D154
 	rts	;4E75
 
-Resolve_PhysicalAttack:
+Resolve_PhysicalAttack:		; Memory Address ($61DA) and binary offset [$5E56]
 	; ReSource: Performs the opposed attack roll, calculates weapon damage, subtracts armour and applies the hit-quality multiplier.
 	moveq	#$02,d0	;7002
 	bsr	PlaySound	;610026E0
@@ -9357,13 +9439,13 @@ Resolve_PhysicalAttack:
 	moveq	#$01,d2	;7401
 	bra.s	PhysicalAttack_CalculateDamage	;600C
 
-PhysicalAttack_HandleDefenderRollWin:
+PhysicalAttack_HandleDefenderRollWin:		; Memory Address ($6210) and binary offset [$5E8C]
 	neg.w	d2	;4442
 	move.w	d2,d0	;3002
 	moveq	#$40,d2	;7440
 	cmp.w	d2,d0	;B042
 	bpl	PhysicalAttack_Return	;6A00006E
-PhysicalAttack_CalculateDamage:
+PhysicalAttack_CalculateDamage:		; Memory Address ($621C) and binary offset [$5E98]
 	; ReSource: Calculates base damage from weapon range, level, fixed weapon damage and effective Strength.
 	move.w	$0006(a6),d1	;322E0006
 	bsr	RandomGen	;6100F39A
@@ -9376,14 +9458,14 @@ PhysicalAttack_CalculateDamage:
 	bcs.s	PhysicalAttack_ApplyBackstabDamage	;6504
 	lsr.w	#$03,d1	;E649
 	add.w	d1,d0	;D041
-PhysicalAttack_ApplyBackstabDamage:
+PhysicalAttack_ApplyBackstabDamage:		; Memory Address ($623E) and binary offset [$5EBA]
 	; ReSource: Triples damage when the attack retains backstab eligibility.
 	tst.w	PhysicalAttack_BackstabState.l	;4A790000628A
 	bne.s	PhysicalAttack_CalculateArmourReduction	;6606
 	move.w	d0,d1	;3200
 	add.w	d0,d0	;D040
 	add.w	d1,d0	;D041
-PhysicalAttack_CalculateArmourReduction:
+PhysicalAttack_CalculateArmourReduction:		; Memory Address ($624C) and binary offset [$5EC8]
 	; ReSource: Calculates the defender's armour reduction, including conditional upward rounding.
 	moveq	#$00,d4	;7800
 	move.b	$000D(a6),d4	;182E000D
@@ -9394,9 +9476,9 @@ PhysicalAttack_CalculateArmourReduction:
 	beq.s	PhysicalAttack_RoundArmourReductionUp	;6704
 	subq.w	#$08,d1	;5141
 	bcs.s	PhysicalAttack_ApplyArmourReduction	;6502
-PhysicalAttack_RoundArmourReductionUp:
+PhysicalAttack_RoundArmourReductionUp:		; Memory Address ($6262) and binary offset [$5EDE]
 	addq.w	#$01,d4	;5244
-PhysicalAttack_ApplyArmourReduction:
+PhysicalAttack_ApplyArmourReduction:		; Memory Address ($6264) and binary offset [$5EE0]
 	; ReSource: Subtracts effective armour before applying hit-quality damage multipliers.
 	sub.w	d4,d0	;9044
 	bcs.s	PhysicalAttack_Return	;6520
@@ -9411,16 +9493,16 @@ PhysicalAttack_ApplyArmourReduction:
 	cmpi.w	#$000A,d2	;0C42000A
 	bcc.s	PhysicalAttack_StoreDamage	;6402
 	add.w	d1,d0	;D041
-PhysicalAttack_StoreDamage:
+PhysicalAttack_StoreDamage:		; Memory Address ($6284) and binary offset [$5F00]
 	; ReSource: Stores the final positive damage in the physical-attack working values.
 	move.w	d0,$0000(a6)	;3D400000
-PhysicalAttack_Return:
+PhysicalAttack_Return:		; Memory Address ($6288) and binary offset [$5F04]
 	rts	;4E75
 
-PhysicalAttack_BackstabState:
+PhysicalAttack_BackstabState:		; Memory Address ($628A) and binary offset [$5F06]
 	dc.w	$0000	;0000
 
-Load_CombatantCombatValues:
+Load_CombatantCombatValues:		; Memory Address ($628C) and binary offset [$5F08]
 	; ReSource: Loads champion or monster combat statistics and applies equipment and active-spell modifiers.
 	moveq	#$00,d4	;7800
 	moveq	#$00,d5	;7A00
@@ -9446,13 +9528,13 @@ Load_CombatantCombatValues:
 	moveq	#$08,d4	;7808
 	rts	;4E75
 
-Load_ChampionCombatValues:
+Load_ChampionCombatValues:		; Memory Address ($62C6) and binary offset [$5F42]
 	move.w	d0,d1	;3200
 	bsr	Load_ChampionStatRecord	;61000396
 	subq.b	#PhysicalAttack_VitalityCost,$0007(a4)	;572C0007
 	bcc.s	Apply_ChampionCombatModifiers	;6404
 	clr.b	$0007(a4)	;422C0007
-Apply_ChampionCombatModifiers:
+Apply_ChampionCombatModifiers:		; Memory Address ($62D6) and binary offset [$5F52]
 	move.w	d1,d0	;3001
 	bsr.s	Calculate_CharacterArmourLevel	;6144
 	bsr	Calculate_WeaponCombatBonuses	;610000A6
@@ -9460,7 +9542,7 @@ Apply_ChampionCombatModifiers:
 	tst.w	PhysicalAttack_BackstabState.w	;4A78628A	;Short Absolute converted to symbol!
 	bne.s	Apply_WarpowerCombatModifiers	;6602
 	move.b	(a4),d0	;1014
-Apply_WarpowerCombatModifiers:
+Apply_WarpowerCombatModifiers:		; Memory Address ($62EA) and binary offset [$5F66]
 	moveq	#$00,d1	;7200
 	move.b	$0011(a4),d1	;122C0011
 	move.w	d1,d2	;3401
@@ -9478,13 +9560,13 @@ Apply_WarpowerCombatModifiers:
 	add.b	$0002(a4),d2	;D42C0002
 	rts	;4E75
 
-Load_NormalChampionCombatStats:
+Load_NormalChampionCombatStats:		; Memory Address ($6312) and binary offset [$5F8E]
 	move.b	$0001(a4),d1	;122C0001
 	addq.b	#Combat_StrengthBias,d1	;5001
 	move.b	$0002(a4),d2	;142C0002
 	rts	;4E75
 
-Calculate_CharacterArmourLevel:
+Calculate_CharacterArmourLevel:		; Memory Address ($631E) and binary offset [$5F9A]
 	; ReSource: Combines body armour, worn gloves and shield values into the character's effective armour level.
 	lea	Character_Pockets_DataTable.l,a1	;43F90000ED2A
 	asl.w	#$04,d0	;E940
@@ -9495,13 +9577,13 @@ Calculate_CharacterArmourLevel:
 	and.w	#$0007,d3	;02430007
 	beq.s	Armour_SelectInnateOrSpellValue	;6702
 	moveq	#$00,d2	;7400
-Armour_SelectInnateOrSpellValue:
+Armour_SelectInnateOrSpellValue:		; Memory Address ($6338) and binary offset [$5FB4]
 	; ReSource: Selects the greater of innate armour and an active Armour-spell magnitude.
 	move.b	$000B(a4),d3	;162C000B
 	cmp.b	d3,d2	;B403
 	bcs.s	Armour_ApplyBodyArmour	;6502
 	move.b	d2,d3	;1602
-Armour_ApplyBodyArmour:
+Armour_ApplyBodyArmour:		; Memory Address ($6342) and binary offset [$5FBE]
 	; ReSource: Replaces the base armour value when the worn body armour provides greater protection.
 	move.b	$0002(a1),d2	;14290002
 	beq.s	Armour_ApplyWornHandArmour	;670E
@@ -9511,13 +9593,13 @@ Armour_ApplyBodyArmour:
 	cmp.b	d2,d3	;B602
 	bcc.s	Armour_ApplyWornHandArmour	;6402
 	move.b	d2,d3	;1602
-Armour_ApplyWornHandArmour:
+Armour_ApplyWornHandArmour:		; Memory Address ($6356) and binary offset [$5FD2]
 	; ReSource: Adds the contribution of the champion's worn hand-armour object.
 	move.b	$0012(a4),d2	;142C0012
 	beq.s	Armour_ApplyShield	;6706
 	sub.b	#$2B,d2	;0402002B
 	add.b	d2,d3	;D602
-Armour_ApplyShield:
+Armour_ApplyShield:		; Memory Address ($6362) and binary offset [$5FDE]
 	; ReSource: Adds the equipped shield's armour contribution.
 	moveq	#$00,d2	;7400
 	move.b	$0003(a1),d2	;14290003
@@ -9526,10 +9608,10 @@ Armour_ApplyShield:
 	cmpi.w	#$0007,d2	;0C420007
 	bcc.s	Armour_Return	;6404
 	add.b	Shield_ArmourBonuses(pc,d2.w),d3	;D63B2004
-Armour_Return:
+Armour_Return:		; Memory Address ($6378) and binary offset [$5FF4]
 	rts	;4E75
 
-Shield_ArmourBonuses:
+Shield_ArmourBonuses:		; Memory Address ($637A) and binary offset [$5FF6]
 	; ReSource: Maps shield objects $24-$2A to armour contributions; the eighth byte is unused by the seven-entry range.
 	dc.b	$01	;01
 	dc.b	$02	;02
@@ -9540,7 +9622,7 @@ Shield_ArmourBonuses:
 	dc.b	$07	;07
 	dc.b	$00	;00
 
-Calculate_WeaponCombatBonuses:
+Calculate_WeaponCombatBonuses:		; Memory Address ($6382) and binary offset [$5FFE]
 	; ReSource: Checks the two held-object slots for weapon objects $30-$3F and loads their combat adjustments.
 	moveq	#$00,d0			;7000
 	move.b	(a1),d0			;1011
@@ -9548,14 +9630,14 @@ Calculate_WeaponCombatBonuses:
 	bcs.s	Weapon_CheckRightHand		;6506
 	cmpi.b	#Weapon_CombatModifierRecordCount,d0			;0C000010
 	bcs.s	Weapon_LoadCombatModifiers		;6510
-Weapon_CheckRightHand:
+Weapon_CheckRightHand:		; Memory Address ($6392) and binary offset [$600E]
 	; ReSource: Checks the right-hand pocket after the left hand does not contain a recognised weapon.
 	move.b	$0001(a1),d0		;10290001
 	sub.b	#Object_Blades_First,d0			;04000030
 	bcs.s	Weapon_ReturnCombatModifiers		;653E
 	cmpi.b	#Weapon_CombatModifierRecordCount,d0			;0C000010
 	bcc.s	Weapon_ReturnCombatModifiers		;6438
-Weapon_LoadCombatModifiers:
+Weapon_LoadCombatModifiers:		; Memory Address ($63A2) and binary offset [$601E]
 	; ReSource: Loads random damage, fixed damage, attack and defence modifiers from the selected weapon record.
 	lea	Weapon_CombatModifiers.l,a0	;41F9000063DC
 	asl.w	#$02,d0			;E540
@@ -9569,7 +9651,7 @@ Weapon_LoadCombatModifiers:
 	cmpi.b	#Weapon_BackstabEligibleByteLimit,d0			;0C000008
 	bcs.s	Weapon_ApplyAceOfSwordsRestriction		;6506
 	move.w	#$FFFF,PhysicalAttack_BackstabState.w	;31FCFFFF628A	;Short Absolute converted to symbol!
-Weapon_ApplyAceOfSwordsRestriction:
+Weapon_ApplyAceOfSwordsRestriction:		; Memory Address ($63C6) and binary offset [$6042]
 	; ReSource: Reduces the Ace of Swords combat modifiers unless Chaos Gloves are worn.
 	cmpi.b	#Weapon_AceOfSwordsRecordOffset,d0	;0C00001C
 	bne.s	Weapon_ReturnCombatModifiers	;660E
@@ -9578,10 +9660,10 @@ Weapon_ApplyAceOfSwordsRestriction:
 	moveq	#$05,d6	;7C05
 	moveq	#$05,d7	;7E05
 	moveq	#$00,d5	;7A00
-Weapon_ReturnCombatModifiers:
+Weapon_ReturnCombatModifiers:		; Memory Address ($63DA) and binary offset [$6056]
 	rts	;4E75
 
-Weapon_CombatModifiers:
+Weapon_CombatModifiers:		; Memory Address ($63DC) and binary offset [$6058]
 	; ReSource: Sixteen four-byte records for weapons $30-$3F: random damage range, fixed damage bonus, attack bonus and defence bonus.
 	dc.w	$0400	;0400
 	dc.w	$0000	;0000
@@ -9616,7 +9698,7 @@ Weapon_CombatModifiers:
 	dc.w	$0C02	;0C02
 	dc.w	$1928	;1928
 
-Prepare_AttackAndDefenceScores:
+Prepare_AttackAndDefenceScores:		; Memory Address ($641C) and binary offset [$6098]
 	; ReSource: Builds the attacker score and defender score, including weapon attack, weapon defence and effective armour values.
 	lea	PhysicalAttack_WorkingValues.l,a6	;4DF900016B6C
 	move.w	d1,-(sp)	;3F01
@@ -9636,15 +9718,15 @@ Prepare_AttackAndDefenceScores:
 	tst.w	PhysicalAttack_DoubleDefenceFlag.l	;4A7900006458
 	beq.s	DefenderScore_StoreResult	;6702
 	add.w	d0,d0	;D040
-DefenderScore_StoreResult:
+DefenderScore_StoreResult:		; Memory Address ($6452) and binary offset [$60CE]
 	; ReSource: Stores the completed defender score in the physical-attack working values.
 	move.w	d0,$0004(a6)	;3D400004
 	rts	;4E75
 
-PhysicalAttack_DoubleDefenceFlag:
+PhysicalAttack_DoubleDefenceFlag:		; Memory Address ($6458) and binary offset [$60D4]
 	dc.w	$0000	;0000
 
-Calculate_AttackerCombatScore:
+Calculate_AttackerCombatScore:		; Memory Address ($645A) and binary offset [$60D6]
 	; ReSource: Calculates an attacker score from level, strength, agility and the equipped weapon’s attack bonus.
 	bsr	Load_CombatantCombatValues	;6100FE30
 	move.b	d6,$000B(a6)	;1D46000B
@@ -9657,14 +9739,14 @@ Calculate_AttackerCombatScore:
 	sub.w	#$0010,d1	;04410010
 	bcc.s	AttackerScore_AddStrengthContribution	;6402
 	moveq	#$00,d1	;7200
-AttackerScore_AddStrengthContribution:
+AttackerScore_AddStrengthContribution:		; Memory Address ($6480) and binary offset [$60FC]
 	; ReSource: Adds the thresholded effective-Strength contribution to the attacker score.
 	lsr.w	#$04,d1	;E849
 	add.w	d1,d0	;D041
 	sub.w	#$0014,d2	;04420014
 	bcc.s	AttackerScore_AddAgilityContribution	;6402
 	moveq	#$00,d2	;7400
-AttackerScore_AddAgilityContribution:
+AttackerScore_AddAgilityContribution:		; Memory Address ($648C) and binary offset [$6108]
 	; ReSource: Adds the thresholded effective-Agility contribution to the attacker score.
 	lsr.w	#$04,d2	;E84A
 	add.w	d2,d0	;D042
@@ -9676,28 +9758,29 @@ AttackerScore_AddAgilityContribution:
 	tst.w	PhysicalAttack_BackstabState.w	;4A78628A	;Short Absolute converted to symbol!
 	bne.s	AttackerScore_StoreResult	;6602
 	add.w	d0,d0	;D040
-AttackerScore_StoreResult:
+AttackerScore_StoreResult:		; Memory Address ($64A4) and binary offset [$6120]
 	; ReSource: Stores the completed attacker score in the physical-attack working values.
 	move.w	d0,$0002(a6)	;3D400002
 	rts	;4E75
 
-Click_MultiFunctionButton:
+Click_MultiFunctionButton:		; Memory Address ($64AA) and binary offset [$6126]
 	bsr	Load_CurrentChampionStatRecord	;610001B0
 	tst.b	$0011(a4)	;4A2C0011
-	beq.s	adrCd0064C2	;670E
+	beq.s	Resolve_MultiFunctionContext	;670E
 	clr.b	$0011(a4)	;422C0011
 	move.w	$0006(a5),d7	;3E2D0006
 	bsr	adrCd00CCD8	;6100681A
 	bra.s	adrCd0064CC	;600A
 
-adrCd0064C2:
+Resolve_MultiFunctionContext:		; Memory Address ($6846) and binary offset [$64C2]
+	; ReSource: Continuation of the multi-function handler; selects interaction, spell, or map-AI behaviour from context.
 	tst.b	$0013(a4)	;4A2C0013
 	bmi.s	adrJA0064D0	;6B08
-	bsr	adrCd004E8E	;6100E9C4
-adrCd0064CC:
+	bsr	Resolve_MultiFunctionAction	;6100E9C4
+adrCd0064CC:		; Memory Address ($64CC) and binary offset [$6148]
 	bra	Load_MapPosition_AI_TBC	;60001D00
 
-adrJA0064D0:
+adrJA0064D0:		; Memory Address ($64D0) and binary offset [$614C]
 	moveq	#$02,d3	;7602
 	move.w	$0020(a5),d2	;342D0020
 	add.w	d2,d2	;D442
@@ -9708,8 +9791,8 @@ adrJA0064D0:
 	cmpi.b	#$02,d1	;0C010002
 	bne.s	adrCd0064F2	;6606
 	btst	d2,$00(a6,d0.w)	;05360000
-	bne.s	adrCd006552	;6660
-adrCd0064F2:
+	bne.s	Toggle_WallFeatureOrReportLocked	;6660
+adrCd0064F2:		; Memory Address ($64F2) and binary offset [$616E]
 	bsr	adrCd008482	;61001F8E
 	cmp.w	adrW_00EE72.l,d7	;BE790000EE72
 	bcc.s	adrCd006550	;6452
@@ -9726,46 +9809,48 @@ adrCd0064F2:
 	tst.b	$01(a6,d0.w)	;4A360001
 	bmi.s	adrCd006550	;6B2A
 	btst	#$03,$00(a6,d0.w)	;083600030000
-	bne.s	adrCd006594	;6666
+	bne.s	Return_WallFeatureLocked	;6666
 	moveq	#$01,d2	;7401
 	move.b	$00(a6,d0.w),d3	;16360000
 	lsr.b	#$04,d3	;E80B
 	beq.s	adrCd00657C	;6744
 	add.w	#$004F,d3	;0643004F
 	cmp.w	$002E(a5),d3	;B66D002E
-	bne.s	adrCd006594	;6652
+	bne.s	Return_WallFeatureLocked	;6652
 	and.b	#$0F,$00(a6,d0.w)	;0236000F0000
-	bra.s	adrCd006552	;6008
+	bra.s	Toggle_WallFeatureOrReportLocked	;6008
 
-adrCd00654A:
+adrCd00654A:		; Memory Address ($654A) and binary offset [$61C6]
 	btst	d2,$00(a6,d0.w)	;05360000
-	bne.s	adrCd006552	;6602
-adrCd006550:
+	bne.s	Toggle_WallFeatureOrReportLocked	;6602
+adrCd006550:		; Memory Address ($6550) and binary offset [$61CC]
 	rts	;4E75
 
-adrCd006552:
+Toggle_WallFeatureOrReportLocked:		; Memory Address ($68D6) and binary offset [$6552]
+	; ReSource: Checks and changes a wall-feature or door state.
 	cmp.w	$002E(a5),d3	;B66D002E
 	bne.s	adrCd00657C	;6624
 	subq.w	#$01,$002C(a5)	;536D002C
 	bne.s	adrCd006562	;6604
 	clr.w	$002E(a5)	;426D002E
-adrCd006562:
+adrCd006562:		; Memory Address ($6562) and binary offset [$61DE]
 	bchg	#$04,$01(a6,d0.w)	;087600040001
 	cmp.w	#$0003,$0014(a5)	;0C6D00030014
 	bne.s	adrCd00657C	;660C
 	movem.l	d0/d2/a6,-(sp)	;48E7A002
 	bsr	Draw_HeldItemPanel	;610006CC
 	movem.l	(sp)+,d0/d2/a6	;4CDF4005
-adrCd00657C:
+adrCd00657C:		; Memory Address ($657C) and binary offset [$61F8]
 	subq.w	#$01,d2	;5342
 	btst	#$04,$01(a6,d0.w)	;083600040001
-	bne.s	adrCd006594	;660E
+	bne.s	Return_WallFeatureLocked	;660E
 	bchg	d2,$00(a6,d0.w)	;05760000
 	moveq	#$01,d0	;7001
 	bsr	PlaySound	;61002330
 	bra	adrCd00CF96	;60006A04
 
-adrCd006594:
+Return_WallFeatureLocked:		; Memory Address ($6918) and binary offset [$6594]
+	; ReSource: Locked-door failure path that displays the locked-door message.
 	lea	Notice_DoorLocked.l,a6	;4DF90000659E
 	bra	WriteTimedText	;60006AEC
 
@@ -9774,7 +9859,7 @@ Notice_DoorLocked:
 	dc.b	$FF	;FF
 	dc.b	$00	;00
 
-Click_PartyMember:
+Click_PartyMember:		; Memory Address ($65B2) and binary offset [$622E]
 	lsr.w	#$02,d0	;E448
 	subq.w	#$06,d0	;5D40
 	tst.w	$0016(a5)	;4A6D0016
@@ -9783,11 +9868,11 @@ Click_PartyMember:
 	bpl.s	adrCd0065C4	;6A02
 	rts	;4E75
 
-adrCd0065C4:
+adrCd0065C4:		; Memory Address ($65C4) and binary offset [$6240]
 	move.w	d0,$0016(a5)	;3B400016
 	bra	adrCd008396	;60001DCC
 
-adrCd0065CC:
+adrCd0065CC:		; Memory Address ($65CC) and binary offset [$6248]
 	cmp.w	$0016(a5),d0	;B06D0016
 	beq.s	adrCd0065E8	;6716
 	move.b	$26(a5,d0.w),d1	;12350026
@@ -9797,7 +9882,7 @@ adrCd0065CC:
 	moveq	#-$01,d0	;70FF
 	bra.s	adrCd0065C4	;60DC
 
-adrCd0065E8:
+adrCd0065E8:		; Memory Address ($65E8) and binary offset [$6264]
 	move.b	$26(a5,d0.w),d0	;10350026
 	bmi.s	adrCd006608	;6B1A
 	move.w	$0006(a5),d2	;342D0006
@@ -9806,12 +9891,12 @@ adrCd0065E8:
 	move.b	d2,$18(a5,d1.w)	;1B821018
 	move.b	d0,$0018(a5)	;1B400018
 	bset	#$04,$0018(a5)	;08ED00040018
-adrCd006608:
+adrCd006608:		; Memory Address ($6608) and binary offset [$6284]
 	move.w	#$FFFF,$0016(a5)	;3B7CFFFF0016
 	bsr	adrCd008278	;61001C68
 	bra	adrCd007B50	;6000153C
 
-Click_ShowStats:
+Click_ShowStats:		; Memory Address ($6616) and binary offset [$6292]
 	; ReSource: Selects statistics mode, draws the tall scroll using D5=$38, prints ChampionStatsScroll_FoodTextTemplate and draws the champion food bar from record byte $10.
 	move.w	#$0001,$0014(a5)	;3B7C00010014
 	moveq	#$38,d5	;7A38
@@ -9832,57 +9917,57 @@ Click_ShowStats:
 	moveq	#$09,d3	;7609
 	bra	BW_draw_bar	;6000740E
 
-Load_CurrentChampionStatRecord:
+Load_CurrentChampionStatRecord:		; Memory Address ($665C) and binary offset [$62D8]
 	; ReSource: Loads the current player champion number before resolving its statistics record.
 	move.w	$0006(a5),d0	;302D0006
-Load_ChampionStatRecord:
+Load_ChampionStatRecord:		; Memory Address ($6660) and binary offset [$62DC]
 	; ReSource: Converts champion number D0 into a pointer to its 32-byte statistics record in A4.
 	and.w	#$000F,d0	;0240000F
 	asl.w	#$05,d0	;EB40
 	lea	Character_Stats_DataTable.l,a4	;49F90000EB2A
 	add.w	d0,a4	;D8C0
-adrCd00666E:
+adrCd00666E:		; Memory Address ($666E) and binary offset [$62EA]
 	rts	;4E75
 
-adrCd006670:
+adrCd006670:		; Memory Address ($6670) and binary offset [$62EC]
 	clr.w	$002A(a5)	;426D002A
 	move.b	$0013(a4),d0	;102C0013
 	bmi.s	adrCd006682	;6B08
 	lsr.b	#$03,d0	;E608
 	add.b	d0,d0	;D000
 	move.b	d0,$002B(a5)	;1B40002B
-adrCd006682:
+adrCd006682:		; Memory Address ($6682) and binary offset [$62FE]
 	rts	;4E75
 
-adrJA006684:
+adrJA006684:		; Memory Address ($6684) and binary offset [$6300]
 	bsr	adrCd008258	;61001BD2
 	bsr	adrCd00C7C8	;6100613E
 	bsr.s	adrCd006670	;61E2
 	bsr	adrCd00C85E	;610061CE
 	move.w	#$0002,$0014(a5)	;3B7C00020014
-adrCd006698:
+adrCd006698:		; Memory Address ($6698) and binary offset [$6314]
 	bsr	adrCd00C812	;61006178
 	sub.w	#$02DC,a0	;90FC02DC
 	move.b	$0013(a4),d0	;102C0013
 	bpl.s	adrCd0066BE	;6A18
 	bsr.s	adrCd0066B8	;6110
 	moveq	#$68,d7	;7E68
-adrCd0066AA:
+adrCd0066AA:		; Memory Address ($66AA) and binary offset [$6326]
 	move.w	d7,d0	;3007
 	bsr	adrCd00CAEA	;6100643C
 	addq.w	#$01,d7	;5247
 	cmpi.w	#$006C,d7	;0C47006C
 	bcs.s	adrCd0066AA	;65F2
-adrCd0066B8:
+adrCd0066B8:		; Memory Address ($66B8) and binary offset [$6334]
 	moveq	#$4F,d0	;704F
 	bra	adrCd00CAEA	;6000642E
 
-adrCd0066BE:
+adrCd0066BE:		; Memory Address ($66BE) and binary offset [$633A]
 	bsr	Character_GetClassIndex	;61000240
 	add.w	#$0064,d0	;06400064
 	bsr	adrCd00CAEA	;61006422
 	moveq	#$03,d7	;7E03
-adrLp0066CC:
+adrLp0066CC:		; Memory Address ($66CC) and binary offset [$6348]
 	move.w	#$003B,d0	;303C003B
 	bsr	adrCd00CAEA	;61006418
 	dbra	d7,adrLp0066CC	;51CFFFF6
@@ -9894,18 +9979,18 @@ adrLp0066CC:
 	move.b	$0013(a4),d0	;102C0013
 	bsr	adrCd00C2D4	;61005BE4
 	bsr	adrCd00CFBC	;610068C8
-adrCd0066F6:
+adrCd0066F6:		; Memory Address ($66F6) and binary offset [$6372]
 	or.b	#$04,$0054(a5)	;002D00040054
 	bsr	adrCd00688C	;6100018E
 	lea	adrEA00EA36.l,a6	;4DF90000EA36
 	bsr	Convert_ByteToDecimalText	;610067BC
 	move.w	d1,$0010(a6)	;3D410010
 	bsr	Print_fflim_text	;610069B6
-adrCd006712:
+adrCd006712:		; Memory Address ($6712) and binary offset [$638E]
 	lea	adrEA00EA4C.l,a6	;4DF90000EA4C
 	bsr	LowerText	;6100689E
 	clr.b	$0057(a5)	;422D0057
-adrCd006720:
+adrCd006720:		; Memory Address ($6720) and binary offset [$639C]
 	tst.b	$0057(a5)	;4A2D0057
 	bmi.s	adrCd00675E	;6B38
 	or.b	#$10,$0054(a5)	;002D00100054
@@ -9913,7 +9998,7 @@ adrCd006720:
 	neg.b	d7	;4407
 	bpl.s	adrCd006736	;6A02
 	moveq	#$00,d7	;7E00
-adrCd006736:
+adrCd006736:		; Memory Address ($6736) and binary offset [$63B2]
 	cmpi.b	#$13,d7	;0C070013
 	bcc.s	adrCd00675E	;6422
 	move.b	adrB_006760(pc,d7.w),d0	;103B7022
@@ -9926,10 +10011,10 @@ adrCd006736:
 	moveq	#$0C,d3	;760C
 	bra	BW_draw_bar	;6000730C
 
-adrCd00675E:
+adrCd00675E:		; Memory Address ($675E) and binary offset [$63DA]
 	rts	;4E75
 
-adrB_006760:
+adrB_006760:		; Memory Address ($6760) and binary offset [$63DC]
 	dc.b	$64	;64
 	dc.b	$64	;64
 	dc.b	$64	;64
@@ -9952,7 +10037,7 @@ adrB_006760:
 	dc.b	$00	;00
 
 	bsr	Load_ChampionStatRecord	;6100FEEA
-Calculate_SpellCastingQuality:
+Calculate_SpellCastingQuality:		; Memory Address ($6778) and binary offset [$63F4]
 	move.b	$0013(a4),d0	;102C0013
 	bsr	Character_GetClassIndex	;61000182
 	move.w	d0,-(sp)	;3F00
@@ -9970,7 +10055,7 @@ Calculate_SpellCastingQuality:
 	move.w	d1,d2	;3401
 	and.w	#$0003,d2	;02420003
 	move.b	SpellCasting_ProfessionBaseBonuses(pc,d2.w),d7	;1E3B203C
-adrCd0067AC:
+adrCd0067AC:		; Memory Address ($67AC) and binary offset [$6428]
 	move.l	#adrL_007E22,a1	;227C00007E22
 	add.l	a4,a1	;D3CC
 	moveq	#$00,d6	;7C00
@@ -9986,26 +10071,26 @@ adrCd0067AC:
 	beq.s	adrCd0067D6	;6706
 	cmp.b	$0001(a0),d4	;B8280001
 	bne.s	adrCd0067E0	;660A
-adrCd0067D6:
+adrCd0067D6:		; Memory Address ($67D6) and binary offset [$6452]
 	addq.b	#$03,d7	;5607
-adrCd0067D8:
+adrCd0067D8:		; Memory Address ($67D8) and binary offset [$6454]
 	cmp.w	d2,d0	;B042
 	bcs.s	adrCd0067EA	;650E
 	addq.w	#$05,d7	;5A47
 	sub.w	d2,d0	;9042
-adrCd0067E0:
+adrCd0067E0:		; Memory Address ($67E0) and binary offset [$645C]
 	add.w	d2,d2	;D442
 	addq.w	#$01,d3	;5243
 	bra.s	adrCd0067D8	;60F2
 
-SpellCasting_ProfessionBaseBonuses:
+SpellCasting_ProfessionBaseBonuses:		; Memory Address ($67E6) and binary offset [$6462]
 	; ReSource: Four profession-indexed casting bonuses used when the selected spell class matches the champion profession.
 	dc.b	$03	;03
 	dc.b	$05	;05
 	dc.b	$04	;04
 	dc.b	$04	;04
 
-adrCd0067EA:
+adrCd0067EA:		; Memory Address ($67EA) and binary offset [$6466]
 	lsr.w	d3,d0	;E668
 	add.w	d0,d7	;DE40
 	move.w	d1,d4	;3801
@@ -10025,9 +10110,9 @@ adrCd0067EA:
 	beq.s	Apply_PowerStaffSpellCastingBonus	;6708
 	cmp.b	$0001(a0),d0	;B0280001
 	beq.s	Apply_PowerStaffSpellCastingBonus	;6702
-adrCd00681A:
+adrCd00681A:		; Memory Address ($681A) and binary offset [$6496]
 	moveq	#$00,d1	;7200
-Apply_PowerStaffSpellCastingBonus:
+Apply_PowerStaffSpellCastingBonus:		; Memory Address ($681C) and binary offset [$6498]
 	move.b	$0015(a4),d0	;102C0015
 	lsr.b	d1,d0	;E228
 	sub.b	d0,d7	;9E00
@@ -10037,12 +10122,12 @@ Apply_PowerStaffSpellCastingBonus:
 	cmp.b	#Object_PowerStaff,$0001(a0)	;0C28003F0001
 	beq.s	adrCd006836	;6702
 	moveq	#$00,d0	;7000
-adrCd006836:
+adrCd006836:		; Memory Address ($6836) and binary offset [$64B2]
 	add.b	d0,d7	;DE00
 	sub.b	SpellCasting_SpellDifficultyPenalties(pc,d6.w),d7	;9E3B6004
 	rts	;4E75
 
-SpellCasting_SpellDifficultyPenalties:
+SpellCasting_SpellDifficultyPenalties:		; Memory Address ($683E) and binary offset [$64BA]
 	; ReSource: Sixteen spell-indexed values subtracted from the calculated spell-casting quality.
 	dc.b	$0E	;0E
 	dc.b	$0F	;0F
@@ -10076,7 +10161,7 @@ SpellCasting_SpellDifficultyPenalties:
 	dc.b	$13	;13
 	dc.b	$12	;12
 	dc.b	$10	;10
-SpellCost_DataTable:
+SpellCost_DataTable:		; Memory Address ($685E) and binary offset [$64DA]
 	dc.b	$01	;01
 	dc.b	$02	;02
 	dc.b	$02	;02
@@ -10109,7 +10194,7 @@ SpellCost_DataTable:
 	dc.b	$06	;06
 	dc.b	$06	;06
 	dc.b	$04	;04
-adrB_00687E:
+adrB_00687E:		; Memory Address ($687E) and binary offset [$64FA]
 	dc.b	$00	;00
 	dc.b	$03	;03
 	dc.b	$06	;06
@@ -10125,7 +10210,7 @@ adrB_00687E:
 	dc.b	$5B	;5B
 	dc.b	$69	;69
 
-adrCd00688C:
+adrCd00688C:		; Memory Address ($688C) and binary offset [$6508]
 	move.l	a4,d0	;200C
 	sub.l	#Character_Stats_DataTable,d0	;04800000EB2A
 	lsr.w	#$01,d0	;E248
@@ -10139,7 +10224,7 @@ adrCd00688C:
 	beq.s	adrCd0068B4	;6706
 	cmp.b	$0001(a0),d0	;B0280001
 	bne.s	adrCd0068D0	;661C
-adrCd0068B4:
+adrCd0068B4:		; Memory Address ($68B4) and binary offset [$6530]
 	sub.w	#$0069,d0	;04400069
 	lea	RingUses.l,a0	;41F90000EE32
 	tst.b	$00(a0,d0.w)	;4A300000
@@ -10148,14 +10233,14 @@ adrCd0068B4:
 	move.b	d0,$0014(a4)	;19400014
 	rts	;4E75
 
-adrCd0068CC:
+adrCd0068CC:		; Memory Address ($68CC) and binary offset [$6548]
 	subq.b	#$01,$0014(a4)	;532C0014
-adrCd0068D0:
+adrCd0068D0:		; Memory Address ($68D0) and binary offset [$654C]
 	move.b	$0014(a4),d1	;122C0014
 	ext.w	d1	;4881
 	bmi.s	adrCd0068DC	;6B04
 	move.b	adrB_00687E(pc,d1.w),d1	;123B10A4
-adrCd0068DC:
+adrCd0068DC:		; Memory Address ($68DC) and binary offset [$6558]
 	moveq	#$00,d0	;7000
 	move.b	$0013(a4),d0	;102C0013
 	lea	SpellCost_DataTable.w,a0	;41F8685E	;Short Absolute converted to symbol!
@@ -10166,27 +10251,27 @@ adrCd0068DC:
 	bne.s	adrCd0068F8	;6606
 	addq.b	#$01,$0014(a4)	;522C0014
 	moveq	#$01,d0	;7001
-adrCd0068F8:
+adrCd0068F8:		; Memory Address ($68F8) and binary offset [$6574]
 	cmpi.w	#$0064,d0	;0C400064
 	bcc.s	adrCd0068CC	;64CE
 	rts	;4E75
 
-Character_GetClassIndex:
+Character_GetClassIndex:		; Memory Address ($6900) and binary offset [$657C]
 	; ReSource: Converts a champion or character number into one of the four class indices.
 	move.w	d0,d6	;3C00
 	cmpi.b	#$10,d0	;0C000010
 	bcs.s	Character_GetClassIndex_CombineBits	;6502
 	not.w	d0	;4640
-Character_GetClassIndex_CombineBits:
+Character_GetClassIndex_CombineBits:		; Memory Address ($690A) and binary offset [$6586]
 	; ReSource: Combines the character-number bit groups before applying the four-profession mask.
 	lsr.w	#$02,d0	;E448
 	add.w	d6,d0	;D046
 	and.w	#Character_ProfessionMask,d0	;02400003
-Return_CharacterOrHeldItemAction:
+Return_CharacterOrHeldItemAction:		; Memory Address ($6912) and binary offset [$658E]
 	; ReSource: Shared return used by character-class calculation and rejected held-item actions.
 	rts	;4E75
 
-Click_Item_17_to_1A_Potions:
+Click_Item_17_to_1A_Potions:		; Memory Address ($6914) and binary offset [$6590]
 	; ReSource: Dispatches held food, counted objects and potions; potions $17-$1A are removed before applying their character-stat effect.
 	move.w	HeldItem_ObjectCodeOffset(a5),d0	;302D002E
 	beq.s	Return_CharacterOrHeldItemAction	;67F8
@@ -10207,30 +10292,30 @@ Click_Item_17_to_1A_Potions:
 	bsr	adrCd007FF8	;610016AC
 	bra	Refresh_HeldItemDisplay	;600002E4
 
-Potion_LookupTable:
+Potion_LookupTable:		; Memory Address ($6952) and binary offset [$65CE]
 	; ReSource: Four relative routine offsets for Serpent Slime, Brimstone Broth, Dragon Ale and Moon Elixir.
 	dc.w	Potion_1_SerpentSlime-Potion_1_SerpentSlime	;0000
 	dc.w	Potion_2_BrimstoneBroth-Potion_1_SerpentSlime	;001C
 	dc.w	Potion_3_DragonAle-Potion_1_SerpentSlime	;0008
 	dc.w	Potion_4_MoonElixir-Potion_1_SerpentSlime	;0010
 
-Potion_1_SerpentSlime:
+Potion_1_SerpentSlime:		; Memory Address ($695A) and binary offset [$65D6]
 	; ReSource: Restores current hit points to the character's maximum hit points.
 	move.b	ChampionStat_HitPointsMaximum(a4),ChampionStat_HitPointsCurrent(a4)	;196C00060005
 	rts	;4E75
 
-Potion_3_DragonAle:
+Potion_3_DragonAle:		; Memory Address ($6962) and binary offset [$65DE]
 	; ReSource: Restores current vitality to the character's maximum vitality.
 	move.b	ChampionStat_VitalityMaximum(a4),ChampionStat_VitalityCurrent(a4)	;196C00080007
 	rts	;4E75
 
-Potion_4_MoonElixir:
+Potion_4_MoonElixir:		; Memory Address ($696A) and binary offset [$65E6]
 	; ReSource: Restores current spell points to maximum and clears the spell cooldown.
 	move.b	ChampionStat_SpellPointsMaximum(a4),ChampionStat_SpellPointsCurrent(a4)	;196C000A0009
 	clr.b	ChampionStat_SpellCooldown(a4)	;422C0015
 	rts	;4E75
 
-Potion_2_BrimstoneBroth:
+Potion_2_BrimstoneBroth:		; Memory Address ($6976) and binary offset [$65F2]
 	; ReSource: Clears spell cooldown and restores half of each HP, vitality and spell-point deficit, rounded upward.
 	clr.b	ChampionStat_SpellCooldown(a4)	;422C0015
 	moveq	#ChampionStat_HitPointsCurrent,d4	;7805
@@ -10238,7 +10323,7 @@ Potion_2_BrimstoneBroth:
 	moveq	#ChampionStat_VitalityCurrent,d4	;7807
 	bsr.s	Potion_2_RestoreStatHalfway	;6102
 	moveq	#ChampionStat_SpellPointsCurrent,d4	;7809
-Potion_2_RestoreStatHalfway:
+Potion_2_RestoreStatHalfway:		; Memory Address ($6984) and binary offset [$6600]
 	; ReSource: Moves one current statistic halfway towards its following maximum-statistic byte, rounding upward.
 	move.b	$01(a4,d4.w),d0	;10344001
 	sub.b	$00(a4,d4.w),d0	;90344000
@@ -10248,7 +10333,7 @@ Potion_2_RestoreStatHalfway:
 	move.b	d0,$00(a4,d4.w)	;19804000
 	rts	;4E75
 
-Use_FoodOrCountedObject:
+Use_FoodOrCountedObject:		; Memory Address ($699A) and binary offset [$6616]
 	; ReSource: Dispatches counted objects below $05, three-stage food $05-$13 and whole N'Egg food $14-$16.
 	cmpi.w	#Object_Food_First,d0	;0C400005
 	bcs	Click_CountedObject	;65000076
@@ -10256,32 +10341,32 @@ Use_FoodOrCountedObject:
 	bcs.s	Click_PortionedFood	;6512
 	moveq	#$00,d1	;7200
 	sub.w	#Object_Neggs_First,d0	;04400014
-WholeFood_AddValueLoop:
+WholeFood_AddValueLoop:		; Memory Address ($69AE) and binary offset [$662A]
 	; ReSource: Adds one $42 food-value step for each N'Egg size before consuming it completely.
 	add.w	#Food_WholeValueStep,d1	;06410042
 	dbra	d0,WholeFood_AddValueLoop	;51C8FFFA
 	moveq	#$00,d0	;7000
 	bra.s	ConsumeFood_StoreRemainingObject	;601A
 
-Click_PortionedFood:
+Click_PortionedFood:		; Memory Address ($69BA) and binary offset [$6636]
 	; ReSource: Consumes one third of food or drink, selects its food-value increase and resolves the remaining object stage.
 	moveq	#Food_DrinkPortionValue,d1	;7214
 	cmpi.w	#Object_Drinks_First,d0	;0C40000E
 	bcc.s	PortionedFood_SelectNextObject	;6402
 	moveq	#Food_SolidPortionValue,d1	;7220
-PortionedFood_SelectNextObject:
+PortionedFood_SelectNextObject:		; Memory Address ($69C4) and binary offset [$6640]
 	; ReSource: Starts resolution of the previous portion graphic or the empty-object result.
 	move.w	d0,d2	;3400
 	subq.w	#Object_Food_First,d0	;5B40
 	beq.s	ConsumeFood_StoreRemainingObject	;670A
-PortionedFood_FindGroupStartLoop:
+PortionedFood_FindGroupStartLoop:		; Memory Address ($69CA) and binary offset [$6646]
 	; ReSource: Tests three-object portion groups; each group start becomes empty and other stages decrement.
 	subq.w	#Food_PortionGroupSize,d0	;5740
 	beq.s	ConsumeFood_StoreRemainingObject	;6706
 	bcc.s	PortionedFood_FindGroupStartLoop	;64FA
 	move.w	d2,d0	;3002
 	subq.w	#$01,d0	;5340
-ConsumeFood_StoreRemainingObject:
+ConsumeFood_StoreRemainingObject:		; Memory Address ($69D4) and binary offset [$6650]
 	; ReSource: Stores the remaining portion object, or $00 when the food has been completely consumed.
 	move.w	d0,HeldItem_ObjectCodeOffset(a5)	;3B40002E
 	move.b	$000F(a5),d0	;102D000F
@@ -10291,10 +10376,10 @@ ConsumeFood_StoreRemainingObject:
 	bcs.s	ConsumeFood_ClampLevel	;6506
 	cmpi.w	#Food_LevelLimitExclusive,d1	;0C4100C8
 	bcs.s	ConsumeFood_StoreLevel	;6504
-ConsumeFood_ClampLevel:
+ConsumeFood_ClampLevel:		; Memory Address ($69F0) and binary offset [$666C]
 	; ReSource: Clamps food level to $C7 when addition carries or reaches the exclusive $C8 limit.
 	move.b	#Food_LevelMaximum,d1	;123C00C7
-ConsumeFood_StoreLevel:
+ConsumeFood_StoreLevel:		; Memory Address ($69F4) and binary offset [$6670]
 	; ReSource: Stores the updated food level and redraws the remaining held object.
 	move.b	d1,ChampionStat_FoodLevel(a4)	;19410010
 	move.l	screen_ptr.l,a0	;207900008D36
@@ -10305,7 +10390,7 @@ ConsumeFood_StoreLevel:
 	bsr	Draw_SelectedInventorySlotFrame	;6100030E
 	bra	Draw_FoodLevelBar	;60000288
 
-Click_CountedObject:
+Click_CountedObject:		; Memory Address ($6A16) and binary offset [$6692]
 	; ReSource: Transfers one counted coin, key or arrow between the character count table and the held stack.
 	moveq	#$00,d7	;7E00
 	move.b	$000F(a5),d7	;1E2D000F
@@ -10315,19 +10400,19 @@ Click_CountedObject:
 	add.w	d7,a6	;DCC7
 	subq.b	#$01,$0B(a6,d0.w)	;5336000B
 	bcc.s	Stack_ObjectFromInventory	;6406
-Cancel_CountedObjectTransfer:
+Cancel_CountedObjectTransfer:		; Memory Address ($6A30) and binary offset [$66AC]
 	; ReSource: Restores a counted-object quantity when the transfer cannot proceed.
 	addq.b	#$01,$0B(a6,d0.w)	;5236000B
 	rts	;4E75
 
-Stack_ObjectFromInventory:
+Stack_ObjectFromInventory:		; Memory Address ($6A36) and binary offset [$66B2]
 	; ReSource: Transfers one counted object from the champion count table to the held stack, provided the held quantity is below $63.
 	cmp.w	#Object_StackMaximum,HeldItem_QuantityOffset(a5)	;0C6D0063002C
 	bcc.s	Cancel_CountedObjectTransfer	;64F2
 	addq.w	#$01,HeldItem_QuantityOffset(a5)	;526D002C
 	bra	Redraw_Inventory	;600001C6
 
-Click_ObjectInInventory:
+Click_ObjectInInventory:		; Memory Address ($6A46) and binary offset [$66C2]
 	; ReSource: Handles inventory-slot selection, counted stacks, armour restrictions, worn hand armour and held-object swapping.
 	moveq	#$00,d7	;7E00
 	move.b	$000E(a5),d7	;1E2D000E
@@ -10357,7 +10442,7 @@ Click_ObjectInInventory:
 	bcs.s	Handle_SelectedPocketObject	;655C
 	bra.s	Reject_InventorySlotAction	;6016
 
-Check_BodyArmourInventorySlot:
+Check_BodyArmourInventorySlot:		; Memory Address ($6A98) and binary offset [$6714]
 	; ReSource: Allows only body-armour objects $1B-$23 in the dedicated body-armour slot.
 	cmpi.b	#ChampionPocket_BodyArmour,d0	;0C000002
 	bne.s	Check_WornHandArmourSlot	;6616
@@ -10367,12 +10452,12 @@ Check_BodyArmourInventorySlot:
 	bcs.s	Reject_InventorySlotAction	;6506
 	cmpi.w	#Object_SmallShields_First,d1	;0C410024
 	bcs.s	Handle_SelectedPocketObject	;6544
-Reject_InventorySlotAction:
+Reject_InventorySlotAction:		; Memory Address ($6AAE) and binary offset [$672A]
 	; ReSource: Leaves the objects unchanged, selects the clicked inventory slot and returns.
 	move.w	d7,$000E(a5)	;3B47000E
 	rts	;4E75
 
-Check_WornHandArmourSlot:
+Check_WornHandArmourSlot:		; Memory Address ($6AB4) and binary offset [$6730]
 	; ReSource: Handles Chaos Gloves and other worn hand-armour exchanges involving the two hand pockets.
 	bcc.s	Handle_SelectedPocketObject	;643C
 	cmp.w	#Object_Gloves_First,HeldItem_ObjectCodeOffset(a5)	;0C6D002B002E
@@ -10386,7 +10471,7 @@ Check_WornHandArmourSlot:
 	clr.w	HeldItem_QuantityOffset(a5)	;426D002C
 	bra.s	Handle_SelectedPocketObject	;6016
 
-Unequip_WornHandArmourToEmptyHand:
+Unequip_WornHandArmourToEmptyHand:		; Memory Address ($6ADC) and binary offset [$6758]
 	; ReSource: Moves worn hand armour into an empty hand pocket when no object is currently held.
 	tst.b	$00(a6,d0.w)	;4A360000
 	bne.s	Handle_SelectedPocketObject	;6610
@@ -10394,7 +10479,7 @@ Unequip_WornHandArmourToEmptyHand:
 	bne.s	Handle_SelectedPocketObject	;660A
 	move.b	ChampionStat_WornHandArmour(a4),$00(a6,d0.w)	;1DAC00120000
 	clr.b	ChampionStat_WornHandArmour(a4)	;422C0012
-Handle_SelectedPocketObject:
+Handle_SelectedPocketObject:		; Memory Address ($6AF2) and binary offset [$676E]
 	; ReSource: Processes the object in the selected champion pocket, including counted-object pickup, merging and ordinary held-object swapping.
 	moveq	#$00,d1	;7200
 	move.b	$00(a6,d0.w),d1	;12360000
@@ -10408,7 +10493,7 @@ Handle_SelectedPocketObject:
 	subq.b	#$01,$0B(a6,d1.w)	;5336100B
 	bra	Refresh_InventoryAfterObjectChange	;6000009E
 
-Swap_HeldObjectForCountedStack:
+Swap_HeldObjectForCountedStack:		; Memory Address ($6B1C) and binary offset [$6798]
 	; ReSource: Picks up a complete counted-object stack while placing the previously held non-counted object into the pocket.
 	cmpi.w	#Object_Food_First,d3	;0C430005
 	bcs.s	Merge_MatchingCountedObjectStack	;650E
@@ -10416,7 +10501,7 @@ Swap_HeldObjectForCountedStack:
 	clr.b	$0B(a6,d1.w)	;4236100B
 	bra	Swap_HeldObjectWithPocket	;60000082
 
-Merge_MatchingCountedObjectStack:
+Merge_MatchingCountedObjectStack:		; Memory Address ($6B30) and binary offset [$67AC]
 	; ReSource: Merges held and inventory quantities when both represent the same counted object.
 	cmp.w	d1,d3	;B641
 	bne.s	Merge_DifferentCountedObjectStack	;6620
@@ -10428,12 +10513,12 @@ Merge_MatchingCountedObjectStack:
 	clr.l	HeldItem_StateOffset(a5)	;42AD002C
 	bra.s	Refresh_InventoryAfterObjectChange	;606C
 
-Clamp_MatchingCountedObjectStack:
+Clamp_MatchingCountedObjectStack:		; Memory Address ($6B4C) and binary offset [$67C8]
 	; ReSource: Clamps the merged inventory quantity to $63.
 	move.b	#Object_StackMaximum,ChampionPocket_CountedObjectCountsOffset(a6,d1.w)	;1DBC0063100B
 	bra.s	Store_CountedObjectRemainder	;6024
 
-Merge_DifferentCountedObjectStack:
+Merge_DifferentCountedObjectStack:		; Memory Address ($6B54) and binary offset [$67D0]
 	; ReSource: Adds the held quantity to its existing global count before picking up a different counted stack.
 	move.b	$0B(a6,d3.w),d2	;1436300B
 	add.b	HeldItem_QuantityByteOffset(a5),d2	;D42D002D
@@ -10444,16 +10529,16 @@ Merge_DifferentCountedObjectStack:
 	clr.b	$0B(a6,d1.w)	;4236100B
 	bra.s	Remove_DuplicateCountedObjectSlots	;602E
 
-Clamp_CountedObjectStack:
+Clamp_CountedObjectStack:		; Memory Address ($6B72) and binary offset [$67EE]
 	; ReSource: Clamps a counted-object total to $63 before retaining the excess.
 	move.b	#Object_StackMaximum,ChampionPocket_CountedObjectCountsOffset(a6,d3.w)	;1DBC0063300B
-Store_CountedObjectRemainder:
+Store_CountedObjectRemainder:		; Memory Address ($6B78) and binary offset [$67F4]
 	; ReSource: Stores quantity remaining above the $63 inventory-count limit in the held stack.
 	sub.b	#Object_StackMaximum,d2	;04020063
 	move.b	d2,HeldItem_QuantityByteOffset(a5)	;1B42002D
 	bra.s	Refresh_InventoryAfterObjectChange	;6036
 
-Return_HeldCountedObjectToInventory:
+Return_HeldCountedObjectToInventory:		; Memory Address ($6B82) and binary offset [$67FE]
 	; ReSource: Returns a held counted stack to its global character count.
 	move.w	HeldItem_ObjectCodeOffset(a5),d3	;362D002E
 	beq.s	Swap_HeldObjectWithPocket	;6728
@@ -10464,22 +10549,22 @@ Return_HeldCountedObjectToInventory:
 	move.b	d2,$0B(a6,d3.w)	;1D82300B
 	cmpi.b	#Object_StackLimitExclusive,d2	;0C020064
 	bcc.s	Clamp_CountedObjectStack	;64D2
-Remove_DuplicateCountedObjectSlots:
+Remove_DuplicateCountedObjectSlots:		; Memory Address ($6BA0) and binary offset [$681C]
 	; ReSource: Removes redundant pocket entries for a counted object after returning its quantity.
 	moveq	#ChampionPocket_LastIndex,d2	;740B
-Remove_DuplicateCountedObjectSlots_Loop:
+Remove_DuplicateCountedObjectSlots_Loop:		; Memory Address ($6BA2) and binary offset [$681E]
 	; ReSource: Scans all twelve character pockets for duplicate counted-object codes.
 	cmp.b	$00(a6,d2.w),d3	;B6362000
 	bne.s	Remove_DuplicateCountedObjectSlots_Next	;6604
 	clr.b	$00(a6,d2.w)	;42362000
-Remove_DuplicateCountedObjectSlots_Next:
+Remove_DuplicateCountedObjectSlots_Next:		; Memory Address ($6BAC) and binary offset [$6828]
 	; ReSource: Advances the duplicate counted-object pocket scan.
 	dbra	d2,Remove_DuplicateCountedObjectSlots_Loop	;51CAFFF4
-Swap_HeldObjectWithPocket:
+Swap_HeldObjectWithPocket:		; Memory Address ($6BB0) and binary offset [$682C]
 	; ReSource: Stores the previous held object in the selected pocket and makes the pocket object the new held object.
 	move.b	d3,$00(a6,d0.w)	;1D830000
 	move.w	d1,HeldItem_ObjectCodeOffset(a5)	;3B41002E
-Refresh_InventoryAfterObjectChange:
+Refresh_InventoryAfterObjectChange:		; Memory Address ($6BB8) and binary offset [$6834]
 	; ReSource: Refreshes selection and inventory graphics after an object transfer.
 	cmp.b	#$02,$000F(a5)	;0C2D0002000F
 	bne.s	Finalize_InventoryObjectChange	;6618
@@ -10490,29 +10575,29 @@ Refresh_InventoryAfterObjectChange:
 	tst.w	$0002(sp)	;4A6F0002
 	beq.s	Restore_SelectedInventorySlot	;6704
 	bsr	adrCd007ED2	;610012FE
-Restore_SelectedInventorySlot:
+Restore_SelectedInventorySlot:		; Memory Address ($6BD6) and binary offset [$6852]
 	; ReSource: Restores the selected slot number after auxiliary inventory handling.
 	move.w	(sp)+,d7	;3E1F
-Finalize_InventoryObjectChange:
+Finalize_InventoryObjectChange:		; Memory Address ($6BD8) and binary offset [$6854]
 	; ReSource: Normalises held counted-object state and redraws the inventory.
 	move.w	d7,$000E(a5)	;3B47000E
 	move.w	HeldItem_ObjectCodeOffset(a5),d0	;302D002E
 	beq.s	Normalize_HeldNonCountedObjectQuantity	;6706
 	cmpi.w	#Object_Food_First,d0	;0C400005
 	bcs.s	Redraw_Inventory	;6522
-Normalize_HeldNonCountedObjectQuantity:
+Normalize_HeldNonCountedObjectQuantity:		; Memory Address ($6BE8) and binary offset [$6864]
 	; ReSource: Sets the held quantity to one when the resulting held state is empty or contains a non-counted object.
 	move.w	#$0001,HeldItem_QuantityOffset(a5)	;3B7C0001002C
 	bra.s	Redraw_Inventory	;601A
 
-Click_OpenInventory:
+Click_OpenInventory:		; Memory Address ($6BF0) and binary offset [$686C]
 	clr.w	$000E(a5)	;426D000E
 	move.l	#$005E00E1,d4	;283C005E00E1
 	move.l	#$00070040,d5	;2A3C00070040
 	add.w	$0008(a5),d5	;DA6D0008
 	moveq	#$03,d3	;7603
 	bsr	BW_draw_bar	;61006E60
-Redraw_Inventory:
+Redraw_Inventory:		; Memory Address ($6C0A) and binary offset [$6886]
 	move.w	$000E(a5),d7	;3E2D000E
 	move.b	$18(a5,d7.w),d7	;1E357018
 	and.w	#$000F,d7	;0247000F
@@ -10522,46 +10607,46 @@ Redraw_Inventory:
 	move.w	d7,d0	;3007
 	bsr	adrCd00CF08	;610062DC
 	move.w	#$0003,$0014(a5)	;3B7C00030014
-Refresh_HeldItemDisplay:
+Refresh_HeldItemDisplay:		; Memory Address ($6C34) and binary offset [$68B0]
 	; ReSource: Updates the held-item description, graphic, quantity and optional food bar.
 	bsr	Draw_HeldObjectDescription	;6100009C
 	cmp.b	#$03,$0015(a5)	;0C2D00030015
 	bne	Trigger_00_t00_Null	;660003D6
-Draw_HeldItemPanel:
+Draw_HeldItemPanel:		; Memory Address ($6C42) and binary offset [$68BE]
 	; ReSource: Draws the held-item panel pieces followed by the held object's pocket graphic and quantity.
 	or.b	#$04,$0054(a5)	;002D00040054
 	move.l	screen_ptr.l,a0	;207900008D36
 	add.w	#$0B5C,a0	;D0FC0B5C
 	add.w	$000A(a5),a0	;D0ED000A
 	moveq	#$00,d7	;7E00
-Draw_HeldItemPanelPieces_Loop:
+Draw_HeldItemPanelPieces_Loop:		; Memory Address ($6C58) and binary offset [$68D4]
 	; ReSource: Draws the four fixed decorative pieces surrounding the held-item graphic.
 	bsr	adrCd008416	;610017BC
 	addq.w	#$01,d7	;5247
 	cmpi.w	#$0004,d7	;0C470004
 	bcs.s	Draw_HeldItemPanelPieces_Loop	;65F4
-	move.w	$002E(a5),d0	;302D002E
+	move.w	HeldItem_ObjectCodeOffset(a5),d0	;302D002E
 	move.w	HeldItem_QuantityOffset(a5),d1	;322D002C
 	bsr	ObjectGraphic	;61005DF8
 	move.w	$0012(a5),d3	;362D0012
 	moveq	#$74,d0	;7074
 	bsr	adrCd00CAEA	;61005E72
 	bsr	Draw_SelectedInventorySlotFrame	;610000A2
-	move.w	$002E(a5),d0	;302D002E
+	move.w	HeldItem_ObjectCodeOffset(a5),d0	;302D002E
 	beq.s	Return_FromHeldItemDisplay	;670C
 	cmpi.w	#Object_Food_First,d0	;0C400005
 	bcs.s	Return_FromHeldItemDisplay	;6506
 	cmpi.w	#Object_Potions_First,d0	;0C400017
 	bcs.s	Draw_FoodStatus	;6502
-Return_FromHeldItemDisplay:
+Return_FromHeldItemDisplay:		; Memory Address ($6C90) and binary offset [$690C]
 	; ReSource: Returns when the held item does not require the food-status display.
 	rts	;4E75
 
-Draw_FoodStatus:
+Draw_FoodStatus:		; Memory Address ($6C92) and binary offset [$690E]
 	; ReSource: Draws the FOOD label and the food-level bar scaled against the $00-$C7 food value.
 	lea	adrEA00E998.l,a6	;4DF90000E998
 	bsr	Print_fflim_text	;6100642C
-Draw_FoodLevelBar:
+Draw_FoodLevelBar:		; Memory Address ($6C9C) and binary offset [$6918]
 	; ReSource: Reads champion food byte $10 and draws its bar scaled from $00 to $C7.
 	or.b	#$14,$0054(a5)	;002D00140054
 	move.w	$000E(a5),d0	;302D000E
@@ -10577,14 +10662,14 @@ Draw_FoodLevelBar:
 	moveq	#$09,d3	;7609
 	bra	BW_draw_bar	;60006D98
 
-Draw_HeldObjectDescription:
+Draw_HeldObjectDescription:		; Memory Address ($6CD2) and binary offset [$694E]
 	; ReSource: Prints an empty description or prepares the selected held object's description.
 	move.w	HeldItem_ObjectCodeOffset(a5),d0	;302D002E
 	bne.s	Prepare_HeldObjectDescription	;660A
 	lea	NullString.l,a6	;4DF90000CAE9
 	bra	LowerText	;600062D8
 
-Prepare_HeldObjectDescription:
+Prepare_HeldObjectDescription:		; Memory Address ($6CE2) and binary offset [$695E]
 	; ReSource: Handles champion-remains ownership before resolving and printing the held object's description.
 	move.w	d0,d1	;3200
 	sub.w	#Object_Remains_First,d1	;04410040
@@ -10598,7 +10683,7 @@ Prepare_HeldObjectDescription:
 	bmi.s	Resolve_HeldObjectDescription	;6B0A
 	bclr	#$05,$18(a5,d1.w)	;08B500051018
 	clr.l	HeldItem_StateOffset(a5)	;42AD002C
-Resolve_HeldObjectDescription:
+Resolve_HeldObjectDescription:		; Memory Address ($6D08) and binary offset [$6984]
 	; ReSource: Resolves the normal object-definition text after optional champion-remains ownership handling.
 	lea	Object_Definition_Table+$02.l,a6	;4DF90000E4C4
 	asl.w	#$02,d0	;E540
@@ -10606,7 +10691,7 @@ Resolve_HeldObjectDescription:
 	move.w	#$0006,adrW_00D92A.l	;33FC00060000D92A
 	bra	Print_item_desc_fresh	;60006AE2
 
-Draw_SelectedInventorySlotFrame:
+Draw_SelectedInventorySlotFrame:		; Memory Address ($6D1E) and binary offset [$699A]
 	; ReSource: Draws the highlight frame around the selected character inventory slot.
 	moveq	#$0D,d3	;760D
 	move.l	#$000E0049,d5	;2A3C000E0049
@@ -10618,13 +10703,13 @@ Draw_SelectedInventorySlotFrame:
 	add.w	#$00E1,d4	;064400E1
 	bra	BW_draw_frame	;60006D9A
 
-adrCd006D3C:
+adrCd006D3C:		; Memory Address ($6D3C) and binary offset [$69B8]
 	subq.b	#$01,$0055(a5)	;532D0055
 	bpl.s	adrCd006D44	;6A02
-adrCd006D42:
+adrCd006D42:		; Memory Address ($6D42) and binary offset [$69BE]
 	rts	;4E75
 
-adrCd006D44:
+adrCd006D44:		; Memory Address ($6D44) and binary offset [$69C0]
 	tst.b	$0015(a5)	;4A2D0015
 	bne.s	adrCd006D42	;66F8
 	or.b	#$04,$0054(a5)	;002D00040054
@@ -10635,26 +10720,26 @@ adrCd006D44:
 	btst	#$00,(a5)	;08150000
 	bne.s	adrCd006D6E	;6604
 	lea	$0020(a1),a1	;43E90020
-adrCd006D6E:
+adrCd006D6E:		; Memory Address ($6D6E) and binary offset [$69EA]
 	move.l	#$00020016,d5	;2A3C00020016	;Long Addr replaced with Symbol
 	move.l	#$00000088,a3	;267C00000088
 	bra	Draw_PlanarGraphic	;60005F3C
 
-Arrow_Highlights_Y_Offsets:
+Arrow_Highlights_Y_Offsets:		; Memory Address ($6D7E) and binary offset [$69FA]
 	dc.w	$0050	;0050
 	dc.w	$0268	;0268
 	dc.w	$01D8	;01D8
 	dc.w	$0180	;0180
 	dc.w	$0000	;0000
 	dc.w	$00E0	;00E0
-Arrow_Highlights_X_Positions:
+Arrow_Highlights_X_Positions:		; Memory Address ($6D8A) and binary offset [$6A06]
 	dc.w	$00A0	;00A0
 	dc.w	$0284	;0284
 	dc.w	$02D0	;02D0
 	dc.w	$0280	;0280
 	dc.w	$00A0	;00A0
 	dc.w	$00A2	;00A2
-Arrow_Highlights_Offsets:
+Arrow_Highlights_Offsets:		; Memory Address ($6D96) and binary offset [$6A12]
 	dc.b	$01	;01
 	dc.b	$08	;08
 	dc.b	$00	;00
@@ -10668,7 +10753,7 @@ Arrow_Highlights_Offsets:
 	dc.b	$01	;01
 	dc.b	$09	;09
 
-Draw_Arrow_Highlights:
+Draw_Arrow_Highlights:		; Memory Address ($6DA2) and binary offset [$6A1E]
 	tst.b	$0015(a5)	;4A2D0015
 	bne	adrCd004C3E	;6600DE96
 	or.b	#$04,$0054(a5)	;002D00040054
@@ -10691,21 +10776,21 @@ Draw_Arrow_Highlights:
 	swap	d3	;4843
 	bra	adrCd00B5CA	;600047DE
 
-Click_MoveForwards:
+Click_MoveForwards:		; Memory Address ($6DEE) and binary offset [$6A6A]
 	moveq	#$00,d0	;7000
 	bra.s	_MoveParty	;600A
 
-Click_MoveBackwards:
+Click_MoveBackwards:		; Memory Address ($6DF2) and binary offset [$6A6E]
 	moveq	#$02,d0	;7002
 	bra.s	_MoveParty	;6006
 
-Click_MoveLeft:
+Click_MoveLeft:		; Memory Address ($6DF6) and binary offset [$6A72]
 	moveq	#$03,d0	;7003
 	bra.s	_MoveParty	;6002
 
-Click_MoveRight:
+Click_MoveRight:		; Memory Address ($6DFA) and binary offset [$6A76]
 	moveq	#$01,d0	;7001
-_MoveParty:
+_MoveParty:		; Memory Address ($6DFC) and binary offset [$6A78]
 	and.b	#$01,(a5)	;02150001
 	move.w	d0,-(sp)	;3F00
 	bsr.s	Draw_Arrow_Highlights	;619E
@@ -10726,10 +10811,10 @@ _MoveParty:
 	eor.b	#$02,d1	;0A010002
 	cmp.b	d1,d6	;BC01
 	beq	Execute_StairTransition_AI_TBC	;67000096
-_MoveFailed:
+_MoveFailed:		; Memory Address ($6E3C) and binary offset [$6AB8]
 	rts	;4E75
 
-Check_Collision_AI_TBC:
+Check_Collision_AI_TBC:		; Memory Address ($6E3E) and binary offset [$6ABA]
 	move.w	$00(a6,d0.w),d1	;32360000
 	and.w	#$0007,d1	;02410007
 	subq.w	#$06,d1	;5D41
@@ -10759,18 +10844,18 @@ Check_Collision_AI_TBC:
 	move.l	(sp)+,a5	;2A5F
 	rts	;4E75
 
-Begin_StairCondition_AI_TBC:
+Begin_StairCondition_AI_TBC:		; Memory Address ($6E90) and binary offset [$6B0C]
 	move.b	$00(a6,d0.w),d1	;12360000
 	and.w	#$0003,d1	;02410003
 	bne.s	Save_State_For_Stair_AI_TBC	;6606
 	bsr	TeamAvatar_LoopStart_AI_TBC	;610000E4
 	bra.s	Start_StairTransition_AI_TBC	;6008
 
-Save_State_For_Stair_AI_TBC:
+Save_State_For_Stair_AI_TBC:		; Memory Address ($6EA0) and binary offset [$6B1C]
 	subq.w	#$01,d1	;5341
 	beq.s	Start_StairTransition_AI_TBC	;6704
 	bsr	Reset_TriggerWait_AI_TBC	;61000104
-Start_StairTransition_AI_TBC:
+Start_StairTransition_AI_TBC:		; Memory Address ($6EA8) and binary offset [$6B24]
 	movem.l	d0/d7/a6,-(sp)	;48E78102
 	bsr	Load_MapPosition_AI_TBC	;61001320
 	movem.l	(sp)+,d0/d7/a6	;4CDF4081
@@ -10782,7 +10867,7 @@ Start_StairTransition_AI_TBC:
 	move.b	$00(a6,d0.w),d6	;1C360000
 	lsr.b	#$01,d6	;E20E
 	eor.b	#$02,d6	;0A060002
-Execute_StairTransition_AI_TBC:
+Execute_StairTransition_AI_TBC:		; Memory Address ($6ED0) and binary offset [$6B4C]
 	bclr	#$07,$01(a6,d0.w)	;08B600070001
 	move.w	$0058(a5),d2	;342D0058
 	move.w	d2,d1	;3202
@@ -10790,7 +10875,7 @@ Execute_StairTransition_AI_TBC:
 	btst	#$00,$00(a6,d0.w)	;083600000000
 	beq.s	Continue_StairTransition_AI_TBC	;6702
 	subq.w	#$02,d1	;5541
-Continue_StairTransition_AI_TBC:
+Continue_StairTransition_AI_TBC:		; Memory Address ($6EE8) and binary offset [$6B64]
 	bsr	adrCd0084BA	;610015D0
 	move.w	d1,d0	;3001
 	bsr	adrCd0084DA	;610015EA
@@ -10809,68 +10894,68 @@ Continue_StairTransition_AI_TBC:
 	bset	#$07,$01(a6,d0.w)	;08F600070001
 	rts	;4E75
 
-Update_StairCompletion_AI_TBC:
+Update_StairCompletion_AI_TBC:		; Memory Address ($6F24) and binary offset [$6BA0]
 	move.w	d1,$0058(a5)	;3B410058
 	bset	#$07,$01(a6,d0.w)	;08F600070001
 	move.b	$00(a6,d0.w),d0	;10360000
 	lsr.b	#$01,d0	;E208
 	move.b	d0,$0021(a5)	;1B400021
-Store_PlayerXY_AI_TBC:
+Store_PlayerXY_AI_TBC:		; Memory Address ($6F38) and binary offset [$6BB4]
 	move.l	d7,$001C(a5)	;2B47001C
 	tst.b	$003E(a5)	;4A2D003E
 	beq.s	Check_TeamPad_AI_TBC	;6708
 	clr.b	$003E(a5)	;422D003E
 	bsr	adrCd007B50	;61000C08
-Check_TeamPad_AI_TBC:
+Check_TeamPad_AI_TBC:		; Memory Address ($6F4A) and binary offset [$6BC6]
 	move.w	$0042(a5),d0	;302D0042
 	bmi.s	After_TeamPad_AI_TBC	;6B08
 	cmpi.w	#$0008,d0	;0C400008
 	bcc	Click_ShowTeamAvatars	;6400C388
-After_TeamPad_AI_TBC:
+After_TeamPad_AI_TBC:		; Memory Address ($6F58) and binary offset [$6BD4]
 	rts	;4E75
 
-Click_RotateLeft:
+Click_RotateLeft:		; Memory Address ($6F5A) and binary offset [$6BD6]
 	subq.w	#$01,$0020(a5)	;536D0020
 	and.w	#$0003,$0020(a5)	;026D00030020
 	moveq	#$04,d0	;7004
 	bra.s	Execute_Rotation	;600C
 
-Click_RotateRight:
+Click_RotateRight:		; Memory Address ($6F68) and binary offset [$6BE4]
 	addq.w	#$01,$0020(a5)	;526D0020
 	and.w	#$0003,$0020(a5)	;026D00030020
 	moveq	#$05,d0	;7005
-Execute_Rotation:
+Execute_Rotation:		; Memory Address ($6F74) and binary offset [$6BF0]
 	bsr	Draw_Arrow_Highlights	;6100FE2C
 	bsr	adrCd008498	;6100151E
 	bra	Start_StairTransition_AI_TBC	;6000FF2A
 
-TeamAvatar_LoopStart_AI_TBC:
+TeamAvatar_LoopStart_AI_TBC:		; Memory Address ($6F80) and binary offset [$6BFC]
 	movem.l	d0/d7/a6,-(sp)	;48E78102
 	moveq	#$03,d7	;7E03
-TeamAvatar_LoopBody_AI_TBC:
+TeamAvatar_LoopBody_AI_TBC:		; Memory Address ($6F86) and binary offset [$6C02]
 	move.b	$18(a5,d7.w),d1	;12357018
 	move.w	d1,d0	;3001
 	and.w	#$00E0,d1	;024100E0
 	bne.s	TeamAvatar_LoopEnd_AI_TBC	;6608
 	bsr	Load_ChampionStatRecord	;6100F6CC
 	clr.b	$0011(a4)	;422C0011
-TeamAvatar_LoopEnd_AI_TBC:
+TeamAvatar_LoopEnd_AI_TBC:		; Memory Address ($6F9A) and binary offset [$6C16]
 	dbra	d7,TeamAvatar_LoopBody_AI_TBC	;51CFFFEA
 	bsr	adrCd007B50	;61000BB0
 	movem.l	(sp)+,d0/d7/a6	;4CDF4081
 	rts	;4E75
 
-Trigger_WaitFlag_AI_TBC:
+Trigger_WaitFlag_AI_TBC:		; Memory Address ($6FA8) and binary offset [$6C24]
 	dc.w	$FFFF	;FFFF
 
-Reset_TriggerWait_AI_TBC:
+Reset_TriggerWait_AI_TBC:		; Memory Address ($6FAA) and binary offset [$6C26]
 	move.w	#$FFFF,Trigger_WaitFlag_AI_TBC.w	;31FCFFFF6FA8	;Short Absolute converted to symbol!
 	move.b	$00(a6,d0.w),d1	;12360000
 	and.w	#$0003,d1	;02410003
 	subq.w	#$02,d1	;5541
 	bne.s	TriggerWait_PostCheck_AI_TBC	;6604
 	clr.w	Trigger_WaitFlag_AI_TBC.w	;42786FA8	;Short Absolute converted to symbol!
-TriggerWait_PostCheck_AI_TBC:
+TriggerWait_PostCheck_AI_TBC:		; Memory Address ($6FC0) and binary offset [$6C3C]
 	move.b	$00(a6,d0.w),d1	;12360000
 	and.w	#$00F8,d1	;024100F8
 	lsr.b	#$01,d1	;E209
@@ -10886,9 +10971,9 @@ TriggerWait_PostCheck_AI_TBC:
 	beq.s	Setup_TriggerEffectDefault_AI_TBC	;6706
 	cmpi.b	#$2A,d2	;0C02002A
 	bne.s	TriggerEffect_Actual_AI_TBC	;6606
-Setup_TriggerEffectDefault_AI_TBC:
+Setup_TriggerEffectDefault_AI_TBC:		; Memory Address ($6FF2) and binary offset [$6C6E]
 	move.w	#$0005,Trigger_WaitFlag_AI_TBC.w	;31FC00056FA8	;Short Absolute converted to symbol!
-TriggerEffect_Actual_AI_TBC:
+TriggerEffect_Actual_AI_TBC:		; Memory Address ($6FF8) and binary offset [$6C74]
 	lea	Trigger_00_t00_Null.l,a0	;41F900007016
 	add.w	Triggers_LookupTable(pc,d2.w),a0	;D0FB2018
 	movem.l	d0/d7/a6,-(sp)	;48E78102
@@ -10896,12 +10981,12 @@ TriggerEffect_Actual_AI_TBC:
 	move.w	Trigger_WaitFlag_AI_TBC.w,d0	;30386FA8	;Short Absolute converted to symbol!
 	bmi.s	TriggerEffect_Post_AI_TBC	;6B04
 	bsr	PlaySound	;610018AE
-TriggerEffect_Post_AI_TBC:
+TriggerEffect_Post_AI_TBC:		; Memory Address ($7012) and binary offset [$6C8E]
 	movem.l	(sp)+,d0/d7/a6	;4CDF4081
-Trigger_00_t00_Null:
+Trigger_00_t00_Null:		; Memory Address ($7016) and binary offset [$6C92]
 	rts	;4E75
 
-Triggers_LookupTable:
+Triggers_LookupTable:		; Memory Address ($7018) and binary offset [$6C94]
 	dc.w	Trigger_00_t00_Null-Trigger_00_t00_Null	;0000
 	dc.w	Trigger_01_t02_Spinner180-Trigger_00_t00_Null	;06FC
 	dc.w	Trigger_02_t04_SpinnerRandom-Trigger_00_t00_Null	;0704
@@ -10937,7 +11022,7 @@ Triggers_LookupTable:
 	dc.w	Trigger_27_t36_Rotate_WoodWall_CounterClockwise-Trigger_00_t00_Null	;061A
 	dc.w	Trigger_28_t38_GameCompletion-Trigger_00_t00_Null	;0504
 	dc.w	adrJA007502-Trigger_00_t00_Null	;04EC
-TriggersData_1:
+TriggersData_1:		; Memory Address ($7056) and binary offset [$6CD2]
 	dc.w	$0000	;0000
 	dc.w	$0000	;0000
 	dc.w	$0200	;0200
@@ -11002,7 +11087,7 @@ TriggersData_1:
 	dc.w	$0000	;0000
 	dc.w	$0000	;0000
 	dc.w	$0000	;0000
-TriggersData_2:
+TriggersData_2:		; Memory Address ($70D6) and binary offset [$6D52]
 	dc.w	$0000	;0000
 	dc.w	$0000	;0000
 	dc.w	$0200	;0200
@@ -11067,7 +11152,7 @@ TriggersData_2:
 	dc.w	$0009	;0009
 	dc.w	$0600	;0600
 	dc.w	$0C08	;0C08
-TriggersData_3:
+TriggersData_3:		; Memory Address ($7156) and binary offset [$6DD2]
 	dc.w	$0000	;0000
 	dc.w	$0000	;0000
 	dc.w	$0200	;0200
@@ -11132,7 +11217,7 @@ TriggersData_3:
 	dc.w	$0000	;0000
 	dc.w	$0000	;0000
 	dc.w	$0000	;0000
-TriggersData_4:
+TriggersData_4:		; Memory Address ($71D6) and binary offset [$6E52]
 	dc.w	$0000	;0000
 	dc.w	$0000	;0000
 	dc.w	$0200	;0200
@@ -11197,7 +11282,7 @@ TriggersData_4:
 	dc.w	$0000	;0000
 	dc.w	$0000	;0000
 	dc.w	$0000	;0000
-TriggersData_5:
+TriggersData_5:		; Memory Address ($7256) and binary offset [$6ED2]
 	dc.w	$0000	;0000
 	dc.w	$0000	;0000
 	dc.w	$0200	;0200
@@ -11262,7 +11347,7 @@ TriggersData_5:
 	dc.w	$0000	;0000
 	dc.w	$3600	;3600
 	dc.w	$0810	;0810
-TriggersData_6:
+TriggersData_6:		; Memory Address ($72D6) and binary offset [$6F52]
 	dc.w	$0000	;0000
 	dc.w	$0000	;0000
 	dc.w	$0200	;0200
@@ -11328,7 +11413,7 @@ TriggersData_6:
 	dc.w	$2600	;2600
 	dc.w	$0607	;0607
 
-Trigger_20_t28_Keep_Entrance_CentrePad:
+Trigger_20_t28_Keep_Entrance_CentrePad:		; Memory Address ($7356) and binary offset [$6FD2]
 	tst.w	MultiPlayer.l	;4A790000EE30
 	beq	adrCd007470	;67000112
 	pea	$00(a1,d1.w)	;48711000
@@ -11343,7 +11428,7 @@ Trigger_20_t28_Keep_Entrance_CentrePad:
 	moveq	#$00,d0	;7000
 	bra	adrCd007408	;60000084
 
-Trigger_19_t26_Keep_Entrance_SidePad:
+Trigger_19_t26_Keep_Entrance_SidePad:		; Memory Address ($7386) and binary offset [$7002]
 	tst.w	MultiPlayer.l	;4A790000EE30
 	bne	adrCd007470	;660000E2
 	pea	$00(a1,d1.w)	;48711000
@@ -11352,11 +11437,11 @@ Trigger_19_t26_Keep_Entrance_SidePad:
 	bcc.s	adrCd0073A2	;6404
 	tst.b	d0	;4A00
 	bmi.s	adrCd0073A6	;6B04
-adrCd0073A2:
+adrCd0073A2:		; Memory Address ($73A2) and binary offset [$701E]
 	addq.w	#$04,sp	;584F
 	rts	;4E75
 
-adrCd0073A6:
+adrCd0073A6:		; Memory Address ($73A6) and binary offset [$7022]
 	move.l	a1,-(sp)	;2F09
 	bsr	adrCd007974	;610005CA
 	movem.l	(sp)+,a1/a2	;4CDF0600
@@ -11369,9 +11454,9 @@ adrCd0073A6:
 	moveq	#$00,d0	;7000
 	bra	adrCd00748C	;600000C2
 
-Keep_Start_Floors_DataTable:
+Keep_Start_Floors_DataTable:		; Memory Address ($73CC) and binary offset [$7048]
 	dc.w	$0004	;0004
-Keep_Start_XY_DataTable:
+Keep_Start_XY_DataTable:		; Memory Address ($73CE) and binary offset [$704A]
 	dc.w	$0404	;0404
 	dc.w	$0405	;0405
 	dc.w	$0801	;0801
@@ -11385,7 +11470,7 @@ Keep_Start_XY_DataTable:
 	dc.w	$0101	;0101
 	dc.w	$0103	;0103
 
-Trigger_10_t14_Tower_Entrance_CentrePad:
+Trigger_10_t14_Tower_Entrance_CentrePad:		; Memory Address ($73E6) and binary offset [$7062]
 	tst.w	MultiPlayer.l	;4A790000EE30
 	beq	adrCd007470	;67000082
 	pea	$00(a1,d1.w)	;48711000
@@ -11395,7 +11480,7 @@ Trigger_10_t14_Tower_Entrance_CentrePad:
 	move.b	$0001(a2),d0	;102A0001
 	lea	Tower_Start_XY_DataTable.l,a0	;41F9000074EA
 	moveq	#$00,d1	;7200
-adrCd007408:
+adrCd007408:		; Memory Address ($7408) and binary offset [$7084]
 	moveq	#$00,d2	;7400
 	move.b	$00(a0,d0.w),d2	;14300000
 	add.b	$02(a0,d0.w),d2	;D4300002
@@ -11408,7 +11493,7 @@ adrCd007408:
 	move.w	d1,$0058(a5)	;3B410058
 	lsr.b	#$02,d0	;E408
 	move.w	d0,CurrentTower.l	;33C00000EE2E
-	bsr	Load_LevelLookupTable_AI_TBC	;61009736
+	bsr	Select_CurrentTowerMapData	;61009736
 	bsr	adrCd0084D6	;610010A0
 	bsr	adrCd008498	;6100105E
 	move.l	d0,$0004(sp)	;2F400004
@@ -11417,7 +11502,7 @@ adrCd007408:
 	bset	#$07,$01(a6,d0.w)	;08F600070001
 	bra	MonsterTransfer	;600095A4
 
-Trigger_09_t12_Tower_Entrance_SidePad:
+Trigger_09_t12_Tower_Entrance_SidePad:		; Memory Address ($7454) and binary offset [$70D0]
 	tst.w	MultiPlayer.l	;4A790000EE30
 	bmi.s	adrCd007470	;6B14
 	pea	$00(a1,d1.w)	;48711000
@@ -11426,12 +11511,12 @@ Trigger_09_t12_Tower_Entrance_SidePad:
 	bcc.s	adrCd00746E	;6404
 	tst.b	d0	;4A00
 	bmi.s	adrCd007472	;6B04
-adrCd00746E:
+adrCd00746E:		; Memory Address ($746E) and binary offset [$70EA]
 	addq.w	#$04,sp	;584F
-adrCd007470:
+adrCd007470:		; Memory Address ($7470) and binary offset [$70EC]
 	rts	;4E75
 
-adrCd007472:
+adrCd007472:		; Memory Address ($7472) and binary offset [$70EE]
 	move.l	a1,-(sp)	;2F09
 	bsr	adrCd007974	;610004FE
 	movem.l	(sp)+,a1/a2	;4CDF0600
@@ -11440,7 +11525,7 @@ adrCd007472:
 	add.w	d0,d0	;D040
 	lea	Tower_Start_XY_DataTable.l,a0	;41F9000074EA
 	moveq	#$00,d1	;7200
-adrCd00748C:
+adrCd00748C:		; Memory Address ($748C) and binary offset [$7108]
 	move.b	$00(a0,d0.w),$001D(a5)	;1B700000001D
 	move.b	$01(a0,d0.w),$001F(a5)	;1B700001001F
 	move.w	d1,$0058(a5)	;3B410058
@@ -11450,7 +11535,7 @@ adrCd00748C:
 	move.w	d1,$0058(a1)	;33410058
 	lsr.b	#$02,d0	;E408
 	move.w	d0,CurrentTower.l	;33C00000EE2E
-	bsr	Load_LevelLookupTable_AI_TBC	;610096AE
+	bsr	Select_CurrentTowerMapData	;610096AE
 	bsr	adrCd0084D6	;61001018
 	bsr	adrCd008498	;61000FD6
 	move.l	d0,$0004(sp)	;2F400004
@@ -11463,7 +11548,7 @@ adrCd00748C:
 	exg	a1,a5	;CB49
 	bra	MonsterTransfer	;6000950E
 
-Tower_Start_XY_DataTable:
+Tower_Start_XY_DataTable:		; Memory Address ($74EA) and binary offset [$7166]
 	dc.w	$0000	;0000
 	dc.w	$0000	;0000
 	dc.w	$0107	;0107
@@ -11477,22 +11562,22 @@ Tower_Start_XY_DataTable:
 	dc.w	$0607	;0607
 	dc.w	$0609	;0609
 
-adrJA007502:
-	move.l	adrL_00EE78.l,a6	;2C790000EE78
+adrJA007502:		; Memory Address ($7502) and binary offset [$717E]
+	move.l	Current_TowerMapDataBase.l,a6	;2C790000EE78
 	move.b	$0014(a6),d0	;102E0014
 	and.b	$001C(a6),d0	;C02E001C
 	btst	#$00,d0	;08000000
 	bne	Switch_01_s02_Trigger_11_t16_RemoveXY	;6600E7FC
 	rts	;4E75
 
-Trigger_28_t38_GameCompletion:
+Trigger_28_t38_GameCompletion:		; Memory Address ($751A) and binary offset [$7196]
 	move.l	a5,-(sp)	;2F0D
 	bsr.s	GameEndPicture	;6164
 	clr.w	FrameSyncFlagWord_AI_TBC.l	;427900008C1E
 	bsr	adrCd008CCA	;610017A4
 	bsr	adrCd008D88	;6100185E
 	moveq	#$4B,d0	;704B
-DBFWait1d:
+DBFWait1d:		; Memory Address ($752E) and binary offset [$71AA]
 	dbra	d1,DBFWait1d	;51C9FFFE
 	dbra	d0,DBFWait1d	;51C8FFFA
 	lea	Player1_Data.l,a5	;4BF90000EE7C
@@ -11505,11 +11590,11 @@ DBFWait1d:
 	bsr	adrCd00CF96	;61005A3C
 	lea	NullString.l,a6	;4DF90000CAE9
 	bsr	WriteText	;61005B2A
-.Player2Skip:
+.Player2Skip:		; Memory Address ($7566) and binary offset [$71E2]
 	bsr	adrCd008CCA	;61001762
 	bsr	adrCd008D88	;6100181C
 	move.w	#$FFFF,FrameSyncFlagWord_AI_TBC.l	;33FCFFFF00008C1E
-adrCd007576:
+adrCd007576:		; Memory Address ($7576) and binary offset [$71F2]
 	tst.b	FrameSyncFlagWord_AI_TBC.l	;4A3900008C1E
 	bne.s	adrCd007576	;66F8
 	move.l	(sp)+,a5	;2A5F
@@ -11557,12 +11642,12 @@ CongratsText:
 	dc.b	$FF	;FF
 	dc.b	$00	;00
 
-Trigger_27_t36_Rotate_WoodWall_CounterClockwise:
+Trigger_27_t36_Rotate_WoodWall_CounterClockwise:		; Memory Address ($7630) and binary offset [$72AC]
 	bsr	adrCd005D2E	;6100E6FC
 	eor.b	#$03,$00(a6,d0.w)	;0A3600030000
 	rts	;4E75
 
-Trigger_24_t30_Spinner3:
+Trigger_24_t30_Spinner3:		; Memory Address ($763C) and binary offset [$72B8]
 	moveq	#$00,d0	;7000
 	move.b	$01(a1,d1.w),d0	;10311001
 	move.w	d0,d6	;3C00
@@ -11576,11 +11661,11 @@ Trigger_24_t30_Spinner3:
 	bpl.s	adrCd007660	;6A02
 	rts	;4E75
 
-adrCd007660:
+adrCd007660:		; Memory Address ($7660) and binary offset [$72DC]
 	bsr.s	adrCd007664	;6102
 	rts	;4E75
 
-adrCd007664:
+adrCd007664:		; Memory Address ($7664) and binary offset [$72E0]
 	bset	#$07,$01(a6,d0.w)	;08F600070001
 	move.l	$0008(sp),d1	;222F0008
 	bclr	#$07,$01(a6,d1.w)	;08B600071001
@@ -11590,7 +11675,7 @@ adrCd007664:
 	move.l	d0,$0008(sp)	;2F400008
 	rts	;4E75
 
-Trigger_21_t2A_Flash_Telepoprt_FXY:
+Trigger_21_t2A_Flash_Telepoprt_FXY:		; Memory Address ($7686) and binary offset [$7302]
 	moveq	#$00,d0	;7000
 	move.b	$01(a1,d1.w),d0	;10311001
 	move.w	d0,d6	;3C00
@@ -11606,12 +11691,12 @@ Trigger_21_t2A_Flash_Telepoprt_FXY:
 	bpl.s	adrCd0076AC	;6A02
 	rts	;4E75
 
-adrCd0076AC:
+adrCd0076AC:		; Memory Address ($76AC) and binary offset [$7328]
 	bsr.s	adrCd007664	;61B6
 	moveq	#$10,d7	;7E10
 	bra	adrCd001DBC	;6000A70A
 
-Switch_04_s08_Trigger_22_t2C_RotateWall_XY:
+Switch_04_s08_Trigger_22_t2C_RotateWall_XY:		; Memory Address ($76B4) and binary offset [$7330]
 	bsr	adrCd005D2E	;6100E678
 	move.b	$01(a6,d0.w),d1	;12360001
 	move.w	d1,d2	;3401
@@ -11622,81 +11707,81 @@ Switch_04_s08_Trigger_22_t2C_RotateWall_XY:
 	move.b	d2,$01(a6,d0.w)	;1D820001
 	rts	;4E75
 
-Trigger_06_t0C_WoodTrap1:
+Trigger_06_t0C_WoodTrap1:		; Memory Address ($76D2) and binary offset [$734E]
 	move.l	#$000D000C,d7	;2E3C000D000C
 	bsr	CoordToMap	;61000DC2
 	bset	#$02,$00(a6,d0.w)	;08F600020000
 	bclr	#$06,$02(a6,d0.w)	;08B600060002
 	rts	;4E75
 
-Trigger_07_t0E_WoodTrap2:
+Trigger_07_t0E_WoodTrap2:		; Memory Address ($76EA) and binary offset [$7366]
 	move.l	#$00030000,d7	;2E3C00030000	;Long Addr replaced with Symbol
 	bsr	CoordToMap	;61000DAA
 	bclr	#$02,$00(a6,d0.w)	;08B600020000
 	bset	#$06,$02(a6,d0.w)	;08F600060002
 	rts	;4E75
 
-Trigger_08_t10_Trader_DoorCloser:
+Trigger_08_t10_Trader_DoorCloser:		; Memory Address ($7702) and binary offset [$737E]
 	subq.w	#$02,d0	;5540
 	tst.b	$01(a6,d0.w)	;4A360001
 	bmi.s	adrCd007710	;6B06
 	bset	#$00,$00(a6,d0.w)	;08F600000000
-adrCd007710:
+adrCd007710:		; Memory Address ($7710) and binary offset [$738C]
 	rts	;4E75
 
-Trigger_01_t02_Spinner180:
+Trigger_01_t02_Spinner180:		; Memory Address ($7712) and binary offset [$738E]
 	eor.w	#$0002,$0020(a5)	;0A6D00020020
 	rts	;4E75
 
-Trigger_02_t04_SpinnerRandom:
+Trigger_02_t04_SpinnerRandom:		; Memory Address ($771A) and binary offset [$7396]
 	bsr	RandomGen_BytewithOffset	;6100DE90
 	and.w	#$0003,d0	;02400003
 	move.w	d0,$0020(a5)	;3B400020
 	rts	;4E75
 
-adrJA007728:
+adrJA007728:		; Memory Address ($7728) and binary offset [$73A4]
 	addq.w	#$01,$0020(a5)	;526D0020
 	and.w	#$0003,$0020(a5)	;026D00030020
 	rts	;4E75
 
-Trigger_12_t18_Close_VoidLock_Door_XY:
+Trigger_12_t18_Close_VoidLock_Door_XY:		; Memory Address ($7734) and binary offset [$73B0]
 	bsr	adrCd005D2E	;6100E5F8
 	bset	#$00,$00(a6,d0.w)	;08F600000000
 	move.w	#$0001,Trigger_WaitFlag_AI_TBC.w	;31FC00016FA8	;Short Absolute converted to symbol!
 	rts	;4E75
 
-Switch_03_s06_Trigger_03_t06_OpenLockedDoor_XY:
+Switch_03_s06_Trigger_03_t06_OpenLockedDoor_XY:		; Memory Address ($7746) and binary offset [$73C2]
 	bsr	adrCd005D2E	;6100E5E6
 	bclr	#$00,$00(a6,d0.w)	;08B600000000
 	move.w	#$0001,Trigger_WaitFlag_AI_TBC.w	;31FC00016FA8	;Short Absolute converted to symbol!
 	rts	;4E75
 
-Switch_07_s0E_Trigger_26_t34_RotateWood_XY:
+Switch_07_s0E_Trigger_26_t34_RotateWood_XY:		; Memory Address ($7758) and binary offset [$73D4]
 	bsr	adrCd005D2E	;6100E5D4
 	move.b	$00(a6,d0.w),d1	;12360000
 	ror.b	#$02,d1	;E419
 	move.b	d1,$00(a6,d0.w)	;1D810000
 	rts	;4E75
 
-Switch_06_s0C_Trigger_18_t24_CreatePillar_XY:
+Switch_06_s0C_Trigger_18_t24_CreatePillar_XY:		; Memory Address ($7768) and binary offset [$73E4]
 	bsr	Switch_01_s02_Trigger_11_t16_RemoveXY	;6100E5A8
-Switch_05_s0A_Trigger_13_t1A_TogglePillar_XY:
+Switch_05_s0A_Trigger_13_t1A_TogglePillar_XY:		; Memory Address ($776C) and binary offset [$73E8]
 	bsr	adrCd005D2E	;6100E5C0
 	move.b	#$01,$00(a6,d0.w)	;1DBC00010000
 	eor.b	#$03,$01(a6,d0.w)	;0A3600030001
 	rts	;4E75
 
-Trigger_14_t1C_Create_Spinner_or_Other_XY:
+Trigger_14_t1C_Create_Spinner_or_Other_XY:		; Memory Address ($777E) and binary offset [$73FA]
 	bsr	adrCd005D2E	;6100E5AE
 	or.b	#$06,$01(a6,d0.w)	;003600060001
 	rts	;4E75
 
-Trigger_25_t32_Clicker_Teleport_FXY:
+Trigger_25_t32_Clicker_Teleport_FXY:		; Memory Address ($778A) and binary offset [$7406]
 	bsr	adrCd005D2E	;6100E5A2
 	eor.b	#$06,$01(a6,d0.w)	;0A3600060001
 	rts	;4E75
 
-Trigger_16_t20_Create_Pad_FXY:
+Trigger_16_t20_Create_Pad_FXY:		; Memory Address ($7796) and binary offset [$7412]
 	moveq	#$00,d6	;7C00
 	move.b	$01(a1,d1.w),d6	;1C311001
 	move.w	d1,-(sp)	;3F01
@@ -11716,7 +11801,7 @@ Trigger_16_t20_Create_Pad_FXY:
 	eor.b	#$06,$01(a6,d0.w)	;0A3600060001
 	rts	;4E75
 
-Trigger_17_t22_Move_Diagonal_Pillar:
+Trigger_17_t22_Move_Diagonal_Pillar:		; Memory Address ($77D6) and binary offset [$7452]
 	bsr	adrCd0084FC	;61000D24
 	move.l	d2,d7	;2E02
 	subq.b	#$01,d7	;5307
@@ -11730,13 +11815,13 @@ Trigger_17_t22_Move_Diagonal_Pillar:
 	and.w	#$00F8,$00(a6,d0.w)	;027600F80000
 	rts	;4E75
 
-Trigger_04_t08_Vivify_Machine_External:
+Trigger_04_t08_Vivify_Machine_External:		; Memory Address ($7800) and binary offset [$747C]
 	addq.w	#$02,d0	;5440
 	tst.b	$01(a6,d0.w)	;4A360001
 	bmi	Trigger_00_t00_Null	;6B00F80E
 	bset	#$00,$00(a6,d0.w)	;08F600000000
 	addq.w	#$02,d0	;5440
-adrCd007812:
+adrCd007812:		; Memory Address ($7812) and binary offset [$748E]
 	move.w	#$0086,d7	;3E3C0086
 	bsr	adrCd001DBC	;6100A5A4
 	tst.b	$01(a6,d0.w)	;4A360001
@@ -11744,32 +11829,32 @@ adrCd007812:
 	btst	#$06,$01(a6,d0.w)	;083600060001
 	beq.s	adrCd007836	;670E
 	moveq	#$03,d4	;7803
-adrLp00782A:
+adrLp00782A:		; Memory Address ($782A) and binary offset [$74A6]
 	move.w	d4,d6	;3C04
 	bsr	adrCd005F5C	;6100E72E
 	beq.s	adrCd007838	;6706
-adrCd007832:
+adrCd007832:		; Memory Address ($7832) and binary offset [$74AE]
 	dbra	d4,adrLp00782A	;51CCFFF6
-adrCd007836:
+adrCd007836:		; Memory Address ($7836) and binary offset [$74B2]
 	rts	;4E75
 
-adrCd007838:
+adrCd007838:		; Memory Address ($7838) and binary offset [$74B4]
 	lea	$03(a0,d7.w),a1	;43F07003
 	moveq	#$00,d3	;7600
 	move.b	-$0001(a1),d3	;1629FFFF
 	add.w	d3,d3	;D643
-adrCd007844:
+adrCd007844:		; Memory Address ($7844) and binary offset [$74C0]
 	move.b	$00(a1,d3.w),d2	;14313000
 	sub.b	#$40,d2	;04020040
 	bcs.s	adrCd007854	;6506
 	cmpi.b	#$10,d2	;0C020010
 	bcs.s	adrCd00785A	;6506
-adrCd007854:
+adrCd007854:		; Memory Address ($7854) and binary offset [$74D0]
 	subq.w	#$02,d3	;5543
 	bcc.s	adrCd007844	;64EC
 	bra.s	adrCd007832	;60D8
 
-adrCd00785A:
+adrCd00785A:		; Memory Address ($785A) and binary offset [$74D6]
 	bset	#$07,$01(a6,d0.w)	;08F600070001
 	move.w	d2,-(sp)	;3F02
 	bsr	adrCd005DF8	;6100E594
@@ -11782,7 +11867,7 @@ adrCd00785A:
 	tst.w	d1	;4A41
 	bpl.s	adrCd0078A0	;6A24
 	move.l	(sp)+,a5	;2A5F
-adrCd00787E:
+adrCd00787E:		; Memory Address ($787E) and binary offset [$74FA]
 	bsr	Load_ChampionStatRecord	;6100EDE0
 	move.b	d2,$0017(a4)	;19420017
 	swap	d2	;4842
@@ -11792,7 +11877,7 @@ adrCd00787E:
 	move.b	CurrentTower+$01.l,$001F(a4)	;19790000EE2F001F
 	rts	;4E75
 
-adrCd0078A0:
+adrCd0078A0:		; Memory Address ($78A0) and binary offset [$751C]
 	bclr	#$06,$18(a5,d1.w)	;08B500061018
 	tst.w	d1	;4A41
 	beq.s	adrCd0078C0	;6716
@@ -11801,10 +11886,10 @@ adrCd0078A0:
 	bsr.s	adrCd00787E	;61CA
 	bra.s	adrCd0078E4	;602E
 
-adrCd0078B6:
+adrCd0078B6:		; Memory Address ($78B6) and binary offset [$7532]
 	move.b	$0018(a5),$18(a5,d1.w)	;1BAD00181018
 	move.w	d0,$0006(a5)	;3B400006
-adrCd0078C0:
+adrCd0078C0:		; Memory Address ($78C0) and binary offset [$753C]
 	move.b	d0,$0018(a5)	;1B400018
 	bset	#$04,$0018(a5)	;08ED00040018
 	move.l	d2,$001C(a5)	;2B42001C
@@ -11813,24 +11898,24 @@ adrCd0078C0:
 	move.b	d0,$0026(a5)	;1B400026
 	bsr	adrCd008278	;6100099A
 	clr.b	$0056(a5)	;422D0056
-adrCd0078E4:
+adrCd0078E4:		; Memory Address ($78E4) and binary offset [$7560]
 	bsr	adrCd007B50	;6100026A
 	bsr	adrCd008246	;6100095C
 	move.l	(sp)+,a5	;2A5F
 	rts	;4E75
 
-Trigger_05_t0A_Vivify_Machine_Internal:
+Trigger_05_t0A_Vivify_Machine_Internal:		; Memory Address ($78F0) and binary offset [$756C]
 	subq.w	#$02,d0	;5540
 	bset	#$00,$00(a6,d0.w)	;08F600000000
 	addq.w	#$02,d0	;5440
-adrCd0078FA:
+adrCd0078FA:		; Memory Address ($78FA) and binary offset [$7576]
 	move.w	#$0086,d7	;3E3C0086
 	bsr	adrCd001DBC	;6100A4BC
 	moveq	#$05,d0	;7005
 	bsr	PlaySound	;61000FB8
 	move.w	#$FFFF,Trigger_WaitFlag_AI_TBC.w	;31FCFFFF6FA8	;Short Absolute converted to symbol!
 	moveq	#$03,d0	;7003
-adrLp007910:
+adrLp007910:		; Memory Address ($7910) and binary offset [$758C]
 	tst.b	$18(a5,d0.w)	;4A350018
 	bmi.s	adrCd007958	;6B42
 	btst	#$05,$18(a5,d0.w)	;083500050018
@@ -11844,15 +11929,15 @@ adrLp007910:
 	move.b	#$05,$0005(a4)	;197C00050005
 	move.w	(sp)+,d0	;301F
 	moveq	#$03,d1	;7203
-adrLp007940:
+adrLp007940:		; Memory Address ($7940) and binary offset [$75BC]
 	tst.b	$26(a5,d1.w)	;4A351026
 	bmi.s	adrCd00794C	;6B06
 	dbra	d1,adrLp007940	;51C9FFF8
 	moveq	#$00,d1	;7200
-adrCd00794C:
+adrCd00794C:		; Memory Address ($794C) and binary offset [$75C8]
 	and.b	#$0F,$18(a5,d0.w)	;0235000F0018
 	move.b	$18(a5,d0.w),$26(a5,d1.w)	;1BB500181026
-adrCd007958:
+adrCd007958:		; Memory Address ($7958) and binary offset [$75D4]
 	dbra	d0,adrLp007910	;51C8FFB6
 	move.w	#$FFFF,$0042(a5)	;3B7CFFFF0042
 	move.w	#$FFFF,$0040(a5)	;3B7CFFFF0040
@@ -11860,7 +11945,7 @@ adrCd007958:
 	bsr	adrCd007B50	;610001E2
 	bra	adrCd008246	;600008D4
 
-adrCd007974:
+adrCd007974:		; Memory Address ($7974) and binary offset [$75F0]
 	bsr	adrCd001090	;6100971A
 	move.w	CurrentTower.l,d0	;30390000EE2E
 	move.w	d0,d1	;3200
@@ -11877,11 +11962,11 @@ adrCd007974:
 	move.l	a3,a0	;204B
 	move.w	#$00BF,d0	;303C00BF
 	moveq	#-$01,d2	;74FF
-adrLp0079AC:
+adrLp0079AC:		; Memory Address ($79AC) and binary offset [$7628]
 	move.l	d2,(a0)+	;20C2
 	dbra	d0,adrLp0079AC	;51C8FFFC
 	move.l	a3,a0	;204B
-adrLp0079B4:
+adrLp0079B4:		; Memory Address ($79B4) and binary offset [$7630]
 	move.b	$000A(a4),d2	;142C000A
 	asl.b	#$04,d2	;E902
 	move.b	$0004(a4),d3	;162C0004
@@ -11899,7 +11984,7 @@ adrLp0079B4:
 	asl.w	#$02,d3	;E543
 	add.w	d3,a6	;DCC3
 	moveq	#$03,d2	;7403
-adrLp0079EA:
+adrLp0079EA:		; Memory Address ($79EA) and binary offset [$7666]
 	moveq	#$00,d0	;7000
 	move.b	$00(a6,d2.w),d0	;10362000
 	bmi.s	adrCd007A02	;6B10
@@ -11909,35 +11994,35 @@ adrLp0079EA:
 	move.b	d3,d4	;1803
 	add.b	d2,d4	;D802
 	move.b	d4,$05(a0,d0.w)	;11840005
-adrCd007A02:
+adrCd007A02:		; Memory Address ($7A02) and binary offset [$767E]
 	dbra	d2,adrLp0079EA	;51CAFFE6
-adrCd007A06:
+adrCd007A06:		; Memory Address ($7A06) and binary offset [$7682]
 	addq.w	#$01,a3	;524B
 	add.w	#$0010,a4	;D8FC0010
 	dbra	d1,adrLp0079B4	;51C9FFA6
-adrCd007A10:
+adrCd007A10:		; Memory Address ($7A10) and binary offset [$768C]
 	lea	adrEA0174F8.l,a0	;41F9000174F8
-	move.l	adrL_00EE78.l,a6	;2C790000EE78
+	move.l	Current_TowerMapDataBase.l,a6	;2C790000EE78
 	move.w	-$0002(a0),d7	;3E28FFFE
 	clr.w	-$0002(a0)	;4268FFFE
 	bra.s	adrCd007A30	;600A
 
-adrLp007A26:
+adrLp007A26:		; Memory Address ($7A26) and binary offset [$76A2]
 	move.w	(a0),d0	;3010
 	bclr	#$05,$01(a6,d0.w)	;08B600050001
 	clr.l	(a0)+	;4298
-adrCd007A30:
+adrCd007A30:		; Memory Address ($7A30) and binary offset [$76AC]
 	dbra	d7,adrLp007A26	;51CFFFF4
-adrCd007A34:
+adrCd007A34:		; Memory Address ($7A34) and binary offset [$76B0]
 	tst.w	adrW_0173F4.l	;4A79000173F4
 	beq.s	adrCd007A42	;6706
 	bsr	adrCd001174	;61009736
 	bra.s	adrCd007A34	;60F2
 
-adrCd007A42:
+adrCd007A42:		; Memory Address ($7A42) and binary offset [$76BE]
 	rts	;4E75
 
-Compute_NewMapIndex_AI_TBC:
+Compute_NewMapIndex_AI_TBC:		; Memory Address ($7A44) and binary offset [$76C0]
 	move.l	d7,d5	;2A07
 	bsr	CoordToMap	;61000A54
 	move.w	d0,d2	;3400
@@ -11964,7 +12049,7 @@ Compute_NewMapIndex_AI_TBC:
 	eor.w	#$0002,d6	;0A460002
 	bra.s	adrCd007ADE	;6050
 
-adrCd007A8E:
+adrCd007A8E:		; Memory Address ($7A8E) and binary offset [$770A]
 	and.w	#$0007,d1	;02410007
 	move.b	adrB_007AD0(pc,d1.w),d1	;123B103C
 	beq.s	adrCd007AC0	;6728
@@ -11979,24 +12064,24 @@ adrCd007A8E:
 	beq.s	adrCd007ADC	;672E
 	bra.s	adrCd007AC0	;6010
 
-adrCd007AB0:
+adrCd007AB0:		; Memory Address ($7AB0) and binary offset [$772C]
 	eor.w	#$0002,d6	;0A460002
 	subq.b	#$01,d1	;5301
 	bne.s	adrCd007ABC	;6604
 	bsr.s	adrCd007AF8	;613E
 	bra.s	adrCd007ABE	;6002
 
-adrCd007ABC:
+adrCd007ABC:		; Memory Address ($7ABC) and binary offset [$7738]
 	bsr.s	adrCd007AF4	;6136
-adrCd007ABE:
+adrCd007ABE:		; Memory Address ($7ABE) and binary offset [$773A]
 	bcs.s	adrCd007AD8	;6518
-adrCd007AC0:
+adrCd007AC0:		; Memory Address ($7AC0) and binary offset [$773C]
 	bclr	#$07,$01(a6,d2.w)	;08B600072001
 	bset	#$07,$01(a6,d0.w)	;08F600070001
 	swap	d1	;4841
 	rts	;4E75
 
-adrB_007AD0:
+adrB_007AD0:		; Memory Address ($7AD0) and binary offset [$774C]
 	dc.b	$00	;00
 	dc.b	$FF	;FF
 	dc.b	$02	;02
@@ -12006,34 +12091,34 @@ adrB_007AD0:
 	dc.b	$00	;00
 	dc.b	$FD	;FD
 
-adrCd007AD8:
+adrCd007AD8:		; Memory Address ($7AD8) and binary offset [$7754]
 	eor.w	#$0002,d6	;0A460002
-adrCd007ADC:
+adrCd007ADC:		; Memory Address ($7ADC) and binary offset [$7758]
 	move.w	d2,d0	;3002
-adrCd007ADE:
+adrCd007ADE:		; Memory Address ($7ADE) and binary offset [$775A]
 	move.l	d5,d7	;2E05
 	sub.w	#$FFFF,d1	;0441FFFF
 	rts	;4E75
 
-adrCd007AE6:
+adrCd007AE6:		; Memory Address ($7AE6) and binary offset [$7762]
 	move.b	$01(a6,d0.w),d1	;12360001
 	and.w	#$0007,d1	;02410007
 	cmpi.b	#$02,d1	;0C010002
 	bne.s	adrCd007B04	;6610
-adrCd007AF4:
+adrCd007AF4:		; Memory Address ($7AF4) and binary offset [$7770]
 	move.w	d6,d1	;3206
 	add.w	d1,d1	;D241
-adrCd007AF8:
+adrCd007AF8:		; Memory Address ($7AF8) and binary offset [$7774]
 	btst	d1,$00(a6,d0.w)	;03360000
 	beq.s	adrCd007B04	;6706
 	sub.b	#$FF,d1	;040100FF
 	rts	;4E75
 
-adrCd007B04:
+adrCd007B04:		; Memory Address ($7B04) and binary offset [$7780]
 	swap	d1	;4841
 	rts	;4E75
 
-adrCd007B08:
+adrCd007B08:		; Memory Address ($7B08) and binary offset [$7784]
 	bsr	adrCd008DA8	;6100129E
 	moveq	#$00,d4	;7800
 	moveq	#$60,d5	;7A60
@@ -12042,30 +12127,30 @@ adrCd007B08:
 	moveq	#$1F,d5	;7A1F
 	bsr.s	adrCd007B2E	;6112
 	move.w	#$0090,d5	;3A3C0090
-adrCd007B20:
+adrCd007B20:		; Memory Address ($7B20) and binary offset [$779C]
 	bsr.s	adrCd007B2E	;610C
-adrCd007B22:
+adrCd007B22:		; Memory Address ($7B22) and binary offset [$779E]
 	bsr	adrCd008278	;61000754
 	bsr	adrCd007B50	;61000028
 	bra	adrCd008FB8	;6000148C
 
-adrCd007B2E:
+adrCd007B2E:		; Memory Address ($7B2E) and binary offset [$77AA]
 	move.l	#$013F0001,d3	;263C013F0001
-adrCd007B34:
+adrCd007B34:		; Memory Address ($7B34) and binary offset [$77B0]
 	bsr	BW_blit_horiz_line	;6100604E
 	addq.w	#$01,d5	;5245
 	addq.w	#$01,d3	;5243
 	cmpi.w	#$0005,d3	;0C430005
 	bcs.s	adrCd007B34	;65F2
 	subq.w	#$02,d3	;5543
-adrCd007B44:
+adrCd007B44:		; Memory Address ($7B44) and binary offset [$77C0]
 	bsr	BW_blit_horiz_line	;6100603E
 	addq.w	#$01,d5	;5245
 	subq.w	#$01,d3	;5343
 	bne.s	adrCd007B44	;66F6
 	rts	;4E75
 
-adrCd007B50:
+adrCd007B50:		; Memory Address ($7B50) and binary offset [$77CC]
 	tst.w	$0042(a5)	;4A6D0042
 	bmi	adrCd007EC0	;6B00036A
 	or.b	#$03,$0054(a5)	;002D00030054
@@ -12094,7 +12179,7 @@ adrCd007B50:
 	add.w	$000A(a5),a0	;D0ED000A
 	moveq	#$71,d7	;7E71
 	move.w	$0012(a5),d3	;362D0012
-adrCd007BC0:
+adrCd007BC0:		; Memory Address ($7BC0) and binary offset [$783C]
 	move.w	d7,d0	;3007
 	bsr	adrCd00CAEA	;61004F26
 	addq.w	#$01,d7	;5247
@@ -12108,7 +12193,7 @@ adrCd007BC0:
 	bne.s	adrCd007BE8	;6606
 	cmpi.w	#$0077,d7	;0C470077
 	bcs.s	adrCd007BC0	;65D8
-adrCd007BE8:
+adrCd007BE8:		; Memory Address ($7BE8) and binary offset [$7864]
 	bsr	adrCd007D6C	;61000182
 	lea	GFX_Pockets+$3C60.l,a1	;43F900050362
 	move.l	#$00050006,d5	;2A3C00050006	;Long Addr replaced with Symbol
@@ -12118,7 +12203,7 @@ adrCd007BE8:
 	lea	$0070.w,a3	;47F80070
 	bra	Draw_PlanarGraphic	;600050AC
 
-adrEA007C0E:
+adrEA007C0E:		; Memory Address ($7C0E) and binary offset [$788A]
 	dc.b	$5F	;5F
 	dc.b	$3C	;3C
 	dc.b	$24	;24
@@ -12137,12 +12222,12 @@ adrEA007C0E:
 	dc.b	$FC	;FC
 	dc.b	$16	;16
 	dc.b	$FF	;FF
-adrEA007C20:
+adrEA007C20:		; Memory Address ($7C20) and binary offset [$789C]
 	dc.b	$5F	;5F
 	dc.b	$5F	;5F
 	dc.b	$5F	;5F
 	dc.b	$5F	;5F
-adrEA007C24:
+adrEA007C24:		; Memory Address ($7C24) and binary offset [$78A0]
 	dc.b	$00	;00
 	dc.b	$FF	;FF
 	dc.b	$00	;00
@@ -12151,7 +12236,7 @@ adrEA007C24:
 	dc.b	$FF	;FF
 	dc.b	$FC	;FC
 	dc.b	$FF	;FF
-adrEA007C2C:
+adrEA007C2C:		; Memory Address ($7C2C) and binary offset [$78A8]
 	dc.b	$5F	;5F
 	dc.b	$5F	;5F
 	dc.b	$5F	;5F
@@ -12166,7 +12251,7 @@ adrEA007C2C:
 	dc.b	$FB	;FB
 	dc.b	$41	;41
 	dc.b	$FF	;FF
-adrEA007C3A:
+adrEA007C3A:		; Memory Address ($7C3A) and binary offset [$78B6]
 	dc.b	$5F	;5F
 	dc.b	$5F	;5F
 	dc.b	$2C	;2C
@@ -12186,7 +12271,7 @@ adrEA007C3A:
 	dc.b	$FC	;FC
 	dc.b	$48	;48
 	dc.b	$FF	;FF
-adrEA007C4D:
+adrEA007C4D:		; Memory Address ($7C4D) and binary offset [$78C9]
 	dc.b	$5F	;5F
 	dc.b	$5F	;5F
 	dc.b	$5F	;5F
@@ -12221,7 +12306,7 @@ adrEA007C4D:
 	dc.b	$20	;20
 	dc.b	$4C	;4C
 	dc.b	$FF	;FF
-adrEA007C6F:
+adrEA007C6F:		; Memory Address ($7C6F) and binary offset [$78EB]
 	dc.b	$5F	;5F
 	dc.b	$5F	;5F
 	dc.b	$5F	;5F
@@ -12246,7 +12331,7 @@ adrEA007C6F:
 	dc.b	$FA	;FA
 	dc.b	$53	;53
 	dc.b	$FF	;FF
-adrEA007C87:
+adrEA007C87:		; Memory Address ($7C87) and binary offset [$7903]
 	dc.b	$5F	;5F
 	dc.b	$5F	;5F
 	dc.b	$5F	;5F
@@ -12259,7 +12344,7 @@ adrEA007C87:
 	dc.b	$FF	;FF
 	dc.b	$57	;57
 	dc.b	$FF	;FF
-adrEA007C93:
+adrEA007C93:		; Memory Address ($7C93) and binary offset [$790F]
 	dc.b	$5F	;5F
 	dc.b	$5F	;5F
 	dc.b	$5F	;5F
@@ -12274,15 +12359,15 @@ adrEA007C93:
 	dc.b	$FF	;FF
 	dc.b	$00	;00
 
-adrJA007CA0:
+adrJA007CA0:		; Memory Address ($7CA0) and binary offset [$791C]
 	lea	adrEA007C0E.w,a6	;4DF87C0E	;Short Absolute converted to symbol!
 	rts	;4E75
 
-adrJA007CA6:
+adrJA007CA6:		; Memory Address ($7CA6) and binary offset [$7922]
 	bsr.s	adrCd007D06	;615E
 	moveq	#$01,d1	;7201
 	moveq	#$00,d3	;7600
-adrCd007CAC:
+adrCd007CAC:		; Memory Address ($7CAC) and binary offset [$7928]
 	move.b	$18(a5,d1.w),d0	;10351018
 	and.w	#$00E0,d0	;024000E0
 	bne.s	adrCd007CCC	;6616
@@ -12292,17 +12377,17 @@ adrCd007CAC:
 	move.b	#$5F,$00(a6,d3.w)	;1DBC005F3000
 	addq.w	#$01,d3	;5243
 	addq.w	#$02,d2	;5442
-adrCd007CCC:
+adrCd007CCC:		; Memory Address ($7CCC) and binary offset [$7948]
 	addq.w	#$01,d1	;5241
 	cmpi.w	#$0004,d1	;0C410004
 	bcs.s	adrCd007CAC	;65D8
 	rts	;4E75
 
-adrJA007CD6:
+adrJA007CD6:		; Memory Address ($7CD6) and binary offset [$7952]
 	bsr.s	adrCd007D06	;612E
 	moveq	#$02,d1	;7202
 	moveq	#$00,d3	;7600
-adrLp007CDC:
+adrLp007CDC:		; Memory Address ($7CDC) and binary offset [$7958]
 	move.b	$19(a5,d1.w),d0	;10351019
 	bmi.s	adrCd007D00	;6B1E
 	btst	#$05,d0	;08000005
@@ -12314,46 +12399,46 @@ adrLp007CDC:
 	move.b	#$5F,$00(a6,d3.w)	;1DBC005F3000
 	addq.w	#$02,d2	;5442
 	addq.w	#$01,d3	;5243
-adrCd007D00:
+adrCd007D00:		; Memory Address ($7D00) and binary offset [$797C]
 	dbra	d1,adrLp007CDC	;51C9FFDA
 	rts	;4E75
 
-adrCd007D06:
+adrCd007D06:		; Memory Address ($7D06) and binary offset [$7982]
 	lea	adrEA007C20.w,a6	;4DF87C20	;Short Absolute converted to symbol!
 	move.b	#$FC,d0	;103C00FC
 	moveq	#$08,d2	;7408
-adrCd007D10:
+adrCd007D10:		; Memory Address ($7D10) and binary offset [$798C]
 	move.b	d0,$02(a6,d2.w)	;1D802002
 	subq.w	#$02,d2	;5542
 	bne.s	adrCd007D10	;66F8
 	move.l	#$FFFFFFFF,(a6)	;2CBCFFFFFFFF
 	rts	;4E75
 
-adrJA007D20:
+adrJA007D20:		; Memory Address ($7D20) and binary offset [$799C]
 	lea	adrEA007C2C.w,a6	;4DF87C2C	;Short Absolute converted to symbol!
 	rts	;4E75
 
-adrJA007D26:
+adrJA007D26:		; Memory Address ($7D26) and binary offset [$79A2]
 	lea	adrEA007C3A.w,a6	;4DF87C3A	;Short Absolute converted to symbol!
 	rts	;4E75
 
-adrJA007D2C:
+adrJA007D2C:		; Memory Address ($7D2C) and binary offset [$79A8]
 	lea	adrEA007C4D.w,a6	;4DF87C4D	;Short Absolute converted to symbol!
 	rts	;4E75
 
-adrJA007D32:
+adrJA007D32:		; Memory Address ($7D32) and binary offset [$79AE]
 	lea	adrEA007C6F.w,a6	;4DF87C6F	;Short Absolute converted to symbol!
 	rts	;4E75
 
-adrJA007D38:
+adrJA007D38:		; Memory Address ($7D38) and binary offset [$79B4]
 	lea	adrEA007C87.w,a6	;4DF87C87	;Short Absolute converted to symbol!
 	rts	;4E75
 
-adrJA007D3E:
+adrJA007D3E:		; Memory Address ($7D3E) and binary offset [$79BA]
 	lea	adrEA007C93.w,a6	;4DF87C93	;Short Absolute converted to symbol!
 	rts	;4E75
 
-adrJT007D44:
+adrJT007D44:		; Memory Address ($7D44) and binary offset [$79C0]
 	dc.l	adrJA007CA0	;00007CA0
 	dc.l	adrJA007CA6	;00007CA6
 	dc.l	$00000000	;00000000
@@ -12365,7 +12450,7 @@ adrJT007D44:
 	dc.l	adrJA007D38	;00007D38
 	dc.l	adrJA007D3E	;00007D3E
 
-adrCd007D6C:
+adrCd007D6C:		; Memory Address ($7D6C) and binary offset [$79E8]
 	or.b	#$01,$0054(a5)	;002D00010054
 	move.w	$0044(a5),d0	;302D0044
 	asl.w	#$02,d0	;E540
@@ -12375,7 +12460,7 @@ adrCd007D6C:
 	move.l	#$00060039,d5	;2A3C00060039
 	add.w	$0008(a5),d5	;DA6D0008
 	moveq	#$00,d7	;7E00
-adrCd007D8E:
+adrCd007D8E:		; Memory Address ($7D8E) and binary offset [$7A0A]
 	moveq	#$02,d3	;7602
 	moveq	#$00,d4	;7800
 	move.b	$00(a6,d7.w),d4	;18367000
@@ -12383,13 +12468,13 @@ adrCd007D8E:
 	moveq	#$5F,d4	;785F
 	bra.s	adrCd007DAC	;6010
 
-adrCd007D9C:
+adrCd007D9C:		; Memory Address ($7D9C) and binary offset [$7A18]
 	cmp.b	$0040(a5),d7	;BE2D0040
 	bne.s	adrCd007DAC	;660A
 	tst.b	$0041(a5)	;4A2D0041
 	bne.s	adrCd007DAC	;6604
 	move.w	$0010(a5),d3	;362D0010
-adrCd007DAC:
+adrCd007DAC:		; Memory Address ($7DAC) and binary offset [$7A28]
 	subq.w	#$01,d4	;5344
 	swap	d4	;4844
 	movem.l	d4/d5/d7,-(sp)	;48E70D00
@@ -12414,9 +12499,9 @@ adrCd007DAC:
 	tst.b	$0041(a5)	;4A2D0041
 	beq.s	adrCd007DEE	;6704
 	move.w	$0010(a5),d3	;362D0010
-adrCd007DEE:
+adrCd007DEE:		; Memory Address ($7DEE) and binary offset [$7A6A]
 	bsr	BW_draw_bar	;61005C78
-adrCd007DF2:
+adrCd007DF2:		; Memory Address ($7DF2) and binary offset [$7A6E]
 	movem.l	(sp)+,d4/d5/d7	;4CDF00B0
 	addq.w	#$08,d5	;5045
 	addq.w	#$01,d7	;5247
@@ -12427,13 +12512,13 @@ adrCd007DF2:
 	add.w	#$0910,a0	;D0FC0910
 	addq.w	#$04,a6	;584E
 	moveq	#$00,d7	;7E00
-adrCd007E12:
+adrCd007E12:		; Memory Address ($7E12) and binary offset [$7A8E]
 	move.l	a0,-(sp)	;2F08
 	bsr	Print_com_menu_entry	;61005936
 	clr.b	InputStateFlag_AI_TBC.l	;42390000EE2D
 	move.l	(sp)+,a0	;205F
 	add.w	#$0140,a0	;D0FC0140
-adrL_007E22:	equ	*-2
+adrL_007E22:		equ	*-2		; Memory Address ($7E22) and binary offset [$7A9E]
 	addq.w	#$01,d7	;5247
 	cmpi.w	#$0004,d7	;0C470004
 	bcs.s	adrCd007E12	;65E6
@@ -12447,17 +12532,17 @@ adrL_007E22:	equ	*-2
 	addq.w	#$01,d4	;5244
 	bra	BW_blit_vertical_line	;60005CBC
 
-adrCd007E4A:
+adrCd007E4A:		; Memory Address ($7E4A) and binary offset [$7AC6]
 	add.l	screen_ptr.l,a0	;D1F900008D36
 	add.w	$000A(a5),a0	;D0ED000A
 	lea	GFX_Pockets+$6500.l,a1	;43F900052C02
 	move.l	#$00000024,-(sp)	;2F3C00000024
 	moveq	#$00,d3	;7600
-adrCd007E62:
+adrCd007E62:		; Memory Address ($7E62) and binary offset [$7ADE]
 	lea	$0098.w,a3	;47F80098
 	bra	adrCd00CE28	;60004FC0
 
-adrCd007E6A:
+adrCd007E6A:		; Memory Address ($7E6A) and binary offset [$7AE6]
 	btst	d7,$003E(a5)	;0F2D003E
 	beq.s	adrCd007E80	;6710
 	move.b	$18(a5,d7.w),d1	;12357018
@@ -12465,10 +12550,10 @@ adrCd007E6A:
 	and.w	#$000F,d0	;0240000F
 	and.w	#$00E0,d1	;024100E0
 	beq.s	adrCd007E82	;6702
-adrCd007E80:
+adrCd007E80:		; Memory Address ($7E80) and binary offset [$7AFC]
 	rts	;4E75
 
-adrCd007E82:
+adrCd007E82:		; Memory Address ($7E82) and binary offset [$7AFE]
 	move.b	d0,-$0017(a3)	;1740FFE9
 	move.w	d7,d0	;3007
 	add.w	d7,d7	;DE47
@@ -12481,11 +12566,11 @@ adrCd007E82:
 	move.w	#$FFFF,adrW_00AD64.l	;33FCFFFF0000AD64
 	bra	Draw_Character	;6000289E
 
-adrW_007EA8:
+adrW_007EA8:		; Memory Address ($7EA8) and binary offset [$7B24]
 	dc.w	$0011	;0011
-adrW_007EAA:
+adrW_007EAA:		; Memory Address ($7EAA) and binary offset [$7B26]
 	dc.w	$001C	;001C
-adrW_007EAC:
+adrW_007EAC:		; Memory Address ($7EAC) and binary offset [$7B28]
 	dc.w	$0000	;0000
 	dc.w	$0008	;0008
 	dc.w	$0048	;0048
@@ -12497,15 +12582,15 @@ adrW_007EAC:
 	dc.w	$0048	;0048
 	dc.w	$0001	;0001
 
-adrCd007EC0:
+adrCd007EC0:		; Memory Address ($7EC0) and binary offset [$7B3C]
 	moveq	#$03,d7	;7E03
-adrLp007EC2:
+adrLp007EC2:		; Memory Address ($7EC2) and binary offset [$7B3E]
 	move.w	d7,-(sp)	;3F07
 	bsr	adrCd007EF0	;6100002A
 	move.w	(sp)+,d7	;3E1F
 	dbra	d7,adrLp007EC2	;51CFFFF6
 	bsr	adrCd007FF8	;61000128
-adrCd007ED2:
+adrCd007ED2:		; Memory Address ($7ED2) and binary offset [$7B4E]
 	lea	GFX_Pockets+$3C30.l,a1	;43F900050332
 	move.l	#$00050006,d5	;2A3C00050006	;Long Addr replaced with Symbol
 	move.l	screen_ptr.l,a0	;207900008D36
@@ -12513,19 +12598,19 @@ adrCd007ED2:
 	add.w	$000A(a5),a0	;D0ED000A
 	bra	adrLp008D3E	;60000E50
 
-adrCd007EF0:
+adrCd007EF0:		; Memory Address ($7EF0) and binary offset [$7B6C]
 	tst.b	$5A(a5,d7.w)	;4A35705A
 	bmi.s	adrCd007EF8	;6B02
 	rts	;4E75
 
-adrCd007EF8:
+adrCd007EF8:		; Memory Address ($7EF8) and binary offset [$7B74]
 	or.b	#$03,$0054(a5)	;002D00030054
 	tst.w	d7	;4A47
 	beq.s	adrCd007F0A	;6708
 	clr.w	adrW_00EE2A.l	;42790000EE2A
 	bra.s	adrCd007F54	;604A
 
-adrCd007F0A:
+adrCd007F0A:		; Memory Address ($7F0A) and binary offset [$7B86]
 	tst.w	$0042(a5)	;4A6D0042
 	bpl	adrCd00CCBE	;6A004DAE
 	moveq	#$00,d3	;7600
@@ -12539,7 +12624,7 @@ adrCd007F0A:
 	bsr	adrCd00CCBE	;61004D8E
 	bra	adrCd007FF8	;600000C4
 
-adrCd007F36:
+adrCd007F36:		; Memory Address ($7F36) and binary offset [$7BB2]
 	move.l	#$00000230,a0	;207C00000230
 	bsr	adrCd007E4A	;6100FF0C
 	move.l	#$00000235,a0	;207C00000235
@@ -12548,7 +12633,7 @@ adrCd007F36:
 	bsr	adrCd007FB2	;61000064
 	bra	adrCd007FF8	;600000A6
 
-adrCd007F54:
+adrCd007F54:		; Memory Address ($7F54) and binary offset [$7BD0]
 	move.l	screen_ptr.l,a0	;207900008D36
 	add.w	#$0898,a0	;D0FC0898
 	add.w	$000A(a5),a0	;D0ED000A
@@ -12564,7 +12649,7 @@ adrCd007F54:
 	move.w	$0012(a5),d3	;362D0012
 	bra	adrCd00CE26	;60004EA2
 
-adrCd007F86:
+adrCd007F86:		; Memory Address ($7F86) and binary offset [$7C02]
 	btst	d0,$003E(a5)	;012D003E
 	beq.s	adrCd007FD6	;674A
 	btst	#$05,d7	;08070005
@@ -12577,7 +12662,7 @@ adrCd007F86:
 	move.l	#$00000090,a3	;267C00000090
 	bsr	Draw_PlanarGraphic	;61004D0A
 	move.w	(sp)+,d7	;3E1F
-adrCd007FB2:
+adrCd007FB2:		; Memory Address ($7FB2) and binary offset [$7C2E]
 	link	a3,#-$0020	;4E53FFE0
 	move.b	#$FF,-$0019(a3)	;177C00FFFFE7
 	clr.b	-$0015(a3)	;422BFFEB
@@ -12586,16 +12671,16 @@ adrCd007FB2:
 	move.l	a0,-$0008(a3)	;2748FFF8
 	bsr	adrCd007E6A	;6100FE9A
 	unlk	a3	;4E5B
-adrCd007FD4:
+adrCd007FD4:		; Memory Address ($7FD4) and binary offset [$7C50]
 	rts	;4E75
 
-adrCd007FD6:
+adrCd007FD6:		; Memory Address ($7FD6) and binary offset [$7C52]
 	moveq	#$04,d3	;7604
 	btst	#$06,d7	;08070006
 	beq.s	adrCd007FE0	;6702
-adrCd007FDE:
+adrCd007FDE:		; Memory Address ($7FDE) and binary offset [$7C5A]
 	moveq	#$00,d3	;7600
-adrCd007FE0:
+adrCd007FE0:		; Memory Address ($7FE0) and binary offset [$7C5C]
 	and.w	#$000F,d7	;0247000F
 	tst.w	d3	;4A43
 	beq.s	adrCd007FF4	;670C
@@ -12603,10 +12688,10 @@ adrCd007FE0:
 	cmpi.w	#$0008,d3	;0C430008
 	bne.s	adrCd007FF4	;6602
 	subq.w	#$01,d3	;5343
-adrCd007FF4:
+adrCd007FF4:		; Memory Address ($7FF4) and binary offset [$7C70]
 	bra	Draw_ShieldAvatar	;60004DAA
 
-adrCd007FF8:
+adrCd007FF8:		; Memory Address ($7FF8) and binary offset [$7C74]
 	tst.w	$0042(a5)	;4A6D0042
 	bpl.s	adrCd007FD4	;6AD6
 	moveq	#$36,d4	;7836
@@ -12667,7 +12752,7 @@ adrCd007FF8:
 	add.w	#$0286,a0	;D0FC0286
 	move.l	#$00020005,d5	;2A3C00020005	;Long Addr replaced with Symbol
 	bsr	Draw_PlanarGraphic	;61004BF0
-adrCd0080CA:
+adrCd0080CA:		; Memory Address ($80CA) and binary offset [$7D46]
 	tst.w	$0042(a5)	;4A6D0042
 	bpl	adrCd008256	;6A000186
 	or.b	#$01,$0054(a5)	;002D00010054
@@ -12689,7 +12774,7 @@ adrCd0080CA:
 	btst	#$00,(a5)	;08150000
 	beq.s	adrLp00811E	;6702
 	moveq	#$0C,d3	;760C
-adrLp00811E:
+adrLp00811E:		; Memory Address ($811E) and binary offset [$7D9A]
 	move.b	(a6)+,d0	;101E
 	beq.s	adrCd008132	;6710
 	move.b	(a6),d1	;1216
@@ -12697,16 +12782,16 @@ adrLp00811E:
 	movem.l	d3-d6,-(sp)	;48E71E00
 	bsr	BW_draw_bar	;6100593C
 	movem.l	(sp)+,d3-d6	;4CDF0078
-adrCd008132:
+adrCd008132:		; Memory Address ($8132) and binary offset [$7DAE]
 	addq.w	#$07,d5	;5E45
 	addq.w	#$01,a6	;524E
 	dbra	d6,adrLp00811E	;51CEFFE6
 	rts	;4E75
 
-adrCd00813C:
+adrCd00813C:		; Memory Address ($813C) and binary offset [$7DB8]
 	move.l	#$00220037,d4	;283C00220037
 	moveq	#$23,d2	;7423
-Scale_ValueToBarLength:
+Scale_ValueToBarLength:		; Memory Address ($8144) and binary offset [$7DC0]
 	; ReSource: Scales D0 against maximum D1 to a D2-pixel bar length. Used here to scale food $00-$C7 across 48 pixels.
 	swap	d4	;4844
 	cmp.b	d1,d0	;B001
@@ -12716,16 +12801,16 @@ Scale_ValueToBarLength:
 	mulu	d2,d0	;C0C2
 	divu	d1,d0	;80C1
 	move.w	d0,d4	;3800
-adrCd008158:
+adrCd008158:		; Memory Address ($8158) and binary offset [$7DD4]
 	swap	d4	;4844
 	rts	;4E75
 
-adrCd00815C:
+adrCd00815C:		; Memory Address ($815C) and binary offset [$7DD8]
 	moveq	#$0E,d3	;760E
 	lea	Character_Stats_DataTable+$05.l,a6	;4DF90000EB2F
 	moveq	#$03,d6	;7C03
 	move.l	#$00060052,d5	;2A3C00060052
-adrLp00816C:
+adrLp00816C:		; Memory Address ($816C) and binary offset [$7DE8]
 	move.b	$18(a5,d6.w),d0	;10356018
 	move.w	d0,d1	;3200
 	and.w	#$00E0,d1	;024100E0
@@ -12754,19 +12839,19 @@ adrLp00816C:
 	move.b	adrB_0081CA(pc,d0.w),d3	;163B0014
 	bsr	BW_draw_bar	;610058AE
 	movem.l	(sp)+,d3-d6	;4CDF0078
-adrCd0081C0:
+adrCd0081C0:		; Memory Address ($81C0) and binary offset [$7E3C]
 	sub.w	#$0009,d5	;04450009
 	dbra	d6,adrLp00816C	;51CEFFA6
-adrCd0081C8:
+adrCd0081C8:		; Memory Address ($81C8) and binary offset [$7E44]
 	rts	;4E75
 
-adrB_0081CA:
+adrB_0081CA:		; Memory Address ($81CA) and binary offset [$7E46]
 	dc.b	$06	;06
 	dc.b	$0D	;0D
 	dc.b	$0C	;0C
 	dc.b	$07	;07
 
-Load_MapPosition_AI_TBC:
+Load_MapPosition_AI_TBC:		; Memory Address ($81CE) and binary offset [$7E4A]
 	tst.w	$0014(a5)	;4A6D0014
 	bne.s	adrCd0081C8	;66F4
 	or.b	#$04,$0054(a5)	;002D00040054
@@ -12783,10 +12868,10 @@ Load_MapPosition_AI_TBC:
 	move.w	d2,d0	;3002
 	bsr	Character_GetClassIndex	;6100E700
 	add.w	#$0064,d0	;06400064
-adrCd008206:
+adrCd008206:		; Memory Address ($8206) and binary offset [$7E82]
 	bra	adrCd00CAEA	;600048E2
 
-adrCd00820A:
+adrCd00820A:		; Memory Address ($820A) and binary offset [$7E86]
 	and.w	#$0007,d2	;02420007
 	move.b	adrB_00821E(pc,d2.w),d0	;103B200E
 	cmpi.w	#$0040,d0	;0C400040
@@ -12794,7 +12879,7 @@ adrCd00820A:
 	add.w	$0020(a5),d0	;D06D0020
 	bra.s	adrCd008206	;60E8
 
-adrB_00821E:
+adrB_00821E:		; Memory Address ($821E) and binary offset [$7E9A]
 	dc.b	$3C	;3C
 	dc.b	$3D	;3D
 	dc.b	$3E	;3E
@@ -12804,27 +12889,27 @@ adrB_00821E:
 	dc.b	$45	;45
 	dc.b	$46	;46
 
-adrL_008226:
+adrL_008226:		; Memory Address ($8226) and binary offset [$7EA2]
 	tst.b	$0055(a5)	;4A2D0055
 	bpl.s	adrCd008230	;6A04
 	bsr	adrCd006D3C	;6100EB0E
-adrCd008230:
+adrCd008230:		; Memory Address ($8230) and binary offset [$7EAC]
 	move.b	$0034(a5),d0	;102D0034
 	bmi.s	adrCd008256	;6B20
 	move.b	#$FF,$0034(a5)	;1B7C00FF0034
 	lea	adrEA0041DE.w,a6	;4DF841DE	;Short Absolute converted to symbol!
 	move.b	d0,(a6)	;1C80
 	bsr	Print_timed_message	;61005626
-adrCd008246:
+adrCd008246:		; Memory Address ($8246) and binary offset [$7EC2]
 	moveq	#$00,d0	;7000
 	move.b	$0015(a5),d0	;102D0015
 	beq	adrCd008396	;67000148
 	subq.b	#$03,d0	;5700
 	beq	Refresh_HeldItemDisplay	;6700E9E0
-adrCd008256:
+adrCd008256:		; Memory Address ($8256) and binary offset [$7ED2]
 	rts	;4E75
 
-adrCd008258:
+adrCd008258:		; Memory Address ($8258) and binary offset [$7ED4]
 	or.b	#$0C,$0054(a5)	;002D000C0054
 	bsr	adrCd00CF96	;61004D36
 	move.l	#$005E00E1,d4	;283C005E00E1
@@ -12833,13 +12918,13 @@ adrCd008258:
 	moveq	#$00,d3	;7600
 	bra	BW_draw_bar	;600057F2
 
-adrCd008278:
+adrCd008278:		; Memory Address ($8278) and binary offset [$7EF4]
 	bsr.s	adrCd008258	;61DE
 	move.w	#$00E2,d4	;383C00E2
 	moveq	#$0A,d5	;7A0A
 	add.w	$0008(a5),d5	;DA6D0008
 	move.l	#$005D0001,d3	;263C005D0001
-adrCd00828A:
+adrCd00828A:		; Memory Address ($828A) and binary offset [$7F06]
 	bsr	BW_blit_horiz_line	;610058F8
 	addq.w	#$01,d5	;5245
 	addq.w	#$01,d3	;5243
@@ -12853,7 +12938,7 @@ adrCd00828A:
 	move.w	$0010(a5),d3	;362D0010
 	bsr	BW_draw_bar	;610057B4
 	move.w	#$0001,d3	;363C0001
-adrCd0082BA:
+adrCd0082BA:		; Memory Address ($82BA) and binary offset [$7F36]
 	addq.w	#$01,d5	;5245
 	bsr	BW_blit_horiz_line	;610058C6
 	addq.w	#$01,d3	;5243
@@ -12873,7 +12958,7 @@ adrCd0082BA:
 	btst	#$00,(a5)	;08150000
 	bne.s	adrCd008308	;6604
 	add.w	#$0020,a1	;D2FC0020
-adrCd008308:
+adrCd008308:		; Memory Address ($8308) and binary offset [$7F84]
 	move.l	#$0003001E,d5	;2A3C0003001E	;Long Addr replaced with Symbol
 	bsr	Draw_PlanarGraphic	;610049A8
 	bsr	Load_MapPosition_AI_TBC	;6100FEBA
@@ -12887,7 +12972,7 @@ adrCd008308:
 	add.w	#$0011,d5	;06450011
 	bsr	BW_blit_horiz_line	;6100584C
 	addq.w	#$02,d5	;5445
-adrCd00833C:
+adrCd00833C:		; Memory Address ($833C) and binary offset [$7FB8]
 	bsr	BW_blit_horiz_line	;61005846
 	addq.w	#$01,d5	;5245
 	addq.w	#$01,d3	;5243
@@ -12897,7 +12982,7 @@ adrCd00833C:
 	bsr	BW_blit_horiz_line	;61005836
 	bsr.s	adrCd008396	;6144
 	move.l	#$00000E04,a0	;207C00000E04	;Long Addr replaced with Symbol
-adrCd008358:
+adrCd008358:		; Memory Address ($8358) and binary offset [$7FD4]
 	move.l	#$00000070,a3	;267C00000070
 	lea	GFX_Pockets+$3C00.l,a1	;43F900050302
 	move.l	#$00050006,d5	;2A3C00050006	;Long Addr replaced with Symbol
@@ -12913,23 +12998,23 @@ adrCd008358:
 	lsr.w	#$02,d2	;E44A
 	add.w	d2,d0	;D042
 	add.w	#$0050,d0	;06400050
-adrCd00838C:
+adrCd00838C:		; Memory Address ($838C) and binary offset [$8008]
 	rts	;4E75
 
-adrW_00838E:
+adrW_00838E:		; Memory Address ($838E) and binary offset [$800A]
 	dc.w	$08E4	;08E4
 	dc.w	$0000	;0000
 	dc.w	$0256	;0256
 	dc.w	$FFFC	;FFFC
 
-adrCd008396:
+adrCd008396:		; Memory Address ($8396) and binary offset [$8012]
 	btst	#$06,$0018(a5)	;082D00060018
 	bne.s	adrCd00838C	;66EE
 	or.b	#$04,$0054(a5)	;002D00040054
 	move.l	screen_ptr.l,a0	;207900008D36
 	add.w	$000A(a5),a0	;D0ED000A
 	moveq	#$00,d7	;7E00
-adrCd0083B0:
+adrCd0083B0:		; Memory Address ($83B0) and binary offset [$802C]
 	move.w	d7,d2	;3407
 	add.w	d2,d2	;D442
 	add.w	adrW_00838E(pc,d2.w),a0	;D0FB20D8
@@ -12938,15 +13023,15 @@ adrCd0083B0:
 	bsr	adrCd008462	;610000A2
 	bra.s	adrCd0083D4	;6010
 
-adrCd0083C4:
+adrCd0083C4:		; Memory Address ($83C4) and binary offset [$8040]
 	cmp.w	$0016(a5),d7	;BE6D0016
 	beq.s	adrCd0083D0	;6706
 	bsr	adrCd008430	;61000064
 	bra.s	adrCd0083D4	;6004
 
-adrCd0083D0:
+adrCd0083D0:		; Memory Address ($83D0) and binary offset [$804C]
 	bsr	adrCd00842C	;6100005A
-adrCd0083D4:
+adrCd0083D4:		; Memory Address ($83D4) and binary offset [$8050]
 	addq.w	#$01,d7	;5247
 	cmpi.w	#$0004,d7	;0C470004
 	bcs.s	adrCd0083B0	;65D4
@@ -12959,20 +13044,20 @@ adrCd0083D4:
 	btst	#$01,d2	;08020001
 	beq.s	adrCd008402	;6704
 	add.w	#$000F,d5	;0645000F
-adrCd008402:
+adrCd008402:		; Memory Address ($8402) and binary offset [$807E]
 	move.b	adrB_008412(pc,d2.w),d2	;143B200E
 	beq.s	adrCd00840E	;6706
 	sub.l	#$0000FFF0,d4	;04840000FFF0	;Long Addr replaced with Symbol
-adrCd00840E:
+adrCd00840E:		; Memory Address ($840E) and binary offset [$808A]
 	bra	BW_draw_frame	;600056C4
 
-adrB_008412:
+adrB_008412:		; Memory Address ($8412) and binary offset [$808E]
 	dc.b	$00	;00
 	dc.b	$01	;01
 	dc.b	$01	;01
 	dc.b	$00	;00
 
-adrCd008416:
+adrCd008416:		; Memory Address ($8416) and binary offset [$8092]
 	move.b	$18(a5,d7.w),d0	;10357018
 	and.w	#$00EF,d0	;024000EF
 	bmi.s	adrCd008462	;6B42
@@ -12980,18 +13065,18 @@ adrCd008416:
 	bne.s	adrCd008462	;663C
 	btst	#$06,d0	;08000006
 	beq.s	adrCd008430	;6704
-adrCd00842C:
+adrCd00842C:		; Memory Address ($842C) and binary offset [$80A8]
 	moveq	#$00,d6	;7C00
 	bra.s	adrCd00843E	;600E
 
-adrCd008430:
+adrCd008430:		; Memory Address ($8430) and binary offset [$80AC]
 	move.w	d0,d1	;3200
 	bsr	Character_GetClassIndex	;6100E4CC
 	move.w	d0,d6	;3C00
 	move.w	d1,d0	;3001
 	addq.w	#$01,d6	;5246
 	asl.w	#$02,d6	;E546
-adrCd00843E:
+adrCd00843E:		; Memory Address ($843E) and binary offset [$80BA]
 	lea	adrEA00846A.l,a6	;4DF90000846A
 	add.w	d6,a6	;DCC6
 	and.w	#$0003,d0	;02400003
@@ -13001,14 +13086,14 @@ adrCd00843E:
 	clr.w	Buffer_Colour_Mask_Toggle.l	;42790000B4BE
 	rts	;4E75
 
-adrCd008462:
+adrCd008462:		; Memory Address ($8462) and binary offset [$80DE]
 	move.w	#$003B,d0	;303C003B
 	bra	adrCd00CAEA	;60004682
 
-adrEA00846A:
+adrEA00846A:		; Memory Address ($846A) and binary offset [$80E6]
 	dc.w	$0004	;0004
 	dc.w	$030E	;030E
-ClassColours:
+ClassColours:		; Memory Address ($846E) and binary offset [$80EA]
 	; ReSource: Four colour-mask records used when composing champion shield avatars.
 	dc.w	$0006	;0006
 	dc.w	$050E	;050E
@@ -13019,11 +13104,11 @@ ClassColours:
 	dc.w	$0008	;0008
 	dc.w	$070E	;070E
 
-adrCd00847E:
+adrCd00847E:		; Memory Address ($847E) and binary offset [$80FA]
 	move.l	$001C(a5),d7	;2E2D001C
-adrCd008482:
+adrCd008482:		; Memory Address ($8482) and binary offset [$80FE]
 	move.w	$0020(a5),d0	;302D0020
-adrCd008486:
+adrCd008486:		; Memory Address ($8486) and binary offset [$8102]
 	lea	MovementOffsetTable.w,a0	;41F85794	;Short Absolute converted to symbol!
 	add.b	$08(a0,d0.w),d7	;DE300008
 	swap	d7	;4847
@@ -13031,11 +13116,11 @@ adrCd008486:
 	swap	d7	;4847
 	bra.s	CoordToMap	;6004
 
-adrCd008498:
+adrCd008498:		; Memory Address ($8498) and binary offset [$8114]
 	move.l	$001C(a5),d7	;2E2D001C
 CoordToMap:
-	move.l	adrL_00EE78.l,a6	;2C790000EE78
-adrCd0084A2:
+	move.l	Current_TowerMapDataBase.l,a6	;2C790000EE78
+adrCd0084A2:		; Memory Address ($84A2) and binary offset [$811E]
 	move.w	d7,d0	;3007
 	mulu	adrW_00EE70.l,d0	;C0F90000EE70
 	swap	d7	;4847
@@ -13045,7 +13130,7 @@ adrCd0084A2:
 	add.w	adrW_00EE76.l,d0	;D0790000EE76
 	rts	;4E75
 
-adrCd0084BA:
+adrCd0084BA:		; Memory Address ($84BA) and binary offset [$8136]
 	lea	adrEA00EE60.l,a0	;41F90000EE60
 	add.b	$08(a0,d2.w),d7	;DE302008
 	swap	d7	;4847
@@ -13055,22 +13140,22 @@ adrCd0084BA:
 	sub.b	$08(a0,d1.w),d7	;9E301008
 	rts	;4E75
 
-adrCd0084D6:
+adrCd0084D6:		; Memory Address ($84D6) and binary offset [$8152]
 	move.w	$0058(a5),d0	;302D0058
-adrCd0084DA:
-	lea	adrEA00EE40.l,a0	;41F90000EE40
+adrCd0084DA:		; Memory Address ($84DA) and binary offset [$8156]
+	lea	Current_TowerMapHeaderCache.l,a0	;41F90000EE40
 	move.b	$00(a0,d0.w),adrB_00EE71.l	;13F000000000EE71
 	move.b	$08(a0,d0.w),adrB_00EE73.l	;13F000080000EE73
 	add.w	d0,d0	;D040
 	move.w	$10(a0,d0.w),adrW_00EE76.l	;33F000100000EE76
 	rts	;4E75
 
-adrCd0084FC:
+adrCd0084FC:		; Memory Address ($84FC) and binary offset [$8178]
 	moveq	#-$01,d1	;72FF
 	moveq	#$00,d2	;7400
 	move.w	adrW_00EE76.l,d2	;34390000EE76
 	lea	adrEA00EE50.l,a0	;41F90000EE50
-adrCd00850C:
+adrCd00850C:		; Memory Address ($850C) and binary offset [$8188]
 	addq.w	#$01,d1	;5241
 	cmp.w	(a0)+,d2	;B458
 	bne.s	adrCd00850C	;66FA
@@ -13080,26 +13165,26 @@ adrCd00850C:
 	divu	adrW_00EE70.l,d2	;84F90000EE70
 	rts	;4E75
 
-adrL_008520:
+adrL_008520:		; Memory Address ($8520) and binary offset [$819C]
 	dc.l	$00000000	;00000000
 
-adrLp008524:
+adrLp008524:		; Memory Address ($8524) and binary offset [$81A0]
 	bsr	adrCd008534	;6100000E
 	bsr	adrCd008726	;610001FC
 	addq.w	#$02,d0	;5440
 	dbra	d7,adrLp008524	;51CFFFF4
 	rts	;4E75
 
-adrCd008534:
+adrCd008534:		; Memory Address ($8534) and binary offset [$81B0]
 	movem.l	d0-d7/a1-a4,-(sp)	;48E7FF78
 	move.l	adrL_008520.l,a1	;227900008520
 	move.w	#$00F9,d6	;3C3C00F9
-adrLp008542:
+adrLp008542:		; Memory Address ($8542) and binary offset [$81BE]
 	move.l	#$AAAAAAAA,(a1)+	;22FCAAAAAAAA
 	dbra	d6,adrLp008542	;51CEFFF8
 	moveq	#$0A,d3	;760A
 	moveq	#$0B,d2	;740B
-adrLp008550:
+adrLp008550:		; Memory Address ($8550) and binary offset [$81CC]
 	move.l	a1,a6	;2C49
 	move.l	#$AAAAAAAA,(a1)+	;22FCAAAAAAAA
 	move.l	#$44894489,(a1)+	;22FC44894489
@@ -13142,7 +13227,7 @@ adrLp008550:
 	move.l	a1,a4	;2849
 	moveq	#$7F,d5	;7A7F
 	moveq	#$00,d4	;7800
-adrLp0085C2:
+adrLp0085C2:		; Memory Address ($85C2) and binary offset [$823E]
 	move.l	(a0)+,d7	;2E18
 	move.l	d7,d6	;2C07
 	and.l	#$AAAAAAAA,d6	;0286AAAAAAAA
@@ -13178,13 +13263,13 @@ adrLp0085C2:
 	move.w	#$9100,_custom+adkcon.l	;33FC910000DFF09E
 	move.w	#$4000,_custom+dsklen.l	;33FC400000DFF024
 	move.b	_ciab+ciaicr.l,d0	;103900BFDD00
-adrCd008656:
+adrCd008656:		; Memory Address ($8656) and binary offset [$82D2]
 	move.b	_ciab+ciaicr.l,d0	;103900BFDD00
 	btst	#$04,d0	;08000004
 	beq.s	adrCd008656	;67F4
 	move.w	#$D955,_custom+dsklen.l	;33FCD95500DFF024
 	move.w	#$D955,_custom+dsklen.l	;33FCD95500DFF024
-adrCd008672:
+adrCd008672:		; Memory Address ($8672) and binary offset [$82EE]
 	move.w	_custom+intreqr.l,d0	;303900DFF01E
 	btst	#$01,d0	;08000001
 	beq.s	adrCd008672	;67F4
@@ -13192,12 +13277,12 @@ adrCd008672:
 	bsr	adrCd00886A	;610001E6
 	bra	adrCd0086D2	;6000004A
 
-adrCd00868A:
+adrCd00868A:		; Memory Address ($868A) and binary offset [$8306]
 	movem.l	d0-d5/a2,-(sp)	;48E7FC20
 	add.w	d5,d5	;DA45
 	subq.w	#$01,d5	;5345
 	move.b	-$0001(a2),d0	;102AFFFF
-adrLp008696:
+adrLp008696:		; Memory Address ($8696) and binary offset [$8312]
 	move.l	(a2),d4	;2812
 	move.l	d4,d1	;2204
 	move.l	d4,d2	;2404
@@ -13216,16 +13301,16 @@ adrLp008696:
 	movem.l	(sp)+,d0-d5/a2	;4CDF043F
 	rts	;4E75
 
-adrCd0086C0:
+adrCd0086C0:		; Memory Address ($86C0) and binary offset [$833C]
 	move.l	a0,-(sp)	;2F08
-adrLp0086C2:
+adrLp0086C2:		; Memory Address ($86C2) and binary offset [$833E]
 	bsr	adrCd0087A6	;610000E2
 	bsr	adrCd008726	;6100005E
 	dbra	d0,adrLp0086C2	;51C8FFF6
 	move.l	(sp)+,a0	;205F
 	rts	;4E75
 
-adrCd0086D2:
+adrCd0086D2:		; Memory Address ($86D2) and binary offset [$834E]
 	btst	#$05,_ciaa.l	;0839000500BFE001
 	bne.s	adrCd0086D2	;66F6
 	rts	;4E75
@@ -13237,11 +13322,11 @@ adrCd0086D2:
 	nop	;4E71
 	move.b	#$71,_ciab+ciaprb.l	;13FC007100BFD100
 	move.w	#$B000,d0	;303CB000
-adrLp0086FC:
+adrLp0086FC:		; Memory Address ($86FC) and binary offset [$8378]
 	dbra	d0,adrLp0086FC	;51C8FFFE
 	rts	;4E75
 
-adrCd008702:
+adrCd008702:		; Memory Address ($8702) and binary offset [$837E]
 	clr.b	adrB_0088A2.l	;4239000088A2
 	move.b	#$7D,_ciab+ciaprb.l	;13FC007D00BFD100
 	nop	;4E71
@@ -13249,11 +13334,11 @@ adrCd008702:
 	move.b	#$75,_ciab+ciaprb.l	;13FC007500BFD100
 	move.w	#$B000,d0	;303CB000
 
-adrLp008720:
+adrLp008720:		; Memory Address ($8720) and binary offset [$839C]
 	dbra	d0,adrLp008720	;51C8FFFE
 	rts	;4E75
 
-adrCd008726:
+adrCd008726:		; Memory Address ($8726) and binary offset [$83A2]
 	tst.b	adrB_0088A2.l	;4A39000088A2
 	beq.s	adrCd008744	;6716
 	move.b	#$70,_ciab+ciaprb.l	;13FC007000BFD100
@@ -13262,16 +13347,16 @@ adrCd008726:
 	move.b	#$71,_ciab+ciaprb.l	;13FC007100BFD100
 	bra.s	adrCd008758	;6014
 
-adrCd008744:
+adrCd008744:		; Memory Address ($8744) and binary offset [$83C0]
 	move.b	#$74,_ciab+ciaprb.l	;13FC007400BFD100
 	nop	;4E71
 	nop	;4E71
 	move.b	#$75,_ciab+ciaprb.l	;13FC007500BFD100
-adrCd008758:
+adrCd008758:		; Memory Address ($8758) and binary offset [$83D4]
 	bsr	adrCd00886A	;61000110
 	bra	adrCd0086D2	;6000FF74
 
-adrCd008760:
+adrCd008760:		; Memory Address ($8760) and binary offset [$83DC]
 	tst.b	adrB_0088A2.l	;4A39000088A2
 	beq.s	adrCd00877E	;6716
 	move.b	#$72,_ciab+ciaprb.l	;13FC007200BFD100
@@ -13280,12 +13365,12 @@ adrCd008760:
 	move.b	#$73,_ciab+ciaprb.l	;13FC007300BFD100
 	bra.s	adrCd008792	;6014
 
-adrCd00877E:
+adrCd00877E:		; Memory Address ($877E) and binary offset [$83FA]
 	move.b	#$76,_ciab+ciaprb.l	;13FC007600BFD100
 	nop	;4E71
 	nop	;4E71
 	move.b	#$77,_ciab+ciaprb.l	;13FC007700BFD100
-adrCd008792:
+adrCd008792:		; Memory Address ($8792) and binary offset [$840E]
 	bsr	adrCd00886A	;610000D6
 	bra	adrCd0086D2	;6000FF3A
 
@@ -13295,10 +13380,10 @@ adrCd008792:
 	bsr	adrCd00886A	;610000C8
 	bra.s	adrCd0087AC	;6006
 
-adrCd0087A6:
+adrCd0087A6:		; Memory Address ($87A6) and binary offset [$8422]
 	movem.l	d0-d2/d5/d6/a1,-(sp)	;48E7E640
 	moveq	#$03,d6	;7C03
-adrCd0087AC:
+adrCd0087AC:		; Memory Address ($87AC) and binary offset [$8428]
 	move.w	#$0002,_custom+intreq.l	;33FC000200DFF09C
 	move.l	adrL_008520.l,a1	;227900008520
 	clr.l	$0002(a1)	;42A90002
@@ -13308,25 +13393,25 @@ adrCd0087AC:
 	move.w	#$9500,_custom+adkcon.l	;33FC950000DFF09E
 	move.w	#$4000,_custom+dsklen.l	;33FC400000DFF024
 	move.b	_ciab+ciaicr.l,d0	;103900BFDD00
-adrCd0087EA:
+adrCd0087EA:		; Memory Address ($87EA) and binary offset [$8466]
 	move.b	_ciab+ciaicr.l,d0	;103900BFDD00
 	btst	#$04,d0	;08000004
 	beq.s	adrCd0087EA	;67F4
 	move.w	#$9F40,_custom+dsklen.l	;33FC9F4000DFF024
 	move.w	#$9F40,_custom+dsklen.l	;33FC9F4000DFF024
 	move.l	#DiskReadTimeoutCount,d1	;223C000186A0
-adrCd00880C:
+adrCd00880C:		; Memory Address ($880C) and binary offset [$8488]
 	move.w	_custom+intreqr.l,d0	;303900DFF01E
 	btst	#$01,d0	;08000001
 	bne.s	adrCd00881C	;6604
 	subq.l	#$01,d1	;5381
 	bne.s	adrCd00880C	;66F0
-adrCd00881C:
+adrCd00881C:		; Memory Address ($881C) and binary offset [$8498]
 	moveq	#$0A,d5	;7A0A
 	lea	$003A(a1),a1	;43E9003A
-adrLp008822:
+adrLp008822:		; Memory Address ($8822) and binary offset [$849E]
 	moveq	#$7F,d6	;7C7F
-adrLp008824:
+adrLp008824:		; Memory Address ($8824) and binary offset [$84A0]
 	move.l	$0200(a1),d1	;22290200
 	move.l	(a1)+,d0	;2019
 	asl.l	#$01,d0	;E380
@@ -13337,11 +13422,11 @@ adrLp008824:
 	dbra	d6,adrLp008824	;51CEFFE6
 	add.l	#$00000240,a1	;D3FC00000240
 	dbra	d5,adrLp008822	;51CDFFDA
-adrCd00884A:
+adrCd00884A:		; Memory Address ($884A) and binary offset [$84C6]
 	movem.l	(sp)+,d0-d2/d5/d6/a1	;4CDF0267
 	rts	;4E75
 
-adrCd008850:
+adrCd008850:		; Memory Address ($8850) and binary offset [$84CC]
 	move.b	_ciaa.l,d0	;103900BFE001
 	btst	#$04,d0	;08000004
 	beq.s	adrCd008866	;670A
@@ -13349,41 +13434,41 @@ adrCd008850:
 	bsr	adrCd00886A	;61000008
 	bra.s	adrCd008850	;60EA
 
-adrCd008866:
+adrCd008866:		; Memory Address ($8866) and binary offset [$84E2]
 	bra	adrCd0086D2	;6000FE6A
 
-adrCd00886A:
+adrCd00886A:		; Memory Address ($886A) and binary offset [$84E6]
 	move.l	d7,-(sp)	;2F07
 	move.w	#$0960,d7	;3E3C0960
-adrLp008870:
+adrLp008870:		; Memory Address ($8870) and binary offset [$84EC]
 	dbra	d7,adrLp008870	;51CFFFFE
 	move.l	(sp)+,d7	;2E1F
 	rts	;4E75
 
-adrCd008878:
+adrCd008878:		; Memory Address ($8878) and binary offset [$84F4]
 	move.b	#$FD,_ciab+ciaprb.l	;13FC00FD00BFD100
 	nop	;4E71
 	nop	;4E71
 	move.b	#$F5,_ciab+ciaprb.l	;13FC00F500BFD100
 	rts	;4E75
 
-adrCd00888E:
+adrCd00888E:		; Memory Address ($888E) and binary offset [$850A]
 	move.l	d7,-(sp)	;2F07
 	bsr.s	adrCd008850	;61BE
 	subq.w	#$01,d7	;5347
 	bcs.s	adrCd00889E	;6508
-adrLp008896:
+adrLp008896:		; Memory Address ($8896) and binary offset [$8512]
 	bsr	adrCd008726	;6100FE8E
 	dbra	d7,adrLp008896	;51CFFFFA
-adrCd00889E:
+adrCd00889E:		; Memory Address ($889E) and binary offset [$851A]
 	move.l	(sp)+,d7	;2E1F
 	rts	;4E75
 
-adrB_0088A2:
+adrB_0088A2:		; Memory Address ($88A2) and binary offset [$851E]
 	dc.b	$00	;00
 	dc.b	$00	;00
 
-adrL_0088A4:
+adrL_0088A4:		; Memory Address ($88A4) and binary offset [$8520]
 	move.w	#$0001,_custom+dmacon.l		;33FC000100DFF096
 	move.w	#$0080,_custom+intena.l		;33FC008000DFF09A
 	move.w	#$0080,_custom+intreq.l		;33FC008000DFF09C
@@ -13407,18 +13492,18 @@ PlaySound:
 	move.w	d0,_custom+aud0+ac_per.l	;33C000DFF0A6
 	move.w	(a0),_custom+aud0+ac_dat.l	;33D000DFF0AA
 	move.w	#$0078,d1			;323C0078
-.soundloop1:
+.soundloop1:		; Memory Address ($8910) and binary offset [$858C]
 	dbra	d1,.soundloop1			;51C9FFFE
 	move.w	#$8001,_custom+dmacon.l		;33FC800100DFF096
 	move.w	#$0078,d1			;323C0078
-.soundloop2:
+.soundloop2:		; Memory Address ($8920) and binary offset [$859C]
 	dbra	d1,.soundloop2			;51C9FFFE
 	move.w	#$0080,_custom+intreq.l		;33FC008000DFF09C
 	move.w	#$8080,_custom+intena.l		;33FC808000DFF09A
 	move.w	(sp)+,d1			;321F
 	rts					;4E75
 
-AudioSampleOffsets:
+AudioSampleOffsets:		; Memory Address ($8938) and binary offset [$85B4]
 	dc.w	SFX_AudioSample_1-SFX_AudioSample_1	;0000
 	dc.w	$0028				;0028
 	dc.w	SFX_AudioSample_1-SFX_AudioSample_1	;0000
@@ -13432,10 +13517,10 @@ AudioSampleOffsets:
 	dc.w	SFX_AudioSample_5-SFX_AudioSample_1	;3684
 	dc.w	$0049				;0049
 
-adrW_008950:
+adrW_008950:		; Memory Address ($8950) and binary offset [$85CC]
 	dc.w	SFX_AudioSample_1-SFX_AudioSample_1	;0000
 
-MouseControl:
+MouseControl:		; Memory Address ($8952) and binary offset [$85CE]
 	move.w	_custom+joy0dat.l,d0	;303900DFF00A
 	move.w	adrW_008950.l,d1	;323900008950
 	move.w	d0,adrW_008950.l	;33C000008950
@@ -13451,15 +13536,15 @@ MouseControl:
 	add.w	d2,d1			;D242
 	bpl.s	adrCd008986		;6A02
 	moveq	#$00,d1			;7200
-adrCd008986:
+adrCd008986:		; Memory Address ($8986) and binary offset [$8602]
 	cmp.b	$003B(a5),d1		;B22D003B
 	bcc.s	adrCd008990		;6404
 	move.b	$003B(a5),d1		;122D003B
-adrCd008990:
+adrCd008990:		; Memory Address ($8990) and binary offset [$860C]
 	cmp.b	$003A(a5),d1		;B22D003A
 	bcs.s	adrCd00899A		;6504
 	move.b	$003A(a5),d1		;122D003A
-adrCd00899A:
+adrCd00899A:		; Memory Address ($899A) and binary offset [$8616]
 	move.w	d1,$0004(a5)		;3B410004
 	lsr.w	#$08,d0			;E048
 	ext.w	d0			;4880
@@ -13467,11 +13552,11 @@ adrCd00899A:
 	add.w	d0,d1			;D240
 	bpl.s	adrCd0089AE		;6A04
 	add.w	#$0140,d1		;06410140
-adrCd0089AE:
+adrCd0089AE:		; Memory Address ($89AE) and binary offset [$862A]
 	cmpi.w	#$0140,d1		;0C410140
 	bcs.s	adrCd0089B8		;6504
 	sub.w	#$0140,d1		;04410140
-adrCd0089B8:
+adrCd0089B8:		; Memory Address ($89B8) and binary offset [$8634]
 	move.w	d1,$0002(a5)		;3B410002
 	move.l	$0002(a5),d1		;222D0002
 	lea	SpritePosition_00.l,a0	;41F900008E84
@@ -13488,32 +13573,32 @@ adrCd0089B8:
 	bpl.s	adrCd0089F6		;6A04
 	tst.b	(a0)			;4A10
 	bmi.s	adrCd008A08		;6B12
-adrCd0089F6:
+adrCd0089F6:		; Memory Address ($89F6) and binary offset [$8672]
 	move.b	d1,(a0)			;1081
 	tst.b	d1			;4A01
 	bpl.s	adrCd008A08		;6A0C
 	tst.b	$0001(a5)		;4A2D0001
 	bmi.s	adrCd008A08		;6B06
 	bset	#$07,$0001(a5)		;08ED00070001
-adrCd008A08:
+adrCd008A08:		; Memory Address ($8A08) and binary offset [$8684]
 	rts				;4E75
 
-adrCd008A0A:
+adrCd008A0A:		; Memory Address ($8A0A) and binary offset [$8686]
 	sub.b	d1,d0			;9001
 	bcc.s	adrCd008A14		;6406
 	tst.b	d0			;4A00
 	bmi.s	adrCd008A1A		;6B08
 	bra.s	adrCd008A18		;6004
 
-adrCd008A14:
+adrCd008A14:		; Memory Address ($8A14) and binary offset [$8690]
 	tst.b	d0			;4A00
 	bpl.s	adrCd008A1A		;6A02
-adrCd008A18:
+adrCd008A18:		; Memory Address ($8A18) and binary offset [$8694]
 	neg.b	d0			;4400
-adrCd008A1A:
+adrCd008A1A:		; Memory Address ($8A1A) and binary offset [$8696]
 	rts	;4E75
 
-InputControls:
+InputControls:		; Memory Address ($8A1C) and binary offset [$8698]
 	tst.w	MultiPlayer.l	;4A790000EE30
 	bne	MouseControl	;6600FF2E
 	bsr	JoystickControl	;610000D6
@@ -13526,7 +13611,7 @@ InputControls:
 	lea	Player1_Data.l,a5	;4BF90000EE7C
 	bsr	adrCd008A98	;61000050
 	lea	SpritePosition_00.l,a0	;41F900008E84
-adrCd008A50:
+adrCd008A50:		; Memory Address ($8A50) and binary offset [$86CC]
 	add.w	#$0037,d1	;06410037
 	move.b	d1,(a0)	;1081
 	move.b	d1,$0048(a0)	;11410048
@@ -13551,7 +13636,7 @@ adrCd008A50:
 	move.b	d1,$004B(a0)	;1141004B
 	rts	;4E75
 
-adrCd008A98:
+adrCd008A98:		; Memory Address ($8A98) and binary offset [$8714]
 	move.l	$0002(a5),d1	;222D0002
 	lsr.b	#$01,d0	;E208
 	bcc.s	adrCd008AAA	;640A
@@ -13559,34 +13644,34 @@ adrCd008A98:
 	cmp.b	$003B(a5),d1	;B22D003B
 	bcc.s	adrCd008AAA	;6402
 	addq.w	#$02,d1	;5441
-adrCd008AAA:
+adrCd008AAA:		; Memory Address ($8AAA) and binary offset [$8726]
 	lsr.b	#$01,d0	;E208
 	bcc.s	adrCd008AB8	;640A
 	addq.w	#$02,d1	;5441
 	cmp.b	$003A(a5),d1	;B22D003A
 	bcs.s	adrCd008AB8	;6502
 	subq.w	#$02,d1	;5541
-adrCd008AB8:
+adrCd008AB8:		; Memory Address ($8AB8) and binary offset [$8734]
 	swap	d1	;4841
 	lsr.b	#$01,d0	;E208
 	bcc.s	adrCd008AC6	;6408
 	subq.w	#$02,d1	;5541
 	bcc.s	adrCd008AC6	;6404
 	add.w	#$0140,d1	;06410140
-adrCd008AC6:
+adrCd008AC6:		; Memory Address ($8AC6) and binary offset [$8742]
 	lsr.b	#$01,d0	;E208
 	bcc.s	adrCd008ACC	;6402
 	addq.w	#$02,d1	;5441
-adrCd008ACC:
+adrCd008ACC:		; Memory Address ($8ACC) and binary offset [$8748]
 	cmpi.w	#$0140,d1	;0C410140
 	bcs.s	adrCd008AD6	;6504
 	sub.w	#$0140,d1	;04410140
-adrCd008AD6:
+adrCd008AD6:		; Memory Address ($8AD6) and binary offset [$8752]
 	swap	d1	;4841
 	move.l	d1,$0002(a5)	;2B410002
 	rts	;4E75
 
-adrCd008ADE:
+adrCd008ADE:		; Memory Address ($8ADE) and binary offset [$875A]
 	move.w	d0,d1	;3200
 	ror.w	#$01,d0	;E258
 	eor.w	d0,d1	;B141
@@ -13602,12 +13687,12 @@ adrCd008ADE:
 	move.w	d2,d0	;3002
 	rts	;4E75
 
-adrEA008AFA:
+adrEA008AFA:		; Memory Address ($8AFA) and binary offset [$8776]
 	dc.w	$0000	;0000
-adrEA008AFC:
+adrEA008AFC:		; Memory Address ($8AFC) and binary offset [$8778]
 	dc.w	$0000	;0000
 
-JoystickControl:
+JoystickControl:		; Memory Address ($8AFE) and binary offset [$877A]
 	move.w	_custom+joy0dat.l,d0	;303900DFF00A
 	bsr.s	adrCd008ADE	;61D8
 	move.b	_ciaa.l,d1	;123900BFE001
@@ -13625,29 +13710,29 @@ JoystickControl:
 	lea	adrEA008AFA.l,a0	;41F900008AFA
 	lea	Player2_Data.l,a5	;4BF90000EEDE
 	moveq	#$01,d1	;7201
-adrLp008B3C:
+adrLp008B3C:		; Memory Address ($8B3C) and binary offset [$87B8]
 	tst.b	$02(a0,d1.w)	;4A301002
 	bpl.s	adrCd008B4C	;6A0A
 	move.b	d0,$02(a0,d1.w)	;11801002
 	and.b	#$7F,d0	;0200007F
 	bra.s	adrCd008B50	;6004
 
-adrCd008B4C:
+adrCd008B4C:		; Memory Address ($8B4C) and binary offset [$87C8]
 	move.b	d0,$02(a0,d1.w)	;11801002
-adrCd008B50:
+adrCd008B50:		; Memory Address ($8B50) and binary offset [$87CC]
 	move.b	d0,$00(a0,d1.w)	;11801000
 	tst.b	d0	;4A00
 	bpl.s	adrCd008B64	;6A0C
 	tst.b	$0001(a5)	;4A2D0001
 	bmi.s	adrCd008B64	;6B06
 	bset	#$07,$0001(a5)	;08ED00070001
-adrCd008B64:
+adrCd008B64:		; Memory Address ($8B64) and binary offset [$87E0]
 	lea	Player1_Data.l,a5	;4BF90000EE7C
 	swap	d0	;4840
 	dbra	d1,adrLp008B3C	;51C9FFCE
 	rts	;4E75
 
-adrCd008B72:
+adrCd008B72:		; Memory Address ($8B72) and binary offset [$87EE]
 	tst.w	Paused_Marker.l	;4A7900008C1C
 	bne.s	adrCd008BE8	;666E
 	tst.b	$0052(a5)	;4A2D0052
@@ -13661,7 +13746,7 @@ adrCd008B72:
 	move.w	#$90FF,$004A(a5)	;3B7C90FF004A
 	bra.s	adrCd008BE0	;6046
 
-adrCd008B9A:
+adrCd008B9A:		; Memory Address ($8B9A) and binary offset [$8816]
 	tst.b	$004A(a5)	;4A2D004A
 	bne.s	adrCd008BDC	;663C
 	tst.b	d0	;4A00
@@ -13669,17 +13754,17 @@ adrCd008B9A:
 	cmpi.w	#$00F9,d0	;0C4000F9
 	beq.s	adrCd008BE0	;6736
 	neg.b	d0	;4400
-adrCd008BAC:
+adrCd008BAC:		; Memory Address ($8BAC) and binary offset [$8828]
 	subq.b	#$01,$004B(a5)	;532D004B
 	move.b	#$02,$004A(a5)	;1B7C0002004A
 	btst	#$00,(a5)	;08150000
 	beq.s	adrCd008BC0	;6704
 	add.w	#$000C,d0	;0640000C
-adrCd008BC0:
+adrCd008BC0:		; Memory Address ($8BC0) and binary offset [$883C]
 	btst	#$06,$0052(a5)	;082D00060052
 	beq.s	adrCd008BCA	;6702
 	addq.w	#$06,d0	;5C40
-adrCd008BCA:
+adrCd008BCA:		; Memory Address ($8BCA) and binary offset [$8846]
 	add.w	d0,d0	;D040
 	move.w	adrCd008BE8(pc,d0.w),d0	;303B001A
 ;fiX Data reference expected
@@ -13687,11 +13772,11 @@ adrCd008BCA:
 	move.w	d0,$004C(a5)	;3B40004C
 	rts	;4E75
 
-adrCd008BDC:
+adrCd008BDC:		; Memory Address ($8BDC) and binary offset [$8858]
 	subq.b	#$01,$004A(a5)	;532D004A
-adrCd008BE0:
+adrCd008BE0:		; Memory Address ($8BE0) and binary offset [$885C]
 	move.w	$004C(a5),_custom+color+$0000001E.l	;33ED004C00DFF19E
-adrCd008BE8:
+adrCd008BE8:		; Memory Address ($8BE8) and binary offset [$8864]
 	rts	;4E75
 
 ;fiX Label expected
@@ -13719,16 +13804,16 @@ adrCd008BE8:
 	dc.w	$0400	;0400
 	dc.w	$0200	;0200
 	dc.w	$0000	;0000
-VBI_Marker:
+VBI_Marker:		; Memory Address ($8C1A) and binary offset [$8896]
 	dc.w	$0000	;0000
-Paused_Marker:
+Paused_Marker:		; Memory Address ($8C1C) and binary offset [$8898]
 	dc.w	$0000	;0000
-FrameSyncFlagWord_AI_TBC:
+FrameSyncFlagWord_AI_TBC:		; Memory Address ($8C1E) and binary offset [$889A]
 	dc.b	$00	;00
-SyncFlagHighByte_AI_TBC:
+SyncFlagHighByte_AI_TBC:		; Memory Address ($8C1F) and binary offset [$889B]
 	dc.b	$FF	;FF
 
-VerticalBlankInterupt:
+VerticalBlankInterupt:		; Memory Address ($8C20) and binary offset [$889C]
 	move.w	d0,-(sp)	;3F00
 	move.w	_custom+intreqr.l,d0	;303900DFF01E
 	and.w	#$0020,d0	;02400020
@@ -13738,7 +13823,7 @@ VerticalBlankInterupt:
 	clr.w	VBI_Marker.l	;427900008C1A
 	rte	;4E73
 
-adrCd008C40:
+adrCd008C40:		; Memory Address ($8C40) and binary offset [$88BC]
 	move.w	(sp)+,d0	;301F
 	eor.w	#$0001,VBI_Marker.l	;0A79000100008C1A
 	beq.s	adrCd008C62	;6716
@@ -13748,23 +13833,23 @@ adrCd008C40:
 	movem.l	(sp)+,d0/a5	;4CDF2001
 	bra	adrCd008CC0	;60000060
 
-adrCd008C62:
+adrCd008C62:		; Memory Address ($8C62) and binary offset [$88DE]
 	movem.l	d0-d7/a0-a6,-(sp)	;48E7FFFE
 	subq.w	#$01,adrW_00EE9E.l	;53790000EE9E
 	bcc.s	adrCd008C74	;6406
 	clr.w	adrW_00EE9E.l	;42790000EE9E
-adrCd008C74:
+adrCd008C74:		; Memory Address ($8C74) and binary offset [$88F0]
 	subq.w	#$01,adrW_00EF00.l	;53790000EF00
 	bcc.s	adrCd008C82	;6406
 	clr.w	adrW_00EF00.l	;42790000EF00
-adrCd008C82:
+adrCd008C82:		; Memory Address ($8C82) and binary offset [$88FE]
 	lea	adrEA00EE36.l,a0	;41F90000EE36
 	moveq	#$02,d0	;7002
-adrLp008C8A:
+adrLp008C8A:		; Memory Address ($8C8A) and binary offset [$8906]
 	subq.w	#$01,(a0)+	;5358
 	bcc.s	adrCd008C92	;6404
 	clr.w	-$0002(a0)	;4268FFFE
-adrCd008C92:
+adrCd008C92:		; Memory Address ($8C92) and binary offset [$890E]
 	dbra	d0,adrLp008C8A	;51C8FFF6
 	lea	Player1_Data.l,a5	;4BF90000EE7C
 	bsr	adrCd008B72	;6100FED4
@@ -13775,32 +13860,32 @@ adrCd008C92:
 	beq.s	adrCd008CBC	;6708
 	clr.b	FrameSyncFlagWord_AI_TBC.l	;423900008C1E
 	bsr.s	adrCd008CCA	;610E
-adrCd008CBC:
+adrCd008CBC:		; Memory Address ($8CBC) and binary offset [$8938]
 	movem.l	(sp)+,d0-d7/a0-a6	;4CDF7FFF
-adrCd008CC0:
+adrCd008CC0:		; Memory Address ($8CC0) and binary offset [$893C]
 	move.w	#$0010,_custom+intreq.l	;33FC001000DFF09C
-adrL_008CC8:
+adrL_008CC8:		; Memory Address ($8CC8) and binary offset [$8944]
 	rte	;4E73
 
-adrCd008CCA:
+adrCd008CCA:		; Memory Address ($8CCA) and binary offset [$8946]
 	cmp.l	#$00060000,screen_ptr.l	;0CB90006000000008D36
 	bne.s	adrCd008CEC	;6616
 	move.l	#$00067D00,screen_ptr.l	;23FC00067D0000008D36
 	move.l	#$00060000,framebuffer_ptr.l	;23FC0006000000008D3A
 	bra.s	adrCd008D00	;6014
 
-adrCd008CEC:
+adrCd008CEC:		; Memory Address ($8CEC) and binary offset [$8968]
 	move.l	#$00060000,screen_ptr.l	;23FC0006000000008D36
 	move.l	#$00067D00,framebuffer_ptr.l	;23FC00067D0000008D3A
-adrCd008D00:
+adrCd008D00:		; Memory Address ($8D00) and binary offset [$897C]
 	lea	CopperList_00.l,a0	;41F900008E10
 	move.l	#$00060000,d0	;203C00060000
 	cmp.l	screen_ptr.l,d0	;B0B900008D36
 	bne.s	adrCd008D1A	;6606
 	move.l	#$00067D00,d0	;203C00067D00
-adrCd008D1A:
+adrCd008D1A:		; Memory Address ($8D1A) and binary offset [$8996]
 	moveq	#$03,d1	;7203
-adrLp008D1C:
+adrLp008D1C:		; Memory Address ($8D1C) and binary offset [$8998]
 	move.w	d0,$0006(a0)	;31400006
 	swap	d0	;4840
 	move.w	d0,$0002(a0)	;31400002
@@ -13815,10 +13900,10 @@ screen_ptr:
 framebuffer_ptr:
 	dc.l	$00067D00	;00067D00
 
-adrLp008D3E:
+adrLp008D3E:		; Memory Address ($8D3E) and binary offset [$89BA]
 	swap	d5	;4845
 	move.w	d5,d4	;3805
-adrLp008D42:
+adrLp008D42:		; Memory Address ($8D42) and binary offset [$89BE]
 	move.w	(a0),d2	;3410
 	or.w	$1F40(a0),d2	;84681F40
 	or.w	$3E80(a0),d2	;84683E80
@@ -13845,33 +13930,33 @@ adrLp008D42:
 	dbra	d5,adrLp008D3E	;51CDFFBA
 	rts	;4E75
 
-adrCd008D88:
+adrCd008D88:		; Memory Address ($8D88) and binary offset [$8A04]
 	move.l	screen_ptr.l,a1	;227900008D36
 	move.l	framebuffer_ptr.l,a0	;207900008D3A
 	move.w	#$1F3F,d0	;303C1F3F
-adrLp008D98:
+adrLp008D98:		; Memory Address ($8D98) and binary offset [$8A14]
 	move.l	(a0)+,(a1)+	;22D8
 	dbra	d0,adrLp008D98	;51C8FFFC
 	rts	;4E75
 
-adrCd008DA0:
+adrCd008DA0:		; Memory Address ($8DA0) and binary offset [$8A1C]
 	move.l	framebuffer_ptr.l,a0	;207900008D3A
 	bra.s	adrCd008DAE	;6006
 
-adrCd008DA8:
+adrCd008DA8:		; Memory Address ($8DA8) and binary offset [$8A24]
 	move.l	screen_ptr.l,a0	;207900008D36
-adrCd008DAE:
+adrCd008DAE:		; Memory Address ($8DAE) and binary offset [$8A2A]
 	move.w	#$1F3F,d0	;303C1F3F
-adrLp008DB2:
+adrLp008DB2:		; Memory Address ($8DB2) and binary offset [$8A2E]
 	clr.l	(a0)+	;4298
 	dbra	d0,adrLp008DB2	;51C8FFFC
 	rts	;4E75
 
-adrCd008DBA:
+adrCd008DBA:		; Memory Address ($8DBA) and binary offset [$8A36]
 	lea	_custom+color.l,a1	;43F900DFF180
 	lea	GamePalette.l,a0	;41F900008DD0
 	moveq	#$1F,d0	;701F
-adrLp008DC8:
+adrLp008DC8:		; Memory Address ($8DC8) and binary offset [$8A44]
 	move.w	(a0)+,(a1)+	;32D8
 	dbra	d0,adrLp008DC8	;51C8FFFC
 	rts	;4E75
@@ -13969,7 +14054,7 @@ CopperList_01:
 	dc.w	$8010	;8010
 	dc.w	$FFFF	;FFFF
 	dc.w	$FFFE	;FFFE
-SpritePosition_00:
+SpritePosition_00:		; Memory Address ($8E84) and binary offset [$8B00]
 	dc.w	$0000	;0000
 	dc.w	$0000	;0000
 	dc.w	$C000	;C000
@@ -14004,10 +14089,10 @@ SpritePosition_00:
 	dc.w	$0000	;0000
 	dc.w	$0300	;0300
 	dc.w	$0000	;0000
-adrEA008EC8:
+adrEA008EC8:		; Memory Address ($8EC8) and binary offset [$8B44]
 	dc.w	$0000	;0000
 	dc.w	$0000	;0000
-SpritePosition_04:
+SpritePosition_04:		; Memory Address ($8ECC) and binary offset [$8B48]
 	dc.w	$0000	;0000
 	dc.w	$0000	;0000
 	dc.w	$0000	;0000
@@ -14044,7 +14129,7 @@ SpritePosition_04:
 	dc.w	$0000	;0000
 	dc.w	$0000	;0000
 	dc.w	$0000	;0000
-SpritePosition_01:
+SpritePosition_01:		; Memory Address ($8F14) and binary offset [$8B90]
 	dc.w	$0000	;0000
 	dc.w	$0000	;0000
 	dc.w	$C000	;C000
@@ -14081,7 +14166,7 @@ SpritePosition_01:
 	dc.w	$0000	;0000
 	dc.w	$0000	;0000
 	dc.w	$0000	;0000
-SpritePosition_02:
+SpritePosition_02:		; Memory Address ($8F5C) and binary offset [$8BD8]
 	dc.w	$0000	;0000
 	dc.w	$0000	;0000
 	dc.w	$0000	;0000
@@ -14119,13 +14204,13 @@ SpritePosition_02:
 	dc.w	$0000	;0000
 	dc.w	$0000	;0000
 
-adrCd008FA4:
+adrCd008FA4:		; Memory Address ($8FA4) and binary offset [$8C20]
 	move.l	#$007F0060,d4	;283C007F0060
 	move.l	#$004B000C,d5	;2A3C004B000C
 	add.w	$0008(a5),d5	;DA6D0008
 	bra	BW_draw_bar	;60004AB2
 
-adrCd008FB8:
+adrCd008FB8:		; Memory Address ($8FB8) and binary offset [$8C34]
 	btst	#$06,$0018(a5)	;082D00060018
 	bne.s	adrCd009036	;6676
 	btst	#$02,(a5)	;08150002
@@ -14148,7 +14233,7 @@ adrCd008FB8:
 	move.b	$001A(a4),d0	;102C001A
 	bra.s	adrCd00905C	;605C
 
-adrCd009000:
+adrCd009000:		; Memory Address ($9000) and binary offset [$8C7C]
 	moveq	#$00,d1	;7200
 	move.b	$0011(a4),d0	;102C0011
 	and.w	#$0007,d0	;02400007
@@ -14169,23 +14254,23 @@ adrCd009000:
 	bcs.s	adrCd009036	;6504
 	move.b	(a4),d1	;1214
 	add.w	d1,d1	;D241
-adrCd009036:
+adrCd009036:		; Memory Address ($9036) and binary offset [$8CB2]
 	rts	;4E75
 
-adrCd009038:
+adrCd009038:		; Memory Address ($9038) and binary offset [$8CB4]
 	move.b	$0011(a4),d1	;122C0011
 	lsr.b	#$03,d1	;E609
 	addq.w	#$01,d1	;5241
 	rts	;4E75
 
-adrCd009042:
+adrCd009042:		; Memory Address ($9042) and binary offset [$8CBE]
 	link	a3,#-$0020	;4E53FFE0
 	move.l	$001C(a5),-$0004(a3)	;276D001CFFFC
 	move.w	$0020(a5),-$000A(a3)	;376D0020FFF6
 	bsr	Load_CurrentChampionStatRecord	;6100D608
 	bsr.s	adrCd009000	;61A8
 	move.w	$0058(a5),d0	;302D0058
-adrCd00905C:
+adrCd00905C:		; Memory Address ($905C) and binary offset [$8CD8]
 	move.w	d0,-$001E(a3)	;3740FFE2
 	move.b	d1,-$001F(a3)	;1741FFE1
 	bsr	adrCd0084DA	;6100F474
@@ -14204,14 +14289,14 @@ adrCd00905C:
 	bcc.s	adrCd00909C	;6406
 	cmpi.w	#$0020,d0	;0C400020
 	bcc.s	Draw_DungeonViewport	;6438
-adrCd00909C:
+adrCd00909C:		; Memory Address ($909C) and binary offset [$8D18]
 	lsr.w	#$01,d0	;E248
 	add.w	d0,d1	;D240
 	move.b	adrB_0090AC(pc,d1.w),$003D(a5)	;1B7B100A003D
 	unlk	a3	;4E5B
 	bra	adrCd008FB8	;6000FF0E
 
-adrB_0090AC:
+adrB_0090AC:		; Memory Address ($90AC) and binary offset [$8D28]
 	dc.b	$0E	;0E
 	dc.b	$0C	;0C
 	dc.b	$0E	;0E
@@ -14253,7 +14338,7 @@ adrB_0090AC:
 	dc.b	$0E	;0E
 	dc.b	$08	;08
 
-Draw_DungeonViewport:
+Draw_DungeonViewport:		; Memory Address ($90D4) and binary offset [$8D50]
 	; ReSource: Scans the 19 relative dungeon cells, builds the visibility and occlusion masks, then draws the surviving cells.
 	move.l	screen_ptr.l,a0	;207900008D36
 	add.w	#$01EC,a0	;D0FC01EC
@@ -14279,9 +14364,9 @@ Draw_DungeonViewport:
 	move.w	d1,d2	;3401
 	swap	d1	;4841
 	move.l	-$0004(a3),d3	;262BFFFC
-	move.l	adrL_00EE78.l,a6	;2C790000EE78
+	move.l	Current_TowerMapDataBase.l,a6	;2C790000EE78
 	moveq	#$00,d6	;7C00
-adrCd009130:
+adrCd009130:		; Memory Address ($9130) and binary offset [$8DAC]
 	lsr.l	#$01,d5	;E28D
 	lsr.l	#$01,d4	;E28C
 	move.l	d3,d7	;2E03
@@ -14312,7 +14397,7 @@ adrCd009130:
 	beq.s	adrCd0091C0		;6744
 	bra.s	adrCd0091BC		;603E
 
-adrCd00917E:
+adrCd00917E:		; Memory Address ($917E) and binary offset [$8DFA]
 	cmpi.b	#$02,d0			;0C000002
 	bne.s	adrCd0091BC		;6638
 	move.w	-$000A(a3),d7		;3E2BFFF6
@@ -14320,7 +14405,7 @@ adrCd00917E:
 	beq.s	adrCd009194		;6706
 	addq.w	#$02,d7			;5447	
 	and.w	#$0003,d7		;02470003
-adrCd009194:
+adrCd009194:		; Memory Address ($9194) and binary offset [$8E10]
 	add.w	d7,d7	;DE47
 	addq.w	#$08,d7	;5047
 	btst	d7,d0	;0F00
@@ -14332,17 +14417,17 @@ adrCd009194:
 	cmpi.w	#$0007,d6	;0C460007
 	bcs.s	adrCd0091B0	;6502
 	addq.w	#$02,d7	;5447
-adrCd0091B0:
+adrCd0091B0:		; Memory Address ($91B0) and binary offset [$8E2C]
 	and.w	#$0003,d7	;02470003
 	add.w	d7,d7	;DE47
 	addq.w	#$08,d7	;5047
 	btst	d7,d0	;0F00
 	bne.s	adrCd0091C0	;6604
-adrCd0091BC:
+adrCd0091BC:		; Memory Address ($91BC) and binary offset [$8E38]
 	bset	#$1F,d4	;08C4001F
-adrCd0091C0:
+adrCd0091C0:		; Memory Address ($91C0) and binary offset [$8E3C]
 	bset	#$1F,d5	;08C5001F
-adrCd0091C4:
+adrCd0091C4:		; Memory Address ($91C4) and binary offset [$8E40]
 	addq.w	#$02,a0	;5448
 	addq.w	#$01,d6	;5246
 	cmpi.w	#$0013,d6	;0C460013
@@ -14356,33 +14441,33 @@ adrCd0091C4:
 	moveq	#$00,d7	;7E00
 	moveq	#-$01,d0	;70FF
 	moveq	#$12,d6	;7C12
-adrLp0091EA:
+adrLp0091EA:		; Memory Address ($91EA) and binary offset [$8E66]
 	btst	d6,d5	;0D05
 	beq.s	adrCd0091F6	;6708
 	or.l	(a6),d7	;8E96
 	btst	d6,d4	;0D04
 	bne.s	adrCd0091F6	;6602
 	and.l	(a4),d0	;C094
-adrCd0091F6:
+adrCd0091F6:		; Memory Address ($91F6) and binary offset [$8E72]
 	subq.w	#$04,a6	;594E
 	subq.w	#$04,a4	;594C
 	dbra	d6,adrLp0091EA	;51CEFFEE
 	and.l	d0,d7	;CE80
 	moveq	#$00,d6	;7C00
-adrCd009202:
+adrCd009202:		; Memory Address ($9202) and binary offset [$8E7E]
 	btst	d6,d5	;0D05
 	beq.s	adrCd009212	;670C
 	movem.l	d5-d7,-(sp)	;48E70700
 	bsr	Draw_DungeonViewCell	;61000012
 	movem.l	(sp)+,d5-d7	;4CDF00E0
-adrCd009212:
+adrCd009212:		; Memory Address ($9212) and binary offset [$8E8E]
 	addq.w	#$01,d6	;5246
 	cmpi.b	#$13,d6	;0C060013
 	bcs.s	adrCd009202	;65E8
 	unlk	a3	;4E5B
 	rts	;4E75
 
-Draw_DungeonViewCell:
+Draw_DungeonViewCell:		; Memory Address ($921E) and binary offset [$8E9A]
 	; ReSource: Resolves and draws one player-relative dungeon view cell.
 	move.b	d6,-$0016(a3)	;1746FFEA
 	move.l	-$0010(a3),a0	;206BFFF0
@@ -14400,7 +14485,7 @@ Draw_DungeonViewCell:
 	beq.s	adrCd00926C	;6726
 	rts	;4E75
 
-adrCd009248:
+adrCd009248:		; Memory Address ($9248) and binary offset [$8EC4]
 	swap	d5	;4845
 	add.b	(a0),d5	;DA10
 	move.b	d5,-$001A(a3)	;1745FFE6
@@ -14411,12 +14496,12 @@ adrCd009248:
 	beq.s	adrCd00926C	;670E
 	rts	;4E75
 
-adrCd009260:
+adrCd009260:		; Memory Address ($9260) and binary offset [$8EDC]
 	exg	d5,d7	;CB47
 	bsr	CoordToMap	;6100F238
 	exg	d5,d7	;CB47
 	move.w	$00(a6,d0.w),d1	;32360000
-adrCd00926C:
+adrCd00926C:		; Memory Address ($926C) and binary offset [$8EE8]
 	clr.b	-$0013(a3)	;422BFFED
 	move.w	d1,-$0012(a3)	;3741FFEE
 	btst	#$06,d1	;08010006
@@ -14424,7 +14509,7 @@ adrCd00926C:
 	movem.l	d0/d1/d6/d7,-(sp)	;48E7C300
 	bsr	adrCd00960A	;6100038A
 	movem.l	(sp)+,d0/d1/d6/d7	;4CDF00C3
-adrCd009286:
+adrCd009286:		; Memory Address ($9286) and binary offset [$8F02]
 	btst	#$05,d1	;08010005
 	beq	adrCd009378	;670000EC
 	move.w	d1,d2	;3401
@@ -14454,7 +14539,7 @@ adrCd009286:
 	bmi	adrCd00A6EC	;6B001408
 	rts	;4E75
 
-adrCd0092E8:
+adrCd0092E8:		; Memory Address ($92E8) and binary offset [$8F64]
 	and.w	#$00FC,d1	;024100FC
 	cmpi.w	#$001C,d1	;0C41001C
 	bcc.s	adrCd009358	;6466
@@ -14487,10 +14572,10 @@ adrCd0092E8:
 	bsr	adrCd00AE5E	;61001B10
 	move.l	(sp)+,a3	;265F
 	clr.w	Buffer_Colour_Mask_Toggle.l	;42790000B4BE
-adrCd009358:
+adrCd009358:		; Memory Address ($9358) and binary offset [$8FD4]
 	rts	;4E75
 
-GFX_StationarySpell_DistanceGroups:
+GFX_StationarySpell_DistanceGroups:		; Memory Address ($935A) and binary offset [$8FD6]
 	; ReSource: Maps six visible distances to four stationary-spell graphical sizes: 0,0,1,1,2,3.
 	dc.b	$00	;00
 	dc.b	$00	;00
@@ -14498,13 +14583,13 @@ GFX_StationarySpell_DistanceGroups:
 	dc.b	$01	;01
 	dc.b	$02	;02
 	dc.b	$03	;03
-GFX_StationarySpell_LookupTable:
+GFX_StationarySpell_LookupTable:		; Memory Address ($9360) and binary offset [$8FDC]
 	; ReSource: Four big-endian source offsets into the stationary portion of AirbourneSpells.gfx.
 	dc.w	$0000	;0000
 	dc.w	$0318	;0318
 	dc.w	$0438	;0438
 	dc.w	$0498	;0498
-GFX_StationarySpell_RenderLayout:
+GFX_StationarySpell_RenderLayout:		; Memory Address ($9368) and binary offset [$8FE4]
 	; ReSource: Four packed records containing signed X, signed Y, width-minus-one and height-minus-one.
 	dc.b	$F4	;F4
 	dc.b	$F7	;F7
@@ -14523,14 +14608,14 @@ GFX_StationarySpell_RenderLayout:
 	dc.b	$00	;00
 	dc.b	$08	;08
 
-adrCd009378:
+adrCd009378:		; Memory Address ($9378) and binary offset [$8FF4]
 	and.w	#$0007,d1	;02410007
 	bne.s	Draw_DungeonLocation_ByType	;660A
 	tst.b	-$0011(a3)	;4A2BFFEF
 	bmi	adrCd0099F0	;6B00066C
 	rts	;4E75
 
-Draw_DungeonLocation_ByType:
+Draw_DungeonLocation_ByType:		; Memory Address ($9388) and binary offset [$9004]
 	; ReSource: Dispatches the current map type and iterates its candidate wall faces.
 	lea	Dungeon_ViewCell_WallFaceSlots.l,a6	;4DF90000B9F2
 	add.w	d6,d6	;DC46
@@ -14551,9 +14636,9 @@ Draw_DungeonLocation_ByType:
 	moveq	#$01,d5	;7A01
 	bra.s	adrLp0093C2	;6006
 
-adrCd0093BC:
+adrCd0093BC:		; Memory Address ($93BC) and binary offset [$9038]
 	move.b	#$FF,-$0013(a3)	;177C00FFFFED
-adrLp0093C2:
+adrLp0093C2:		; Memory Address ($93C2) and binary offset [$903E]
 	moveq	#$00,d6	;7C00
 	move.b	(a6)+,d6	;1C1E
 	bmi.s	adrCd00943A	;6B72
@@ -14567,7 +14652,7 @@ adrLp0093C2:
 	beq.s	adrCd009440	;6760
 	bra	adrCd009482	;600000A0
 
-adrCd0093E4:
+adrCd0093E4:		; Memory Address ($93E4) and binary offset [$9060]
 	cmpi.w	#$0002,d5	;0C450002
 	bcc.s	adrCd009412	;6428
 	tst.w	d5	;4A45
@@ -14576,16 +14661,16 @@ adrCd0093E4:
 	bcc.s	adrCd009412	;641C
 	bra.s	adrCd009400	;6008
 
-adrCd0093F8:
+adrCd0093F8:		; Memory Address ($93F8) and binary offset [$9074]
 	cmp.b	#$0E,-$0016(a3)	;0C2B000EFFEA
 	bcs.s	adrCd009412	;6512
-adrCd009400:
+adrCd009400:		; Memory Address ($9400) and binary offset [$907C]
 	tst.b	-$0011(a3)	;4A2BFFEF
 	bpl.s	adrCd009412	;6A0C
 	movem.l	d1/d5-d7/a6,-(sp)	;48E74702
 	bsr	adrCd0099F0	;610005E4
 	movem.l	(sp)+,d1/d5-d7/a6	;4CDF40E2
-adrCd009412:
+adrCd009412:		; Memory Address ($9412) and binary offset [$908E]
 	add.w	d1,d1	;D241
 	move.b	-$0012(a3),d0	;102BFFEE
 	lsr.w	d1,d0	;E268
@@ -14596,15 +14681,15 @@ adrCd009412:
 	move.b	d0,-$0014(a3)	;1740FFEC
 	subq.w	#$01,d0	;5340
 	move.b	d0,-$0015(a3)	;1740FFEB
-adrCd00942E:
+adrCd00942E:		; Memory Address ($942E) and binary offset [$90AA]
 	movem.l	d5/a6,-(sp)	;48E70402
 	bsr	Draw_WoodenWallOrDoorFace	;61001FA4
 	movem.l	(sp)+,d5/a6	;4CDF4020
-adrCd00943A:
+adrCd00943A:		; Memory Address ($943A) and binary offset [$90B6]
 	dbra	d5,adrLp0093C2	;51CDFF86
 	rts	;4E75
 
-adrCd009440:
+adrCd009440:		; Memory Address ($9440) and binary offset [$90BC]
 	move.b	-$0011(a3),d0	;102BFFEF
 	bpl.s	adrCd009474	;6A2E
 	lsr.b	#$04,d0	;E808
@@ -14622,13 +14707,13 @@ adrCd009440:
 	subq.w	#$01,d0	;5340
 	beq.s	adrCd009474	;6704
 	subq.b	#$01,-$0015(a3)	;532BFFEB
-adrCd009474:
+adrCd009474:		; Memory Address ($9474) and binary offset [$90F0]
 	movem.l	d5/a6,-(sp)	;48E70402
 	bsr	Draw_MainWallFace_ByPatternParity	;61001BFA
 	movem.l	(sp)+,d5/a6	;4CDF4020
 	bra.s	adrCd00943A	;60B8
 
-adrCd009482:
+adrCd009482:		; Memory Address ($9482) and binary offset [$90FE]
 	bsr	adrCd0099DC	;61000558
 	bmi	Draw_Main_Door_Or_Stairs	;6B001E56
 	btst	d1,d7	;0307
@@ -14636,7 +14721,7 @@ adrCd009482:
 	move.w	d1,d6	;3C01
 	bra	Draw_Main_Door_Or_Stairs	;60001E4A
 
-adrCd009496:
+adrCd009496:		; Memory Address ($9496) and binary offset [$9112]
 	move.b	-$0012(a3),d1	;122BFFEE
 	and.w	#$0003,d1	;02410003
 	beq.s	adrCd0094B2	;6712
@@ -14646,28 +14731,28 @@ adrCd009496:
 	beq.s	adrCd0094B4	;6708
 	tst.b	-$001F(a3)	;4A2BFFE1
 	beq.s	adrCd0094B4	;6702
-adrCd0094B2:
+adrCd0094B2:		; Memory Address ($94B2) and binary offset [$912E]
 	rts	;4E75
 
-adrCd0094B4:
+adrCd0094B4:		; Memory Address ($94B4) and binary offset [$9130]
 	lsr.w	#$01,d6	;E24E
 	moveq	#$01,d1	;7201
 	bra	adrCd00926C	;6000FDB2
 
-adrCd0094BC:
+adrCd0094BC:		; Memory Address ($94BC) and binary offset [$9138]
 	bsr	RandomGen_BytewithOffset	;6100C0EE
 	and.w	#$0004,d0	;02400004
 	move.l	GFX_Firepath_ColourMasks(pc,d0.w),Buffer_Colour_Mask.l	;23FB000E0000B4C0
 	move.b	#$02,-$0012(a3)	;177C0002FFEE
 	bra.s	adrCd0094E6	;6012
 
-GFX_Firepath_ColourMasks:
+GFX_Firepath_ColourMasks:		; Memory Address ($94D4) and binary offset [$9150]
 	dc.l	$090C0B0D	;090C0B0D
 	dc.l	$090A0B0D	;090A0B0D
 
-Set_TriggerPad_ColourMask:
+Set_TriggerPad_ColourMask:		; Memory Address ($94DC) and binary offset [$9158]
 	move.l	#$01050406,Buffer_Colour_Mask.l	;23FC010504060000B4C0
-adrCd0094E6:
+adrCd0094E6:		; Memory Address ($94E6) and binary offset [$9162]
 	bsr	adrCd0099DC	;610004F4
 	cmpi.w	#$0012,d0	;0C400012
 	beq.s	adrCd0094F8	;6708
@@ -14675,7 +14760,7 @@ adrCd0094E6:
 	bmi.s	adrCd009568	;6B74
 	btst	d1,d7	;0307
 	beq.s	adrCd009568	;6770
-adrCd0094F8:
+adrCd0094F8:		; Memory Address ($94F8) and binary offset [$9174]
 	move.b	-$0012(a3),d1	;122BFFEE
 	move.w	d0,d6	;3C00
 	btst	#$02,d1	;08010002
@@ -14686,7 +14771,7 @@ adrCd0094F8:
 	lea	GFX_Ceiling_Hole_Offsets.l,a0	;41F900018C66
 	bsr	adrCd0095B4	;61000098
 	movem.l	(sp)+,d1/d6	;4CDF0042
-adrCd009522:
+adrCd009522:		; Memory Address ($9522) and binary offset [$919E]
 	lea	GFX_FloorPit_TriggerPad_Offsets.l,a0	;41F900018C4E
 	lea	GFX_FloorPit_TriggerPad_Positions.l,a2	;45F90000BF16
 	lea	GFX_Floor_Pit.l,a1	;43F900031AD8
@@ -14702,15 +14787,15 @@ adrCd009522:
 	clr.w	Buffer_Colour_Mask_Toggle.l	;42790000B4BE
 	bra.s	adrCd009560	;6002
 
-adrCd00955E:
+adrCd00955E:		; Memory Address ($955E) and binary offset [$91DA]
 	bsr.s	adrCd0095B4	;6154
-adrCd009560:
+adrCd009560:		; Memory Address ($9560) and binary offset [$91DC]
 	tst.b	-$0011(a3)	;4A2BFFEF
 	bmi	adrCd0099F0	;6B00048A
-adrCd009568:
+adrCd009568:		; Memory Address ($9568) and binary offset [$91E4]
 	rts	;4E75
 
-adrCd00956A:
+adrCd00956A:		; Memory Address ($956A) and binary offset [$91E6]
 	bsr	adrCd0099DC	;61000470
 	bmi.s	adrCd00959E	;6B2E
 	btst	d1,d7	;0307
@@ -14721,27 +14806,27 @@ adrCd00956A:
 	lea	GFX_Misc_Bed_Positions.l,a2	;45F90000BC9E
 	lea	GFX_Bed.l,a1	;43F900028C28
 	move.w	d0,d6	;3C00
-Draw_Wall_Sprite:
+Draw_Wall_Sprite:		; Memory Address ($9590) and binary offset [$920C]
 	bsr	Prepare_WallSpriteDraw	;61001EF4
 	swap	d3	;4843
 	move.l	a3,-(sp)	;2F0B
 	bsr	adrCd00B5CA	;61002030
 	move.l	(sp)+,a3	;265F
-adrCd00959E:
+adrCd00959E:		; Memory Address ($959E) and binary offset [$921A]
 	rts	;4E75
 
-Draw_Pillar:
+Draw_Pillar:		; Memory Address ($95A0) and binary offset [$921C]
 	lea	GFX_Misc_Pillar_Offsets.l,a0	;41F900018B16
 	lea	GFX_Misc_Pillar_Positions.l,a2	;45F90000BC06
 	lea	GFX_Pillar.l,a1	;43F9000296A0
 	move.w	d0,d6	;3C00
-adrCd0095B4:
+adrCd0095B4:		; Memory Address ($95B4) and binary offset [$9230]
 	moveq	#$00,d0	;7000
 	move.b	GFX_CentredDungeonComponent_SpriteMirrorTable(pc,d6.w),d0	;103B6008
 	bpl.s	Draw_Wall_Sprite	;6AD4
 	bra	Flip_Sprite	;60001E70
 
-GFX_CentredDungeonComponent_SpriteMirrorTable:
+GFX_CentredDungeonComponent_SpriteMirrorTable:		; Memory Address ($95C0) and binary offset [$923C]
 	; ReSource: Maps the 19 viewport cells to centred dungeon sprite numbers; bit 7 selects horizontal mirroring. The twentieth byte is spare.
 	dc.b	$00	;00
 	dc.b	$01	;01
@@ -14764,7 +14849,7 @@ GFX_CentredDungeonComponent_SpriteMirrorTable:
 	dc.b	$0B	;0B
 	dc.b	$0C	;0C
 
-Resolve_DungeonWallFaceDirection:
+Resolve_DungeonWallFaceDirection:		; Memory Address ($95D4) and binary offset [$9250]
 	; ReSource: Converts the current candidate face and player facing into the corresponding N/E/S/W direction.
 	move.w	d5,d1	;3205
 	cmp.b	#$07,-$0016(a3)	;0C2B0007FFEA
@@ -14774,27 +14859,27 @@ Resolve_DungeonWallFaceDirection:
 	eor.w	#$0001,d1	;0A410001
 	bra.s	adrCd009600	;6016
 
-adrCd0095EA:
+adrCd0095EA:		; Memory Address ($95EA) and binary offset [$9266]
 	cmp.b	#$0E,-$0016(a3)	;0C2B000EFFEA
 	bcs.s	adrCd0095FC	;650A
 	btst	#$01,d1	;08010001
 	bne.s	adrCd0095FC	;6604
 	eor.w	#$0001,d1	;0A410001
-adrCd0095FC:
+adrCd0095FC:		; Memory Address ($95FC) and binary offset [$9278]
 	eor.w	#$0003,d1	;0A410003
-adrCd009600:
+adrCd009600:		; Memory Address ($9600) and binary offset [$927C]
 	add.w	-$000A(a3),d1	;D26BFFF6
 	and.w	#$0003,d1	;02410003
 	rts	;4E75
 
-adrCd00960A:
+adrCd00960A:		; Memory Address ($960A) and binary offset [$9286]
 	tst.b	-$001F(a3)	;4A2BFFE1
 	bne.s	adrCd00961A	;660A
 	btst	#$03,$01(a6,d0.w)	;083600030001
 	beq.s	adrCd00961A	;6702
 	rts	;4E75
 
-adrCd00961A:
+adrCd00961A:		; Memory Address ($961A) and binary offset [$9296]
 	move.w	d1,d2	;3401
 	and.w	#$0007,d2	;02420007
 	cmpi.w	#$0006,d2	;0C420006
@@ -14806,14 +14891,14 @@ adrCd00961A:
 	eor.w	#$0002,d1	;0A410002
 	cmp.w	-$000A(a3),d1	;B26BFFF6
 	bne.s	adrCd009680	;6646
-adrCd00963A:
+adrCd00963A:		; Memory Address ($963A) and binary offset [$92B6]
 	addq.w	#$04,sp	;584F
 	movem.l	(sp),d0/d1/d6/d7	;4CD700C3
 	bsr	adrCd009286	;6100FC44
 	movem.l	(sp)+,d0/d1/d6/d7	;4CDF00C3
-adrCd009648:
+adrCd009648:		; Memory Address ($9648) and binary offset [$92C4]
 	moveq	#$00,d1	;7200
-adrCd00964A:
+adrCd00964A:		; Memory Address ($964A) and binary offset [$92C6]
 	move.w	d1,-(sp)	;3F01
 	move.w	d1,d6	;3C01
 	bsr	adrCd005F2E	;6100C8DE
@@ -14823,7 +14908,7 @@ adrCd00964A:
 	lea	$02(a0,d7.w),a0	;41F07002
 	moveq	#$00,d7	;7E00
 	move.b	(a0)+,d7	;1E18
-adrLp009662:
+adrLp009662:		; Memory Address ($9662) and binary offset [$92DE]
 	movem.l	d0/d6/d7/a0/a3,-(sp)	;48E78390
 	moveq	#$00,d2	;7400
 	move.b	(a0),d2	;1410
@@ -14831,15 +14916,15 @@ adrLp009662:
 	movem.l	(sp)+,d0/d6/d7/a0/a3	;4CDF09C1
 	addq.w	#$02,a0	;5448
 	dbra	d7,adrLp009662	;51CFFFEE
-adrCd009676:
+adrCd009676:		; Memory Address ($9676) and binary offset [$92F2]
 	move.w	(sp)+,d1	;321F
 	addq.w	#$01,d1	;5241
 	cmpi.w	#$0004,d1	;0C410004
 	bcs.s	adrCd00964A	;65CA
-adrCd009680:
+adrCd009680:		; Memory Address ($9680) and binary offset [$92FC]
 	rts	;4E75
 
-GFX_ObjectsOnFloor_SubpositionRotation:
+GFX_ObjectsOnFloor_SubpositionRotation:		; Memory Address ($9682) and binary offset [$92FE]
 	; ReSource: Combined floor-object projection layout containing sub-position rotation, depth bias, view-cell depth, projection groups, base Y positions and shelf/special Y adjustments.
 	dc.b	$00	;00
 	dc.b	$01	;01
@@ -14902,7 +14987,7 @@ GFX_ObjectsOnFloor_SubpositionRotation:
 	dc.b	$0E	;0E
 	dc.b	$08	;08
 
-Draw_ObjectOnFloor:
+Draw_ObjectOnFloor:		; Memory Address ($96BE) and binary offset [$933A]
 	; ReSource: Resolves object mini-space, view cell and distance into one of five projected floor graphics and its screen position.
 	move.w	-$000A(a3),d0	;302BFFF6
 	add.w	d0,d0	;D040
@@ -14936,7 +15021,7 @@ Draw_ObjectOnFloor:
 	lea	GFX_ObjectsOnFloor_SpecialXPositions.l,a0	;41F900009808
 	move.b	-$0016(a3),d3	;162BFFEA
 	move.b	$00(a0,d3.w),d4	;18303000
-Draw_ObjectOnFloor_ResolveGraphic:
+Draw_ObjectOnFloor_ResolveGraphic:		; Memory Address ($9722) and binary offset [$939E]
 	; ReSource: Loads the object's floor shape, recolour definition, graphics offset and selected projection.
 	cmpi.b	#$80,d4	;0C040080
 	beq	adrCd009680	;6700FF58
@@ -14959,13 +15044,13 @@ Draw_ObjectOnFloor_ResolveGraphic:
 	cmpi.b	#$12,d3	;0C030012
 	bcs.s	Draw_ObjectOnFloor_ResolveWidth	;6504
 	add.w	#$0CB8,a1	;D2FC0CB8
-Draw_ObjectOnFloor_ResolveWidth:
+Draw_ObjectOnFloor_ResolveWidth:		; Memory Address ($9774) and binary offset [$93F0]
 	; ReSource: Selects the normal or wide floor-object drawing width.
 	moveq	#$00,d7	;7E00
 	cmpi.b	#$12,d3	;0C030012
 	bcs.s	Draw_ObjectOnFloor_Blit	;6504
 	move.b	GFX_ObjectsOnFloor_Widths(pc,d0.w),d7	;1E3B0038
-Draw_ObjectOnFloor_Blit:
+Draw_ObjectOnFloor_Blit:		; Memory Address ($9780) and binary offset [$93FC]
 	; ReSource: Applies the shape-specific Y adjustment and draws the recoloured floor-object graphic.
 	swap	d7	;4847
 	lsr.w	#$01,d6	;E24E
@@ -14982,7 +15067,7 @@ Draw_ObjectOnFloor_Blit:
 	clr.w	Buffer_Colour_Mask_Toggle.l	;42790000B4BE
 	rts	;4E75
 
-GFX_ObjectsOnFloor_Widths:
+GFX_ObjectsOnFloor_Widths:		; Memory Address ($97B6) and binary offset [$9432]
 	; ReSource: Per-projection width selectors used by the wide floor-object graphic shapes.
 	dc.b	$01	;01
 	dc.b	$01	;01
@@ -14990,7 +15075,7 @@ GFX_ObjectsOnFloor_Widths:
 	dc.b	$00	;00
 	dc.b	$00	;00
 	dc.b	$00	;00
-GFX_ObjectsOnFloor_XPositions:
+GFX_ObjectsOnFloor_XPositions:		; Memory Address ($97BC) and binary offset [$9438]
 	; ReSource: X positions for 19 view cells multiplied by four rotated object mini-spaces; $80 suppresses drawing.
 	dc.b	$80	;80
 	dc.b	$80	;80
@@ -15068,7 +15153,7 @@ GFX_ObjectsOnFloor_XPositions:
 	dc.b	$4C	;4C
 	dc.b	$80	;80
 	dc.b	$80	;80
-GFX_ObjectsOnFloor_SpecialXPositions:
+GFX_ObjectsOnFloor_SpecialXPositions:		; Memory Address ($9808) and binary offset [$9484]
 	; ReSource: Alternative X positions used by the special floor-object placement path.
 	dc.b	$80	;80
 	dc.b	$80	;80
@@ -15090,7 +15175,7 @@ GFX_ObjectsOnFloor_SpecialXPositions:
 	dc.b	$34	;34
 	dc.b	$80	;80
 	dc.b	$00	;00
-GFX_ObjectsOnFloor_YAdjustments:
+GFX_ObjectsOnFloor_YAdjustments:		; Memory Address ($981C) and binary offset [$9498]
 	; ReSource: Per-shape and per-projection Y adjustments: 27 shapes multiplied by five views, followed by one spare byte.
 	dc.b	$00	;00
 	dc.b	$00	;00
@@ -15229,23 +15314,23 @@ GFX_ObjectsOnFloor_YAdjustments:
 	dc.b	$01	;01
 	dc.b	$00	;00
 
-adrCd0098A4:
+adrCd0098A4:		; Memory Address ($98A4) and binary offset [$9520]
 	bsr	adrCd0084FC	;6100EC56
-adrCd0098A8:
+adrCd0098A8:		; Memory Address ($98A8) and binary offset [$9524]
 	move.w	#$0080,d0	;303C0080
 	lea	Player1_Data.l,a1	;43F90000EE7C
 	cmp.w	$0058(a1),d1	;B2690058
 	bne.s	adrCd0098BE	;6606
 	cmp.l	$001C(a1),d2	;B4A9001C
 	beq.s	adrCd009930	;6772
-adrCd0098BE:
+adrCd0098BE:		; Memory Address ($98BE) and binary offset [$953A]
 	addq.b	#$01,d0	;5200
 	lea	Player2_Data.l,a1	;43F90000EEDE
 	cmp.w	$0058(a1),d1	;B2690058
 	bne.s	adrCd0098D2	;6606
 	cmp.l	$001C(a1),d2	;B4A9001C
 	beq.s	adrCd009930	;675E
-adrCd0098D2:
+adrCd0098D2:		; Memory Address ($98D2) and binary offset [$954E]
 	lea	Character_Stats_DataTable.l,a1	;43F90000EB2A
 	move.b	d2,d0	;1002
 	swap	d2	;4842
@@ -15253,48 +15338,48 @@ adrCd0098D2:
 	move.b	d0,d2	;1400
 	move.w	CurrentTower.l,d3	;36390000EE2E
 	moveq	#$0F,d0	;700F
-adrLp0098E8:
+adrLp0098E8:		; Memory Address ($98E8) and binary offset [$9564]
 	cmp.b	$001F(a1),d3	;B629001F
 	bne.s	adrCd0098FA	;660C
 	cmp.b	$001A(a1),d1	;B229001A
 	bne.s	adrCd0098FA	;6606
 	cmp.w	$0016(a1),d2	;B4690016
 	beq.s	adrCd00992A	;6730
-adrCd0098FA:
+adrCd0098FA:		; Memory Address ($98FA) and binary offset [$9576]
 	add.w	#$0020,a1	;D2FC0020
 	dbra	d0,adrLp0098E8	;51C8FFE8
 	moveq	#$10,d0	;7010
 	lea	UnpackedMonsters.l,a1	;43F900016B7E
 	move.w	-$0002(a1),d3	;3629FFFE
 	bmi.s	adrCd009926	;6B16
-adrLp009910:
+adrLp009910:		; Memory Address ($9910) and binary offset [$958C]
 	cmp.b	$0004(a1),d1	;B2290004
 	bne.s	adrCd00991C	;6606
 	cmp.w	$0000(a1),d2	;B4690000
 	beq.s	adrCd009930	;6714
-adrCd00991C:
+adrCd00991C:		; Memory Address ($991C) and binary offset [$9598]
 	addq.w	#$01,d0	;5240
 	add.w	#$0010,a1	;D2FC0010
 	dbra	d3,adrLp009910	;51CBFFEC
-adrCd009926:
+adrCd009926:		; Memory Address ($9926) and binary offset [$95A2]
 	swap	d1	;4841
 	rts	;4E75
 
-adrCd00992A:
+adrCd00992A:		; Memory Address ($992A) and binary offset [$95A6]
 	not.b	d0	;4600
 	and.w	#$000F,d0	;0240000F
-adrCd009930:
+adrCd009930:		; Memory Address ($9930) and binary offset [$95AC]
 	ori.b	#$01,ccr	;003C0001
 	rts	;4E75
 
-Monster_SubPosition_DepthAdjustments:
+Monster_SubPosition_DepthAdjustments:		; Memory Address ($9936) and binary offset [$95B2]
 	; ReSource: Adjusts the selected sub-position before it is converted to a monster graphics distance.
 	dc.b	$00	;00
 	dc.b	$00	;00
 	dc.b	$01	;01
 	dc.b	$01	;01
 	dc.b	$00	;00
-Monster_ViewCell_DepthSlots:
+Monster_ViewCell_DepthSlots:		; Memory Address ($993B) and binary offset [$95B7]
 	; ReSource: Maps each view cell to a base depth slot; $FF marks a position that is not visible.
 	dc.b	$06	;06
 	dc.b	$06	;06
@@ -15315,7 +15400,7 @@ Monster_ViewCell_DepthSlots:
 	dc.b	$02	;02
 	dc.b	$00	;00
 	dc.b	$FF	;FF
-Monster_Depth_GfxSlots:
+Monster_Depth_GfxSlots:		; Memory Address ($994E) and binary offset [$95CA]
 	; ReSource: Maps depth slots to one of the six monster graphics-distance slots.
 	dc.b	$00	;00
 	dc.b	$01	;01
@@ -15325,7 +15410,7 @@ Monster_Depth_GfxSlots:
 	dc.b	$04	;04
 	dc.b	$05	;05
 	dc.b	$05	;05
-Monster_GfxSlot_YPositions:
+Monster_GfxSlot_YPositions:		; Memory Address ($9956) and binary offset [$95D2]
 	; ReSource: Provides the base vertical screen position for each monster graphics-distance slot.
 	dc.b	$27	;27
 	dc.b	$25	;25
@@ -15334,10 +15419,10 @@ Monster_GfxSlot_YPositions:
 	dc.b	$18	;18
 	dc.b	$1A	;1A
 
-Prepare_CentredMonster_ScreenPosition:
+Prepare_CentredMonster_ScreenPosition:		; Memory Address ($995C) and binary offset [$95D8]
 	; ReSource: Entry point for centrally positioned monsters; forces the centre sub-position before using Prepare_Monster_ScreenPosition.
 	moveq	#$04,d1	;7204
-Prepare_Monster_ScreenPosition:
+Prepare_Monster_ScreenPosition:		; Memory Address ($995E) and binary offset [$95DA]
 	move.w	d1,d2	;3401
 	move.w	#$004B,adrW_00AD64.l	;33FC004B0000AD64
 	moveq	#$00,d0	;7000
@@ -15367,17 +15452,17 @@ Prepare_Monster_ScreenPosition:
 	bne.s	adrCd0099BE	;6604
 	neg.b	d0	;4400
 	moveq	#$4B,d2	;744B
-adrCd0099BE:
+adrCd0099BE:		; Memory Address ($99BE) and binary offset [$963A]
 	add.b	d0,d5	;DA00
 	move.w	d2,adrW_00AD64.l	;33C20000AD64
-adrCd0099C6:
+adrCd0099C6:		; Memory Address ($99C6) and binary offset [$9642]
 	rts	;4E75
 
-adrCd0099C8:
+adrCd0099C8:		; Memory Address ($99C8) and binary offset [$9644]
 	moveq	#-$01,d1	;72FF
 	rts	;4E75
 
-adrB_0099CC:
+adrB_0099CC:		; Memory Address ($99CC) and binary offset [$9648]
 	dc.b	$00	;00
 	dc.b	$08	;08
 	dc.b	$00	;00
@@ -15386,7 +15471,7 @@ adrB_0099CC:
 	dc.b	$06	;06
 	dc.b	$00	;00
 	dc.b	$00	;00
-adrB_0099D4:
+adrB_0099D4:		; Memory Address ($99D4) and binary offset [$9650]
 	dc.b	$4B	;4B
 	dc.b	$3E	;3E
 	dc.b	$4B	;4B
@@ -15396,16 +15481,16 @@ adrB_0099D4:
 	dc.b	$4B	;4B
 	dc.b	$4B	;4B
 
-adrCd0099DC:
+adrCd0099DC:		; Memory Address ($99DC) and binary offset [$9658]
 	moveq	#$00,d0	;7000
 	moveq	#$00,d1	;7200
 	lea	Dungeon_ViewCell_CentredSlots.l,a0	;41F90000B9DE
 	move.b	-$0016(a3),d0	;102BFFEA
 	move.b	$00(a0,d0.w),d1	;12300000
-adrCd0099EE:
+adrCd0099EE:		; Memory Address ($99EE) and binary offset [$966A]
 	rts	;4E75
 
-adrCd0099F0:
+adrCd0099F0:		; Memory Address ($99F0) and binary offset [$966C]
 	bsr.s	adrCd0099DC	;61EA
 	bmi.s	adrCd0099EE	;6BFA
 	btst	d1,d7	;0307
@@ -15426,7 +15511,7 @@ adrCd0099F0:
 	move.b	$0018(a1),d1	;12290018
 	bra	adrCd009AB2	;6000008A
 
-adrCd009A2A:
+adrCd009A2A:		; Memory Address ($9A2A) and binary offset [$96A6]
 	moveq	#$00,d0	;7000
 	move.b	$000D(a1),d0	;1029000D
 	bmi.s	adrCd009A82	;6B50
@@ -15436,7 +15521,7 @@ adrCd009A2A:
 	lea	adrEA017390.l,a1	;43F900017390
 	add.w	d0,a1	;D2C0
 	moveq	#$03,d1	;7203
-adrLp009A46:
+adrLp009A46:		; Memory Address ($9A46) and binary offset [$96C2]
 	move.w	d1,d3	;3601
 	addq.w	#$02,d3	;5443
 	add.w	-$000A(a3),d3	;D66BFFF6
@@ -15456,13 +15541,13 @@ adrLp009A46:
 	move.w	d3,d1	;3203
 	bsr.s	adrCd009A86	;610E
 	movem.l	(sp)+,d1/d2/a1	;4CDF0206
-adrCd009A7C:
+adrCd009A7C:		; Memory Address ($9A7C) and binary offset [$96F8]
 	dbra	d1,adrLp009A46	;51C9FFC8
 	rts	;4E75
 
-adrCd009A82:
+adrCd009A82:		; Memory Address ($9A82) and binary offset [$96FE]
 	move.b	$0002(a1),d1	;12290002
-adrCd009A86:
+adrCd009A86:		; Memory Address ($9A86) and binary offset [$9702]
 	move.b	$000B(a1),-$0017(a3)	;1769000BFFE9
 	cmp.b	#$1A,-$0017(a3)	;0C2B001AFFE9
 	bne.s	adrCd009AA8	;6614
@@ -15472,10 +15557,10 @@ adrCd009A86:
 	and.w	#$0001,d0	;02400001
 	add.w	#$001A,d0	;0640001A
 	move.b	d0,-$0017(a3)	;1740FFE9
-adrCd009AA8:
+adrCd009AA8:		; Memory Address ($9AA8) and binary offset [$9724]
 	move.b	$0005(a1),d0	;10290005
 	move.b	$0006(a1),-$0018(a3)	;17690006FFE8
-adrCd009AB2:
+adrCd009AB2:		; Memory Address ($9AB2) and binary offset [$972E]
 	bsr	Decode_Monster_RenderFlags	;6100010C
 	move.b	d1,d2	;1401
 	and.b	#$03,d2	;02020003
@@ -15498,7 +15583,7 @@ adrCd009AB2:
 	moveq	#$04,d1	;7204
 	bra	adrCd00A6EC	;60000BF4
 
-adrCd009AFA:
+adrCd009AFA:		; Memory Address ($9AFA) and binary offset [$9776]
 	move.b	$0021(a1),-$001B(a3)	;17690021FFE5
 	move.l	a5,-(sp)	;2F0D
 	move.l	a1,a5	;2A49
@@ -15512,21 +15597,21 @@ adrCd009AFA:
 	bcs.s	adrCd009B1A	;6502
 	rts	;4E75
 
-adrCd009B1A:
+adrCd009B1A:		; Memory Address ($9B1A) and binary offset [$9796]
 	moveq	#$04,d1	;7204
 	moveq	#$02,d0	;7002
 	moveq	#$00,d2	;7400
-adrLp009B20:
+adrLp009B20:		; Memory Address ($9B20) and binary offset [$979C]
 	tst.b	$27(a1,d0.w)	;4A310027
 	bmi.s	adrCd009B28	;6B02
 	addq.w	#$01,d2	;5242
-adrCd009B28:
+adrCd009B28:		; Memory Address ($9B28) and binary offset [$97A4]
 	dbra	d0,adrLp009B20	;51C8FFF6
 	move.w	$0006(a1),d0	;30290006
 	tst.w	d2	;4A42
 	beq	adrCd009B5E	;6700002A
 	moveq	#$03,d1	;7203
-adrLp009B38:
+adrLp009B38:		; Memory Address ($9B38) and binary offset [$97B4]
 	moveq	#$02,d0	;7002
 	sub.w	$0020(a1),d0	;90690020
 	add.w	-$000A(a3),d0	;D06BFFF6
@@ -15537,18 +15622,18 @@ adrLp009B38:
 	movem.l	d1/a1,-(sp)	;48E74040
 	bsr.s	adrCd009B5E	;610A
 	movem.l	(sp)+,d1/a1	;4CDF0202
-adrCd009B58:
+adrCd009B58:		; Memory Address ($9B58) and binary offset [$97D4]
 	dbra	d1,adrLp009B38	;51C9FFDE
 	rts	;4E75
 
-adrCd009B5E:
+adrCd009B5E:		; Memory Address ($9B5E) and binary offset [$97DA]
 	move.b	d0,-$0017(a3)	;1740FFE9
 	bsr	Load_ChampionStatRecord	;6100CAFC
 	move.b	$001B(a4),d0	;102C001B
 	bsr.s	Decode_Monster_RenderFlags	;6154
 	bra	adrCd00A6EC	;60000B7E
 
-GFX_Spell_ColourMasks:
+GFX_Spell_ColourMasks:		; Memory Address ($9B70) and binary offset [$97EC]
 	; ReSource: Four colour-mask indices per spell code. The first 16 records cover $80–$8F; the final four $90–$93 records have no confirmed gameplay effect but are retained for byte-exact source reproduction.
 	dc.l	$090D0B0C	;090D0B0C
 	dc.l	$02060807	;02060807
@@ -15571,13 +15656,13 @@ GFX_Spell_ColourMasks:
 	dc.l	$0506060D	;0506060D
 	dc.l	$0708060D	;0708060D
 
-Decode_Monster_RenderFlags:
+Decode_Monster_RenderFlags:		; Memory Address ($9BC0) and binary offset [$983C]
 	clr.b	-$0015(a3)	;422BFFEB
 	and.w	#$001F,d0	;0240001F
 	move.b	Monster_RenderFlags_LookupTable(pc,d0.w),-$0015(a3)	;177B0006FFEB
 	rts	;4E75
 
-Monster_RenderFlags_LookupTable:
+Monster_RenderFlags_LookupTable:		; Memory Address ($9BD0) and binary offset [$984C]
 	; ReSource: Maps the low five bits of a monster render state to the two arm or claw animation flags.
 	dc.b	$00	;00
 	dc.b	$00	;00
@@ -15612,7 +15697,7 @@ Monster_RenderFlags_LookupTable:
 	dc.b	$03	;03
 	dc.b	$03	;03
 
-Draw_AirbourneSpell:
+Draw_AirbourneSpell:		; Memory Address ($9BF0) and binary offset [$986C]
 	; ReSource: Selects the distance group, graphical family and colour mask used to render flying spell codes $80+.
 	lea	GFX_AirbourneSpell_DistanceGroups.l,a1		;43F900009C68
 	move.b	$00(a1,d1.w),d1			;12311000
@@ -15623,7 +15708,7 @@ Draw_AirbourneSpell:
 	bcs.s	.RenderSelectedLayout			;650A
 	add.w	#$0798,a1			;D2FC0798
 	lea	GFX_AirbourneSpells_RenderLayout.l,a2		;45F900009C86
-.RenderSelectedLayout:
+.RenderSelectedLayout:		; Memory Address ($9C18) and binary offset [$9894]
 	; ReSource: Shared rendering path after selecting either the Fireball or general Airbourne-spell layout.
 	add.w	$00(a2,d1.w),a1			;D2F21000
 	add.w	d1,d1				;D241
@@ -15648,7 +15733,7 @@ Draw_AirbourneSpell:
 	move.l	(sp)+,a3	;265F
 	rts	;4E75
 
-GFX_AirbourneSpell_DistanceGroups:
+GFX_AirbourneSpell_DistanceGroups:		; Memory Address ($9C68) and binary offset [$98E4]
 	; ReSource: Maps the six visible source distances to four graphical sizes: 0,0,1,1,2,3.
 	dc.b	$00	;00
 	dc.b	$00	;00
@@ -15656,7 +15741,7 @@ GFX_AirbourneSpell_DistanceGroups:
 	dc.b	$01	;01
 	dc.b	$02	;02
 	dc.b	$03	;03
-GFX_AirbourneFireball_RenderLayout:
+GFX_AirbourneFireball_RenderLayout:		; Memory Address ($9C6E) and binary offset [$98EA]
 	; ReSource: Four source offsets followed by four packed X, Y, width-minus-one and height-minus-one records for spell codes $80–$85.
 	dc.w	$0000	;0000
 	dc.w	$01A0	;01A0
@@ -15670,7 +15755,7 @@ GFX_AirbourneFireball_RenderLayout:
 	dc.w	$000A	;000A
 	dc.w	$020D	;020D
 	dc.w	$0007	;0007
-GFX_AirbourneSpells_RenderLayout:
+GFX_AirbourneSpells_RenderLayout:		; Memory Address ($9C86) and binary offset [$9902]
 	; ReSource: Four source offsets followed by four packed X, Y, width-minus-one and height-minus-one records for spell codes $86–$8F. Offsets are relative to the flying-spell pictures at AirbourneSpells.gfx+$4E0.
 	dc.w	$0000	;0000
 	dc.w	$01B0	;01B0
@@ -15684,14 +15769,14 @@ GFX_AirbourneSpells_RenderLayout:
 	dc.w	$000A	;000A
 	dc.w	$010E	;010E
 	dc.w	$0006	;0006
-Monster_Facing_GfxVariants_LookupTable:
+Monster_Facing_GfxVariants_LookupTable:		; Memory Address ($9C9E) and binary offset [$991A]
 	; ReSource: Maps facing direction to front, side, back, or mirrored-side graphic variants.
 	dc.b	$00	;00
 	dc.b	$01	;01
 	dc.b	$02	;02
 	dc.b	$81	;81
 
-adrCd009CA2:
+adrCd009CA2:		; Memory Address ($9CA2) and binary offset [$991E]
 	move.w	d1,d2	;3401
 	add.w	d2,d2	;D442
 	add.w	d1,d2	;D441
@@ -15699,7 +15784,7 @@ adrCd009CA2:
 	move.b	Monster_Facing_GfxVariants_LookupTable(pc,d0.w),d3	;163B00F2
 	bpl.s	adrCd009CB2	;6A02
 	moveq	#-$01,d6	;7CFF
-adrCd009CB2:
+adrCd009CB2:		; Memory Address ($9CB2) and binary offset [$992E]
 	and.w	#$007F,d3	;0243007F
 	add.w	d3,d2	;D443
 	moveq	#$00,d7	;7E00
@@ -15712,7 +15797,7 @@ adrCd009CB2:
 	move.b	$06(a0,d1.w),d7	;1E301006
 	rts	;4E75
 
-Draw_Summon:
+Draw_Summon:		; Memory Address ($9CD2) and binary offset [$994E]
 	lea	GFX_Summon_LookupTable.l,a2	;45F900009EBE
 	lea	GFX_Summon_Body_Layout.l,a0	;41F900009DC0
 	lea	GFX_Summon.l,a1	;43F900045018
@@ -15723,7 +15808,7 @@ Draw_Summon:
 	lea	Monster_Summon_Colours.l,a0	;41F900009DB8
 	moveq	#$02,d3	;7602
 	bsr	MonsterColourGrading	;61000198
-.IllusionSkip:
+.IllusionSkip:		; Memory Address ($9CFE) and binary offset [$997A]
 	movem.w	d0/d1/d4/d5/d7,-(sp)	;48A7CD00
 	move.l	a1,-(sp)	;2F09
 	bsr	Draw_Monster_16PixelStrip	;6100102E
@@ -15738,7 +15823,7 @@ Draw_Summon:
 	movem.w	d0/d1/d4/d5,-(sp)	;48A7CC00
 	bsr	Draw_Monster_16PixelStrip	;61001012
 	movem.w	(sp)+,d0/d1/d4/d5	;4C9F0033
-adrCd009D28:
+adrCd009D28:		; Memory Address ($9D28) and binary offset [$99A4]
 	cmpi.w	#$0004,d1	;0C410004
 	bcc	adrCd009DB6	;64000088
 	lea	GFX_Summon_PrimaryArm_Positions.l,a2	;45F900009DDC
@@ -15750,17 +15835,17 @@ adrCd009D28:
 	lea	GFX_Summon_SecondaryArm_Positions.l,a2	;45F900009DFC
 	moveq	#-$01,d6	;7CFF
 	moveq	#$01,d2	;7401
-adrCd009D50:
+adrCd009D50:		; Memory Address ($9D50) and binary offset [$99CC]
 	lea	GFX_Summon_ArmVariants_LookupTable.l,a0	;41F900009DCC
 	move.b	$00(a0,d0.w),d3	;16300000
 	bpl.s	adrCd009D5E	;6A02
 	not.w	d6	;4646
-adrCd009D5E:
+adrCd009D5E:		; Memory Address ($9D5E) and binary offset [$99DA]
 	and.w	#$007F,d3	;0243007F
 	btst	d2,-$0015(a3)	;052BFFEB
 	beq.s	adrCd009D6A	;6702
 	moveq	#$02,d3	;7602
-adrCd009D6A:
+adrCd009D6A:		; Memory Address ($9D6A) and binary offset [$99E6]
 	move.w	d1,d2	;3401
 	add.w	d2,d2	;D442
 	add.w	d1,d2	;D441
@@ -15779,22 +15864,22 @@ adrCd009D6A:
 	cmpi.b	#$02,d3	;0C030002
 	bne.s	adrCd009DA2	;6604
 	add.w	#$0040,a2	;D4FC0040
-adrCd009DA2:
+adrCd009DA2:		; Memory Address ($9DA2) and binary offset [$9A1E]
 	cmp.w	#$FFFF,$00(a2,d2.w)	;0C72FFFF2000
 	beq.s	adrCd009DB6	;670C
 	sub.b	$00(a2,d2.w),d4	;98322000
 	sub.b	$01(a2,d2.w),d5	;9A322001
 	bra	Draw_Monster_16PixelStrip	;60000F80
 
-adrCd009DB6:
+adrCd009DB6:		; Memory Address ($9DB6) and binary offset [$9A32]
 	rts	;4E75
 
-Monster_Summon_Colours:
+Monster_Summon_Colours:		; Memory Address ($9DB8) and binary offset [$9A34]
 	dc.w	$0001	;0001
 	dc.w	$0203	;0203
 	dc.w	$0405	;0405
 	dc.w	$0607	;0607
-GFX_Summon_Body_Layout:
+GFX_Summon_Body_Layout:		; Memory Address ($9DC0) and binary offset [$9A3C]
 	; ReSource: Contains Summon body vertical adjustments and heights; its final bytes also begin the packed body-width data.
 	dc.w	$1511	;1511
 	dc.w	$0D0C	;0D0C
@@ -15802,11 +15887,11 @@ GFX_Summon_Body_Layout:
 	dc.w	$2E26	;2E26
 	dc.w	$1F1A	;1F1A
 	dc.w	$1510	;1510
-GFX_Summon_ArmVariants_LookupTable:
+GFX_Summon_ArmVariants_LookupTable:		; Memory Address ($9DCC) and binary offset [$9A48]
 	; ReSource: Maps Summon facing direction to an arm graphic variant and mirroring; it also forms part of the packed body-width data.
 	dc.w	$0001	;0001
 	dc.w	$8001	;8001
-GFX_Summon_Arm_Heights:
+GFX_Summon_Arm_Heights:		; Memory Address ($9DD0) and binary offset [$9A4C]
 	; ReSource: Provides Summon arm heights and completes the packed body-width table.
 	dc.w	$1414	;1414
 	dc.w	$1010	;1010
@@ -15814,7 +15899,7 @@ GFX_Summon_Arm_Heights:
 	dc.w	$0C0C	;0C0C
 	dc.w	$0A0B	;0A0B
 	dc.w	$0B08	;0B08
-GFX_Summon_PrimaryArm_Positions:
+GFX_Summon_PrimaryArm_Positions:		; Memory Address ($9DDC) and binary offset [$9A58]
 	; ReSource: Packed X and Y drawing positions for the primary Summon arm; $FFFF suppresses an unavailable component.
 	dc.w	$09F9	;09F9
 	dc.w	$FFFF	;FFFF
@@ -15832,7 +15917,7 @@ GFX_Summon_PrimaryArm_Positions:
 	dc.w	$FFFF	;FFFF
 	dc.w	$07FC	;07FC
 	dc.w	$01FC	;01FC
-GFX_Summon_SecondaryArm_Positions:
+GFX_Summon_SecondaryArm_Positions:		; Memory Address ($9DFC) and binary offset [$9A78]
 	; ReSource: Packed X and Y drawing positions for the secondary Summon arm; $FFFF suppresses an unavailable component.
 	dc.w	$FAF9	;FAF9
 	dc.w	$03F9	;03F9
@@ -15882,10 +15967,10 @@ GFX_Summon_SecondaryArm_Positions:
 	dc.w	$0401	;0401
 	dc.w	$0901	;0901
 	dc.w	$FFFF	;FFFF
-Illusion_Palettes:
+Illusion_Palettes:		; Memory Address ($9E5C) and binary offset [$9AD8]
 	dc.w	$0000	;0000
 	dc.w	$0708	;0708
-Monster_Palettes:
+Monster_Palettes:		; Memory Address ($9E60) and binary offset [$9ADC]
 	dc.w	$0003	;0003
 	dc.w	$040E	;040E
 	dc.w	$0008	;0008
@@ -15913,17 +15998,17 @@ Monster_Palettes:
 	dc.w	$0007	;0007
 	dc.w	$080D	;080D
 
-MonsterColourGrading:
+MonsterColourGrading:		; Memory Address ($9E94) and binary offset [$9B10]
 	moveq	#$00,d2	;7400
 	move.b	-$0018(a3),d2	;142BFFE8
 	sub.b	d3,d2	;9403
 	bcc.s	.gradelower	;6402
 	moveq	#$00,d2	;7400
-.gradelower:
+.gradelower:		; Memory Address ($9EA0) and binary offset [$9B1C]
 	cmpi.b	#$08,d2	;0C020008
 	bcs.s	.gradeupper	;6502
 	moveq	#$07,d2	;7407
-.gradeupper:
+.gradeupper:		; Memory Address ($9EA8) and binary offset [$9B24]
 	move.b	$00(a0,d2.w),d2	;14302000
 	asl.w	#$02,d2	;E542
 	lea	Monster_Palettes.l,a6	;4DF900009E60
@@ -15931,7 +16016,7 @@ MonsterColourGrading:
 	move.l	(a6),Buffer_Colour_Mask.l	;23D60000B4C0
 	rts	;4E75
 
-GFX_Summon_LookupTable:
+GFX_Summon_LookupTable:		; Memory Address ($9EBE) and binary offset [$9B3A]
 	; ReSource: Offsets of the 18 Summon body pictures in Summon.gfx: six distances by three facing variants.
 	dc.w	$0000	;0000
 	dc.w	$0178	;0178
@@ -15951,7 +16036,7 @@ GFX_Summon_LookupTable:
 	dc.w	$0FA8	;0FA8
 	dc.w	$1030	;1030
 	dc.w	$10B8	;10B8
-GFX_Summon_Arms_LookupTable:
+GFX_Summon_Arms_LookupTable:		; Memory Address ($9EE2) and binary offset [$9B5E]
 	; ReSource: Offsets of the 12 Summon arm pictures in Summon.gfx: four distances by three arm variants.
 	dc.w	$1140	;1140
 	dc.w	$11E8	;11E8
@@ -15966,7 +16051,7 @@ GFX_Summon_Arms_LookupTable:
 	dc.w	$1610	;1610
 	dc.w	$1670	;1670
 
-Draw_Crab:
+Draw_Crab:		; Memory Address ($9EFA) and binary offset [$9B76]
 	move.w	#$FFFF,Buffer_Colour_Mask_Toggle.l	;33FCFFFF0000B4BE
 	lea	Monster_Crabs_Colours.l,a0	;41F900009F20
 	moveq	#$02,d3	;7602
@@ -15977,17 +16062,17 @@ Draw_Crab:
 	clr.w	Buffer_Colour_Mask_Toggle.l	;42790000B4BE
 	rts	;4E75
 
-Monster_Crabs_Colours:
+Monster_Crabs_Colours:		; Memory Address ($9F20) and binary offset [$9B9C]
 	dc.w	$0304	;0304
 	dc.w	$0507	;0507
 	dc.w	$080B	;080B
 	dc.w	$090A	;090A
 
-adrCd009F28:
+adrCd009F28:		; Memory Address ($9F28) and binary offset [$9BA4]
 	cmpi.b	#$02,d1	;0C010002
 	bcc.s	adrCd009F32	;6404
 	bsr	adrCd00A060	;61000130
-adrCd009F32:
+adrCd009F32:		; Memory Address ($9F32) and binary offset [$9BAE]
 	cmpi.b	#$02,d0	;0C000002
 	beq.s	adrCd009F78	;6740
 	tst.b	d0	;4A00
@@ -16010,36 +16095,36 @@ adrCd009F32:
 	add.b	adrB_009F7D(pc,d1.w),d4	;D83B100B
 	bra	Draw_Monster_16PixelStrip	;60000DBE
 
-adrCd009F78:
+adrCd009F78:		; Memory Address ($9F78) and binary offset [$9BF4]
 	rts	;4E75
 
 adrB_009F7A:
 	dc.b	$F8	;F8
 	dc.b	$F7	;F7
-adrB_009F7C:
+adrB_009F7C:		; Memory Address ($9F7C) and binary offset [$9BF8]
 	dc.b	$F8	;F8
-adrB_009F7D:
+adrB_009F7D:		; Memory Address ($9F7D) and binary offset [$9BF9]
 	dc.b	$04	;04
 	dc.b	$F9	;F9
 	dc.b	$FF	;FF
-adrB_009F80:
+adrB_009F80:		; Memory Address ($9F80) and binary offset [$9BFC]
 	dc.b	$09	;09
 	dc.b	$07	;07
-adrB_009F82:
+adrB_009F82:		; Memory Address ($9F82) and binary offset [$9BFE]
 	dc.b	$FD	;FD
 	dc.b	$EF	;EF
 	dc.b	$FA	;FA
 	dc.b	$F1	;F1
-adrB_009F86:
+adrB_009F86:		; Memory Address ($9F86) and binary offset [$9C02]
 	dc.b	$F0	;F0
 	dc.b	$10	;10
 	dc.b	$F6	;F6
 	dc.b	$04	;04
-adrB_009F8A:
+adrB_009F8A:		; Memory Address ($9F8A) and binary offset [$9C06]
 	dc.b	$14	;14
 	dc.b	$0D	;0D
 
-adrCd009F8C:
+adrCd009F8C:		; Memory Address ($9F8C) and binary offset [$9C08]
 	moveq	#$00,d7	;7E00
 	move.b	adrB_009F8A(pc,d1.w),d7	;1E3B10FA
 	moveq	#$00,d2	;7400
@@ -16047,7 +16132,7 @@ adrCd009F8C:
 	bsr	adrCd009F9E	;61000006
 	moveq	#$01,d2	;7401
 	moveq	#-$01,d6	;7CFF
-adrCd009F9E:
+adrCd009F9E:		; Memory Address ($9F9E) and binary offset [$9C1A]
 	lea	GFX_Behemoth_Claw_LookupTable.l,a2	;45F90000A6C2
 	lea	GFX_Behemoth.l,a1	;43F9000466D0
 	movem.w	d0/d1/d4/d5/d7,-(sp)	;48A7CD00
@@ -16060,7 +16145,7 @@ adrCd009F9E:
 	beq.s	adrCd009FC4	;6704
 	addq.w	#$01,d3	;5243
 	addq.w	#$02,a2	;544A
-adrCd009FC4:
+adrCd009FC4:		; Memory Address ($9FC4) and binary offset [$9C40]
 	add.b	adrB_009F82(pc,d3.w),d5	;DA3B30BC
 	add.w	d1,d1	;D241
 	add.w	$00(a2,d1.w),a1	;D2F21000
@@ -16073,7 +16158,7 @@ adrB_009FD8:
 	dc.b	$12	;12
 	dc.b	$07	;07
 	dc.b	$0E	;0E
-adrB_009FDC:
+adrB_009FDC:		; Memory Address ($9FDC) and binary offset [$9C58]
 	dc.b	$E6	;E6
 	dc.b	$E5	;E5
 	dc.b	$1A	;1A
@@ -16082,13 +16167,13 @@ adrB_009FDC:
 	dc.b	$EF	;EF
 	dc.b	$0B	;0B
 	dc.b	$0B	;0B
-adrB_009FE4:
+adrB_009FE4:		; Memory Address ($9FE4) and binary offset [$9C60]
 	dc.b	$02	;02
 	dc.b	$F1	;F1
 	dc.b	$FB	;FB
 	dc.b	$F0	;F0
 
-adrCd009FE8:
+adrCd009FE8:		; Memory Address ($9FE8) and binary offset [$9C64]
 	cmpi.b	#$02,d1	;0C010002
 	bcc.s	adrCd00A030	;6442
 	lea	adrEA00A17E.l,a2	;45F90000A17E
@@ -16097,7 +16182,7 @@ adrCd009FE8:
 	lsr.b	#$01,d0	;E208
 	beq.s	adrCd009FFE	;6702
 	moveq	#$00,d6	;7C00
-adrCd009FFE:
+adrCd009FFE:		; Memory Address ($9FFE) and binary offset [$9C7A]
 	move.w	d1,d2	;3401
 	add.w	d0,d2	;D440
 	add.w	d2,d2	;D442
@@ -16106,7 +16191,7 @@ adrCd009FFE:
 	beq.s	adrCd00A012	;6704
 	addq.w	#$01,d1	;5241
 	addq.w	#$01,d2	;5242
-adrCd00A012:
+adrCd00A012:		; Memory Address ($A012) and binary offset [$9C8E]
 	moveq	#$00,d7	;7E00
 	move.b	adrB_009FD8(pc,d1.w),d7	;1E3B10C2
 	add.b	adrB_009FDC(pc,d2.w),d4	;D83B20C2
@@ -16117,16 +16202,16 @@ adrCd00A012:
 adrB_00A028:
 	dc.b	$08	;08
 	dc.b	$06	;06
-adrB_00A02A:
+adrB_00A02A:		; Memory Address ($A02A) and binary offset [$9CA6]
 	dc.b	$F3	;F3
 	dc.b	$09	;09
 	dc.b	$F2	;F2
 	dc.b	$06	;06
-adrB_00A02E:
+adrB_00A02E:		; Memory Address ($A02E) and binary offset [$9CAA]
 	dc.b	$F8	;F8
 	dc.b	$F7	;F7
 
-adrCd00A030:
+adrCd00A030:		; Memory Address ($A030) and binary offset [$9CAC]
 	subq.b	#$02,d1	;5501
 	moveq	#$00,d7	;7E00
 	move.b	adrB_00A028(pc,d1.w),d7	;1E3B10F2
@@ -16139,21 +16224,21 @@ adrCd00A030:
 	beq.s	adrCd00A052	;6704
 	moveq	#$00,d6	;7C00
 	addq.w	#$01,d1	;5241
-adrCd00A052:
+adrCd00A052:		; Memory Address ($A052) and binary offset [$9CCE]
 	add.b	adrB_00A02A(pc,d1.w),d4	;D83B10D6
 	bra	Draw_Monster_16PixelStrip	;60000CDC
 
 adrB_00A05A:
 	dc.b	$0B	;0B
 	dc.b	$07	;07
-GFX_CrabFace_Position:
+GFX_CrabFace_Position:		; Memory Address ($A05C) and binary offset [$9CD8]
 	dc.b	$FE	;FE
 	dc.b	$FB	;FB
-adrB_00A05E:
+adrB_00A05E:		; Memory Address ($A05E) and binary offset [$9CDA]
 	dc.b	$EC	;EC
 	dc.b	$14	;14
 
-adrCd00A060:
+adrCd00A060:		; Memory Address ($A060) and binary offset [$9CDC]
 	tst.b	d0	;4A00
 	bne.s	adrCd00A086	;6622
 	moveq	#$00,d6	;7C00
@@ -16162,13 +16247,13 @@ adrCd00A060:
 	move.b	adrB_00A05A(pc,d1.w),d7	;1E3B10E8
 	bsr	adrCd00A0F6	;61000080
 	add.b	GFX_CrabFace_Position(pc,d1.w),d5	;DA3B10E2
-adrCd00A07C:
+adrCd00A07C:		; Memory Address ($A07C) and binary offset [$9CF8]
 	bsr	Draw_Monster_16PixelStrip	;61000CB6
 	movem.w	(sp)+,d0/d1/d4/d5	;4C9F0033
-adrCd00A084:
+adrCd00A084:		; Memory Address ($A084) and binary offset [$9D00]
 	rts	;4E75
 
-adrCd00A086:
+adrCd00A086:		; Memory Address ($A086) and binary offset [$9D02]
 	cmpi.b	#$02,d0	;0C000002
 	beq.s	adrCd00A0B4	;6728
 	tst.b	d1	;4A01
@@ -16181,7 +16266,7 @@ adrCd00A086:
 	lsr.b	#$01,d0	;E208
 	beq.s	adrCd00A0A6	;6702
 	moveq	#$00,d6	;7C00
-adrCd00A0A6:
+adrCd00A0A6:		; Memory Address ($A0A6) and binary offset [$9D22]
 	add.b	adrB_00A05E(pc,d0.w),d4	;D83B00B6
 	bra.s	adrCd00A07C	;60D0
 
@@ -16190,14 +16275,14 @@ adrB_00A0AC:
 	dc.b	$F9	;F9
 	dc.b	$FE	;FE
 	dc.b	$FC	;FC
-adrB_00A0B0:
+adrB_00A0B0:		; Memory Address ($A0B0) and binary offset [$9D2C]
 	dc.b	$EF	;EF
 	dc.b	$F1	;F1
-adrB_00A0B2:
+adrB_00A0B2:		; Memory Address ($A0B2) and binary offset [$9D2E]
 	dc.b	$07	;07
 	dc.b	$04	;04
 
-adrCd00A0B4:
+adrCd00A0B4:		; Memory Address ($A0B4) and binary offset [$9D30]
 	tst.b	-$0015(a3)	;4A2BFFEB
 	beq.s	adrCd00A084	;67CA
 	lea	adrEA00A176.l,a2	;45F90000A176
@@ -16209,7 +16294,7 @@ adrCd00A0B4:
 	bsr.s	GFX_Beholder	;6104
 	moveq	#$00,d6	;7C00
 	moveq	#$01,d2	;7401
-GFX_Beholder:
+GFX_Beholder:		; Memory Address ($A0D2) and binary offset [$9D4E]
 	btst	d2,-$0015(a3)	;052BFFEB
 	beq.s	adrCd00A0F4	;671C
 	movem.w	d0/d1/d4/d5/d7,-(sp)	;48A7CD00
@@ -16221,17 +16306,17 @@ GFX_Beholder:
 	bsr	Draw_Monster_16PixelStrip	;61000C48
 	move.l	(sp)+,a1	;225F
 	movem.w	(sp)+,d0/d1/d4/d5/d7	;4C9F00B3
-adrCd00A0F4:
+adrCd00A0F4:		; Memory Address ($A0F4) and binary offset [$9D70]
 	rts	;4E75
 
-adrCd00A0F6:
+adrCd00A0F6:		; Memory Address ($A0F6) and binary offset [$9D72]
 	lea	GFX_Crab.l,a1	;43F900047AB8
 	move.w	d1,d2	;3401
 	add.w	d2,d2	;D442
 	add.w	$00(a2,d2.w),a1	;D2F22000
 	rts	;4E75
 
-adrCd00A106:
+adrCd00A106:		; Memory Address ($A106) and binary offset [$9D82]
 	lea	Monster_DistanceGroups_LookupTable.l,a0	;41F90000A536
 	move.b	$00(a0,d1.w),d1	;12301000
 	lea	adrEA00A168.l,a2	;45F90000A168
@@ -16257,7 +16342,7 @@ adrCd00A106:
 
 adrB_00A154:
 	dc.b	$EC	;EC
-adrB_00A155:
+adrB_00A155:		; Memory Address ($A155) and binary offset [$9DD1]
 	dc.b	$04	;04
 	dc.b	$F2	;F2
 	dc.b	$F8	;F8
@@ -16265,7 +16350,7 @@ adrB_00A155:
 	dc.b	$04	;04
 	dc.b	$F9	;F9
 	dc.b	$FF	;FF
-adrEA00A15C:
+adrEA00A15C:		; Memory Address ($A15C) and binary offset [$9DD8]
 	dc.w	$080B	;080B
 	dc.w	$1714	;1714
 	dc.w	$0101	;0101
@@ -16277,26 +16362,26 @@ adrEA00A168:
 	dc.w	$01D0	;01D0
 	dc.w	$0300	;0300
 	dc.w	$0368	;0368
-adrEA00A170:
+adrEA00A170:		; Memory Address ($A170) and binary offset [$9DEC]
 	dc.w	$03B8	;03B8
 	dc.w	$0418	;0418
 	dc.w	$0458	;0458
-adrEA00A176:
+adrEA00A176:		; Memory Address ($A176) and binary offset [$9DF2]
 	dc.w	$0498	;0498
 	dc.w	$04D8	;04D8
-adrEA00A17A:
+adrEA00A17A:		; Memory Address ($A17A) and binary offset [$9DF6]
 	dc.w	$0500	;0500
 	dc.w	$0550	;0550
-adrEA00A17E:
+adrEA00A17E:		; Memory Address ($A17E) and binary offset [$9DFA]
 	dc.w	$0590	;0590
 	dc.w	$05D8	;05D8
 	dc.w	$0670	;0670
 	dc.w	$06B0	;06B0
-adrEA00A186:
+adrEA00A186:		; Memory Address ($A186) and binary offset [$9E02]
 	dc.w	$0728	;0728
 	dc.w	$0770	;0770
 
-Draw_Beholder:
+Draw_Beholder:		; Memory Address ($A18A) and binary offset [$9E06]
 	moveq	#$04,d3	;7604
 	lea	Monster_Beholder_Colours.l,a0	;41F90000A1AC
 	bsr	MonsterColourGrading	;6100FD00
@@ -16304,27 +16389,27 @@ Draw_Beholder:
 	cmpi.b	#$02,d0	;0C000002
 	beq.s	adrCd00A1A4	;6704
 	bsr	Draw_Beholder_CentralEye	;6100001A
-adrCd00A1A4:
+adrCd00A1A4:		; Memory Address ($A1A4) and binary offset [$9E20]
 	clr.w	Buffer_Colour_Mask_Toggle.l	;42790000B4BE
 	rts	;4E75
 
-Monster_Beholder_Colours:
+Monster_Beholder_Colours:		; Memory Address ($A1AC) and binary offset [$9E28]
 	dc.w	$040A	;040A
 	dc.w	$070B	;070B
 	dc.w	$0308	;0308
 	dc.w	$0509	;0509
-GFX_Beholder_CentralEye_Near_Front_Heights:
+GFX_Beholder_CentralEye_Near_Front_Heights:		; Memory Address ($A1B4) and binary offset [$9E30]
 	dc.b	$08	;08
 	dc.b	$06	;06
 	dc.b	$06	;06
 	dc.b	$04	;04
-GFX_Beholder_CentralEye_Near_YPositions:
+GFX_Beholder_CentralEye_Near_YPositions:		; Memory Address ($A1B8) and binary offset [$9E34]
 	dc.b	$06	;06
 	dc.b	$05	;05
 	dc.b	$04	;04
 	dc.b	$03	;03
 
-Draw_Beholder_CentralEye:
+Draw_Beholder_CentralEye:		; Memory Address ($A1BC) and binary offset [$9E38]
 	cmpi.b	#$04,d1	;0C010004
 	bcc.s	Draw_Beholder_CentralEye_Far	;6464
 	lea	GFX_Beholder_CentralEye_Near_LookupTable.l,a2	;45F90000A308
@@ -16335,7 +16420,7 @@ Draw_Beholder_CentralEye:
 	btst	#$01,-$0015(a3)	;082B0001FFEB
 	beq.s	adrCd00A1DC	;6702
 	addq.w	#$01,d2	;5242
-adrCd00A1DC:
+adrCd00A1DC:		; Memory Address ($A1DC) and binary offset [$9E58]
 	add.w	d2,d2	;D442
 	lea	GFX_Beholder_Body.l,a1	;43F900048260
 	tst.b	d0	;4A00
@@ -16344,23 +16429,23 @@ adrCd00A1DC:
 	add.w	$00(a2,d2.w),a1	;D2F22000
 	bra	Draw_Beholder_Component	;600000C4
 
-GFX_Beholder_CentralEye_Near_Side_Heights:
+GFX_Beholder_CentralEye_Near_Side_Heights:		; Memory Address ($A1F4) and binary offset [$9E70]
 	dc.b	$08	;08
 	dc.b	$06	;06
 	dc.b	$04	;04
 	dc.b	$04	;04
-GFX_Beholder_CentralEye_Near_Side_Mirrored_XPositions:
+GFX_Beholder_CentralEye_Near_Side_Mirrored_XPositions:		; Memory Address ($A1F8) and binary offset [$9E74]
 	dc.b	$08	;08
 	dc.b	$04	;04
 	dc.b	$FF	;FF
 	dc.b	$FD	;FD
-GFX_Beholder_CentralEye_Near_Side_YPositions:
+GFX_Beholder_CentralEye_Near_Side_YPositions:		; Memory Address ($A1FC) and binary offset [$9E78]
 	dc.b	$00	;00
 	dc.b	$00	;00
 	dc.b	$01	;01
 	dc.b	$00	;00
 
-Draw_Beholder_CentralEye_NearSide:
+Draw_Beholder_CentralEye_NearSide:		; Memory Address ($A200) and binary offset [$9E7C]
 	add.w	#$0010,a2	;D4FC0010
 	add.w	$00(a2,d2.w),a1	;D2F22000
 	move.b	GFX_Beholder_CentralEye_Near_Side_Heights(pc,d1.w),d7	;1E3B10EA
@@ -16372,14 +16457,14 @@ Draw_Beholder_CentralEye_NearSide:
 	moveq	#-$01,d6	;7CFF
 	bra	Draw_Monster_16PixelStrip	;60000B14
 
-GFX_Beholder_CentralEye_Far_YPositions:
+GFX_Beholder_CentralEye_Far_YPositions:		; Memory Address ($A222) and binary offset [$9E9E]
 	dc.b	$06	;06
 	dc.b	$04	;04
-GFX_Beholder_CentralEye_Far_Side_Mirrored_XPositions:
+GFX_Beholder_CentralEye_Far_Side_Mirrored_XPositions:		; Memory Address ($A224) and binary offset [$9EA0]
 	dc.b	$F9	;F9
 	dc.b	$F7	;F7
 
-Draw_Beholder_CentralEye_Far:
+Draw_Beholder_CentralEye_Far:		; Memory Address ($A226) and binary offset [$9EA2]
 	lea	GFX_Beholder_CentralEye_Far_LookupTable.l,a2	;45F90000A328
 	subq.w	#$04,d1	;5941
 	move.w	d1,d2	;3401
@@ -16393,40 +16478,40 @@ Draw_Beholder_CentralEye_Far:
 	beq.s	adrCd00A248	;6706
 	moveq	#-$01,d6	;7CFF
 	add.b	GFX_Beholder_CentralEye_Far_Side_Mirrored_XPositions(pc,d1.w),d4	;D83B10DE
-adrCd00A248:
+adrCd00A248:		; Memory Address ($A248) and binary offset [$9EC4]
 	add.w	d2,d2	;D442
 	lea	GFX_Beholder_Body.l,a1	;43F900048260
 	add.w	$00(a2,d2.w),a1	;D2F22000
 	bra	Draw_Monster_16PixelStrip	;60000ADE
 
-GFX_Beholder_Body_Heights:
+GFX_Beholder_Body_Heights:		; Memory Address ($A258) and binary offset [$9ED4]
 	dc.b	$14	;14
 	dc.b	$10	;10
 	dc.b	$0D	;0D
 	dc.b	$0A	;0A
 	dc.b	$0B	;0B
 	dc.b	$08	;08
-GFX_Beholder_Composite_XPositions:
+GFX_Beholder_Composite_XPositions:		; Memory Address ($A25E) and binary offset [$9EDA]
 	dc.b	$FD	;FD
 	dc.b	$FE	;FE
 	dc.b	$FF	;FF
 	dc.b	$FF	;FF
 	dc.b	$00	;00
 	dc.b	$00	;00
-GFX_Beholder_Composite_YPositions:
+GFX_Beholder_Composite_YPositions:		; Memory Address ($A264) and binary offset [$9EE0]
 	dc.b	$F2	;F2
 	dc.b	$F4	;F4
 	dc.b	$F6	;F6
 	dc.b	$F7	;F7
 	dc.b	$02	;02
 	dc.b	$01	;01
-GFX_Beholder_UpperEyes_Heights:
+GFX_Beholder_UpperEyes_Heights:		; Memory Address ($A26A) and binary offset [$9EE6]
 	dc.b	$06	;06
 	dc.b	$04	;04
 	dc.b	$03	;03
 	dc.b	$03	;03
 
-Draw_Beholder_BodyAndUpperEyes:
+Draw_Beholder_BodyAndUpperEyes:		; Memory Address ($A26E) and binary offset [$9EEA]
 	moveq	#$00,d7	;7E00
 	move.b	GFX_Beholder_Body_Heights(pc,d1.w),d7	;1E3B10E6
 	add.b	GFX_Beholder_Composite_XPositions(pc,d1.w),d4	;D83B10E8
@@ -16448,10 +16533,10 @@ Draw_Beholder_BodyAndUpperEyes:
 	sub.b	d2,d5	;9A02
 	bsr.s	Draw_Beholder_Component	;6104
 	move.w	(sp)+,d5	;3A1F
-adrCd00A2B4:
+adrCd00A2B4:		; Memory Address ($A2B4) and binary offset [$9F30]
 	rts	;4E75
 
-Draw_Beholder_Component:
+Draw_Beholder_Component:		; Memory Address ($A2B6) and binary offset [$9F32]
 	movem.w	d0/d1/d4/d5/d7,-(sp)	;48A7CD00
 	move.l	a1,-(sp)	;2F09
 	moveq	#$00,d6	;7C00
@@ -16467,30 +16552,30 @@ Draw_Beholder_Component:
 	movem.w	(sp)+,d0/d1/d4/d5/d7	;4C9F00B3
 	rts	;4E75
 
-GFX_Beholder_Near_MirroredHalf_XPositions:
+GFX_Beholder_Near_MirroredHalf_XPositions:		; Memory Address ($A2E2) and binary offset [$9F5E]
 	dc.b	$08	;08
 	dc.b	$04	;04
 
-Select_Beholder_GfxFromLookup:
+Select_Beholder_GfxFromLookup:		; Memory Address ($A2E4) and binary offset [$9F60]
 	move.w	d1,d2	;3401
 	add.w	d2,d2	;D442
 	lea	GFX_Beholder_Body.l,a1	;43F900048260
 	add.w	$00(a2,d2.w),a1	;D2F22000
 	rts	;4E75
 
-GFX_Beholder_Body_LookupTable:
+GFX_Beholder_Body_LookupTable:		; Memory Address ($A2F4) and binary offset [$9F70]
 	dc.w	GFX_Beholder_Body-GFX_Beholder_Body	;0000
 	dc.w	_GFX_Beholder_1-GFX_Beholder_Body	;00A8
 	dc.w	_GFX_Beholder_2-GFX_Beholder_Body	;0130
 	dc.w	_GFX_Beholder_3-GFX_Beholder_Body	;01A0
 	dc.w	_GFX_Beholder_4-GFX_Beholder_Body	;01F8
 	dc.w	_GFX_Beholder_5-GFX_Beholder_Body	;0258
-GFX_Beholder_UpperEyes_LookupTable:
+GFX_Beholder_UpperEyes_LookupTable:		; Memory Address ($A300) and binary offset [$9F7C]
 	dc.w	_GFX_Beholder_6-GFX_Beholder_Body	;02A0
 	dc.w	_GFX_Beholder_7-GFX_Beholder_Body	;02D8
 	dc.w	_GFX_Beholder_8-GFX_Beholder_Body	;0300
 	dc.w	_GFX_Beholder_9-GFX_Beholder_Body	;0320
-GFX_Beholder_CentralEye_Near_LookupTable:
+GFX_Beholder_CentralEye_Near_LookupTable:		; Memory Address ($A308) and binary offset [$9F84]
 	dc.w	$0340	;0340
 	dc.w	$0388	;0388
 	dc.w	$03D0	;03D0
@@ -16507,13 +16592,13 @@ GFX_Beholder_CentralEye_Near_LookupTable:
 	dc.w	$0628	;0628
 	dc.w	$0650	;0650
 	dc.w	$0678	;0678
-GFX_Beholder_CentralEye_Far_LookupTable:
+GFX_Beholder_CentralEye_Far_LookupTable:		; Memory Address ($A328) and binary offset [$9FA4]
 	dc.w	$06A0	;06A0
 	dc.w	$06B8	;06B8
 	dc.w	$06D0	;06D0
 	dc.w	$06E8	;06E8
 
-Draw_LittleDragon:
+Draw_LittleDragon:		; Memory Address ($A330) and binary offset [$9FAC]
 	moveq	#$01,d2	;7401
 	lea	adrEA00A33C.l,a2	;45F90000A33C
 	moveq	#$03,d3	;7603
@@ -16524,17 +16609,17 @@ adrEA00A33C:
 	dc.w	$FBFA	;FBFA
 	dc.w	$FD01	;FD01
 	dc.w	$0E0D	;0E0D
-BigDragon_Table_Unknown:
+BigDragon_Table_Unknown:		; Memory Address ($A344) and binary offset [$9FC0]
 	dc.w	$E8EE	;E8EE
 	dc.w	$F6F9	;F6F9
 	dc.w	$F0F8	;F0F8
 	dc.w	$0909	;0909
 
-Draw_BigDragon:
+Draw_BigDragon:		; Memory Address ($A34C) and binary offset [$9FC8]
 	moveq	#$00,d2	;7400
 	lea	BigDragon_Table_Unknown.l,a2	;45F90000A344
 	moveq	#$09,d3	;7609
-adrCd00A356:
+adrCd00A356:		; Memory Address ($A356) and binary offset [$9FD2]
 	lea	Monster_DistanceGroups_LookupTable.l,a0	;41F90000A536
 	move.b	$00(a0,d1.w),d1	;12301000
 	add.b	$00(a2,d1.w),d4	;D8321000
@@ -16547,17 +16632,17 @@ adrCd00A356:
 	add.w	d1,d2	;D441
 	add.w	d1,d2	;D441
 	add.b	GFX_Dragon_Side_XPositions(pc,d2.w),d4	;D83B2022
-adrCd00A37C:
+adrCd00A37C:		; Memory Address ($A37C) and binary offset [$9FF8]
 	lea	Monster_Dragon_Colours.l,a0	;41F90000A3A6
 	bsr	MonsterColourGrading	;6100FB10
 	move.w	#$FFFF,Buffer_Colour_Mask_Toggle.l	;33FCFFFF0000B4BE
 	bsr	adrCd00A476	;610000E6
 	bsr.s	adrCd00A3AE	;611A
 	clr.w	Buffer_Colour_Mask_Toggle.l	;42790000B4BE
-adrCd00A39A:
+adrCd00A39A:		; Memory Address ($A39A) and binary offset [$A016]
 	rts	;4E75
 
-GFX_Dragon_Side_XPositions:
+GFX_Dragon_Side_XPositions:		; Memory Address ($A39C) and binary offset [$A018]
 	; ReSource: Additional horizontal shifts for side-facing Dragons by size group and side.
 	dc.b	$FD	;FD
 	dc.b	$F5	;F5
@@ -16569,13 +16654,13 @@ GFX_Dragon_Side_XPositions:
 	dc.b	$FA	;FA
 	dc.b	$FF	;FF
 	dc.b	$F6	;F6
-Monster_Dragon_Colours:
+Monster_Dragon_Colours:		; Memory Address ($A3A6) and binary offset [$A022]
 	dc.w	$0B0A	;0B0A
 	dc.w	$0408	;0408
 	dc.w	$0709	;0709
 	dc.w	$0506	;0506
 
-adrCd00A3AE:
+adrCd00A3AE:		; Memory Address ($A3AE) and binary offset [$A02A]
 	cmpi.b	#$02,d0	;0C000002
 	beq.s	adrCd00A39A	;67E6
 	cmpi.b	#$03,d1	;0C010003
@@ -16589,7 +16674,7 @@ adrCd00A3AE:
 	bne.s	adrCd00A39A	;66CE
 	moveq	#-$01,d6	;7CFF
 	moveq	#$01,d2	;7401
-adrCd00A3D0:
+adrCd00A3D0:		; Memory Address ($A3D0) and binary offset [$A04C]
 	move.w	d1,d3	;3601
 	asl.w	#$02,d3	;E543
 	move.w	d0,d7	;3E00
@@ -16598,11 +16683,11 @@ adrCd00A3D0:
 	lsr.w	#$01,d7	;E24F
 	bne.s	adrCd00A3E0	;6602
 	not.l	d6	;4686
-adrCd00A3E0:
+adrCd00A3E0:		; Memory Address ($A3E0) and binary offset [$A05C]
 	btst	d2,-$0015(a3)	;052BFFEB
 	beq.s	adrCd00A3E8	;6702
 	addq.w	#$01,d3	;5243
-adrCd00A3E8:
+adrCd00A3E8:		; Memory Address ($A3E8) and binary offset [$A064]
 	moveq	#$00,d7	;7E00
 	move.b	adrB_00A418(pc,d3.w),d7	;1E3B302C
 	swap	d7	;4847
@@ -16615,7 +16700,7 @@ adrCd00A3E8:
 	tst.w	d6	;4A46
 	bpl.s	adrCd00A410	;6A02
 	addq.w	#$01,d3	;5243
-adrCd00A410:
+adrCd00A410:		; Memory Address ($A410) and binary offset [$A08C]
 	add.b	adrB_00A43C(pc,d3.w),d4	;D83B302A
 	bra	Draw_Monster_CompositeBitmap	;600002B4
 
@@ -16632,7 +16717,7 @@ adrB_00A418:
 	dc.b	$00	;00
 	dc.b	$00	;00
 	dc.b	$00	;00
-adrB_00A424:
+adrB_00A424:		; Memory Address ($A424) and binary offset [$A0A0]
 	dc.b	$14	;14
 	dc.b	$16	;16
 	dc.b	$12	;12
@@ -16645,7 +16730,7 @@ adrB_00A424:
 	dc.b	$0A	;0A
 	dc.b	$09	;09
 	dc.b	$0A	;0A
-adrB_00A430:
+adrB_00A430:		; Memory Address ($A430) and binary offset [$A0AC]
 	dc.b	$22	;22
 	dc.b	$14	;14
 	dc.b	$24	;24
@@ -16658,7 +16743,7 @@ adrB_00A430:
 	dc.b	$0A	;0A
 	dc.b	$12	;12
 	dc.b	$0A	;0A
-adrB_00A43C:
+adrB_00A43C:		; Memory Address ($A43C) and binary offset [$A0B8]
 	dc.b	$05	;05
 	dc.b	$2B	;2B
 	dc.b	$04	;04
@@ -16699,12 +16784,12 @@ adrB_00A454:
 	dc.b	$00	;00
 	dc.b	$01	;01
 	dc.b	$00	;00
-adrB_00A463:
+adrB_00A463:		; Memory Address ($A463) and binary offset [$A0DF]
 	dc.b	$00	;00
 	dc.b	$01	;01
 	dc.b	$02	;02
 	dc.b	$81	;81
-adrB_00A467:
+adrB_00A467:		; Memory Address ($A467) and binary offset [$A0E3]
 	dc.b	$31	;31
 	dc.b	$36	;36
 	dc.b	$35	;35
@@ -16721,7 +16806,7 @@ adrB_00A467:
 	dc.b	$0F	;0F
 	dc.b	$0F	;0F
 
-adrCd00A476:
+adrCd00A476:		; Memory Address ($A476) and binary offset [$A0F2]
 	move.w	d1,d2	;3401
 	add.w	d2,d2	;D442
 	add.w	d1,d2	;D441
@@ -16730,7 +16815,7 @@ adrCd00A476:
 	bpl.s	adrCd00A488	;6A04
 	moveq	#-$01,d6	;7CFF
 	moveq	#$01,d3	;7601
-adrCd00A488:
+adrCd00A488:		; Memory Address ($A488) and binary offset [$A104]
 	add.b	d3,d2	;D403
 	moveq	#$00,d7	;7E00
 	move.b	adrB_00A454(pc,d2.w),d7	;1E3B20C6
@@ -16750,10 +16835,10 @@ adrCd00A488:
 	add.b	GFX_Dragon_MirroredHalf_XPositions(pc,d1.w),d4	;D83B100C
 	bsr	Draw_Monster_CompositeBitmap	;61000204
 	movem.w	(sp)+,d0/d1/d4/d5	;4C9F0033
-adrCd00A4CC:
+adrCd00A4CC:		; Memory Address ($A4CC) and binary offset [$A148]
 	rts	;4E75
 
-GFX_Dragon_MirroredHalf_XPositions:
+GFX_Dragon_MirroredHalf_XPositions:		; Memory Address ($A4CE) and binary offset [$A14A]
 	; ReSource: Horizontal spacing used when the Dragon body is completed by drawing a mirrored second half.
 	dc.b	$20	;20
 	dc.b	$0E	;0E
@@ -16777,7 +16862,7 @@ adrEA00A4D4:
 	dc.w	$1FA0	;1FA0
 	dc.w	$2020	;2020
 	dc.w	$2120	;2120
-adrEA00A4F2:
+adrEA00A4F2:		; Memory Address ($A4F2) and binary offset [$A16E]
 	dc.w	$21A0	;21A0
 	dc.w	$2248	;2248
 	dc.w	$2300	;2300
@@ -16791,7 +16876,7 @@ adrEA00A4F2:
 	dc.w	$2888	;2888
 	dc.w	$28D8	;28D8
 
-Draw_Behemoth:
+Draw_Behemoth:		; Memory Address ($A50A) and binary offset [$A186]
 	move.w	#$FFFF,Buffer_Colour_Mask_Toggle.l	;33FCFFFF0000B4BE
 	lea	Monster_Behemoth_Colours.l,a0	;41F90000A52E
 	moveq	#$06,d3	;7606
@@ -16801,21 +16886,21 @@ Draw_Behemoth:
 	clr.w	Buffer_Colour_Mask_Toggle.l	;42790000B4BE
 	rts	;4E75
 
-Monster_Behemoth_Colours:
+Monster_Behemoth_Colours:		; Memory Address ($A52E) and binary offset [$A1AA]
 	dc.w	$090B	;090B
 	dc.w	$0A08	;0A08
 	dc.w	$0304	;0304
 	dc.w	$0507	;0507
-Monster_DistanceGroups_LookupTable:
+Monster_DistanceGroups_LookupTable:		; Memory Address ($A536) and binary offset [$A1B2]
 	; ReSource: Maps six visible distance slots to four stored size groups used by centred large monsters.
 	dc.w	$0000	;0000
 	dc.w	$0101	;0101
 	dc.w	$0203	;0203
 
-Draw_Entropy:
+Draw_Entropy:		; Memory Address ($A53C) and binary offset [$A1B8]
 	move.l	#$04080C,Buffer_Colour_Mask.l	;23FC0004080C0000B4C0
 	lea	GFX_Entropy_Layout.l,a0	;41F90000A604
-adrCd00A54C:
+adrCd00A54C:		; Memory Address ($A54C) and binary offset [$A1C8]
 	move.b	Monster_DistanceGroups_LookupTable(pc,d1.w),d1	;123B10E8
 	lea	$0042(a0),a2	;45E80042
 
@@ -16829,7 +16914,7 @@ adrCd00A54C:
 	add.w	d1,d2	;D441
 	add.w	d1,d2	;D441
 	add.b	$1A(a0,d2.w),d4	;D830201A
-adrCd00A56E:
+adrCd00A56E:		; Memory Address ($A56E) and binary offset [$A1EA]
 	movem.l	d0/d1/d4/d5/d7/a0/a1,-(sp)	;48E7CDC0
 	bsr	Draw_Monster_CompositeBitmap	;61000156
 	movem.l	(sp),d0/d1/d4/d5/d7/a0/a1	;4CD703B3
@@ -16838,7 +16923,7 @@ adrCd00A56E:
 	moveq	#-$01,d6	;7CFF
 	add.b	$22(a0,d1.w),d4	;D8301022
 	bsr	Draw_Monster_CompositeBitmap	;61000142
-adrCd00A58A:
+adrCd00A58A:		; Memory Address ($A58A) and binary offset [$A206]
 	movem.l	(sp)+,d0/d1/d4/d5/d7/a0/a1	;4CDF03B3
 	cmpi.b	#$02,d1	;0C010002
 	bcc.s	adrCd00A600	;646C
@@ -16852,7 +16937,7 @@ adrCd00A58A:
 	bne.s	adrCd00A600	;6656
 	moveq	#$01,d2	;7401
 	moveq	#-$01,d6	;7CFF
-adrCd00A5AE:
+adrCd00A5AE:		; Memory Address ($A5AE) and binary offset [$A22A]
 	movem.w	d0/d1/d4/d5,-(sp)	;48A7CC00
 	move.l	$003E(a0),a1	;2268003E
 	add.w	d1,d1	;D241
@@ -16861,7 +16946,7 @@ adrCd00A5AE:
 	beq.s	adrCd00A5C4	;6704
 	addq.w	#$01,d1	;5241
 	moveq	#-$01,d3	;76FF
-adrCd00A5C4:
+adrCd00A5C4:		; Memory Address ($A5C4) and binary offset [$A240]
 	moveq	#$00,d7	;7E00
 	move.b	$2A(a0,d1.w),d7	;1E30102A
 	add.b	$26(a0,d1.w),d5	;DA301026
@@ -16876,24 +16961,24 @@ adrCd00A5C4:
 	tst.w	-$0002(a0)	;4A68FFFE
 	beq.s	adrCd00A5E8	;6702
 	not.w	d6	;4646
-adrCd00A5E8:
+adrCd00A5E8:		; Memory Address ($A5E8) and binary offset [$A264]
 	tst.w	d0	;4A40
 	bne.s	adrCd00A5EE	;6602
 	not.w	d6	;4646
-adrCd00A5EE:
+adrCd00A5EE:		; Memory Address ($A5EE) and binary offset [$A26A]
 	tst.w	d6	;4A46
 	beq.s	adrCd00A5F4	;6702
 	addq.w	#$01,d1	;5241
-adrCd00A5F4:
+adrCd00A5F4:		; Memory Address ($A5F4) and binary offset [$A270]
 	add.b	$2E(a0,d1.w),d4	;D830102E
 	bsr	Draw_Monster_16PixelStrip	;6100073A
 	movem.w	(sp)+,d0/d1/d4/d5	;4C9F0033
-adrCd00A600:
+adrCd00A600:		; Memory Address ($A600) and binary offset [$A27C]
 	rts	;4E75
 
 ;fiX Label expected
 	dc.w	$FFFF	;FFFF
-GFX_Entropy_Layout:
+GFX_Entropy_Layout:		; Memory Address ($A604) and binary offset [$A280]
 	; ReSource: Packed Entropy body and limb dimensions, positions, and mirroring rules.
 	dc.w	$1008	;1008
 	dc.w	$F8F8	;F8F8
@@ -16949,7 +17034,7 @@ GFX_Entropy_Layout:
 	dc.w	$1348	;1348
 	dc.w	$13D8	;13D8
 	dc.w	$0000	;0000
-GFX_Behemoth_Layout:
+GFX_Behemoth_Layout:		; Memory Address ($A668) and binary offset [$A2E4]
 	; ReSource: Packed Behemoth body and claw dimensions, positions, and mirroring rules.
 	dc.w	$0C05	;0C05
 	dc.w	$F6F6	;F6F6
@@ -17000,14 +17085,14 @@ GFX_Behemoth_Layout:
 	dc.w	$1020	;1020
 	dc.w	$10A8	;10A8
 	dc.w	$1130	;1130
-GFX_Behemoth_Claw_LookupTable:
+GFX_Behemoth_Claw_LookupTable:		; Memory Address ($A6C2) and binary offset [$A33E]
 	; ReSource: Offsets of four Behemoth claw pictures; the closest front-facing Crab reuses these graphics.
 	dc.w	$11B8	;11B8
 	dc.w	$1260	;1260
 	dc.w	$1308	;1308
 	dc.w	$1378	;1378
 
-Draw_Monster_CompositeBitmap:
+Draw_Monster_CompositeBitmap:		; Memory Address ($A6CA) and binary offset [$A346]
 	add.w	$0008(a5),d5	;DA6D0008
 	move.b	d4,d6	;1C04
 	add.b	#$60,d4	;06040060
@@ -17019,26 +17104,26 @@ Draw_Monster_CompositeBitmap:
 	bsr	adrCd00AE5E	;6100077E
 	bra.s	adrCd00A6E8	;6004
 
-adrCd00A6E4:
+adrCd00A6E4:		; Memory Address ($A6E4) and binary offset [$A360]
 	bsr	adrCd00AF1E	;61000838
-adrCd00A6E8:
+adrCd00A6E8:		; Memory Address ($A6E8) and binary offset [$A364]
 	move.l	(sp)+,a3	;265F
 	rts	;4E75
 
-adrCd00A6EC:
+adrCd00A6EC:		; Memory Address ($A6EC) and binary offset [$A368]
 	bsr	Prepare_Monster_ScreenPosition	;6100F270
 	tst.b	d1	;4A01
 	bpl.s	adrCd00A6F6	;6A02
 	rts	;4E75
 
-adrCd00A6F6:
+adrCd00A6F6:		; Memory Address ($A6F6) and binary offset [$A372]
 	move.b	-$0017(a3),d0	;102BFFE9
 	bmi	Draw_AirbourneSpell	;6B00F4F4
 	move.w	-$000A(a3),d0	;302BFFF6
 	btst	#$00,d0	;08000000
 	bne.s	adrCd00A70A	;6602
 	addq.w	#$02,d0	;5440
-adrCd00A70A:
+adrCd00A70A:		; Memory Address ($A70A) and binary offset [$A386]
 	add.b	-$001B(a3),d0	;D02BFFE5
 	and.w	#$0003,d0	;02400003
 	moveq	#$00,d2	;7400
@@ -17054,14 +17139,14 @@ adrCd00A70A:
 	add.w	$00(a1,d2.w),a1	;D2F12000
 	jmp	(a1)	;4ED1
 
-Creatures_LookupTable:
+Creatures_LookupTable:		; Memory Address ($A73A) and binary offset [$A3B6]
 	dc.w	Draw_Behemoth-Creatures_LookupTable	;FDD0
 	dc.w	Draw_Crab-Creatures_LookupTable	;F7C0
 	dc.w	Draw_BigDragon-Creatures_LookupTable	;FC12
 	dc.w	Draw_LittleDragon-Creatures_LookupTable	;FBF6
 	dc.w	Draw_Entropy-Creatures_LookupTable	;FE02
 
-Draw_Character:
+Draw_Character:		; Memory Address ($A744) and binary offset [$A3C0]
 	moveq	#$00,d2	;7400
 	move.b	-$0017(a3),d2	;142BFFE9
 	lea	CharacterHeadSel.l,a0	;41F90000A91A
@@ -17088,7 +17173,7 @@ Draw_Character:
 	move.b	Character_WornArmour_RenderOverrides(pc,d7.w),d6	;1C3B7004
 	bra.s	adrCd00A7F2	;6060
 
-Character_WornArmour_RenderOverrides:
+Character_WornArmour_RenderOverrides:		; Memory Address ($A792) and binary offset [$A40E]
 	; ReSource: Maps worn body armour $1B-$23 to the alternate character body and colour override flags.
 	dc.b	$01	;01
 	dc.b	$02	;02
@@ -17100,7 +17185,7 @@ Character_WornArmour_RenderOverrides:
 	dc.b	$C2	;C2
 	dc.b	$C3	;C3
 	dc.b	$00	;00
-CharacterBodySel:
+CharacterBodySel:		; Memory Address ($A79C) and binary offset [$A418]
 	dc.b	$00	;00
 	dc.b	$03	;03
 	dc.b	$04	;04
@@ -17188,7 +17273,7 @@ CharacterBodySel:
 	dc.b	$00	;00
 	dc.b	$00	;00
 
-adrCd00A7F2:
+adrCd00A7F2:		; Memory Address ($A7F2) and binary offset [$A46E]
 	move.b	CharacterBodySel(pc,d3.w),d3	;163B30A8
 	beq.s	adrCd00A808	;6710
 	tst.w	d6	;4A46
@@ -17196,10 +17281,10 @@ adrCd00A7F2:
 	cmpi.w	#$0003,d3	;0C430003
 	bcc.s	adrCd00A804	;6402
 	moveq	#$03,d3	;7603
-adrCd00A804:
+adrCd00A804:		; Memory Address ($A804) and binary offset [$A480]
 	add.b	d6,d3	;D606
 	add.b	d6,d3	;D606
-adrCd00A808:
+adrCd00A808:		; Memory Address ($A808) and binary offset [$A484]
 	move.b	d6,-$001C(a3)			;1746FFE4
 	lea	Character_BodyDefinitions.l,a0		;41F90000A88E
 	and.w	#$000F,d3			;0243000F
@@ -17209,7 +17294,7 @@ adrCd00A808:
 	tst.w	-$0002(a0)			;4A68FFFE
 	beq.s	adrCd00A830			;6706
 	lea	Character_RenderLayout_Alternate.l,a1		;43F900018944
-adrCd00A830:
+adrCd00A830:		; Memory Address ($A830) and binary offset [$A4AC]
 	move.l	a0,-(sp)	;2F08
 	move.l	a1,-(sp)	;2F09
 	move.w	d2,-(sp)	;3F02
@@ -17234,9 +17319,9 @@ adrCd00A830:
 	subq.w	#$02,d0	;5540
 	add.b	$0005(sp),d0	;D02F0005
 	move.b	d0,$0005(sp)	;1F400005
-adrCd00A876:
+adrCd00A876:		; Memory Address ($A876) and binary offset [$A4F2]
 	moveq	#$00,d0	;7000
-adrCd00A878:
+adrCd00A878:		; Memory Address ($A878) and binary offset [$A4F4]
 	move.w	d0,-(sp)	;3F00
 	bsr	Draw_CharacterComponent	;6100011C
 	move.w	(sp)+,d0	;301F
@@ -17246,7 +17331,7 @@ adrCd00A878:
 	add.w	#$0012,sp	;DEFC0012
 	rts	;4E75
 
-Character_BodyDefinitions:
+Character_BodyDefinitions:		; Memory Address ($A88E) and binary offset [$A50A]
 	; ReSource: Fourteen 10-byte records containing a layout selector and BodyParts.gfx bases for legs, torso, arms and the distant composite.
 	dc.w	$0000	;0000
 	dc.w	$2BE0	;2BE0
@@ -17318,7 +17403,7 @@ Character_BodyDefinitions:
 	dc.w	$0870	;0870
 	dc.w	$3378	;3378
 	dc.w	$8298	;8298
-CharacterHeadSel:
+CharacterHeadSel:		; Memory Address ($A91A) and binary offset [$A596]
 	dc.w	$0F10	;0F10
 	dc.w	$0E0D	;0E0D
 	dc.w	$010A	;010A
@@ -17362,7 +17447,7 @@ CharacterHeadSel:
 	dc.w	$0F0F	;0F0F
 	dc.w	$0F0F	;0F0F
 	dc.w	$0F0F	;0F0F
-Character_RenderTableOffsets:
+Character_RenderTableOffsets:		; Memory Address ($A970) and binary offset [$A5EC]
 	; ReSource: Interleaved five-entry lookup containing the height-table and graphics-source-table offsets for each rendered character part.
 	dc.w	$00A0	;00A0
 	dc.w	$00AC	;00AC
@@ -17374,7 +17459,7 @@ Character_RenderTableOffsets:
 	dc.w	$0118	;0118
 	dc.w	$010C	;010C
 	dc.w	$0118	;0118
-Character_PartFacingVariants:
+Character_PartFacingVariants:		; Memory Address ($A984) and binary offset [$A600]
 	; ReSource: Five parts × four facings; bit 7 means mirror and $FF suppresses that part.
 	dc.b	$00	;00
 	dc.b	$01	;01
@@ -17397,7 +17482,7 @@ Character_PartFacingVariants:
 	dc.b	$00	;00
 	dc.b	$FF	;FF
 
-Draw_CharacterComponent:
+Draw_CharacterComponent:		; Memory Address ($A998) and binary offset [$A614]
 	; ReSource: Draws one character component by selecting its distance, facing and animation variant, resolving its height and graphics source, applying its colour mask, and positioning or mirroring the 16-pixel strip.
 	move.w	d0,d2	;3400
 	asl.w	#$02,d2	;E542
@@ -17412,12 +17497,12 @@ Draw_CharacterComponent:
 	move.b	Character_PartFacingVariants(pc,d2.w),d2	;143B20C8
 	bpl.s	adrCd00A9C2	;6A02
 	subq.w	#$01,d6	;5346
-adrCd00A9C2:
+adrCd00A9C2:		; Memory Address ($A9C2) and binary offset [$A63E]
 	cmpi.b	#$FF,d2	;0C0200FF
 	bne.s	adrCd00A9CA	;6602
 	rts	;4E75
 
-adrCd00A9CA:
+adrCd00A9CA:		; Memory Address ($A9CA) and binary offset [$A646]
 	cmpi.w	#$0003,d0	;0C400003
 	bcs.s	adrCd00A9DC	;650C
 	move.w	d0,d1	;3200
@@ -17425,7 +17510,7 @@ adrCd00A9CA:
 	btst	d1,-$0015(a3)	;032BFFEB
 	beq.s	adrCd00A9DC	;6702
 	moveq	#$02,d2	;7402
-adrCd00A9DC:
+adrCd00A9DC:		; Memory Address ($A9DC) and binary offset [$A658]
 	and.w	#$007F,d2	;0242007F
 	move.w	$0008(sp),d1	;322F0008
 	add.w	d1,d1	;D241
@@ -17445,15 +17530,15 @@ adrCd00A9DC:
 	add.w	d1,a1	;D2C1
 	bra.s	adrCd00AA24	;6010
 
-adrCd00AA14:
+adrCd00AA14:		; Memory Address ($AA14) and binary offset [$A690]
 	bcs.s	adrCd00AA18	;6502
 	moveq	#$02,d0	;7002
-adrCd00AA18:
+adrCd00AA18:		; Memory Address ($AA18) and binary offset [$A694]
 	move.l	$0014(sp),a1	;226F0014
 	add.w	d0,d0	;D040
 	add.w	$00(a1,d0.w),d1	;D2710000
 	move.l	d1,a1	;2241
-adrCd00AA24:
+adrCd00AA24:		; Memory Address ($AA24) and binary offset [$A6A0]
 	move.w	$000C(sp),d5	;3A2F000C
 	move.w	$000A(sp),d4	;382F000A
 	move.w	$0004(sp),d0	;302F0004
@@ -17467,7 +17552,7 @@ adrCd00AA24:
 	moveq	#$00,d0	;7000
 	bra	adrCd00AADC	;60000090
 
-adrCd00AA4E:
+adrCd00AA4E:		; Memory Address ($AA4E) and binary offset [$A6CA]
 	move.w	$0004(sp),d1	;322F0004
 	subq.w	#$03,d1	;5741
 	btst	d1,-$0015(a3)	;032BFFEB
@@ -17479,7 +17564,7 @@ adrCd00AA4E:
 	cmp.l	#Character_RenderLayout_Alternate,$0010(sp)	;0CAF000189440010
 	bne.s	adrCd00AA76	;6604
 	add.w	#$0024,a0	;D0FC0024
-adrCd00AA76:
+adrCd00AA76:		; Memory Address ($AA76) and binary offset [$A6F2]
 	sub.b	$00(a0,d1.w),d5	;9A301000
 	addq.w	#$04,a0	;5848
 	asl.w	#$03,d1	;E741
@@ -17489,9 +17574,9 @@ adrCd00AA76:
 	btst	#$00,d1	;08010000
 	beq.s	adrCd00AA90	;6702
 	not.w	d6	;4646
-adrCd00AA90:
+adrCd00AA90:		; Memory Address ($AA90) and binary offset [$A70C]
 	moveq	#$04,d0	;7004
-adrCd00AA92:
+adrCd00AA92:		; Memory Address ($AA92) and binary offset [$A70E]
 	moveq	#$00,d1	;7200
 	move.b	-$001C(a3),d1	;122BFFE4
 	beq	adrCd00AAD8	;6700003E
@@ -17508,7 +17593,7 @@ adrCd00AA92:
 	cmp.w	#$2BE0,(a6)	;0C562BE0
 	bne.s	adrCd00AABC	;6602
 	subq.w	#$04,d1	;5941
-adrCd00AABC:
+adrCd00AABC:		; Memory Address ($AABC) and binary offset [$A738]
 	lea	adrEA00ABA6.l,a0	;41F90000ABA6
 	add.w	d1,a0	;D0C1
 	move.w	d0,d1	;3200
@@ -17520,10 +17605,10 @@ adrCd00AABC:
 	bsr.s	Prepare_CharacterComponentColourMask	;616E
 	bra.s	adrCd00AAF8	;6020
 
-adrCd00AAD8:
+adrCd00AAD8:		; Memory Address ($AAD8) and binary offset [$A754]
 	add.w	d0,d0	;D040
 	addq.w	#$04,d0	;5840
-adrCd00AADC:
+adrCd00AADC:		; Memory Address ($AADC) and binary offset [$A758]
 	moveq	#$00,d1	;7200
 	move.b	-$0017(a3),d1	;122BFFE9
 	asl.w	#$02,d1	;E541
@@ -17534,10 +17619,10 @@ adrCd00AADC:
 	add.w	d1,d0	;D041
 	lea	CharacterColours.l,a6	;4DF9000351C8
 	add.w	d0,a6	;DCC0
-adrCd00AAF8:
+adrCd00AAF8:		; Memory Address ($AAF8) and binary offset [$A774]
 	bra	adrCd00AD2E	;60000234
 
-Character_ArmAnimationPositions:
+Character_ArmAnimationPositions:		; Memory Address ($AAFC) and binary offset [$A778]
 	; ReSource: Standard and alternate animated-arm Y corrections and facing-specific X corrections.
 	dc.w	$0806	;0806
 	dc.w	$0605	;0605
@@ -17576,7 +17661,7 @@ Character_ArmAnimationPositions:
 	dc.w	$0209	;0209
 	dc.w	$FE00	;FE00
 
-Prepare_CharacterComponentColourMask:
+Prepare_CharacterComponentColourMask:		; Memory Address ($AB44) and binary offset [$A7C0]
 	; ReSource: Builds a character-component colour mask and applies worn-armour material and character-specific palette substitutions.
 	lea	Buffer_Colour_Mask.l,a6	;4DF90000B4C0
 	move.l	$00(a0,d1.w),(a6)	;2CB01000
@@ -17586,39 +17671,39 @@ Prepare_CharacterComponentColourMask:
 	beq.s	adrCd00AB7C	;6722
 	move.b	Character_ArmourMaterial_PalettePairEnds(pc,d1.w),d1	;123B1046
 	moveq	#$03,d2	;7403
-adrLp00AB60:
+adrLp00AB60:		; Memory Address ($AB60) and binary offset [$A7DC]
 	move.b	d1,d3	;1601
 	cmp.b	#$04,$00(a6,d2.w)	;0C3600042000
 	beq.s	adrCd00AB74	;670A
 	subq.b	#$01,d3	;5303
 	cmp.b	#$03,$00(a6,d2.w)	;0C3600032000
 	bne.s	adrCd00AB78	;6604
-adrCd00AB74:
+adrCd00AB74:		; Memory Address ($AB74) and binary offset [$A7F0]
 	move.b	d3,$00(a6,d2.w)	;1D832000
-adrCd00AB78:
+adrCd00AB78:		; Memory Address ($AB78) and binary offset [$A7F4]
 	dbra	d2,adrLp00AB60	;51CAFFE6
-adrCd00AB7C:
+adrCd00AB7C:		; Memory Address ($AB7C) and binary offset [$A7F8]
 	lea	adrEA00AC12.l,a0	;41F90000AC12
 	move.b	-$0018(a3),d1	;122BFFE8
 	asl.w	#$02,d1	;E541
 	add.w	d1,a0	;D0C1
 	moveq	#$03,d2	;7403
-adrLp00AB8C:
+adrLp00AB8C:		; Memory Address ($AB8C) and binary offset [$A808]
 	move.b	$00(a6,d2.w),d1	;12362000
 	bpl.s	adrCd00AB9C	;6A0A
 	and.w	#$0003,d1	;02410003
 	move.b	$00(a0,d1.w),$00(a6,d2.w)	;1DB010002000
-adrCd00AB9C:
+adrCd00AB9C:		; Memory Address ($AB9C) and binary offset [$A818]
 	dbra	d2,adrLp00AB8C	;51CAFFEE
 	rts	;4E75
 
-Character_ArmourMaterial_PalettePairEnds:
+Character_ArmourMaterial_PalettePairEnds:		; Memory Address ($ABA2) and binary offset [$A81E]
 	; ReSource: Maps ordinary, Mithril, Adamant and Crystal armour material codes to the brighter palette index of each adjacent dark/light colour pair.
 	dc.b	$00	;00
 	dc.b	$08	;08
 	dc.b	$06	;06
 	dc.b	$0B	;0B
-adrEA00ABA6:
+adrEA00ABA6:		; Memory Address ($ABA6) and binary offset [$A822]
 	dc.b	$0B	;0B
 	dc.b	$0A	;0A
 	dc.b	$09	;09
@@ -17699,7 +17784,7 @@ adrEA00ABA6:
 	dc.b	$04	;04
 	dc.b	$04	;04
 	dc.b	$83	;83
-adrEA00ABF6:
+adrEA00ABF6:		; Memory Address ($ABF6) and binary offset [$A872]
 	dc.b	$00	;00
 	dc.b	$04	;04
 	dc.b	$08	;08
@@ -17728,7 +17813,7 @@ adrEA00ABF6:
 	dc.b	$03	;03
 	dc.b	$03	;03
 	dc.b	$04	;04
-adrEA00AC12:
+adrEA00AC12:		; Memory Address ($AC12) and binary offset [$A88E]
 	dc.b	$0B	;0B
 	dc.b	$0A	;0A
 	dc.b	$07	;07
@@ -17793,7 +17878,7 @@ adrEA00AC12:
 	dc.b	$04	;04
 	dc.b	$04	;04
 	dc.b	$04	;04
-adrEA00AC52:
+adrEA00AC52:		; Memory Address ($AC52) and binary offset [$A8CE]
 	dc.b	$0B	;0B
 	dc.b	$0A	;0A
 	dc.b	$0B	;0B
@@ -17806,7 +17891,7 @@ adrEA00AC52:
 	dc.b	$02	;02
 	dc.b	$04	;04
 	dc.b	$82	;82
-adrEA00AC5E:
+adrEA00AC5E:		; Memory Address ($AC5E) and binary offset [$A8DA]
 	dc.b	$81	;81
 	dc.b	$03	;03
 	dc.b	$04	;04
@@ -17824,7 +17909,7 @@ adrEA00AC5E:
 	dc.b	$80	;80
 	dc.b	$0C	;0C
 
-adrCd00AC6E:
+adrCd00AC6E:		; Memory Address ($AC6E) and binary offset [$A8EA]
 	move.w	-$0002(a0),-(sp)	;3F28FFFE
 	moveq	#$00,d3	;7600
 	move.w	$0006(a0),d3	;36280006
@@ -17835,13 +17920,13 @@ adrCd00AC6E:
 	lea	Character_Distant4_Positions_Alternate.l,a0	;41F900018A74
 	bra	adrCd00ACCC	;60000042
 
-adrCd00AC8C:
+adrCd00AC8C:		; Memory Address ($AC8C) and binary offset [$A908]
 	moveq	#$15,d7	;7E15
 	move.w	#$00B0,d2	;343C00B0
 	lea	Character_Distant4_Positions_Standard.l,a0	;41F900018934
 	bra	adrCd00ACCC	;60000032
 
-adrCd00AC9C:
+adrCd00AC9C:		; Memory Address ($AC9C) and binary offset [$A918]
 	move.w	-$0002(a0),-(sp)	;3F28FFFE
 	moveq	#$00,d3	;7600
 	move.w	$0006(a0),d3	;36280006
@@ -17853,12 +17938,12 @@ adrCd00AC9C:
 	add.w	#$01F8,d3	;064301F8
 	bra.s	adrCd00ACCC	;6010
 
-adrCd00ACBC:
+adrCd00ACBC:		; Memory Address ($ACBC) and binary offset [$A938]
 	moveq	#$10,d7	;7E10
 	move.w	#$0088,d2	;343C0088
 	lea	Character_Distant5_Positions_Standard.l,a0	;41F90001893C
 	add.w	#$0210,d3	;06430210
-adrCd00ACCC:
+adrCd00ACCC:		; Memory Address ($ACCC) and binary offset [$A948]
 	move.l	d3,a1	;2243
 	add.w	d0,d0	;D040
 	add.b	$00(a0,d0.w),d4	;D8300000
@@ -17868,7 +17953,7 @@ adrCd00ACCC:
 	bne.s	adrCd00ACE4	;6604
 	subq.w	#$01,d6	;5346
 	subq.w	#$04,d0	;5940
-adrCd00ACE4:
+adrCd00ACE4:		; Memory Address ($ACE4) and binary offset [$A960]
 	lsr.w	#$01,d0	;E248
 	mulu	d0,d2	;C4C0
 	add.w	d2,a1	;D2C2
@@ -17881,11 +17966,11 @@ adrCd00ACE4:
 	tst.w	(sp)	;4A57
 	beq.s	adrCd00AD08	;6706
 	lea	adrEA00AC5E.l,a0	;41F90000AC5E
-adrCd00AD08:
+adrCd00AD08:		; Memory Address ($AD08) and binary offset [$A984]
 	bsr	Prepare_CharacterComponentColourMask	;6100FE3A
 	bra.s	adrCd00AD26	;6018
 
-adrCd00AD0E:
+adrCd00AD0E:		; Memory Address ($AD0E) and binary offset [$A98A]
 	move.b	-$0017(a3),d1	;122BFFE9
 	asl.w	#$02,d1	;E541
 	moveq	#$00,d0	;7000
@@ -17894,20 +17979,20 @@ adrCd00AD0E:
 	asl.w	#$02,d1	;E541
 	lea	CharacterColours+$10.l,a6	;4DF9000351D8
 	add.w	d1,a6	;DCC1
-adrCd00AD26:
+adrCd00AD26:		; Memory Address ($AD26) and binary offset [$A9A2]
 	bsr.s	adrCd00AD2E	;6106
 	add.w	#$0014,sp	;DEFC0014
 	rts	;4E75
 
-adrCd00AD2E:
+adrCd00AD2E:		; Memory Address ($AD2E) and binary offset [$A9AA]
 	add.l	#GFX_BodyParts,a1	;D3FC000396F0	;Long Addr replaced with Symbol
-Draw_Monster_16PixelStrip:
+Draw_Monster_16PixelStrip:		; Memory Address ($AD34) and binary offset [$A9B0]
 	move.w	d5,d0	;3005
 	add.w	d7,d0	;D047
 	sub.w	adrW_00AD64.l,d0	;90790000AD64
 	bcs.s	adrCd00AD42	;6502
 	sub.w	d0,d7	;9E40
-adrCd00AD42:
+adrCd00AD42:		; Memory Address ($AD42) and binary offset [$A9BE]
 	swap	d7	;4847
 	move.b	d4,d7	;1E04
 	ext.w	d7	;4887
@@ -17923,12 +18008,12 @@ adrCd00AD42:
 	move.l	(sp)+,a3	;265F
 	rts	;4E75
 
-adrW_00AD64:
+adrW_00AD64:		; Memory Address ($AD64) and binary offset [$A9E0]
 	dc.w	$004B	;004B
 
-adrCd00AD66:
+adrCd00AD66:		; Memory Address ($AD66) and binary offset [$A9E2]
 	lea	BitReverse_LookupBuffer.l,a6	;4DF90001684C
-adrCd00AD6C:
+adrCd00AD6C:		; Memory Address ($AD6C) and binary offset [$A9E8]
 	moveq	#$00,d2	;7400
 	move.b	d0,d2	;1400
 	move.b	$00(a6,d2.w),d0	;10362000
@@ -17944,7 +18029,7 @@ adrCd00AD6C:
 	swap	d0	;4840
 	rts	;4E75
 
-adrCd00AD90:
+adrCd00AD90:		; Memory Address ($AD90) and binary offset [$AA0C]
 	and.w	#$000F,d4	;0244000F
 	swap	d6	;4846
 	move.w	d7,d6	;3C07
@@ -17954,7 +18039,7 @@ adrCd00AD90:
 	swap	d5	;4845
 	move.w	d0,d5	;3A00
 	swap	d7	;4847
-adrLp00ADA4:
+adrLp00ADA4:		; Memory Address ($ADA4) and binary offset [$AA20]
 	swap	d7	;4847
 	move.w	d6,d7	;3E06
 	move.l	(a1)+,d0	;2019
@@ -17967,7 +18052,7 @@ adrLp00ADA4:
 	bsr.s	adrCd00AD6C	;61B4
 	exg	d0,d1	;C141
 	move.l	a2,a6	;2C4A
-adrCd00ADBC:
+adrCd00ADBC:		; Memory Address ($ADBC) and binary offset [$AA38]
 	ror.l	d4,d0	;E8B8
 	ror.l	d4,d1	;E8B9
 	move.l	d0,a2	;2440
@@ -17995,24 +18080,24 @@ adrCd00ADBC:
 	addq.w	#$02,a0	;5448
 	bra.s	adrCd00ADF6	;6004
 
-adrCd00ADF2:
+adrCd00ADF2:		; Memory Address ($ADF2) and binary offset [$AA6E]
 	bsr	adrCd00AE0A	;61000016
-adrCd00ADF6:
+adrCd00ADF6:		; Memory Address ($ADF6) and binary offset [$AA72]
 	add.w	#$0024,a0	;D0FC0024
 	swap	d7	;4847
 	dbra	d7,adrLp00ADA4	;51CFFFA6
 	rts	;4E75
 
-adrCd00AE02:
+adrCd00AE02:		; Memory Address ($AE02) and binary offset [$AA7E]
 	cmpi.w	#$0008,d6	;0C460008
 	bcc.s	adrCd00AE58	;6450
 	bra.s	adrCd00AE14	;600A
 
-adrCd00AE0A:
+adrCd00AE0A:		; Memory Address ($AE0A) and binary offset [$AA86]
 	cmpi.w	#$0008,d7	;0C470008
 	bcc.s	adrCd00AE58	;6448
 	bsr	adrCd00AFD0	;610001BE
-adrCd00AE14:
+adrCd00AE14:		; Memory Address ($AE14) and binary offset [$AA90]
 	move.l	d1,d2	;2401
 	and.l	d0,d2	;C480
 	swap	d2	;4842
@@ -18042,20 +18127,20 @@ adrCd00AE14:
 	move.w	d3,(a0)+	;30C3
 	rts	;4E75
 
-adrCd00AE58:
+adrCd00AE58:		; Memory Address ($AE58) and binary offset [$AAD4]
 	addq.w	#$02,a0	;5448
 	rts	;4E75
 
-adrW_00AE5C:
+adrW_00AE5C:		; Memory Address ($AE5C) and binary offset [$AAD8]
 	dc.w	$0000	;0000
 
-adrCd00AE5E:
+adrCd00AE5E:		; Memory Address ($AE5E) and binary offset [$AADA]
 	clr.w	adrW_00AE5C.l	;42790000AE5C
 	bra.s	adrCd00AE6E	;6008
 
-adrCd00AE66:
+adrCd00AE66:		; Memory Address ($AE66) and binary offset [$AAE2]
 	move.w	#$FFFF,adrW_00AE5C.l	;33FCFFFF0000AE5C
-adrCd00AE6E:
+adrCd00AE6E:		; Memory Address ($AE6E) and binary offset [$AAEA]
 	move.w	d4,d1	;3204
 	and.w	#$FFF7,d4	;0244FFF7
 	bsr	BW_xy_to_offset	;61002DDE
@@ -18070,19 +18155,19 @@ adrCd00AE6E:
 	move.w	d0,d5	;3A00
 	not.l	d5	;4685
 	lea	Buffer_Colour_Mask.l,a6	;4DF90000B4C0
-adrLp00AE98:
+adrLp00AE98:		; Memory Address ($AE98) and binary offset [$AB14]
 	swap	d7	;4847
 	move.w	d6,-(sp)	;3F06
 	move.w	d7,-(sp)	;3F07
 	move.l	d5,d2	;2405
 	move.l	d5,d3	;2605
-adrLp00AEA2:
+adrLp00AEA2:		; Memory Address ($AEA2) and binary offset [$AB1E]
 	move.l	(a1)+,d0	;2019
 	move.l	(a1)+,d1	;2219
 	tst.w	Buffer_Colour_Mask_Toggle.l	;4A790000B4BE
 	beq.s	adrCd00AEB2	;6704
 	bsr	adrCd00AFD0	;61000120
-adrCd00AEB2:
+adrCd00AEB2:		; Memory Address ($AEB2) and binary offset [$AB2E]
 	ror.l	d4,d0	;E8B8
 	ror.l	d4,d1	;E8B9
 	move.l	d0,a2	;2440
@@ -18115,9 +18200,9 @@ adrCd00AEB2:
 	addq.w	#$02,a0	;5448
 	bra.s	adrCd00AEF8	;6004
 
-adrCd00AEF4:
+adrCd00AEF4:		; Memory Address ($AEF4) and binary offset [$AB70]
 	bsr	adrCd00AE02	;6100FF0C
-adrCd00AEF8:
+adrCd00AEF8:		; Memory Address ($AEF8) and binary offset [$AB74]
 	move.w	d7,d0	;3007
 	add.w	d0,d0	;D040
 	tst.w	adrW_00AE5C.l	;4A790000AE5C
@@ -18126,7 +18211,7 @@ adrCd00AEF8:
 	move.w	d0,d6	;3C00
 	asl.w	#$02,d6	;E546
 	sub.w	d6,a1	;92C6
-adrCd00AF0E:
+adrCd00AF0E:		; Memory Address ($AF0E) and binary offset [$AB8A]
 	lea	$0024(a0),a0	;41E80024
 	sub.w	d0,a0	;90C0
 	move.w	(sp)+,d6	;3C1F
@@ -18134,7 +18219,7 @@ adrCd00AF0E:
 	dbra	d7,adrLp00AE98	;51CFFF7E
 	rts	;4E75
 
-adrCd00AF1E:
+adrCd00AF1E:		; Memory Address ($AF1E) and binary offset [$AB9A]
 	move.w	d4,d1	;3204
 	and.w	#$FFF7,d4	;0244FFF7
 	bsr	BW_xy_to_offset	;61002D2E
@@ -18148,7 +18233,7 @@ adrCd00AF1E:
 	swap	d5	;4845
 	move.w	d0,d5	;3A00
 	not.l	d5	;4685
-adrLp00AF42:
+adrLp00AF42:		; Memory Address ($AF42) and binary offset [$ABBE]
 	swap	d7	;4847
 	move.w	d6,-(sp)	;3F06
 	move.w	d7,-(sp)	;3F07
@@ -18158,7 +18243,7 @@ adrLp00AF42:
 	add.w	d2,a1	;D2C2
 	move.l	d5,d2	;2405
 	move.l	d5,d3	;2605
-adrLp00AF54:
+adrLp00AF54:		; Memory Address ($AF54) and binary offset [$ABD0]
 	move.l	d2,a2	;2442
 	move.l	-(a1),d0	;2021
 	bsr	adrCd00AD66	;6100FE0C
@@ -18200,9 +18285,9 @@ adrLp00AF54:
 	addq.w	#$02,a0	;5448
 	bra.s	adrCd00AFB6	;6004
 
-adrCd00AFB2:
+adrCd00AFB2:		; Memory Address ($AFB2) and binary offset [$AC2E]
 	bsr	adrCd00AE02	;6100FE4E
-adrCd00AFB6:
+adrCd00AFB6:		; Memory Address ($AFB6) and binary offset [$AC32]
 	move.w	d7,d0	;3007
 	addq.w	#$01,d0	;5240
 	add.w	d0,d0	;D040
@@ -18215,7 +18300,7 @@ adrCd00AFB6:
 	dbra	d7,adrLp00AF42	;51CFFF76
 	rts	;4E75
 
-adrCd00AFD0:
+adrCd00AFD0:		; Memory Address ($AFD0) and binary offset [$AC4C]
 	movem.l	d2-d7,-(sp)	;48E73F00
 	move.l	d0,d2	;2400
 	swap	d2	;4842
@@ -18233,7 +18318,7 @@ adrCd00AFD0:
 	and.l	d2,d3	;C682
 	beq.s	adrCd00AFF4	;6702
 	bsr.s	adrCd00B03C	;6148
-adrCd00AFF4:
+adrCd00AFF4:		; Memory Address ($AFF4) and binary offset [$AC70]
 	addq.w	#$01,d7	;5247
 	move.l	d3,d0	;2003
 	not.l	d0	;4680
@@ -18245,7 +18330,7 @@ adrCd00AFF4:
 	and.l	d2,d3	;C682
 	beq.s	adrCd00B00A	;6702
 	bsr.s	adrCd00B03C	;6132
-adrCd00B00A:
+adrCd00B00A:		; Memory Address ($B00A) and binary offset [$AC86]
 	addq.w	#$01,d7	;5247
 	move.l	d1,d3	;2601
 	swap	d1	;4841
@@ -18255,7 +18340,7 @@ adrCd00B00A:
 	and.l	d2,d3	;C682
 	beq.s	adrCd00B01C	;6702
 	bsr.s	adrCd00B03C	;6120
-adrCd00B01C:
+adrCd00B01C:		; Memory Address ($B01C) and binary offset [$AC98]
 	addq.w	#$01,d7	;5247
 	move.l	d1,d3	;2601
 	swap	d1	;4841
@@ -18263,18 +18348,18 @@ adrCd00B01C:
 	and.l	d2,d3	;C682
 	beq.s	adrCd00B02A	;6702
 	bsr.s	adrCd00B03C	;6112
-adrCd00B02A:
+adrCd00B02A:		; Memory Address ($B02A) and binary offset [$ACA6]
 	not.l	d2	;4682
 	move.l	(sp)+,d0	;201F
 	and.l	d2,d0	;C082
 	or.l	d4,d0	;8084
 	and.l	d2,d1	;C282
 	or.l	d5,d1	;8285
-adrCd00B036:
+adrCd00B036:		; Memory Address ($B036) and binary offset [$ACB2]
 	movem.l	(sp)+,d2-d7	;4CDF00FC
 	rts	;4E75
 
-adrCd00B03C:
+adrCd00B03C:		; Memory Address ($B03C) and binary offset [$ACB8]
 	move.b	$00(a6,d7.w),d6	;1C367000
 	beq.s	adrCd00B062	;6720
 	add.w	d6,d6	;DC46
@@ -18288,10 +18373,10 @@ adrCd00B03C:
 	move.l	Bitplane_Mask(pc,d6.w),d6	;2C3B6008
 	and.l	d3,d6	;CC83
 	or.l	d6,d5	;8A86
-adrCd00B062:
+adrCd00B062:		; Memory Address ($B062) and binary offset [$ACDE]
 	rts	;4E75
 
-Bitplane_Mask:
+Bitplane_Mask:		; Memory Address ($B064) and binary offset [$ACE0]
 	dc.w	$0000	;0000
 	dc.w	$0000	;0000
 	dc.w	$FFFF	;FFFF
@@ -18301,7 +18386,7 @@ Bitplane_Mask:
 	dc.w	$FFFF	;FFFF
 	dc.w	$FFFF	;FFFF
 
-Draw_MainWallFace_ByPatternParity:
+Draw_MainWallFace_ByPatternParity:		; Memory Address ($B074) and binary offset [$ACF0]
 	; ReSource: Dispatches one main-wall face through the ordinary or lookup-selected/bit-reversed path according to (player X + player Y + facing) & 1.
 	tst.w	-$000C(a3)	;4A6BFFF4
 	bne	Draw_MainWallFace	;6600022A
@@ -18311,7 +18396,7 @@ Draw_MainWallFace_ByPatternParity:
 	move.l	a3,-(sp)	;2F0B
 	bsr	Draw_WallComponent_Transformed	;61000458
 	move.l	(sp)+,a3	;265F
-Draw_Main_Object_Overlay:
+Draw_Main_Object_Overlay:		; Memory Address ($B08C) and binary offset [$AD08]
 	tst.b	-$0015(a3)	;4A2BFFEB
 	beq.s	adrCd00B062	;67D0
 	addq.b	#$01,-$0015(a3)	;522BFFEB
@@ -18330,14 +18415,14 @@ Draw_Main_Object_Overlay:
 	btst	#$02,-$0012(a3)	;082B0002FFEE
 	beq.s	adrCd00B0D4	;6702
 	clr.b	d0	;4200
-adrCd00B0D4:
+adrCd00B0D4:		; Memory Address ($B0D4) and binary offset [$AD50]
 	move.l	d0,Buffer_Colour_Mask.l	;23C00000B4C0
 	move.w	#$FFFF,Buffer_Colour_Mask_Toggle.l	;33FCFFFF0000B4BE
 	bsr	Draw_WallComponentFace	;6100032C
 	clr.w	Buffer_Colour_Mask_Toggle.l	;42790000B4BE
 	rts	;4E75
 
-Draw_Main_Switch_Overlay:
+Draw_Main_Switch_Overlay:		; Memory Address ($B0EE) and binary offset [$AD6A]
 	lea	GFX_Main_Switches_Offsets.l,a0	;41F900018C2E
 	lea	GFX_Main_Switches_Positions.l,a2	;45F90000BEA6
 	lea	GFX_Switches.l,a1	;43F9000284E8
@@ -18351,14 +18436,14 @@ Draw_Main_Switch_Overlay:
 	and.w	#$00FF,d0	;024000FF
 	swap	d0	;4840
 	move.b	$02(a6,d1.w),d0	;10361002
-adrCd00B122:
+adrCd00B122:		; Memory Address ($B122) and binary offset [$AD9E]
 	move.l	d0,Buffer_Colour_Mask.l	;23C00000B4C0
 	move.w	#$FFFF,Buffer_Colour_Mask_Toggle.l	;33FCFFFF0000B4BE
 	bsr	Draw_WallComponentFace	;610002DE
 	clr.w	Buffer_Colour_Mask_Toggle.l	;42790000B4BE
 	rts	;4E75
 
-Draw_Main_Sign_Overlay:
+Draw_Main_Sign_Overlay:		; Memory Address ($B13C) and binary offset [$ADB8]
 	move.w	d6,-(sp)	;3F06
 	lea	GFX_Main_Sign_Offsets.l,a0	;41F900018BB0
 	lea	GFX_Main_Sign_Positions.l,a2	;45F90000BD56
@@ -18373,9 +18458,9 @@ Draw_Main_Sign_Overlay:
 	bsr	Load_WallOverlay_ColourMask	;6100006C
 	bra.s	adrCd00B16E	;6002
 
-adrCd00B16C:
+adrCd00B16C:		; Memory Address ($B16C) and binary offset [$ADE8]
 	bsr.s	Calculate_WallOverlay_ColourIndex	;615E
-adrCd00B16E:
+adrCd00B16E:		; Memory Address ($B16E) and binary offset [$ADEA]
 	move.l	d0,Buffer_Colour_Mask.l	;23C00000B4C0
 	move.w	#$FFFF,Buffer_Colour_Mask_Toggle.l	;33FCFFFF0000B4BE
 	bsr	Draw_WallComponentFace	;61000292
@@ -18389,11 +18474,11 @@ adrCd00B16E:
 	subq.b	#$01,d1	;5301
 	bra.s	adrCd00B1A4	;600A
 
-adrCd00B19A:
+adrCd00B19A:		; Memory Address ($B19A) and binary offset [$AE16]
 	move.b	-$0019(a3),d1	;122BFFE7
 	add.w	d1,d1	;D241
 	sub.b	-$001A(a3),d1	;922BFFE6
-adrCd00B1A4:
+adrCd00B1A4:		; Memory Address ($B1A4) and binary offset [$AE20]
 	and.w	#$0003,d1	;02410003
 	mulu	#$0610,d1	;C2FC0610
 	lea	GFX_SignOverlay.l,a1	;43F900026CA8
@@ -18401,35 +18486,35 @@ adrCd00B1A4:
 	lea	GFX_Main_Signoverlay_Positions.l,a2	;45F90000BDC6
 	lea	GFX_Main_Signoverlay_Offsets.l,a0	;41F90000B284
 	bsr	Draw_WallComponentFace	;6100024E
-adrCd00B1C4:
+adrCd00B1C4:		; Memory Address ($B1C4) and binary offset [$AE40]
 	rts	;4E75
 
-Select_MainSwitch_ColourMask:
+Select_MainSwitch_ColourMask:		; Memory Address ($B1C6) and binary offset [$AE42]
 	; ReSource: Selects the switch colour table before falling through to the coordinate-derived colour-mask lookup.
 	lea	GFX_Switches_Colours.l,a6	;4DF90000B244
-Calculate_WallOverlay_ColourIndex:
+Calculate_WallOverlay_ColourIndex:		; Memory Address ($B1CC) and binary offset [$AE48]
 	; ReSource: Calculates map X plus map Y for generated signs, wall scrolls and non-zero switch colour selection.
 	move.b	-$0019(a3),d1	;122BFFE7
 	add.b	-$001A(a3),d1	;D22BFFE6
-Load_WallOverlay_ColourMask:
+Load_WallOverlay_ColourMask:		; Memory Address ($B1D4) and binary offset [$AE50]
 	; ReSource: Masks the colour index to eight entries, multiplies it by four and loads the selected four-byte colour mask.
 	and.w	#$0007,d1	;02410007
 	asl.w	#$02,d1	;E541
 	move.l	$00(a6,d1.w),d0	;20361000
 	rts	;4E75
 
-Draw_Main_Shelf_Overlay:
+Draw_Main_Shelf_Overlay:		; Memory Address ($B1E0) and binary offset [$AE5C]
 	tst.b	-$001F(a3)	;4A2BFFE1
 	bne.s	adrCd00B1EE	;6608
 	btst	#$03,-$0011(a3)	;082B0003FFEF
 	bne.s	adrCd00B1C4	;66D6
-adrCd00B1EE:
+adrCd00B1EE:		; Memory Address ($B1EE) and binary offset [$AE6A]
 	lea	GFX_Main_Shelf_Offsets.l,a0	;41F900018B90
 	lea	GFX_Main_Shelf_Positions.l,a2	;45F90000BCE6
 	lea	GFX_Shelf.l,a1	;43F900025490
 	bra	Draw_WallComponentFace	;6000020E
 
-GFX_Main_Slots_Palette:
+GFX_Main_Slots_Palette:		; Memory Address ($B204) and binary offset [$AE80]
 	; ReSource: Supplies the colour selections.
 	dc.w	$0004	;0004
 	dc.w	$0506	;0506
@@ -18447,7 +18532,7 @@ GFX_Main_Slots_Palette:
 	dc.w	$090A	;090A
 	dc.w	$0004	;0004
 	dc.w	$0A0B	;0A0B
-GFX_Main_Slots_Offsets:
+GFX_Main_Slots_Offsets:		; Memory Address ($B224) and binary offset [$AEA0]
 	; ReSource: Selects individual socket pictures.
 	dc.w	$0000	;0000
 	dc.w	$0008	;0008
@@ -18465,7 +18550,7 @@ GFX_Main_Slots_Offsets:
 	dc.w	$0360	;0360
 	dc.w	$03A0	;03A0
 	dc.w	$03F8	;03F8
-GFX_Switches_Colours:
+GFX_Switches_Colours:		; Memory Address ($B244) and binary offset [$AEC0]
 	dc.w	$000D	;000D
 	dc.w	$0708	;0708
 	dc.w	$000E	;000E
@@ -18482,7 +18567,7 @@ GFX_Switches_Colours:
 	dc.w	$0A0C	;0A0C
 	dc.w	$000D	;000D
 	dc.w	$090A	;090A
-GFX_Main_Sign_Colours:
+GFX_Main_Sign_Colours:		; Memory Address ($B264) and binary offset [$AEE0]
 	dc.w	$0005	;0005
 	dc.w	$060D	;060D
 	dc.w	$0009	;0009
@@ -18499,7 +18584,7 @@ GFX_Main_Sign_Colours:
 	dc.w	$0B0D	;0B0D
 	dc.w	$000A	;000A
 	dc.w	$0B0D	;0B0D
-GFX_Main_Signoverlay_Offsets:
+GFX_Main_Signoverlay_Offsets:		; Memory Address ($B284) and binary offset [$AF00]
 	dc.w	$0000	;0000
 	dc.w	$0038	;0038
 	dc.w	$0070	;0070
@@ -18517,7 +18602,7 @@ GFX_Main_Signoverlay_Offsets:
 	dc.w	$0440	;0440
 	dc.w	$04B0	;04B0
 
-Draw_MainWallFace:
+Draw_MainWallFace:		; Memory Address ($B2A4) and binary offset [$AF20]
 	; ReSource: Selects and draws one projected stone-wall face. Selects the parity-1 main-wall picture using GFX_Main_Wall_SpriteTable and draws it through the bit-reversed path.
 	moveq	#$00,d0	;7000
 	move.b	GFX_Main_Wall_SpriteTable(pc,d6.w),d0	;103B6012
@@ -18527,7 +18612,7 @@ Draw_MainWallFace:
 	bsr	Draw_MainWall_Transformed	;610003B2
 	bra	Draw_Main_Object_Overlay	;6000FDD4
 
-GFX_Main_Wall_SpriteTable:
+GFX_Main_Wall_SpriteTable:		; Memory Address ($B2BA) and binary offset [$AF36]
 	; ReSource: Maps each of the 28 projected wall-face slots to a picture in Main_Walls.gfx.
 	dc.b	$0C	;0C
 	dc.b	$0D	;0D
@@ -18557,7 +18642,7 @@ GFX_Main_Wall_SpriteTable:
 	dc.b	$19	;19
 	dc.b	$1A	;1A
 	dc.b	$1B	;1B
-Door_Lock_Colours:
+Door_Lock_Colours:		; Memory Address ($B2D6) and binary offset [$AF52]
 	dc.b	$01	;01
 	dc.b	$09	;09
 	dc.b	$04	;04
@@ -18567,7 +18652,7 @@ Door_Lock_Colours:
 	dc.b	$07	;07
 	dc.b	$0E	;0E
 
-Draw_Main_Door_Or_Stairs:
+Draw_Main_Door_Or_Stairs:		; Memory Address ($B2DE) and binary offset [$AF5A]
 	; ReSource: Applies the large-door lock mask and selects open, metal or portcullis artwork, or dispatches the shared stairs path.
 	cmp.b	#$01,-$0013(a3)	;0C2B0001FFED
 	beq	adrCd00B384	;6700009E
@@ -18580,7 +18665,7 @@ Draw_Main_Door_Or_Stairs:
 	lsr.b	#$04,d0	;E808
 	move.b	Door_Lock_Colours(pc,d0.w),d0	;103B00CC
 	move.b	d0,Buffer_Colour_Mask+$02.l	;13C00000B4C2
-adrCd00B312:
+adrCd00B312:		; Memory Address ($B312) and binary offset [$AF8E]
 	lea	GFX_Door_Offsets.l,a0	;41F900018C14
 	lea	GFX_Door_Positions.l,a2	;45F90000BC4E
 	lea	GFX_Door_Open.l,a1	;43F90002D660
@@ -18590,14 +18675,14 @@ adrCd00B312:
 	btst	#$01,-$0012(a3)	;082B0001FFEE
 	beq.s	adrCd00B340	;6706
 	lea	GFX_Door_PortCullis.l,a1	;43F900030650
-adrCd00B340:
+adrCd00B340:		; Memory Address ($B340) and binary offset [$AFBC]
 	move.b	-$0016(a3),d6	;1C2BFFEA
 	cmpi.b	#$0E,d6	;0C06000E
 	bcc.s	adrCd00B350	;6406
 	bsr	adrCd0095B4	;6100E268
 	bra.s	adrCd00B374	;6024
 
-adrCd00B350:
+adrCd00B350:		; Memory Address ($B350) and binary offset [$AFCC]
 	move.w	d6,d0	;3006
 	subq.w	#$07,d0	;5F40
 	cmpi.w	#$000B,d0	;0C40000B
@@ -18609,15 +18694,15 @@ adrCd00B350:
 	beq.s	adrCd00B370	;6704
 	addq.w	#$01,d6	;5246
 	addq.w	#$01,d0	;5240
-adrCd00B370:
+adrCd00B370:		; Memory Address ($B370) and binary offset [$AFEC]
 	bsr	Draw_WallComponent_TwoHalves	;610000E6
-adrCd00B374:
+adrCd00B374:		; Memory Address ($B374) and binary offset [$AFF0]
 	clr.w	Buffer_Colour_Mask_Toggle.l	;42790000B4BE
 	tst.b	-$0011(a3)	;4A2BFFEF
 	bmi	adrCd0099F0	;6B00E670
 	rts	;4E75
 
-adrCd00B384:
+adrCd00B384:		; Memory Address ($B384) and binary offset [$B000]
 	lea	GFX_Stairs_Up.l,a1	;43F90002AB38
 	lea	GFX_Stairs_Up_Offsets.l,a0	;41F900018BD0
 	lea	GFX_Stairs_Up_Positions.l,a2	;45F90000BB1E
@@ -18626,7 +18711,7 @@ adrCd00B384:
 	lea	GFX_Stairs_Down.l,a1	;43F90002C9E0
 	lea	GFX_Stairs_Down_Offsets.l,a0	;41F900018BF2
 	lea	GFX_Stairs_Down_Positions.l,a2	;45F90000BB92
-adrCd00B3B0:
+adrCd00B3B0:		; Memory Address ($B3B0) and binary offset [$B02C]
 	cmp.b	#$0E,-$0016(a3)	;0C2B000EFFEA
 	bcs.s	adrCd00B3CC	;6514
 	beq.s	adrCd00B3CE	;6714
@@ -18637,14 +18722,14 @@ adrCd00B3B0:
 	bsr	Draw_WallComponent_TwoHalves	;61000090
 	bra.s	adrCd00B3CE	;6002
 
-adrCd00B3CC:
+adrCd00B3CC:		; Memory Address ($B3CC) and binary offset [$B048]
 	bsr.s	Draw_WallComponentFace	;6142
-adrCd00B3CE:
+adrCd00B3CE:		; Memory Address ($B3CE) and binary offset [$B04A]
 	tst.b	-$0011(a3)	;4A2BFFEF
 	bmi	adrCd0099F0	;6B00E61C
 	rts	;4E75
 
-Draw_WoodenWallOrDoorFace:
+Draw_WoodenWallOrDoorFace:		; Memory Address ($B3D8) and binary offset [$B054]
 	; ReSource: Selects a solid wooden wall, open doorway frame and optional closed-door overlay.
 	lea	GFX_WoodenWalls.l,a1	;43F90001F980
 	lea	GFX_Wooden_Wall_Offsets.l,a0	;41F900018B70
@@ -18658,9 +18743,9 @@ Draw_WoodenWallOrDoorFace:
 	lea	GFX_Wooden_Doors_Offsets.l,a0	;41F900018B50
 	lea	GFX_Wooden_Doors_Positions.l,a2	;45F90000BFAE
 	lea	GFX_WoodDoors.l,a1	;43F9000242B0
-adrCd00B40E:
+adrCd00B40E:		; Memory Address ($B40E) and binary offset [$B08A]
 	nop	;4E71
-Draw_WallComponentFace:
+Draw_WallComponentFace:		; Memory Address ($B410) and binary offset [$B08C]
 	; ReSource: Selects a wall-component picture and chooses its normal, mirrored or two-half drawing path.
 	moveq	#$00,d0	;7000
 	move.b	GFX_WallComponent_SpriteMirrorTable(pc,d6.w),d0	;103B6028
@@ -18672,17 +18757,17 @@ Draw_WallComponentFace:
 	move.l	a3,-(sp)	;2F0B
 	bsr	adrCd00B5CA	;610001A2
 	move.l	(sp)+,a3	;265F
-adrCd00B42C:
+adrCd00B42C:		; Memory Address ($B42C) and binary offset [$B0A8]
 	rts	;4E75
 
-Flip_Sprite:
+Flip_Sprite:		; Memory Address ($B42E) and binary offset [$B0AA]
 	and.w	#$007F,d0	;0240007F
 	bsr.s	Prepare_WallSpriteDraw	;6152
 	add.w	d3,a0	;D0C3
 	swap	d3	;4843
 	bra	Draw_WallSprite_BitReversed	;60000334
 
-GFX_WallComponent_SpriteMirrorTable:
+GFX_WallComponent_SpriteMirrorTable:		; Memory Address ($B43C) and binary offset [$B0B8]
 	; ReSource: Maps the 28 wall-face slots to component pictures; bit 7 selects the horizontally mirrored drawing path.
 	dc.b	$00	;00
 	dc.b	$01	;01
@@ -18713,7 +18798,7 @@ GFX_WallComponent_SpriteMirrorTable:
 	dc.b	$0E	;0E
 	dc.b	$0F	;0F
 
-Draw_WallComponent_TwoHalves:
+Draw_WallComponent_TwoHalves:		; Memory Address ($B458) and binary offset [$B0D4]
 	; ReSource: Draws one source half and its reflected partner to construct a complete central component.
 	bsr.s	Prepare_WallSpriteDraw	;612C
 	swap	d3	;4843
@@ -18725,12 +18810,12 @@ Draw_WallComponent_TwoHalves:
 	sub.w	d1,a0	;90C1
 	bra	Draw_WallSprite_BitReversed	;600002FC
 
-Select_MainWallGraphicTables:
+Select_MainWallGraphicTables:		; Memory Address ($B474) and binary offset [$B0F0]
 	; ReSource: Selects the Main_Walls graphics, picture offsets and packed position tables.
 	lea	GFX_Main_Walls_Positions.l,a2	;45F90000BA3E
 	lea	GFX_Main_Walls_Offsets.l,a0	;41F900018ADE
 	lea	GFX_MainWalls.l,a1	;43F90001B050
-Prepare_WallSpriteDraw:
+Prepare_WallSpriteDraw:		; Memory Address ($B486) and binary offset [$B102]
 	; ReSource: Resolves a picture offset and packed position into source pointer, destination pointer, width and height.
 	add.w	d0,d0	;D040
 	add.w	$00(a0,d0.w),a1	;D2F00000
@@ -18759,13 +18844,13 @@ Prepare_WallSpriteDraw:
 	add.w	d3,d3	;D643
 	rts	;4E75
 
-Buffer_Colour_Mask_Toggle:
+Buffer_Colour_Mask_Toggle:		; Memory Address ($B4BE) and binary offset [$B13A]
 	dc.w	$0000	;0000
-Buffer_Colour_Mask:
+Buffer_Colour_Mask:		; Memory Address ($B4C0) and binary offset [$B13C]
 	dc.w	$0004	;0004
 	dc.b	$08	;08
 	dc.b	$0C	;0C
-GFX_WallComponent_DrawTransformFlags:
+GFX_WallComponent_DrawTransformFlags:		; Memory Address ($B4C4) and binary offset [$B140]
 	; ReSource: Per-face transformation flags used by wall components, wooden walls, doors and stairs. Bits 0 and 2 select edge passes; bit 1 selects the perspective centre path.
 	dc.b	$01	;01
 	dc.b	$05	;05
@@ -18796,7 +18881,7 @@ GFX_WallComponent_DrawTransformFlags:
 	dc.b	$02	;02
 	dc.b	$07	;07
 
-Draw_WallComponent_Transformed:
+Draw_WallComponent_Transformed:		; Memory Address ($B4E0) and binary offset [$B15C]
 	; ReSource: Applies wall-component transformation flags and perspective trimming.
 	lea	GFX_WallComponent_DrawTransformFlags.l,a2	;45F90000B4C4
 	add.w	d6,a2	;D4C6
@@ -18806,7 +18891,7 @@ Draw_WallComponent_Transformed:
 	btst	#$00,(a2)	;08120000
 	beq.s	adrCd00B4FA	;6702
 	bsr.s	Draw_WallComponent_EdgeTransform	;6166
-adrCd00B4FA:
+adrCd00B4FA:		; Memory Address ($B4FA) and binary offset [$B176]
 	move.b	(a2),d6	;1C12
 	and.w	#$0007,d6	;02460007
 	swap	d3	;4843
@@ -18820,9 +18905,9 @@ adrCd00B4FA:
 	add.w	d6,d6	;DC46
 	add.w	d6,d2	;D446
 	movem.l	a0/a1,-(sp)	;48E700C0
-adrLp00B51A:
+adrLp00B51A:		; Memory Address ($B51A) and binary offset [$B196]
 	move.w	d5,d3	;3605
-adrLp00B51C:
+adrLp00B51C:		; Memory Address ($B51C) and binary offset [$B198]
 	move.w	(a1)+,(a0)+	;30D9
 	move.w	(a1)+,$1F3E(a0)	;31591F3E
 	move.w	(a1)+,$3E7E(a0)	;31593E7E
@@ -18844,11 +18929,11 @@ adrLp00B51C:
 	btst	#$02,(a2)	;08120002
 	beq.s	adrCd00B554	;6702
 	bsr.s	Draw_WallComponent_EdgeTransform	;610C
-adrCd00B554:
+adrCd00B554:		; Memory Address ($B554) and binary offset [$B1D0]
 	swap	d6	;4846
 	rts	;4E75
 
-GFX_WallComponent_PerspectiveTrimLookup:
+GFX_WallComponent_PerspectiveTrimLookup:		; Memory Address ($B558) and binary offset [$B1D4]
 	; ReSource: Maps the low three component-transform flag bits to zero, one or two source word-columns trimmed during perspective drawing.
 	dc.b	$00	;00
 	dc.b	$00	;00
@@ -18859,7 +18944,7 @@ GFX_WallComponent_PerspectiveTrimLookup:
 	dc.b	$01	;01
 	dc.b	$02	;02
 
-Draw_WallComponent_EdgeTransform:
+Draw_WallComponent_EdgeTransform:		; Memory Address ($B560) and binary offset [$B1DC]
 	; ReSource: Draws the extra perspective edge pass for a wall component.
 	movem.l	a0/a1,-(sp)	;48E700C0
 	swap	d3	;4843
@@ -18868,7 +18953,7 @@ Draw_WallComponent_EdgeTransform:
 	asl.w	#$02,d6	;E546
 	swap	d3	;4843
 	move.w	d5,d3	;3605
-adrLp00B570:
+adrLp00B570:		; Memory Address ($B570) and binary offset [$B1EC]
 	move.l	(a1)+,d0	;2019
 	move.l	(a1)+,d1	;2219
 	move.l	d1,d2	;2401
@@ -18906,19 +18991,19 @@ adrLp00B570:
 	addq.w	#$08,a1	;5049
 	rts	;4E75
 
-adrCd00B5CA:
+adrCd00B5CA:		; Memory Address ($B5CA) and binary offset [$B246]
 	sub.w	a3,a3	;96CB
-adrLp00B5CC:
+adrLp00B5CC:		; Memory Address ($B5CC) and binary offset [$B248]
 	swap	d5	;4845
 	move.w	d5,d3	;3605
-adrLp00B5D0:
+adrLp00B5D0:		; Memory Address ($B5D0) and binary offset [$B24C]
 	move.l	(a1)+,d0	;2019
 	move.l	(a1)+,d1	;2219
 	tst.w	Buffer_Colour_Mask_Toggle.l	;4A790000B4BE
 	beq.s	adrCd00B5E6	;670A
 	lea	Buffer_Colour_Mask.l,a6	;4DF90000B4C0
 	bsr	adrCd00AFD0	;6100F9EC
-adrCd00B5E6:
+adrCd00B5E6:		; Memory Address ($B5E6) and binary offset [$B262]
 	move.l	d1,d2	;2401
 	and.l	d0,d2	;C480
 	addq.l	#$01,d2	;5282
@@ -18951,9 +19036,9 @@ adrCd00B5E6:
 	move.w	d4,(a0)+	;30C4
 	bra.s	adrCd00B632	;6002
 
-adrCd00B630:
+adrCd00B630:		; Memory Address ($B630) and binary offset [$B2AC]
 	addq.w	#$02,a0	;5448
-adrCd00B632:
+adrCd00B632:		; Memory Address ($B632) and binary offset [$B2AE]
 	dbra	d3,adrLp00B5D0	;51CBFF9C
 	swap	d3	;4843
 	sub.w	d3,a0	;90C3
@@ -18964,7 +19049,7 @@ adrCd00B632:
 	dbra	d5,adrLp00B5CC	;51CDFF86
 	rts	;4E75
 
-GFX_Main_Wall_DrawTransformFlags:
+GFX_Main_Wall_DrawTransformFlags:		; Memory Address ($B64A) and binary offset [$B2C6]
 	; ReSource: Per-face transformation flags for stone-wall graphics. This differs from the component table at wall-face slots 6 and 18.
 	dc.w	$0105	;0105
 	dc.w	$0705	;0705
@@ -18981,7 +19066,7 @@ GFX_Main_Wall_DrawTransformFlags:
 	dc.w	$0707	;0707
 	dc.w	$0207	;0207
 
-Draw_MainWall_Transformed:
+Draw_MainWall_Transformed:		; Memory Address ($B666) and binary offset [$B2E2]
 	; ReSource: Applies main-wall transformation flags, horizontal bit reversal and perspective trimming.
 	lea	GFX_Main_Wall_DrawTransformFlags.l,a2	;45F90000B64A
 	add.w	d6,a2	;D4C6
@@ -18991,7 +19076,7 @@ Draw_MainWall_Transformed:
 	btst	#$00,(a2)	;08120000
 	beq.s	adrCd00B680	;6702
 	bsr.s	Draw_MainWall_EdgeTransform	;617A
-adrCd00B680:
+adrCd00B680:		; Memory Address ($B680) and binary offset [$B2FC]
 	movem.l	d7/a0/a1,-(sp)	;48E701C0
 	move.b	(a2),d6	;1C12
 	and.w	#$0007,d6	;02460007
@@ -19005,9 +19090,9 @@ adrCd00B680:
 	sub.w	d6,d5	;9A46
 	add.w	d6,d6	;DC46
 	sub.w	d6,d7	;9E46
-adrLp00B6A2:
+adrLp00B6A2:		; Memory Address ($B6A2) and binary offset [$B31E]
 	move.w	d5,d3	;3605
-adrLp00B6A4:
+adrLp00B6A4:		; Memory Address ($B6A4) and binary offset [$B320]
 	move.l	(a1)+,d1	;2219
 	move.l	(a1)+,d0	;2019
 	bsr	adrCd00AD66	;6100F6BC
@@ -19036,11 +19121,11 @@ adrLp00B6A4:
 	btst	#$02,(a2)	;08120002
 	beq.s	adrCd00B6EE	;6702
 	bsr.s	Draw_MainWall_EdgeTransform	;610C
-adrCd00B6EE:
+adrCd00B6EE:		; Memory Address ($B6EE) and binary offset [$B36A]
 	swap	d6	;4846
 	rts	;4E75
 
-GFX_Main_Wall_PerspectiveTrimLookup:
+GFX_Main_Wall_PerspectiveTrimLookup:		; Memory Address ($B6F2) and binary offset [$B36E]
 	; ReSource: Maps the low three main-wall transform flag bits to zero, one or two source word-columns trimmed during perspective drawing.
 	dc.b	$00	;00
 	dc.b	$00	;00
@@ -19051,7 +19136,7 @@ GFX_Main_Wall_PerspectiveTrimLookup:
 	dc.b	$01	;01
 	dc.b	$02	;02
 
-Draw_MainWall_EdgeTransform:
+Draw_MainWall_EdgeTransform:		; Memory Address ($B6FA) and binary offset [$B376]
 	; ReSource: Draws the horizontally reversed perspective edge pass for a stone wall.
 	movem.l	a0/a1,-(sp)	;48E700C0
 	swap	d3	;4843
@@ -19060,7 +19145,7 @@ Draw_MainWall_EdgeTransform:
 	asl.w	#$02,d6	;E546
 	swap	d3	;4843
 	move.w	d5,d3	;3605
-adrLp00B70A:
+adrLp00B70A:		; Memory Address ($B70A) and binary offset [$B386]
 	move.l	(a1)+,d1	;2219
 	move.l	(a1)+,d0	;2019
 	bsr	adrCd00AD66	;6100F656
@@ -19101,11 +19186,11 @@ adrLp00B70A:
 	addq.w	#$08,a1	;5049
 	rts	;4E75
 
-Draw_WallSprite_BitReversed:
+Draw_WallSprite_BitReversed:		; Memory Address ($B76E) and binary offset [$B3EA]
 	; ReSource: Writes normal wall rows after horizontally reversing their planar source bits.
 	swap	d5	;4845
 	move.w	d5,d3	;3605
-adrLp00B772:
+adrLp00B772:		; Memory Address ($B772) and binary offset [$B3EE]
 	move.l	(a1)+,d1	;2219
 	move.l	(a1)+,d0	;2019
 	bsr	adrCd00AD66	;6100F5EE
@@ -19115,7 +19200,7 @@ adrLp00B772:
 	beq.s	adrCd00B792	;670A
 	lea	Buffer_Colour_Mask.l,a6	;4DF90000B4C0
 	bsr	adrCd00AFD0	;6100F840
-adrCd00B792:
+adrCd00B792:		; Memory Address ($B792) and binary offset [$B40E]
 	move.l	d1,d2	;2401
 	and.l	d0,d2	;C480
 	addq.l	#$01,d2	;5282
@@ -19148,9 +19233,9 @@ adrCd00B792:
 	move.w	d4,(a0)	;3084
 	bra.s	adrCd00B7DE	;6002
 
-adrCd00B7DC:
+adrCd00B7DC:		; Memory Address ($B7DC) and binary offset [$B458]
 	subq.w	#$02,a0	;5548
-adrCd00B7DE:
+adrCd00B7DE:		; Memory Address ($B7DE) and binary offset [$B45A]
 	dbra	d3,adrLp00B772	;51CBFF92
 	swap	d3	;4843
 	add.w	d3,a0	;D0C3
@@ -19160,7 +19245,7 @@ adrCd00B7DE:
 	dbra	d5,Draw_WallSprite_BitReversed	;51CDFF7E
 	rts	;4E75
 
-Draw_FloorAndCeiling:
+Draw_FloorAndCeiling:		; Memory Address ($B7F4) and binary offset [$B470]
 	; ReSource: Draws the floor and ceiling bands used by the dungeon viewport. Selects the ordinary or horizontally bit-reversed floor/ceiling renderer according to the dungeon pattern parity.
 	lea	GFX_FloorCeiling.l,a1	;43F900032120
 	move.l	-$0008(a3),a0	;206BFFF8
@@ -19170,10 +19255,10 @@ Draw_FloorAndCeiling:
 	bsr.s	Draw_FloorAndCeiling_CopyRows_Loop	;6104
 	bsr.s	Clear_FloorCeiling_ViewGap	;6120
 	moveq	#$21,d0	;7021
-Draw_FloorAndCeiling_CopyRows_Loop:
+Draw_FloorAndCeiling_CopyRows_Loop:		; Memory Address ($B80C) and binary offset [$B488]
 	; ReSource: Copies source rows into the floor and ceiling areas of the dungeon viewport. Copies the parity-1 floor and ceiling rows directly into the dungeon viewport.
 	moveq	#$07,d1	;7207
-adrLp00B80E:
+adrLp00B80E:		; Memory Address ($B80E) and binary offset [$B48A]
 	move.w	(a1)+,(a0)+	;30D9
 	move.w	(a1)+,$1F3E(a0)	;31591F3E
 	move.w	(a1)+,$3E7E(a0)	;31593E7E
@@ -19183,11 +19268,11 @@ adrLp00B80E:
 	dbra	d0,Draw_FloorAndCeiling_CopyRows_Loop	;51C8FFE6
 	rts	;4E75
 
-Clear_FloorCeiling_ViewGap:
+Clear_FloorCeiling_ViewGap:		; Memory Address ($B82A) and binary offset [$B4A6]
 	; ReSource: Clears the nineteen-rowhorizontal  view area between the ceiling and floor bands.
 	moveq	#$12,d0	;7012
 	moveq	#$00,d1	;7200
-adrLp00B82E:
+adrLp00B82E:		; Memory Address ($B82E) and binary offset [$B4AA]
 	lea	$1F40(a0),a2	;45E81F40
 	move.l	d1,(a2)+	;24C1
 	move.l	d1,(a2)+	;24C1
@@ -19211,7 +19296,7 @@ adrLp00B82E:
 	dbra	d0,adrLp00B82E	;51C8FFCE
 	rts	;4E75
 
-Draw_FloorAndCeiling_BitReversed:
+Draw_FloorAndCeiling_BitReversed:		; Memory Address ($B864) and binary offset [$B4E0]
 	; ReSource: Draws the horizontally bit-reversed floor and ceiling bands for parity 0.
 	lea	BitReverse_LookupBuffer.l,a6	;4DF90001684C
 	lea	$0010(a0),a0	;41E80010
@@ -19221,10 +19306,10 @@ Draw_FloorAndCeiling_BitReversed:
 	bsr.s	Clear_FloorCeiling_ViewGap	;61B2
 	lea	$0010(a0),a0	;41E80010
 	moveq	#$21,d7	;7E21
-Draw_FloorAndCeiling_BitReversed_Loop:
+Draw_FloorAndCeiling_BitReversed_Loop:		; Memory Address ($B87E) and binary offset [$B4FA]
 	; ReSource: Loop used to write the bit-reversed floor and ceiling rows. Bit-reverses and writes each floor/ceiling source row from the opposite side of the viewport.
 	moveq	#$07,d3	;7607
-adrLp00B880:
+adrLp00B880:		; Memory Address ($B880) and binary offset [$B4FC]
 	move.l	(a1)+,d0	;2019
 	bsr	adrCd00AD6C	;6100F4E8
 	move.l	d0,d1	;2200
@@ -19241,7 +19326,7 @@ adrLp00B880:
 	dbra	d7,Draw_FloorAndCeiling_BitReversed_Loop	;51CFFFD4
 	rts	;4E75
 
-Dungeon_ViewCell_RelativeCoordinates:
+Dungeon_ViewCell_RelativeCoordinates:		; Memory Address ($B8AE) and binary offset [$B52A]
 	; ReSource: Four player-facing groups of 19 signed relative X/Y coordinate words defining the dungeon cells examined by the renderer.
 	dc.w	$FEFC	;FEFC
 	dc.w	$FFFC	;FFFC
@@ -19395,7 +19480,7 @@ Dungeon_ViewCell_RelativeCoordinates:
 	dc.w	$0200	;0200
 	dc.w	$0880	;0880
 	dc.w	$0800	;0800
-Dungeon_ViewCell_CentredSlots:
+Dungeon_ViewCell_CentredSlots:		; Memory Address ($B9DE) and binary offset [$B65A]
 	; ReSource: Maps the 19 view cells to centred projected slots used by pillars, beds, pits and pads; FF means unavailable. The twentieth byte is spare.
 	dc.w	$0002	;0002
 	dc.w	$FF06	;FF06
@@ -19407,7 +19492,7 @@ Dungeon_ViewCell_CentredSlots:
 	dc.w	$1819	;1819
 	dc.w	$1A1B	;1A1B
 	dc.w	$FF00	;FF00
-Dungeon_ViewCell_WallFaceSlots:
+Dungeon_ViewCell_WallFaceSlots:		; Memory Address ($B9F2) and binary offset [$B66E]
 	; ReSource: Four N/E/S/W wall-face slot numbers per view cell; FF means that face is unavailable from that cell.
 	dc.w	$FFFF	;FFFF
 	dc.w	$0001	;0001
@@ -19447,7 +19532,7 @@ Dungeon_ViewCell_WallFaceSlots:
 	dc.w	$091B	;091B
 	dc.w	$1B17	;1B17
 	dc.w	$0BFF	;0BFF
-GFX_Main_Walls_Positions:
+GFX_Main_Walls_Positions:		; Memory Address ($BA3E) and binary offset [$B6BA]
 	dc.w	$0015	;0015
 	dc.w	$0016	;0016
 	dc.w	$0015	;0015
@@ -19504,7 +19589,7 @@ GFX_Main_Walls_Positions:
 	dc.w	$0329	;0329
 	dc.w	$0006	;0006
 	dc.w	$073E	;073E
-GFX_Wooden_Wall_Positions:
+GFX_Wooden_Wall_Positions:		; Memory Address ($BAAE) and binary offset [$B72A]
 	dc.w	$0015	;0015
 	dc.w	$0016	;0016
 	dc.w	$0015	;0015
@@ -19561,7 +19646,7 @@ GFX_Wooden_Wall_Positions:
 	dc.w	$0129	;0129
 	dc.w	$0006	;0006
 	dc.w	$033E	;033E
-GFX_Stairs_Up_Positions:
+GFX_Stairs_Up_Positions:		; Memory Address ($BB1E) and binary offset [$B79A]
 	dc.w	$0000	;0000
 	dc.w	$0000	;0000
 	dc.w	$0015	;0015
@@ -19620,7 +19705,7 @@ GFX_Stairs_Up_Positions:
 	dc.w	$023E	;023E
 	dc.w	$002E	;002E
 	dc.w	$011D	;011D
-GFX_Stairs_Down_Positions:
+GFX_Stairs_Down_Positions:		; Memory Address ($BB92) and binary offset [$B80E]
 	dc.w	$0000	;0000
 	dc.w	$0000	;0000
 	dc.w	$0027	;0027
@@ -19679,7 +19764,7 @@ GFX_Stairs_Down_Positions:
 	dc.w	$0217	;0217
 	dc.w	$002E	;002E
 	dc.w	$011D	;011D
-GFX_Misc_Pillar_Positions:
+GFX_Misc_Pillar_Positions:		; Memory Address ($BC06) and binary offset [$B882]
 	dc.w	$0016	;0016
 	dc.w	$0015	;0015
 	dc.w	$0816	;0816
@@ -19716,7 +19801,7 @@ GFX_Misc_Pillar_Positions:
 	dc.w	$0126	;0126
 	dc.w	$1009	;1009
 	dc.w	$0336	;0336
-GFX_Door_Positions:
+GFX_Door_Positions:		; Memory Address ($BC4E) and binary offset [$B8CA]
 	dc.w	$0000	;0000
 	dc.w	$0000	;0000
 	dc.w	$0016	;0016
@@ -19757,7 +19842,7 @@ GFX_Door_Positions:
 	dc.w	$004B	;004B
 	dc.w	$1000	;1000
 	dc.w	$0147	;0147
-GFX_Misc_Bed_Positions:
+GFX_Misc_Bed_Positions:		; Memory Address ($BC9E) and binary offset [$B91A]
 	dc.w	$0000	;0000
 	dc.w	$0000	;0000
 	dc.w	$0000	;0000
@@ -19794,7 +19879,7 @@ GFX_Misc_Bed_Positions:
 	dc.w	$0314	;0314
 	dc.w	$0820	;0820
 	dc.w	$051C	;051C
-GFX_Main_Shelf_Positions:
+GFX_Main_Shelf_Positions:		; Memory Address ($BCE6) and binary offset [$B962]
 	dc.w	$001C	;001C
 	dc.w	$0008	;0008
 	dc.w	$081D	;081D
@@ -19851,7 +19936,7 @@ GFX_Main_Shelf_Positions:
 	dc.w	$0010	;0010
 	dc.w	$1018	;1018
 	dc.w	$011A	;011A
-GFX_Main_Sign_Positions:
+GFX_Main_Sign_Positions:		; Memory Address ($BD56) and binary offset [$B9D2]
 	dc.w	$001A	;001A
 	dc.w	$000D	;000D
 	dc.w	$001B	;001B
@@ -19908,7 +19993,7 @@ GFX_Main_Sign_Positions:
 	dc.w	$011B	;011B
 	dc.w	$1012	;1012
 	dc.w	$0128	;0128
-GFX_Main_Signoverlay_Positions:
+GFX_Main_Signoverlay_Positions:		; Memory Address ($BDC6) and binary offset [$BA42]
 	dc.w	$001D	;001D
 	dc.w	$0006	;0006
 	dc.w	$081D	;081D
@@ -19965,7 +20050,7 @@ GFX_Main_Signoverlay_Positions:
 	dc.w	$000D	;000D
 	dc.w	$1019	;1019
 	dc.w	$0115	;0115
-GFX_Main_Slots_Positions:
+GFX_Main_Slots_Positions:		; Memory Address ($BE36) and binary offset [$BAB2]
 	; ReSource: Contains the exact X/Y/width/height rectangle for each projected wall view.
 	dc.w	$001D	;001D
 	dc.w	$0000	;0000
@@ -20023,7 +20108,7 @@ GFX_Main_Slots_Positions:
 	dc.w	$000A	;000A
 	dc.w	$181C	;181C
 	dc.w	$0011	;0011
-GFX_Main_Switches_Positions:
+GFX_Main_Switches_Positions:		; Memory Address ($BEA6) and binary offset [$BB22]
 	dc.w	$0000	;0000
 	dc.w	$0000	;0000
 	dc.w	$081F	;081F
@@ -20080,7 +20165,7 @@ GFX_Main_Switches_Positions:
 	dc.w	$0008	;0008
 	dc.w	$181C	;181C
 	dc.w	$000C	;000C
-GFX_FloorPit_TriggerPad_Positions:
+GFX_FloorPit_TriggerPad_Positions:		; Memory Address ($BF16) and binary offset [$BB92]
 	; ReSource: Shared projected positions for floor pits and trigger pads, including the current-player square.
 	dc.w	$002A	;002A
 	dc.w	$0000	;0000
@@ -20120,7 +20205,7 @@ GFX_FloorPit_TriggerPad_Positions:
 	dc.w	$0305	;0305
 	dc.w	$1049	;1049
 	dc.w	$0302	;0302
-GFX_Ceiling_Hole_Positions:
+GFX_Ceiling_Hole_Positions:		; Memory Address ($BF62) and binary offset [$BBDE]
 	; ReSource: Projected ceiling-hole positions, including the current-player square.
 	dc.w	$0016	;0016
 	dc.w	$0000	;0000
@@ -20160,7 +20245,7 @@ GFX_Ceiling_Hole_Positions:
 	dc.w	$0303	;0303
 	dc.w	$1000	;1000
 	dc.w	$0303	;0303
-GFX_Wooden_Doors_Positions:
+GFX_Wooden_Doors_Positions:		; Memory Address ($BFAE) and binary offset [$BC2A]
 	dc.w	$0018	;0018
 	dc.w	$0013	;0013
 	dc.w	$0819	;0819
@@ -20218,12 +20303,12 @@ GFX_Wooden_Doors_Positions:
 	dc.w	$100F	;100F
 	dc.w	$0135	;0135
 
-adrCd00C01E:
+adrCd00C01E:		; Memory Address ($C01E) and binary offset [$BC9A]
 	lea	Notice_SelectChampions.l,a6	;4DF90000E480
 	tst.w	MultiPlayer.l	;4A790000EE30
 	beq.s	adrCd00C032	;6706
 	move.b	#$2E,$001B(a6)	;1D7C002E001B
-adrCd00C032:
+adrCd00C032:		; Memory Address ($C032) and binary offset [$BCAE]
 	move.l	screen_ptr.l,a0	;207900008D36
 	add.w	#$0050,a0	;D0FC0050
 	move.l	#$000F0000,adrW_00D92A.l	;23FC000F00000000D92A
@@ -20233,7 +20318,7 @@ adrCd00C032:
 	bmi.s	adrCd00C060	;6B08
 	bsr.s	adrCd00C060	;6106
 	lea	Player2_Data.l,a5	;4BF90000EEDE
-adrCd00C060:
+adrCd00C060:		; Memory Address ($C060) and binary offset [$BCDC]
 	clr.w	$0014(a5)	;426D0014
 	move.l	#$002F00A8,d4	;283C002F00A8
 	moveq	#$09,d5	;7A09
@@ -20249,7 +20334,7 @@ adrCd00C060:
 	move.w	#$00A8,d4	;383C00A8
 	moveq	#$54,d5	;7A54
 	add.w	$0008(a5),d5	;DA6D0008
-adrCd00C09C:
+adrCd00C09C:		; Memory Address ($C09C) and binary offset [$BD18]
 	bsr	BW_blit_horiz_line	;61001AE6
 	addq.w	#$01,d5	;5245
 	addq.w	#$01,d3	;5243
@@ -20257,14 +20342,14 @@ adrCd00C09C:
 	bcs.s	adrCd00C09C	;65F2
 	addq.w	#$08,d5	;5045
 	subq.w	#$01,d3	;5343
-adrCd00C0AE:
+adrCd00C0AE:		; Memory Address ($C0AE) and binary offset [$BD2A]
 	bsr	BW_blit_horiz_line	;61001AD4
 	addq.w	#$01,d5	;5245
 	subq.w	#$01,d3	;5343
 	bne.s	adrCd00C0AE	;66F6
 	rts	;4E75
 
-adrCd00C0BA:
+adrCd00C0BA:		; Memory Address ($C0BA) and binary offset [$BD36]
 	add.w	$0008(a5),d5	;DA6D0008
 	swap	d5	;4845
 	move.w	#$002B,d5	;3A3C002B
@@ -20273,7 +20358,7 @@ adrCd00C0BA:
 	movem.l	d3-d5,-(sp)	;48E71C00
 	bsr	BW_draw_bar	;6100199A
 	movem.l	(sp)+,d3-d5	;4CDF0038
-adrCd00C0D4:
+adrCd00C0D4:		; Memory Address ($C0D4) and binary offset [$BD50]
 	addq.w	#$01,d4	;5244
 	addq.w	#$01,d5	;5245
 	sub.l	#$00020000,d5	;048500020000	;Long Addr replaced with Symbol
@@ -20286,7 +20371,7 @@ adrCd00C0D4:
 	bne.s	adrCd00C0D4	;66DC
 	rts	;4E75
 
-ChampionSelection_Main:
+ChampionSelection_Main:		; Memory Address ($C0FA) and binary offset [$BD76]
 	moveq	#-$01,d0	;70FF
 	move.w	d0,adrW_00C514.l	;33C00000C514
 	move.b	d0,adrB_00EE83.l	;13C00000EE83
@@ -20304,7 +20389,7 @@ ChampionSelection_Main:
 	move.l	#$00D80000,adrL_00EEE0.l	;23FC00D800000000EEE0
 	move.w	#$0026,adrW_00EE84.l	;33FC00260000EE84
 	move.w	#$05F0,adrW_00EE86.l	;33FC05F00000EE86
-adrCd00C168:
+adrCd00C168:		; Memory Address ($C168) and binary offset [$BDE4]
 	bsr	ChampionSelection	;61000C22
 	bsr	adrCd00C01E	;6100FEB0
 	bsr	adrCd008CCA	;6100CB58
@@ -20313,34 +20398,34 @@ adrCd00C168:
 	move.w	#$0005,adrW_00EEC6.l	;33FC00050000EEC6
 	move.b	#$01,SyncFlagHighByte_AI_TBC.l	;13FC000100008C1F
 	jsr	Initialize_SpellPracticeThresholds.w	;4EB808F2	;Short Absolute converted to symbol!
-adrCd00C190:
+adrCd00C190:		; Memory Address ($C190) and binary offset [$BE0C]
 	move.w	adrW_00EEF2.l,d1	;32390000EEF2
 	lea	Player1_Data.l,a5	;4BF90000EE7C
 	and.w	$0014(a5),d1	;C26D0014
 	bmi.s	ExitOrLoop	;6B52
 	clr.b	adrB_00EE2C.l	;42390000EE2C
 	bsr	adrCd00C1F6	;6100004C
-	bsr	adrCd00C232	;61000084
+	bsr	Process_ChampionSelectionAction	;61000084
 	lea	Player2_Data.l,a5	;4BF90000EEDE
 	bsr	adrCd00C1F6	;6100003E
-	bsr	adrCd00C232	;61000076
+	bsr	Process_ChampionSelectionAction	;61000076
 	move.b	#$FF,FrameSyncFlagWord_AI_TBC.l	;13FC00FF00008C1E
-adrCd00C1C6:
+adrCd00C1C6:		; Memory Address ($C1C6) and binary offset [$BE42]
 	tst.b	FrameSyncFlagWord_AI_TBC.l	;4A3900008C1E
 	bne.s	adrCd00C1C6	;66F8
 	move.b	#$01,adrB_00EE2C.l	;13FC00010000EE2C
 	lea	Player1_Data.l,a5	;4BF90000EE7C
-	bsr	adrCd00C232	;61000054
+	bsr	Process_ChampionSelectionAction	;61000054
 	clr.w	$000C(a5)	;426D000C
 	lea	Player2_Data.l,a5	;4BF90000EEDE
-	bsr	adrCd00C232	;61000046
+	bsr	Process_ChampionSelectionAction	;61000046
 	clr.w	$000C(a5)	;426D000C
 	bra.s	adrCd00C190	;609C
 
-ExitOrLoop:
+ExitOrLoop:		; Memory Address ($C1F4) and binary offset [$BE70]
 	rts	;4E75
 
-adrCd00C1F6:
+adrCd00C1F6:		; Memory Address ($C1F6) and binary offset [$BE72]
 	move.w	$0022(a5),$0024(a5)		;3B6D00220024
 	bclr	#$07,$0001(a5)			;08AD00070001
 	beq.s	ExitOrLoop			;67F0
@@ -20360,29 +20445,32 @@ adrCd00C1F6:
 	bpl.s	ExitOrLoop			;6AC6
 	bra	adrCd00C650			;60000420
 
-adrCd00C232:
+Process_ChampionSelectionAction:		; Memory Address ($C5B6) and binary offset [$C232]
+	; ReSource: Processes the champion-selection screen's separate action state.
 	move.w	$0014(a5),d0			;302D0014
 	bmi.s	ExitOrLoop			;6BBC
 	cmpi.b	#$03,d0				;0C000003
-	bne.s	adrCd00C252			;6614
+	bne.s	Dispatch_ChampionSelectionAction			;6614
 	lsr.w	#$08,d0				;E048
 	cmpi.w	#$0007,d0			;0C400007
 	bne.s	adrCd00C24E			;6608
 	move.w	#$0002,$0014(a5)		;3B7C00020014
 	rts	;4E75
 
-adrCd00C24E:
+adrCd00C24E:		; Memory Address ($C24E) and binary offset [$BECA]
 	move.w	d0,$000C(a5)	;3B40000C
-adrCd00C252:
+Dispatch_ChampionSelectionAction:		; Memory Address ($C5D6) and binary offset [$C252]
+	; ReSource: Dispatches champion-selection actions through the local preview/action table.
 	move.w	$000C(a5),d0	;302D000C
 	beq.s	ExitOrLoop	;679C
 	asl.w	#$02,d0	;E540
-	lea	adrJB00C262.l,a0	;41F90000C262
+	lea	ChampionSelection_ActionHandlers.l,a0	;41F90000C262
 	move.l	$00(a0,d0.w),a0	;20700000
-adrJB00C262:	equ	*-2
+ChampionSelection_ActionHandlers:		equ	*-2		; Memory Address ($C5E6) and binary offset [$C262]
+	; ReSource: Champion-selection action handler table; its numeric meanings differ from dungeon InterfaceButtons.
 	jmp	(a0)	;4ED0
 
-ChampionPreviews_LookupTable:
+ChampionPreviews_LookupTable:		; Memory Address ($C266) and binary offset [$BEE2]
 	dc.l	Click_SelectionAvatar	;0000C53C
 	dc.l	Click_SwitchView	;0000C436
 	dc.l	Click_SelectChampion	;0000C490
@@ -20392,14 +20480,14 @@ ChampionPreviews_LookupTable:
 	dc.l	ExitOrLoop	;0000C1F4
 	dc.l	Click_TurnSpellBookPage	;0000C2EA
 
-Click_PreviewSpell:
+Click_PreviewSpell:		; Memory Address ($C286) and binary offset [$BF02]
 	bsr	adrCd00C2AC	;61000024
 	bpl.s	adrCd00C298	;6A0C
 	move.w	$0006(a5),d7	;3E2D0006
 	bsr	adrCd00CFF0	;61000D5E
 	bra	adrCd00C85E	;600005C8
 
-adrCd00C298:
+adrCd00C298:		; Memory Address ($C298) and binary offset [$BF14]
 	moveq	#$07,d6	;7C07
 	bsr	adrCd00D01A	;61000D7E
 	bsr	adrLp00CFDA	;61000D3A
@@ -20407,7 +20495,7 @@ adrCd00C298:
 	bsr	TerminateText	;61000D62
 	bra	adrCd00C85E	;600005B4
 
-adrCd00C2AC:
+adrCd00C2AC:		; Memory Address ($C2AC) and binary offset [$BF28]
 	bsr	Load_CurrentChampionStatRecord	;6100A3AE
 	move.w	$002A(a5),d0	;302D002A
 	move.w	d0,d2	;3400
@@ -20421,19 +20509,19 @@ adrCd00C2AC:
 	add.w	d2,d0	;D042
 	move.b	d0,$0013(a4)	;19400013
 	clr.b	$0014(a4)	;422C0014
-adrCd00C2D4:
+adrCd00C2D4:		; Memory Address ($C2D4) and binary offset [$BF50]
 	asl.w	#$03,d0	;E740
 	lea	SpellNames.l,a6	;4DF900019E8E
 	add.w	d0,a6	;DCC0
 	rts	;4E75
 
-adrCd00C2E0:
+adrCd00C2E0:		; Memory Address ($C2E0) and binary offset [$BF5C]
 	move.b	#$FF,$0013(a4)	;197C00FF0013
 	moveq	#-$01,d0	;70FF
-adrCd00C2E8:
+adrCd00C2E8:		; Memory Address ($C2E8) and binary offset [$BF64]
 	rts	;4E75
 
-Click_TurnSpellBookPage:
+Click_TurnSpellBookPage:		; Memory Address ($C2EA) and binary offset [$BF66]
 	tst.w	$0024(a5)	;4A6D0024
 	bne.s	adrCd00C2E8	;66F8
 	tst.b	$000F(a5)	;4A2D000F
@@ -20443,22 +20531,22 @@ Click_TurnSpellBookPage:
 	addq.w	#$02,$002A(a5)	;546D002A
 	and.w	#$0007,$002A(a5)	;026D0007002A
 	move.w	#$FFFF,$000E(a5)	;3B7CFFFF000E
-adrCd00C30C:
+adrCd00C30C:		; Memory Address ($C30C) and binary offset [$BF88]
 	tst.b	adrB_00EE2C.l	;4A390000EE2C
 	beq.s	adrCd00C31A	;6706
 	move.w	#$0002,$0014(a5)	;3B7C00020014
-adrCd00C31A:
+adrCd00C31A:		; Memory Address ($C31A) and binary offset [$BF96]
 	bsr	adrCd00C7C8	;610004AC
 	bra	adrCd00C85E	;6000053E
 
-adrCd00C322:
+adrCd00C322:		; Memory Address ($C322) and binary offset [$BF9E]
 	bsr	adrCd00C7C8	;610004A4
 	move.w	$002A(a5),d0	;302D002A
 	bsr	adrCd00C86A	;6100053E
 	move.w	$000E(a5),d1	;322D000E
 	bpl.s	adrCd00C338	;6A04
 	eor.w	#$0003,d1	;0A410003
-adrCd00C338:
+adrCd00C338:		; Memory Address ($C338) and binary offset [$BFB4]
 	and.w	#$0003,d1	;02410003
 	move.w	$002A(a5),d0	;302D002A
 	cmpi.w	#$0003,d1	;0C410003
@@ -20482,7 +20570,7 @@ adrCd00C338:
 	asl.w	#$02,d7	;E547
 	swap	d7	;4847
 	move.w	#$0003,d7	;3E3C0003
-adrLp00C380:
+adrLp00C380:		; Memory Address ($C380) and binary offset [$BFFC]
 	bsr	adrCd00C906	;61000584
 	move.w	d6,adrW_00D92A.l	;33C60000D92A
 	move.b	(a6),d0	;1016
@@ -20492,11 +20580,11 @@ adrLp00C380:
 	dbra	d7,adrLp00C380	;51CFFFE8
 	bra.s	adrCd00C3A6	;600A
 
-adrCd00C39C:
+adrCd00C39C:		; Memory Address ($C39C) and binary offset [$C018]
 	addq.w	#$03,d0	;5640
 	and.w	#$0007,d0	;02400007
 	bsr	adrCd00C86A	;610004C6
-adrCd00C3A6:
+adrCd00C3A6:		; Memory Address ($C3A6) and binary offset [$C022]
 	move.w	$002A(a5),d7	;3E2D002A
 	addq.w	#$02,d7	;5447
 	and.w	#$0007,d7	;02470007
@@ -20509,7 +20597,7 @@ adrCd00C3A6:
 	move.w	#$0007,d7	;3E3C0007
 	lea	Buffer_Colour_Mask.l,a6	;4DF90000B4C0
 	moveq	#$03,d5	;7A03
-adrLp00C3C8:
+adrLp00C3C8:		; Memory Address ($C3C8) and binary offset [$C044]
 	bsr	adrCd00C906	;6100053C
 	move.b	d6,(a6)+	;1CC6
 	subq.w	#$01,d7	;5347
@@ -20517,7 +20605,7 @@ adrLp00C3C8:
 	move.w	$000E(a5),d0	;302D000E
 	bpl.s	adrCd00C3DE	;6A04
 	eor.w	#$0003,d0	;0A400003
-adrCd00C3DE:
+adrCd00C3DE:		; Memory Address ($C3DE) and binary offset [$C05A]
 	and.w	#$0003,d0	;02400003
 	move.l	screen_ptr.l,a0	;207900008D36
 	add.w	#$0186,a0	;D0FC0186
@@ -20538,13 +20626,13 @@ adrCd00C3DE:
 	beq.s	adrCd00C434	;670A
 	subq.b	#$01,$000F(a5)	;532D000F
 	move.w	#$0006,$0022(a5)	;3B7C00060022
-adrCd00C434:
+adrCd00C434:		; Memory Address ($C434) and binary offset [$C0B0]
 	rts	;4E75
 
-Click_SwitchView:
+Click_SwitchView:		; Memory Address ($C436) and binary offset [$C0B2]
 	move.w	$0006(a5),d7	;3E2D0006
 	bsr	adrCd00CFF0	;61000BB4
-adrCd00C43E:
+adrCd00C43E:		; Memory Address ($C43E) and binary offset [$C0BA]
 	move.w	$0014(a5),d0	;302D0014
 	add.w	#$0060,d0	;06400060
 	move.l	screen_ptr.l,a0	;207900008D36
@@ -20562,15 +20650,15 @@ adrCd00C43E:
 	cmp.w	#$0003,$0014(a5)	;0C6D00030014
 	bcs.s	adrCd00C482	;6504
 	clr.w	$0014(a5)	;426D0014
-adrCd00C482:
+adrCd00C482:		; Memory Address ($C482) and binary offset [$C0FE]
 	rts	;4E75
 
-adrJT00C484:
+adrJT00C484:		; Memory Address ($C484) and binary offset [$C100]
 	dc.l	adrJA00C938	;0000C938
 	dc.l	adrJA00C852	;0000C852
 	dc.l	Draw_ChampionStats_DefaultPosition	;0000CB28
 
-Click_SelectChampion:
+Click_SelectChampion:		; Memory Address ($C490) and binary offset [$C10C]
 	clr.w	adrW_00EEC8.l	;42790000EEC8
 	move.l	screen_ptr.l,a0	;207900008D36
 	add.w	#$0050,a0	;D0FC0050
@@ -20581,7 +20669,7 @@ Click_SelectChampion:
 	move.w	#$00FF,adrW_00EEC6.l	;33FC00FF0000EEC6
 	bra.s	adrCd00C4E0	;6026
 
-adrCd00C4BA:
+adrCd00C4BA:		; Memory Address ($C4BA) and binary offset [$C136]
 	move.b	(a5),d0	;1015
 	not.w	d0	;4640
 	and.w	#$0001,d0	;02400001
@@ -20590,7 +20678,7 @@ adrCd00C4BA:
 	move.l	#$000F0000,adrW_00D92A.l	;23FC000F00000000D92A
 	bsr	Print_fflim_text	;61000BF0
 	move.w	#$0005,adrW_00EEC6.l	;33FC00050000EEC6
-adrCd00C4E0:
+adrCd00C4E0:		; Memory Address ($C4E0) and binary offset [$C15C]
 	moveq	#$2A,d5	;7A2A
 	bsr	Draw_ScrollFrame	;61000756
 	move.b	(a5),d0	;1015
@@ -20603,13 +20691,13 @@ adrCd00C4E0:
 	beq.s	adrCd00C512	;670C
 	move.w	#$FFFF,$0014(a5)	;3B7CFFFF0014
 	clr.w	adrW_00C514.l	;42790000C514
-adrCd00C512:
+adrCd00C512:		; Memory Address ($C512) and binary offset [$C18E]
 	rts	;4E75
 
-adrW_00C514:
+adrW_00C514:		; Memory Address ($C514) and binary offset [$C190]
 	dc.w	$FFFF	;FFFF
 
-Click_ViewObject:
+Click_ViewObject:		; Memory Address ($C516) and binary offset [$C192]
 	move.w	$0006(a5),d0	;302D0006
 	asl.w	#$04,d0	;E940
 	lea	Character_Pockets_DataTable.l,a6	;4DF90000ED2A
@@ -20622,7 +20710,7 @@ Click_ViewObject:
 	add.w	d0,a6	;DCC0
 	bra	InventoryItem_Description	;600012BE
 
-Click_SelectionAvatar:
+Click_SelectionAvatar:		; Memory Address ($C53C) and binary offset [$C1B8]
 	move.w	$0006(a5),d7	;3E2D0006
 	move.w	d7,-(sp)	;3F07
 	bsr	Draw_Select_Avatars	;61000852
@@ -20645,26 +20733,26 @@ Click_SelectionAvatar:
 	tst.b	$0001(sp)	;4A2F0001
 	bpl.s	adrCd00C590	;6A02
 	bsr.s	adrCd00C5B8	;6128
-adrCd00C590:
+adrCd00C590:		; Memory Address ($C590) and binary offset [$C20C]
 	tst.b	adrB_00EE2C.l	;4A390000EE2C
 	bne.s	adrCd00C5A4	;660C
 	subq.w	#$01,$0014(a5)	;536D0014
 	bcc.s	adrCd00C5A4	;6406
 	move.w	#$0002,$0014(a5)	;3B7C00020014
-adrCd00C5A4:
+adrCd00C5A4:		; Memory Address ($C5A4) and binary offset [$C220]
 	bsr	adrCd00C43E	;6100FE98
 	move.w	(sp)+,d7	;3E1F
 	tst.b	adrB_00EE2C.l	;4A390000EE2C
 	bne.s	adrCd00C5B6	;6604
 	move.w	d7,$0006(a5)	;3B470006
-adrCd00C5B6:
+adrCd00C5B6:		; Memory Address ($C5B6) and binary offset [$C232]
 	rts	;4E75
 
-adrCd00C5B8:
+adrCd00C5B8:		; Memory Address ($C5B8) and binary offset [$C234]
 	move.l	#$001700AD,d4	;283C001700AD
 	bsr.s	adrCd00C5C6	;6106
 	move.l	#$001700C5,d4	;283C001700C5
-adrCd00C5C6:
+adrCd00C5C6:		; Memory Address ($C5C6) and binary offset [$C242]
 	move.l	#$0013003E,d5	;2A3C0013003E
 	moveq	#$02,d3	;7602
 	add.w	$0008(a5),d5	;DA6D0008
@@ -20678,7 +20766,7 @@ adrCd00C5C6:
 	moveq	#$04,d3	;7604
 	bra	BW_draw_frame	;600014E2
 
-adrCd00C5F4:
+adrCd00C5F4:		; Memory Address ($C5F4) and binary offset [$C270]
 	move.l	$0002(a5),d1	;222D0002
 	sub.w	$0008(a5),d1	;926D0008
 	cmpi.w	#$0040,d1	;0C410040
@@ -20692,11 +20780,11 @@ adrCd00C5F4:
 	bcc.s	adrCd00C61E	;6408
 	move.w	#$0002,$000C(a5)	;3B7C0002000C
 	clr.w	d2	;4242
-adrCd00C61E:
+adrCd00C61E:		; Memory Address ($C61E) and binary offset [$C29A]
 	tst.w	d2	;4A42
 	rts	;4E75
 
-adrCd00C622:
+adrCd00C622:		; Memory Address ($C622) and binary offset [$C29E]
 	move.l	$0002(a5),d1	;222D0002
 	sub.w	$0008(a5),d1	;926D0008
 	cmpi.w	#$0040,d1	;0C410040
@@ -20710,11 +20798,11 @@ adrCd00C622:
 	bcc.s	adrCd00C64C	;6408
 	move.w	#$0003,$000C(a5)	;3B7C0003000C
 	clr.w	d2	;4242
-adrCd00C64C:
+adrCd00C64C:		; Memory Address ($C64C) and binary offset [$C2C8]
 	tst.w	d2	;4A42
 	rts	;4E75
 
-adrCd00C650:
+adrCd00C650:		; Memory Address ($C650) and binary offset [$C2CC]
 	cmp.w	#$0002,$0014(a5)	;0C6D00020014
 	bne.s	adrCd00C64C	;66F4
 	move.l	$0002(a5),d1	;222D0002
@@ -20732,7 +20820,7 @@ adrCd00C650:
 	sub.w	#$0010,d1	;04410010
 	bcs.s	adrCd00C64C	;65CA
 	addq.w	#$04,d0	;5840
-adrCd00C684:
+adrCd00C684:		; Memory Address ($C684) and binary offset [$C300]
 	swap	d1	;4841
 	lsr.w	#$03,d1	;E649
 	add.w	d1,d0	;D041
@@ -20742,7 +20830,7 @@ adrCd00C684:
 	moveq	#$00,d2	;7400
 	rts	;4E75
 
-adrCd00C69C:
+adrCd00C69C:		; Memory Address ($C69C) and binary offset [$C318]
 	add.w	#$0018,d1	;06410018
 	cmpi.w	#$0007,d1	;0C410007
 	bcs.s	adrCd00C708	;6562
@@ -20764,7 +20852,7 @@ adrCd00C69C:
 	moveq	#$08,d0	;7008
 	cmpi.w	#$0138,d1	;0C410138
 	bcc.s	adrCd00C708	;6430
-adrCd00C6D8:
+adrCd00C6D8:		; Memory Address ($C6D8) and binary offset [$C354]
 	move.w	d0,$000C(a5)	;3B40000C
 	moveq	#$03,d2	;7403
 	cmpi.w	#$0006,d0	;0C400006
@@ -20772,21 +20860,21 @@ adrCd00C6D8:
 	subq.w	#$02,$002A(a5)	;556D002A
 	and.w	#$0007,$002A(a5)	;026D0007002A
 	move.w	#$8003,d2	;343C8003
-adrCd00C6F2:
+adrCd00C6F2:		; Memory Address ($C6F2) and binary offset [$C36E]
 	rol.w	#$08,d0	;E158
 	move.b	#$03,d0	;103C0003
 	move.w	d0,$0014(a5)	;3B400014
 	move.w	d2,$000E(a5)	;3B42000E
 	move.w	#$0008,$0022(a5)	;3B7C00080022
 	move.w	d0,d2	;3400
-adrCd00C708:
+adrCd00C708:		; Memory Address ($C708) and binary offset [$C384]
 	tst.w	d2	;4A42
 	rts	;4E75
 
-adrCd00C70C:
+adrCd00C70C:		; Memory Address ($C70C) and binary offset [$C388]
 	cmp.w	#$0001,$0014(a5)	;0C6D00010014
 	bne.s	adrCd00C748	;6634
-adrCd00C714:
+adrCd00C714:		; Memory Address ($C714) and binary offset [$C390]
 	move.l	$0002(a5),d1	;222D0002
 	sub.w	$0008(a5),d1	;926D0008
 	sub.w	#$0020,d1	;04410020
@@ -20803,24 +20891,24 @@ adrCd00C714:
 	sub.w	#$0010,d1	;04410010
 	bcs.s	adrCd00C744	;6502
 	addq.w	#$06,d2	;5C42
-adrCd00C744:
+adrCd00C744:		; Memory Address ($C744) and binary offset [$C3C0]
 	move.w	d2,$000E(a5)	;3B42000E
-adrCd00C748:
+adrCd00C748:		; Memory Address ($C748) and binary offset [$C3C4]
 	tst.w	d2	;4A42
 	rts	;4E75
 
-adrCd00C74C:
+adrCd00C74C:		; Memory Address ($C74C) and binary offset [$C3C8]
 	move.l	$0002(a5),d1	;222D0002
 	moveq	#-$01,d2	;74FF
 	moveq	#$0E,d3	;760E
-adrCd00C754:
+adrCd00C754:		; Memory Address ($C754) and binary offset [$C3D0]
 	cmp.w	d3,d1	;B243
 	bcs.s	adrCd00C760	;6508
 	addq.w	#$01,d2	;5242
 	add.w	#$0030,d3	;06430030
 	bra.s	adrCd00C754	;60F4
 
-adrCd00C760:
+adrCd00C760:		; Memory Address ($C760) and binary offset [$C3DC]
 	tst.w	d2	;4A42
 	bmi.s	adrCd00C7C4	;6B60
 	subq.w	#$07,d3	;5F43
@@ -20830,14 +20918,14 @@ adrCd00C760:
 	cmpi.w	#$009E,d1	;0C41009E
 	bcc.s	adrCd00C7C2	;6450
 	moveq	#$27,d3	;7627
-adrCd00C774:
+adrCd00C774:		; Memory Address ($C774) and binary offset [$C3F0]
 	cmp.w	d3,d1	;B243
 	bcs.s	adrCd00C780	;6508
 	addq.w	#$04,d2	;5842
 	add.w	#$0028,d3	;06430028
 	bra.s	adrCd00C774	;60F4
 
-adrCd00C780:
+adrCd00C780:		; Memory Address ($C780) and binary offset [$C3FC]
 	sub.w	#$0009,d3	;04430009
 	cmp.w	d3,d1	;B243
 	bcc.s	adrCd00C7C2	;643A
@@ -20853,17 +20941,17 @@ adrCd00C780:
 	bne.s	adrCd00C7B6	;6606
 	cmp.w	$000E(a0),d2	;B468000E
 	beq.s	adrCd00C7C4	;670E
-adrCd00C7B6:
+adrCd00C7B6:		; Memory Address ($C7B6) and binary offset [$C432]
 	move.w	d2,$000E(a5)	;3B42000E
 	move.w	#$0001,$000C(a5)	;3B7C0001000C
 	moveq	#$00,d2	;7400
-adrCd00C7C2:
+adrCd00C7C2:		; Memory Address ($C7C2) and binary offset [$C43E]
 	swap	d2	;4842
-adrCd00C7C4:
+adrCd00C7C4:		; Memory Address ($C7C4) and binary offset [$C440]
 	tst.w	d2	;4A42
 	rts	;4E75
 
-adrCd00C7C8:
+adrCd00C7C8:		; Memory Address ($C7C8) and binary offset [$C444]
 	move.w	$0006(a5),d7	;3E2D0006
 	move.l	screen_ptr.l,a0	;207900008D36
 	add.w	#$0184,a0	;D0FC0184
@@ -20877,18 +20965,18 @@ adrCd00C7C8:
 	add.w	d7,a4	;D8C7
 	rts	;4E75
 
-adrCd00C7FC:
+adrCd00C7FC:		; Memory Address ($C7FC) and binary offset [$C478]
 	move.l	#$005E00E0,d4	;283C005E00E0
 	move.l	#$00480009,d5	;2A3C00480009
 	add.w	$0008(a5),d5	;DA6D0008
 	moveq	#$00,d3	;7600
 	bra	BW_draw_bar	;60001258
 
-adrCd00C812:
+adrCd00C812:		; Memory Address ($C812) and binary offset [$C48E]
 	move.l	screen_ptr.l,a0	;207900008D36
 	add.w	#$0E2C,a0	;D0FC0E2C
 	add.w	$000A(a5),a0	;D0ED000A
-adrCd00C820:
+adrCd00C820:		; Memory Address ($C820) and binary offset [$C49C]
 	bsr	Load_CurrentChampionStatRecord	;61009E3A
 	or.b	#$0C,$0054(a5)	;002D000C0054
 	move.b	$0009(a4),d0	;102C0009
@@ -20902,17 +20990,17 @@ adrCd00C820:
 	move.w	d1,$0010(a6)	;3D410010
 	bra	Print_fflim_text	;60000876
 
-adrJA00C852:
+adrJA00C852:		; Memory Address ($C852) and binary offset [$C4CE]
 	bsr.s	adrCd00C7FC	;61A8
 	bsr	adrCd00C7C8	;6100FF72
 	add.w	#$00A0,a0	;D0FC00A0
 	bsr.s	adrCd00C820	;61C2
-adrCd00C85E:
+adrCd00C85E:		; Memory Address ($C85E) and binary offset [$C4DA]
 	move.w	$002A(a5),d0	;302D002A
 	bsr.s	adrCd00C86A	;6106
 	move.w	$002A(a5),d0	;302D002A
 	addq.w	#$01,d0	;5240
-adrCd00C86A:
+adrCd00C86A:		; Memory Address ($C86A) and binary offset [$C4E6]
 	or.b	#$04,$0054(a5)	;002D00040054
 	move.w	d0,d7	;3E00
 	asl.w	#$04,d0	;E940
@@ -20932,11 +21020,11 @@ adrCd00C86A:
 	and.w	#$0001,d0	;02400001
 	bne.s	adrCd00C8D6	;6630
 	move.w	#$0007,d7	;3E3C0007
-adrCd00C8AA:
+adrCd00C8AA:		; Memory Address ($C8AA) and binary offset [$C526]
 	bsr.s	adrCd00C906	;615A
 	move.w	d6,adrW_00D92A.l	;33C60000D92A
 	moveq	#$02,d6	;7C02
-adrLp00C8B4:
+adrLp00C8B4:		; Memory Address ($C8B4) and binary offset [$C530]
 	move.b	(a6)+,d0	;101E
 	bsr	adrCd00D8C0	;61001008
 	dbra	d6,adrLp00C8B4	;51CEFFF8
@@ -20949,17 +21037,17 @@ adrLp00C8B4:
 	bcc.s	adrCd00C8AA	;64D6
 	rts	;4E75
 
-adrCd00C8D6:
+adrCd00C8D6:		; Memory Address ($C8D6) and binary offset [$C552]
 	sub.w	#$0022,a0	;90FC0022
 	move.w	#$0003,d7	;3E3C0003
-adrLp00C8DE:
+adrLp00C8DE:		; Memory Address ($C8DE) and binary offset [$C55A]
 	bsr.s	adrCd00C906	;6126
 	move.w	d6,adrW_00D92A.l	;33C60000D92A
 	move.b	(a6)+,d0	;101E
 	bsr	adrCd00D8C0	;61000FD6
 	add.w	#$0028,a0	;D0FC0028
 	moveq	#$02,d6	;7C02
-adrLp00C8F2:
+adrLp00C8F2:		; Memory Address ($C8F2) and binary offset [$C56E]
 	move.b	(a6)+,d0	;101E
 	bsr	adrCd00D8C0	;61000FCA
 	dbra	d6,adrLp00C8F2	;51CEFFF8
@@ -20967,7 +21055,7 @@ adrLp00C8F2:
 	dbra	d7,adrLp00C8DE	;51CFFFDC
 	rts	;4E75
 
-adrCd00C906:
+adrCd00C906:		; Memory Address ($C906) and binary offset [$C582]
 	moveq	#$01,d6	;7C01
 	btst	d7,$000C(a3)	;0F2B000C
 	beq.s	adrCd00C932	;6724
@@ -20984,16 +21072,16 @@ adrCd00C906:
 	beq.s	adrCd00C932	;6708
 	bsr	Character_GetClassIndex	;61009FD4
 	move.b	adrB_00C934(pc,d0.w),d6	;1C3B0004
-adrCd00C932:
+adrCd00C932:		; Memory Address ($C932) and binary offset [$C5AE]
 	rts	;4E75
 
-adrB_00C934:
+adrB_00C934:		; Memory Address ($C934) and binary offset [$C5B0]
 	dc.b	$06	;06
 	dc.b	$0D	;0D
 	dc.b	$0C	;0C
 	dc.b	$07	;07
 
-adrJA00C938:
+adrJA00C938:		; Memory Address ($C938) and binary offset [$C5B4]
 	move.w	d7,-(sp)	;3F07
 	bsr	adrCd00C7FC	;6100FEC0
 	move.l	#$005D00E2,d4	;283C005D00E2
@@ -21012,7 +21100,7 @@ adrJA00C938:
 	bsr	adrCd00C9BC	;61000044
 	lea	adrEA00EA14.l,a6	;4DF90000EA14
 	bsr	Print_fflim_text	;61000744
-adrCd00C984:
+adrCd00C984:		; Memory Address ($C984) and binary offset [$C600]
 	move.w	d7,d0	;3007
 	bsr	Load_ChampionStatRecord	;61009CD8
 	move.w	d7,d0	;3007
@@ -21023,7 +21111,7 @@ adrCd00C984:
 	bpl.s	adrCd00C9A0	;6A06
 	move.b	#$2D,d1	;123C002D
 	neg.b	d0	;4400
-adrCd00C9A0:
+adrCd00C9A0:		; Memory Address ($C9A0) and binary offset [$C61C]
 	lea	adrEA00EA25.l,a6	;4DF90000EA25
 	move.b	d1,$000C(a6)	;1D41000C
 	bsr	Convert_ByteToDecimalText	;61000518
@@ -21032,7 +21120,7 @@ adrCd00C9A0:
 	move.b	d1,$000D(a6)	;1D41000D
 	bra	Print_fflim_text	;6000070C
 
-adrCd00C9BC:
+adrCd00C9BC:		; Memory Address ($C9BC) and binary offset [$C638]
 	move.l	a4,-(sp)	;2F0C
 	move.l	screen_ptr.l,a0	;207900008D36
 	add.w	#$051C,a0	;D0FC051C
@@ -21043,7 +21131,7 @@ adrCd00C9BC:
 	add.w	d0,a4	;D8C0
 	swap	d7	;4847
 	clr.w	d7	;4247
-adrCd00C9DC:
+adrCd00C9DC:		; Memory Address ($C9DC) and binary offset [$C658]
 	moveq	#$00,d0	;7000
 	move.b	$00(a4,d7.w),d0	;10347000
 	bne.s	adrCd00CA38	;6654
@@ -21065,7 +21153,7 @@ adrCd00C9DC:
 	add.w	d7,d0	;D047
 	bra.s	adrCd00CA32	;601E
 
-adrCd00CA14:
+adrCd00CA14:		; Memory Address ($CA14) and binary offset [$C690]
 	move.w	$0012(a5),d3	;362D0012
 	cmpi.w	#$0004,d7	;0C470004
 	bcc.s	adrCd00CA32	;6414
@@ -21075,13 +21163,13 @@ adrCd00CA14:
 	btst	#$10,d7	;08070010
 	beq.s	adrCd00CA2E	;6702
 	addq.w	#$01,d0	;5240
-adrCd00CA2E:
+adrCd00CA2E:		; Memory Address ($CA2E) and binary offset [$C6AA]
 	add.w	#$006C,d0	;0640006C
-adrCd00CA32:
+adrCd00CA32:		; Memory Address ($CA32) and binary offset [$C6AE]
 	bsr	adrCd00CAEA	;610000B6
 	bra.s	adrCd00CA4C	;6014
 
-adrCd00CA38:
+adrCd00CA38:		; Memory Address ($CA38) and binary offset [$C6B4]
 	cmpi.w	#$0005,d0	;0C400005
 	bcc.s	adrCd00CA4A	;640C
 	move.b	$0B(a4,d0.w),d1	;1234000B
@@ -21089,21 +21177,21 @@ adrCd00CA38:
 	clr.b	$00(a4,d7.w)	;42347000
 	bra.s	adrCd00C9DC	;6092
 
-adrCd00CA4A:
+adrCd00CA4A:		; Memory Address ($CA4A) and binary offset [$C6C6]
 	bsr.s	ObjectGraphic	;611A
-adrCd00CA4C:
+adrCd00CA4C:		; Memory Address ($CA4C) and binary offset [$C6C8]
 	addq.w	#$01,d7	;5247
 	cmpi.w	#$0006,d7	;0C470006
 	bne.s	adrCd00CA58	;6604
 	add.w	#$0274,a0	;D0FC0274
-adrCd00CA58:
+adrCd00CA58:		; Memory Address ($CA58) and binary offset [$C6D4]
 	cmpi.w	#$000C,d7	;0C47000C
 	bcs	adrCd00C9DC	;6500FF7E
 	swap	d7	;4847
 	move.l	(sp)+,a4	;285F
 	rts	;4E75
 
-ObjectGraphic:
+ObjectGraphic:		; Memory Address ($CA66) and binary offset [$C6E2]
 	tst.w	d0	;4A40
 	beq	adrCd00CAEA	;67000080
 	cmpi.w	#$0005,d0	;0C400005
@@ -21118,7 +21206,7 @@ ObjectGraphic:
 	tst.b	$00(a1,d3.w)	;4A313000
 	bpl.s	.SkipRings	;6A02
 	moveq	#$68,d0	;7068
-.SkipRings:
+.SkipRings:		; Memory Address ($CA92) and binary offset [$C70E]
 	asl.w	#$02,d0	;E540
 	lea	Object_Definition_Table.l,a1	;43F90000E4C2
 	moveq	#$00,d3	;7600
@@ -21126,7 +21214,7 @@ ObjectGraphic:
 	move.b	$00(a1,d0.w),d0	;10310000
 	bra.s	adrCd00CAEA	;6044
 
-NumberedObject:
+NumberedObject:		; Memory Address ($CAA6) and binary offset [$C722]
 	move.l	a0,-(sp)	;2F08
 	move.w	d0,-(sp)	;3F00
 	move.b	d1,d0	;1001
@@ -21139,7 +21227,7 @@ NumberedObject:
 	cmp.w	#$0003,(sp)+	;0C5F0003
 	bcs.s	adrCd00CACC	;6504
 	add.w	#$0118,a0	;D0FC0118
-adrCd00CACC:
+adrCd00CACC:		; Memory Address ($CACC) and binary offset [$C748]
 	lea	adrEA00CAE6.l,a6	;4DF90000CAE6
 	move.l	#$00060000,adrW_00D92A.l	;23FC000600000000D92A
 	bsr	Print_fflim_text	;610005E8
@@ -21147,25 +21235,25 @@ adrCd00CACC:
 	addq.w	#$02,a0	;5448
 	rts	;4E75
 
-adrEA00CAE6:
+adrEA00CAE6:		; Memory Address ($CAE6) and binary offset [$C762]
 	dc.b	$FF	;FF
 	dc.b	$FF	;FF
 	dc.b	$FF	;FF
 NullString:
 	dc.b	$FF	;FF
 
-adrCd00CAEA:
+adrCd00CAEA:		; Memory Address ($CAEA) and binary offset [$C766]
 	move.l	#$00000098,a3	;267C00000098
 	lea	GFX_Pockets.l,a1	;43F90004C702
 	and.w	#$00FF,d0	;024000FF
-adrCd00CAFA:
+adrCd00CAFA:		; Memory Address ($CAFA) and binary offset [$C776]
 	cmpi.b	#$14,d0	;0C000014
 	bcs.s	adrCd00CB0A	;650A
 	add.w	#$0A00,a1	;D2FC0A00
 	sub.w	#$0014,d0	;04400014
 	bra.s	adrCd00CAFA	;60F0
 
-adrCd00CB0A:
+adrCd00CB0A:		; Memory Address ($CB0A) and binary offset [$C786]
 	asl.w	#$03,d0	;E740
 	add.w	d0,a1	;D2C0
 	movem.l	a0/a6,-(sp)	;48E70082
@@ -21174,14 +21262,14 @@ adrCd00CB0A:
 	addq.w	#$02,a0	;5448
 	rts	;4E75
 
-adrCd00CB1C:
+adrCd00CB1C:		; Memory Address ($CB1C) and binary offset [$C798]
 	move.l	#$0000000F,-(sp)	;2F3C0000000F
 	jmp	adrCd00CE28.l	;4EF90000CE28
 
-Draw_ChampionStats_DefaultPosition:
+Draw_ChampionStats_DefaultPosition:		; Memory Address ($CB28) and binary offset [$C7A4]
 	; ReSource: Sets the default scroll Y position to $2A, then enters Draw_ChampionStats.
 	moveq	#$2A,d5	;7A2A
-Draw_ChampionStats:
+Draw_ChampionStats:		; Memory Address ($CB2A) and binary offset [$C7A6]
 	; ReSource: Draws the scroll frame, inserts fields from the selected 32-byte champion record into ChampionStatsScroll_TextTemplate, then calls Print_fflim_text. D5 supplies the scroll Y position.
 	move.w	$0006(a5),-(sp)	;3F2D0006
 	bsr	Draw_ScrollFrame	;6100010A
@@ -21193,7 +21281,7 @@ Draw_ChampionStats:
 	lea	ChampionStatsScroll_FieldAndTextOffsets.l,a2	;45F90000CBC4
 	moveq	#$06,d7	;7E06
 	moveq	#$00,d0	;7000
-ChampionStats_InsertFieldsLoop:
+ChampionStats_InsertFieldsLoop:		; Memory Address ($CB4E) and binary offset [$C7CA]
 	; ReSource: Copies seven champion fields into their corresponding positions within the writable formatted-text template.
 	move.b	$00(a2,d7.w),d0	;10327000
 	move.b	$00(a0,d0.w),d0	;10300000
@@ -21209,7 +21297,7 @@ ChampionStats_InsertFieldsLoop:
 	tst.w	d0	;4A40
 	bne.s	adrCd00CB7E	;6604
 	move.b	#$F0,d0	;103C00F0
-adrCd00CB7E:
+adrCd00CB7E:		; Memory Address ($CB7E) and binary offset [$C7FA]
 	add.b	#$30,d0	;06000030
 	move.b	d0,$0049(a6)	;1D400049
 	swap	d0	;4840
@@ -21225,7 +21313,7 @@ adrCd00CB7E:
 	add.b	#$30,d0	;06000030
 	move.b	d0,$00(a6,d2.w)	;1D802000
 	addq.w	#$01,d2	;5242
-adrCd00CBB0:
+adrCd00CBB0:		; Memory Address ($CBB0) and binary offset [$C82C]
 	swap	d0	;4840
 	bsr	Convert_ByteToDecimalText	;61000310
 	move.b	d1,$01(a6,d2.w)	;1D812001
@@ -21233,7 +21321,7 @@ adrCd00CBB0:
 	move.b	d1,$00(a6,d2.w)	;1D812000
 	bra	Print_fflim_text	;60000504
 
-ChampionStatsScroll_FieldAndTextOffsets:
+ChampionStatsScroll_FieldAndTextOffsets:		; Memory Address ($CBC4) and binary offset [$C840]
 	; ReSource: Two parallel seven-byte tables: champion-record field offsets followed by destination offsets within ChampionStatsScroll_TextTemplate.
 	dc.b	$00	;00
 	dc.b	$01	;01
@@ -21249,7 +21337,7 @@ ChampionStatsScroll_FieldAndTextOffsets:
 	dc.b	$3E	;3E
 	dc.b	$5E	;5E
 	dc.b	$65	;65
-ChampionStatsScroll_TextTemplate:
+ChampionStatsScroll_TextTemplate:		; Memory Address ($CBD2) and binary offset [$C84E]
 	; ReSource: Writable Print_fflim_text command stream for the stats scroll. $FC sets coordinates, $FE ink, $FD background and $FF terminates; runtime code inserts the selected champion’s values.
 	dc.b	$FC	;FC
 	dc.b	$1E	;1E
@@ -21335,7 +21423,7 @@ ChampionStatsScroll_TextTemplate:
 	dc.b	'  '	;2020
 	dc.b	$FF	;FF
 
-Draw_ScrollFrame:
+Draw_ScrollFrame:		; Memory Address ($CC3A) and binary offset [$C8B6]
 	; ReSource: Generic scroll-frame renderer used outside the champion screen too. Draws colour-$3 background, 96x15 caps and 16x58 sides at X offsets 0 and 80; applies player-specific screen offsets.
 	or.b	#$0C,$0054(a5)	;002D000C0054
 	swap	d5	;4845
@@ -21368,12 +21456,12 @@ Draw_ScrollFrame:
 	add.w	#$0184,a0	;D0FC0184
 	add.w	$000A(a5),a0	;D0ED000A
 	move.l	#$0005000E,d5	;2A3C0005000E	;Long Addr replaced with Symbol
-Draw_PlanarGraphic:
+Draw_PlanarGraphic:		; Memory Address ($CCB8) and binary offset [$C934]
 	; ReSource: Pushes the packed DBRA width/height counts from D5 and enters the generic four-plane graphic renderer.
 	move.l	d5,-(sp)	;2F05
 	bra	adrCd00CE28	;6000016C
 
-adrCd00CCBE:
+adrCd00CCBE:		; Memory Address ($CCBE) and binary offset [$C93A]
 	move.l	#$002F0000,d4	;283C002F0000
 	moveq	#$0A,d5	;7A0A
 	bsr	adrCd00C0BA	;6100F3F2
@@ -21381,7 +21469,7 @@ adrCd00CCBE:
 	moveq	#-$01,d4	;78FF
 	move.l	#$000002A9,a0	;207C000002A9
 	bsr.s	Draw_ChampionLargeAvatar	;6144
-adrCd00CCD8:
+adrCd00CCD8:		; Memory Address ($CCD8) and binary offset [$C954]
 	btst	#$00,$003E(a5)	;082D0000003E
 	bne.s	adrCd00CD12	;6632
 	or.b	#$01,$0054(a5)	;002D00010054
@@ -21392,17 +21480,17 @@ adrCd00CCD8:
 	bsr.s	adrCd00CCFE	;6104
 	bra	BW_draw_frame	;60000DD8
 
-adrCd00CCFE:
+adrCd00CCFE:		; Memory Address ($CCFE) and binary offset [$C97A]
 	move.w	d7,d0	;3007
 	bsr	Load_ChampionStatRecord	;6100995E
 	move.b	$0011(a4),d0	;102C0011
 	beq.s	adrCd00CD12	;6708
 	and.w	#$0007,d0	;02400007
 	move.b	adrB_00CD14(pc,d0.w),d3	;163B0004
-adrCd00CD12:
+adrCd00CD12:		; Memory Address ($CD12) and binary offset [$C98E]
 	rts	;4E75
 
-adrB_00CD14:
+adrB_00CD14:		; Memory Address ($CD14) and binary offset [$C990]
 	dc.b	$06	;06
 	dc.b	$0D	;0D
 	dc.b	$06	;06
@@ -21412,7 +21500,7 @@ adrB_00CD14:
 	dc.b	$0D	;0D
 	dc.b	$08	;08
 
-Draw_ChampionLargeAvatar:
+Draw_ChampionLargeAvatar:		; Memory Address ($CD1C) and binary offset [$C998]
 	; ReSource: Selects and draws one 32×30 large champion avatar.
 	add.l	screen_ptr.l,a0	;D1F900008D36
 	add.w	$000A(a5),a0	;D0ED000A
@@ -21429,7 +21517,7 @@ Draw_ChampionLargeAvatar:
 	bne	adrCd00CE28	;660000E4
 	bra	adrCd00CE28	;600000E0
 
-Get_ChampionShieldScreenPosition:
+Get_ChampionShieldScreenPosition:		; Memory Address ($CD4A) and binary offset [$C9C6]
 	; ReSource: Calculates the screen destination for a champion shield/avatar slot.
 	move.w	d7,d5	;3A07
 	and.w	#$0003,d5	;02450003
@@ -21449,19 +21537,19 @@ Get_ChampionShieldScreenPosition:
 	add.w	d0,a0	;D0C0
 	rts	;4E75
 
-adrCd00CD78:
+adrCd00CD78:		; Memory Address ($CD78) and binary offset [$C9F4]
 	lea	GFX_Shield_Clicked.l,a1	;43F900019BFE
 	sub.l	a3,a3	;97CB
 	bsr.s	Get_ChampionShieldScreenPosition	;61C8
 	move.l	#$00010028,d5	;2A3C00010028	;Long Addr replaced with Symbol
 	bra	adrCd00CE26	;6000009C
 
-ChampionSelection:
+ChampionSelection:		; Memory Address ($CD8C) and binary offset [$CA08]
 	moveq	#$0F,d7	;7E0F
-.ChampionSelection_Loop:
+.ChampionSelection_Loop:		; Memory Address ($CD8E) and binary offset [$CA0A]
 	bsr.s	Draw_Select_Avatars	;6106
 	dbra	d7,.ChampionSelection_Loop	;51CFFFFC
-ExitAvatarDrawing:
+ExitAvatarDrawing:		; Memory Address ($CD94) and binary offset [$CA10]
 	rts	;4E75
 
 Draw_Select_Avatars:
@@ -21469,7 +21557,7 @@ Draw_Select_Avatars:
 	bcc.s	ExitAvatarDrawing	;64F8
 	bsr.s	Get_ChampionShieldScreenPosition	;61AC
 	moveq	#$04,d3	;7604
-Draw_ShieldAvatar:
+Draw_ShieldAvatar:		; Memory Address ($CDA0) and binary offset [$CA1C]
 	move.l	#$00020103,d0	;203C00020103	;Long Addr replaced with Symbol
 	tst.w	d3	;4A43
 	beq.s	adrCd00CDBC	;6712
@@ -21478,7 +21566,7 @@ Draw_ShieldAvatar:
 	bsr	Character_GetClassIndex	;61009B4C
 	asl.w	#$02,d0	;E540
 	move.l	$00(a6,d0.w),d0	;20360000
-adrCd00CDBC:
+adrCd00CDBC:		; Memory Address ($CDBC) and binary offset [$CA38]
 	lea	Buffer_Colour_Mask.l,a6	;4DF90000B4C0
 	move.l	d0,(a6)	;2C80
 	sub.l	a3,a3	;97CB
@@ -21507,20 +21595,20 @@ adrCd00CDBC:
 	clr.w	Buffer_Colour_Mask_Toggle.l	;42790000B4BE
 	lea	GFX_Shield_Bottom.l,a1	;43F900044B80
 	move.l	#$00010008,d5	;2A3C00010008	;Long Addr replaced with Symbol
-adrCd00CE26:
+adrCd00CE26:		; Memory Address ($CE26) and binary offset [$CAA2]
 	move.l	d5,-(sp)	;2F05
-adrCd00CE28:
+adrCd00CE28:		; Memory Address ($CE28) and binary offset [$CAA4]
 	move.l	(sp)+,d5	;2A1F
-adrLp00CE2A:
+adrLp00CE2A:		; Memory Address ($CE2A) and binary offset [$CAA6]
 	swap	d5	;4845
 	move.w	d5,-(sp)	;3F05
-adrLp00CE2E:
+adrLp00CE2E:		; Memory Address ($CE2E) and binary offset [$CAAA]
 	move.l	(a1)+,d0	;2019
 	move.l	(a1)+,d1	;2219
 	tst.w	Buffer_Colour_Mask_Toggle.l	;4A790000B4BE
 	beq.s	adrCd00CE3E	;6704
 	bsr	adrCd00AFD0	;6100E194
-adrCd00CE3E:
+adrCd00CE3E:		; Memory Address ($CE3E) and binary offset [$CABA]
 	bsr	adrCd00CE86	;61000046
 	move.b	d1,$5DC1(a0)	;11415DC1
 	swap	d1	;4841
@@ -21547,7 +21635,7 @@ adrCd00CE3E:
 	dbra	d5,adrLp00CE2A	;51CDFFA8
 	rts	;4E75
 
-adrCd00CE86:
+adrCd00CE86:		; Memory Address ($CE86) and binary offset [$CB02]
 	move.l	d1,d2	;2401
 	and.l	d0,d2	;C480
 	swap	d2	;4842
@@ -21570,7 +21658,7 @@ adrCd00CE86:
 	or.l	d6,d1	;8286
 	rts	;4E75
 
-ConvertByteToDecimal_HighNibbleAdjustments:
+ConvertByteToDecimal_HighNibbleAdjustments:		; Memory Address ($CEBC) and binary offset [$CB38]
 	; ReSource: Adjustment table used while converting a binary byte into printable decimal digits.
 	dc.b	$00	;00
 	dc.b	$16	;16
@@ -21581,7 +21669,7 @@ ConvertByteToDecimal_HighNibbleAdjustments:
 	dc.b	$96	;96
 	dc.b	$00	;00
 
-Convert_ByteToDecimalText:
+Convert_ByteToDecimalText:		; Memory Address ($CEC4) and binary offset [$CB40]
 	; ReSource: Converts the byte in D0 into two ASCII decimal digits returned in D1 for insertion into formatted text.
 	move.b	d0,d1	;1200
 	lsr.b	#$04,d1	;E809
@@ -21600,24 +21688,24 @@ Convert_ByteToDecimalText:
 	bsr.s	Convert_PackedBCDToASCII	;6104
 	swap	d1	;4841
 	move.w	(sp)+,d0	;301F
-Convert_PackedBCDToASCII:
+Convert_PackedBCDToASCII:		; Memory Address ($CEEA) and binary offset [$CB66]
 	; ReSource: Converts both nibbles of the packed value into ASCII characters.
 	move.b	d0,d1	;1200
 	ror.b	#$04,d1	;E819
 	bsr.s	Convert_NibbleToASCII	;6104
 	rol.w	#$08,d1	;E159
 	move.b	d0,d1	;1200
-Convert_NibbleToASCII:
+Convert_NibbleToASCII:		; Memory Address ($CEF4) and binary offset [$CB70]
 	; ReSource: Converts a hexadecimal nibble to its ASCII character representation.
 	and.b	#$0F,d1	;0201000F
 	cmpi.b	#$0A,d1	;0C01000A
 	bcs.s	adrCd00CF02	;6504
 	add.b	#$07,d1	;06010007
-adrCd00CF02:
+adrCd00CF02:		; Memory Address ($CF02) and binary offset [$CB7E]
 	add.b	#$30,d1	;06010030
 	rts	;4E75
 
-adrCd00CF08:
+adrCd00CF08:		; Memory Address ($CF08) and binary offset [$CB84]
 	move.l	screen_ptr.l,a0	;207900008D36
 	add.w	$000A(a5),a0	;D0ED000A
 	add.w	#$02EC,a0	;D0FC02EC
@@ -21635,7 +21723,7 @@ adrCd00CF08:
 	addq.w	#$01,d4	;5244
 	bra	BW_blit_vertical_line	;60000BB8
 
-adrCd00CF4E:
+adrCd00CF4E:		; Memory Address ($CF4E) and binary offset [$CBCA]
 	or.b	#$10,$0054(a5)	;002D00100054
 	move.b	#$FF,$0057(a5)	;1B7C00FF0057
 	move.l	screen_ptr.l,a0	;207900008D36
@@ -21655,7 +21743,7 @@ adrCd00CF4E:
 	moveq	#$0F,d6	;7C0F
 	rts	;4E75
 
-adrCd00CF96:
+adrCd00CF96:		; Memory Address ($CF96) and binary offset [$CC12]
 	move.l	#$007F0060,d4	;283C007F0060
 	move.l	#$00060059,d5	;2A3C00060059
 	add.w	$0008(a5),d5	;DA6D0008
@@ -21668,7 +21756,7 @@ LowerText:
 	bsr.s	adrCd00CF4E	;6194
 	bra.s	adrLp00CFDA	;601E
 
-adrCd00CFBC:
+adrCd00CFBC:		; Memory Address ($CFBC) and binary offset [$CC38]
 	move.l	screen_ptr.l,a0	;207900008D36
 	add.w	#$0BAE,a0	;D0FC0BAE
 	add.w	$000A(a5),a0	;D0ED000A
@@ -21678,19 +21766,19 @@ adrCd00CFBC:
 
 ;fiX Label expected
 	bsr.s	adrCd00D018	;613E
-adrLp00CFDA:
+adrLp00CFDA:		; Memory Address ($CFDA) and binary offset [$CC56]
 	move.b	(a6)+,d0	;101E
 	bpl.s	adrCd00CFE6	;6A08
 	bsr	Exec_char_extensions	;610000F6
 	bcc.s	adrLp00CFDA	;64F6
 	bra.s	TerminateText	;6022
 
-adrCd00CFE6:
+adrCd00CFE6:		; Memory Address ($CFE6) and binary offset [$CC62]
 	bsr	adrCd00D8C0	;610008D8
 	dbra	d6,adrLp00CFDA	;51CEFFEE
 	rts	;4E75
 
-adrCd00CFF0:
+adrCd00CFF0:		; Memory Address ($CFF0) and binary offset [$CC6C]
 	bsr.s	adrCd00D018	;6126
 	move.w	d7,d0	;3007
 	bsr	Print_wordstext	;610007F0
@@ -21700,19 +21788,19 @@ adrCd00CFF0:
 	moveq	#$64,d0	;7064
 	add.w	d7,d0	;D047
 	bsr	Print_wordstext	;610007E0
-TerminateText:
+TerminateText:		; Memory Address ($D008) and binary offset [$CC84]
 	tst.w	d6	;4A46
 	bmi.s	adrCd00D016	;6B0A
-adrLp00D00C:
+adrLp00D00C:		; Memory Address ($D00C) and binary offset [$CC88]
 	moveq	#$20,d0	;7020
 	bsr	adrCd00D8C0	;610008B0
 	dbra	d6,adrLp00D00C	;51CEFFF8
-adrCd00D016:
+adrCd00D016:		; Memory Address ($D016) and binary offset [$CC92]
 	rts	;4E75
 
-adrCd00D018:
+adrCd00D018:		; Memory Address ($D018) and binary offset [$CC94]
 	moveq	#$12,d6	;7C12
-adrCd00D01A:
+adrCd00D01A:		; Memory Address ($D01A) and binary offset [$CC96]
 	move.l	screen_ptr.l,a0	;207900008D36
 	add.w	#$0E25,a0	;D0FC0E25
 	add.w	$000A(a5),a0	;D0ED000A
@@ -21727,7 +21815,7 @@ WriteMessage:
 ;fiX Label expected
 	dc.w	$7400	;7400
 
-adrCd00D042:
+adrCd00D042:		; Memory Address ($D042) and binary offset [$CCBE]
 	tst.b	$0005(a4)	;4A2C0005
 	bpl.s	WriteFText	;6A48
 	movem.l	d2/a6,-(sp)	;48E72002
@@ -21737,7 +21825,7 @@ adrCd00D042:
 	btst	#$00,(a5)	;08150000
 	bne.s	.continuedcode_001	;6606
 	lea	Player2_Data.l,a0	;41F90000EEDE
-.continuedcode_001:
+.continuedcode_001:		; Memory Address ($D064) and binary offset [$CCE0]
 	movem.l	a4/a5,-(sp)	;48E7000C
 	move.l	a0,a5	;2A48
 	move.b	$0001(a4),d0	;102C0001
@@ -21745,24 +21833,24 @@ adrCd00D042:
 	tst.b	$0005(a4)	;4A2C0005
 	bpl.s	adrCd00D07C	;6A04
 	move.b	d0,$0000(a4)	;19400000
-adrCd00D07C:
+adrCd00D07C:		; Memory Address ($D07C) and binary offset [$CCF8]
 	or.b	#$40,d2	;00020040
 	bsr.s	WriteFText	;610E
 	movem.l	(sp)+,a4/a5	;4CDF3000
 	rts	;4E75
 
-WriteTimedText:
+WriteTimedText:		; Memory Address ($D088) and binary offset [$CD04]
 	move.b	#$81,d2	;143C0081
 	bra.s	WriteFText	;6002
 
 WriteText:
 	moveq	#$00,d2	;7400
-WriteFText:
+WriteFText:		; Memory Address ($D090) and binary offset [$CD0C]
 	move.b	d2,$0052(a5)	;1B420052
 	bsr.s	InitialiseText	;6104
 	bra	adrLp00CFDA	;6000FF42
 
-InitialiseText:
+InitialiseText:		; Memory Address ($D09A) and binary offset [$CD16]
 	or.b	#$A0,$0054(a5)	;002D00A00054
 	move.l	screen_ptr.l,a0	;207900008D36
 	add.w	$000A(a5),a0	;D0ED000A
@@ -21773,18 +21861,18 @@ InitialiseText:
 	move.w	#$0105,$004A(a5)	;3B7C0105004A
 	rts	;4E75
 
-Print_fflim_text:
+Print_fflim_text:		; Memory Address ($D0C6) and binary offset [$CD42]
 	move.b	(a6)+,d0	;101E
 	bpl.s	.continuedcode_002	;6A06
 	bsr.s	Exec_char_extensions	;610A
 	bcc.s	Print_fflim_text	;64F8
 	rts	;4E75
 
-.continuedcode_002:
+.continuedcode_002:		; Memory Address ($D0D0) and binary offset [$CD4C]
 	bsr	adrCd00D8C0	;610007EE
 	bra.s	Print_fflim_text	;60F0
 
-Exec_char_extensions:
+Exec_char_extensions:		; Memory Address ($D0D6) and binary offset [$CD52]
 	cmpi.b	#$F0,d0				;0C0000F0
 	beq	.Call_F0_Function			;6700004E
 	moveq	#$00,d1				;7200
@@ -21799,15 +21887,15 @@ Exec_char_extensions:
 	subq.w	#$01,d0				;5340
 	rts					;4E75
 
-.SetTextColour:
+.SetTextColour:		; Memory Address ($D0FA) and binary offset [$CD76]
 	move.w	d1,adrW_00D92A.l	;33C10000D92A
 	rts	;4E75
 
-.SetBackgroundTextColour:
+.SetBackgroundTextColour:		; Memory Address ($D102) and binary offset [$CD7E]
 	move.w	d1,adrW_00D92C.l	;33C10000D92C
 	rts	;4E75
 
-.SetXYPosition:
+.SetXYPosition:		; Memory Address ($D10A) and binary offset [$CD86]
 	move.w	d1,d4	;3801
 	clr.w	d5	;4245
 	move.b	(a6)+,d5	;1A1E
@@ -21818,10 +21906,10 @@ Exec_char_extensions:
 	add.w	$000A(a5),a0	;D0ED000A
 	add.w	d0,a0	;D0C0
 	add.w	#$0050,a0	;D0FC0050
-.Exit:
+.Exit:		; Memory Address ($D128) and binary offset [$CDA4]
 	rts	;4E75
 
-.Call_F0_Function:
+.Call_F0_Function:		; Memory Address ($D12A) and binary offset [$CDA6]
 	bsr.s	CopyProtection	;610C
 	tst.l	d0	;4A80
 	beq.s	.Exit	;67F8
@@ -21872,7 +21960,7 @@ CopyProtection:
 	dc.w	$0000	;0000
 	dc.w	$0000	;0000
 	dc.w	$0000	;0000
-adrEA00D186:
+adrEA00D186:		; Memory Address ($D186) and binary offset [$CE02]
 	dc.w	$0000	;0000
 	dc.w	$0000	;0000
 	dc.w	$0000	;0000
@@ -21926,15 +22014,15 @@ adrEA00D186:
 	dc.w	$0000	;0000
 	dc.w	$0001	;0001
 	dc.w	$0000	;0000
-adrEA00D1F0:
+adrEA00D1F0:		; Memory Address ($D1F0) and binary offset [$CE6C]
 	dc.w	$0000	;0000
 	dc.w	$0000	;0000
 	dc.w	$0000	;0000
 	dc.w	$0000	;0000
-adrL_00D1F8:
+adrL_00D1F8:		; Memory Address ($D1F8) and binary offset [$CE74]
 	dc.l	$FFFFFFFF	;FFFFFFFF
 
-adrCd00D1FC:
+adrCd00D1FC:		; Memory Address ($D1FC) and binary offset [$CE78]
 	move.l	a6,-(sp)	;2F0E
 	lea	adrEA00D186(pc),a6	;4DFAFF86
 	movem.l	d0-d7/a0-a7,(a6)	;48D6FFFF
@@ -22037,13 +22125,13 @@ adrCd00D1FC:
 	dc.w	$D5C1	;D5C1
 	dc.w	$FFF5	;FFF5
 
-adrEA00D2D2:
+adrEA00D2D2:		; Memory Address ($D2D2) and binary offset [$CF4E]
 	movem.l	d0/a0/a1,-(sp)	;48E780C0
 	lea	adrEA00D30C(pc),a0	;41FA0034
 	move.l	a0,$00000024.l	;23C800000024
 	lea	adrEA00D740(pc),a0	;41FA045E
 	move.l	a0,$00000020.l	;23C800000020
-adrCd00D2EA:
+adrCd00D2EA:		; Memory Address ($D2EA) and binary offset [$CF66]
 	add.l	#$00000002,$000E(sp)	;06AF00000002000E
 	or.b	#$07,$000C(sp)	;002F0007000C
 	bchg	#$07,$000C(sp)	;086F0007000C
@@ -22053,22 +22141,22 @@ adrCd00D2EA:
 	move.l	$0004(a1),(a0)	;20A90004
 	bra.s	adrCd00D332	;6026
 
-adrEA00D30C:
+adrEA00D30C:		; Memory Address ($D30C) and binary offset [$CF88]
 	andi.w	#$F8FF,sr	;027CF8FF
 	movem.l	d0/a0/a1,-(sp)	;48E780C0
 	lea	adrEA00D1F0(pc),a1	;43FAFEDA
 	move.l	(a1),a0	;2051
 	move.l	$0004(a1),(a0)	;20A90004
-adrCd00D31E:
+adrCd00D31E:		; Memory Address ($D31E) and binary offset [$CF9A]
 	move.l	$000E(sp),a0	;206F000E
-adrCd00D322:
+adrCd00D322:		; Memory Address ($D322) and binary offset [$CF9E]
 	move.l	a0,(a1)	;2288
 	move.l	(a0),$0004(a1)	;23500004
 	move.l	-$0004(a0),d0	;2028FFFC
 	not.l	d0	;4680
 	swap	d0	;4840
 	eor.l	d0,(a0)	;B190
-adrCd00D332:
+adrCd00D332:		; Memory Address ($D332) and binary offset [$CFAE]
 	movem.l	(sp)+,d0/a0/a1	;4CDF0301
 	rte	;4E73
 
@@ -22317,33 +22405,33 @@ adrCd00D332:
 	dc.w	$00BF	;00BF
 	dc.w	$DD00	;DD00
 
-adrCd00D51E:
+adrCd00D51E:		; Memory Address ($D51E) and binary offset [$D19A]
 	btst	#$04,_ciab+ciaicr.l	;0839000400BFDD00
 	beq.s	adrCd00D51E	;67F6
 	move.w	#$8000,$0024(a0)	;317C80000024
 	move.w	#$8000,$0024(a0)	;317C80000024
 	moveq	#$00,d1	;7200
 	move.l	#$00061A80,d2	;243C00061A80
-adrCd00D53C:
+adrCd00D53C:		; Memory Address ($D53C) and binary offset [$D1B8]
 	subq.l	#$01,d2	;5382
 	beq.s	adrCd00D56A	;672A
 	move.b	$001A(a0),d0	;1028001A
 	btst	#$04,d0	;08000004
 	beq.s	adrCd00D53C	;67F2
 	moveq	#$31,d2	;7431
-adrLp00D54C:
+adrLp00D54C:		; Memory Address ($D54C) and binary offset [$D1C8]
 	addq.l	#$01,d1	;5281
 	move.w	$001A(a0),d0	;3028001A
 	bpl.s	adrLp00D54C	;6AF8
 	move.b	d0,(a1)+	;12C0
 	dbra	d2,adrLp00D54C	;51CAFFF4
 	move.w	#$03CD,d2	;343C03CD
-adrLp00D55E:
+adrLp00D55E:		; Memory Address ($D55E) and binary offset [$D1DA]
 	addq.l	#$01,d1	;5281
 	move.w	$001A(a0),d0	;3028001A
 	bpl.s	adrLp00D55E	;6AF8
 	dbra	d2,adrLp00D55E	;51CAFFF6
-adrCd00D56A:
+adrCd00D56A:		; Memory Address ($D56A) and binary offset [$D1E6]
 	move.w	$001E(a0),d0	;3028001E
 	move.w	#$0002,$009C(a0)	;317C0002009C
 	move.w	#$4000,$0024(a0)	;317C40000024
@@ -22365,7 +22453,7 @@ adrCd00D56A:
 	dc.w	$8945	;8945
 	dc.w	$8951	;8951
 
-adrCd00D59A:
+adrCd00D59A:		; Memory Address ($D59A) and binary offset [$D216]
 	move.l	d1,d0	;2001
 	illegal	;4AFC
 ;fiX Label expected
@@ -22580,12 +22668,12 @@ adrCd00D59A:
 
 	rte	;4E73
 
-adrEA00D740:
+adrEA00D740:		; Memory Address ($D740) and binary offset [$D3BC]
 	movem.l	(sp)+,a4-a6	;4CDF7000
 	sub.l	#$8488FFC4,d0	;04808488FFC4
 	rts	;4E75
 
-Print_com_menu_entry:
+Print_com_menu_entry:		; Memory Address ($D74C) and binary offset [$D3C8]
 	move.l	#$000D0002,adrW_00D92A.l	;23FC000D00020000D92A
 	cmp.b	$0040(a5),d7	;BE2D0040
 	bne.s	.continuedcode_005	;6616
@@ -22593,7 +22681,7 @@ Print_com_menu_entry:
 	bne.s	.continuedcode_005	;6610
 	move.w	$0010(a5),adrW_00D92C.l	;33ED00100000D92C
 	move.w	#$000E,adrW_00D92A.l	;33FC000E0000D92A
-.continuedcode_005:
+.continuedcode_005:		; Memory Address ($D772) and binary offset [$D3EE]
 	move.b	(a6)+,d0				;101E
 	cmpi.b	#$FA,d0					;0C0000FA
 	beq.s	.Print_SkipSomething_TEMP				;6706
@@ -22601,12 +22689,12 @@ Print_com_menu_entry:
 	bsr.s	Print_wordstext				;6168
 	bra.s	.continuedcode_005				;60F2
 
-.Print_SkipSomething_TEMP:
+.Print_SkipSomething_TEMP:		; Memory Address ($D780) and binary offset [$D3FC]
 	move.b	(a6)+,d0	;101E
 	bsr	adrCd00D8C0	;6100013C
 	bra.s	.continuedcode_005	;60EA
 
-.Print_SkipSomethingElse_TEMP:
+.Print_SkipSomethingElse_TEMP:		; Memory Address ($D788) and binary offset [$D404]
 	cmpi.b	#$FF,d0					;0C0000FF
 	beq.s	Print_LineEnd				;674C
 	cmpi.b	#$FC,d0					;0C0000FC
@@ -22622,42 +22710,42 @@ Print_com_menu_entry:
 	move.w	#$000E,adrW_00D92A.l			;33FC000E0000D92A
 	bra.s	.continuedcode_005				;60AC
 
-adrCd00D7C6:
+adrCd00D7C6:		; Memory Address ($D7C6) and binary offset [$D442]
 	lea	WordsText.l,a3	;47F90000DC64
-Proceed_in_stringtable:
+Proceed_in_stringtable:		; Memory Address ($D7CC) and binary offset [$D448]
 	and.w	#$00FF,d0	;024000FF
 	moveq	#$00,d5	;7A00
-.continuedcode_006:
+.continuedcode_006:		; Memory Address ($D7D2) and binary offset [$D44E]
 	add.w	d5,a3	;D6C5
 	move.b	(a3)+,d5	;1A1B
 	dbra	d0,.continuedcode_006	;51C8FFFA
-Print_LineEnd:
+Print_LineEnd:		; Memory Address ($D7DA) and binary offset [$D456]
 	rts	;4E75
 
-Print_item_name:
+Print_item_name:		; Memory Address ($D7DC) and binary offset [$D458]
 	lea	Objects_Texts.l,a3	;47F90000E21E
-Print_word:
+Print_word:		; Memory Address ($D7E2) and binary offset [$D45E]
 	bsr.s	Proceed_in_stringtable	;61E8
 	bra.s	Print_nchars	;6002
 
-Print_wordstext:
+Print_wordstext:		; Memory Address ($D7E6) and binary offset [$D462]
 	bsr.s	adrCd00D7C6	;61DE
-Print_nchars:
+Print_nchars:		; Memory Address ($D7E8) and binary offset [$D464]
 	sub.w	d5,d6	;9C45
 	subq.w	#$01,d5	;5345
-.continuedcode_007:
+.continuedcode_007:		; Memory Address ($D7EC) and binary offset [$D468]
 	move.b	(a3)+,d0	;101B
 	bsr	adrCd00D8C0	;610000D0
 	dbra	d5,.continuedcode_007	;51CDFFF8
 	rts	;4E75
 
-InventoryItem_Description:
+InventoryItem_Description:		; Memory Address ($D7F8) and binary offset [$D474]
 	bsr	adrCd00D018	;6100F81E
 	bra.s	Print_item_desc	;6004
 
-Print_item_desc_fresh:
+Print_item_desc_fresh:		; Memory Address ($D7FE) and binary offset [$D47A]
 	bsr	adrCd00CF4E	;6100F74E
-Print_item_desc:
+Print_item_desc:		; Memory Address ($D802) and binary offset [$D47E]
 	move.b	(a6)+,d0	;101E
 	bsr.s	Print_item_name	;61D6
 	subq.w	#$01,d6	;5346
@@ -22666,19 +22754,19 @@ Print_item_desc:
 	move.b	(a6),d0	;1016
 	bmi.s	.continuedcode_008	;6B02
 	bsr.s	Print_item_name	;61C8
-.continuedcode_008:
+.continuedcode_008:		; Memory Address ($D814) and binary offset [$D490]
 	tst.w	d6	;4A46
 	bpl	TerminateText	;6A00F7F0
 	rts	;4E75
 
-Print_npc_message:
+Print_npc_message:		; Memory Address ($D81C) and binary offset [$D498]
 	move.b	#$81,d2	;143C0081
 	bra.s	.continuedcode_009	;6002
 
 ;fiX Label expected
 	dc.w	$7400	;7400
 
-.continuedcode_009:
+.continuedcode_009:		; Memory Address ($D824) and binary offset [$D4A0]
 	tst.b	$0005(a4)	;4A2C0005
 	bpl.s	Print_message	;6A48
 	movem.l	d2/a6,-(sp)	;48E72002
@@ -22688,7 +22776,7 @@ Print_npc_message:
 	btst	#$00,(a5)	;08150000
 	bne.s	adrCd00D846	;6606
 	lea	Player2_Data.l,a0	;41F90000EEDE
-adrCd00D846:
+adrCd00D846:		; Memory Address ($D846) and binary offset [$D4C2]
 	movem.l	a4/a5,-(sp)	;48E7000C
 	move.l	a0,a5	;2A48
 	move.b	$0001(a4),d0	;102C0001
@@ -22696,27 +22784,27 @@ adrCd00D846:
 	tst.b	$0005(a4)	;4A2C0005
 	bpl.s	adrCd00D85E	;6A04
 	move.b	d0,$0000(a4)	;19400000
-adrCd00D85E:
+adrCd00D85E:		; Memory Address ($D85E) and binary offset [$D4DA]
 	or.b	#$40,d2	;00020040
 	bsr.s	Print_message	;610E
 	movem.l	(sp)+,a4/a5	;4CDF3000
 	rts	;4E75
 
-Print_timed_message:
+Print_timed_message:		; Memory Address ($D86A) and binary offset [$D4E6]
 	move.b	#$81,d2	;143C0081
 	bra.s	Print_message	;6002
 
-Print_fix_message:
+Print_fix_message:		; Memory Address ($D870) and binary offset [$D4EC]
 	moveq	#$00,d2	;7400
-Print_message:
+Print_message:		; Memory Address ($D872) and binary offset [$D4EE]
 	move.b	d2,$0052(a5)	;1B420052
 	bsr	InitialiseText	;6100F822
-Print_NewLine:
+Print_NewLine:		; Memory Address ($D87A) and binary offset [$D4F6]
 	move.b	(a6)+,d0				;101E
 	cmpi.b	#$FA,d0					;0C0000FA
 	bcc.s	adrCd00D894				;6412
 	bsr	Print_wordstext				;6100FF62
-adrCd00D886:
+adrCd00D886:		; Memory Address ($D886) and binary offset [$D502]
 	tst.w	d6	;4A46
 	bmi	TerminateText	;6B00F77E
 	moveq	#$20,d0	;7020
@@ -22724,7 +22812,7 @@ adrCd00D886:
 	subq.w	#$01,d6	;5346
 	bra.s	Print_NewLine	;60E6
 
-adrCd00D894:
+adrCd00D894:		; Memory Address ($D894) and binary offset [$D510]
 	beq.s	adrCd00D8B8				;6722
 	cmpi.b	#$FF,d0					;0C0000FF
 	beq	TerminateText				;6700F76C
@@ -22736,18 +22824,18 @@ adrCd00D894:
 	bsr	Print_item_name				;6100FF2E
 	bra.s	adrCd00D886				;60D4
 
-Print_FB_Function:
+Print_FB_Function:		; Memory Address ($D8B2) and binary offset [$D52E]
 	addq.w	#$01,d6	;5246
 	subq.w	#$01,a0	;5348
 	bra.s	Print_NewLine	;60C2
 
-adrCd00D8B8:
+adrCd00D8B8:		; Memory Address ($D8B8) and binary offset [$D534]
 	subq.w	#$01,a0	;5348
 	move.b	(a6)+,d0	;101E
 	bsr.s	adrCd00D8C0	;6102
 	bra.s	adrCd00D886	;60C6
 
-adrCd00D8C0:
+adrCd00D8C0:		; Memory Address ($D8C0) and binary offset [$D53C]
 	move.l	a0,-(sp)	;2F08
 	lea	GameFont.l,a1	;43F900018C7E
 	moveq	#$00,d1	;7200
@@ -22757,7 +22845,7 @@ adrCd00D8C0:
 	add.w	d1,d0	;D041
 	add.w	d0,a1	;D2C0
 	moveq	#$04,d0	;7004
-adrLp00D8D6:
+adrLp00D8D6:		; Memory Address ($D8D6) and binary offset [$D552]
 	move.b	(a1),d1	;1211
 	swap	d1	;4841
 	move.b	(a1)+,d1	;1219
@@ -22765,24 +22853,24 @@ adrLp00D8D6:
 	beq.s	adrCd00D8E8	;6704
 	add.l	d1,d1	;D281
 	add.l	d1,d1	;D281
-adrCd00D8E8:
+adrCd00D8E8:		; Memory Address ($D8E8) and binary offset [$D564]
 	not.b	d1	;4601
 	swap	d0	;4840
 	move.w	#$0003,d0	;303C0003
 	move.w	#$5DC0,d4	;383C5DC0
-adrLp00D8F4:
+adrLp00D8F4:		; Memory Address ($D8F4) and binary offset [$D570]
 	move.b	d1,d3	;1601
 	btst	d0,adrB_00D92D(pc)	;013A0035
 	bne.s	adrCd00D8FE	;6602
 	clr.b	d3	;4203
-adrCd00D8FE:
+adrCd00D8FE:		; Memory Address ($D8FE) and binary offset [$D57A]
 	swap	d1	;4841
 	move.b	d1,d2	;1401
 	swap	d1	;4841
 	btst	d0,adrB_00D92B(pc)	;013A0025
 	bne.s	adrCd00D90C	;6602
 	clr.b	d2	;4202
-adrCd00D90C:
+adrCd00D90C:		; Memory Address ($D90C) and binary offset [$D588]
 	or.b	d3,d2	;8403
 	move.b	d2,$00(a0,d4.w)	;11824000
 	sub.w	#$1F40,d4	;04441F40
@@ -22794,23 +22882,23 @@ adrCd00D90C:
 	addq.w	#$01,a0	;5248
 	rts	;4E75
 
-adrW_00D92A:
+adrW_00D92A:		; Memory Address ($D92A) and binary offset [$D5A6]
 	dc.b	$00	;00
-adrB_00D92B:
+adrB_00D92B:		; Memory Address ($D92B) and binary offset [$D5A7]
 	dc.b	$01	;01
-adrW_00D92C:
+adrW_00D92C:		; Memory Address ($D92C) and binary offset [$D5A8]
 	dc.b	$00	;00
-adrB_00D92D:
+adrB_00D92D:		; Memory Address ($D92D) and binary offset [$D5A9]
 	dc.b	$00	;00
 
-Draw_woundflash_digit:
+Draw_woundflash_digit:		; Memory Address ($D92E) and binary offset [$D5AA]
 	move.w	#$000F,adrW_00D92C.l	;33FC000F0000D92C
 	movem.l	d4/d5,-(sp)	;48E70C00
 	lea	Data_Woundflash.l,a0	;41F90000D988
 	move.l	a0,a1	;2248
 	moveq	#$09,d2	;7409
 	moveq	#-$01,d1	;72FF
-.continuedcode_011:
+.continuedcode_011:		; Memory Address ($D946) and binary offset [$D5C2]
 	move.l	d1,(a1)+	;22C1
 	dbra	d2,.continuedcode_011	;51CAFFFC
 	move.b	#$FF,InputStateFlag_AI_TBC.l	;13FC00FF0000EE2D
@@ -22830,7 +22918,7 @@ Draw_woundflash_digit:
 	moveq	#$00,d6	;7C00
 	bra	adrCd00AD90	;6000D40A
 
-Data_Woundflash:
+Data_Woundflash:		; Memory Address ($D988) and binary offset [$D604]
 	dc.l	$00000000	;00000000
 	dc.l	$00000000	;00000000
 	dc.l	$00000000	;00000000
@@ -23092,7 +23180,7 @@ BW_blit_horiz_line:
 	bsr	adrCd00DBDC	;61000004
 	bra.s	adrCd00DC4E	;6072
 
-adrCd00DBDC:
+adrCd00DBDC:		; Memory Address ($DBDC) and binary offset [$D858]
 	move.l	d0,d6	;2C00
 	moveq	#$03,d5	;7A03
 	moveq	#$00,d4	;7800
@@ -23108,7 +23196,7 @@ adrCd00DBDC:
 	move.l	d6,d0	;2006
 	rts	;4E75
 
-adrCd00DBFE:
+adrCd00DBFE:		; Memory Address ($DBFE) and binary offset [$D87A]
 	sub.w	d2,d3	;9642
 	swap	d3	;4843
 	and.w	#$0007,d4	;02440007
@@ -23119,7 +23207,7 @@ adrCd00DBFE:
 	bsr.s	adrCd00DBDC	;61CC
 	swap	d3	;4843
 	addq.w	#$01,a0	;5248
-adrCd00DC14:
+adrCd00DC14:		; Memory Address ($DC14) and binary offset [$D890]
 	move.w	d3,d4	;3803
 	lsr.w	#$03,d3	;E64B
 	beq.s	adrCd00DC3E	;6724
@@ -23127,11 +23215,11 @@ adrCd00DC14:
 	move.l	a0,a1	;2248
 	moveq	#$00,d2	;7400
 	moveq	#$03,d5	;7A03
-adrLp00DC22:
+adrLp00DC22:		; Memory Address ($DC22) and binary offset [$D89E]
 	move.l	a1,a0	;2049
 	add.w	d2,a0	;D0C2
 	move.w	d3,d1	;3203
-adrLp00DC28:
+adrLp00DC28:		; Memory Address ($DC28) and binary offset [$D8A4]
 	move.b	d0,(a0)+	;10C0
 	dbra	d1,adrLp00DC28	;51C9FFFC
 	ror.l	#$08,d0	;E098
@@ -23139,7 +23227,7 @@ adrLp00DC28:
 	dbra	d5,adrLp00DC22	;51CDFFEC
 	sub.w	#$1F40,d2	;04421F40
 	sub.w	d2,a0	;90C2
-adrCd00DC3E:
+adrCd00DC3E:		; Memory Address ($DC3E) and binary offset [$D8BA]
 	and.w	#$0007,d4	;02440007
 	beq.s	adrCd00DC4E	;670A
 	moveq	#-$01,d3	;76FF
@@ -23147,7 +23235,7 @@ adrCd00DC3E:
 	move.b	d3,d2	;1403
 	not.b	d2	;4602
 	bsr.s	adrCd00DBDC	;618E
-adrCd00DC4E:
+adrCd00DC4E:		; Memory Address ($DC4E) and binary offset [$D8CA]
 	movem.l	(sp)+,d3-d5	;4CDF0038
 	rts	;4E75
 
@@ -23576,7 +23664,7 @@ WordsText:
 	dc.b	'TOKEN'	;544F4B454E
 	dc.b	$01	;01
 	dc.b	'I'	;49
-Objects_Texts:
+Objects_Texts:		; Memory Address ($E21E) and binary offset [$DE9A]
 	dc.b	$05	;05
 	dc.b	'EMPTY'	;454D505459
 	dc.b	$04	;04
@@ -23764,7 +23852,7 @@ Notice_SelectChampion:
 	dc.b	'PLAYER 0 SELECT THY CHAMPION....'	;504C4159455220302053454C45435420544859204348414D50494F4E2E2E2E2E
 	dc.b	$FF	;FF
 	dc.b	$00	;00
-Object_Definition_Table:
+Object_Definition_Table:		; Memory Address ($E4C2) and binary offset [$E13E]
 	; ReSource: Complete $6E × 4 object-definition table: pocket graphic, pocket colour, first name word and second name word.
 	dc.b	$00	;00
 	dc.b	$00	;00
@@ -23987,7 +24075,7 @@ Object_Definition_Table:
 	dc.w	$0D3F	;0D3F
 	dc.w	$6000	;6000
 	dc.w	$3455	;3455
-Object_Floor_DataTable:
+Object_Floor_DataTable:		; Memory Address ($E67A) and binary offset [$E2F6]
 	dc.w	$FF02	;FF02
 	dc.w	$0116	;0116
 	dc.w	$160A	;160A
@@ -24043,7 +24131,7 @@ Object_Floor_DataTable:
 	dc.w	$0C0C	;0C0C
 	dc.w	$0C0C	;0C0C
 	dc.w	$0C10	;0C10
-GFX_ObjectsOnFloor_Heights:
+GFX_ObjectsOnFloor_Heights:		; Memory Address ($E6E8) and binary offset [$E364]
 	dc.w	$0806	;0806
 	dc.w	$0503	;0503
 	dc.w	$0204	;0204
@@ -24112,7 +24200,7 @@ GFX_ObjectsOnFloor_Heights:
 	dc.w	$0605	;0605
 	dc.w	$0403	;0403
 	dc.w	$0200	;0200
-Object_Floor_Colours:
+Object_Floor_Colours:		; Memory Address ($E770) and binary offset [$E3EC]
 	dc.w	$0000	;0000
 	dc.w	$0B24	;0B24
 	dc.w	$1C00	;1C00
@@ -24168,7 +24256,7 @@ Object_Floor_Colours:
 	dc.w	$0008	;0008
 	dc.w	$0D0C	;0D0C
 	dc.w	$0900	;0900
-Object_Floor_Palettes:
+Object_Floor_Palettes:		; Memory Address ($E7DE) and binary offset [$E45A]
 	dc.w	$0004	;0004
 	dc.w	$080C	;080C
 	dc.w	$0004	;0004
@@ -24255,7 +24343,7 @@ Object_Floor_Palettes:
 	dc.w	$040E	;040E
 	dc.w	$0C03	;0C03
 	dc.w	$040E	;040E
-GFX_ObjectsOnFloor_Offsets:
+GFX_ObjectsOnFloor_Offsets:		; Memory Address ($E88A) and binary offset [$E506]
 	dc.w	$0000	;0000
 	dc.w	$0048	;0048
 	dc.w	$0080	;0080
@@ -24391,7 +24479,7 @@ GFX_ObjectsOnFloor_Offsets:
 	dc.w	$0AD8	;0AD8
 	dc.w	$0B28	;0B28
 	dc.w	$0B48	;0B48
-adrEA00E998:
+adrEA00E998:		; Memory Address ($E998) and binary offset [$E614]
 	dc.b	$FC	;FC
 	dc.b	$12	;12
 	dc.b	$0B	;0B
@@ -24402,7 +24490,7 @@ adrEA00E998:
 	dc.b	$03	;03
 	dc.b	$FF	;FF
 	dc.b	$00	;00
-BeginGameScroll:
+BeginGameScroll:		; Memory Address ($E9A8) and binary offset [$E624]
 	dc.b	$FC	;FC
 	dc.b	$1E	;1E
 	dc.b	$03	;03
@@ -24430,7 +24518,7 @@ BeginGameScroll:
 	dc.b	$07	;07
 	dc.b	'THY QUEST'	;544859205155455354
 	dc.b	$FF	;FF
-ChampionStatsScroll_FoodTextTemplate:
+ChampionStatsScroll_FoodTextTemplate:		; Memory Address ($E9E8) and binary offset [$E664]
 	; ReSource: Print_fflim_text stream for FOOD. Uses ink $D for the heading and ink $4 for raw GameFont glyphs $02/$03 surrounding six bar cells.
 	dc.b	$FC	;FC
 	dc.b	' '	;20
@@ -24448,7 +24536,7 @@ ChampionStatsScroll_FoodTextTemplate:
 	dc.b	$03	;03
 	dc.b	$FF	;FF
 	dc.b	$00	;00
-adrEA00EA00:
+adrEA00EA00:		; Memory Address ($EA00) and binary offset [$E67C]
 	dc.b	$FE	;FE
 	dc.b	$0B	;0B
 	dc.b	$FD	;FD
@@ -24459,7 +24547,7 @@ adrEA00EA00:
 	dc.b	'  /  '	;20202F2020
 	dc.b	$FF	;FF
 	dc.b	$00	;00
-adrEA00EA14:
+adrEA00EA14:		; Memory Address ($EA14) and binary offset [$E690]
 	dc.b	$FC	;FC
 	dc.b	$1D	;1D
 	dc.b	$03	;03
@@ -24469,7 +24557,7 @@ adrEA00EA14:
 	dc.b	$03	;03
 	dc.b	'INVENTORY'	;494E56454E544F5259
 	dc.b	$FF	;FF
-adrEA00EA25:
+adrEA00EA25:		; Memory Address ($EA25) and binary offset [$E6A1]
 	dc.b	$FC	;FC
 	dc.b	$1D	;1D
 	dc.b	$08	;08
@@ -24479,7 +24567,7 @@ adrEA00EA25:
 	dc.b	'   '	;202020
 	dc.b	$FF	;FF
 	dc.b	$00	;00
-adrEA00EA36:
+adrEA00EA36:		; Memory Address ($EA36) and binary offset [$E6B2]
 	dc.b	$FC	;FC
 	dc.b	$1E	;1E
 	dc.b	$0A	;0A
@@ -24498,7 +24586,7 @@ adrEA00EA36:
 	dc.b	$0C	;0C
 	dc.b	$05	;05
 	dc.b	$FF	;FF
-adrEA00EA4C:
+adrEA00EA4C:		; Memory Address ($EA4C) and binary offset [$E6C8]
 	dc.b	$FE	;FE
 	dc.b	$0D	;0D
 	dc.b	'CAST % '	;43415354202520
@@ -24510,12 +24598,12 @@ adrEA00EA4C:
 	dc.b	' '	;20
 	dc.b	$FF	;FF
 	dc.b	$00	;00
-Msg_CostTooHigh:
+Msg_CostTooHigh:		; Memory Address ($EA62) and binary offset [$E6DE]
 	dc.b	$FE	;FE
 	dc.b	$0C	;0C
 	dc.b	'COST TOO HIGH'	;434F535420544F4F2048494748
 	dc.b	$FF	;FF
-adrEA00EA72:
+adrEA00EA72:		; Memory Address ($EA72) and binary offset [$E6EE]
 	dc.w	$00E2	;00E2
 	dc.w	$0106	;0106
 	dc.w	$0021	;0021
@@ -24584,7 +24672,7 @@ adrEA00EA72:
 	dc.w	$00CD	;00CD
 	dc.w	$001C	;001C
 	dc.w	$0057	;0057
-adrEA00EAFA:
+adrEA00EAFA:		; Memory Address ($EAFA) and binary offset [$E776]
 	dc.w	$0038	;0038
 	dc.w	$0047	;0047
 	dc.w	$0008	;0008
@@ -24609,7 +24697,7 @@ adrEA00EAFA:
 	dc.w	$005D	;005D
 	dc.w	$003A	;003A
 	dc.w	$0057	;0057
-Character_Stats_DataTable:
+Character_Stats_DataTable:		; Memory Address ($EB2A) and binary offset [$E7A6]
 	dc.b	$01	;01
 	dc.b	$23	;23
 	dc.b	$11	;11
@@ -24875,7 +24963,7 @@ Character_Stats_DataTable:
 	dc.w	$0300	;0300
 	dc.w	$0000	;0000
 	dc.w	$0000	;0000
-Character_Pockets_DataTable:
+Character_Pockets_DataTable:		; Memory Address ($ED2A) and binary offset [$E9A6]
 	dc.w	$3300	;3300
 	dc.w	$0000	;0000
 	dc.w	$0001	;0001
@@ -25004,34 +25092,34 @@ Character_Pockets_DataTable:
 	dc.w	$0002	;0002
 	dc.w	$0A05	;0A05
 	dc.w	$0000	;0000
-adrW_00EE2A:
+adrW_00EE2A:		; Memory Address ($EE2A) and binary offset [$EAA6]
 	dc.w	$0000	;0000
-adrB_00EE2C:
+adrB_00EE2C:		; Memory Address ($EE2C) and binary offset [$EAA8]
 	dc.b	$00	;00
-InputStateFlag_AI_TBC:
+InputStateFlag_AI_TBC:		; Memory Address ($EE2D) and binary offset [$EAA9]
 	dc.b	$00	;00
 CurrentTower:
 	dc.b	$00	;00
 	dc.b	$00	;00
 MultiPlayer:
 	dc.w	$FFFF	;FFFF
-RingUses:
+RingUses:		; Memory Address ($EE32) and binary offset [$EAAE]
 	dc.w	$0102	;0102
 	dc.w	$0303	;0303
-adrEA00EE36:
+adrEA00EE36:		; Memory Address ($EE36) and binary offset [$EAB2]
 	dc.w	$0000	;0000
-adrW_00EE38:
+adrW_00EE38:		; Memory Address ($EE38) and binary offset [$EAB4]
 	dc.w	$0000	;0000
 	dc.w	$0000	;0000
-adrB_00EE3C:
+adrB_00EE3C:		; Memory Address ($EE3C) and binary offset [$EAB8]
 	dc.b	$00	;00
-adrB_00EE3D:
+adrB_00EE3D:		; Memory Address ($EE3D) and binary offset [$EAB9]
 	dc.b	$01	;01
-adrB_00EE3E:
+adrB_00EE3E:		; Memory Address ($EE3E) and binary offset [$EABA]
 	dc.b	$00	;00
-adrB_00EE3F:
+adrB_00EE3F:		; Memory Address ($EE3F) and binary offset [$EABB]
 	dc.b	$00	;00
-adrEA00EE40:
+Current_TowerMapHeaderCache:		; Memory Address ($EE40) and binary offset [$EABC]
 	dc.w	$0000	;0000
 	dc.w	$0000	;0000
 	dc.w	$0000	;0000
@@ -25040,7 +25128,7 @@ adrEA00EE40:
 	dc.w	$0000	;0000
 	dc.w	$0000	;0000
 	dc.w	$0000	;0000
-adrEA00EE50:
+adrEA00EE50:		; Memory Address ($EE50) and binary offset [$EACC]
 	dc.w	$0000	;0000
 	dc.w	$0000	;0000
 	dc.w	$0000	;0000
@@ -25049,7 +25137,7 @@ adrEA00EE50:
 	dc.w	$0000	;0000
 	dc.w	$0000	;0000
 	dc.w	$0000	;0000
-adrEA00EE60:
+adrEA00EE60:		; Memory Address ($EE60) and binary offset [$EADC]
 	dc.w	$0000	;0000
 	dc.w	$0000	;0000
 	dc.w	$0000	;0000
@@ -25058,33 +25146,33 @@ adrEA00EE60:
 	dc.w	$0000	;0000
 	dc.w	$0000	;0000
 	dc.w	$0000	;0000
-adrW_00EE70:
+adrW_00EE70:		; Memory Address ($EE70) and binary offset [$EAEC]
 	dc.b	$00	;00
-adrB_00EE71:
+adrB_00EE71:		; Memory Address ($EE71) and binary offset [$EAED]
 	dc.b	$00	;00
-adrW_00EE72:
+adrW_00EE72:		; Memory Address ($EE72) and binary offset [$EAEE]
 	dc.b	$00	;00
-adrB_00EE73:
+adrB_00EE73:		; Memory Address ($EE73) and binary offset [$EAEF]
 	dc.b	$00	;00
 	dc.b	$00	;00
 	dc.b	$00	;00
-adrW_00EE76:
+adrW_00EE76:		; Memory Address ($EE76) and binary offset [$EAF2]
 	dc.w	$0000	;0000
-adrL_00EE78:
+Current_TowerMapDataBase:		; Memory Address ($EE78) and binary offset [$EAF4]
 	dc.l	$0000EF78	;0000EF78	;Long Addr replaced with Symbol *Fix stored address **
 Player1_Data:
 	dc.b	$00	;00
-adrB_00EE7D:
+adrB_00EE7D:		; Memory Address ($EE7D) and binary offset [$EAF9]
 	dc.b	$00	;00
-adrL_00EE7E:
+adrL_00EE7E:		; Memory Address ($EE7E) and binary offset [$EAFA]
 	dc.l	$00000000	;00000000
-adrW_00EE82:
+adrW_00EE82:		; Memory Address ($EE82) and binary offset [$EAFE]
 	dc.b	$00	;00
-adrB_00EE83:
+adrB_00EE83:		; Memory Address ($EE83) and binary offset [$EAFF]
 	dc.b	$00	;00
-adrW_00EE84:
+adrW_00EE84:		; Memory Address ($EE84) and binary offset [$EB00]
 	dc.w	$0000	;0000
-adrW_00EE86:
+adrW_00EE86:		; Memory Address ($EE86) and binary offset [$EB02]
 	dc.w	$0000	;0000
 	dc.w	$0000	;0000
 	dc.w	$0000	;0000
@@ -25092,15 +25180,15 @@ adrW_00EE86:
 	dc.w	$0008	;0008
 	dc.w	$0000	;0000
 	dc.w	$FFFF	;FFFF
-Player1_ChampionCount:
+Player1_ChampionCount:		; Memory Address ($EE94) and binary offset [$EB10]
 	dc.l	$FFFFFFFF	;FFFFFFFF
-adrL_00EE98:
+adrL_00EE98:		; Memory Address ($EE98) and binary offset [$EB14]
 	dc.l	$00000000	;00000000
 	dc.w	$0000	;0000
-adrW_00EE9E:
+adrW_00EE9E:		; Memory Address ($EE9E) and binary offset [$EB1A]
 	dc.w	$0000	;0000
 	dc.w	$0000	;0000
-Player1_ChampionPointer:
+Player1_ChampionPointer:		; Memory Address ($EEA2) and binary offset [$EB1E]
 	dc.w	$FFFF	;FFFF
 	dc.w	$FFFF	;FFFF
 	dc.w	$0000	;0000
@@ -25109,13 +25197,13 @@ Player1_ChampionPointer:
 	dc.w	$FFFF	;FFFF
 	dc.w	$FFFF	;FFFF
 	dc.b	$FF	;FF
-adrB_00EEB1:
+adrB_00EEB1:		; Memory Address ($EEB1) and binary offset [$EB2D]
 	dc.b	$FF	;FF
 	dc.b	$00	;00
 	dc.b	$00	;00
 	dc.b	$00	;00
 	dc.b	$00	;00
-adrW_00EEB6:
+adrW_00EEB6:		; Memory Address ($EEB6) and binary offset [$EB32]
 	dc.w	$0000	;0000
 	dc.w	$00FF	;00FF
 	dc.w	$0000	;0000
@@ -25124,35 +25212,36 @@ adrW_00EEB6:
 	dc.w	$0000	;0000
 	dc.w	$0000	;0000
 	dc.w	$0000	;0000
-adrW_00EEC6:
+adrW_00EEC6:		; Memory Address ($EEC6) and binary offset [$EB42]
 	dc.w	$0000	;0000
-adrW_00EEC8:
+adrW_00EEC8:		; Memory Address ($EEC8) and binary offset [$EB44]
 	dc.w	$0000	;0000
 	dc.w	$0000	;0000
 	dc.w	$0000	;0000
-adrB_00EECE:
+adrB_00EECE:		; Memory Address ($EECE) and binary offset [$EB4A]
 	dc.b	$00	;00
 	dc.b	$FF	;FF
 	dc.b	$00	;00
 	dc.b	$00	;00
-adrB_00EED2:
+Player1_PendingAction:		; Memory Address ($F256) and binary offset [$EED2]
+	; ReSource: Pending action byte for player 1; keyboard and external overlays can write here before the player loop consumes it.
 	dc.b	$00	;00
 	dc.b	$00	;00
 	dc.b	$00	;00
-adrB_00EED5:
+adrB_00EED5:		; Memory Address ($EED5) and binary offset [$EB51]
 	dc.b	$00	;00
-adrL_00EED6:
+adrL_00EED6:		; Memory Address ($EED6) and binary offset [$EB52]
 	dc.l	$FFFFFFFF	;FFFFFFFF
 	dc.l	$FFFFFFFF	;FFFFFFFF
 Player2_Data:
 	dc.b	$01	;01
-adrB_00EEDF:
+adrB_00EEDF:		; Memory Address ($EEDF) and binary offset [$EB5B]
 	dc.b	$00	;00
-adrL_00EEE0:
+adrL_00EEE0:		; Memory Address ($EEE0) and binary offset [$EB5C]
 	dc.l	$00000000	;00000000
-adrW_00EEE4:
+adrW_00EEE4:		; Memory Address ($EEE4) and binary offset [$EB60]
 	dc.b	$00	;00
-Player2_ChampionCount:
+Player2_ChampionCount:		; Memory Address ($EEE5) and binary offset [$EB61]
 	dc.b	$00	;00
 	dc.b	$00	;00
 	dc.b	$60	;60
@@ -25166,30 +25255,30 @@ Player2_ChampionCount:
 	dc.b	$09	;09
 	dc.b	$00	;00
 	dc.b	$0C	;0C
-adrW_00EEF2:
+adrW_00EEF2:		; Memory Address ($EEF2) and binary offset [$EB6E]
 	dc.w	$0000	;0000
 	dc.w	$FFFF	;FFFF
-Player2_ChampionPointer:
+Player2_ChampionPointer:		; Memory Address ($EEF6) and binary offset [$EB72]
 	dc.l	$FFFFFFFF	;FFFFFFFF
-adrL_00EEFA:
+adrL_00EEFA:		; Memory Address ($EEFA) and binary offset [$EB76]
 	dc.l	$00000000	;00000000
 	dc.w	$0000	;0000
-adrW_00EF00:
+adrW_00EF00:		; Memory Address ($EF00) and binary offset [$EB7C]
 	dc.w	$0000	;0000
 	dc.w	$0000	;0000
-adrL_00EF04:
+adrL_00EF04:		; Memory Address ($EF04) and binary offset [$EB80]
 	dc.l	$FFFFFFFF	;FFFFFFFF
 	dc.l	$00000000	;00000000
 	dc.l	$0000FFFF	;0000FFFF	;Long Addr replaced with Symbol
 	dc.w	$FFFF	;FFFF
 	dc.b	$FF	;FF
-adrB_00EF13:
+adrB_00EF13:		; Memory Address ($EF13) and binary offset [$EB8F]
 	dc.b	$FF	;FF
 	dc.b	$00	;00
 	dc.b	$00	;00
 	dc.b	$00	;00
 	dc.b	$00	;00
-adrW_00EF18:
+adrW_00EF18:		; Memory Address ($EF18) and binary offset [$EB94]
 	dc.w	$0000	;0000
 	dc.w	$00FF	;00FF
 	dc.w	$0000	;0000
@@ -25204,16 +25293,17 @@ adrW_00EF18:
 	dc.w	$0000	;0000
 	dc.w	$00FF	;00FF
 	dc.w	$0000	;0000
-adrB_00EF34:
+Player2_PendingAction:		; Memory Address ($F2B8) and binary offset [$EF34]
+	; ReSource: Pending action byte for player 2; keyboard and external overlays can write here before the player loop consumes it.
 	dc.b	$00	;00
 	dc.b	$00	;00
 	dc.b	$00	;00
-adrB_00EF37:
+adrB_00EF37:		; Memory Address ($EF37) and binary offset [$EBB3]
 	dc.b	$00	;00
-adrL_00EF38:
+adrL_00EF38:		; Memory Address ($EF38) and binary offset [$EBB4]
 	dc.l	$FFFFFFFF	;FFFFFFFF
 	dc.l	$FFFFFFFF	;FFFFFFFF
-MapData1:
+MapData1:		; Memory Address ($EF40) and binary offset [$EBBC]
 	dc.w	$0C15	;0C15
 	dc.w	$0F1F	;0F1F
 	dc.w	$1304	;1304
@@ -27263,7 +27353,7 @@ MapData1:
 	dc.w	$0304	;0304
 	dc.w	$0704	;0704
 
-ObjectData_1:
+ObjectData_1:		; Memory Address ($FF40) and binary offset [$FBBC]
 	dc.w	$033F	;033F
 	dc.w	$C80E	;C80E
 	dc.w	$0007	;0007
@@ -27778,7 +27868,7 @@ ObjectData_1:
 	dc.w	$0000	;0000
 	dc.w	$0000	;0000
 	dc.w	$0000	;0000
-MapData2:
+MapData2:		; Memory Address ($10342) and binary offset [$FFBE]
 	dc.w	$0515	;0515
 	dc.w	$1511	;1511
 	dc.w	$0F0F	;0F0F
@@ -29827,7 +29917,7 @@ MapData2:
 	dc.w	$0000	;0000
 	dc.w	$0001	;0001
 	dc.w	$0C02	;0C02
-ObjectData_2:
+ObjectData_2:		; Memory Address ($11342) and binary offset [$10FBE]
 	dc.w	$02FD	;02FD
 
 	dc.w	$8000	;8000
@@ -30342,7 +30432,7 @@ ObjectData_2:
 	dc.w	$0000	;0000
 	dc.w	$0000	;0000
 	dc.w	$0000	;0000
-MapData3:
+MapData3:		; Memory Address ($11744) and binary offset [$113C0]
 	dc.w	$0515	;0515
 	dc.w	$1513	;1513
 	dc.w	$1311	;1311
@@ -32391,7 +32481,7 @@ MapData3:
 	dc.w	$0091	;0091
 	dc.w	$0000	;0000
 	dc.w	$0000	;0000
-ObjectData_3:
+ObjectData_3:		; Memory Address ($12744) and binary offset [$123C0]
 	dc.w	$02B6	;02B6
 
 	dc.w	$4028	;4028
@@ -32906,7 +32996,7 @@ ObjectData_3:
 	dc.w	$0000	;0000
 	dc.w	$0000	;0000
 	dc.w	$0000	;0000
-MapData4:
+MapData4:		; Memory Address ($12B46) and binary offset [$127C2]
 	dc.w	$091B	;091B
 	dc.w	$1311	;1311
 	dc.w	$110D	;110D
@@ -34955,7 +35045,7 @@ MapData4:
 	dc.w	$0981	;0981
 	dc.w	$0704	;0704
 	dc.w	$0000	;0000
-ObjectData_4:
+ObjectData_4:		; Memory Address ($13B46) and binary offset [$137C2]
 	dc.w	$02C0	;02C0
 
 	dc.w	$4494	;4494
@@ -35470,7 +35560,7 @@ ObjectData_4:
 	dc.w	$0000	;0000
 	dc.w	$0000	;0000
 	dc.w	$0000	;0000
-MapData5:
+MapData5:		; Memory Address ($13F48) and binary offset [$13BC4]
 	dc.w	$0915	;0915
 	dc.w	$1511	;1511
 	dc.w	$0F0D	;0F0D
@@ -37519,7 +37609,7 @@ MapData5:
 	dc.w	$0000	;0000
 	dc.w	$0000	;0000
 	dc.w	$0704	;0704
-ObjectData_5:
+ObjectData_5:		; Memory Address ($14F48) and binary offset [$14BC4]
 	dc.w	$020B	;020B
 
 	dc.w	$C038	;C038
@@ -38034,7 +38124,7 @@ ObjectData_5:
 	dc.w	$0000	;0000
 	dc.w	$0000	;0000
 	dc.w	$0000	;0000
-MapData6:
+MapData6:		; Memory Address ($1534A) and binary offset [$14FC6]
 	dc.w	$1313	;1313
 	dc.w	$1313	;1313
 	dc.w	$1300	;1300
@@ -40083,7 +40173,7 @@ MapData6:
 	dc.w	$0000	;0000
 	dc.w	$0000	;0000
 	dc.w	$0000	;0000
-ObjectData_6:
+ObjectData_6:		; Memory Address ($1634A) and binary offset [$15FC6]
 	dc.w	$01DD	;01DD
 
 	dc.w	$C0A2	;C0A2
@@ -40598,7 +40688,7 @@ ObjectData_6:
 	dc.w	$0000	;0000
 	dc.w	$0000	;0000
 	dc.w	$0000	;0000
-adrEA01674C:
+adrEA01674C:		; Memory Address ($1674C) and binary offset [$163C8]
 	dc.w	$0000	;0000
 	dc.w	$0000	;0000
 	dc.w	$0000	;0000
@@ -40663,7 +40753,7 @@ adrEA01674C:
 	dc.w	$0000	;0000
 	dc.w	$0000	;0000
 	dc.w	$0000	;0000
-adrEA0167CC:
+adrEA0167CC:		; Memory Address ($167CC) and binary offset [$16448]
 	dc.w	$0000	;0000
 	dc.w	$0000	;0000
 	dc.w	$0000	;0000
@@ -40728,7 +40818,7 @@ adrEA0167CC:
 	dc.w	$0000	;0000
 	dc.w	$0000	;0000
 	dc.w	$0000	;0000
-BitReverse_LookupBuffer:
+BitReverse_LookupBuffer:		; Memory Address ($1684C) and binary offset [$164C8]
 	; ReSource: Working lookup buffer containing bit-reversed byte values used by the floor and ceiling renderer.
 	dc.w	$0000	;0000
 	dc.w	$0000	;0000
@@ -40858,7 +40948,7 @@ BitReverse_LookupBuffer:
 	dc.w	$0000	;0000
 	dc.w	$0000	;0000
 	dc.w	$0000	;0000
-Spells_Practiced_DataTable:
+Spells_Practiced_DataTable:		; Memory Address ($1694C) and binary offset [$165C8]
 	dc.w	$0000	;0000
 	dc.w	$0000	;0000
 	dc.w	$0000	;0000
@@ -41116,7 +41206,7 @@ BigMonsterList:
 	dc.w	$0000	;0000
 	dc.w	$0000	;0000
 	dc.w	$0000	;0000
-Comms_StateRecords:
+Comms_StateRecords:		; Memory Address ($16B4C) and binary offset [$167C8]
 	; ReSource: Two sixteen-byte communication state records, one for each player.
 	dc.w	$0000	;0000
 	dc.w	$0000	;0000
@@ -41134,7 +41224,7 @@ Comms_StateRecords:
 	dc.w	$0000	;0000
 	dc.w	$0000	;0000
 	dc.w	$0000	;0000
-PhysicalAttack_WorkingValues:
+PhysicalAttack_WorkingValues:		; Memory Address ($16B6C) and binary offset [$167E8]
 	; ReSource: Temporary physical-attack result, attacker, defender, weapon and armour values.
 	dc.w	$0000	;0000
 	dc.w	$0000	;0000
@@ -42170,7 +42260,7 @@ UnpackedMonsters:
 	dc.w	$0000	;0000
 	dc.w	$0000	;0000
 	dc.w	$0000	;0000
-adrEA01737E:
+adrEA01737E:		; Memory Address ($1737E) and binary offset [$16FFA]
 	dc.w	$0000	;0000
 	dc.w	$0000	;0000
 	dc.w	$0000	;0000
@@ -42179,9 +42269,9 @@ adrEA01737E:
 	dc.w	$0000	;0000
 	dc.w	$0000	;0000
 	dc.w	$0000	;0000
-adrW_01738E:
+adrW_01738E:		; Memory Address ($1738E) and binary offset [$1700A]
 	dc.w	$FFFF	;FFFF
-adrEA017390:
+adrEA017390:		; Memory Address ($17390) and binary offset [$1700C]
 	dc.w	$0000	;0000
 	dc.w	$0000	;0000
 	dc.w	$0000	;0000
@@ -42232,9 +42322,9 @@ adrEA017390:
 	dc.w	$0000	;0000
 	dc.w	$0000	;0000
 	dc.w	$0000	;0000
-adrW_0173F4:
+adrW_0173F4:		; Memory Address ($173F4) and binary offset [$17070]
 	dc.w	$0000	;0000
-adrEA0173F6:
+adrEA0173F6:		; Memory Address ($173F6) and binary offset [$17072]
 	dc.w	$0000	;0000
 	dc.w	$0000	;0000
 	dc.w	$0000	;0000
@@ -42364,7 +42454,7 @@ adrEA0173F6:
 	dc.w	$0000	;0000
 	dc.w	$0000	;0000
 	dc.w	$0000	;0000
-adrEA0174F8:
+adrEA0174F8:		; Memory Address ($174F8) and binary offset [$17174]
 	dc.w	$0000	;0000
 	dc.w	$0000	;0000
 	dc.w	$0000	;0000
@@ -42429,14 +42519,14 @@ adrEA0174F8:
 	dc.w	$0000	;0000
 	dc.w	$0000	;0000
 	dc.w	$0000	;0000
-MonsterTotalsCounts_mod0:
+MonsterTotalsCounts_mod0:		; Memory Address ($17578) and binary offset [$171F4]
 	dc.w	$0048	;0048
 	dc.w	$004D	;004D
 	dc.w	$0053	;0053
 	dc.w	$0043	;0043
 	dc.w	$004F	;004F
 	dc.w	$004D	;004D
-MonsterBlock_mod0:
+MonsterBlock_mod0:		; Memory Address ($17584) and binary offset [$17200]
 	dc.w	$040B	;040B
 	dc.w	$0F00	;0F00
 	dc.w	$15FF	;15FF
@@ -44627,7 +44717,7 @@ MonsterBlock_mod0:
 	dc.w	$0000	;0000
 	dc.w	$0000	;0000
 	dc.w	$0000	;0000
-adrL_0186A0:
+adrL_0186A0:		; Memory Address ($186A0) and binary offset [$1831C]
 	dc.w	$0000	;0000
 	dc.w	$0000	;0000
 	dc.w	$0000	;0000
@@ -44747,7 +44837,7 @@ SpellBookRunes:
 	dc.b	'yhadalittlelaaneeitwerraguddutnerewanzednowtecozzitwerawuddunwhyamistillhavintotypethiscrapwhithoughtidfinishacoupleoflinesq'	;79686164616C6974746C656C61616E6565697477657272616775646475746E65726577616E7A65646E6F777465636F7A7A6974776572617775646
 *56E776879616D697374696C6C686176696E746F74797065746869736372617077686974686F75676874696466696E69736861636F75706C656F666C696E657371
 	dc.b	'x'	;78
-Character_RenderLayout_Standard:
+Character_RenderLayout_Standard:		; Memory Address ($18804) and binary offset [$18480]
 	dc.w	$0000	;0000
 	dc.w	$01F2	;01F2
 	dc.w	$03EB	;03EB
@@ -44900,19 +44990,19 @@ Character_RenderLayout_Standard:
 	dc.w	$03D0	;03D0
 	dc.w	$0420	;0420
 	dc.w	$0470	;0470
-Character_Distant4_Positions_Standard:
+Character_Distant4_Positions_Standard:		; Memory Address ($18934) and binary offset [$185B0]
 	; ReSource: Four signed XY pairs for the corresponding distant graphics slot.
 	dc.w	$0001	;0001
 	dc.w	$0501	;0501
 	dc.w	$0001	;0001
 	dc.w	$F801	;F801
-Character_Distant5_Positions_Standard:
+Character_Distant5_Positions_Standard:		; Memory Address ($1893C) and binary offset [$185B8]
 	; ReSource: Four signed XY pairs for the corresponding distant graphics slot.
 	dc.w	$0000	;0000
 	dc.w	$0300	;0300
 	dc.w	$0000	;0000
 	dc.w	$F600	;F600
-Character_RenderLayout_Alternate:
+Character_RenderLayout_Alternate:		; Memory Address ($18944) and binary offset [$185C0]
 	dc.w	$0001	;0001
 	dc.w	$03F5	;03F5
 	dc.w	$03EE	;03EE
@@ -45065,19 +45155,19 @@ Character_RenderLayout_Alternate:
 	dc.w	$0370	;0370
 	dc.w	$03B8	;03B8
 	dc.w	$0400	;0400
-Character_Distant4_Positions_Alternate:
+Character_Distant4_Positions_Alternate:		; Memory Address ($18A74) and binary offset [$186F0]
 	; ReSource: Four signed XY pairs for the corresponding distant graphics slot.
 	dc.w	$0002	;0002
 	dc.w	$0402	;0402
 	dc.w	$0002	;0002
 	dc.w	$F802	;F802
-Character_Distant5_Positions_Alternate:
+Character_Distant5_Positions_Alternate:		; Memory Address ($18A7C) and binary offset [$186F8]
 	; ReSource: Four signed XY pairs for the corresponding distant graphics slot.
 	dc.w	$0001	;0001
 	dc.w	$0201	;0201
 	dc.w	$0001	;0001
 	dc.w	$F601	;F601
-Monster_ViewCell_SubPosition_XPositions:
+Monster_ViewCell_SubPosition_XPositions:		; Memory Address ($18A84) and binary offset [$18700]
 	; ReSource: Provides the horizontal screen position for every view-cell and sub-position combination.
 	dc.w	$01FF	;01FF
 	dc.w	$FFFF	;FFFF
@@ -45124,7 +45214,7 @@ Monster_ViewCell_SubPosition_XPositions:
 	dc.w	$3B4D	;3B4D
 	dc.w	$2228	;2228
 	dc.w	$4938	;4938
-GFX_Main_Walls_Offsets:
+GFX_Main_Walls_Offsets:		; Memory Address ($18ADE) and binary offset [$1875A]
 	dc.w	$0000	;0000
 	dc.w	$00B8	;00B8
 	dc.w	$0228	;0228
@@ -45153,7 +45243,7 @@ GFX_Main_Walls_Offsets:
 	dc.w	$3050	;3050
 	dc.w	$3430	;3430
 	dc.w	$3970	;3970
-GFX_Misc_Pillar_Offsets:
+GFX_Misc_Pillar_Offsets:		; Memory Address ($18B16) and binary offset [$18792]
 	dc.w	$0000	;0000
 	dc.w	$00B0	;00B0
 	dc.w	$0210	;0210
@@ -45165,7 +45255,7 @@ GFX_Misc_Pillar_Offsets:
 	dc.w	$0978	;0978
 	dc.w	$0B48	;0B48
 	dc.w	$0DB8	;0DB8
-GFX_Misc_Bed_Offsets:
+GFX_Misc_Bed_Offsets:		; Memory Address ($18B2C) and binary offset [$187A8]
 	dc.w	$0000	;0000
 	dc.w	$0000	;0000
 	dc.w	$0000	;0000
@@ -45184,7 +45274,7 @@ GFX_Misc_Bed_Offsets:
 	dc.w	$0000	;0000
 	dc.w	$0268	;0268
 	dc.w	$0508	;0508
-GFX_Wooden_Doors_Offsets:
+GFX_Wooden_Doors_Offsets:		; Memory Address ($18B50) and binary offset [$187CC]
 	dc.w	$0000	;0000
 	dc.w	$00A0	;00A0
 	dc.w	$0130	;0130
@@ -45201,7 +45291,7 @@ GFX_Wooden_Doors_Offsets:
 	dc.w	$0C88	;0C88
 	dc.w	$0D60	;0D60
 	dc.w	$0E80	;0E80
-GFX_Wooden_Wall_Offsets:
+GFX_Wooden_Wall_Offsets:		; Memory Address ($18B70) and binary offset [$187EC]
 	dc.w	$0000	;0000
 	dc.w	$00B8	;00B8
 	dc.w	$0228	;0228
@@ -45218,7 +45308,7 @@ GFX_Wooden_Wall_Offsets:
 	dc.w	$1828	;1828
 	dc.w	$1A18	;1A18
 	dc.w	$1CB8	;1CB8
-GFX_Main_Shelf_Offsets:
+GFX_Main_Shelf_Offsets:		; Memory Address ($18B90) and binary offset [$1880C]
 	dc.w	$0000	;0000
 	dc.w	$0048	;0048
 	dc.w	$0088	;0088
@@ -45235,7 +45325,7 @@ GFX_Main_Shelf_Offsets:
 	dc.w	$05B0	;05B0
 	dc.w	$0610	;0610
 	dc.w	$0698	;0698
-GFX_Main_Sign_Offsets:
+GFX_Main_Sign_Offsets:		; Memory Address ($18BB0) and binary offset [$1882C]
 	dc.w	$0000	;0000
 	dc.w	$0070	;0070
 	dc.w	$0130	;0130
@@ -45252,7 +45342,7 @@ GFX_Main_Sign_Offsets:
 	dc.w	$0AE0	;0AE0
 	dc.w	$0B80	;0B80
 	dc.w	$0D40	;0D40
-GFX_Stairs_Up_Offsets:
+GFX_Stairs_Up_Offsets:		; Memory Address ($18BD0) and binary offset [$1884C]
 	dc.w	$0000	;0000
 	dc.w	$0008	;0008
 	dc.w	$00C0	;00C0
@@ -45270,7 +45360,7 @@ GFX_Stairs_Up_Offsets:
 	dc.w	$1440	;1440
 	dc.w	$16E0	;16E0
 	dc.w	$1CC8	;1CC8
-GFX_Stairs_Down_Offsets:
+GFX_Stairs_Down_Offsets:		; Memory Address ($18BF2) and binary offset [$1886E]
 	dc.w	$0000	;0000
 	dc.w	$0008	;0008
 	dc.w	$0030	;0030
@@ -45288,7 +45378,7 @@ GFX_Stairs_Down_Offsets:
 	dc.w	$0780	;0780
 	dc.w	$0860	;0860
 	dc.w	$0AA0	;0AA0
-GFX_Door_Offsets:
+GFX_Door_Offsets:		; Memory Address ($18C14) and binary offset [$18890]
 	dc.w	$0000	;0000
 	dc.w	$0008	;0008
 	dc.w	$0218	;0218
@@ -45302,7 +45392,7 @@ GFX_Door_Offsets:
 	dc.w	$0F60	;0F60
 	dc.w	$1488	;1488
 	dc.w	$16E8	;16E8
-GFX_Main_Switches_Offsets:
+GFX_Main_Switches_Offsets:		; Memory Address ($18C2E) and binary offset [$188AA]
 	dc.w	$0000	;0000
 	dc.w	$0008	;0008
 	dc.w	$0010	;0010
@@ -45319,7 +45409,7 @@ GFX_Main_Switches_Offsets:
 	dc.w	$01D0	;01D0
 	dc.w	$0208	;0208
 	dc.w	$0250	;0250
-GFX_FloorPit_TriggerPad_Offsets:
+GFX_FloorPit_TriggerPad_Offsets:		; Memory Address ($18C4E) and binary offset [$188CA]
 	; ReSource: Shared picture offsets for floor-pit and trigger-pad artwork.
 	dc.w	$0000	;0000
 	dc.w	$0008	;0008
@@ -45333,7 +45423,7 @@ GFX_FloorPit_TriggerPad_Offsets:
 	dc.w	$00F8	;00F8
 	dc.w	$0128	;0128
 	dc.w	$01E8	;01E8
-GFX_Ceiling_Hole_Offsets:
+GFX_Ceiling_Hole_Offsets:		; Memory Address ($18C66) and binary offset [$188E2]
 	; ReSource: Picture offsets for ceiling-hole artwork.
 	dc.w	$0000	;0000
 	dc.w	$0008	;0008
@@ -45347,7 +45437,7 @@ GFX_Ceiling_Hole_Offsets:
 	dc.w	$0098	;0098
 	dc.w	$00B8	;00B8
 	dc.w	$0138	;0138
-GameFont:
+GameFont:		; Memory Address ($18C7E) and binary offset [$188FA]
 	dc.w	$001F	;001F
 	dc.w	$311C	;311C
 	dc.w	$0000	;0000
@@ -45669,7 +45759,7 @@ GameFont:
 	dc.w	$0008	;0008
 	dc.w	$103F	;103F
 	dc.w	$1008	;1008
-GFX_ButtonHighlights:
+GFX_ButtonHighlights:		; Memory Address ($18EFE) and binary offset [$18B7A]
 	dc.w	$F801	;F801
 	dc.w	$F7FE	;F7FE
 	dc.w	$F7FE	;F7FE
@@ -46022,7 +46112,7 @@ GFX_ButtonHighlights:
 	dc.w	$EDFF	;EDFF
 	dc.w	$EDFF	;EDFF
 	dc.w	$EDFF	;EDFF
-GFX_Scroll_Edge_Top:
+GFX_Scroll_Edge_Top:		; Memory Address ($191BE) and binary offset [$18E3A]
 	dc.w	$000F	;000F
 	dc.w	$000F	;000F
 	dc.w	$0000	;0000
@@ -46383,7 +46473,7 @@ GFX_Scroll_Edge_Top:
 	dc.w	$FFEC	;FFEC
 	dc.w	$0010	;0010
 	dc.w	$0000	;0000
-GFX_Scroll_Edge_Bottom:
+GFX_Scroll_Edge_Bottom:		; Memory Address ($1948E) and binary offset [$1910A]
 	dc.w	$0037	;0037
 	dc.w	$0017	;0017
 	dc.w	$0008	;0008
@@ -46744,7 +46834,7 @@ GFX_Scroll_Edge_Bottom:
 	dc.w	$0000	;0000
 	dc.w	$0000	;0000
 	dc.w	$0000	;0000
-GFX_Scroll_Edge_Left:
+GFX_Scroll_Edge_Left:		; Memory Address ($1975E) and binary offset [$193DA]
 	dc.w	$0057	;0057
 	dc.w	$0037	;0037
 	dc.w	$0008	;0008
@@ -46977,7 +47067,7 @@ GFX_Scroll_Edge_Left:
 	dc.w	$0037	;0037
 	dc.w	$0008	;0008
 	dc.w	$0000	;0000
-GFX_Scroll_Edge_Right:
+GFX_Scroll_Edge_Right:		; Memory Address ($1992E) and binary offset [$195AA]
 	dc.w	$FF2A	;FF2A
 	dc.w	$FFEC	;FFEC
 	dc.w	$0010	;0010
@@ -47338,7 +47428,7 @@ GFX_Scroll_Edge_Right:
 	dc.w	$FCFF	;FCFF
 	dc.w	$FCFF	;FCFF
 	dc.w	$FCFF	;FCFF
-GFX_Shield_Clicked:
+GFX_Shield_Clicked:		; Memory Address ($19BFE) and binary offset [$1987A]
 	dc.w	$01FF	;01FF
 	dc.w	$0000	;0000
 	dc.w	$0000	;0000
@@ -47667,13 +47757,13 @@ GFX_Shield_Clicked:
 	dc.w	$0000	;0000
 	dc.w	$0000	;0000
 	dc.w	$0000	;0000
-SpellNames:
+SpellNames:		; Memory Address ($19E8E) and binary offset [$19B0A]
 	dc.b	'ARMOUR  TERROR  VITALISEBEGUILE DEFLECT MAGELOCKCONCEAL WARPOWERMISSILE VANISH  PARALYZEALCHEMY CONFUSE LEVITATEANTIMAGERECH'	;41524D4F55522020544552524F522020564954414C49534542454755494C45204445464C454354204D4147454C4F434B434F4E4345414C2057415
 *04F5745524D495353494C452056414E4953482020504152414C595A45414C4348454D5920434F4E46555345204C45564954415445414E54494D41474552454348
 	dc.b	'ARGETRUEVIEWRENEW   VIVIFY  DISPELL FIREPATHILLUSIONCOMPASS SPELLTAPDISRUPT FIREBALLWYCHWINDARC BOLTFORMWALLSUMMON  BLAZE   '	;41524745545255455649455752454E4557202020564956494659202044495350454C4C204649524550415448494C4C5553494F4E434F4D5041535
 *05350454C4C54415044495352555054204649524542414C4C5759434857494E4441524320424F4C54464F524D57414C4C53554D4D4F4E2020424C415A45202020
 	dc.b	'MINDROCK'	;4D494E44524F434B
-SpellDescriptions:
+SpellDescriptions:		; Memory Address ($19F8F) and binary offset [$19C0B]
 	dc.b	$1A	;1A
 	dc.b	'WEAR THIS SPELL WITH PRIDE'	;574541522054484953205350454C4C2057495448205052494445
 	dc.b	$04	;04
@@ -47738,7 +47828,7 @@ SpellDescriptions:
 	dc.b	'NONE SHALL PASS THIS FIERY BLAST'	;4E4F4E45205348414C4C2050415353205448495320464945525920424C415354
 	dc.b	$23	;23
 	dc.b	'FOR THOSE WHO THINK THEY LOVE WALLS',0	;464F522054484F53452057484F205448494E4B2054484559204C4F56452057414C4C5300
-Scroll_Offsets:
+Scroll_Offsets:		; Memory Address ($1A31C) and binary offset [$19F98]
 	dc.w	$0000	;0000
 	dc.w	$0026	;0026
 	dc.w	$004E	;004E
@@ -47812,7 +47902,7 @@ Scroll_Offsets:
 	dc.w	$0BFA	;0BFA
 	dc.w	$0C32	;0C32
 	dc.w	$0C5D	;0C5D
-Scroll_Texts:
+Scroll_Texts:		; Memory Address ($1A3AE) and binary offset [$1A02A]
 	dc.b	$FC	;FC
 	dc.b	$1E	;1E
 	dc.b	$04	;04
@@ -49158,7 +49248,7 @@ Scroll_Texts:
 	dc.b	$09	;09
 	dc.b	'RESTORED'	;524553544F524544
 	dc.b	$FF	;FF
-GFX_MainWalls:
+GFX_MainWalls:		; Memory Address ($1B050) and binary offset [$1ACCC]
 	dc.w	$000F	;000F
 	dc.w	$000F	;000F
 	dc.w	$000F	;000F
@@ -58527,7 +58617,7 @@ GFX_MainWalls:
 	dc.w	$7FFF	;7FFF
 	dc.w	$7FFF	;7FFF
 	dc.w	$7FFF	;7FFF
-GFX_WoodenWalls:
+GFX_WoodenWalls:		; Memory Address ($1F980) and binary offset [$1F5FC]
 	dc.w	$000F	;000F
 	dc.w	$000F	;000F
 	dc.w	$000F	;000F
@@ -67896,7 +67986,7 @@ GFX_WoodenWalls:
 	dc.w	$FFFF	;FFFF
 	dc.w	$FFFF	;FFFF
 	dc.w	$FFFF	;FFFF
-GFX_WoodDoors:
+GFX_WoodDoors:		; Memory Address ($242B0) and binary offset [$23F2C]
 	dc.w	$0FFF	;0FFF
 	dc.w	$0FFF	;0FFF
 	dc.w	$0FFF	;0FFF
@@ -70185,7 +70275,7 @@ GFX_WoodDoors:
 	dc.w	$0000	;0000
 	dc.w	$0000	;0000
 	dc.w	$0000	;0000
-GFX_Shelf:
+GFX_Shelf:		; Memory Address ($25490) and binary offset [$2510C]
 	dc.w	$07FF	;07FF
 	dc.w	$07FF	;07FF
 	dc.w	$07FF	;07FF
@@ -71246,7 +71336,7 @@ GFX_Shelf:
 	dc.w	$64EF	;64EF
 	dc.w	$FFDF	;FFDF
 	dc.w	$64CF	;64CF
-GFX_Sign:
+GFX_Sign:		; Memory Address ($25CD8) and binary offset [$25954]
 	dc.w	$03FF	;03FF
 	dc.w	$03FF	;03FF
 	dc.w	$0BFF	;0BFF
@@ -73271,7 +73361,7 @@ GFX_Sign:
 	dc.w	$FFFE	;FFFE
 	dc.w	$FFFE	;FFFE
 	dc.w	$FFFE	;FFFE
-GFX_SignOverlay:
+GFX_SignOverlay:		; Memory Address ($26CA8) and binary offset [$26924]
 	dc.w	$3FFF	;3FFF
 	dc.w	$FFFF	;FFFF
 	dc.w	$3FFF	;3FFF
@@ -76376,7 +76466,7 @@ GFX_SignOverlay:
 	dc.w	$CCCC	;CCCC
 	dc.w	$3333	;3333
 	dc.w	$CCCC	;CCCC
-GFX_Switches:
+GFX_Switches:		; Memory Address ($284E8) and binary offset [$28164]
 	dc.w	$FFFF	;FFFF
 	dc.w	$FFFF	;FFFF
 	dc.w	$FFFF	;FFFF
@@ -76725,7 +76815,7 @@ GFX_Switches:
 	dc.w	$FFFE	;FFFE
 	dc.w	$FFFE	;FFFE
 	dc.w	$FFFE	;FFFE
-GFX_Slots:
+GFX_Slots:		; Memory Address ($287A0) and binary offset [$2841C]
 	; ReSource: Raw socket pixels
 	dc.w	$FFFF	;FFFF
 	dc.w	$FFFF	;FFFF
@@ -77307,7 +77397,7 @@ GFX_Slots:
 	dc.w	$FFFE	;FFFE
 	dc.w	$FFFE	;FFFE
 	dc.w	$FFFE	;FFFE
-GFX_Bed:
+GFX_Bed:		; Memory Address ($28C28) and binary offset [$288A4]
 	dc.w	$FFFF	;FFFF
 	dc.w	$FFFF	;FFFF
 	dc.w	$FFFF	;FFFF
@@ -78648,7 +78738,7 @@ GFX_Bed:
 	dc.w	$03FF	;03FF
 	dc.w	$03FF	;03FF
 	dc.w	$7BFF	;7BFF
-GFX_Pillar:
+GFX_Pillar:		; Memory Address ($296A0) and binary offset [$2931C]
 	dc.w	$07FF	;07FF
 	dc.w	$07FF	;07FF
 	dc.w	$07FF	;07FF
@@ -81285,7 +81375,7 @@ GFX_Pillar:
 	dc.w	$01FF	;01FF
 	dc.w	$01FF	;01FF
 	dc.w	$01FF	;01FF
-GFX_Stairs_Up:
+GFX_Stairs_Up:		; Memory Address ($2AB38) and binary offset [$2A7B4]
 	dc.w	$FFFF	;FFFF
 	dc.w	$FFFF	;FFFF
 	dc.w	$FFFF	;FFFF
@@ -85210,7 +85300,7 @@ GFX_Stairs_Up:
 	dc.w	$0BFF	;0BFF
 	dc.w	$F3FF	;F3FF
 	dc.w	$03FF	;03FF
-GFX_Stairs_Down:
+GFX_Stairs_Down:		; Memory Address ($2C9E0) and binary offset [$2C65C]
 	dc.w	$FFFF	;FFFF
 	dc.w	$FFFF	;FFFF
 	dc.w	$FFFF	;FFFF
@@ -86811,7 +86901,7 @@ GFX_Stairs_Down:
 	dc.w	$0BFF	;0BFF
 	dc.w	$F3FF	;F3FF
 	dc.w	$03FF	;03FF
-GFX_Door_Open:
+GFX_Door_Open:		; Memory Address ($2D660) and binary offset [$2D2DC]
 	dc.w	$FFFF	;FFFF
 	dc.w	$FFFF	;FFFF
 	dc.w	$FFFF	;FFFF
@@ -90320,7 +90410,7 @@ GFX_Door_Open:
 	dc.w	$0000	;0000
 	dc.w	$0000	;0000
 	dc.w	$0000	;0000
-GFX_Door_Metal:
+GFX_Door_Metal:		; Memory Address ($2F1C8) and binary offset [$2EE44]
 	dc.w	$FFFF	;FFFF
 	dc.w	$FFFF	;FFFF
 	dc.w	$FFFF	;FFFF
@@ -92949,7 +93039,7 @@ GFX_Door_Metal:
 	dc.w	$FFFF	;FFFF
 	dc.w	$FFFF	;FFFF
 	dc.w	$FFFF	;FFFF
-GFX_Door_PortCullis:
+GFX_Door_PortCullis:		; Memory Address ($30650) and binary offset [$302CC]
 	dc.w	$FFFF	;FFFF
 	dc.w	$FFFF	;FFFF
 	dc.w	$FFFF	;FFFF
@@ -95578,7 +95668,7 @@ GFX_Door_PortCullis:
 	dc.w	$FFFF	;FFFF
 	dc.w	$FFFF	;FFFF
 	dc.w	$FFFF	;FFFF
-GFX_Floor_Pit:
+GFX_Floor_Pit:		; Memory Address ($31AD8) and binary offset [$31754]
 	; ReSource: Floor-pit artwork used for type-6 floor holes.
 	dc.w	$007F	;007F
 	dc.w	$007F	;007F
@@ -95872,7 +95962,7 @@ GFX_Floor_Pit:
 	dc.w	$DF9F	;DF9F
 	dc.w	$000F	;000F
 	dc.w	$000F	;000F
-GFX_Trigger_Pad:
+GFX_Trigger_Pad:		; Memory Address ($31D20) and binary offset [$3199C]
 	; ReSource: Recolourable trigger-pad template, also reused by Firepath.
 	dc.w	$B7FF	;B7FF
 	dc.w	$07FF	;07FF
@@ -96166,7 +96256,7 @@ GFX_Trigger_Pad:
 	dc.w	$0007	;0007
 	dc.w	$9FE7	;9FE7
 	dc.w	$74E7	;74E7
-GFX_Ceiling_Hole:
+GFX_Ceiling_Hole:		; Memory Address ($31F68) and binary offset [$31BE4]
 	; ReSource: Ceiling-hole artwork; may coexist with a floor pit or trigger pad.
 	dc.w	$007F	;007F
 	dc.w	$007F	;007F
@@ -96388,7 +96478,7 @@ GFX_Ceiling_Hole:
 	dc.w	$FFFF	;FFFF
 	dc.w	$FFFF	;FFFF
 	dc.w	$FFFF	;FFFF
-GFX_FloorCeiling:
+GFX_FloorCeiling:		; Memory Address ($32120) and binary offset [$31D9C]
 	dc.w	$6EA5	;6EA5
 	dc.w	$DFFF	;DFFF
 	dc.w	$0000	;0000
@@ -98213,7 +98303,7 @@ GFX_FloorCeiling:
 	dc.w	$FEBF	;FEBF
 	dc.w	$0140	;0140
 	dc.w	$0000	;0000
-GFX_ObjectsOnFloor:
+GFX_ObjectsOnFloor:		; Memory Address ($32F60) and binary offset [$32BDC]
 	dc.w	$FFFF	;FFFF
 	dc.w	$FFC7	;FFC7
 	dc.w	$FFC7	;FFC7
@@ -101298,7 +101388,7 @@ GFX_ObjectsOnFloor:
 	dc.w	$E1FF	;E1FF
 	dc.w	$E1FF	;E1FF
 	dc.w	$E1FF	;E1FF
-GFX_FireBall:
+GFX_FireBall:		; Memory Address ($34778) and binary offset [$343F4]
 	dc.w	$FFFF	;FFFF
 	dc.w	$FFFE	;FFFE
 	dc.w	$FFFE	;FFFE
@@ -101647,7 +101737,7 @@ GFX_FireBall:
 	dc.w	$EFFF	;EFFF
 	dc.w	$FFFF	;FFFF
 	dc.w	$FFFF	;FFFF
-GFX_AirbourneSpells:
+GFX_AirbourneSpells:		; Memory Address ($34A30) and binary offset [$346AC]
 	dc.w	$FFFD	;FFFD
 	dc.w	$FFF9	;FFF9
 	dc.w	$FFFB	;FFFB
@@ -102620,7 +102710,7 @@ GFX_AirbourneSpells:
 	dc.w	$EFFF	;EFFF
 	dc.w	$EFFF	;EFFF
 	dc.w	$EFFF	;EFFF
-CharacterColours:
+CharacterColours:		; Memory Address ($351C8) and binary offset [$34E44]
 	dc.w	$0004	;0004
 	dc.w	$0800	;0800
 	dc.w	$0E04	;0E04
@@ -103481,7 +103571,7 @@ CharacterColours:
 	dc.w	$0D0E	;0D0E
 	dc.w	$0D05	;0D05
 	dc.w	$0D0D	;0D0D
-GFX_HeadParts:
+GFX_HeadParts:		; Memory Address ($35880) and binary offset [$354FC]
 	dc.w	$FFFF	;FFFF	;
 	dc.w	$FFFF	;FFFF
 	dc.w	$FFFF	;FFFF
@@ -111474,7 +111564,7 @@ GFX_HeadParts:
 	dc.w	$FFFF	;FFFF
 	dc.w	$FFFF	;FFFF
 	dc.w	$FFFF	;FFFF
-GFX_BodyParts:
+GFX_BodyParts:		; Memory Address ($396F0) and binary offset [$3936C]
 	dc.w	$F83F	;F83F
 	dc.w	$F01F	;F01F
 	dc.w	$F45F	;F45F
@@ -128659,7 +128749,7 @@ GFX_BodyParts:
 	dc.w	$FFFF	;FFFF
 	dc.w	$FFFF	;FFFF
 	dc.w	$FFFF	;FFFF
-GFX_Avatars_Large:
+GFX_Avatars_Large:		; Memory Address ($41D30) and binary offset [$419AC]
 	dc.w	$FFFF	;FFFF
 	dc.w	$0000	;0000
 	dc.w	$0000	;0000
@@ -132500,7 +132590,7 @@ GFX_Avatars_Large:
 	dc.w	$0000	;0000
 	dc.w	$0000	;0000
 	dc.w	$0000	;0000
-GFX_Avatars_Small:
+GFX_Avatars_Small:		; Memory Address ($43B30) and binary offset [$437AC]
 	dc.w	$B000	;B000
 	dc.w	$7FF8	;7FF8
 	dc.w	$1000	;1000
@@ -134549,7 +134639,7 @@ GFX_Avatars_Small:
 	dc.w	$03F0	;03F0
 	dc.w	$9040	;9040
 	dc.w	$9040	;9040
-GFX_Shield_Top:
+GFX_Shield_Top:		; Memory Address ($44B30) and binary offset [$447AC]
 	dc.w	$01FF	;01FF
 	dc.w	$0000	;0000
 	dc.w	$0000	;0000
@@ -134590,7 +134680,7 @@ GFX_Shield_Top:
 	dc.w	$FFF8	;FFF8
 	dc.w	$07E0	;07E0
 	dc.w	$07E0	;07E0
-GFX_Shield_Bottom:
+GFX_Shield_Bottom:		; Memory Address ($44B80) and binary offset [$447FC]
 	dc.w	$0580	;0580
 	dc.w	$03FF	;03FF
 	dc.w	$0080	;0080
@@ -134663,7 +134753,7 @@ GFX_Shield_Bottom:
 	dc.w	$0000	;0000
 	dc.w	$0000	;0000
 	dc.w	$0000	;0000
-GFX_Shield_Classes:
+GFX_Shield_Classes:		; Memory Address ($44C10) and binary offset [$4488C]
 	dc.w	$5800	;5800
 	dc.w	$3FFF	;3FFF
 	dc.w	$0800	;0800
@@ -135016,7 +135106,7 @@ GFX_Shield_Classes:
 	dc.w	$FF00	;FF00
 	dc.w	$0400	;0400
 	dc.w	$0400	;0400
-GFX_Fairy:
+GFX_Fairy:		; Memory Address ($44ED0) and binary offset [$44B4C]
 	dc.w	$FFFF	;FFFF
 	dc.w	$FFFE	;FFFE
 	dc.w	$FFFE	;FFFE
@@ -135181,7 +135271,7 @@ GFX_Fairy:
 	dc.w	$FFFB	;FFFB
 	dc.w	$FFFB	;FFFB
 	dc.w	$FFFB	;FFFB
-GFX_Summon:
+GFX_Summon:		; Memory Address ($45018) and binary offset [$44C94]
 	dc.w	$FFFF	;FFFF
 	dc.w	$FE3F	;FE3F
 	dc.w	$FE3F	;FE3F
@@ -138090,7 +138180,7 @@ GFX_Summon:
 	dc.w	$F3FF	;F3FF
 	dc.w	$F3FF	;F3FF
 	dc.w	$F3FF	;F3FF
-GFX_Behemoth:
+GFX_Behemoth:		; Memory Address ($466D0) and binary offset [$4634C]
 	dc.w	$FFFF	;FFFF
 	dc.w	$FFFF	;FFFF
 	dc.w	$FFFF	;FFFF
@@ -140639,7 +140729,7 @@ GFX_Behemoth:
 	dc.w	$F8FF	;F8FF
 	dc.w	$F8FF	;F8FF
 	dc.w	$F8FF	;F8FF
-GFX_Crab:
+GFX_Crab:		; Memory Address ($47AB8) and binary offset [$47734]
 	dc.w	$FFFF	;FFFF
 	dc.w	$FFE7	;FFE7
 	dc.w	$FFE7	;FFE7
@@ -141196,7 +141286,7 @@ GFX_Crab:
 	dc.w	$DEFF	;DEFF
 	dc.w	$DEFF	;DEFF
 	dc.w	$DEFF	;DEFF
-GFX_CrabClaw:
+GFX_CrabClaw:		; Memory Address ($47F10) and binary offset [$47B8C]
 	dc.w	$2FFF	;2FFF
 	dc.w	$03FF	;03FF
 	dc.w	$53FF	;53FF
@@ -141621,7 +141711,7 @@ GFX_CrabClaw:
 	dc.w	$FDFF	;FDFF
 	dc.w	$FDFF	;FDFF
 	dc.w	$FDFF	;FDFF
-GFX_Beholder_Body:
+GFX_Beholder_Body:		; Memory Address ($48260) and binary offset [$47EDC]
 	dc.w	$FEDF	;FEDF
 	dc.w	$FD3F	;FD3F
 	dc.w	$FC0F	;FC0F
@@ -142527,7 +142617,7 @@ _GFX_Beholder_9:
 	dc.w	$01FF	;01FF
 	dc.w	$13FF	;13FF
 	dc.w	$3DFF	;3DFF
-GFX_Dragon:
+GFX_Dragon:		; Memory Address ($48960) and binary offset [$485DC]
 	dc.w	$FFFF	;FFFF
 	dc.w	$FFFF	;FFFF
 	dc.w	$FFFF	;FFFF
@@ -147801,7 +147891,7 @@ GFX_Dragon:
 	dc.w	$CAFF	;CAFF
 	dc.w	$C1FF	;C1FF
 
-GFX_Entropy:
+GFX_Entropy:		; Memory Address ($4B290) and binary offset [$4AF0C]
 	dc.w	$FFFF	;FFFF
 	dc.w	$FEFD	;FEFD
 	dc.w	$FEFD	;FEFD
@@ -150419,7 +150509,7 @@ GFX_Entropy:
 	dc.w	$0760	;0760
 	dc.w	$0777	;0777
 	dc.w	$0706	;0706
-GFX_Pockets:
+GFX_Pockets:		; Memory Address ($4C702) and binary offset [$4C37E]
 	dc.w	$0000	;0000
 	dc.w	$0000	;0000
 	dc.w	$0000	;0000
@@ -166436,7 +166526,7 @@ GFX_Pockets:
 	dc.w	$0054	;0054
 	dc.w	$002A	;002A
 	dc.w	$0000	;0000
-SFX_AudioSample_1:
+SFX_AudioSample_1:		; Memory Address ($54422) and binary offset [$5409E]
 	dc.b	'FORM'	;464F524D
 	dc.b	$00	;00
 	dc.b	$00	;00
@@ -166556,7 +166646,7 @@ SFX_AudioSample_1:
 	dc.b	$F7	;F7
 	dc.b	$FD	;FD
 	dc.b	$FF	;FF
-SFX_AudioSample_2:
+SFX_AudioSample_2:		; Memory Address ($544A6) and binary offset [$54122]
 	dc.b	'FORM'	;464F524D
 	dc.b	$00	;00
 	dc.b	$00	;00
@@ -168018,7 +168108,7 @@ SFX_AudioSample_2:
 	dc.b	$0B	;0B
 	dc.b	$0A	;0A
 	dc.b	$09	;09
-SFX_AudioSample_3:
+SFX_AudioSample_3:		; Memory Address ($54A68) and binary offset [$546E4]
 	dc.b	'FORM'	;464F524D
 	dc.b	$00	;00
 	dc.b	$00	;00
@@ -174286,7 +174376,7 @@ SFX_AudioSample_3:
 	dc.b	$D5	;D5
 	dc.b	$DF	;DF
 	dc.b	$E9	;E9
-SFX_AudioSample_4:
+SFX_AudioSample_4:		; Memory Address ($562F0) and binary offset [$55F6C]
 	dc.b	'FORM'	;464F524D
 	dc.b	$00	;00
 	dc.b	$00	;00
@@ -180344,7 +180434,7 @@ SFX_AudioSample_4:
 	dc.b	$13	;13
 	dc.b	$25	;25
 	dc.b	$37	;37
-SFX_AudioSample_5:
+SFX_AudioSample_5:		; Memory Address ($57AA6) and binary offset [$57722]
 	dc.b	'FORM'	;464F524D
 	dc.b	$00	;00
 	dc.b	$00	;00
@@ -183790,7 +183880,7 @@ SFX_AudioSample_5:
 	dc.b	$15	;15
 	dc.b	$15	;15
 	dc.b	$0C	;0C
-ReserveSpace_1:
+ReserveSpace_1:		; Memory Address ($58C10) and binary offset [$5888C]
 	dc.b	$00	;00
 	dc.b	$00	;00
 	dc.b	$00	;00
@@ -184791,7 +184881,7 @@ ReserveSpace_1:
 	dc.b	$00	;00
 	dc.b	$00	;00
 	dc.b	$00	;00
-ReserveSpace_2:
+ReserveSpace_2:		; Memory Address ($58828) and binary offset [$584A4]
 	dc.b	$00	;00
 	dc.b	$00	;00
 	dc.b	$00	;00

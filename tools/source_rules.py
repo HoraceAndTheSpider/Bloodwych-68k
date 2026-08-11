@@ -22,6 +22,13 @@ SYMBOL = re.compile(r"^[A-Za-z_][A-Za-z0-9_]*$")
 LABEL_DEFINITION = re.compile(r"^\s*([A-Za-z_?.$][\w?.$]*):", re.IGNORECASE)
 
 
+def _contains_symbol(expression: str, symbol: str) -> bool:
+    """Return whether an operand expression contains ``symbol`` as a token."""
+
+    pattern = rf"(?<![A-Za-z0-9_$]){re.escape(symbol)}(?![A-Za-z0-9_$])"
+    return re.search(pattern, expression, re.IGNORECASE) is not None
+
+
 @dataclass(frozen=True)
 class EquateDefinition:
     profile: str
@@ -115,6 +122,7 @@ def load_source_metadata(
             "scope_end",
             "source_match",
             "expected_opcode",
+            "expected_matches",
             "source_replace",
             "status",
             "source_comment",
@@ -185,6 +193,19 @@ def load_source_metadata(
             raise ToolError(
                 f"EQUATES row {excel_row} cannot change the instruction mnemonic"
             )
+        replacement_operands = replacement_parts[1]
+        if not _contains_symbol(replacement_operands, name):
+            raise ToolError(
+                f"EQUATES row {excel_row} source_replace must reference "
+                f"equ_name '{name}'"
+            )
+        expected_matches = parse_int(row.get("expected_matches"))
+        if expected_matches is None:
+            expected_matches = 1
+        if expected_matches < 1:
+            raise ToolError(
+                f"EQUATES row {excel_row} requires expected_matches >= 1"
+            )
         rules.append(
             SourceRule(
                 profile=row_profile,
@@ -196,8 +217,8 @@ def load_source_metadata(
                 mnemonic=match_parts[0],
                 match_operands=match_parts[1],
                 expected_opcode=cell_text(row, "expected_opcode"),
-                replacement_operands=replacement_parts[1],
-                expected_matches=1,
+                replacement_operands=replacement_operands,
+                expected_matches=expected_matches,
                 status=status,
                 source_comment=cell_text(row, "source_comment"),
                 notes=cell_text(row, "notes"),

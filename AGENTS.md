@@ -134,10 +134,10 @@ Labels cannot be physically inserted inside an `INCBIN`. When code refers to an 
 The `Equates` sheet is for semantic constants and stable source substitutions that are not necessarily disassembly address labels. Its maintained columns are:
 
 ```text
-profile | equ_name | equ_value | scope_start | scope_end | source_match | expected_opcode | source_replace | status | source_comment | notes
+profile | equ_name | equ_value | scope_start | scope_end | source_match | expected_opcode | source_replace | expected_matches | status | source_comment | notes
 ```
 
-Use stable routine labels plus an exact source/instruction match; never use mutable ASM line numbers. A literal such as `#$40` must not be replaced globally because it may mean Zendik in one routine and an unrelated value elsewhere.
+Use stable routine labels plus an exact source/instruction match; never use mutable ASM line numbers. `expected_matches` defaults to `1`; set it above `1` only when every matching instruction in the scope has been independently confirmed to use the same EQU. A literal such as `#$40` must not be replaced globally because it may mean Zendik in one routine and an unrelated value elsewhere.
 
 Only `verified` rows should affect generated source. `proposed` rows document candidates; `disabled` rows are retained but inactive. Repeating an `equ_name` for several verified uses is acceptable when the value is consistent and each source occurrence is independently scoped.
 
