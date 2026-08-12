@@ -38,306 +38,304 @@ wd_SIZEOF:		equ	$00000088
 dsklen:			equ	$00000024
 ac_len:			equ	$00000004
 ciacra:			equ	$00000E00
-; ReSource: generated EQU definitions from segments.xlsx/EQUATES
 Champion_Count:		equ	$10
-	; ReSource: Number of standard champions and champion-remains objects.
+	; Number of standard champions and champion-remains objects.
 ChampionPocket_BodyArmour:		equ	$02
-	; ReSource: Offset of the dedicated body-armour pocket.
+	; Offset of the dedicated body-armour pocket.
 ChampionPocket_CountedObjectCountsOffset:		equ	$0B
-	; ReSource: Base offset of the object-code-indexed counted-object quantities in a champion-pockets record.
+	; Base offset of the object-code-indexed counted-object quantities in a champion-pockets record.
 ChampionPocket_LastIndex:		equ	$0B
-	; ReSource: Highest ordinary pocket index in the twelve-pocket duplicate-removal scan.
+	; Highest ordinary pocket index in the twelve-pocket duplicate-removal scan.
 ChampionPocket_LeftHand:		equ	$00
-	; ReSource: Offset of the left-hand pocket in a sixteen-byte champion-pockets record.
+	; Offset of the left-hand pocket in a sixteen-byte champion-pockets record.
 ChampionPocket_RightHand:		equ	$01
-	; ReSource: Offset of the right-hand pocket in a champion-pockets record.
+	; Offset of the right-hand pocket in a champion-pockets record.
 ChampionPocket_Shield:		equ	$03
-	; ReSource: Offset of the dedicated shield pocket.
+	; Offset of the dedicated shield pocket.
 ChampionSelection_TableEntrySize:		equ	$04
-	; ReSource: Champion-selection action entries are longwords.
+	; Champion-selection action entries are longwords.
 ChampionStat_Charisma:		equ	$04
-	; ReSource: Offset of Charisma in a thirty-two-byte champion-stat record.
+	; Offset of Charisma in a thirty-two-byte champion-stat record.
 ChampionStat_FoodLevel:		equ	$10
-	; ReSource: Offset of food level in a character-stat record.
+	; Offset of food level in a character-stat record.
 ChampionStat_HitPointsCurrent:		equ	$05
-	; ReSource: Offset of current hit points in a 32-byte character-stat record.
+	; Offset of current hit points in a 32-byte character-stat record.
 ChampionStat_HitPointsMaximum:		equ	$06
-	; ReSource: Offset of maximum hit points in a character-stat record.
+	; Offset of maximum hit points in a character-stat record.
 ChampionStat_SpellCooldown:		equ	$15
-	; ReSource: Offset of the spell cooldown in a character-stat record.
+	; Offset of the spell cooldown in a character-stat record.
 ChampionStat_SpellPointsCurrent:		equ	$09
-	; ReSource: Offset of current spell points in a character-stat record.
+	; Offset of current spell points in a character-stat record.
 ChampionStat_SpellPointsMaximum:		equ	$0A
-	; ReSource: Offset of maximum spell points in a character-stat record.
+	; Offset of maximum spell points in a character-stat record.
 ChampionStat_VitalityCurrent:		equ	$07
-	; ReSource: Offset of current vitality in a character-stat record.
+	; Offset of current vitality in a character-stat record.
 ChampionStat_VitalityMaximum:		equ	$08
-	; ReSource: Offset of maximum vitality in a character-stat record.
+	; Offset of maximum vitality in a character-stat record.
 ChampionStat_WornHandArmour:		equ	$12
-	; ReSource: Offset of the worn hand-armour object in a champion-stat record.
+	; Offset of the worn hand-armour object in a champion-stat record.
 Character_ProfessionMask:		equ	$03
-	; ReSource: Low two bits used to select one of the four character professions.
+	; Low two bits used to select one of the four character professions.
 Combat_StrengthBias:		equ	$08
-	; ReSource: Internal Strength bias applied before physical-combat thresholds.
+	; Internal Strength bias applied before physical-combat thresholds.
 Comms_CharismaBaseline:		equ	$14
-	; ReSource: Charisma receives no initial communication bonus at or below this value.
+	; Charisma receives no initial communication bonus at or below this value.
 Comms_CharismaShift:		equ	$02
-	; ReSource: Right shift converting excess Charisma into an initial attitude bonus.
+	; Right shift converting excess Charisma into an initial attitude bonus.
 CommsAction_Boast:		equ	$18
-	; ReSource: Communication action selected by Boast.
+	; Communication action selected by Boast.
 CommsAction_Bribe:		equ	$08
-	; ReSource: Communication action selected by Bribe.
+	; Communication action selected by Bribe.
 CommsAction_Curse:		equ	$17
-	; ReSource: Communication action selected by Curse.
+	; Communication action selected by Curse.
 CommsAction_Exchange:		equ	$14
-	; ReSource: Communication action selected by Exchange.
+	; Communication action selected by Exchange.
 CommsAction_FolkLore:		equ	$0E
-	; ReSource: Communication action selected by Folk Lore.
+	; Communication action selected by Folk Lore.
 CommsAction_Greeting:		equ	$1A
-	; ReSource: Initial communication action used when a conversation begins.
+	; Initial communication action used when a conversation begins.
 CommsAction_Identify:		equ	$01
-	; ReSource: Communication action opening the Identify submenu.
+	; Communication action opening the Identify submenu.
 CommsAction_Inquiry:		equ	$02
-	; ReSource: Communication action opening the Inquiry submenu.
+	; Communication action opening the Inquiry submenu.
 CommsAction_MagicItems:		equ	$0F
-	; ReSource: Communication action selected by Magic Items.
+	; Communication action selected by Magic Items.
 CommsAction_NameSelf:		equ	$0C
-	; ReSource: Communication action selected by Name Self.
+	; Communication action selected by Name Self.
 CommsAction_No:		equ	$07
-	; ReSource: Communication action selected by No.
+	; Communication action selected by No.
 CommsAction_Objects:		equ	$10
-	; ReSource: Communication action selected by Objects.
+	; Communication action selected by Objects.
 CommsAction_Offer:		equ	$12
-	; ReSource: Communication action selected by Offer.
+	; Communication action selected by Offer.
 CommsAction_Persons:		equ	$11
-	; ReSource: Communication action selected by Persons.
+	; Communication action selected by Persons.
 CommsAction_Praise:		equ	$16
-	; ReSource: Communication action selected by Praise.
+	; Communication action selected by Praise.
 CommsAction_Purchase:		equ	$13
-	; ReSource: Communication action selected by Purchase.
+	; Communication action selected by Purchase.
 CommsAction_Recruit:		equ	$00
-	; ReSource: Communication action selected by Recruit.
+	; Communication action selected by Recruit.
 CommsAction_Retort:		equ	$19
-	; ReSource: Communication action selected for a contextual Retort.
+	; Communication action selected for a contextual Retort.
 CommsAction_RevealSelf:		equ	$0D
-	; ReSource: Communication action selected by Reveal Self.
+	; Communication action selected by Reveal Self.
 CommsAction_Sell:		equ	$15
-	; ReSource: Communication action selected by Sell.
+	; Communication action selected by Sell.
 CommsAction_Smalltalk:		equ	$05
-	; ReSource: Communication action opening the Smalltalk submenu.
+	; Communication action opening the Smalltalk submenu.
 CommsAction_Threat:		equ	$09
-	; ReSource: Communication action selected by Threat.
+	; Communication action selected by Threat.
 CommsAction_ThyTrade:		equ	$0B
-	; ReSource: Communication action selected by Thy Trade.
+	; Communication action selected by Thy Trade.
 CommsAction_Trading:		equ	$04
-	; ReSource: Communication action opening the Trading submenu.
+	; Communication action opening the Trading submenu.
 CommsAction_Whereabouts:		equ	$03
-	; ReSource: Communication action selected by Whereabouts.
+	; Communication action selected by Whereabouts.
 CommsAction_WhoGoes:		equ	$0A
-	; ReSource: Communication action selected by Who Goes.
+	; Communication action selected by Who Goes.
 CommsAction_Yes:		equ	$06
-	; ReSource: Communication action selected by Yes.
+	; Communication action selected by Yes.
 CommsState_AttitudeOffset:		equ	$06
-	; ReSource: Offset of mutable communication attitude or rapport.
+	; Offset of mutable communication attitude or rapport.
 CommsState_CurrentActionOffset:		equ	$01
-	; ReSource: Offset of the communication action currently being performed.
+	; Offset of the communication action currently being performed.
 CommsState_FlagsOffset:		equ	$05
-	; ReSource: Offset of communication record flags.
+	; Offset of communication record flags.
 CommsState_OtherCharacterOffset:		equ	$02
-	; ReSource: Offset of the addressed character identifier and its identity flags.
+	; Offset of the addressed character identifier and its identity flags.
 CommsState_PatienceOffset:		equ	$07
-	; ReSource: Offset of communication patience or remaining engagement.
+	; Offset of communication patience or remaining engagement.
 CommsState_PreviousActionOffset:		equ	$00
-	; ReSource: Offset of the action to which the other character is responding.
+	; Offset of the action to which the other character is responding.
 CommsState_SpeakerIdentityOffset:		equ	$03
-	; ReSource: Offset of the speaker identifier and disclosed-name/profession flags.
+	; Offset of the speaker identifier and disclosed-name/profession flags.
 CommsState_TimerOffset:		equ	$04
-	; ReSource: Offset of the communication activity timer reset after an action.
+	; Offset of the communication activity timer reset after an action.
 CommsState_TradeModeOffset:		equ	$08
-	; ReSource: Offset of the active communication trading mode.
+	; Offset of the active communication trading mode.
 CommsState_TradeObjectOffset:		equ	$0A
-	; ReSource: Offset of the object code involved in the active trade.
+	; Offset of the object code involved in the active trade.
 CommsState_TradeValueOffset:		equ	$09
-	; ReSource: Offset of the quoted or accepted trade value.
+	; Offset of the quoted or accepted trade value.
 CommsTradeMode_Exchange:		equ	$02
-	; ReSource: Exchange communication mode.
+	; Exchange communication mode.
 CommsTradeMode_None:		equ	$00
-	; ReSource: No communication trade is pending.
+	; No communication trade is pending.
 CommsTradeMode_Purchase:		equ	$01
-	; ReSource: Purchase communication mode.
+	; Purchase communication mode.
 CommsTradeMode_Sell:		equ	$03
-	; ReSource: Sell communication mode.
+	; Sell communication mode.
 DiskReadTimeoutCount:		equ	$000186A0
-	; ReSource: Disk-read timeout counter used while waiting for DMA completion.
+	; Disk-read timeout counter used while waiting for DMA completion.
 Food_DrinkPortionValue:		equ	$14
-	; ReSource: Food-level increase for each `$0E-$13` drink portion.
+	; Food-level increase for each `$0E-$13` drink portion.
 Food_LevelLimitExclusive:		equ	$C8
-	; ReSource: Exclusive upper limit used before clamping food level to `$C7`.
+	; Exclusive upper limit used before clamping food level to `$C7`.
 Food_LevelMaximum:		equ	$C7
-	; ReSource: Highest stored character food level.
+	; Highest stored character food level.
 Food_PortionGroupSize:		equ	$03
-	; ReSource: Number of visual consumption stages in each portioned-food family.
+	; Number of visual consumption stages in each portioned-food family.
 Food_SolidPortionValue:		equ	$20
-	; ReSource: Food-level increase for each `$05-$0D` solid-food portion.
+	; Food-level increase for each `$05-$0D` solid-food portion.
 Food_WholeValueStep:		equ	$42
-	; ReSource: Food-level step applied once, twice or three times by objects `$14-$16`.
+	; Food-level step applied once, twice or three times by objects `$14-$16`.
 HeldItem_ObjectCodeByteOffset:		equ	$2F
-	; ReSource: Offset of the low byte of the currently held object code.
+	; Offset of the low byte of the currently held object code.
 HeldItem_ObjectCodeOffset:		equ	$2E
-	; ReSource: Offset of the currently held object code in the interface state.
+	; Offset of the currently held object code in the interface state.
 HeldItem_QuantityByteOffset:		equ	$2D
-	; ReSource: Offset of the low byte of the held-object quantity.
+	; Offset of the low byte of the held-object quantity.
 HeldItem_QuantityOffset:		equ	$2C
-	; ReSource: Offset of the held-object quantity word in player interface state.
+	; Offset of the held-object quantity word in player interface state.
 HeldItem_StateOffset:		equ	$2C
-	; ReSource: Offset of the four-byte held-item state containing the quantity word followed by the object-code word.
+	; Offset of the four-byte held-item state containing the quantity word followed by the object-code word.
 InterfaceAction_BackLeftChampion:		equ	$09
-	; ReSource: Selects the back-left champion icon.
+	; Selects the back-left champion icon.
 InterfaceAction_BackRightChampion:		equ	$08
-	; ReSource: Selects the back-right champion icon.
+	; Selects the back-right champion icon.
 InterfaceAction_Display:		equ	$10
-	; ReSource: Displays the dungeon view.
+	; Displays the dungeon view.
 InterfaceAction_FrontLeftChampion:		equ	$06
-	; ReSource: Selects the front-left champion icon.
+	; Selects the front-left champion icon.
 InterfaceAction_FrontRightChampion:		equ	$07
-	; ReSource: Selects the front-right champion icon.
+	; Selects the front-right champion icon.
 InterfaceAction_Inventory:		equ	$03
-	; ReSource: Opens the inventory window.
+	; Opens the inventory window.
 InterfaceAction_InventoryObject:		equ	$12
-	; ReSource: Handles the selected inventory object.
+	; Handles the selected inventory object.
 InterfaceAction_InventoryRefresh:		equ	$11
-	; ReSource: Refreshes the inventory.
+	; Refreshes the inventory.
 InterfaceAction_LoadSave:		equ	$1D
-	; ReSource: Opens the load/save interface.
+	; Opens the load/save interface.
 InterfaceAction_MoveBackward:		equ	$0B
-	; ReSource: Moves the party backward.
+	; Moves the party backward.
 InterfaceAction_MoveForward:		equ	$0A
-	; ReSource: Base dungeon action added to the raw-key index so keyboard movement begins with Move Forward.
+	; Base dungeon action added to the raw-key index so keyboard movement begins with Move Forward.
 InterfaceAction_MoveLeft:		equ	$0C
-	; ReSource: Moves the party left.
+	; Moves the party left.
 InterfaceAction_MoveRight:		equ	$0D
-	; ReSource: Moves the party right.
+	; Moves the party right.
 InterfaceAction_MultiFunction:		equ	$02
-	; ReSource: Context-sensitive command that can open a door.
+	; Context-sensitive command that can open a door.
 InterfaceAction_Pause:		equ	$1C
-	; ReSource: Pauses the game.
+	; Pauses the game.
 InterfaceAction_PotionFood:		equ	$13
-	; ReSource: Handles potion or food inventory actions.
+	; Handles potion or food inventory actions.
 InterfaceAction_PrimaryAttack:		equ	$04
-	; ReSource: Primary attack command.
+	; Primary attack command.
 InterfaceAction_RotateLeft:		equ	$0E
-	; ReSource: Rotates the party left.
+	; Rotates the party left.
 InterfaceAction_RotateRight:		equ	$0F
-	; ReSource: Rotates the party right.
+	; Rotates the party right.
 InterfaceAction_Stats:		equ	$01
-	; ReSource: Opens the statistics window.
+	; Opens the statistics window.
 InterfaceAction_TableEntryShift:		equ	$02
-	; ReSource: Shift count converting an interface action index into a four-byte jump-table offset.
+	; Shift count converting an interface action index into a four-byte jump-table offset.
 InterfaceAction_TableEntrySize:		equ	$04
-	; ReSource: Size in bytes of each dungeon action-table entry.
+	; Size in bytes of each dungeon action-table entry.
 InterfaceAction_WallClick:		equ	$23
-	; ReSource: Handles a clicked wall feature.
+	; Handles a clicked wall feature.
 InterfaceAction_WallFeature:		equ	$24
-	; ReSource: Direct contextual wall-feature action, including door interaction.
+	; Direct contextual wall-feature action, including door interaction.
 InterfaceMode_Communication:		equ	$08
-	; ReSource: Interface mode value active while communicating with another character.
+	; Interface mode value active while communicating with another character.
 Object_AceOfSwords:		equ	$37
-	; ReSource: Ace of Swords object code.
+	; Ace of Swords object code.
 Object_Armour_First:		equ	$1B
-	; ReSource: First body-armour object and exclusive end of potions.
+	; First body-armour object and exclusive end of potions.
 Object_Arrows_First:		equ	$03
-	; ReSource: First arrow object code.
+	; First arrow object code.
 Object_Axes_First:		equ	$38
-	; ReSource: First axe object.
+	; First axe object.
 Object_Blades_First:		equ	$30
-	; ReSource: First blade object and exclusive end of gloves.
+	; First blade object and exclusive end of gloves.
 Object_BookOfSkulls:		equ	$6D
-	; ReSource: Book of Skulls object and exclusive end of magic rings.
+	; Book of Skulls object and exclusive end of magic rings.
 Object_Bows_First:		equ	$5C
-	; ReSource: First bow object.
+	; First bow object.
 Object_ChaosGloves:		equ	$2B
-	; ReSource: Chaos Gloves object code.
+	; Chaos Gloves object code.
 Object_Coinage:		equ	$01
-	; ReSource: Coinage object code.
+	; Coinage object code.
 Object_CommonKeys:		equ	$02
-	; ReSource: Common-key object code.
+	; Common-key object code.
 Object_Crystals_First:		equ	$60
-	; ReSource: First crystal object.
+	; First crystal object.
 Object_DepletedRing:		equ	$68
-	; ReSource: Depleted-ring object code.
+	; Depleted-ring object code.
 Object_Drinks_First:		equ	$0E
-	; ReSource: First drink-like food object.
+	; First drink-like food object.
 Object_EmptySlot:		equ	$00
-	; ReSource: Empty object-slot code.
+	; Empty object-slot code.
 Object_Food_First:		equ	$05
-	; ReSource: First food object and exclusive end of counted objects.
+	; First food object and exclusive end of counted objects.
 Object_Gems_First:		equ	$64
-	; ReSource: First gem object.
+	; First gem object.
 Object_Gloves_First:		equ	$2B
-	; ReSource: First glove object and exclusive end of all shields.
+	; First glove object and exclusive end of all shields.
 Object_Keys_First:		equ	$50
-	; ReSource: First named-key object.
+	; First named-key object.
 Object_LargeShields_First:		equ	$27
-	; ReSource: First large-shield object.
+	; First large-shield object.
 Object_MagicRings_First:		equ	$69
-	; ReSource: First rechargeable magic-ring object.
+	; First rechargeable magic-ring object.
 Object_Neggs_First:		equ	$14
-	; ReSource: First high-value N'Egg food object.
+	; First high-value N'Egg food object.
 Object_Permit:		equ	$5F
-	; ReSource: Permit object and exclusive end of bows.
+	; Permit object and exclusive end of bows.
 Object_PocketGraphicBankSize:		equ	$14
-	; ReSource: Number of pocket graphics in each source-bank step.
+	; Number of pocket graphics in each source-bank step.
 Object_Potions_First:		equ	$17
-	; ReSource: First potion object code and exclusive end of food.
+	; First potion object code and exclusive end of food.
 Object_PowerStaff:		equ	$3F
-	; ReSource: Power Staff object code.
+	; Power Staff object code.
 Object_Remains_First:		equ	$40
-	; ReSource: First champion-remains object and first normally non-tradable object.
+	; First champion-remains object and first normally non-tradable object.
 Object_Rings_First:		equ	$68
-	; ReSource: First member of the complete ring family.
+	; First member of the complete ring family.
 Object_SmallShields_First:		equ	$24
-	; ReSource: First small-shield object and exclusive end of body armour.
+	; First small-shield object and exclusive end of body armour.
 Object_StackLimitExclusive:		equ	$64
-	; ReSource: Exclusive counted-object quantity limit.
+	; Exclusive counted-object quantity limit.
 Object_StackMaximum:		equ	$63
-	; ReSource: Highest stored quantity for a counted object.
+	; Highest stored quantity for a counted object.
 Object_Staffs_First:		equ	$3D
-	; ReSource: First staff object.
+	; First staff object.
 Object_Swords_First:		equ	$32
-	; ReSource: First sword object.
+	; First sword object.
 Object_TradeValueTable_First:		equ	$14
-	; ReSource: First object represented by the trade-value lookup table.
+	; First object represented by the trade-value lookup table.
 Object_Wands_First:		equ	$57
-	; ReSource: First wand object.
+	; First wand object.
 PhysicalAttack_CooldownInitial:		equ	$07
-	; ReSource: Initial cooldown written whenever a champion performs a physical attack.
+	; Initial cooldown written whenever a champion performs a physical attack.
 PhysicalAttack_VitalityCost:		equ	$03
-	; ReSource: Vitality removed when champion combat values are loaded for physical combat.
+	; Vitality removed when champion combat values are loaded for physical combat.
 Player_ActionCommandOffset:		equ	$0C
-	; ReSource: Offset of the active per-player interface command.
+	; Offset of the active per-player interface command.
 Player_ActionInvalid:		equ	$FFFF
-	; ReSource: Value meaning no active action.
+	; Value meaning no active action.
 Player_AttackPrimaryStateBit:		equ	$01
-	; ReSource: State bit set by the primary attack handler.
+	; State bit set by the primary attack handler.
 Player_PendingActionOffset:		equ	$56
-	; ReSource: Offset of the pending action byte written by keyboard input.
+	; Offset of the pending action byte written by keyboard input.
 PowerStaff_SpellCastingBonus:		equ	$05
-	; ReSource: Spell-casting quality bonus supplied by a held Power Staff.
+	; Spell-casting quality bonus supplied by a held Power Staff.
 SpellCasting_VitalityCost:		equ	$04
-	; ReSource: Vitality removed when a champion launches a spell.
+	; Vitality removed when a champion launches a spell.
 Weapon_AceOfSwordsRecordOffset:		equ	$1C
-	; ReSource: Byte offset of the Ace of Swords record within Weapon_CombatModifiers.
+	; Byte offset of the Ace of Swords record within Weapon_CombatModifiers.
 Weapon_BackstabEligibleByteLimit:		equ	$08
-	; ReSource: Exclusive byte-offset limit for weapon records which preserve a Cutpurse backstab.
+	; Exclusive byte-offset limit for weapon records which preserve a Cutpurse backstab.
 Weapon_CombatModifierRecordCount:		equ	$10
-	; ReSource: Number of four-byte records in Weapon_CombatModifiers.
+	; Number of four-byte records in Weapon_CombatModifiers.
 WornSpell_Beguile_BaseBonus:		equ	$01
-	; ReSource: Minimum attitude and patience bonus supplied by a successful Beguile spell.
+	; Minimum attitude and patience bonus supplied by a successful Beguile spell.
 WornSpell_Beguile_PowerShift:		equ	$02
-	; ReSource: Right shift converting Beguile spell power into its communication bonus.
+	; Right shift converting Beguile spell power into its communication bonus.
 WornSpell_Warpower:		equ	$02
-	; ReSource: Low three-bit worn-spell type used for Warpower.
-; ReSource: end generated EQU definitions
+	; Low three-bit worn-spell type used for Warpower.
 
 ****************************************************************************
 
@@ -730,7 +728,7 @@ SpellsPracticed_ClearEntriesLoop_AI_TBC:		; Memory Address ($08EA) and binary of
 	rts	;4E75
 
 Initialize_SpellPracticeThresholds:		; Memory Address ($08F2) and binary offset [$056E]
-	; ReSource: Initialises calculated spell-practice values for all sixteen champion records.
+	; Initialises calculated spell-practice values for all sixteen champion records.
 	moveq	#$0F,d7	;7E0F
 SpellPractice_ThresholdLoop:		; Memory Address ($08F4) and binary offset [$0570]
 	move.w	d7,d0	;3007
@@ -740,7 +738,7 @@ SpellPractice_ThresholdLoop:		; Memory Address ($08F4) and binary offset [$0570]
 	rts	;4E75
 
 Calculate_SpellPracticeThreshold:		; Memory Address ($0904) and binary offset [$0580]
-	; ReSource: Calculates a champion's spell-practice threshold from Wizard-weighted level and half Intelligence, clamped to $63.
+	; Calculates a champion's spell-practice threshold from Wizard-weighted level and half Intelligence, clamped to $63.
 	move.w	d0,d1	;3200
 	bsr	Load_ChampionStatRecord	;61005D58
 	bsr.s	Calculate_WizardLevelContribution	;6132
@@ -752,12 +750,12 @@ Calculate_SpellPracticeThreshold:		; Memory Address ($0904) and binary offset [$
 	bcs.s	SpellPractice_StoreThreshold	;6502
 	moveq	#$63,d0	;7063
 SpellPractice_StoreThreshold:		; Memory Address ($091E) and binary offset [$059A]
-	; ReSource: Stores the calculated spell-practice threshold in the champion record.
+	; Stores the calculated spell-practice threshold in the champion record.
 	move.b	d0,$000A(a4)	;1940000A
 	rts	;4E75
 
 Calculate_WarriorLevelContribution:		; Memory Address ($0924) and binary offset [$05A0]
-	; ReSource: Calculates the Warrior-weighted contribution of a champion's level.
+	; Calculates the Warrior-weighted contribution of a champion's level.
 	and.w	#$0003,d1	;02410003
 	move.b	WarriorLevel_ChampionTypeShifts(pc,d1.w),d1	;123B1010
 	bpl.s	Calculate_ShiftedChampionLevel	;6A26
@@ -769,38 +767,38 @@ Calculate_WarriorLevelContribution:		; Memory Address ($0924) and binary offset 
 	rts	;4E75
 
 WarriorLevel_ChampionTypeShifts:		; Memory Address ($093A) and binary offset [$05B6]
-	; ReSource: Selects full, quarter or special three-quarter level weighting for each champion type.
+	; Selects full, quarter or special three-quarter level weighting for each champion type.
 	dc.b	$00	;00
 	dc.b	$02	;02
 	dc.b	$FF	;FF
 	dc.b	$02	;02
 
 Calculate_WizardLevelContribution:		; Memory Address ($093E) and binary offset [$05BA]
-	; ReSource: Calculates the Wizard-weighted contribution of a champion's level.
+	; Calculates the Wizard-weighted contribution of a champion's level.
 	and.w	#$0003,d1	;02410003
 	move.b	WizardLevel_ChampionTypeShifts(pc,d1.w),d1	;123B1004
 	bra.s	Calculate_ShiftedChampionLevel	;600C
 
 WizardLevel_ChampionTypeShifts:		; Memory Address ($0948) and binary offset [$05C4]
-	; ReSource: Selects quarter, full or half Wizard-level weighting for each champion type.
+	; Selects quarter, full or half Wizard-level weighting for each champion type.
 	dc.b	$02	;02
 	dc.b	$00	;00
 	dc.b	$01	;01
 	dc.b	$02	;02
 
 Calculate_CutpurseLevelContribution:		; Memory Address ($094C) and binary offset [$05C8]
-	; ReSource: Calculates the Cutpurse-weighted contribution of a champion's level.
+	; Calculates the Cutpurse-weighted contribution of a champion's level.
 	and.w	#$0003,d1	;02410003
 	move.b	CutpurseLevel_ChampionTypeShifts(pc,d1.w),d1	;123B100A
 Calculate_ShiftedChampionLevel:		; Memory Address ($0954) and binary offset [$05D0]
-	; ReSource: Loads the champion's level and applies the selected right-shift weighting.
+	; Loads the champion's level and applies the selected right-shift weighting.
 	moveq	#$00,d0	;7000
 	move.b	(a4),d0	;1014
 	lsr.w	d1,d0	;E268
 	rts	;4E75
 
 CutpurseLevel_ChampionTypeShifts:		; Memory Address ($095C) and binary offset [$05D8]
-	; ReSource: Selects quarter, half or full Cutpurse-level weighting for each champion type.
+	; Selects quarter, half or full Cutpurse-level weighting for each champion type.
 	dc.b	$02	;02
 	dc.b	$02	;02
 	dc.b	$01	;01
@@ -829,12 +827,12 @@ Map_Traps_ProcessingDone_AI_TBC:		; Memory Address ($0994) and binary offset [$0
 	rts	;4E75
 
 PrepareCharacters:
-	; ReSource: Initialises all sixteen champion-stat records for the current tower, recalculates derived values, and marks placed champions on the working map.
+	; Initialises all sixteen champion-stat records for the current tower, recalculates derived values, and marks placed champions on the working map.
 	bsr	Select_CurrentTowerMapData	;610001D0
 	lea	Character_Stats_DataTable.l,a4	;49F90000EB2A
 	moveq	#$0F,d6	;7C0F
 PrepareCharacters_ChampionLoop:
-	; ReSource: Processes the sixteen champion records in table order.
+	; Processes the sixteen champion records in table order.
 	clr.b	$0011(a4)	;422C0011
 	move.b	#$FF,$0013(a4)	;197C00FF0013
 	clr.b	$001E(a4)	;422C001E
@@ -855,24 +853,24 @@ PrepareCharacters_ChampionLoop:
 	bsr	CoordToMap	;61007AB6
 	bset	#$07,$01(a6,d0.w)	;08F600070001
 .PrepareCharacters_NextChampion:		; Memory Address ($09EE) and binary offset [$066A]
-	; ReSource: Advances to the next champion record after the optional map update.
+	; Advances to the next champion record after the optional map update.
 	add.w	#$0020,a4	;D8FC0020
 	dbra	d6,PrepareCharacters_ChampionLoop	;51CEFFAE
 UnpackTowerMonsters:		; Memory Address ($09F6) and binary offset [$0672]
-	; ReSource: Clears transient state and expands the current tower’s packed monster records into live records.
+	; Clears transient state and expands the current tower’s packed monster records into live records.
 	bsr	Map_Traps_InitProcessing_AI_TBC	;6100FF68
 	lea	MonsterTeamIndexTable.l,a4	;49F900017390
 	moveq	#-$01,d6	;7CFF
 	move.w	d6,-$0002(a4)	;3946FFFE
 	moveq	#$18,d0	;7018
 .ClearMonsterTeamIndexLoop:		; Memory Address ($0A08) and binary offset [$0684]
-	; ReSource: Clears the twenty-five four-member team slots.
+	; Clears the twenty-five four-member team slots.
 	move.l	d6,(a4)+	;28C6
 	dbra	d0,.ClearMonsterTeamIndexLoop	;51C8FFFC
 	lea	UnpackedMonsters.l,a4	;49F900016B7E
 	move.w	#$01FF,d0	;303C01FF
 .ClearLiveMonsterRecordsLoop:
-	; ReSource: Clears the live-monster workspace before unpacking.
+	; Clears the live-monster workspace before unpacking.
 	move.l	d6,(a4)+	;28C6
 	dbra	d0,.ClearLiveMonsterRecordsLoop	;51C8FFFC
 	move.w	CurrentTower.l,d0	;30390000EE2E
@@ -889,7 +887,7 @@ UnpackTowerMonsters:		; Memory Address ($09F6) and binary offset [$0672]
 	add.w	d0,a3	;D6C0
 	moveq	#$00,d4	;7800
 .UnpackNextMonsterRecord:
-	; ReSource: Expands one packed six-byte monster record into a sixteen-byte live record.
+	; Expands one packed six-byte monster record into a sixteen-byte live record.
 	clr.b	$0005(a4)	;422C0005
 	clr.b	$0002(a4)	;422C0002
 	move.b	(a3)+,d0	;101B
@@ -911,7 +909,7 @@ UnpackTowerMonsters:		; Memory Address ($09F6) and binary offset [$0672]
 	bsr	CoordToMap	;61007A16
 	bset	#$07,$01(a6,d0.w)	;08F600070001
 .MonsterPositionHandled:		; Memory Address ($0A8E) and binary offset [$070A]
-	; ReSource: Continues after packed-coordinate map handling.
+	; Continues after packed-coordinate map handling.
 	moveq	#$00,d0	;7000
 	move.b	(a3)+,d0			;101B
 	move.b	d0,$0006(a4)			;19400006
@@ -922,10 +920,10 @@ UnpackTowerMonsters:		; Memory Address ($09F6) and binary offset [$0672]
 	cmpi.b	#$08,d1				;0C010008
 	bcc.s	.StoreActionCountdown		;6402
 .UseMinimumActionCountdown:		; Memory Address ($0AA6) and binary offset [$0722]
-	; ReSource: Uses the minimum encoded action countdown.
+	; Uses the minimum encoded action countdown.
 	moveq	#$08,d1	;7208
 .StoreActionCountdown:		; Memory Address ($0AA8) and binary offset [$0724]
-	; ReSource: Stores the level-derived action countdown.
+	; Stores the level-derived action countdown.
 	asl.b	#$04,d1	;E901
 	move.b	d1,$0003(a4)	;19410003
 	move.w	#$0190,d1	;323C0190
@@ -936,7 +934,7 @@ UnpackTowerMonsters:		; Memory Address ($09F6) and binary offset [$0672]
 	bcc.s	.StoreStartingHitPoints	;6404
 	move.b	MonsterLevelHitPointMultipliers(pc,d0.w),d1	;123B005E
 .StoreStartingHitPoints:		; Memory Address ($0AC6) and binary offset [$0742]
-	; ReSource: Calculates starting hit points from the monster level.
+	; Calculates starting hit points from the monster level.
 	mulu	d1,d0	;C0C1
 	add.w	#$0019,d0	;06400019
 	move.w	d0,$0008(a4)	;39400008
@@ -946,12 +944,12 @@ UnpackTowerMonsters:		; Memory Address ($09F6) and binary offset [$0672]
 	bra.s	.StoreTeamData	;600E
 
 .CheckCarriedObject:
-	; ReSource: Checks the special form that receives a fixed carried object.
+	; Checks the special form that receives a fixed carried object.
 	cmp.b	#$40,$000B(a4)	;0C2C0040000B	;
 	bne.s	.StoreTeamData	;6606
 	move.b	#$37,$000C(a4)	;197C0037000C
 .StoreTeamData:		; Memory Address ($0AEC) and binary offset [$0768]
-	; ReSource: Stores the team-group index derived from packed team-data.
+	; Stores the team-group index derived from packed team-data.
 	moveq	#$00,d0	;7000
 	move.b	(a3)+,d0	;101B
 	cmpi.b	#$FF,d0	;0C0000FF
@@ -966,14 +964,14 @@ UnpackTowerMonsters:		; Memory Address ($09F6) and binary offset [$0672]
 	lsr.b	#$02,d0	;E408
 	move.b	d0,$000D(a4)	;1940000D
 .AdvanceToNextMonster:		; Memory Address ($0B16) and binary offset [$0792]
-	; ReSource: Advances to the next packed and live monster record.
+	; Advances to the next packed and live monster record.
 	add.w	#$0010,a4	;D8FC0010
 	addq.w	#$01,d4	;5244
 	dbra	d6,.UnpackNextMonsterRecord	;51CEFF30
 	rts	;4E75
 
 MonsterLevelHitPointMultipliers:		; Memory Address ($0B22) and binary offset [$079E]
-	; ReSource: Per-level hit-point multipliers for lower monster levels.
+	; Per-level hit-point multipliers for lower monster levels.
 	dc.b	$00	;00
 	dc.b	$32	;32
 	dc.b	$37	;37
@@ -992,7 +990,7 @@ MonsterLevelHitPointMultipliers:		; Memory Address ($0B22) and binary offset [$0
 	dc.b	$DC	;DC
 
 TransferChampionStartPosition:		; Memory Address ($0B32) and binary offset [$07AE]
-	; ReSource: Copies a champion’s saved start position into the active player record.
+	; Copies a champion’s saved start position into the active player record.
 	bsr	Load_CurrentChampionStatRecord	;61005B28
 	moveq	#$00,d0	;7000
 	move.b	$0016(a4),d0	;102C0016
@@ -1007,11 +1005,11 @@ TransferChampionStartPosition:		; Memory Address ($0B32) and binary offset [$07A
 	move.b	$001A(a4),d0	;102C001A
 	move.w	d0,$0058(a5)	;3B400058
 .NoChampionStartPosition:		; Memory Address ($0B66) and binary offset [$07E2]
-	; ReSource: Returns when the champion has no saved position.
+	; Returns when the champion has no saved position.
 	rts	;4E75
 
 Select_CurrentTowerMapData:		; Memory Address ($0B68) and binary offset [$07E4]
-	; ReSource: Copies the selected tower’s map-pointer block into working memory.
+	; Copies the selected tower’s map-pointer block into working memory.
 	move.w	CurrentTower.l,d0	;30390000EE2E
 	add.w	d0,d0	;D040
 	lea	Current_TowerMapOffsets.l,a0	;41F900000B96
@@ -1020,14 +1018,14 @@ Select_CurrentTowerMapData:		; Memory Address ($0B68) and binary offset [$07E4]
 	lea	Current_TowerMapHeaderCache.l,a0	;41F90000EE40
 	moveq	#$0D,d0	;700D
 .CopyCurrentTowerMapPointerLoop:		; Memory Address ($0B88) and binary offset [$0804]
-	; ReSource: Copies the fourteen map pointers for the selected tower.
+	; Copies the fourteen map pointers for the selected tower.
 	move.l	(a6)+,(a0)+	;20DE
 	dbra	d0,.CopyCurrentTowerMapPointerLoop	;51C8FFFC
 	move.l	a6,Current_TowerMapDataBase.l	;23CE0000EE78
 	rts	;4E75
 
 Current_TowerMapOffsets:
-	; ReSource: Six word offsets selecting the map resource for CurrentTower values 0 through 5. The offsets are relative to MapData1 and include the intervening tower-specific object data. Relative offsets from MapData1 to each tower map-pointer block.
+	; Six word offsets selecting the map resource for CurrentTower values 0 through 5. The offsets are relative to MapData1 and include the intervening tower-specific object data. Relative offsets from MapData1 to each tower map-pointer block.
 	dc.w	MapData1-MapData1	;0000
 	dc.w	MapData2-MapData1	;1402
 	dc.w	MapData3-MapData1	;2804
@@ -4054,12 +4052,12 @@ adrLp002B3E:		; Memory Address ($2B3E) and binary offset [$27BA]
 	bra	Call_DoorToggleRoutine_AI_TBC	;6000FEC6
 
 Bow_ActionBitShiftCounts:		; Memory Address ($2B80) and binary offset [$27FC]
-	; ReSource: Selects the bit shift applied by each of the three bow object types.
+	; Selects the bit shift applied by each of the three bow object types.
 	dc.b	$01	;01
 	dc.b	$00	;00
 	dc.b	$01	;01
 Bow_ActionValueAdjustments:		; Memory Address ($2B83) and binary offset [$27FF]
-	; ReSource: Adds the final per-bow adjustment after the bow action value is shifted.
+	; Adds the final per-bow adjustment after the bow action value is shifted.
 	dc.b	$00	;00
 	dc.b	$00	;00
 	dc.b	$01	;01
@@ -4170,7 +4168,7 @@ adrCd002C98:		; Memory Address ($2C98) and binary offset [$2914]
 	rts	;4E75
 
 Comms_ResponseHandlerOffsets:		; Memory Address ($2CAE) and binary offset [$292A]
-	; ReSource: Selects the response handler for the other character's preceding communication action.
+	; Selects the response handler for the other character's preceding communication action.
 	dc.w	Comms_Respond_Recruit-Comms_Respond_Recruit	;0000
 	dc.w	adrJA002C96-Comms_Respond_Recruit	;FFB2
 	dc.w	adrJA002C96-Comms_Respond_Recruit	;FFB2
@@ -4200,7 +4198,7 @@ Comms_ResponseHandlerOffsets:		; Memory Address ($2CAE) and binary offset [$292A
 	dc.w	Comms_Respond_Greeting-Comms_Respond_Recruit	;03EE
 
 Comms_Respond_Recruit:		; Memory Address ($2CE4) and binary offset [$2960]
-	; ReSource: Handles the other character's response to Recruit, including attitude, patience and party-capacity checks.
+	; Handles the other character's response to Recruit, including attitude, patience and party-capacity checks.
 	tst.b	$0007(a4)	;4A2C0007
 	bmi	Comms_RespondWithRetort	;6B0000BC
 	cmpi.b	#$10,d0	;0C000010
@@ -4267,13 +4265,13 @@ adrCd002D9E:		; Memory Address ($2D9E) and binary offset [$2A1A]
 	bra.s	adrCd002D34	;608E
 
 Comms_RespondWithRetort:
-	; ReSource: Routes an action to the contextual Retort reply generator.
+	; Routes an action to the contextual Retort reply generator.
 	moveq	#CommsAction_Retort,d1	;7219
 adrCd002DA8:		; Memory Address ($2DA8) and binary offset [$2A24]
 	bra	Comms_RunAction	;60000766
 
 Comms_Respond_LowAttitude:		; Memory Address ($2DAC) and binary offset [$2A28]
-	; ReSource: Selects a hostile or dismissive response when attitude is low.
+	; Selects a hostile or dismissive response when attitude is low.
 	moveq	#CommsAction_Threat,d1	;7209
 	tst.b	$0007(a4)	;4A2C0007
 	bmi.s	adrCd002DA8	;6BF4
@@ -4282,7 +4280,7 @@ Comms_Respond_LowAttitude:		; Memory Address ($2DAC) and binary offset [$2A28]
 	bra.s	Comms_RespondWithRetort	;60E8
 
 Comms_Respond_WhoGoesOrNameSelf:		; Memory Address ($2DBE) and binary offset [$2A3A]
-	; ReSource: Responds to identity questions, revealing a champion name or special monster identity when permitted.
+	; Responds to identity questions, revealing a champion name or special monster identity when permitted.
 	moveq	#CommsAction_NameSelf,d1	;720C
 	cmpi.b	#$10,d0	;0C000010
 	bcs.s	adrCd002DA8	;65E2
@@ -4299,14 +4297,14 @@ NotNamed:
 	bra	adrCd002D34	;6000FF48
 
 Comms_Respond_ThyTradeOrRevealSelf:		; Memory Address ($2DEE) and binary offset [$2A6A]
-	; ReSource: Responds to profession questions, revealing a champion profession when applicable.
+	; Responds to profession questions, revealing a champion profession when applicable.
 	cmpi.b	#$10,d0	;0C000010
 	bcc.s	Comms_RespondWithRetort	;64B2
 	moveq	#CommsAction_RevealSelf,d1	;720D
 	bra.s	adrCd002DA8	;60B0
 
 Comms_Respond_Persons:		; Memory Address ($2DF8) and binary offset [$2A74]
-	; ReSource: Selects the response to the Persons inquiry according to attitude and randomness.
+	; Selects the response to the Persons inquiry according to attitude and randomness.
 	moveq	#-$02,d0	;70FE
 	cmp.b	#$0A,$0006(a4)	;0C2C000A0006
 	bcs.s	adrCd002E06	;6504
@@ -4320,7 +4318,7 @@ adrCd002E06:		; Memory Address ($2E06) and binary offset [$2A82]
 	bra.s	Comms_RespondWithRetort	;6094
 
 Comms_Respond_Offer:		; Memory Address ($2E12) and binary offset [$2A8E]
-	; ReSource: Handles acceptance and transfer of an offered held object or coinage.
+	; Handles acceptance and transfer of an offered held object or coinage.
 	cmpi.b	#$10,d0						;0C000010
 	bcs.s	Comms_RespondWithRetort					;658E
 	move.w	HeldItem_ObjectCodeOffset(a5),d1					;322D002E
@@ -4341,7 +4339,7 @@ adrCd002E36:		; Memory Address ($2E36) and binary offset [$2AB2]
 	jmp	(a0)	;4ED0
 
 Comms_TradeModeHandlerOffsets:		; Memory Address ($2E4A) and binary offset [$2AC6]
-	; ReSource: Selects transfer behaviour for the active purchase, exchange or sell mode.
+	; Selects transfer behaviour for the active purchase, exchange or sell mode.
 	dc.w	Comms_AcceptOfferedObject-Comms_AcceptOfferedObject	;0000
 	dc.w	Comms_BuyOfferedObject-Comms_AcceptOfferedObject	;0026
 	dc.w	Comms_ExchangeOfferedObject-Comms_AcceptOfferedObject	;0088
@@ -4352,7 +4350,7 @@ adrCd002E52:		; Memory Address ($2E52) and binary offset [$2ACE]
 	bra	Comms_RespondWithRetort	;6000FF4C
 
 Comms_AcceptOfferedObject:		; Memory Address ($2E5C) and binary offset [$2AD8]
-	; ReSource: Accepts an offered object after its tradeability has been checked.
+	; Accepts an offered object after its tradeability has been checked.
 	cmpi.b	#Object_Permit,d1						;0C01005F
 	beq.s	adrCd002E76					;6714
 	sub.w	#Object_TradeValueTable_First,d1					;04410014
@@ -4367,7 +4365,7 @@ adrCd002E7A:		; Memory Address ($2E7A) and binary offset [$2AF6]
 	bra	Refresh_HeldItemDisplay					;60003DB4
 
 Comms_BuyOfferedObject:		; Memory Address ($2E82) and binary offset [$2AFE]
-	; ReSource: Calculates the attitude-adjusted purchase price of an object offered by the player.
+	; Calculates the attitude-adjusted purchase price of an object offered by the player.
 	move.w	$002C(a5),d4	;382D002C
 	cmp.b	$0009(a4),d4	;B82C0009
 	bcs	adrCd002FD8	;6500014C
@@ -4407,7 +4405,7 @@ adrCd002EDE:		; Memory Address ($2EDE) and binary offset [$2B5A]
 	bra	adrCd002DA8	;6000FEC6
 
 Comms_ExchangeOfferedObject:		; Memory Address ($2EE4) and binary offset [$2B60]
-	; ReSource: Compares offered-object values and completes an acceptable exchange.
+	; Compares offered-object values and completes an acceptable exchange.
 	lea	Comms_ObjectTradeValues.l,a1		;43F9000031E6
 	moveq	#$02,d2				;7402
 	sub.w	#$0014,d1			;04410014
@@ -4434,11 +4432,11 @@ adrCd002F16:		; Memory Address ($2F16) and binary offset [$2B92]
 	bra.s	adrCd002ED2	;60AE
 
 Comms_Respond_Purchase:		; Memory Address ($2F24) and binary offset [$2BA0]
-	; ReSource: Selects trader merchandise and produces the response to Purchase.
+	; Selects trader merchandise and produces the response to Purchase.
 	cmpi.b	#$10,d0	;0C000010
 	bcs	Comms_RespondWithRetort	;6500FE7C
 Comms_SelectTraderStock:
-	; ReSource: Uses the monster type to select or initialise the object offered for sale.
+	; Uses the monster type to select or initialise the object offered for sale.
 	bsr	Comms_GetMonsterTradeObject	;61000304
 	lea	$00(a0,d1.w),a1	;43F01000
 	cmp.b	#$15,$000B(a1)	;0C290015000B
@@ -4448,11 +4446,11 @@ Comms_SelectTraderStock:
 	bsr	Comms_InitialiseMonsterTrader	;61000336
 	move.b	$000C(a1),d0	;1029000C
 Comms_PrintPurchaseObject:
-	; ReSource: Builds the purchase response using the monster's currently offered object.
+	; Builds the purchase response using the monster's currently offered object.
 	bra	adrCd0038D2	;60000984
 
 Comms_Respond_Exchange:
-	; ReSource: Compares the offered and requested object values and begins an exchange when acceptable.
+	; Compares the offered and requested object values and begins an exchange when acceptable.
 	cmpi.b	#$10,d0	;0C000010
 	bcs	Comms_RespondWithRetort	;6500FE50
 	move.w	$002E(a5),d1	;322D002E
@@ -4467,7 +4465,7 @@ Comms_Respond_Exchange:
 	bra.s	adrCd002F90	;6018
 
 Comms_CompareExchangeObject:
-	; ReSource: Loads the trade value of the held object for an exchange comparison.
+	; Loads the trade value of the held object for an exchange comparison.
 	cmpi.b	#$40,d1	;0C010040
 	bcc	Comms_RejectUntradeableObject	;640000F0
 	moveq	#$02,d2	;7402
@@ -4497,7 +4495,7 @@ adrCd002FBC:		; Memory Address ($2FBC) and binary offset [$2C38]
 	bra	Comms_RespondWithRetort	;6000FDE4
 
 Comms_Respond_Sell:		; Memory Address ($2FC4) and binary offset [$2C40]
-	; ReSource: Handles the response to Sell and validates the held object and quoted value.
+	; Handles the response to Sell and validates the held object and quoted value.
 	cmpi.b	#$10,d0	;0C000010
 	bcs	Comms_RespondWithRetort	;6500FDDC
 	move.w	$002E(a5),d0	;302D002E
@@ -4563,13 +4561,13 @@ adrCd003054:		; Memory Address ($3054) and binary offset [$2CD0]
 adrCd00306A:		; Memory Address ($306A) and binary offset [$2CE6]
 	clr.b	$0008(a4)	;422C0008
 Comms_RejectUntradeableObject:
-	; ReSource: Rejects an object that cannot safely participate in trading.
+	; Rejects an object that cannot safely participate in trading.
 	move.b	#$07,$0001(a4)	;197C00070001
 	lea	Msg_Trade_UnnaturalObject.l,a6	;4DF90000312B
 	bra	adrCd002D34	;6000FCB8
 
 Comms_Respond_Praise:		; Memory Address ($307E) and binary offset [$2CFA]
-	; ReSource: Selects a complimentary, neutral or hostile response to Praise from the current attitude.
+	; Selects a complimentary, neutral or hostile response to Praise from the current attitude.
 	moveq	#CommsAction_Praise,d1	;7216
 	cmp.b	#$0A,$0006(a4)	;0C2C000A0006
 	bcc	adrCd002DA8	;6400FD20
@@ -4580,7 +4578,7 @@ adrCd003094:		; Memory Address ($3094) and binary offset [$2D10]
 	bra	adrCd002DA8	;6000FD10
 
 Comms_Respond_Curse:		; Memory Address ($309A) and binary offset [$2D16]
-	; ReSource: Selects a curse, retort or threat response according to attitude and patience.
+	; Selects a curse, retort or threat response according to attitude and patience.
 	moveq	#CommsAction_Curse,d1	;7217
 	cmp.b	#$05,$0006(a4)	;0C2C00050006
 	bcc	adrCd002DA8	;6400FD04
@@ -4590,7 +4588,7 @@ Comms_Respond_Curse:		; Memory Address ($309A) and binary offset [$2D16]
 	bra	adrCd002DA8	;6000FCF6
 
 Comms_Respond_Boast:		; Memory Address ($30B4) and binary offset [$2D30]
-	; ReSource: Selects a praise, boast, retort or hostile response to Boast.
+	; Selects a praise, boast, retort or hostile response to Boast.
 	cmp.b	#$0A,$0006(a4)	;0C2C000A0006
 	bcc.s	Comms_Respond_Praise	;64C2
 	moveq	#CommsAction_Boast,d1	;7218
@@ -4601,7 +4599,7 @@ Comms_Respond_Boast:		; Memory Address ($30B4) and binary offset [$2D30]
 	bra	Comms_RespondWithRetort	;6000FCD6
 
 Comms_Respond_Greeting:		; Memory Address ($30D2) and binary offset [$2D4E]
-	; ReSource: Selects the initial reply, ranging from hostility to an identity or profession question.
+	; Selects the initial reply, ranging from hostility to an identity or profession question.
 	cmp.b	#$02,$0006(a4)	;0C2C00020006
 	bcs	Comms_Respond_LowAttitude	;6500FCD2
 	cmp.b	#$05,$0006(a4)	;0C2C00050006
@@ -4616,39 +4614,39 @@ Comms_Respond_Greeting:		; Memory Address ($30D2) and binary offset [$2D4E]
 	bra	adrCd002DA8	;6000FCAA
 
 Msg_Recruit_PartyFull:
-	; ReSource: Character response when Recruit succeeds on attitude but the party has no free slot.
+	; Character response when Recruit succeeds on attitude but the party has no free slot.
 	dc.b	'THY PARTY IS FULL'	;5448592050415254592049532046554C4C
 	dc.b	$FF	;FF
 Msg_Trade_RipOff:
-	; ReSource: Character response when the held object or trade state no longer matches the proposed deal.
+	; Character response when the held object or trade state no longer matches the proposed deal.
 	dc.b	'WOULDST THOU RIP ME OFF?'	;574F554C4453542054484F5520524950204D45204F46463F
 	dc.b	$FF	;FF
 Msg_Trade_UnnaturalObject:
-	; ReSource: Character response rejecting an untradeable or unnatural object.
+	; Character response rejecting an untradeable or unnatural object.
 	dc.b	'I NEVER TRUST THE UNNATURAL'	;49204E455645522054525553542054484520554E4E41545552414C
 	dc.b	$FF	;FF
 Msg_Recruit_KeepTalking:
-	; ReSource: Character response when Recruit attitude is promising but below the joining threshold.
+	; Character response when Recruit attitude is promising but below the joining threshold.
 	dc.b	'KEEP TALKING AND WE''LL SEE'	;4B4545502054414C4B494E4720414E44205745274C4C20534545
 	dc.b	$FF	;FF
 Msg_Recruit_Refusal:
-	; ReSource: Character response refusing recruitment or interaction.
+	; Character response refusing recruitment or interaction.
 	dc.b	'I THINK NOT MY FRIEND'	;49205448494E4B204E4F54204D5920465249454E44
 	dc.b	$FF	;FF
 Msg_WhoGoes_NameUnimportant:
-	; ReSource: Monster response refusing to reveal a name.
+	; Monster response refusing to reveal a name.
 	dc.b	'MY NAME IS NOT IMPORTANT'	;4D59204E414D45204953204E4F5420494D504F5254414E54
 	dc.b	$FF	;FF
 Msg_WhoGoes_Zendik:
-	; ReSource: Special identity response used when the addressed monster is Zendik.
+	; Special identity response used when the addressed monster is Zendik.
 	dc.b	'I AM ZENDIK THE MASTER OF CREATION'	;4920414D205A454E44494B20544845204D4153544552204F46204352454154494F4E
 	dc.b	$FF	;FF
 Msg_Trade_TooGreedy:
-	; ReSource: Character response when a trade request becomes too greedy.
+	; Character response when a trade request becomes too greedy.
 	dc.b	'METHINKS THOU ART TOO GREEDY!'	;4D455448494E4B532054484F552041525420544F4F2047524545445921
 	dc.b	$FF	;FF
 Msg_Trade_OfferTooLow:		; Memory Address ($31D2) and binary offset [$2E4E]
-	; ReSource: Packed-word character response rejecting an inadequate trade offer.
+	; Packed-word character response rejecting an inadequate trade offer.
 	dc.b	$1A	;1A
 	dc.b	$19	;19
 	dc.b	$61	;61
@@ -4657,7 +4655,7 @@ Msg_Trade_OfferTooLow:		; Memory Address ($31D2) and binary offset [$2E4E]
 	dc.b	$51	;51
 	dc.b	$FF	;FF
 Msg_Trade_GoldOfferTemplate:		; Memory Address ($31D9) and binary offset [$2E55]
-	; ReSource: Writable packed-word template used to communicate a generated amount of gold.
+	; Writable packed-word template used to communicate a generated amount of gold.
 	dc.b	$CC	;CC
 	dc.b	$1A	;1A
 	dc.b	$1D	;1D
@@ -4672,7 +4670,7 @@ Msg_Trade_GoldOfferTemplate:		; Memory Address ($31D9) and binary offset [$2E55]
 	dc.b	$00	;00
 	dc.b	$00	;00
 Comms_ObjectTradeValues:		; Memory Address ($31E6) and binary offset [$2E62]
-	; ReSource: Trade values for object codes $14-$3F; $FF marks objects rejected by the trading logic.
+	; Trade values for object codes $14-$3F; $FF marks objects rejected by the trading logic.
 	dc.b	$04	;04
 	dc.b	$04	;04
 	dc.b	$06	;06
@@ -4718,7 +4716,7 @@ Comms_ObjectTradeValues:		; Memory Address ($31E6) and binary offset [$2E62]
 	dc.b	$0F	;0F
 	dc.b	$FF	;FF
 Comms_TraderStockObjects:
-	; ReSource: Object-code pool used to choose merchandise for non-potion monster traders.
+	; Object-code pool used to choose merchandise for non-potion monster traders.
 	dc.b	$3D	;3D
 	dc.b	$33	;33
 	dc.b	$24	;24
@@ -4753,7 +4751,7 @@ Comms_TraderStockObjects:
 	dc.b	$1F	;1F
 
 Comms_GetMonsterTradeObject:		; Memory Address ($3232) and binary offset [$2EAE]
-	; ReSource: Returns the object stored in byte $0C of the selected monster record.
+	; Returns the object stored in byte $0C of the selected monster record.
 	move.w	d0,d1	;3200
 	lea	BigMonsterList.l,a0	;41F900016A7E
 	asl.w	#$04,d1	;E941
@@ -4761,7 +4759,7 @@ Comms_GetMonsterTradeObject:		; Memory Address ($3232) and binary offset [$2EAE]
 	rts	;4E75
 
 Comms_PrintGoldOffer:
-	; ReSource: Formats a calculated trade value into the packed gold-offer message.
+	; Formats a calculated trade value into the packed gold-offer message.
 	move.b	d0,$0009(a4)	;19400009
 	and.w	#$007F,d0	;0240007F
 	jsr	Convert_ByteToDecimalText.l	;4EB90000CEC4
@@ -4781,7 +4779,7 @@ adrCd00326A:		; Memory Address ($326A) and binary offset [$2EE6]
 	bra	adrCd0038DC	;60000662
 
 Comms_InitialiseMonsterTrader:
-	; ReSource: Initialises monster-trader stock and applies the monster's initial attitude penalty.
+	; Initialises monster-trader stock and applies the monster's initial attitude penalty.
 	movem.w	d0/d1,-(sp)	;48A7C000
 	move.b	#$03,$0006(a4)	;197C00030006
 	cmp.b	#$40,$000B(a1)	;0C290040000B
@@ -4860,7 +4858,7 @@ adrCd00334A:		; Memory Address ($334A) and binary offset [$2FC6]
 	jmp	adrCd00CAEA.l	;4EF90000CAEA
 
 PartyCommand_DispatchSelection:		; Memory Address ($336A) and binary offset [$2FE6]
-	; ReSource: Decodes the selected party-command button from the interface selection bytes and dispatches the current party-command state.
+	; Decodes the selected party-command button from the interface selection bytes and dispatches the current party-command state.
 	move.l	$0046(a5),a6	;2C6D0046
 	moveq	#$00,d1	;7200
 	move.b	$0040(a5),d0	;102D0040
@@ -4877,7 +4875,7 @@ adrCd003386:		; Memory Address ($3386) and binary offset [$3002]
 adrCd00338A:		; Memory Address ($338A) and binary offset [$3006]
 	add.b	$0041(a5),d1	;D22D0041
 PartyCommand_DispatchState:		; Memory Address ($338E) and binary offset [$300A]
-	; ReSource: Dispatches party-command states 0 through 8 through PartyCommand_HandlerOffsets: resolve selection, Communicate, Commend, View, Wait, Correct, Dismiss, Call, or handle the active communication menu.
+	; Dispatches party-command states 0 through 8 through PartyCommand_HandlerOffsets: resolve selection, Communicate, Commend, View, Wait, Correct, Dismiss, Call, or handle the active communication menu.
 	move.w	$0042(a5),d0	;302D0042
 	add.w	d0,d0	;D040
 	lea	PartyCommand_ResolveSelection.l,a0	;41F9000033B2
@@ -4885,7 +4883,7 @@ PartyCommand_DispatchState:		; Memory Address ($338E) and binary offset [$300A]
 	jmp	(a0)	;4ED0
 
 PartyCommand_HandlerOffsets:		; Memory Address ($33A0) and binary offset [$301C]
-	; ReSource: Nine word-relative handler offsets for party-command states 0 through 8: resolve selection, Communicate, Commend, View, Wait, Correct, Dismiss, Call, and the active communication menu.
+	; Nine word-relative handler offsets for party-command states 0 through 8: resolve selection, Communicate, Commend, View, Wait, Correct, Dismiss, Call, and the active communication menu.
 	dc.w	PartyCommand_ResolveSelection-PartyCommand_ResolveSelection	;0000
 	dc.w	PartyCommand_Communicate-PartyCommand_ResolveSelection	;003C
 	dc.w	PartyCommand_Commend-PartyCommand_ResolveSelection	;0D9E
@@ -4897,14 +4895,14 @@ PartyCommand_HandlerOffsets:		; Memory Address ($33A0) and binary offset [$301C]
 	dc.w	Comms_HandleMenuSelection-PartyCommand_ResolveSelection	;011A
 
 PartyCommand_ResolveSelection:		; Memory Address ($33B2) and binary offset [$302E]
-	; ReSource: Clears the pending target-selection flag, converts the decoded button number to party-command state 1 through 8, stores it, and redispatches.
+	; Clears the pending target-selection flag, converts the decoded button number to party-command state 1 through 8, stores it, and redispatches.
 	clr.b	$004E(a5)	;422D004E
 	addq.w	#$01,d1	;5241
 	move.w	d1,$0042(a5)	;3B410042
 	bra.s	PartyCommand_DispatchState	;60D0
 
 Interface_CheckSelectedCellInteraction:		; Memory Address ($33BE) and binary offset [$303A]
-	; ReSource: Checks map bounds and selected-cell metadata, then resolves an interaction target; Communicate uses its carry result, but this helper is also called by other interface paths.
+	; Checks map bounds and selected-cell metadata, then resolves an interaction target; Communicate uses its carry result, but this helper is also called by other interface paths.
 	bsr	adrCd00847E	;610050BE
 	move.l	d7,d2	;2407
 	cmp.w	adrW_00EE72.l,d7	;BE790000EE72
@@ -4924,17 +4922,17 @@ adrCd0033EC:		; Memory Address ($33EC) and binary offset [$3068]
 	rts	;4E75
 
 PartyCommand_Communicate:		; Memory Address ($33EE) and binary offset [$306A]
-	; ReSource: Resolves a valid character or monster at the selected map cell and starts communication through Comms_StartWithTarget; otherwise displays "THERE IS NOBODY HERE".
+	; Resolves a valid character or monster at the selected map cell and starts communication through Comms_StartWithTarget; otherwise displays "THERE IS NOBODY HERE".
 	bsr.s	Interface_CheckSelectedCellInteraction	;61CE
 	bcs.s	Comms_StartWithTarget	;6510
 Interface_ReportCommunicationTargetUnavailable:		; Memory Address ($33F2) and binary offset [$306E]
-	; ReSource: Prints the unavailable-target notice and clears the interface page state.
+	; Prints the unavailable-target notice and clears the interface page state.
 	lea	Notice_Communicate_NobodyHere.l,a6	;4DF9000041F3
 	clr.w	$0042(a5)	;426D0042
 	jmp	Print_timed_message.l	;4EF90000D86A
 
 Comms_StartWithTarget:		; Memory Address ($3402) and binary offset [$307E]
-	; ReSource: Initialises communication state for the selected champion or monster and prints the greeting.
+	; Initialises communication state for the selected champion or monster and prints the greeting.
 	move.w	d0,d1	;3200
 	bsr	Load_CurrentChampionStatRecord	;61003256
 	move.b	#$17,$001B(a4)	;197C0017001B
@@ -4998,7 +4996,7 @@ adrCd00349A:		; Memory Address ($349A) and binary offset [$3116]
 	bra	adrCd003D9C	;600008D2
 
 Comms_HandleMenuSelection:		; Memory Address ($34CC) and binary offset [$3148]
-	; ReSource: Converts the visible communication menu and button into an action and runs it.
+	; Converts the visible communication menu and button into an action and runs it.
 	move.w	$0044(a5),d0	;302D0044
 	subq.w	#$04,d0	;5940
 	beq.s	adrCd0034E0	;670C
@@ -5025,7 +5023,7 @@ adrCd00350E:		; Memory Address ($350E) and binary offset [$318A]
 	rts	;4E75
 
 Comms_RunAction:		; Memory Address ($3510) and binary offset [$318C]
-	; ReSource: Stores and dispatches one communication action.
+	; Stores and dispatches one communication action.
 	move.b	d1,CommsState_CurrentActionOffset(a4)	;19410001
 	add.w	d1,d1	;D241
 	lea	Comms_Action_Recruit.l,a0	;41F90000355C
@@ -5034,7 +5032,7 @@ Comms_RunAction:		; Memory Address ($3510) and binary offset [$318C]
 	jmp	(a0)	;4ED0
 
 Comms_ActionHandlerOffsets:		; Memory Address ($3526) and binary offset [$31A2]
-	; ReSource: Ordered handlers for communication action identifiers $00-$1A.
+	; Ordered handlers for communication action identifiers $00-$1A.
 	dc.w	Comms_Action_Recruit-Comms_Action_Recruit	;0000
 	dc.w	Comms_Action_Identify-Comms_Action_Recruit	;000E
 	dc.w	Comms_Action_Inquiry-Comms_Action_Recruit	;0016
@@ -5064,41 +5062,41 @@ Comms_ActionHandlerOffsets:		; Memory Address ($3526) and binary offset [$31A2]
 	dc.w	Comms_Action_None-Comms_Action_Recruit	;000C
 
 Comms_Action_Recruit:		; Memory Address ($355C) and binary offset [$31D8]
-	; ReSource: Communicates the Recruit request.
+	; Communicates the Recruit request.
 	lea	Msg_Recruit.l,a6	;4DF900003E83
 	jmp	WriteMessage.l	;4EF90000D03A
 
 Comms_Action_None:		; Memory Address ($3568) and binary offset [$31E4]
-	; ReSource: No-operation handler used by the final communication action slot.
+	; No-operation handler used by the final communication action slot.
 	rts	;4E75
 
 Comms_Action_Identify:		; Memory Address ($356A) and binary offset [$31E6]
-	; ReSource: Opens the Identify communication submenu.
+	; Opens the Identify communication submenu.
 	addq.w	#$02,$0044(a5)	;546D0044
 	bra	adrCd003338	;6000FDC8
 
 Comms_Action_Inquiry:		; Memory Address ($3572) and binary offset [$31EE]
-	; ReSource: Opens the Inquiry communication submenu.
+	; Opens the Inquiry communication submenu.
 	addq.w	#$03,$0044(a5)	;566D0044
 	bra	adrCd003338	;6000FDC0
 
 Comms_Action_Whereabouts:		; Memory Address ($357A) and binary offset [$31F6]
-	; ReSource: Communicates the Whereabouts question.
+	; Communicates the Whereabouts question.
 	lea	Msg_Whereabouts.l,a6	;4DF900003E2F
 	jmp	WriteMessage.l	;4EF90000D03A
 
 Comms_Action_Trading:		; Memory Address ($3586) and binary offset [$3202]
-	; ReSource: Opens the Trading communication submenu.
+	; Opens the Trading communication submenu.
 	addq.w	#$03,$0044(a5)	;566D0044
 	bra	adrCd003338	;6000FDAC
 
 Comms_Action_Smalltalk:		; Memory Address ($358E) and binary offset [$320A]
-	; ReSource: Opens the Smalltalk communication submenu.
+	; Opens the Smalltalk communication submenu.
 	addq.w	#$04,$0044(a5)	;586D0044
 	bra	adrCd003338	;6000FDA4
 
 Comms_Action_Yes:		; Memory Address ($3596) and binary offset [$3212]
-	; ReSource: Communicates Yes and completes an accepted object or coinage transfer when one is pending.
+	; Communicates Yes and completes an accepted object or coinage transfer when one is pending.
 	move.b	$0008(a4),d2	;142C0008
 	subq.b	#CommsTradeMode_Exchange,d2	;5502
 	bcs.s	adrCd0035FE	;6560
@@ -5136,7 +5134,7 @@ adrCd0035FE:		; Memory Address ($35FE) and binary offset [$327A]
 	bra.s	adrCd003626	;6022
 
 Comms_Action_No:		; Memory Address ($3604) and binary offset [$3280]
-	; ReSource: Communicates No and cancels or refuses the active trading mode.
+	; Communicates No and cancels or refuses the active trading mode.
 	move.w	#$3DFF,d0	;303C3DFF
 	move.b	$0008(a4),d1	;122C0008
 	beq.s	adrCd003626	;6718
@@ -5157,12 +5155,12 @@ adrCd003630:		; Memory Address ($3630) and binary offset [$32AC]
 	jmp	Print_npc_message.l	;4EF90000D81C
 
 Comms_Action_Bribe:		; Memory Address ($363E) and binary offset [$32BA]
-	; ReSource: Communicates the Bribe question.
+	; Communicates the Bribe question.
 	lea	Msg_Bribe.l,a6	;4DF900003E26
 	jmp	Print_npc_message.l	;4EF90000D81C
 
 Comms_Action_Threat:		; Memory Address ($364A) and binary offset [$32C6]
-	; ReSource: Builds a randomized threat and reduces attitude.
+	; Builds a randomized threat and reduces attitude.
 	lea	Comms_MessageBuffer.l,a6	;4DF900003DC0
 	and.w	#$0003,d0	;02400003
 	lea	Comms_ThreatOpeningFragments.l,a3	;47F900003DDE
@@ -5214,7 +5212,7 @@ adrCd0036D0:		; Memory Address ($36D0) and binary offset [$334C]
 	jmp	Print_npc_message.l	;4EF90000D81C
 
 Comms_CopyThreatFragment:		; Memory Address ($36E0) and binary offset [$335C]
-	; ReSource: Copies one length-prefixed threat fragment into the communication message buffer.
+	; Copies one length-prefixed threat fragment into the communication message buffer.
 	jsr	Proceed_in_stringtable.l	;4EB90000D7CC
 	subq.w	#$01,d5	;5345
 adrLp0036E8:		; Memory Address ($36E8) and binary offset [$3364]
@@ -5223,22 +5221,22 @@ adrLp0036E8:		; Memory Address ($36E8) and binary offset [$3364]
 	rts	;4E75
 
 Comms_Action_WhoGoes:		; Memory Address ($36F0) and binary offset [$336C]
-	; ReSource: Communicates the Who Goes identity question.
+	; Communicates the Who Goes identity question.
 	lea	Msg_WhoGoes.l,a6	;4DF900003DFD
 	jmp	Print_npc_message.l	;4EF90000D81C
 
 Comms_Action_ThyTrade:		; Memory Address ($36FC) and binary offset [$3378]
-	; ReSource: Communicates the Thy Trade profession question.
+	; Communicates the Thy Trade profession question.
 	lea	Msg_ThyTrade.l,a6	;4DF900003708
 	jmp	WriteMessage.l	;4EF90000D03A
 
 Msg_ThyTrade:
-	; ReSource: Question communicated by the Thy Trade button.
+	; Question communicated by the Thy Trade button.
 	dc.b	'WHAT BE THY BUSINESS?'	;574841542042452054485920425553494E4553533F
 	dc.b	$FF	;FF
 
 Comms_Action_NameSelf:		; Memory Address ($371E) and binary offset [$339A]
-	; ReSource: Builds a message revealing the speaker's name and title.
+	; Builds a message revealing the speaker's name and title.
 	lea	Msg_NameSelfTemplate.l,a6	;4DF900003DAA
 	move.b	$0003(a4),d1	;122C0003
 	or.b	#$80,$0003(a4)	;002C00800003
@@ -5249,7 +5247,7 @@ Comms_Action_NameSelf:		; Memory Address ($371E) and binary offset [$339A]
 	jmp	Print_npc_message.l	;4EF90000D81C
 
 Comms_Action_RevealSelf:		; Memory Address ($3744) and binary offset [$33C0]
-	; ReSource: Builds a message revealing the speaker's profession.
+	; Builds a message revealing the speaker's profession.
 	lea	Msg_RevealSelfTemplate.l,a6	;4DF900003E03
 	move.b	$0003(a4),d0	;102C0003
 	or.b	#$40,$0003(a4)	;002C00400003
@@ -5263,44 +5261,44 @@ adrCd00376C:		; Memory Address ($376C) and binary offset [$33E8]
 	jmp	Print_npc_message.l	;4EF90000D81C
 
 Comms_Action_FolkLore:		; Memory Address ($3772) and binary offset [$33EE]
-	; ReSource: Communicates the Folk Lore inquiry.
+	; Communicates the Folk Lore inquiry.
 	lea	Msg_FolkLore.l,a6	;4DF9000037A2
 	jmp	WriteMessage.l	;4EF90000D03A
 
 Comms_Action_MagicItems:		; Memory Address ($377E) and binary offset [$33FA]
-	; ReSource: Communicates the Magic Items inquiry.
+	; Communicates the Magic Items inquiry.
 	lea	Msg_MagicItems.l,a6	;4DF9000037BF
 	jmp	WriteMessage.l	;4EF90000D03A
 
 Comms_Action_Objects:		; Memory Address ($378A) and binary offset [$3406]
-	; ReSource: Communicates the Objects inquiry.
+	; Communicates the Objects inquiry.
 	lea	Msg_Objects.l,a6	;4DF9000037E4
 	jmp	WriteMessage.l	;4EF90000D03A
 
 Comms_Action_Persons:		; Memory Address ($3796) and binary offset [$3412]
-	; ReSource: Communicates the Persons inquiry.
+	; Communicates the Persons inquiry.
 	lea	Msg_Persons.l,a6	;4DF900003809
 	jmp	WriteMessage.l	;4EF90000D03A
 
 Msg_FolkLore:
-	; ReSource: Question communicated by the Folk Lore button.
+	; Question communicated by the Folk Lore button.
 	dc.b	'HAST THOU HEARD ANY LEGENDS?'	;484153542054484F5520484541524420414E59204C4547454E44533F
 	dc.b	$FF	;FF
 Msg_MagicItems:
-	; ReSource: Question communicated by the Magic Items button.
+	; Question communicated by the Magic Items button.
 	dc.b	'KNOWEST THOU OF ANY ENCHANTED ITEMS?'	;4B4E4F574553542054484F55204F4620414E5920454E4348414E544544204954454D533F
 	dc.b	$FF	;FF
 Msg_Objects:
-	; ReSource: Question communicated by the Objects button.
+	; Question communicated by the Objects button.
 	dc.b	'KNOWEST THOU OF ANY WEAPONS OF NOTE?'	;4B4E4F574553542054484F55204F4620414E5920574541504F4E53204F46204E4F54453F
 	dc.b	$FF	;FF
 Msg_Persons:
-	; ReSource: Question communicated by the Persons button.
+	; Question communicated by the Persons button.
 	dc.b	'HAST HEARD OF ANY POWERFUL BEINGS?'	;48415354204845415244204F4620414E5920504F57455246554C204245494E47533F
 	dc.b	$FF	;FF
 
 Comms_Action_Offer:		; Memory Address ($382C) and binary offset [$34A8]
-	; ReSource: Builds the Offer message from held coinage, a held object or the empty-hand template.
+	; Builds the Offer message from held coinage, a held object or the empty-hand template.
 	move.w	HeldItem_ObjectCodeOffset(a5),d0	;302D002E
 	move.b	d0,$000A(a4)	;1940000A
 	bne.s	adrCd00383E	;6608
@@ -5327,7 +5325,7 @@ adrCd00386A:		; Memory Address ($386A) and binary offset [$34E6]
 	bra.s	adrCd0038DA	;6066
 
 Comms_Action_Sell:		; Memory Address ($3874) and binary offset [$34F0]
-	; ReSource: Builds the Sell message and records the held object for the proposed trade.
+	; Builds the Sell message and records the held object for the proposed trade.
 	move.b	#$03,$0008(a4)	;197C00030008
 	clr.b	$0009(a4)	;422C0009
 	move.w	HeldItem_ObjectCodeOffset(a5),d0	;302D002E
@@ -5345,13 +5343,13 @@ adrCd003894:		; Memory Address ($3894) and binary offset [$3510]
 	jmp	Print_npc_message.l	;4EF90000D81C
 
 Comms_Action_Purchase:		; Memory Address ($38A4) and binary offset [$3520]
-	; ReSource: Communicates the Purchase question and enters purchase mode.
+	; Communicates the Purchase question and enters purchase mode.
 	lea	Msg_Purchase.l,a6	;4DF900003E7B
 	move.b	#$01,$0008(a4)	;197C00010008
 	jmp	Print_npc_message.l	;4EF90000D81C
 
 Comms_Action_Exchange:		; Memory Address ($38B6) and binary offset [$3532]
-	; ReSource: Builds the Exchange question and enters exchange mode.
+	; Builds the Exchange question and enters exchange mode.
 	move.b	#$02,$0008(a4)	;197C00020008
 	move.w	HeldItem_ObjectCodeOffset(a5),d0	;302D002E
 	move.b	d0,$000A(a4)	;1940000A
@@ -5371,7 +5369,7 @@ adrCd0038DC:		; Memory Address ($38DC) and binary offset [$3558]
 	jmp	Print_npc_message.l	;4EF90000D81C
 
 Comms_AppendObjectName:		; Memory Address ($38F4) and binary offset [$3570]
-	; ReSource: Appends an object's one- or two-part display name to a packed communication message.
+	; Appends an object's one- or two-part display name to a packed communication message.
 	lea	Object_Definition_Table+$02.l,a0	;41F90000E4C4
 	add.w	d0,d0	;D040
 	add.w	d0,d0	;D040
@@ -5387,13 +5385,13 @@ adrCd003916:		; Memory Address ($3916) and binary offset [$3592]
 	rts	;4E75
 
 Comms_Action_Praise:		; Memory Address ($3918) and binary offset [$3594]
-	; ReSource: Builds a randomized compliment and raises attitude.
+	; Builds a randomized compliment and raises attitude.
 	addq.b	#$01,CommsState_AttitudeOffset(a4)	;522C0006
 	lea	Comms_PraiseWordRanges.l,a0	;41F900003A02
 	bra.s	adrCd003934	;6010
 
 Comms_Action_Curse:		; Memory Address ($3924) and binary offset [$35A0]
-	; ReSource: Builds a randomized insult and reduces attitude.
+	; Builds a randomized insult and reduces attitude.
 	subq.b	#$04,CommsState_AttitudeOffset(a4)	;592C0006
 	bpl.s	adrCd00392E	;6A04
 	clr.b	$0006(a4)	;422C0006
@@ -5413,7 +5411,7 @@ adrCd00393E:		; Memory Address ($393E) and binary offset [$35BA]
 	jmp	Print_npc_message.l	;4EF90000D81C
 
 Comms_AppendSmalltalkWord:		; Memory Address ($3950) and binary offset [$35CC]
-	; ReSource: Selects and appends one optional word from a praise or curse word range.
+	; Selects and appends one optional word from a praise or curse word range.
 	bsr	RandomGen_BytewithOffset	;61001C5A
 	and.w	#$0007,d0	;02400007
 	tst.w	d7	;4A47
@@ -5432,7 +5430,7 @@ adrCd003972:		; Memory Address ($3972) and binary offset [$35EE]
 	rts	;4E75
 
 Comms_BuildSmalltalk:		; Memory Address ($397E) and binary offset [$35FA]
-	; ReSource: Builds a randomized praise or curse from a sentence pattern and three word ranges.
+	; Builds a randomized praise or curse from a sentence pattern and three word ranges.
 	and.w	#$00FE,d0	;024000FE
 	moveq	#$00,d7	;7E00
 adrCd003984:		; Memory Address ($3984) and binary offset [$3600]
@@ -5481,7 +5479,7 @@ adrCd0039F4:		; Memory Address ($39F4) and binary offset [$3670]
 	rts	;4E75
 
 Comms_SmalltalkPatternBands:		; Memory Address ($39F6) and binary offset [$3672]
-	; ReSource: Upper bounds and bit masks selecting randomized smalltalk sentence patterns.
+	; Upper bounds and bit masks selecting randomized smalltalk sentence patterns.
 	dc.b	$0C	;0C
 adrB_0039F7:		; Memory Address ($39F7) and binary offset [$3673]
 	dc.b	$10	;10
@@ -5496,18 +5494,18 @@ adrB_0039F7:		; Memory Address ($39F7) and binary offset [$3673]
 	dc.b	$FF	;FF
 	dc.b	$1B	;1B
 Comms_PraiseWordRanges:		; Memory Address ($3A02) and binary offset [$367E]
-	; ReSource: Three threshold and starting-word pairs for praise adverbs, adjectives and nouns.
+	; Three threshold and starting-word pairs for praise adverbs, adjectives and nouns.
 	dc.w	$048E	;048E
 	dc.w	$0796	;0796
 	dc.w	$079E	;079E
 Comms_CurseWordRanges:		; Memory Address ($3A08) and binary offset [$3684]
-	; ReSource: Three threshold and starting-word pairs for curse adverbs, adjectives and nouns.
+	; Three threshold and starting-word pairs for curse adverbs, adjectives and nouns.
 	dc.w	$03A6	;03A6
 	dc.w	$07AE	;07AE
 	dc.w	$07B6	;07B6
 
 Comms_Action_Boast:		; Memory Address ($3A0E) and binary offset [$368A]
-	; ReSource: Builds a boast from a randomized personal attribute and superlative.
+	; Builds a boast from a randomized personal attribute and superlative.
 	lea	Msg_BoastTemplate.l,a6	;4DF900003DBA
 	and.w	#$0007,d0	;02400007
 	add.w	#$0074,d0	;06400074
@@ -5519,7 +5517,7 @@ Comms_Action_Boast:		; Memory Address ($3A0E) and binary offset [$368A]
 	jmp	Print_npc_message.l	;4EF90000D81C
 
 Comms_ActionReplyIndexes:		; Memory Address ($3A36) and binary offset [$36B2]
-	; ReSource: Maps each preceding communication action to its contextual fixed-reply entry.
+	; Maps each preceding communication action to its contextual fixed-reply entry.
 	dc.b	$00	;00
 	dc.b	$00	;00
 	dc.b	$00	;00
@@ -5550,7 +5548,7 @@ Comms_ActionReplyIndexes:		; Memory Address ($3A36) and binary offset [$36B2]
 	dc.b	$00	;00
 
 Comms_Action_Retort:		; Memory Address ($3A52) and binary offset [$36CE]
-	; ReSource: Selects the contextual fixed reply or a randomized agreement fallback.
+	; Selects the contextual fixed reply or a randomized agreement fallback.
 	moveq	#$00,d0	;7000
 	move.b	$0000(a4),d0	;102C0000
 	move.b	Comms_ActionReplyIndexes(pc,d0.w),d0	;103B00DC
@@ -5564,17 +5562,17 @@ Comms_Action_Retort:		; Memory Address ($3A52) and binary offset [$36CE]
 	and.w	#$0006,d0	;02400006
 	add.w	Msg_AgreementOffsets(pc,d0.w),a6	;DCFB0008
 Comms_PrintActionReply:
-	; ReSource: Prints the fixed or fallback reply selected for the preceding communication action.
+	; Prints the fixed or fallback reply selected for the preceding communication action.
 	jmp	WriteMessage.l	;4EF90000D03A
 
 Msg_AgreementOffsets:
-	; ReSource: Offsets of the four randomized agreement fallback messages.
+	; Offsets of the four randomized agreement fallback messages.
 	dc.w	Msg_Agreement_00-Msg_Agreement_00	;0000
 	dc.w	Msg_Agreement_01-Msg_Agreement_00	;0015
 	dc.w	Msg_Agreement_02-Msg_Agreement_00	;0028
 	dc.w	Msg_Agreement_03-Msg_Agreement_00	;003F
 Msg_ActionReplyOffsets:
-	; ReSource: Offsets of contextual fixed replies indexed by Comms_ActionReplyIndexes.
+	; Offsets of contextual fixed replies indexed by Comms_ActionReplyIndexes.
 	dc.w	Msg_Reply_Recruit-Msg_Reply_Recruit	;0000
 	dc.w	Msg_Reply_Whereabouts-Msg_Reply_Recruit	;0022
 	dc.w	Msg_Reply_Yes_UseAgreement-Msg_Reply_Recruit	;003F
@@ -5599,106 +5597,106 @@ Msg_ActionReplyOffsets:
 	dc.w	Msg_Reply_Retort_UseAgreement-Msg_Reply_Recruit	;01DE
 	dc.w	Msg_Reply_Greeting-Msg_Reply_Recruit	;01DF
 Msg_Agreement_00:
-	; ReSource: Randomized agreement fallback: THAT'S VERY POSSIBLE.
+	; Randomized agreement fallback: THAT'S VERY POSSIBLE.
 	dc.b	'THAT''S VERY POSSIBLE'	;544841542753205645525920504F535349424C45
 	dc.b	$FF	;FF
 Msg_Agreement_01:
-	; ReSource: Randomized agreement fallback: I CANNOT BUT AGREE.
+	; Randomized agreement fallback: I CANNOT BUT AGREE.
 	dc.b	'I CANNOT BUT AGREE'	;492043414E4E4F5420425554204147524545
 	dc.b	$FF	;FF
 Msg_Agreement_02:
-	; ReSource: Randomized agreement fallback: THAT SEEMS VERY LIKELY.
+	; Randomized agreement fallback: THAT SEEMS VERY LIKELY.
 	dc.b	'THAT SEEMS VERY LIKELY'	;54484154205345454D532056455259204C494B454C59
 	dc.b	$FF	;FF
 Msg_Agreement_03:
-	; ReSource: Randomized agreement fallback: I'M NOT ABOUT TO ARGUE WITH THEE.
+	; Randomized agreement fallback: I'M NOT ABOUT TO ARGUE WITH THEE.
 	dc.b	'I''M NOT ABOUT TO ARGUE WITH THEE'	;49274D204E4F542041424F555420544F20415247554520574954482054484545
 	dc.b	$FF	;FF
 Msg_Reply_Recruit:
-	; ReSource: Contextual reply to Recruit.
+	; Contextual reply to Recruit.
 	dc.b	'I DON''T KEEP COMPANY WITH MAGGOTS'	;4920444F4E2754204B45455020434F4D50414E592057495448204D4147474F5453
 	dc.b	$FF	;FF
 Msg_Reply_Whereabouts:
-	; ReSource: Contextual reply to Whereabouts.
+	; Contextual reply to Whereabouts.
 	dc.b	'LOOK TO THE TOWERS MY FRIEND'	;4C4F4F4B20544F2054484520544F57455253204D5920465249454E44
 	dc.b	$FF	;FF
 Msg_Reply_Yes_UseAgreement:
-	; ReSource: $FF sentinel selecting a randomized agreement after Yes.
+	; $FF sentinel selecting a randomized agreement after Yes.
 	dc.b	$FF	;FF
 Msg_Reply_No:
-	; ReSource: Contextual reply to No.
+	; Contextual reply to No.
 	dc.b	'INDEED NOT'	;494E44454544204E4F54
 	dc.b	$FF	;FF
 Msg_Reply_Bribe:
-	; ReSource: Contextual reply to Bribe.
+	; Contextual reply to Bribe.
 	dc.b	'MAKE ME THY OFFER'	;4D414B45204D4520544859204F46464552
 	dc.b	$FF	;FF
 Msg_Reply_Threat:
-	; ReSource: Contextual reply to Threat.
+	; Contextual reply to Threat.
 	dc.b	'PICK ON SOMEONE THY OWN SIZE THOU SLUG'	;5049434B204F4E20534F4D454F4E4520544859204F574E2053495A452054484F5520534C5547
 	dc.b	$FF	;FF
 Msg_Reply_WhoGoes:
-	; ReSource: Contextual reply to Who Goes.
+	; Contextual reply to Who Goes.
 	dc.b	'I AM THY WORST NIGHTMARE'	;4920414D2054485920574F525354204E494748544D415245
 	dc.b	$FF	;FF
 Msg_Reply_ThyTrade:
-	; ReSource: Contextual reply to Thy Trade.
+	; Contextual reply to Thy Trade.
 	dc.b	'NONE OF THY BUSINESS I''M SURE'	;4E4F4E45204F462054485920425553494E4553532049274D2053555245
 	dc.b	$FF	;FF
 Msg_Reply_NameSelf_UseAgreement:
-	; ReSource: $FF sentinel selecting a randomized agreement after Name Self.
+	; $FF sentinel selecting a randomized agreement after Name Self.
 	dc.b	$FF	;FF
 Msg_Reply_RevealSelf_UseAgreement:
-	; ReSource: $FF sentinel selecting a randomized agreement after Reveal Self.
+	; $FF sentinel selecting a randomized agreement after Reveal Self.
 	dc.b	$FF	;FF
 Msg_Reply_FolkLore:
-	; ReSource: Contextual reply to Folk Lore.
+	; Contextual reply to Folk Lore.
 	dc.b	'NEWS IS SCARCE IN THESE PARTS'	;4E4557532049532053434152434520494E205448455345205041525453
 	dc.b	$FF	;FF
 Msg_Reply_MagicItems:
-	; ReSource: Contextual reply to Magic Items.
+	; Contextual reply to Magic Items.
 	dc.b	'I HEAR CRYSTALS ARE WORTH SEEKING'	;492048454152204352595354414C532041524520574F525448205345454B494E47
 	dc.b	$FF	;FF
 Msg_Reply_Objects:
-	; ReSource: Contextual reply to Objects.
+	; Contextual reply to Objects.
 	dc.b	'WHO CAN SAY WHAT IS OF NOTE?'	;57484F2043414E205341592057484154204953204F46204E4F54453F
 	dc.b	$FF	;FF
 Msg_Reply_Persons:
-	; ReSource: Contextual reply to Persons.
+	; Contextual reply to Persons.
 	dc.b	'I HEAR ZENDIK IS NOT WHOLLY A WORM'	;492048454152205A454E44494B204953204E4F542057484F4C4C59204120574F524D
 	dc.b	$FF	;FF
 Msg_Reply_Offer:
-	; ReSource: Contextual reply to Offer.
+	; Contextual reply to Offer.
 	dc.b	'GIVE ME A BREAK'	;47495645204D45204120425245414B
 	dc.b	$FF	;FF
 Msg_Reply_Purchase:
-	; ReSource: Contextual reply to Purchase.
+	; Contextual reply to Purchase.
 	dc.b	'THY COINAGE IS WORTHLESS TO ME'	;54485920434F494E41474520495320574F5254484C45535320544F204D45
 	dc.b	$FF	;FF
 Msg_Reply_Exchange:
-	; ReSource: Contextual reply to Exchange.
+	; Contextual reply to Exchange.
 	dc.b	'I DO NOT TRADE IN TRINKETS'	;4920444F204E4F5420545241444520494E205452494E4B455453
 	dc.b	$FF	;FF
 Msg_Reply_Sell:
-	; ReSource: Contextual reply to Sell.
+	; Contextual reply to Sell.
 	dc.b	'I NEED NOT THY TRASH'	;49204E454544204E4F5420544859205452415348
 	dc.b	$FF	;FF
 Msg_Reply_Praise_UseAgreement:
-	; ReSource: $FF sentinel selecting a randomized agreement after Praise.
+	; $FF sentinel selecting a randomized agreement after Praise.
 	dc.b	$FF	;FF
 Msg_Reply_Curse:
-	; ReSource: Contextual reply to Curse.
+	; Contextual reply to Curse.
 	dc.b	'MAYBE TRUE BUT THOU SHOULD BE SO LUCKY'	;4D415942452054525545204255542054484F552053484F554C4420424520534F204C55434B59
 	dc.b	$FF	;FF
 Msg_Reply_Boast:
-	; ReSource: Contextual reply to Boast.
+	; Contextual reply to Boast.
 	dc.b	'I TRUST THIS PLEASES THEE'	;49205452555354205448495320504C45415345532054484545
 	dc.b	$FF	;FF
 Msg_Reply_Retort_UseAgreement:
-	; ReSource: $FF sentinel selecting a randomized agreement after Retort.
+	; $FF sentinel selecting a randomized agreement after Retort.
 	dc.b	$FF	;FF
 Msg_Reply_Greeting:
-	; ReSource: Contextual dismissive reply to the initial Greeting.
+	; Contextual dismissive reply to the initial Greeting.
 	dc.b	'WHY DOST BURDEN ME WITH THY COMPANY?'	;57485920444F53542042555244454E204D4520574954482054485920434F4D50414E593F
 	dc.b	$FF	;FF
 
@@ -5743,7 +5741,7 @@ adrCd003D9C:		; Memory Address ($3D9C) and binary offset [$3A18]
 	bra	adrCd007D6C	;60003FC4
 
 Msg_NameSelfTemplate:		; Memory Address ($3DAA) and binary offset [$3A26]
-	; ReSource: Packed-word template patched with the speaker's name and title.
+	; Packed-word template patched with the speaker's name and title.
 	dc.w	$5F4B	;5F4B
 	dc.w	$3500	;3500
 	dc.w	$00FF	;00FF
@@ -5753,12 +5751,12 @@ Msg_NameSelfTemplate:		; Memory Address ($3DAA) and binary offset [$3A26]
 	dc.w	$FA45	;FA45
 	dc.w	$00FF	;00FF
 Msg_BoastTemplate:		; Memory Address ($3DBA) and binary offset [$3A36]
-	; ReSource: Packed-word template patched with a personal attribute and superlative.
+	; Packed-word template patched with a personal attribute and superlative.
 	dc.w	$335F	;335F
 	dc.w	$0035	;0035
 	dc.w	$00FF	;00FF
 Comms_MessageBuffer:		; Memory Address ($3DC0) and binary offset [$3A3C]
-	; ReSource: Thirty-byte writable buffer used to assemble dynamic communication messages.
+	; Thirty-byte writable buffer used to assemble dynamic communication messages.
 	dc.w	$0000	;0000
 	dc.w	$0000	;0000
 	dc.w	$0000	;0000
@@ -5775,7 +5773,7 @@ Comms_MessageBuffer:		; Memory Address ($3DC0) and binary offset [$3A3C]
 	dc.w	$0000	;0000
 	dc.w	$0000	;0000
 Comms_ThreatOpeningFragments:		; Memory Address ($3DDE) and binary offset [$3A5A]
-	; ReSource: Length-prefixed threat openings: BE ASIDE, DEPART, BEGONE and GO AWAY.
+	; Length-prefixed threat openings: BE ASIDE, DEPART, BEGONE and GO AWAY.
 	dc.w	$02BE	;02BE
 	dc.w	$BF01	;BF01
 	dc.w	$3007	;3007
@@ -5785,7 +5783,7 @@ Comms_ThreatOpeningFragments:		; Memory Address ($3DDE) and binary offset [$3A5A
 	dc.w	$4502	;4502
 	dc.w	$3163	;3163
 Comms_ThreatConsequenceFragments:		; Memory Address ($3DEE) and binary offset [$3A6A]
-	; ReSource: Length-prefixed threat consequences: SUFFER, DIE, BE SORRY and FIGHT.
+	; Length-prefixed threat consequences: SUFFER, DIE, BE SORRY and FIGHT.
 	dc.b	$01	;01
 	dc.b	$C0	;C0
 	dc.b	$01	;01
@@ -5796,7 +5794,7 @@ Comms_ThreatConsequenceFragments:		; Memory Address ($3DEE) and binary offset [$
 	dc.b	$01	;01
 	dc.b	$84	;84
 Msg_Greeting:		; Memory Address ($3DF7) and binary offset [$3A73]
-	; ReSource: Packed-word initial GREETINGS message.
+	; Packed-word initial GREETINGS message.
 	dc.b	$49	;49
 	dc.b	$FB	;FB
 	dc.b	$4A	;4A
@@ -5804,7 +5802,7 @@ Msg_Greeting:		; Memory Address ($3DF7) and binary offset [$3A73]
 	dc.b	$53	;53
 	dc.b	$FF	;FF
 Msg_WhoGoes:		; Memory Address ($3DFD) and binary offset [$3A79]
-	; ReSource: Packed-word question communicated by the Who Goes button.
+	; Packed-word question communicated by the Who Goes button.
 	dc.b	$18	;18
 	dc.b	$8B	;8B
 	dc.b	$1A	;1A
@@ -5812,7 +5810,7 @@ Msg_WhoGoes:		; Memory Address ($3DFD) and binary offset [$3A79]
 	dc.b	$3F	;3F
 	dc.b	$FF	;FF
 Msg_RevealSelfTemplate:		; Memory Address ($3E03) and binary offset [$3A7F]
-	; ReSource: Packed-word profession statement patched for Wizard, Adventurer, Cutpurse or Warrior.
+	; Packed-word profession statement patched for Wizard, Adventurer, Cutpurse or Warrior.
 	dc.b	$CE	;CE
 	dc.b	$8D	;8D
 	dc.b	$FA	;FA
@@ -5822,7 +5820,7 @@ Msg_RevealSelfTemplate:		; Memory Address ($3E03) and binary offset [$3A7F]
 	dc.b	$00	;00
 	dc.b	$FF	;FF
 Msg_Exchange:		; Memory Address ($3E0B) and binary offset [$3A87]
-	; ReSource: Packed-word Exchange question used when no object is held.
+	; Packed-word Exchange question used when no object is held.
 	dc.b	$27	;27
 	dc.b	$1A	;1A
 	dc.b	$60	;60
@@ -5834,7 +5832,7 @@ Msg_Exchange:		; Memory Address ($3E0B) and binary offset [$3A87]
 	dc.b	$3F	;3F
 	dc.b	$FF	;FF
 Msg_ExchangeHeldItemTemplate:		; Memory Address ($3E15) and binary offset [$3A91]
-	; ReSource: Packed-word Exchange question patched with the held object name.
+	; Packed-word Exchange question patched with the held object name.
 	dc.b	$18	;18
 	dc.b	$FB	;FB
 	dc.b	$FA	;FA
@@ -5853,7 +5851,7 @@ Msg_ExchangeHeldItemTemplate:		; Memory Address ($3E15) and binary offset [$3A91
 	dc.b	$00	;00
 	dc.b	$00	;00
 Msg_Bribe:		; Memory Address ($3E26) and binary offset [$3AA2]
-	; ReSource: Packed-word question communicated by the Bribe button.
+	; Packed-word question communicated by the Bribe button.
 	dc.b	$CC	;CC
 	dc.b	$1A	;1A
 	dc.b	$1D	;1D
@@ -5864,11 +5862,11 @@ Msg_Bribe:		; Memory Address ($3E26) and binary offset [$3AA2]
 	dc.b	$3F	;3F
 	dc.b	$FF	;FF
 Msg_Whereabouts:
-	; ReSource: Question communicated by the Whereabouts button.
+	; Question communicated by the Whereabouts button.
 	dc.b	'WHERE IS THIS OF WHICH THOU HAST SPOKEN?'	;57484552452049532054484953204F462057484943482054484F5520484153542053504F4B454E3F
 	dc.b	$FF	;FF
 Msg_OfferOrSellTemplate:		; Memory Address ($3E58) and binary offset [$3AD4]
-	; ReSource: Packed-word template patched to ask about giving or selling an unspecified object.
+	; Packed-word template patched to ask about giving or selling an unspecified object.
 	dc.b	$2D	;2D
 	dc.b	$5F	;5F
 	dc.b	$FB	;FB
@@ -5883,7 +5881,7 @@ Msg_OfferOrSellTemplate:		; Memory Address ($3E58) and binary offset [$3AD4]
 	dc.b	$CB	;CB
 	dc.b	$FF	;FF
 Msg_OfferHeldItemTemplate:		; Memory Address ($3E65) and binary offset [$3AE1]
-	; ReSource: Packed-word Offer question patched with the held object name.
+	; Packed-word Offer question patched with the held object name.
 	dc.b	$CC	;CC
 	dc.b	$1A	;1A
 	dc.b	$1D	;1D
@@ -5896,7 +5894,7 @@ Msg_OfferHeldItemTemplate:		; Memory Address ($3E65) and binary offset [$3AE1]
 	dc.b	$00	;00
 	dc.b	$00	;00
 Msg_SellHeldItemTemplate:		; Memory Address ($3E70) and binary offset [$3AEC]
-	; ReSource: Packed-word Sell question patched with the held object name.
+	; Packed-word Sell question patched with the held object name.
 	dc.b	$CC	;CC
 	dc.b	$1A	;1A
 	dc.b	$55	;55
@@ -5909,7 +5907,7 @@ Msg_SellHeldItemTemplate:		; Memory Address ($3E70) and binary offset [$3AEC]
 	dc.b	$00	;00
 	dc.b	$00	;00
 Msg_Purchase:		; Memory Address ($3E7B) and binary offset [$3AF7]
-	; ReSource: Packed-word question communicated by the Purchase button.
+	; Packed-word question communicated by the Purchase button.
 	dc.b	$27	;27
 	dc.b	$1A	;1A
 	dc.b	$60	;60
@@ -5919,13 +5917,13 @@ Msg_Purchase:		; Memory Address ($3E7B) and binary offset [$3AF7]
 	dc.b	$3F	;3F
 	dc.b	$FF	;FF
 Msg_Recruit:
-	; ReSource: Request communicated by the Recruit button.
+	; Request communicated by the Recruit button.
 	dc.b	'COME JOIN MY MERRY BAND'	;434F4D45204A4F494E204D59204D455252592042414E44
 	dc.b	$FF	;FF
 	dc.b	$00	;00
 
 PartyCommand_Call:		; Memory Address ($3E9C) and binary offset [$3B18]
-	; ReSource: Displays "THOU DOST CALL OUT" and, when the other player is active on the same map, builds a direction-and-distance call notice for that player.
+	; Displays "THOU DOST CALL OUT" and, when the other player is active on the same map, builds a direction-and-distance call notice for that player.
 	lea	Notice_Call_Out.l,a6	;4DF9000041D4
 	jsr	Print_timed_message.l	;4EB90000D86A
 	move.b	#$FF,$0050(a5)	;1B7C00FF0050
@@ -5988,16 +5986,16 @@ adrCd003F58:		; Memory Address ($3F58) and binary offset [$3BD4]
 	bra	adrCd00332A	;6000F3D0
 
 PartyCommand_Dismiss:		; Memory Address ($3F5C) and binary offset [$3BD8]
-	; ReSource: Opens party-member selection for Dismiss or removes the selected member from the active party; displays "<NAME> LEAVES THE PARTY" or "<NAME> IS UNABLE TO DEPART".
+	; Opens party-member selection for Dismiss or removes the selected member from the active party; displays "<NAME> LEAVES THE PARTY" or "<NAME> IS UNABLE TO DEPART".
 	moveq	#$15,d7	;7E15
 	bra.s	Interface_ProcessSelectedInventoryAction	;6006
 
 PartyCommand_Wait:		; Memory Address ($3F60) and binary offset [$3BDC]
-	; ReSource: Opens party-member selection for Wait or removes and marks the selected member as waiting; displays "<NAME> WAITS" or "<NAME> IS UNABLE TO DEPART".
+	; Opens party-member selection for Wait or removes and marks the selected member as waiting; displays "<NAME> WAITS" or "<NAME> IS UNABLE TO DEPART".
 	clr.b	$0050(a5)	;422D0050
 	moveq	#$13,d7	;7E13
 Interface_ProcessSelectedInventoryAction:		; Memory Address ($3F66) and binary offset [$3BE2]
-	; ReSource: Maps the selected inventory entry, tests the destination cell, removes or applies the object, and prints success or blocked notices.
+	; Maps the selected inventory entry, tests the destination cell, removes or applies the object, and prints success or blocked notices.
 	tst.b	$004E(a5)	;4A2D004E
 	beq	Interface_OpenInventoryActionSelector	;67000134
 	bsr	Interface_MapSelectedAction	;6100020E
@@ -6014,7 +6012,7 @@ Interface_ProcessSelectedInventoryAction:		; Memory Address ($3F66) and binary o
 	bra	adrCd00332A	;6000F390
 
 Interface_FinalizeSelectedWorldAction:		; Memory Address ($3F9C) and binary offset [$3C18]
-	; ReSource: Completes a valid selected-object world action, updates the champion record, and displays the resulting notice.
+	; Completes a valid selected-object world action, updates the champion record, and displays the resulting notice.
 	bset	#$07,$01(a6,d2.w)	;08F600072001
 	move.b	$004F(a5),d0	;102D004F
 	bsr	Interface_RemoveSelectedInventoryObject	;6100005C
@@ -6042,7 +6040,7 @@ adrCd003FCE:		; Memory Address ($3FCE) and binary offset [$3C4A]
 	bra	adrCd00332A	;6000F328
 
 Interface_RemoveSelectedInventoryObject:		; Memory Address ($4004) and binary offset [$3C80]
-	; ReSource: Removes the selected inventory object, compacts the pocket flags, and refreshes inventory state.
+	; Removes the selected inventory object, compacts the pocket flags, and refreshes inventory state.
 	bsr	adrCd004092	;6100008C
 	move.b	#$FF,$26(a5,d2.w)	;1BBC00FF2026
 	cmp.w	$0016(a5),d2	;B46D0016
@@ -6114,14 +6112,14 @@ adrCd00409E:		; Memory Address ($409E) and binary offset [$3D1A]
 	rts	;4E75
 
 Interface_OpenInventoryActionSelector:		; Memory Address ($40A0) and binary offset [$3D1C]
-	; ReSource: Builds the selectable inventory-object list and either opens selection or displays the supplied no-selection notice.
+	; Builds the selectable inventory-object list and either opens selection or displays the supplied no-selection notice.
 	bsr	adrJA007CA6	;61003C04
 	tst.w	d2	;4A42
 	bne.s	adrCd0040BC	;6614
 	lea	Notice_PartyCommand_NoTarget.l,a6	;4DF9000041CD
 	move.b	d7,$0005(a6)	;1D470005
 Interface_ShowInventoryActionNotice:		; Memory Address ($40B2) and binary offset [$3D2E]
-	; ReSource: Clears the page state and prints a fixed inventory/action notice.
+	; Clears the page state and prints a fixed inventory/action notice.
 	clr.w	$0042(a5)	;426D0042
 	jmp	Print_timed_message.l	;4EF90000D86A
 
@@ -6130,10 +6128,10 @@ adrCd0040BC:		; Memory Address ($40BC) and binary offset [$3D38]
 	bra.s	Interface_InitInventoryActionSelector	;6006
 
 Interface_OpenInventorySelection:		; Memory Address ($40C4) and binary offset [$3D40]
-	; ReSource: Selects the inventory-selection page and enters the common selection-prompt path.
+	; Selects the inventory-selection page and enters the common selection-prompt path.
 	move.w	#$0003,$0044(a5)	;3B7C00030044
 Interface_InitInventoryActionSelector:		; Memory Address ($40CA) and binary offset [$3D46]
-	; ReSource: Marks selection as active, patches the prompt template with the action value, and opens the fixed-message selector.
+	; Marks selection as active, patches the prompt template with the action value, and opens the fixed-message selector.
 	move.b	#$01,$004E(a5)	;1B7C0001004E
 	lea	Notice_PartyCommand_SelectTarget.l,a6	;4DF9000041A0
 	move.b	d7,$0007(a6)	;1D470007
@@ -6141,7 +6139,7 @@ Interface_InitInventoryActionSelector:		; Memory Address ($40CA) and binary offs
 	bra	adrCd007D6C	;60003C8A
 
 PartyCommand_View:		; Memory Address ($40E4) and binary offset [$3D60]
-	; ReSource: Opens selection for an eligible waiting party member and switches the viewpoint through that member; otherwise displays "EVERYONE IS PRESENT".
+	; Opens selection for an eligible waiting party member and switches the viewpoint through that member; otherwise displays "EVERYONE IS PRESENT".
 	tst.b	$004E(a5)	;4A2D004E
 	bne.s	Interface_CommitSelectedInventoryAction	;662A
 	moveq	#$12,d7	;7E12
@@ -6163,7 +6161,7 @@ adrCd004104:		; Memory Address ($4104) and binary offset [$3D80]
 	bra.s	Interface_ShowInventoryActionNotice	;609E
 
 Interface_CommitSelectedInventoryAction:		; Memory Address ($4114) and binary offset [$3D90]
-	; ReSource: Stores the selected inventory action nibble, patches its notice template, and commits the pending action.
+	; Stores the selected inventory action nibble, patches its notice template, and commits the pending action.
 	bsr	Interface_MapSelectedAction	;61000068
 	move.b	d0,$0053(a5)	;1B400053
 	and.b	#$0F,$0053(a5)	;022D000F0053
@@ -6175,19 +6173,19 @@ Interface_CommitSelectedInventoryAction:		; Memory Address ($4114) and binary of
 	bra	adrCd00332A	;6000F1E8
 
 PartyCommand_Correct:		; Memory Address ($4144) and binary offset [$3DC0]
-	; ReSource: Opens party-member selection for Correct or sets bit 4 in the selected member's stored party-state byte; displays "<NAME> APOLOGISES FOR BREATHING".
+	; Opens party-member selection for Correct or sets bit 4 in the selected member's stored party-state byte; displays "<NAME> APOLOGISES FOR BREATHING".
 	moveq	#$14,d7	;7E14
 	lea	Notice_Correct_Apology.l,a6	;4DF9000041B2
 	moveq	#$10,d3	;7610
 	bra.s	Interface_CommitSelectedObjectFlags	;600A
 
 PartyCommand_Commend:		; Memory Address ($4150) and binary offset [$3DCC]
-	; ReSource: Opens party-member selection for Commend or clears bit 4 in the selected member's stored party-state byte; displays "<NAME> ACCEPTS THY HONOUR".
+	; Opens party-member selection for Commend or clears bit 4 in the selected member's stored party-state byte; displays "<NAME> ACCEPTS THY HONOUR".
 	lea	Notice_Commend_Accepted.l,a6	;4DF9000041AB
 	moveq	#$11,d7	;7E11
 	moveq	#$00,d3	;7600
 Interface_CommitSelectedObjectFlags:		; Memory Address ($415A) and binary offset [$3DD6]
-	; ReSource: Maps the selected object, clears its active flag, updates the pocket flags, and prints the action notice.
+	; Maps the selected object, clears its active flag, updates the pocket flags, and prints the action notice.
 	tst.b	$004E(a5)	;4A2D004E
 	beq	Interface_OpenInventoryActionSelector	;6700FF40
 	bsr.s	Interface_MapSelectedAction	;611A
@@ -6199,7 +6197,7 @@ Interface_CommitSelectedObjectFlags:		; Memory Address ($415A) and binary offset
 	bra	adrCd00332A	;6000F1AE
 
 Interface_MapSelectedAction:		; Memory Address ($417E) and binary offset [$3DFA]
-	; ReSource: Maps the selected button index through the runtime action-selection scratch entries at $7C24; negative entries return the existing Return_InvalidPlayerAction path.
+	; Maps the selected button index through the runtime action-selection scratch entries at $7C24; negative entries return the existing Return_InvalidPlayerAction path.
 	lea	Interface_ActionSelectionScratchEntries.l,a1	;43F900007C24
 	and.w	#$0003,d1	;02410003
 	move.w	d1,d2	;3401
@@ -6210,13 +6208,13 @@ Interface_MapSelectedAction:		; Memory Address ($417E) and binary offset [$3DFA]
 	rts	;4E75
 
 Return_InvalidPlayerAction:		; Memory Address ($451A) and binary offset [$4196]
-	; ReSource: Returns from invalid or unavailable player-action processing.
+	; Returns from invalid or unavailable player-action processing.
 	move.w	#$FFFF,$000C(a5)	;3B7CFFFF000C
 	addq.w	#$04,sp	;584F
 	rts	;4E75
 
 Notice_PartyCommand_SelectTarget:		; Memory Address ($41A0) and binary offset [$3E1C]
-	; ReSource: Packed-word prompt displayed as "WHOM DOST THOU WISH TO <ACTION>?"; the action word is patched at runtime.
+	; Packed-word prompt displayed as "WHOM DOST THOU WISH TO <ACTION>?"; the action word is patched at runtime.
 	dc.b	$18	;18
 	dc.b	$FA	;FA
 	dc.b	$4D	;4D
@@ -6229,7 +6227,7 @@ Notice_PartyCommand_SelectTarget:		; Memory Address ($41A0) and binary offset [$
 	dc.b	$3F	;3F
 	dc.b	$FF	;FF
 Notice_Commend_Accepted:		; Memory Address ($41AB) and binary offset [$3E27]
-	; ReSource: Packed-word Commend result displayed as "<NAME> ACCEPTS THY HONOUR"; the selected party-member token replaces the default BLODWYN token.
+	; Packed-word Commend result displayed as "<NAME> ACCEPTS THY HONOUR"; the selected party-member token replaces the default BLODWYN token.
 	dc.b	$00	;00
 	dc.b	$1D	;1D
 	dc.b	$FA	;FA
@@ -6238,7 +6236,7 @@ Notice_Commend_Accepted:		; Memory Address ($41AB) and binary offset [$3E27]
 	dc.b	$1F	;1F
 	dc.b	$FF	;FF
 Notice_Correct_Apology:		; Memory Address ($41B2) and binary offset [$3E2E]
-	; ReSource: Packed-word Correct result displayed as "<NAME> APOLOGISES FOR BREATHING"; the selected party-member token replaces the default BLODWYN token.
+	; Packed-word Correct result displayed as "<NAME> APOLOGISES FOR BREATHING"; the selected party-member token replaces the default BLODWYN token.
 	dc.b	$00	;00
 	dc.b	$21	;21
 	dc.b	$FA	;FA
@@ -6249,7 +6247,7 @@ Notice_Correct_Apology:		; Memory Address ($41B2) and binary offset [$3E2E]
 	dc.b	$4A	;4A
 	dc.b	$FF	;FF
 Notice_PartyCommand_UnableToDepart:		; Memory Address ($41BB) and binary offset [$3E37]
-	; ReSource: Packed-word Wait or Dismiss failure displayed as "<NAME> IS UNABLE TO DEPART"; the selected party-member token replaces the default BLODWYN token.
+	; Packed-word Wait or Dismiss failure displayed as "<NAME> IS UNABLE TO DEPART"; the selected party-member token replaces the default BLODWYN token.
 	dc.b	$00	;00
 	dc.b	$35	;35
 	dc.b	$17	;17
@@ -6257,14 +6255,14 @@ Notice_PartyCommand_UnableToDepart:		; Memory Address ($41BB) and binary offset 
 	dc.b	$30	;30
 	dc.b	$FF	;FF
 Notice_Wait_PartyMemberWaits:		; Memory Address ($41C1) and binary offset [$3E3D]
-	; ReSource: Packed-word Wait result displayed as "<NAME> WAITS"; the selected party-member token replaces the default BLODWYN token.
+	; Packed-word Wait result displayed as "<NAME> WAITS"; the selected party-member token replaces the default BLODWYN token.
 	dc.b	$00	;00
 	dc.b	$13	;13
 	dc.b	$FA	;FA
 	dc.b	$53	;53
 	dc.b	$FF	;FF
 Notice_Dismiss_PartyMemberLeaves:		; Memory Address ($41C6) and binary offset [$3E42]
-	; ReSource: Packed-word Dismiss result displayed as "<NAME> LEAVES THE PARTY"; the selected party-member token replaces the default BLODWYN token.
+	; Packed-word Dismiss result displayed as "<NAME> LEAVES THE PARTY"; the selected party-member token replaces the default BLODWYN token.
 	dc.b	$00	;00
 	dc.b	$24	;24
 	dc.b	$FA	;FA
@@ -6273,7 +6271,7 @@ Notice_Dismiss_PartyMemberLeaves:		; Memory Address ($41C6) and binary offset [$
 	dc.b	$26	;26
 	dc.b	$FF	;FF
 Notice_PartyCommand_NoTarget:		; Memory Address ($41CD) and binary offset [$3E49]
-	; ReSource: Packed-word result displayed as "THOU HAST NONE PRESENT TO <ACTION>"; the action word is patched at runtime.
+	; Packed-word result displayed as "THOU HAST NONE PRESENT TO <ACTION>"; the action word is patched at runtime.
 	dc.b	$1A	;1A
 	dc.b	$27	;27
 	dc.b	$28	;28
@@ -6282,7 +6280,7 @@ Notice_PartyCommand_NoTarget:		; Memory Address ($41CD) and binary offset [$3E49
 	dc.b	$00	;00
 	dc.b	$FF	;FF
 Notice_Call_Out:		; Memory Address ($41D4) and binary offset [$3E50]
-	; ReSource: Contains the packed phrase "THOU DOST CALL OUT", followed by a second terminated phrase "<NAME> DEPARTS"; only the first phrase is directly referenced here and use of the second remains unresolved.
+	; Contains the packed phrase "THOU DOST CALL OUT", followed by a second terminated phrase "<NAME> DEPARTS"; only the first phrase is directly referenced here and use of the second remains unresolved.
 	dc.b	$1A	;1A
 	dc.b	$19	;19
 	dc.b	$16	;16
@@ -6294,14 +6292,14 @@ Notice_Call_Out:		; Memory Address ($41D4) and binary offset [$3E50]
 	dc.b	$53	;53
 	dc.b	$FF	;FF
 Notice_PartyMemberRejoins:		; Memory Address ($41DE) and binary offset [$3E5A]
-	; ReSource: Packed-word party-management result displayed as "<NAME> REJOINS THE PARTY"; the party-member token replaces the default BLODWYN token at runtime.
+	; Packed-word party-management result displayed as "<NAME> REJOINS THE PARTY"; the party-member token replaces the default BLODWYN token at runtime.
 	dc.b	$00	;00
 	dc.b	$32	;32
 	dc.b	$25	;25
 	dc.b	$26	;26
 	dc.b	$FF	;FF
 Notice_View_ThroughPartyMember:		; Memory Address ($41E3) and binary offset [$3E5F]
-	; ReSource: Packed-word View notice displayed as "VIEWING THROUGH <NAME>"; the viewed party-member token replaces the default BLODWYN token at runtime.
+	; Packed-word View notice displayed as "VIEWING THROUGH <NAME>"; the viewed party-member token replaces the default BLODWYN token at runtime.
 	dc.b	$12	;12
 	dc.b	$FB	;FB
 	dc.b	$4A	;4A
@@ -6309,13 +6307,13 @@ Notice_View_ThroughPartyMember:		; Memory Address ($41E3) and binary offset [$3E
 	dc.b	$00	;00
 	dc.b	$FF	;FF
 Notice_View_EveryonePresent:		; Memory Address ($41E9) and binary offset [$3E65]
-	; ReSource: Packed-word View notice displayed as "EVERYONE IS PRESENT".
+	; Packed-word View notice displayed as "EVERYONE IS PRESENT".
 	dc.b	$20	;20
 	dc.b	$35	;35
 	dc.b	$36	;36
 	dc.b	$FF	;FF
 Notice_View_NormalRestored:		; Memory Address ($41ED) and binary offset [$3E69]
-	; ReSource: Packed-word View notice displayed as "NORMAL VIEWING RESTORED".
+	; Packed-word View notice displayed as "NORMAL VIEWING RESTORED".
 	dc.b	$37	;37
 	dc.b	$12	;12
 	dc.b	$FB	;FB
@@ -6323,7 +6321,7 @@ Notice_View_NormalRestored:		; Memory Address ($41ED) and binary offset [$3E69]
 	dc.b	$38	;38
 	dc.b	$FF	;FF
 Notice_Communicate_NobodyHere:		; Memory Address ($41F3) and binary offset [$3E6F]
-	; ReSource: Packed-word Communicate failure displayed as "THERE IS NOBODY HERE".
+	; Packed-word Communicate failure displayed as "THERE IS NOBODY HERE".
 	dc.b	$39	;39
 	dc.b	$35	;35
 	dc.b	$3D	;3D
@@ -6333,7 +6331,7 @@ Notice_Communicate_NobodyHere:		; Memory Address ($41F3) and binary offset [$3E6
 	dc.b	$FF	;FF
 
 Comms_GetState:		; Memory Address ($41FA) and binary offset [$3E76]
-	; ReSource: Returns the active player's sixteen-byte communication state record.
+	; Returns the active player's sixteen-byte communication state record.
 	lea	Comms_StateRecords.l,a4	;49F900016B4C
 	btst	#$00,(a5)	;08150000
 	beq.s	adrCd00420A	;6704
@@ -6413,7 +6411,7 @@ adrCd0042F6:		; Memory Address ($42F6) and binary offset [$3F72]
 	rts	;4E75
 
 Reset_PlayerActionState:		; Memory Address ($468E) and binary offset [$430A]
-	; ReSource: Resets per-player interface state, clears the active action, and restores the invalid-action value.
+	; Resets per-player interface state, clears the active action, and restores the invalid-action value.
 	and.b	#$01,(a5)	;02150001
 	clr.b	$0056(a5)	;422D0056
 	clr.w	$0014(a5)	;426D0014
@@ -7196,7 +7194,7 @@ adrCd004C88:		; Memory Address ($4C88) and binary offset [$4904]
 	bra	adrCd007D6C	;600030DE
 
 Scan_PlayerInterfaceActions:		; Memory Address ($5014) and binary offset [$4C90]
-	; ReSource: Scans interface state and resolves direct or pending player actions.
+	; Scans interface state and resolves direct or pending player actions.
 	move.w	#$FFFF,$000C(a5)	;3B7CFFFF000C
 	move.w	$0022(a5),$0024(a5)	;3B6D00220024
 	btst	#$06,$0018(a5)	;082D00060018
@@ -7247,7 +7245,7 @@ adrCd004D1A:		; Memory Address ($4D1A) and binary offset [$4996]
 	bra	Resolve_PlayerContextAction		;600000BA
 
 Consume_PlayerPendingAction:		; Memory Address ($50B6) and binary offset [$4D32]
-	; ReSource: Copies PlayerX_Data+$56 into PlayerX_Data+$0C, then clears the pending byte.
+	; Copies PlayerX_Data+$56 into PlayerX_Data+$0C, then clears the pending byte.
 	moveq	#$00,d0	;7000
 	move.b	Player_PendingActionOffset(a5),d0	;102D0056
 	beq.s	adrCd004D4E	;6714
@@ -7293,7 +7291,7 @@ adrJA004DAA:		; Memory Address ($4DAA) and binary offset [$4A26]
 	moveq	#$00,d0	;7000
 	moveq	#$11,d2	;7411
 HitTest_PlayerInterfaceActions:		; Memory Address ($5138) and binary offset [$4DB4]
-	; ReSource: Tests pointer coordinates against interface rectangles and writes the resulting action directly to PlayerX_Data+$0C.
+	; Tests pointer coordinates against interface rectangles and writes the resulting action directly to PlayerX_Data+$0C.
 	move.l	$0002(a5),d1	;222D0002
 	sub.w	$0008(a5),d1	;926D0008
 adrCd004DBC:		; Memory Address ($4DBC) and binary offset [$4A38]
@@ -7310,7 +7308,7 @@ adrCd004DCA:		; Memory Address ($4DCA) and binary offset [$4A46]
 	beq.s	Store_HitTestActionCommand	;6702
 	bcc.s	adrCd004DDE	;6406
 Store_HitTestActionCommand:		; Memory Address ($515C) and binary offset [$4DD8]
-	; ReSource: Stores the action number selected by the interface hit test.
+	; Stores the action number selected by the interface hit test.
 	move.w	d0,$000C(a5)	;3B40000C
 	rts	;4E75
 
@@ -7324,7 +7322,7 @@ adrCd004DE0:		; Memory Address ($4DE0) and binary offset [$4A5C]
 	rts	;4E75
 
 Resolve_PlayerContextAction:		; Memory Address ($516E) and binary offset [$4DEA]
-	; ReSource: Resolves context-dependent actions and may invoke the display-action hit-test routine.
+	; Resolves context-dependent actions and may invoke the display-action hit-test routine.
 	moveq	#$00,d0	;7000
 	move.b	$0014(a5),d0	;102D0014
 	bne.s	adrCd004E0C	;661A
@@ -7391,7 +7389,7 @@ adrCd004E8C:		; Memory Address ($4E8C) and binary offset [$4B08]
 	rts	;4E75
 
 Resolve_MultiFunctionAction:		; Memory Address ($5212) and binary offset [$4E8E]
-	; ReSource: Resolves the context-sensitive multi-function command, including interactions such as opening a door.
+	; Resolves the context-sensitive multi-function command, including interactions such as opening a door.
 	bsr	Load_CurrentChampionStatRecord	;610017CC
 	clr.w	adrW_00505A.l	;42790000505A
 	move.b	$0007(a5),adrB_00EE3E.l	;13ED00070000EE3E
@@ -7581,7 +7579,7 @@ Spells_03_Vitalise:		; Memory Address ($5086) and binary offset [$4D02]
 	bra	adrCd005236	;600001AA
 
 Spells_04_Beguile:		; Memory Address ($508E) and binary offset [$4D0A]
-	; ReSource: While communication is active, adds floor(spell power / 4) + 1 to both attitude and patience.
+	; While communication is active, adds floor(spell power / 4) + 1 to both attitude and patience.
 	cmp.w	#InterfaceMode_Communication,$0042(a5)	;0C6D00080042
 	bne.s	adrCd0050BC	;6626
 	lsr.b	#WornSpell_Beguile_PowerShift,d7	;E40F
@@ -8357,7 +8355,7 @@ adrCd005782:		; Memory Address ($5782) and binary offset [$53FE]
 	swap	d7	;4847
 	move.b	d7,(a1)+	;12C7
 Return_ActionDispatchBlocked:		; Memory Address ($5B16) and binary offset [$5792]
-	; ReSource: Exit used when interface-action dispatch is blocked by player state.
+	; Exit used when interface-action dispatch is blocked by player state.
 	rts	;4E75
 
 MovementOffsetTable:		; Memory Address ($5794) and binary offset [$5410]
@@ -8375,12 +8373,12 @@ Click_CloseCurrentPage:		; Memory Address ($57A4) and binary offset [$5420]
 	bra	adrCd008278	;60002ACE
 
 Dispatch_PlayerInterfaceActionGuarded:		; Memory Address ($5B30) and binary offset [$57AC]
-	; ReSource: Checks player state before dispatching the active action.
+	; Checks player state before dispatching the active action.
 	btst	#$06,$0018(a5)	;082D00060018
 	bne.s	Return_ActionDispatchBlocked	;66DE
 	pea	adrL_008226.l	;487900008226
 Dispatch_PlayerInterfaceAction:		; Memory Address ($5B3E) and binary offset [$57BA]
-	; ReSource: Indexes the dungeon InterfaceButtons jump table using PlayerX_Data+$0C.
+	; Indexes the dungeon InterfaceButtons jump table using PlayerX_Data+$0C.
 	move.w	Player_ActionCommandOffset(a5),d0	;302D000C
 	bmi.s	Return_ActionDispatchBlocked	;6BD2
 	asl.w	#InterfaceAction_TableEntryShift,d0	;E540
@@ -8389,7 +8387,7 @@ Dispatch_PlayerInterfaceAction:		; Memory Address ($5B3E) and binary offset [$57
 	jmp	(a0)	;4ED0
 
 DungeonInterfaceActionTable:		; Memory Address ($5B52) and binary offset [$57CE]
-	; ReSource: Dungeon action jump table indexed by PlayerX_Data+$0C.
+	; Dungeon action jump table indexed by PlayerX_Data+$0C.
 	dc.l	adrJA006684	;00006684
 	dc.l	Click_ShowStats	;00006616
 	dc.l	Click_MultiFunctionButton	;000064AA
@@ -8446,7 +8444,7 @@ adrEA005864:		; Memory Address ($5864) and binary offset [$54E0]
 	dc.w	$0048	;0048
 
 HitTest_DisplayAction:		; Memory Address ($5C00) and binary offset [$587C]
-	; ReSource: Tests display-area rectangles and stores a resulting command in PlayerX_Data+$0C.
+	; Tests display-area rectangles and stores a resulting command in PlayerX_Data+$0C.
 	moveq	#$22,d0	;7022
 	moveq	#$26,d2	;7426
 	lea	adrEA005864.w,a6	;4DF85864	;Short Absolute converted to symbol!
@@ -8458,7 +8456,7 @@ Click_Display:		; Memory Address ($588E) and binary offset [$550A]
 	bra	Dispatch_PlayerInterfaceAction	;6000FF28
 
 Handle_WallFeatureClick:		; Memory Address ($5C18) and binary offset [$5894]
-	; ReSource: Handles a clicked wall feature and can route to the contextual wall-feature command.
+	; Handles a clicked wall feature and can route to the contextual wall-feature command.
 	bsr	adrCd00847E	;61002BE8
 	cmp.w	adrW_00EE72.l,d7	;BE790000EE72
 	bcc.s	adrCd0058EA	;644A
@@ -8490,14 +8488,14 @@ adrCd0058EA:		; Memory Address ($58EA) and binary offset [$5566]
 	rts	;4E75
 
 MainWall_Action_LookupTable:		; Memory Address ($58EC) and binary offset [$5568]
-	; ReSource: Relative dispatch offsets for shelf, wall-decoration, switch, and socket click handlers.
+	; Relative dispatch offsets for shelf, wall-decoration, switch, and socket click handlers.
 	dc.w	MainWall_Action_01_Shelf-MainWall_Action_01_Shelf	;0000
 	dc.w	MainWall_Action_02_WallDecoration-MainWall_Action_01_Shelf	;0018
 	dc.w	MainWall_Action_03_Switches-MainWall_Action_01_Shelf	;0236
 	dc.w	MainWall_Action_04_Sockets-MainWall_Action_01_Shelf	;0064
 
 MainWall_Action_01_Shelf:		; Memory Address ($58F4) and binary offset [$5570]
-	; ReSource: Maps the clicked shelf height to one of the two shelf object subpositions before shared object handling.
+	; Maps the clicked shelf height to one of the two shelf object subpositions before shared object handling.
 	move.w	$0004(a5),d1	;322D0004
 	sub.w	$0008(a5),d1	;926D0008
 	moveq	#$02,d6	;7C02
@@ -8507,7 +8505,7 @@ MainWall_Action_01_Shelf:		; Memory Address ($58F4) and binary offset [$5570]
 	bra	adrCd005D4E	;60000444
 
 MainWall_Action_02_WallDecoration:		; Memory Address ($590C) and binary offset [$5588]
-	; ReSource: Accepts scroll-bearing wall decorations and converts their subtype into a scroll index.
+	; Accepts scroll-bearing wall decorations and converts their subtype into a scroll index.
 	moveq	#$00,d1	;7200
 	move.b	$00(a6,d0.w),d1	;12360000
 	lsr.b	#$02,d1	;E409
@@ -8516,7 +8514,7 @@ MainWall_Action_02_WallDecoration:		; Memory Address ($590C) and binary offset [
 	rts	;4E75
 
 MainWall_Action_02_Scrolls:		; Memory Address ($591A) and binary offset [$5596]
-	; ReSource: Draws the scroll frame, resolves the tower-specific scroll text, and prints it in the interface.
+	; Draws the scroll frame, resolves the tower-specific scroll text, and prints it in the interface.
 	move.w	d1,-(sp)	;3F01
 	moveq	#$38,d5	;7A38
 	bsr	Draw_ScrollFrame	;6100731A
@@ -8540,7 +8538,7 @@ Scroll_TowerOffsets_DataTable:		; Memory Address ($5952) and binary offset [$55C
 	dc.b	$3B	;3B
 
 MainWall_Action_04_Sockets:		; Memory Address ($5958) and binary offset [$55D4]
-	; ReSource: Places a held crystal or gem into a wall socket, or dispatches the action for an occupied socket.
+	; Places a held crystal or gem into a wall socket, or dispatches the action for an occupied socket.
 	moveq	#$00,d1	;7200
 	move.b	$00(a6,d0.w),d1	;12360000
 	btst	#$02,d1	;08010002
@@ -8558,7 +8556,7 @@ Socket_ClickExit:		; Memory Address ($5984) and binary offset [$5600]
 	rts	;4E75
 
 Sockets_Actions:		; Memory Address ($5986) and binary offset [$5602]
-	; ReSource: Verifies the held object matches the occupied socket and dispatches the crystal or gem-specific effect.
+	; Verifies the held object matches the occupied socket and dispatches the crystal or gem-specific effect.
 	lsr.w	#$03,d1	;E649
 	add.w	#$0060,d1	;06410060
 	cmp.w	$002E(a5),d1	;B26D002E
@@ -8713,7 +8711,7 @@ BlueGemLocs:		; Memory Address ($5B12) and binary offset [$578E]
 	dc.w	$0802	;0802
 
 MainWall_Action_03_Switches:		; Memory Address ($5B2A) and binary offset [$57A6]
-	; ReSource: Toggles the switch display state and dispatches the tower-specific switch trigger.
+	; Toggles the switch display state and dispatches the tower-specific switch trigger.
 	moveq	#$00,d1	;7200
 	move.b	$00(a6,d0.w),d1	;12360000
 	and.w	#$00F8,d1	;024100F8
@@ -9243,11 +9241,11 @@ Click_Display_Centre:		; Memory Address ($5F94) and binary offset [$5C10]
 	bra.s	Select_AttackingChampion	;6008
 
 Handle_PrimaryAttackAction:		; Memory Address ($6322) and binary offset [$5F9E]
-	; ReSource: Primary attack action handler; sets the primary attack state bit and continues through the common attack routine.
+	; Primary attack action handler; sets the primary attack state bit and continues through the common attack routine.
 	and.b	#$01,(a5)	;02150001
 	bset	#Player_AttackPrimaryStateBit,(a5)	;08D50001
 Select_AttackingChampion:		; Memory Address ($632A) and binary offset [$5FA6]
-	; ReSource: Common attack setup that selects the active champion/action participant.
+	; Common attack setup that selects the active champion/action participant.
 	moveq	#$03,d1	;7203
 	bsr	adrCd005500	;6100F556
 	tst.w	d3	;4A43
@@ -9465,7 +9463,7 @@ adrCd0061AA:		; Memory Address ($61AA) and binary offset [$5E26]
 	rts	;4E75
 
 Close_AttackedChampionCommunicationPanels:		; Memory Address ($61B6) and binary offset [$5E32]
-	; ReSource: Closes either player's communication panel when its selected target is the champion being attacked.
+	; Closes either player's communication panel when its selected target is the champion being attacked.
 	movem.l	d1/d3/a5,-(sp)	;48E75004
 	lea	Player1_Data.l,a5	;4BF90000EE7C
 	bsr.s	Close_PlayerCommunicationIfTargetAttacked	;610E
@@ -9475,13 +9473,13 @@ Close_AttackedChampionCommunicationPanels:		; Memory Address ($61B6) and binary 
 	rts	;4E75
 
 Close_PlayerCommunicationIfTargetAttacked:		; Memory Address ($61D0) and binary offset [$5E4C]
-	; ReSource: Clears one player's communication state when the attacked champion matches the selected target.
+	; Clears one player's communication state when the attacked champion matches the selected target.
 	cmp.b	$0035(a5),d1	;B22D0035
 	beq	adrCd00332A	;6700D154
 	rts	;4E75
 
 Resolve_PhysicalAttack:		; Memory Address ($61DA) and binary offset [$5E56]
-	; ReSource: Performs the opposed attack roll, calculates weapon damage, subtracts armour and applies the hit-quality multiplier.
+	; Performs the opposed attack roll, calculates weapon damage, subtracts armour and applies the hit-quality multiplier.
 	moveq	#$02,d0	;7002
 	bsr	PlaySound	;610026E0
 	bsr.s	Close_AttackedChampionCommunicationPanels	;61D4
@@ -9509,7 +9507,7 @@ PhysicalAttack_HandleDefenderRollWin:		; Memory Address ($6210) and binary offse
 	cmp.w	d2,d0	;B042
 	bpl	PhysicalAttack_Return	;6A00006E
 PhysicalAttack_CalculateDamage:		; Memory Address ($621C) and binary offset [$5E98]
-	; ReSource: Calculates base damage from weapon range, level, fixed weapon damage and effective Strength.
+	; Calculates base damage from weapon range, level, fixed weapon damage and effective Strength.
 	move.w	$0006(a6),d1	;322E0006
 	bsr	RandomGen	;6100F39A
 	addq.w	#$01,d0	;5240
@@ -9522,14 +9520,14 @@ PhysicalAttack_CalculateDamage:		; Memory Address ($621C) and binary offset [$5E
 	lsr.w	#$03,d1	;E649
 	add.w	d1,d0	;D041
 PhysicalAttack_ApplyBackstabDamage:		; Memory Address ($623E) and binary offset [$5EBA]
-	; ReSource: Triples damage when the attack retains backstab eligibility.
+	; Triples damage when the attack retains backstab eligibility.
 	tst.w	PhysicalAttack_BackstabState.l	;4A790000628A
 	bne.s	PhysicalAttack_CalculateArmourReduction	;6606
 	move.w	d0,d1	;3200
 	add.w	d0,d0	;D040
 	add.w	d1,d0	;D041
 PhysicalAttack_CalculateArmourReduction:		; Memory Address ($624C) and binary offset [$5EC8]
-	; ReSource: Calculates the defender's armour reduction, including conditional upward rounding.
+	; Calculates the defender's armour reduction, including conditional upward rounding.
 	moveq	#$00,d4	;7800
 	move.b	$000D(a6),d4	;182E000D
 	lsr.b	#$01,d4	;E20C
@@ -9542,7 +9540,7 @@ PhysicalAttack_CalculateArmourReduction:		; Memory Address ($624C) and binary of
 PhysicalAttack_RoundArmourReductionUp:		; Memory Address ($6262) and binary offset [$5EDE]
 	addq.w	#$01,d4	;5244
 PhysicalAttack_ApplyArmourReduction:		; Memory Address ($6264) and binary offset [$5EE0]
-	; ReSource: Subtracts effective armour before applying hit-quality damage multipliers.
+	; Subtracts effective armour before applying hit-quality damage multipliers.
 	sub.w	d4,d0	;9044
 	bcs.s	PhysicalAttack_Return	;6520
 	beq.s	PhysicalAttack_Return	;671E
@@ -9557,7 +9555,7 @@ PhysicalAttack_ApplyArmourReduction:		; Memory Address ($6264) and binary offset
 	bcc.s	PhysicalAttack_StoreDamage	;6402
 	add.w	d1,d0	;D041
 PhysicalAttack_StoreDamage:		; Memory Address ($6284) and binary offset [$5F00]
-	; ReSource: Stores the final positive damage in the physical-attack working values.
+	; Stores the final positive damage in the physical-attack working values.
 	move.w	d0,$0000(a6)	;3D400000
 PhysicalAttack_Return:		; Memory Address ($6288) and binary offset [$5F04]
 	rts	;4E75
@@ -9566,7 +9564,7 @@ PhysicalAttack_BackstabState:		; Memory Address ($628A) and binary offset [$5F06
 	dc.w	$0000	;0000
 
 Load_CombatantCombatValues:		; Memory Address ($628C) and binary offset [$5F08]
-	; ReSource: Loads champion or monster combat statistics and applies equipment and active-spell modifiers.
+	; Loads champion or monster combat statistics and applies equipment and active-spell modifiers.
 	moveq	#$00,d4	;7800
 	moveq	#$00,d5	;7A00
 	moveq	#$00,d6	;7C00
@@ -9630,7 +9628,7 @@ Load_NormalChampionCombatStats:		; Memory Address ($6312) and binary offset [$5F
 	rts	;4E75
 
 Calculate_CharacterArmourLevel:		; Memory Address ($631E) and binary offset [$5F9A]
-	; ReSource: Combines body armour, worn gloves and shield values into the character's effective armour level.
+	; Combines body armour, worn gloves and shield values into the character's effective armour level.
 	lea	Character_Pockets_DataTable.l,a1	;43F90000ED2A
 	asl.w	#$04,d0	;E940
 	add.w	d0,a1	;D2C0
@@ -9641,13 +9639,13 @@ Calculate_CharacterArmourLevel:		; Memory Address ($631E) and binary offset [$5F
 	beq.s	Armour_SelectInnateOrSpellValue	;6702
 	moveq	#$00,d2	;7400
 Armour_SelectInnateOrSpellValue:		; Memory Address ($6338) and binary offset [$5FB4]
-	; ReSource: Selects the greater of innate armour and an active Armour-spell magnitude.
+	; Selects the greater of innate armour and an active Armour-spell magnitude.
 	move.b	$000B(a4),d3	;162C000B
 	cmp.b	d3,d2	;B403
 	bcs.s	Armour_ApplyBodyArmour	;6502
 	move.b	d2,d3	;1602
 Armour_ApplyBodyArmour:		; Memory Address ($6342) and binary offset [$5FBE]
-	; ReSource: Replaces the base armour value when the worn body armour provides greater protection.
+	; Replaces the base armour value when the worn body armour provides greater protection.
 	move.b	$0002(a1),d2	;14290002
 	beq.s	Armour_ApplyWornHandArmour	;670E
 	sub.b	#$1B,d2	;0402001B
@@ -9657,13 +9655,13 @@ Armour_ApplyBodyArmour:		; Memory Address ($6342) and binary offset [$5FBE]
 	bcc.s	Armour_ApplyWornHandArmour	;6402
 	move.b	d2,d3	;1602
 Armour_ApplyWornHandArmour:		; Memory Address ($6356) and binary offset [$5FD2]
-	; ReSource: Adds the contribution of the champion's worn hand-armour object.
+	; Adds the contribution of the champion's worn hand-armour object.
 	move.b	$0012(a4),d2	;142C0012
 	beq.s	Armour_ApplyShield	;6706
 	sub.b	#$2B,d2	;0402002B
 	add.b	d2,d3	;D602
 Armour_ApplyShield:		; Memory Address ($6362) and binary offset [$5FDE]
-	; ReSource: Adds the equipped shield's armour contribution.
+	; Adds the equipped shield's armour contribution.
 	moveq	#$00,d2	;7400
 	move.b	$0003(a1),d2	;14290003
 	sub.b	#$24,d2	;04020024
@@ -9675,7 +9673,7 @@ Armour_Return:		; Memory Address ($6378) and binary offset [$5FF4]
 	rts	;4E75
 
 Shield_ArmourBonuses:		; Memory Address ($637A) and binary offset [$5FF6]
-	; ReSource: Maps shield objects $24-$2A to armour contributions; the eighth byte is unused by the seven-entry range.
+	; Maps shield objects $24-$2A to armour contributions; the eighth byte is unused by the seven-entry range.
 	dc.b	$01	;01
 	dc.b	$02	;02
 	dc.b	$04	;04
@@ -9686,7 +9684,7 @@ Shield_ArmourBonuses:		; Memory Address ($637A) and binary offset [$5FF6]
 	dc.b	$00	;00
 
 Calculate_WeaponCombatBonuses:		; Memory Address ($6382) and binary offset [$5FFE]
-	; ReSource: Checks the two held-object slots for weapon objects $30-$3F and loads their combat adjustments.
+	; Checks the two held-object slots for weapon objects $30-$3F and loads their combat adjustments.
 	moveq	#$00,d0			;7000
 	move.b	(a1),d0			;1011
 	sub.b	#Object_Blades_First,d0			;04000030
@@ -9694,14 +9692,14 @@ Calculate_WeaponCombatBonuses:		; Memory Address ($6382) and binary offset [$5FF
 	cmpi.b	#Weapon_CombatModifierRecordCount,d0			;0C000010
 	bcs.s	Weapon_LoadCombatModifiers		;6510
 Weapon_CheckRightHand:		; Memory Address ($6392) and binary offset [$600E]
-	; ReSource: Checks the right-hand pocket after the left hand does not contain a recognised weapon.
+	; Checks the right-hand pocket after the left hand does not contain a recognised weapon.
 	move.b	$0001(a1),d0		;10290001
 	sub.b	#Object_Blades_First,d0			;04000030
 	bcs.s	Weapon_ReturnCombatModifiers		;653E
 	cmpi.b	#Weapon_CombatModifierRecordCount,d0			;0C000010
 	bcc.s	Weapon_ReturnCombatModifiers		;6438
 Weapon_LoadCombatModifiers:		; Memory Address ($63A2) and binary offset [$601E]
-	; ReSource: Loads random damage, fixed damage, attack and defence modifiers from the selected weapon record.
+	; Loads random damage, fixed damage, attack and defence modifiers from the selected weapon record.
 	lea	Weapon_CombatModifiers.l,a0	;41F9000063DC
 	asl.w	#$02,d0			;E540
 	add.w	d0,a0			;D0C0
@@ -9715,7 +9713,7 @@ Weapon_LoadCombatModifiers:		; Memory Address ($63A2) and binary offset [$601E]
 	bcs.s	Weapon_ApplyAceOfSwordsRestriction		;6506
 	move.w	#$FFFF,PhysicalAttack_BackstabState.w	;31FCFFFF628A	;Short Absolute converted to symbol!
 Weapon_ApplyAceOfSwordsRestriction:		; Memory Address ($63C6) and binary offset [$6042]
-	; ReSource: Reduces the Ace of Swords combat modifiers unless Chaos Gloves are worn.
+	; Reduces the Ace of Swords combat modifiers unless Chaos Gloves are worn.
 	cmpi.b	#Weapon_AceOfSwordsRecordOffset,d0	;0C00001C
 	bne.s	Weapon_ReturnCombatModifiers	;660E
 	cmp.b	#Object_ChaosGloves,$0012(a4)	;0C2C002B0012
@@ -9727,7 +9725,7 @@ Weapon_ReturnCombatModifiers:		; Memory Address ($63DA) and binary offset [$6056
 	rts	;4E75
 
 Weapon_CombatModifiers:		; Memory Address ($63DC) and binary offset [$6058]
-	; ReSource: Sixteen four-byte records for weapons $30-$3F: random damage range, fixed damage bonus, attack bonus and defence bonus.
+	; Sixteen four-byte records for weapons $30-$3F: random damage range, fixed damage bonus, attack bonus and defence bonus.
 	dc.w	$0400	;0400
 	dc.w	$0000	;0000
 	dc.w	$0603	;0603
@@ -9762,7 +9760,7 @@ Weapon_CombatModifiers:		; Memory Address ($63DC) and binary offset [$6058]
 	dc.w	$1928	;1928
 
 Prepare_AttackAndDefenceScores:		; Memory Address ($641C) and binary offset [$6098]
-	; ReSource: Builds the attacker score and defender score, including weapon attack, weapon defence and effective armour values.
+	; Builds the attacker score and defender score, including weapon attack, weapon defence and effective armour values.
 	lea	PhysicalAttack_WorkingValues.l,a6	;4DF900016B6C
 	move.w	d1,-(sp)	;3F01
 	move.w	d3,d0	;3003
@@ -9782,7 +9780,7 @@ Prepare_AttackAndDefenceScores:		; Memory Address ($641C) and binary offset [$60
 	beq.s	DefenderScore_StoreResult	;6702
 	add.w	d0,d0	;D040
 DefenderScore_StoreResult:		; Memory Address ($6452) and binary offset [$60CE]
-	; ReSource: Stores the completed defender score in the physical-attack working values.
+	; Stores the completed defender score in the physical-attack working values.
 	move.w	d0,$0004(a6)	;3D400004
 	rts	;4E75
 
@@ -9790,7 +9788,7 @@ PhysicalAttack_DoubleDefenceFlag:		; Memory Address ($6458) and binary offset [$
 	dc.w	$0000	;0000
 
 Calculate_AttackerCombatScore:		; Memory Address ($645A) and binary offset [$60D6]
-	; ReSource: Calculates an attacker score from level, strength, agility and the equipped weapon’s attack bonus.
+	; Calculates an attacker score from level, strength, agility and the equipped weapon’s attack bonus.
 	bsr	Load_CombatantCombatValues	;6100FE30
 	move.b	d6,$000B(a6)	;1D46000B
 	move.b	d5,$000A(a6)	;1D45000A
@@ -9803,14 +9801,14 @@ Calculate_AttackerCombatScore:		; Memory Address ($645A) and binary offset [$60D
 	bcc.s	AttackerScore_AddStrengthContribution	;6402
 	moveq	#$00,d1	;7200
 AttackerScore_AddStrengthContribution:		; Memory Address ($6480) and binary offset [$60FC]
-	; ReSource: Adds the thresholded effective-Strength contribution to the attacker score.
+	; Adds the thresholded effective-Strength contribution to the attacker score.
 	lsr.w	#$04,d1	;E849
 	add.w	d1,d0	;D041
 	sub.w	#$0014,d2	;04420014
 	bcc.s	AttackerScore_AddAgilityContribution	;6402
 	moveq	#$00,d2	;7400
 AttackerScore_AddAgilityContribution:		; Memory Address ($648C) and binary offset [$6108]
-	; ReSource: Adds the thresholded effective-Agility contribution to the attacker score.
+	; Adds the thresholded effective-Agility contribution to the attacker score.
 	lsr.w	#$04,d2	;E84A
 	add.w	d2,d0	;D042
 	move.w	d0,d1	;3200
@@ -9822,7 +9820,7 @@ AttackerScore_AddAgilityContribution:		; Memory Address ($648C) and binary offse
 	bne.s	AttackerScore_StoreResult	;6602
 	add.w	d0,d0	;D040
 AttackerScore_StoreResult:		; Memory Address ($64A4) and binary offset [$6120]
-	; ReSource: Stores the completed attacker score in the physical-attack working values.
+	; Stores the completed attacker score in the physical-attack working values.
 	move.w	d0,$0002(a6)	;3D400002
 	rts	;4E75
 
@@ -9836,7 +9834,7 @@ Click_MultiFunctionButton:		; Memory Address ($64AA) and binary offset [$6126]
 	bra.s	adrCd0064CC	;600A
 
 Resolve_MultiFunctionContext:		; Memory Address ($6846) and binary offset [$64C2]
-	; ReSource: Continuation of the multi-function handler; selects interaction, spell, or map-AI behaviour from context.
+	; Continuation of the multi-function handler; selects interaction, spell, or map-AI behaviour from context.
 	tst.b	$0013(a4)	;4A2C0013
 	bmi.s	adrJA0064D0	;6B08
 	bsr	Resolve_MultiFunctionAction	;6100E9C4
@@ -9890,7 +9888,7 @@ adrCd006550:		; Memory Address ($6550) and binary offset [$61CC]
 	rts	;4E75
 
 Toggle_WallFeatureOrReportLocked:		; Memory Address ($68D6) and binary offset [$6552]
-	; ReSource: Checks and changes a wall-feature or door state.
+	; Checks and changes a wall-feature or door state.
 	cmp.w	$002E(a5),d3	;B66D002E
 	bne.s	adrCd00657C	;6624
 	subq.w	#$01,$002C(a5)	;536D002C
@@ -9913,7 +9911,7 @@ adrCd00657C:		; Memory Address ($657C) and binary offset [$61F8]
 	bra	adrCd00CF96	;60006A04
 
 Return_WallFeatureLocked:		; Memory Address ($6918) and binary offset [$6594]
-	; ReSource: Locked-door failure path that displays the locked-door message.
+	; Locked-door failure path that displays the locked-door message.
 	lea	Notice_DoorLocked.l,a6	;4DF90000659E
 	bra	WriteTimedText	;60006AEC
 
@@ -9960,7 +9958,7 @@ adrCd006608:		; Memory Address ($6608) and binary offset [$6284]
 	bra	adrCd007B50	;6000153C
 
 Click_ShowStats:		; Memory Address ($6616) and binary offset [$6292]
-	; ReSource: Selects statistics mode, draws the tall scroll using D5=$38, prints ChampionStatsScroll_FoodTextTemplate and draws the champion food bar from record byte $10.
+	; Selects statistics mode, draws the tall scroll using D5=$38, prints ChampionStatsScroll_FoodTextTemplate and draws the champion food bar from record byte $10.
 	move.w	#$0001,$0014(a5)	;3B7C00010014
 	moveq	#$38,d5	;7A38
 	bsr	Draw_ChampionStats	;6100650A
@@ -9981,10 +9979,10 @@ Click_ShowStats:		; Memory Address ($6616) and binary offset [$6292]
 	bra	BW_draw_bar	;6000740E
 
 Load_CurrentChampionStatRecord:		; Memory Address ($665C) and binary offset [$62D8]
-	; ReSource: Loads the current player champion number before resolving its statistics record.
+	; Loads the current player champion number before resolving its statistics record.
 	move.w	$0006(a5),d0	;302D0006
 Load_ChampionStatRecord:		; Memory Address ($6660) and binary offset [$62DC]
-	; ReSource: Converts champion number D0 into a pointer to its 32-byte statistics record in A4.
+	; Converts champion number D0 into a pointer to its 32-byte statistics record in A4.
 	and.w	#$000F,d0	;0240000F
 	asl.w	#$05,d0	;EB40
 	lea	Character_Stats_DataTable.l,a4	;49F90000EB2A
@@ -10147,7 +10145,7 @@ adrCd0067E0:		; Memory Address ($67E0) and binary offset [$645C]
 	bra.s	adrCd0067D8	;60F2
 
 SpellCasting_ProfessionBaseBonuses:		; Memory Address ($67E6) and binary offset [$6462]
-	; ReSource: Four profession-indexed casting bonuses used when the selected spell class matches the champion profession.
+	; Four profession-indexed casting bonuses used when the selected spell class matches the champion profession.
 	dc.b	$03	;03
 	dc.b	$05	;05
 	dc.b	$04	;04
@@ -10191,7 +10189,7 @@ adrCd006836:		; Memory Address ($6836) and binary offset [$64B2]
 	rts	;4E75
 
 SpellCasting_SpellDifficultyPenalties:		; Memory Address ($683E) and binary offset [$64BA]
-	; ReSource: Sixteen spell-indexed values subtracted from the calculated spell-casting quality.
+	; Sixteen spell-indexed values subtracted from the calculated spell-casting quality.
 	dc.b	$0E	;0E
 	dc.b	$0F	;0F
 	dc.b	$0E	;0E
@@ -10320,22 +10318,22 @@ adrCd0068F8:		; Memory Address ($68F8) and binary offset [$6574]
 	rts	;4E75
 
 Character_GetClassIndex:		; Memory Address ($6900) and binary offset [$657C]
-	; ReSource: Converts a champion or character number into one of the four class indices.
+	; Converts a champion or character number into one of the four class indices.
 	move.w	d0,d6	;3C00
 	cmpi.b	#$10,d0	;0C000010
 	bcs.s	Character_GetClassIndex_CombineBits	;6502
 	not.w	d0	;4640
 Character_GetClassIndex_CombineBits:		; Memory Address ($690A) and binary offset [$6586]
-	; ReSource: Combines the character-number bit groups before applying the four-profession mask.
+	; Combines the character-number bit groups before applying the four-profession mask.
 	lsr.w	#$02,d0	;E448
 	add.w	d6,d0	;D046
 	and.w	#Character_ProfessionMask,d0	;02400003
 Return_CharacterOrHeldItemAction:		; Memory Address ($6912) and binary offset [$658E]
-	; ReSource: Shared return used by character-class calculation and rejected held-item actions.
+	; Shared return used by character-class calculation and rejected held-item actions.
 	rts	;4E75
 
 Click_Item_17_to_1A_Potions:		; Memory Address ($6914) and binary offset [$6590]
-	; ReSource: Dispatches held food, counted objects and potions; potions $17-$1A are removed before applying their character-stat effect.
+	; Dispatches held food, counted objects and potions; potions $17-$1A are removed before applying their character-stat effect.
 	move.w	HeldItem_ObjectCodeOffset(a5),d0	;302D002E
 	beq.s	Return_CharacterOrHeldItemAction	;67F8
 	cmpi.w	#Object_Armour_First,d0	;0C40001B
@@ -10356,30 +10354,30 @@ Click_Item_17_to_1A_Potions:		; Memory Address ($6914) and binary offset [$6590]
 	bra	Refresh_HeldItemDisplay	;600002E4
 
 Potion_LookupTable:		; Memory Address ($6952) and binary offset [$65CE]
-	; ReSource: Four relative routine offsets for Serpent Slime, Brimstone Broth, Dragon Ale and Moon Elixir.
+	; Four relative routine offsets for Serpent Slime, Brimstone Broth, Dragon Ale and Moon Elixir.
 	dc.w	Potion_1_SerpentSlime-Potion_1_SerpentSlime	;0000
 	dc.w	Potion_2_BrimstoneBroth-Potion_1_SerpentSlime	;001C
 	dc.w	Potion_3_DragonAle-Potion_1_SerpentSlime	;0008
 	dc.w	Potion_4_MoonElixir-Potion_1_SerpentSlime	;0010
 
 Potion_1_SerpentSlime:		; Memory Address ($695A) and binary offset [$65D6]
-	; ReSource: Restores current hit points to the character's maximum hit points.
+	; Restores current hit points to the character's maximum hit points.
 	move.b	ChampionStat_HitPointsMaximum(a4),ChampionStat_HitPointsCurrent(a4)	;196C00060005
 	rts	;4E75
 
 Potion_3_DragonAle:		; Memory Address ($6962) and binary offset [$65DE]
-	; ReSource: Restores current vitality to the character's maximum vitality.
+	; Restores current vitality to the character's maximum vitality.
 	move.b	ChampionStat_VitalityMaximum(a4),ChampionStat_VitalityCurrent(a4)	;196C00080007
 	rts	;4E75
 
 Potion_4_MoonElixir:		; Memory Address ($696A) and binary offset [$65E6]
-	; ReSource: Restores current spell points to maximum and clears the spell cooldown.
+	; Restores current spell points to maximum and clears the spell cooldown.
 	move.b	ChampionStat_SpellPointsMaximum(a4),ChampionStat_SpellPointsCurrent(a4)	;196C000A0009
 	clr.b	ChampionStat_SpellCooldown(a4)	;422C0015
 	rts	;4E75
 
 Potion_2_BrimstoneBroth:		; Memory Address ($6976) and binary offset [$65F2]
-	; ReSource: Clears spell cooldown and restores half of each HP, vitality and spell-point deficit, rounded upward.
+	; Clears spell cooldown and restores half of each HP, vitality and spell-point deficit, rounded upward.
 	clr.b	ChampionStat_SpellCooldown(a4)	;422C0015
 	moveq	#ChampionStat_HitPointsCurrent,d4	;7805
 	bsr.s	Potion_2_RestoreStatHalfway	;6106
@@ -10387,7 +10385,7 @@ Potion_2_BrimstoneBroth:		; Memory Address ($6976) and binary offset [$65F2]
 	bsr.s	Potion_2_RestoreStatHalfway	;6102
 	moveq	#ChampionStat_SpellPointsCurrent,d4	;7809
 Potion_2_RestoreStatHalfway:		; Memory Address ($6984) and binary offset [$6600]
-	; ReSource: Moves one current statistic halfway towards its following maximum-statistic byte, rounding upward.
+	; Moves one current statistic halfway towards its following maximum-statistic byte, rounding upward.
 	move.b	$01(a4,d4.w),d0	;10344001
 	sub.b	$00(a4,d4.w),d0	;90344000
 	addq.b	#$01,d0	;5200
@@ -10397,7 +10395,7 @@ Potion_2_RestoreStatHalfway:		; Memory Address ($6984) and binary offset [$6600]
 	rts	;4E75
 
 Use_FoodOrCountedObject:		; Memory Address ($699A) and binary offset [$6616]
-	; ReSource: Dispatches counted objects below $05, three-stage food $05-$13 and whole N'Egg food $14-$16.
+	; Dispatches counted objects below $05, three-stage food $05-$13 and whole N'Egg food $14-$16.
 	cmpi.w	#Object_Food_First,d0	;0C400005
 	bcs	Click_CountedObject	;65000076
 	cmpi.w	#Object_Neggs_First,d0	;0C400014
@@ -10405,32 +10403,32 @@ Use_FoodOrCountedObject:		; Memory Address ($699A) and binary offset [$6616]
 	moveq	#$00,d1	;7200
 	sub.w	#Object_Neggs_First,d0	;04400014
 WholeFood_AddValueLoop:		; Memory Address ($69AE) and binary offset [$662A]
-	; ReSource: Adds one $42 food-value step for each N'Egg size before consuming it completely.
+	; Adds one $42 food-value step for each N'Egg size before consuming it completely.
 	add.w	#Food_WholeValueStep,d1	;06410042
 	dbra	d0,WholeFood_AddValueLoop	;51C8FFFA
 	moveq	#$00,d0	;7000
 	bra.s	ConsumeFood_StoreRemainingObject	;601A
 
 Click_PortionedFood:		; Memory Address ($69BA) and binary offset [$6636]
-	; ReSource: Consumes one third of food or drink, selects its food-value increase and resolves the remaining object stage.
+	; Consumes one third of food or drink, selects its food-value increase and resolves the remaining object stage.
 	moveq	#Food_DrinkPortionValue,d1	;7214
 	cmpi.w	#Object_Drinks_First,d0	;0C40000E
 	bcc.s	PortionedFood_SelectNextObject	;6402
 	moveq	#Food_SolidPortionValue,d1	;7220
 PortionedFood_SelectNextObject:		; Memory Address ($69C4) and binary offset [$6640]
-	; ReSource: Starts resolution of the previous portion graphic or the empty-object result.
+	; Starts resolution of the previous portion graphic or the empty-object result.
 	move.w	d0,d2	;3400
 	subq.w	#Object_Food_First,d0	;5B40
 	beq.s	ConsumeFood_StoreRemainingObject	;670A
 PortionedFood_FindGroupStartLoop:		; Memory Address ($69CA) and binary offset [$6646]
-	; ReSource: Tests three-object portion groups; each group start becomes empty and other stages decrement.
+	; Tests three-object portion groups; each group start becomes empty and other stages decrement.
 	subq.w	#Food_PortionGroupSize,d0	;5740
 	beq.s	ConsumeFood_StoreRemainingObject	;6706
 	bcc.s	PortionedFood_FindGroupStartLoop	;64FA
 	move.w	d2,d0	;3002
 	subq.w	#$01,d0	;5340
 ConsumeFood_StoreRemainingObject:		; Memory Address ($69D4) and binary offset [$6650]
-	; ReSource: Stores the remaining portion object, or $00 when the food has been completely consumed.
+	; Stores the remaining portion object, or $00 when the food has been completely consumed.
 	move.w	d0,HeldItem_ObjectCodeOffset(a5)	;3B40002E
 	move.b	$000F(a5),d0	;102D000F
 	move.b	$18(a5,d0.w),d0	;10350018
@@ -10440,10 +10438,10 @@ ConsumeFood_StoreRemainingObject:		; Memory Address ($69D4) and binary offset [$
 	cmpi.w	#Food_LevelLimitExclusive,d1	;0C4100C8
 	bcs.s	ConsumeFood_StoreLevel	;6504
 ConsumeFood_ClampLevel:		; Memory Address ($69F0) and binary offset [$666C]
-	; ReSource: Clamps food level to $C7 when addition carries or reaches the exclusive $C8 limit.
+	; Clamps food level to $C7 when addition carries or reaches the exclusive $C8 limit.
 	move.b	#Food_LevelMaximum,d1	;123C00C7
 ConsumeFood_StoreLevel:		; Memory Address ($69F4) and binary offset [$6670]
-	; ReSource: Stores the updated food level and redraws the remaining held object.
+	; Stores the updated food level and redraws the remaining held object.
 	move.b	d1,ChampionStat_FoodLevel(a4)	;19410010
 	move.l	screen_ptr.l,a0	;207900008D36
 	add.w	#$0B64,a0	;D0FC0B64
@@ -10454,7 +10452,7 @@ ConsumeFood_StoreLevel:		; Memory Address ($69F4) and binary offset [$6670]
 	bra	Draw_FoodLevelBar	;60000288
 
 Click_CountedObject:		; Memory Address ($6A16) and binary offset [$6692]
-	; ReSource: Transfers one counted coin, key or arrow between the character count table and the held stack.
+	; Transfers one counted coin, key or arrow between the character count table and the held stack.
 	moveq	#$00,d7	;7E00
 	move.b	$000F(a5),d7	;1E2D000F
 	move.b	$18(a5,d7.w),d7	;1E357018
@@ -10464,19 +10462,19 @@ Click_CountedObject:		; Memory Address ($6A16) and binary offset [$6692]
 	subq.b	#$01,$0B(a6,d0.w)	;5336000B
 	bcc.s	Stack_ObjectFromInventory	;6406
 Cancel_CountedObjectTransfer:		; Memory Address ($6A30) and binary offset [$66AC]
-	; ReSource: Restores a counted-object quantity when the transfer cannot proceed.
+	; Restores a counted-object quantity when the transfer cannot proceed.
 	addq.b	#$01,$0B(a6,d0.w)	;5236000B
 	rts	;4E75
 
 Stack_ObjectFromInventory:		; Memory Address ($6A36) and binary offset [$66B2]
-	; ReSource: Transfers one counted object from the champion count table to the held stack, provided the held quantity is below $63.
+	; Transfers one counted object from the champion count table to the held stack, provided the held quantity is below $63.
 	cmp.w	#Object_StackMaximum,HeldItem_QuantityOffset(a5)	;0C6D0063002C
 	bcc.s	Cancel_CountedObjectTransfer	;64F2
 	addq.w	#$01,HeldItem_QuantityOffset(a5)	;526D002C
 	bra	Redraw_Inventory	;600001C6
 
 Click_ObjectInInventory:		; Memory Address ($6A46) and binary offset [$66C2]
-	; ReSource: Handles inventory-slot selection, counted stacks, armour restrictions, worn hand armour and held-object swapping.
+	; Handles inventory-slot selection, counted stacks, armour restrictions, worn hand armour and held-object swapping.
 	moveq	#$00,d7	;7E00
 	move.b	$000E(a5),d7	;1E2D000E
 	moveq	#$00,d0	;7000
@@ -10506,7 +10504,7 @@ Click_ObjectInInventory:		; Memory Address ($6A46) and binary offset [$66C2]
 	bra.s	Reject_InventorySlotAction	;6016
 
 Check_BodyArmourInventorySlot:		; Memory Address ($6A98) and binary offset [$6714]
-	; ReSource: Allows only body-armour objects $1B-$23 in the dedicated body-armour slot.
+	; Allows only body-armour objects $1B-$23 in the dedicated body-armour slot.
 	cmpi.b	#ChampionPocket_BodyArmour,d0	;0C000002
 	bne.s	Check_WornHandArmourSlot	;6616
 	tst.w	d1	;4A41
@@ -10516,12 +10514,12 @@ Check_BodyArmourInventorySlot:		; Memory Address ($6A98) and binary offset [$671
 	cmpi.w	#Object_SmallShields_First,d1	;0C410024
 	bcs.s	Handle_SelectedPocketObject	;6544
 Reject_InventorySlotAction:		; Memory Address ($6AAE) and binary offset [$672A]
-	; ReSource: Leaves the objects unchanged, selects the clicked inventory slot and returns.
+	; Leaves the objects unchanged, selects the clicked inventory slot and returns.
 	move.w	d7,$000E(a5)	;3B47000E
 	rts	;4E75
 
 Check_WornHandArmourSlot:		; Memory Address ($6AB4) and binary offset [$6730]
-	; ReSource: Handles Chaos Gloves and other worn hand-armour exchanges involving the two hand pockets.
+	; Handles Chaos Gloves and other worn hand-armour exchanges involving the two hand pockets.
 	bcc.s	Handle_SelectedPocketObject	;643C
 	cmp.w	#Object_Gloves_First,HeldItem_ObjectCodeOffset(a5)	;0C6D002B002E
 	bcs.s	Unequip_WornHandArmourToEmptyHand	;651E
@@ -10535,7 +10533,7 @@ Check_WornHandArmourSlot:		; Memory Address ($6AB4) and binary offset [$6730]
 	bra.s	Handle_SelectedPocketObject	;6016
 
 Unequip_WornHandArmourToEmptyHand:		; Memory Address ($6ADC) and binary offset [$6758]
-	; ReSource: Moves worn hand armour into an empty hand pocket when no object is currently held.
+	; Moves worn hand armour into an empty hand pocket when no object is currently held.
 	tst.b	$00(a6,d0.w)	;4A360000
 	bne.s	Handle_SelectedPocketObject	;6610
 	tst.w	HeldItem_ObjectCodeOffset(a5)	;4A6D002E
@@ -10543,7 +10541,7 @@ Unequip_WornHandArmourToEmptyHand:		; Memory Address ($6ADC) and binary offset [
 	move.b	ChampionStat_WornHandArmour(a4),$00(a6,d0.w)	;1DAC00120000
 	clr.b	ChampionStat_WornHandArmour(a4)	;422C0012
 Handle_SelectedPocketObject:		; Memory Address ($6AF2) and binary offset [$676E]
-	; ReSource: Processes the object in the selected champion pocket, including counted-object pickup, merging and ordinary held-object swapping.
+	; Processes the object in the selected champion pocket, including counted-object pickup, merging and ordinary held-object swapping.
 	moveq	#$00,d1	;7200
 	move.b	$00(a6,d0.w),d1	;12360000
 	beq	Return_HeldCountedObjectToInventory	;67000088
@@ -10557,7 +10555,7 @@ Handle_SelectedPocketObject:		; Memory Address ($6AF2) and binary offset [$676E]
 	bra	Refresh_InventoryAfterObjectChange	;6000009E
 
 Swap_HeldObjectForCountedStack:		; Memory Address ($6B1C) and binary offset [$6798]
-	; ReSource: Picks up a complete counted-object stack while placing the previously held non-counted object into the pocket.
+	; Picks up a complete counted-object stack while placing the previously held non-counted object into the pocket.
 	cmpi.w	#Object_Food_First,d3	;0C430005
 	bcs.s	Merge_MatchingCountedObjectStack	;650E
 	move.b	ChampionPocket_CountedObjectCountsOffset(a6,d1.w),HeldItem_QuantityByteOffset(a5)	;1B76100B002D
@@ -10565,7 +10563,7 @@ Swap_HeldObjectForCountedStack:		; Memory Address ($6B1C) and binary offset [$67
 	bra	Swap_HeldObjectWithPocket	;60000082
 
 Merge_MatchingCountedObjectStack:		; Memory Address ($6B30) and binary offset [$67AC]
-	; ReSource: Merges held and inventory quantities when both represent the same counted object.
+	; Merges held and inventory quantities when both represent the same counted object.
 	cmp.w	d1,d3	;B641
 	bne.s	Merge_DifferentCountedObjectStack	;6620
 	move.b	$0B(a6,d1.w),d2	;1436100B
@@ -10577,12 +10575,12 @@ Merge_MatchingCountedObjectStack:		; Memory Address ($6B30) and binary offset [$
 	bra.s	Refresh_InventoryAfterObjectChange	;606C
 
 Clamp_MatchingCountedObjectStack:		; Memory Address ($6B4C) and binary offset [$67C8]
-	; ReSource: Clamps the merged inventory quantity to $63.
+	; Clamps the merged inventory quantity to $63.
 	move.b	#Object_StackMaximum,ChampionPocket_CountedObjectCountsOffset(a6,d1.w)	;1DBC0063100B
 	bra.s	Store_CountedObjectRemainder	;6024
 
 Merge_DifferentCountedObjectStack:		; Memory Address ($6B54) and binary offset [$67D0]
-	; ReSource: Adds the held quantity to its existing global count before picking up a different counted stack.
+	; Adds the held quantity to its existing global count before picking up a different counted stack.
 	move.b	$0B(a6,d3.w),d2	;1436300B
 	add.b	HeldItem_QuantityByteOffset(a5),d2	;D42D002D
 	cmpi.b	#Object_StackLimitExclusive,d2	;0C020064
@@ -10593,16 +10591,16 @@ Merge_DifferentCountedObjectStack:		; Memory Address ($6B54) and binary offset [
 	bra.s	Remove_DuplicateCountedObjectSlots	;602E
 
 Clamp_CountedObjectStack:		; Memory Address ($6B72) and binary offset [$67EE]
-	; ReSource: Clamps a counted-object total to $63 before retaining the excess.
+	; Clamps a counted-object total to $63 before retaining the excess.
 	move.b	#Object_StackMaximum,ChampionPocket_CountedObjectCountsOffset(a6,d3.w)	;1DBC0063300B
 Store_CountedObjectRemainder:		; Memory Address ($6B78) and binary offset [$67F4]
-	; ReSource: Stores quantity remaining above the $63 inventory-count limit in the held stack.
+	; Stores quantity remaining above the $63 inventory-count limit in the held stack.
 	sub.b	#Object_StackMaximum,d2	;04020063
 	move.b	d2,HeldItem_QuantityByteOffset(a5)	;1B42002D
 	bra.s	Refresh_InventoryAfterObjectChange	;6036
 
 Return_HeldCountedObjectToInventory:		; Memory Address ($6B82) and binary offset [$67FE]
-	; ReSource: Returns a held counted stack to its global character count.
+	; Returns a held counted stack to its global character count.
 	move.w	HeldItem_ObjectCodeOffset(a5),d3	;362D002E
 	beq.s	Swap_HeldObjectWithPocket	;6728
 	cmpi.w	#Object_Food_First,d3	;0C430005
@@ -10613,22 +10611,22 @@ Return_HeldCountedObjectToInventory:		; Memory Address ($6B82) and binary offset
 	cmpi.b	#Object_StackLimitExclusive,d2	;0C020064
 	bcc.s	Clamp_CountedObjectStack	;64D2
 Remove_DuplicateCountedObjectSlots:		; Memory Address ($6BA0) and binary offset [$681C]
-	; ReSource: Removes redundant pocket entries for a counted object after returning its quantity.
+	; Removes redundant pocket entries for a counted object after returning its quantity.
 	moveq	#ChampionPocket_LastIndex,d2	;740B
 Remove_DuplicateCountedObjectSlots_Loop:		; Memory Address ($6BA2) and binary offset [$681E]
-	; ReSource: Scans all twelve character pockets for duplicate counted-object codes.
+	; Scans all twelve character pockets for duplicate counted-object codes.
 	cmp.b	$00(a6,d2.w),d3	;B6362000
 	bne.s	Remove_DuplicateCountedObjectSlots_Next	;6604
 	clr.b	$00(a6,d2.w)	;42362000
 Remove_DuplicateCountedObjectSlots_Next:		; Memory Address ($6BAC) and binary offset [$6828]
-	; ReSource: Advances the duplicate counted-object pocket scan.
+	; Advances the duplicate counted-object pocket scan.
 	dbra	d2,Remove_DuplicateCountedObjectSlots_Loop	;51CAFFF4
 Swap_HeldObjectWithPocket:		; Memory Address ($6BB0) and binary offset [$682C]
-	; ReSource: Stores the previous held object in the selected pocket and makes the pocket object the new held object.
+	; Stores the previous held object in the selected pocket and makes the pocket object the new held object.
 	move.b	d3,$00(a6,d0.w)	;1D830000
 	move.w	d1,HeldItem_ObjectCodeOffset(a5)	;3B41002E
 Refresh_InventoryAfterObjectChange:		; Memory Address ($6BB8) and binary offset [$6834]
-	; ReSource: Refreshes selection and inventory graphics after an object transfer.
+	; Refreshes selection and inventory graphics after an object transfer.
 	cmp.b	#$02,$000F(a5)	;0C2D0002000F
 	bne.s	Finalize_InventoryObjectChange	;6618
 	btst	d7,$003E(a5)	;0F2D003E
@@ -10639,17 +10637,17 @@ Refresh_InventoryAfterObjectChange:		; Memory Address ($6BB8) and binary offset 
 	beq.s	Restore_SelectedInventorySlot	;6704
 	bsr	adrCd007ED2	;610012FE
 Restore_SelectedInventorySlot:		; Memory Address ($6BD6) and binary offset [$6852]
-	; ReSource: Restores the selected slot number after auxiliary inventory handling.
+	; Restores the selected slot number after auxiliary inventory handling.
 	move.w	(sp)+,d7	;3E1F
 Finalize_InventoryObjectChange:		; Memory Address ($6BD8) and binary offset [$6854]
-	; ReSource: Normalises held counted-object state and redraws the inventory.
+	; Normalises held counted-object state and redraws the inventory.
 	move.w	d7,$000E(a5)	;3B47000E
 	move.w	HeldItem_ObjectCodeOffset(a5),d0	;302D002E
 	beq.s	Normalize_HeldNonCountedObjectQuantity	;6706
 	cmpi.w	#Object_Food_First,d0	;0C400005
 	bcs.s	Redraw_Inventory	;6522
 Normalize_HeldNonCountedObjectQuantity:		; Memory Address ($6BE8) and binary offset [$6864]
-	; ReSource: Sets the held quantity to one when the resulting held state is empty or contains a non-counted object.
+	; Sets the held quantity to one when the resulting held state is empty or contains a non-counted object.
 	move.w	#$0001,HeldItem_QuantityOffset(a5)	;3B7C0001002C
 	bra.s	Redraw_Inventory	;601A
 
@@ -10671,19 +10669,19 @@ Redraw_Inventory:		; Memory Address ($6C0A) and binary offset [$6886]
 	bsr	adrCd00CF08	;610062DC
 	move.w	#$0003,$0014(a5)	;3B7C00030014
 Refresh_HeldItemDisplay:		; Memory Address ($6C34) and binary offset [$68B0]
-	; ReSource: Updates the held-item description, graphic, quantity and optional food bar.
+	; Updates the held-item description, graphic, quantity and optional food bar.
 	bsr	Draw_HeldObjectDescription	;6100009C
 	cmp.b	#$03,$0015(a5)	;0C2D00030015
 	bne	Trigger_00_t00_Null	;660003D6
 Draw_HeldItemPanel:		; Memory Address ($6C42) and binary offset [$68BE]
-	; ReSource: Draws the held-item panel pieces followed by the held object's pocket graphic and quantity.
+	; Draws the held-item panel pieces followed by the held object's pocket graphic and quantity.
 	or.b	#$04,$0054(a5)	;002D00040054
 	move.l	screen_ptr.l,a0	;207900008D36
 	add.w	#$0B5C,a0	;D0FC0B5C
 	add.w	$000A(a5),a0	;D0ED000A
 	moveq	#$00,d7	;7E00
 Draw_HeldItemPanelPieces_Loop:		; Memory Address ($6C58) and binary offset [$68D4]
-	; ReSource: Draws the four fixed decorative pieces surrounding the held-item graphic.
+	; Draws the four fixed decorative pieces surrounding the held-item graphic.
 	bsr	adrCd008416	;610017BC
 	addq.w	#$01,d7	;5247
 	cmpi.w	#$0004,d7	;0C470004
@@ -10702,15 +10700,15 @@ Draw_HeldItemPanelPieces_Loop:		; Memory Address ($6C58) and binary offset [$68D
 	cmpi.w	#Object_Potions_First,d0	;0C400017
 	bcs.s	Draw_FoodStatus	;6502
 Return_FromHeldItemDisplay:		; Memory Address ($6C90) and binary offset [$690C]
-	; ReSource: Returns when the held item does not require the food-status display.
+	; Returns when the held item does not require the food-status display.
 	rts	;4E75
 
 Draw_FoodStatus:		; Memory Address ($6C92) and binary offset [$690E]
-	; ReSource: Draws the FOOD label and the food-level bar scaled against the $00-$C7 food value.
+	; Draws the FOOD label and the food-level bar scaled against the $00-$C7 food value.
 	lea	adrEA00E998.l,a6	;4DF90000E998
 	bsr	Print_fflim_text	;6100642C
 Draw_FoodLevelBar:		; Memory Address ($6C9C) and binary offset [$6918]
-	; ReSource: Reads champion food byte $10 and draws its bar scaled from $00 to $C7.
+	; Reads champion food byte $10 and draws its bar scaled from $00 to $C7.
 	or.b	#$14,$0054(a5)	;002D00140054
 	move.w	$000E(a5),d0	;302D000E
 	move.b	$18(a5,d0.w),d0	;10350018
@@ -10726,14 +10724,14 @@ Draw_FoodLevelBar:		; Memory Address ($6C9C) and binary offset [$6918]
 	bra	BW_draw_bar	;60006D98
 
 Draw_HeldObjectDescription:		; Memory Address ($6CD2) and binary offset [$694E]
-	; ReSource: Prints an empty description or prepares the selected held object's description.
+	; Prints an empty description or prepares the selected held object's description.
 	move.w	HeldItem_ObjectCodeOffset(a5),d0	;302D002E
 	bne.s	Prepare_HeldObjectDescription	;660A
 	lea	NullString.l,a6	;4DF90000CAE9
 	bra	LowerText	;600062D8
 
 Prepare_HeldObjectDescription:		; Memory Address ($6CE2) and binary offset [$695E]
-	; ReSource: Handles champion-remains ownership before resolving and printing the held object's description.
+	; Handles champion-remains ownership before resolving and printing the held object's description.
 	move.w	d0,d1	;3200
 	sub.w	#Object_Remains_First,d1	;04410040
 	bcs.s	Resolve_HeldObjectDescription	;651E
@@ -10747,7 +10745,7 @@ Prepare_HeldObjectDescription:		; Memory Address ($6CE2) and binary offset [$695
 	bclr	#$05,$18(a5,d1.w)	;08B500051018
 	clr.l	HeldItem_StateOffset(a5)	;42AD002C
 Resolve_HeldObjectDescription:		; Memory Address ($6D08) and binary offset [$6984]
-	; ReSource: Resolves the normal object-definition text after optional champion-remains ownership handling.
+	; Resolves the normal object-definition text after optional champion-remains ownership handling.
 	lea	Object_Definition_Table+$02.l,a6	;4DF90000E4C4
 	asl.w	#$02,d0	;E540
 	add.w	d0,a6	;DCC0
@@ -10755,7 +10753,7 @@ Resolve_HeldObjectDescription:		; Memory Address ($6D08) and binary offset [$698
 	bra	Print_item_desc_fresh	;60006AE2
 
 Draw_SelectedInventorySlotFrame:		; Memory Address ($6D1E) and binary offset [$699A]
-	; ReSource: Draws the highlight frame around the selected character inventory slot.
+	; Draws the highlight frame around the selected character inventory slot.
 	moveq	#$0D,d3	;760D
 	move.l	#$000E0049,d5	;2A3C000E0049
 	add.w	$0008(a5),d5	;DA6D0008
@@ -12286,13 +12284,13 @@ adrEA007C0E:		; Memory Address ($7C0E) and binary offset [$788A]
 	dc.b	$16	;16
 	dc.b	$FF	;FF
 Interface_ActionSelectionScratchBuffer:		; Memory Address ($7C20) and binary offset [$789C]
-	; ReSource: Runtime scratch buffer initialised by adrCd007D06 for up to four inventory/action choices; it is not a static extractable table.
+	; Runtime scratch buffer initialised by adrCd007D06 for up to four inventory/action choices; it is not a static extractable table.
 	dc.b	$5F	;5F
 	dc.b	$5F	;5F
 	dc.b	$5F	;5F
 	dc.b	$5F	;5F
 Interface_ActionSelectionScratchEntries:		; Memory Address ($7C24) and binary offset [$78A0]
-	; ReSource: Interior four-entry action/object list populated by adrJA007CA6 and read by Interface_MapSelectedAction; values change with inventory contents.
+	; Interior four-entry action/object list populated by adrJA007CA6 and read by Interface_MapSelectedAction; values change with inventory contents.
 	dc.b	$00	;00
 	dc.b	$FF	;FF
 	dc.b	$00	;00
@@ -12857,7 +12855,7 @@ adrCd00813C:		; Memory Address ($813C) and binary offset [$7DB8]
 	move.l	#$00220037,d4	;283C00220037
 	moveq	#$23,d2	;7423
 Scale_ValueToBarLength:		; Memory Address ($8144) and binary offset [$7DC0]
-	; ReSource: Scales D0 against maximum D1 to a D2-pixel bar length. Used here to scale food $00-$C7 across 48 pixels.
+	; Scales D0 against maximum D1 to a D2-pixel bar length. Used here to scale food $00-$C7 across 48 pixels.
 	swap	d4	;4844
 	cmp.b	d1,d0	;B001
 	bcc.s	adrCd008158	;640E
@@ -13159,7 +13157,7 @@ adrEA00846A:		; Memory Address ($846A) and binary offset [$80E6]
 	dc.w	$0004	;0004
 	dc.w	$030E	;030E
 ClassColours:		; Memory Address ($846E) and binary offset [$80EA]
-	; ReSource: Four colour-mask records used when composing champion shield avatars.
+	; Four colour-mask records used when composing champion shield avatars.
 	dc.w	$0006	;0006
 	dc.w	$050E	;050E
 	dc.w	$000D	;000D
@@ -14027,7 +14025,7 @@ adrLp008DC8:		; Memory Address ($8DC8) and binary offset [$8A44]
 	rts	;4E75
 
 GamePalette:		; Memory Address ($8DD0) and binary offset [$8A4C]
-	; ReSource: Thirty-two Amiga colour-register words: the first sixteen are the main game palette and the remaining entries support the hardware display palette.
+	; Thirty-two Amiga colour-register words: the first sixteen are the main game palette and the remaining entries support the hardware display palette.
 	dc.w	$0000	;0000
 	dc.w	$0444	;0444
 	dc.w	$0666	;0666
@@ -14405,7 +14403,7 @@ adrB_0090AC:		; Memory Address ($90AC) and binary offset [$8D28]
 	dc.b	$08	;08
 
 Draw_DungeonViewport:		; Memory Address ($90D4) and binary offset [$8D50]
-	; ReSource: Scans the 19 relative dungeon cells, builds the visibility and occlusion masks, then draws the surviving cells.
+	; Scans the 19 relative dungeon cells, builds the visibility and occlusion masks, then draws the surviving cells.
 	move.l	screen_ptr.l,a0	;207900008D36
 	add.w	#$01EC,a0	;D0FC01EC
 	add.w	$000A(a5),a0	;D0ED000A
@@ -14433,7 +14431,7 @@ Draw_DungeonViewport:		; Memory Address ($90D4) and binary offset [$8D50]
 	move.l	Current_TowerMapDataBase.l,a6	;2C790000EE78
 	moveq	#$00,d6	;7C00
 Build_DungeonVisibilityMasks_Loop:		; Memory Address ($9130) and binary offset [$8DAC]
-	; ReSource: Scans one player-relative view cell and records whether its map contents block or contribute visible faces.
+	; Scans one player-relative view cell and records whether its map contents block or contribute visible faces.
 	lsr.l	#$01,d5	;E28D
 	lsr.l	#$01,d4	;E28C
 	move.l	d3,d7	;2E03
@@ -14509,7 +14507,7 @@ adrCd0091C4:		; Memory Address ($91C4) and binary offset [$8E40]
 	moveq	#-$01,d0	;70FF
 	moveq	#$12,d6	;7C12
 Apply_DungeonOcclusionMasks_Loop:		; Memory Address ($91EA) and binary offset [$8E66]
-	; ReSource: Combines the per-cell visible-face and occlusion masks from farthest view cell to nearest.
+	; Combines the per-cell visible-face and occlusion masks from farthest view cell to nearest.
 	btst	d6,d5	;0D05
 	beq.s	adrCd0091F6	;6708
 	or.l	(a6),d7	;8E96
@@ -14523,7 +14521,7 @@ adrCd0091F6:		; Memory Address ($91F6) and binary offset [$8E72]
 	and.l	d0,d7	;CE80
 	moveq	#$00,d6	;7C00
 Draw_VisibleDungeonCells_Loop:		; Memory Address ($9202) and binary offset [$8E7E]
-	; ReSource: Visits each visible player-relative cell and calls the per-cell dungeon renderer.
+	; Visits each visible player-relative cell and calls the per-cell dungeon renderer.
 	btst	d6,d5	;0D05
 	beq.s	adrCd009212	;670C
 	movem.l	d5-d7,-(sp)	;48E70700
@@ -14537,7 +14535,7 @@ adrCd009212:		; Memory Address ($9212) and binary offset [$8E8E]
 	rts	;4E75
 
 Draw_DungeonViewCell:		; Memory Address ($921E) and binary offset [$8E9A]
-	; ReSource: Resolves and draws one player-relative dungeon view cell.
+	; Resolves and draws one player-relative dungeon view cell.
 	move.b	d6,-$0016(a3)	;1746FFEA
 	move.l	-$0010(a3),a0	;206BFFF0
 	add.w	d6,d6	;DC46
@@ -14571,7 +14569,7 @@ adrCd009260:		; Memory Address ($9260) and binary offset [$8EDC]
 	exg	d5,d7	;CB47
 	move.w	$00(a6,d0.w),d1	;32360000
 Process_DungeonViewCellContents:		; Memory Address ($926C) and binary offset [$8EE8]
-	; ReSource: Processes floor objects, stationary spells, wall geometry, and occupants for the resolved view cell.
+	; Processes floor objects, stationary spells, wall geometry, and occupants for the resolved view cell.
 	clr.b	-$0013(a3)	;422BFFED
 	move.w	d1,-$0012(a3)	;3741FFEE
 	btst	#$06,d1	;08010006
@@ -14646,7 +14644,7 @@ adrCd009358:		; Memory Address ($9358) and binary offset [$8FD4]
 	rts	;4E75
 
 GFX_StationarySpell_DistanceGroups:		; Memory Address ($935A) and binary offset [$8FD6]
-	; ReSource: Maps six visible distances to four stationary-spell graphical sizes: 0,0,1,1,2,3.
+	; Maps six visible distances to four stationary-spell graphical sizes: 0,0,1,1,2,3.
 	dc.b	$00	;00
 	dc.b	$00	;00
 	dc.b	$01	;01
@@ -14654,13 +14652,13 @@ GFX_StationarySpell_DistanceGroups:		; Memory Address ($935A) and binary offset 
 	dc.b	$02	;02
 	dc.b	$03	;03
 GFX_StationarySpell_LookupTable:		; Memory Address ($9360) and binary offset [$8FDC]
-	; ReSource: Four big-endian source offsets into the stationary portion of AirbourneSpells.gfx.
+	; Four big-endian source offsets into the stationary portion of AirbourneSpells.gfx.
 	dc.w	$0000	;0000
 	dc.w	$0318	;0318
 	dc.w	$0438	;0438
 	dc.w	$0498	;0498
 GFX_StationarySpell_RenderLayout:		; Memory Address ($9368) and binary offset [$8FE4]
-	; ReSource: Four packed records containing signed X, signed Y, width-minus-one and height-minus-one.
+	; Four packed records containing signed X, signed Y, width-minus-one and height-minus-one.
 	dc.b	$F4	;F4
 	dc.b	$F7	;F7
 	dc.b	$02	;02
@@ -14679,7 +14677,7 @@ GFX_StationarySpell_RenderLayout:		; Memory Address ($9368) and binary offset [$
 	dc.b	$08	;08
 
 Dispatch_DungeonCellType:		; Memory Address ($9378) and binary offset [$8FF4]
-	; ReSource: Masks the map-cell type and dispatches non-empty cells to the dungeon-location renderer.
+	; Masks the map-cell type and dispatches non-empty cells to the dungeon-location renderer.
 	and.w	#$0007,d1	;02410007
 	bne.s	Draw_DungeonLocation_ByType	;660A
 	tst.b	-$0011(a3)	;4A2BFFEF
@@ -14687,7 +14685,7 @@ Dispatch_DungeonCellType:		; Memory Address ($9378) and binary offset [$8FF4]
 	rts	;4E75
 
 Draw_DungeonLocation_ByType:		; Memory Address ($9388) and binary offset [$9004]
-	; ReSource: Dispatches the current map type and iterates its candidate wall faces.
+	; Dispatches the current map type and iterates its candidate wall faces.
 	lea	Dungeon_ViewCell_WallFaceSlots.l,a6	;4DF90000B9F2
 	add.w	d6,d6	;DC46
 	add.w	d6,a6	;DCC6
@@ -14710,7 +14708,7 @@ Draw_DungeonLocation_ByType:		; Memory Address ($9388) and binary offset [$9004]
 adrCd0093BC:		; Memory Address ($93BC) and binary offset [$9038]
 	move.b	#$FF,-$0013(a3)	;177C00FFFFED
 Draw_DungeonWallFaces_Loop:		; Memory Address ($93C2) and binary offset [$903E]
-	; ReSource: Iterates the candidate projected faces for the current dungeon cell and draws those surviving visibility tests.
+	; Iterates the candidate projected faces for the current dungeon cell and draws those surviving visibility tests.
 	moveq	#$00,d6	;7C00
 	move.b	(a6)+,d6	;1C1E
 	bmi.s	adrCd00943A	;6B72
@@ -14725,7 +14723,7 @@ Draw_DungeonWallFaces_Loop:		; Memory Address ($93C2) and binary offset [$903E]
 	bra	Draw_DoorOrStairsFace	;600000A0
 
 Resolve_WoodenWallFace:		; Memory Address ($93E4) and binary offset [$9060]
-	; ReSource: Resolves whether a wooden wall or doorway face is visible from the current candidate direction.
+	; Resolves whether a wooden wall or doorway face is visible from the current candidate direction.
 	cmpi.w	#$0002,d5	;0C450002
 	bcc.s	adrCd009412	;6428
 	tst.w	d5	;4A45
@@ -14763,7 +14761,7 @@ adrCd00943A:		; Memory Address ($943A) and binary offset [$90B6]
 	rts	;4E75
 
 Draw_StoneWallFace:		; Memory Address ($9440) and binary offset [$90BC]
-	; ReSource: Selects the projected stone-wall face and any main-wall overlay for the current direction.
+	; Selects the projected stone-wall face and any main-wall overlay for the current direction.
 	move.b	-$0011(a3),d0	;102BFFEF
 	bpl.s	adrCd009474	;6A2E
 	lsr.b	#$04,d0	;E808
@@ -14788,7 +14786,7 @@ adrCd009474:		; Memory Address ($9474) and binary offset [$90F0]
 	bra.s	adrCd00943A	;60B8
 
 Draw_DoorOrStairsFace:		; Memory Address ($9482) and binary offset [$90FE]
-	; ReSource: Resolves the visible face slot before dispatching the shared main-door or stairs renderer.
+	; Resolves the visible face slot before dispatching the shared main-door or stairs renderer.
 	bsr	Resolve_DungeonCellCentredSlot	;61000558
 	bmi	Draw_Main_Door_Or_Stairs	;6B001E56
 	btst	d1,d7	;0307
@@ -14797,7 +14795,7 @@ Draw_DoorOrStairsFace:		; Memory Address ($9482) and binary offset [$90FE]
 	bra	Draw_Main_Door_Or_Stairs	;60001E4A
 
 Draw_FirepathCell:		; Memory Address ($9496) and binary offset [$9112]
-	; ReSource: Interprets the Firepath cell state and selects its ordinary or randomly varied colour mask.
+	; Interprets the Firepath cell state and selects its ordinary or randomly varied colour mask.
 	move.b	-$0012(a3),d1	;122BFFEE
 	and.w	#$0003,d1	;02410003
 	beq.s	adrCd0094B2	;6712
@@ -14816,7 +14814,7 @@ adrCd0094B4:		; Memory Address ($94B4) and binary offset [$9130]
 	bra	Process_DungeonViewCellContents	;6000FDB2
 
 Select_Firepath_ColourMask:		; Memory Address ($94BC) and binary offset [$9138]
-	; ReSource: Selects one of two Firepath colour masks using the random-value bit at offset four.
+	; Selects one of two Firepath colour masks using the random-value bit at offset four.
 	bsr	RandomGen_BytewithOffset	;6100C0EE
 	and.w	#$0004,d0	;02400004
 	move.l	GFX_Firepath_ColourMasks(pc,d0.w),Buffer_Colour_Mask.l	;23FB000E0000B4C0
@@ -14824,14 +14822,14 @@ Select_Firepath_ColourMask:		; Memory Address ($94BC) and binary offset [$9138]
 	bra.s	Draw_FloorFeature	;6012
 
 GFX_Firepath_ColourMasks:		; Memory Address ($94D4) and binary offset [$9150]
-	; ReSource: Two four-byte colour masks selected by the Firepath renderer after the random colour choice.
+	; Two four-byte colour masks selected by the Firepath renderer after the random colour choice.
 	dc.l	$090C0B0D	;090C0B0D
 	dc.l	$090A0B0D	;090A0B0D
 
 Set_TriggerPad_ColourMask:		; Memory Address ($94DC) and binary offset [$9158]
 	move.l	#$01050406,Buffer_Colour_Mask.l	;23FC010504060000B4C0
 Draw_FloorFeature:		; Memory Address ($94E6) and binary offset [$9162]
-	; ReSource: Checks centred-slot visibility before composing ceiling holes, floor pits, or trigger pads.
+	; Checks centred-slot visibility before composing ceiling holes, floor pits, or trigger pads.
 	bsr	Resolve_DungeonCellCentredSlot	;610004F4
 	cmpi.w	#$0012,d0	;0C400012
 	beq.s	Draw_CeilingHole	;6708
@@ -14840,7 +14838,7 @@ Draw_FloorFeature:		; Memory Address ($94E6) and binary offset [$9162]
 	btst	d1,d7	;0307
 	beq.s	adrCd009568	;6770
 Draw_CeilingHole:		; Memory Address ($94F8) and binary offset [$9174]
-	; ReSource: Draws the ceiling-hole component when requested, then continues with the corresponding floor feature.
+	; Draws the ceiling-hole component when requested, then continues with the corresponding floor feature.
 	move.b	-$0012(a3),d1	;122BFFEE
 	move.w	d0,d6	;3C00
 	btst	#$02,d1	;08010002
@@ -14852,7 +14850,7 @@ Draw_CeilingHole:		; Memory Address ($94F8) and binary offset [$9174]
 	bsr	Draw_CentredDungeonComponent	;61000098
 	movem.l	(sp)+,d1/d6	;4CDF0042
 Draw_FloorPitOrTriggerPad:		; Memory Address ($9522) and binary offset [$919E]
-	; ReSource: Selects floor-pit or trigger-pad artwork and applies the temporary trigger-pad colour mask.
+	; Selects floor-pit or trigger-pad artwork and applies the temporary trigger-pad colour mask.
 	lea	GFX_FloorPit_TriggerPad_Offsets.l,a0	;41F900018C4E
 	lea	GFX_FloorPit_TriggerPad_Positions.l,a2	;45F90000BF16
 	lea	GFX_Floor_Pit.l,a1	;43F900031AD8
@@ -14877,7 +14875,7 @@ adrCd009568:		; Memory Address ($9568) and binary offset [$91E4]
 	rts	;4E75
 
 Draw_BedOrPillar:		; Memory Address ($956A) and binary offset [$91E6]
-	; ReSource: Selects the bed or pillar graphics, offsets, and projected positions for a centred dungeon cell.
+	; Selects the bed or pillar graphics, offsets, and projected positions for a centred dungeon cell.
 	bsr	Resolve_DungeonCellCentredSlot	;61000470
 	bmi.s	adrCd00959E	;6B2E
 	btst	d1,d7	;0307
@@ -14889,7 +14887,7 @@ Draw_BedOrPillar:		; Memory Address ($956A) and binary offset [$91E6]
 	lea	GFX_Bed.l,a1	;43F900028C28
 	move.w	d0,d6	;3C00
 Draw_Wall_Sprite:		; Memory Address ($9590) and binary offset [$920C]
-	; ReSource: Prepares and draws a centred dungeon component through the ordinary planar wall-sprite compositor.
+	; Prepares and draws a centred dungeon component through the ordinary planar wall-sprite compositor.
 	bsr	Prepare_WallSpriteDraw	;61001EF4
 	swap	d3	;4843
 	move.l	a3,-(sp)	;2F0B
@@ -14899,20 +14897,20 @@ adrCd00959E:		; Memory Address ($959E) and binary offset [$921A]
 	rts	;4E75
 
 Draw_Pillar:		; Memory Address ($95A0) and binary offset [$921C]
-	; ReSource: Selects the pillar graphics tables before entering the centred-component drawing path.
+	; Selects the pillar graphics tables before entering the centred-component drawing path.
 	lea	GFX_Misc_Pillar_Offsets.l,a0	;41F900018B16
 	lea	GFX_Misc_Pillar_Positions.l,a2	;45F90000BC06
 	lea	GFX_Pillar.l,a1	;43F9000296A0
 	move.w	d0,d6	;3C00
 Draw_CentredDungeonComponent:		; Memory Address ($95B4) and binary offset [$9230]
-	; ReSource: Maps a centred view cell to a component picture and chooses its normal or mirrored drawing path.
+	; Maps a centred view cell to a component picture and chooses its normal or mirrored drawing path.
 	moveq	#$00,d0	;7000
 	move.b	GFX_CentredDungeonComponent_SpriteMirrorTable(pc,d6.w),d0	;103B6008
 	bpl.s	Draw_Wall_Sprite	;6AD4
 	bra	Flip_Sprite	;60001E70
 
 GFX_CentredDungeonComponent_SpriteMirrorTable:		; Memory Address ($95C0) and binary offset [$923C]
-	; ReSource: Maps the 19 viewport cells to centred dungeon sprite numbers; bit 7 selects horizontal mirroring. The twentieth byte is spare.
+	; Maps the 19 viewport cells to centred dungeon sprite numbers; bit 7 selects horizontal mirroring. The twentieth byte is spare.
 	dc.b	$00	;00
 	dc.b	$01	;01
 	dc.b	$02	;02
@@ -14935,7 +14933,7 @@ GFX_CentredDungeonComponent_SpriteMirrorTable:		; Memory Address ($95C0) and bin
 	dc.b	$0C	;0C
 
 Resolve_DungeonWallFaceDirection:		; Memory Address ($95D4) and binary offset [$9250]
-	; ReSource: Converts the current candidate face and player facing into the corresponding N/E/S/W direction.
+	; Converts the current candidate face and player facing into the corresponding N/E/S/W direction.
 	move.w	d5,d1	;3205
 	cmp.b	#$07,-$0016(a3)	;0C2B0007FFEA
 	bcc.s	adrCd0095EA	;640C
@@ -14958,7 +14956,7 @@ adrCd009600:		; Memory Address ($9600) and binary offset [$927C]
 	rts	;4E75
 
 Draw_DungeonCellFloorObjects:		; Memory Address ($960A) and binary offset [$9286]
-	; ReSource: Checks floor-object visibility and walks the four rotated object subpositions in the current dungeon cell.
+	; Checks floor-object visibility and walks the four rotated object subpositions in the current dungeon cell.
 	tst.b	-$001F(a3)	;4A2BFFE1
 	bne.s	adrCd00961A	;660A
 	btst	#$03,$01(a6,d0.w)	;083600030001
@@ -14985,7 +14983,7 @@ adrCd00963A:		; Memory Address ($963A) and binary offset [$92B6]
 adrCd009648:		; Memory Address ($9648) and binary offset [$92C4]
 	moveq	#$00,d1	;7200
 Draw_DungeonCellObjectSubpositions_Loop:		; Memory Address ($964A) and binary offset [$92C6]
-	; ReSource: Iterates the four object subpositions after rotating them into the player-relative facing.
+	; Iterates the four object subpositions after rotating them into the player-relative facing.
 	move.w	d1,-(sp)	;3F01
 	move.w	d1,d6	;3C01
 	bsr	adrCd005F2E	;6100C8DE
@@ -14996,7 +14994,7 @@ Draw_DungeonCellObjectSubpositions_Loop:		; Memory Address ($964A) and binary of
 	moveq	#$00,d7	;7E00
 	move.b	(a0)+,d7	;1E18
 Draw_DungeonCellObjects_Loop:		; Memory Address ($9662) and binary offset [$92DE]
-	; ReSource: Draws every object record attached to the current floor subposition.
+	; Draws every object record attached to the current floor subposition.
 	movem.l	d0/d6/d7/a0/a3,-(sp)	;48E78390
 	moveq	#$00,d2	;7400
 	move.b	(a0),d2	;1410
@@ -15013,7 +15011,7 @@ adrCd009680:		; Memory Address ($9680) and binary offset [$92FC]
 	rts	;4E75
 
 GFX_ObjectsOnFloor_SubpositionRotation:		; Memory Address ($9682) and binary offset [$92FE]
-	; ReSource: Combined floor-object projection layout containing sub-position rotation, depth bias, view-cell depth, projection groups, base Y positions and shelf/special Y adjustments.
+	; Combined floor-object projection layout containing sub-position rotation, depth bias, view-cell depth, projection groups, base Y positions and shelf/special Y adjustments.
 	dc.b	$00	;00
 	dc.b	$01	;01
 	dc.b	$02	;02
@@ -15076,7 +15074,7 @@ GFX_ObjectsOnFloor_SubpositionRotation:		; Memory Address ($9682) and binary off
 	dc.b	$08	;08
 
 Draw_ObjectOnFloor:		; Memory Address ($96BE) and binary offset [$933A]
-	; ReSource: Resolves object mini-space, view cell and distance into one of five projected floor graphics and its screen position.
+	; Resolves object mini-space, view cell and distance into one of five projected floor graphics and its screen position.
 	move.w	-$000A(a3),d0	;302BFFF6
 	add.w	d0,d0	;D040
 	add.w	d0,d0	;D040
@@ -15110,7 +15108,7 @@ Draw_ObjectOnFloor:		; Memory Address ($96BE) and binary offset [$933A]
 	move.b	-$0016(a3),d3	;162BFFEA
 	move.b	$00(a0,d3.w),d4	;18303000
 Draw_ObjectOnFloor_ResolveGraphic:		; Memory Address ($9722) and binary offset [$939E]
-	; ReSource: Loads the object's floor shape, recolour definition, graphics offset and selected projection.
+	; Loads the object's floor shape, recolour definition, graphics offset and selected projection.
 	cmpi.b	#$80,d4	;0C040080
 	beq	adrCd009680	;6700FF58
 	lea	Object_Floor_Colours.l,a6	;4DF90000E770
@@ -15133,13 +15131,13 @@ Draw_ObjectOnFloor_ResolveGraphic:		; Memory Address ($9722) and binary offset [
 	bcs.s	Draw_ObjectOnFloor_ResolveWidth	;6504
 	add.w	#$0CB8,a1	;D2FC0CB8
 Draw_ObjectOnFloor_ResolveWidth:		; Memory Address ($9774) and binary offset [$93F0]
-	; ReSource: Selects the normal or wide floor-object drawing width.
+	; Selects the normal or wide floor-object drawing width.
 	moveq	#$00,d7	;7E00
 	cmpi.b	#$12,d3	;0C030012
 	bcs.s	Draw_ObjectOnFloor_Blit	;6504
 	move.b	GFX_ObjectsOnFloor_Widths(pc,d0.w),d7	;1E3B0038
 Draw_ObjectOnFloor_Blit:		; Memory Address ($9780) and binary offset [$93FC]
-	; ReSource: Applies the shape-specific Y adjustment and draws the recoloured floor-object graphic.
+	; Applies the shape-specific Y adjustment and draws the recoloured floor-object graphic.
 	swap	d7	;4847
 	lsr.w	#$01,d6	;E24E
 	lea	GFX_ObjectsOnFloor_Heights.l,a0	;41F90000E6E8
@@ -15156,7 +15154,7 @@ Draw_ObjectOnFloor_Blit:		; Memory Address ($9780) and binary offset [$93FC]
 	rts	;4E75
 
 GFX_ObjectsOnFloor_Widths:		; Memory Address ($97B6) and binary offset [$9432]
-	; ReSource: Per-projection width selectors used by the wide floor-object graphic shapes.
+	; Per-projection width selectors used by the wide floor-object graphic shapes.
 	dc.b	$01	;01
 	dc.b	$01	;01
 	dc.b	$01	;01
@@ -15164,7 +15162,7 @@ GFX_ObjectsOnFloor_Widths:		; Memory Address ($97B6) and binary offset [$9432]
 	dc.b	$00	;00
 	dc.b	$00	;00
 GFX_ObjectsOnFloor_XPositions:		; Memory Address ($97BC) and binary offset [$9438]
-	; ReSource: X positions for 19 view cells multiplied by four rotated object mini-spaces; $80 suppresses drawing.
+	; X positions for 19 view cells multiplied by four rotated object mini-spaces; $80 suppresses drawing.
 	dc.b	$80	;80
 	dc.b	$80	;80
 	dc.b	$80	;80
@@ -15242,7 +15240,7 @@ GFX_ObjectsOnFloor_XPositions:		; Memory Address ($97BC) and binary offset [$943
 	dc.b	$80	;80
 	dc.b	$80	;80
 GFX_ObjectsOnFloor_SpecialXPositions:		; Memory Address ($9808) and binary offset [$9484]
-	; ReSource: Alternative X positions used by the special floor-object placement path.
+	; Alternative X positions used by the special floor-object placement path.
 	dc.b	$80	;80
 	dc.b	$80	;80
 	dc.b	$80	;80
@@ -15264,7 +15262,7 @@ GFX_ObjectsOnFloor_SpecialXPositions:		; Memory Address ($9808) and binary offse
 	dc.b	$80	;80
 	dc.b	$00	;00
 GFX_ObjectsOnFloor_YAdjustments:		; Memory Address ($981C) and binary offset [$9498]
-	; ReSource: Per-shape and per-projection Y adjustments: 27 shapes multiplied by five views, followed by one spare byte.
+	; Per-shape and per-projection Y adjustments: 27 shapes multiplied by five views, followed by one spare byte.
 	dc.b	$00	;00
 	dc.b	$00	;00
 	dc.b	$00	;00
@@ -15405,7 +15403,7 @@ GFX_ObjectsOnFloor_YAdjustments:		; Memory Address ($981C) and binary offset [$9
 adrCd0098A4:		; Memory Address ($98A4) and binary offset [$9520]
 	bsr	adrCd0084FC	;6100EC56
 Find_DungeonCellOccupant:		; Memory Address ($98A8) and binary offset [$9524]
-	; ReSource: Searches players, champions, and unpacked monsters for an occupant at the requested tower and map coordinates.
+	; Searches players, champions, and unpacked monsters for an occupant at the requested tower and map coordinates.
 	move.w	#$0080,d0	;303C0080
 	lea	Player1_Data.l,a1	;43F90000EE7C
 	cmp.w	$0058(a1),d1	;B2690058
@@ -15462,14 +15460,14 @@ adrCd009930:		; Memory Address ($9930) and binary offset [$95AC]
 	rts	;4E75
 
 Monster_SubPosition_DepthAdjustments:		; Memory Address ($9936) and binary offset [$95B2]
-	; ReSource: Adjusts the selected sub-position before it is converted to a monster graphics distance.
+	; Adjusts the selected sub-position before it is converted to a monster graphics distance.
 	dc.b	$00	;00
 	dc.b	$00	;00
 	dc.b	$01	;01
 	dc.b	$01	;01
 	dc.b	$00	;00
 Monster_ViewCell_DepthSlots:		; Memory Address ($993B) and binary offset [$95B7]
-	; ReSource: Maps each view cell to a base depth slot; $FF marks a position that is not visible.
+	; Maps each view cell to a base depth slot; $FF marks a position that is not visible.
 	dc.b	$06	;06
 	dc.b	$06	;06
 	dc.b	$FF	;FF
@@ -15490,7 +15488,7 @@ Monster_ViewCell_DepthSlots:		; Memory Address ($993B) and binary offset [$95B7]
 	dc.b	$00	;00
 	dc.b	$FF	;FF
 Monster_Depth_GfxSlots:		; Memory Address ($994E) and binary offset [$95CA]
-	; ReSource: Maps depth slots to one of the six monster graphics-distance slots.
+	; Maps depth slots to one of the six monster graphics-distance slots.
 	dc.b	$00	;00
 	dc.b	$01	;01
 	dc.b	$02	;02
@@ -15500,7 +15498,7 @@ Monster_Depth_GfxSlots:		; Memory Address ($994E) and binary offset [$95CA]
 	dc.b	$05	;05
 	dc.b	$05	;05
 Monster_GfxSlot_YPositions:		; Memory Address ($9956) and binary offset [$95D2]
-	; ReSource: Provides the base vertical screen position for each monster graphics-distance slot.
+	; Provides the base vertical screen position for each monster graphics-distance slot.
 	dc.b	$27	;27
 	dc.b	$25	;25
 	dc.b	$24	;24
@@ -15509,10 +15507,10 @@ Monster_GfxSlot_YPositions:		; Memory Address ($9956) and binary offset [$95D2]
 	dc.b	$1A	;1A
 
 Prepare_CentredMonster_ScreenPosition:		; Memory Address ($995C) and binary offset [$95D8]
-	; ReSource: Entry point for centrally positioned monsters; forces the centre sub-position before using Prepare_Monster_ScreenPosition.
+	; Entry point for centrally positioned monsters; forces the centre sub-position before using Prepare_Monster_ScreenPosition.
 	moveq	#$04,d1	;7204
 Prepare_Monster_ScreenPosition:		; Memory Address ($995E) and binary offset [$95DA]
-	; ReSource: Converts a visible monster's view cell and sub-position into its graphics distance, screen coordinates, and strip height.
+	; Converts a visible monster's view cell and sub-position into its graphics distance, screen coordinates, and strip height.
 	move.w	d1,d2	;3401
 	move.w	#$004B,MonsterStrip_BottomY.l	;33FC004B0000AD64
 	moveq	#$00,d0	;7000
@@ -15572,7 +15570,7 @@ adrB_0099D4:		; Memory Address ($99D4) and binary offset [$9650]
 	dc.b	$4B	;4B
 
 Resolve_DungeonCellCentredSlot:		; Memory Address ($99DC) and binary offset [$9658]
-	; ReSource: Maps the current view cell to its centred visibility bit and projected slot.
+	; Maps the current view cell to its centred visibility bit and projected slot.
 	moveq	#$00,d0	;7000
 	moveq	#$00,d1	;7200
 	lea	Dungeon_ViewCell_CentredSlots.l,a0	;41F90000B9DE
@@ -15582,7 +15580,7 @@ adrCd0099EE:		; Memory Address ($99EE) and binary offset [$966A]
 	rts	;4E75
 
 Draw_DungeonCellOccupants:		; Memory Address ($99F0) and binary offset [$966C]
-	; ReSource: Finds and draws players, champions, or monsters occupying the visible centred slot.
+	; Finds and draws players, champions, or monsters occupying the visible centred slot.
 	bsr.s	Resolve_DungeonCellCentredSlot	;61EA
 	bmi.s	adrCd0099EE	;6BFA
 	btst	d1,d7	;0307
@@ -15726,7 +15724,7 @@ adrCd009B5E:		; Memory Address ($9B5E) and binary offset [$97DA]
 	bra	adrCd00A6EC	;60000B7E
 
 GFX_Spell_ColourMasks:		; Memory Address ($9B70) and binary offset [$97EC]
-	; ReSource: Four colour-mask indices per spell code. The first 16 records cover $80–$8F; the final four $90–$93 records have no confirmed gameplay effect but are retained for byte-exact source reproduction.
+	; Four colour-mask indices per spell code. The first 16 records cover $80–$8F; the final four $90–$93 records have no confirmed gameplay effect but are retained for byte-exact source reproduction.
 	dc.l	$090D0B0C	;090D0B0C
 	dc.l	$02060807	;02060807
 	dc.l	$020D0605	;020D0605
@@ -15749,14 +15747,14 @@ GFX_Spell_ColourMasks:		; Memory Address ($9B70) and binary offset [$97EC]
 	dc.l	$0708060D	;0708060D
 
 Decode_Monster_RenderFlags:		; Memory Address ($9BC0) and binary offset [$983C]
-	; ReSource: Masks a monster render state to five bits and uses the resulting lookup entry for arm or claw animation flags.
+	; Masks a monster render state to five bits and uses the resulting lookup entry for arm or claw animation flags.
 	clr.b	-$0015(a3)	;422BFFEB
 	and.w	#$001F,d0	;0240001F
 	move.b	Monster_RenderFlags_LookupTable(pc,d0.w),-$0015(a3)	;177B0006FFEB
 	rts	;4E75
 
 Monster_RenderFlags_LookupTable:		; Memory Address ($9BD0) and binary offset [$984C]
-	; ReSource: Maps the low five bits of a monster render state to the two arm or claw animation flags.
+	; Maps the low five bits of a monster render state to the two arm or claw animation flags.
 	dc.b	$00	;00
 	dc.b	$00	;00
 	dc.b	$03	;03
@@ -15791,7 +15789,7 @@ Monster_RenderFlags_LookupTable:		; Memory Address ($9BD0) and binary offset [$9
 	dc.b	$03	;03
 
 Draw_AirbourneSpell:		; Memory Address ($9BF0) and binary offset [$986C]
-	; ReSource: Selects the distance group, graphical family and colour mask used to render flying spell codes $80+.
+	; Selects the distance group, graphical family and colour mask used to render flying spell codes $80+.
 	lea	GFX_AirbourneSpell_DistanceGroups.l,a1		;43F900009C68
 	move.b	$00(a1,d1.w),d1			;12311000
 	add.w	d1,d1				;D241
@@ -15802,7 +15800,7 @@ Draw_AirbourneSpell:		; Memory Address ($9BF0) and binary offset [$986C]
 	add.w	#$0798,a1			;D2FC0798
 	lea	GFX_AirbourneSpells_RenderLayout.l,a2		;45F900009C86
 .RenderSelectedLayout:		; Memory Address ($9C18) and binary offset [$9894]
-	; ReSource: Shared rendering path after selecting either the Fireball or general Airbourne-spell layout.
+	; Shared rendering path after selecting either the Fireball or general Airbourne-spell layout.
 	add.w	$00(a2,d1.w),a1			;D2F21000
 	add.w	d1,d1				;D241
 	add.b	$08(a2,d1.w),d4			;D8321008
@@ -15827,7 +15825,7 @@ Draw_AirbourneSpell:		; Memory Address ($9BF0) and binary offset [$986C]
 	rts	;4E75
 
 GFX_AirbourneSpell_DistanceGroups:		; Memory Address ($9C68) and binary offset [$98E4]
-	; ReSource: Maps the six visible source distances to four graphical sizes: 0,0,1,1,2,3.
+	; Maps the six visible source distances to four graphical sizes: 0,0,1,1,2,3.
 	dc.b	$00	;00
 	dc.b	$00	;00
 	dc.b	$01	;01
@@ -15835,7 +15833,7 @@ GFX_AirbourneSpell_DistanceGroups:		; Memory Address ($9C68) and binary offset [
 	dc.b	$02	;02
 	dc.b	$03	;03
 GFX_AirbourneFireball_RenderLayout:		; Memory Address ($9C6E) and binary offset [$98EA]
-	; ReSource: Four source offsets followed by four packed X, Y, width-minus-one and height-minus-one records for spell codes $80–$85.
+	; Four source offsets followed by four packed X, Y, width-minus-one and height-minus-one records for spell codes $80–$85.
 	dc.w	$0000	;0000
 	dc.w	$01A0	;01A0
 	dc.w	$0220	;0220
@@ -15849,7 +15847,7 @@ GFX_AirbourneFireball_RenderLayout:		; Memory Address ($9C6E) and binary offset 
 	dc.w	$020D	;020D
 	dc.w	$0007	;0007
 GFX_AirbourneSpells_RenderLayout:		; Memory Address ($9C86) and binary offset [$9902]
-	; ReSource: Four source offsets followed by four packed X, Y, width-minus-one and height-minus-one records for spell codes $86–$8F. Offsets are relative to the flying-spell pictures at AirbourneSpells.gfx+$4E0.
+	; Four source offsets followed by four packed X, Y, width-minus-one and height-minus-one records for spell codes $86–$8F. Offsets are relative to the flying-spell pictures at AirbourneSpells.gfx+$4E0.
 	dc.w	$0000	;0000
 	dc.w	$01B0	;01B0
 	dc.w	$0228	;0228
@@ -15863,7 +15861,7 @@ GFX_AirbourneSpells_RenderLayout:		; Memory Address ($9C86) and binary offset [$
 	dc.w	$010E	;010E
 	dc.w	$0006	;0006
 Monster_Facing_GfxVariants_LookupTable:		; Memory Address ($9C9E) and binary offset [$991A]
-	; ReSource: Maps facing direction to front, side, back, or mirrored-side graphic variants.
+	; Maps facing direction to front, side, back, or mirrored-side graphic variants.
 	dc.b	$00	;00
 	dc.b	$01	;01
 	dc.b	$02	;02
@@ -15973,7 +15971,7 @@ Monster_Summon_Colours:		; Memory Address ($9DB8) and binary offset [$9A34]
 	dc.w	$0405	;0405
 	dc.w	$0607	;0607
 GFX_Summon_Body_Layout:		; Memory Address ($9DC0) and binary offset [$9A3C]
-	; ReSource: Contains Summon body vertical adjustments and heights; its final bytes also begin the packed body-width data.
+	; Contains Summon body vertical adjustments and heights; its final bytes also begin the packed body-width data.
 	dc.w	$1511	;1511
 	dc.w	$0D0C	;0D0C
 	dc.w	$FE00	;FE00
@@ -15981,11 +15979,11 @@ GFX_Summon_Body_Layout:		; Memory Address ($9DC0) and binary offset [$9A3C]
 	dc.w	$1F1A	;1F1A
 	dc.w	$1510	;1510
 GFX_Summon_ArmVariants_LookupTable:		; Memory Address ($9DCC) and binary offset [$9A48]
-	; ReSource: Maps Summon facing direction to an arm graphic variant and mirroring; it also forms part of the packed body-width data.
+	; Maps Summon facing direction to an arm graphic variant and mirroring; it also forms part of the packed body-width data.
 	dc.w	$0001	;0001
 	dc.w	$8001	;8001
 GFX_Summon_Arm_Heights:		; Memory Address ($9DD0) and binary offset [$9A4C]
-	; ReSource: Provides Summon arm heights and completes the packed body-width table.
+	; Provides Summon arm heights and completes the packed body-width table.
 	dc.w	$1414	;1414
 	dc.w	$1010	;1010
 	dc.w	$100B	;100B
@@ -15993,7 +15991,7 @@ GFX_Summon_Arm_Heights:		; Memory Address ($9DD0) and binary offset [$9A4C]
 	dc.w	$0A0B	;0A0B
 	dc.w	$0B08	;0B08
 GFX_Summon_PrimaryArm_Positions:		; Memory Address ($9DDC) and binary offset [$9A58]
-	; ReSource: Packed X and Y drawing positions for the primary Summon arm; $FFFF suppresses an unavailable component.
+	; Packed X and Y drawing positions for the primary Summon arm; $FFFF suppresses an unavailable component.
 	dc.w	$09F9	;09F9
 	dc.w	$FFFF	;FFFF
 	dc.w	$FAF9	;FAF9
@@ -16011,7 +16009,7 @@ GFX_Summon_PrimaryArm_Positions:		; Memory Address ($9DDC) and binary offset [$9
 	dc.w	$07FC	;07FC
 	dc.w	$01FC	;01FC
 GFX_Summon_SecondaryArm_Positions:		; Memory Address ($9DFC) and binary offset [$9A78]
-	; ReSource: Packed X and Y drawing positions for the secondary Summon arm; $FFFF suppresses an unavailable component.
+	; Packed X and Y drawing positions for the secondary Summon arm; $FFFF suppresses an unavailable component.
 	dc.w	$FAF9	;FAF9
 	dc.w	$03F9	;03F9
 	dc.w	$09F9	;09F9
@@ -16092,7 +16090,7 @@ Monster_Palettes:		; Memory Address ($9E60) and binary offset [$9ADC]
 	dc.w	$080D	;080D
 
 MonsterColourGrading:		; Memory Address ($9E94) and binary offset [$9B10]
-	; ReSource: Selects the monster colour-grade mask from the active grade and the monster-specific palette table.
+	; Selects the monster colour-grade mask from the active grade and the monster-specific palette table.
 	moveq	#$00,d2	;7400
 	move.b	-$0018(a3),d2	;142BFFE8
 	sub.b	d3,d2	;9403
@@ -16111,7 +16109,7 @@ MonsterColourGrading:		; Memory Address ($9E94) and binary offset [$9B10]
 	rts	;4E75
 
 GFX_Summon_LookupTable:		; Memory Address ($9EBE) and binary offset [$9B3A]
-	; ReSource: Offsets of the 18 Summon body pictures in Summon.gfx: six distances by three facing variants.
+	; Offsets of the 18 Summon body pictures in Summon.gfx: six distances by three facing variants.
 	dc.w	$0000	;0000
 	dc.w	$0178	;0178
 	dc.w	$02F0	;02F0
@@ -16131,7 +16129,7 @@ GFX_Summon_LookupTable:		; Memory Address ($9EBE) and binary offset [$9B3A]
 	dc.w	$1030	;1030
 	dc.w	$10B8	;10B8
 GFX_Summon_Arms_LookupTable:		; Memory Address ($9EE2) and binary offset [$9B5E]
-	; ReSource: Offsets of the 12 Summon arm pictures in Summon.gfx: four distances by three arm variants.
+	; Offsets of the 12 Summon arm pictures in Summon.gfx: four distances by three arm variants.
 	dc.w	$1140	;1140
 	dc.w	$11E8	;11E8
 	dc.w	$1290	;1290
@@ -16389,7 +16387,7 @@ adrCd00A0B4:		; Memory Address ($A0B4) and binary offset [$9D30]
 	moveq	#$00,d6	;7C00
 	moveq	#$01,d2	;7401
 GFX_Beholder:		; Memory Address ($A0D2) and binary offset [$9D4E]
-	; ReSource: Draws the Beholder's optional eye components selected by its render flags.
+	; Draws the Beholder's optional eye components selected by its render flags.
 	btst	d2,-$0015(a3)	;052BFFEB
 	beq.s	adrCd00A0F4	;671C
 	movem.w	d0/d1/d4/d5/d7,-(sp)	;48A7CD00
@@ -16652,7 +16650,7 @@ GFX_Beholder_Near_MirroredHalf_XPositions:		; Memory Address ($A2E2) and binary 
 	dc.b	$04	;04
 
 Select_Beholder_GfxFromLookup:		; Memory Address ($A2E4) and binary offset [$9F60]
-	; ReSource: Converts a Beholder component index into an offset from the packed Beholder graphic bank.
+	; Converts a Beholder component index into an offset from the packed Beholder graphic bank.
 	move.w	d1,d2	;3401
 	add.w	d2,d2	;D442
 	lea	GFX_Beholder_Body.l,a1	;43F900048260
@@ -16739,7 +16737,7 @@ adrCd00A39A:		; Memory Address ($A39A) and binary offset [$A016]
 	rts	;4E75
 
 GFX_Dragon_Side_XPositions:		; Memory Address ($A39C) and binary offset [$A018]
-	; ReSource: Additional horizontal shifts for side-facing Dragons by size group and side.
+	; Additional horizontal shifts for side-facing Dragons by size group and side.
 	dc.b	$FD	;FD
 	dc.b	$F5	;F5
 	dc.b	$FD	;FD
@@ -16935,7 +16933,7 @@ adrCd00A4CC:		; Memory Address ($A4CC) and binary offset [$A148]
 	rts	;4E75
 
 GFX_Dragon_MirroredHalf_XPositions:		; Memory Address ($A4CE) and binary offset [$A14A]
-	; ReSource: Horizontal spacing used when the Dragon body is completed by drawing a mirrored second half.
+	; Horizontal spacing used when the Dragon body is completed by drawing a mirrored second half.
 	dc.b	$20	;20
 	dc.b	$0E	;0E
 	dc.b	$10	;10
@@ -16988,7 +16986,7 @@ Monster_Behemoth_Colours:		; Memory Address ($A52E) and binary offset [$A1AA]
 	dc.w	$0304	;0304
 	dc.w	$0507	;0507
 Monster_DistanceGroups_LookupTable:		; Memory Address ($A536) and binary offset [$A1B2]
-	; ReSource: Maps six visible distance slots to four stored size groups used by centred large monsters.
+	; Maps six visible distance slots to four stored size groups used by centred large monsters.
 	dc.w	$0000	;0000
 	dc.w	$0101	;0101
 	dc.w	$0203	;0203
@@ -17075,7 +17073,7 @@ adrCd00A600:		; Memory Address ($A600) and binary offset [$A27C]
 ;fiX Label expected
 	dc.w	$FFFF	;FFFF
 GFX_Entropy_Layout:		; Memory Address ($A604) and binary offset [$A280]
-	; ReSource: Packed Entropy body and limb dimensions, positions, and mirroring rules.
+	; Packed Entropy body and limb dimensions, positions, and mirroring rules.
 	dc.w	$1008	;1008
 	dc.w	$F8F8	;F8F8
 	dc.w	$0000	;0000
@@ -17131,7 +17129,7 @@ GFX_Entropy_Layout:		; Memory Address ($A604) and binary offset [$A280]
 	dc.w	$13D8	;13D8
 	dc.w	$0000	;0000
 GFX_Behemoth_Layout:		; Memory Address ($A668) and binary offset [$A2E4]
-	; ReSource: Packed Behemoth body and claw dimensions, positions, and mirroring rules.
+	; Packed Behemoth body and claw dimensions, positions, and mirroring rules.
 	dc.w	$0C05	;0C05
 	dc.w	$F6F6	;F6F6
 	dc.w	$0000	;0000
@@ -17182,14 +17180,14 @@ GFX_Behemoth_Layout:		; Memory Address ($A668) and binary offset [$A2E4]
 	dc.w	$10A8	;10A8
 	dc.w	$1130	;1130
 GFX_Behemoth_Claw_LookupTable:		; Memory Address ($A6C2) and binary offset [$A33E]
-	; ReSource: Offsets of four Behemoth claw pictures; the closest front-facing Crab reuses these graphics.
+	; Offsets of four Behemoth claw pictures; the closest front-facing Crab reuses these graphics.
 	dc.w	$11B8	;11B8
 	dc.w	$1260	;1260
 	dc.w	$1308	;1308
 	dc.w	$1378	;1378
 
 Draw_Monster_CompositeBitmap:		; Memory Address ($A6CA) and binary offset [$A346]
-	; ReSource: Dispatches a monster component to the normal or off-screen drawing path after applying its screen offset.
+	; Dispatches a monster component to the normal or off-screen drawing path after applying its screen offset.
 	add.w	$0008(a5),d5	;DA6D0008
 	move.b	d4,d6	;1C04
 	add.b	#$60,d4	;06040060
@@ -17271,7 +17269,7 @@ Draw_Character:		; Memory Address ($A744) and binary offset [$A3C0]
 	bra.s	adrCd00A7F2	;6060
 
 Character_WornArmour_RenderOverrides:		; Memory Address ($A792) and binary offset [$A40E]
-	; ReSource: Maps worn body armour $1B-$23 to the alternate character body and colour override flags.
+	; Maps worn body armour $1B-$23 to the alternate character body and colour override flags.
 	dc.b	$01	;01
 	dc.b	$02	;02
 	dc.b	$03	;03
@@ -17429,7 +17427,7 @@ adrCd00A878:		; Memory Address ($A878) and binary offset [$A4F4]
 	rts	;4E75
 
 Character_BodyDefinitions:		; Memory Address ($A88E) and binary offset [$A50A]
-	; ReSource: Fourteen 10-byte records containing a layout selector and BodyParts.gfx bases for legs, torso, arms and the distant composite.
+	; Fourteen 10-byte records containing a layout selector and BodyParts.gfx bases for legs, torso, arms and the distant composite.
 	dc.w	$0000	;0000
 	dc.w	$2BE0	;2BE0
 	dc.w	$10E0	;10E0
@@ -17545,7 +17543,7 @@ CharacterHeadSel:		; Memory Address ($A91A) and binary offset [$A596]
 	dc.w	$0F0F	;0F0F
 	dc.w	$0F0F	;0F0F
 Character_RenderTableOffsets:		; Memory Address ($A970) and binary offset [$A5EC]
-	; ReSource: Interleaved five-entry lookup containing the height-table and graphics-source-table offsets for each rendered character part.
+	; Interleaved five-entry lookup containing the height-table and graphics-source-table offsets for each rendered character part.
 	dc.w	$00A0	;00A0
 	dc.w	$00AC	;00AC
 	dc.w	$00C4	;00C4
@@ -17557,7 +17555,7 @@ Character_RenderTableOffsets:		; Memory Address ($A970) and binary offset [$A5EC
 	dc.w	$010C	;010C
 	dc.w	$0118	;0118
 Character_PartFacingVariants:		; Memory Address ($A984) and binary offset [$A600]
-	; ReSource: Five parts × four facings; bit 7 means mirror and $FF suppresses that part.
+	; Five parts × four facings; bit 7 means mirror and $FF suppresses that part.
 	dc.b	$00	;00
 	dc.b	$01	;01
 	dc.b	$02	;02
@@ -17580,7 +17578,7 @@ Character_PartFacingVariants:		; Memory Address ($A984) and binary offset [$A600
 	dc.b	$FF	;FF
 
 Draw_CharacterComponent:		; Memory Address ($A998) and binary offset [$A614]
-	; ReSource: Draws one character component by selecting its distance, facing and animation variant, resolving its height and graphics source, applying its colour mask, and positioning or mirroring the 16-pixel strip.
+	; Draws one character component by selecting its distance, facing and animation variant, resolving its height and graphics source, applying its colour mask, and positioning or mirroring the 16-pixel strip.
 	move.w	d0,d2	;3400
 	asl.w	#$02,d2	;E542
 	move.w	Character_RenderTableOffsets(pc,d2.w),d1	;323B20D2
@@ -17720,7 +17718,7 @@ adrCd00AAF8:		; Memory Address ($AAF8) and binary offset [$A774]
 	bra	adrCd00AD2E	;60000234
 
 Character_ArmAnimationPositions:		; Memory Address ($AAFC) and binary offset [$A778]
-	; ReSource: Standard and alternate animated-arm Y corrections and facing-specific X corrections.
+	; Standard and alternate animated-arm Y corrections and facing-specific X corrections.
 	dc.w	$0806	;0806
 	dc.w	$0605	;0605
 	dc.w	$FC00	;FC00
@@ -17759,7 +17757,7 @@ Character_ArmAnimationPositions:		; Memory Address ($AAFC) and binary offset [$A
 	dc.w	$FE00	;FE00
 
 Prepare_CharacterComponentColourMask:		; Memory Address ($AB44) and binary offset [$A7C0]
-	; ReSource: Builds a character-component colour mask and applies worn-armour material and character-specific palette substitutions.
+	; Builds a character-component colour mask and applies worn-armour material and character-specific palette substitutions.
 	lea	Buffer_Colour_Mask.l,a6	;4DF90000B4C0
 	move.l	$00(a0,d1.w),(a6)	;2CB01000
 	move.b	-$001C(a3),d1	;122BFFE4
@@ -17795,7 +17793,7 @@ adrCd00AB9C:		; Memory Address ($AB9C) and binary offset [$A818]
 	rts	;4E75
 
 Character_ArmourMaterial_PalettePairEnds:		; Memory Address ($ABA2) and binary offset [$A81E]
-	; ReSource: Maps ordinary, Mithril, Adamant and Crystal armour material codes to the brighter palette index of each adjacent dark/light colour pair.
+	; Maps ordinary, Mithril, Adamant and Crystal armour material codes to the brighter palette index of each adjacent dark/light colour pair.
 	dc.b	$00	;00
 	dc.b	$08	;08
 	dc.b	$06	;06
@@ -18084,7 +18082,7 @@ adrCd00AD26:		; Memory Address ($AD26) and binary offset [$A9A2]
 adrCd00AD2E:		; Memory Address ($AD2E) and binary offset [$A9AA]
 	add.l	#GFX_BodyParts,a1	;D3FC000396F0	;Long Addr replaced with Symbol
 Draw_Monster_16PixelStrip:		; Memory Address ($AD34) and binary offset [$A9B0]
-	; ReSource: Writes one 16-pixel planar monster strip into the dungeon viewport, applying mirroring and colour substitution.
+	; Writes one 16-pixel planar monster strip into the dungeon viewport, applying mirroring and colour substitution.
 	move.w	d5,d0	;3005
 	add.w	d7,d0	;D047
 	sub.w	MonsterStrip_BottomY.l,d0	;90790000AD64
@@ -18107,14 +18105,14 @@ adrCd00AD42:		; Memory Address ($AD42) and binary offset [$A9BE]
 	rts	;4E75
 
 MonsterStrip_BottomY:		; Memory Address ($AD64) and binary offset [$A9E0]
-	; ReSource: Mutable lower Y clipping boundary used by the 16-pixel monster-strip renderer.
+	; Mutable lower Y clipping boundary used by the 16-pixel monster-strip renderer.
 	dc.w	$004B	;004B
 
 Reverse_PlanarLongwordBits:		; Memory Address ($AD66) and binary offset [$A9E2]
-	; ReSource: Loads the byte-reversal lookup and reverses all 32 bits of a planar source longword.
+	; Loads the byte-reversal lookup and reverses all 32 bits of a planar source longword.
 	lea	BitReverse_LookupBuffer.l,a6	;4DF90001684C
 Reverse_PlanarLongwordBits_WithLookup:		; Memory Address ($AD6C) and binary offset [$A9E8]
-	; ReSource: Reverses a planar source longword using four byte lookups when the lookup base is already loaded.
+	; Reverses a planar source longword using four byte lookups when the lookup base is already loaded.
 	moveq	#$00,d2	;7400
 	move.b	d0,d2	;1400
 	move.b	$00(a6,d2.w),d0	;10362000
@@ -18131,7 +18129,7 @@ Reverse_PlanarLongwordBits_WithLookup:		; Memory Address ($AD6C) and binary offs
 	rts	;4E75
 
 Draw_MonsterStrip_Shifted:		; Memory Address ($AD90) and binary offset [$AA0C]
-	; ReSource: Shifts, clips, mirrors when requested, recolours, and merges a monster strip into the dungeon viewport.
+	; Shifts, clips, mirrors when requested, recolours, and merges a monster strip into the dungeon viewport.
 	and.w	#$000F,d4	;0244000F
 	swap	d6	;4846
 	move.w	d7,d6	;3C07
@@ -18196,12 +18194,12 @@ adrCd00AE02:		; Memory Address ($AE02) and binary offset [$AA7E]
 	bra.s	Merge_PlanarSpriteWord	;600A
 
 Composite_PlanarSpriteWord_IfVisible:		; Memory Address ($AE0A) and binary offset [$AA86]
-	; ReSource: Skips horizontally clipped words and otherwise recolours and merges one planar sprite word.
+	; Skips horizontally clipped words and otherwise recolours and merges one planar sprite word.
 	cmpi.w	#$0008,d7	;0C470008
 	bcc.s	adrCd00AE58	;6448
 	bsr	Remap_PlanarSpriteColours	;610001BE
 Merge_PlanarSpriteWord:		; Memory Address ($AE14) and binary offset [$AA90]
-	; ReSource: Builds the transparent-pixel mask and merges one sprite word into all four destination bitplanes.
+	; Builds the transparent-pixel mask and merges one sprite word into all four destination bitplanes.
 	move.l	d1,d2	;2401
 	and.l	d0,d2	;C480
 	swap	d2	;4842
@@ -18239,14 +18237,14 @@ adrW_00AE5C:		; Memory Address ($AE5C) and binary offset [$AAD8]
 	dc.w	$0000	;0000
 
 Draw_PlanarSprite_Normal:		; Memory Address ($AE5E) and binary offset [$AADA]
-	; ReSource: Initialises and draws an ordinary aligned or shifted planar sprite into the screen bitplanes.
+	; Initialises and draws an ordinary aligned or shifted planar sprite into the screen bitplanes.
 	clr.w	adrW_00AE5C.l	;42790000AE5C
 	bra.s	Draw_PlanarSprite_Normal_Setup	;6008
 
 adrCd00AE66:		; Memory Address ($AE66) and binary offset [$AAE2]
 	move.w	#$FFFF,adrW_00AE5C.l	;33FCFFFF0000AE5C
 Draw_PlanarSprite_Normal_Setup:		; Memory Address ($AE6E) and binary offset [$AAEA]
-	; ReSource: Calculates the destination address and horizontal shift before entering the normal planar sprite loops.
+	; Calculates the destination address and horizontal shift before entering the normal planar sprite loops.
 	move.w	d4,d1	;3204
 	and.w	#$FFF7,d4	;0244FFF7
 	bsr	BW_xy_to_offset	;61002DDE
@@ -18326,7 +18324,7 @@ adrCd00AF0E:		; Memory Address ($AF0E) and binary offset [$AB8A]
 	rts	;4E75
 
 Draw_PlanarSprite_BitReversed:		; Memory Address ($AF1E) and binary offset [$AB9A]
-	; ReSource: Draws a horizontally reversed aligned or shifted planar sprite into the screen bitplanes.
+	; Draws a horizontally reversed aligned or shifted planar sprite into the screen bitplanes.
 	move.w	d4,d1	;3204
 	and.w	#$FFF7,d4	;0244FFF7
 	bsr	BW_xy_to_offset	;61002D2E
@@ -18408,7 +18406,7 @@ adrCd00AFB6:		; Memory Address ($AFB6) and binary offset [$AC32]
 	rts	;4E75
 
 Remap_PlanarSpriteColours:		; Memory Address ($AFD0) and binary offset [$AC4C]
-	; ReSource: Remaps the planar source colour indices through the active four-byte colour-mask table.
+	; Remaps the planar source colour indices through the active four-byte colour-mask table.
 	movem.l	d2-d7,-(sp)	;48E73F00
 	move.l	d0,d2	;2400
 	swap	d2	;4842
@@ -18468,7 +18466,7 @@ adrCd00B036:		; Memory Address ($B036) and binary offset [$ACB2]
 	rts	;4E75
 
 Accumulate_PlanarColourMask:		; Memory Address ($B03C) and binary offset [$ACB8]
-	; ReSource: Accumulates destination bitplane bits for one populated source-colour combination.
+	; Accumulates destination bitplane bits for one populated source-colour combination.
 	move.b	$00(a6,d7.w),d6	;1C367000
 	beq.s	adrCd00B062	;6720
 	add.w	d6,d6	;DC46
@@ -18486,7 +18484,7 @@ adrCd00B062:		; Memory Address ($B062) and binary offset [$ACDE]
 	rts	;4E75
 
 Bitplane_Mask:		; Memory Address ($B064) and binary offset [$ACE0]
-	; ReSource: Four 32-bit plane-write masks selected by a two-bit colour value during planar graphic composition.
+	; Four 32-bit plane-write masks selected by a two-bit colour value during planar graphic composition.
 	dc.w	$0000	;0000
 	dc.w	$0000	;0000
 	dc.w	$FFFF	;FFFF
@@ -18497,7 +18495,7 @@ Bitplane_Mask:		; Memory Address ($B064) and binary offset [$ACE0]
 	dc.w	$FFFF	;FFFF
 
 Draw_MainWallFace_ByPatternParity:		; Memory Address ($B074) and binary offset [$ACF0]
-	; ReSource: Dispatches one main-wall face through the ordinary or lookup-selected/bit-reversed path according to (player X + player Y + facing) & 1.
+	; Dispatches one main-wall face through the ordinary or lookup-selected/bit-reversed path according to (player X + player Y + facing) & 1.
 	tst.w	-$000C(a3)	;4A6BFFF4
 	bne	Draw_MainWallFace	;6600022A
 	move.w	d6,d0	;3006
@@ -18507,7 +18505,7 @@ Draw_MainWallFace_ByPatternParity:		; Memory Address ($B074) and binary offset [
 	bsr	Draw_WallComponent_Transformed	;61000458
 	move.l	(sp)+,a3	;265F
 Draw_Main_Object_Overlay:		; Memory Address ($B08C) and binary offset [$AD08]
-	; ReSource: Draws the selected wall overlay and dispatches switch, sign, shelf, socket, or other wall-feature artwork.
+	; Draws the selected wall overlay and dispatches switch, sign, shelf, socket, or other wall-feature artwork.
 	tst.b	-$0015(a3)	;4A2BFFEB
 	beq.s	adrCd00B062	;67D0
 	addq.b	#$01,-$0015(a3)	;522BFFEB
@@ -18527,7 +18525,7 @@ Draw_Main_Object_Overlay:		; Memory Address ($B08C) and binary offset [$AD08]
 	beq.s	Draw_Main_Slot_Overlay	;6702
 	clr.b	d0	;4200
 Draw_Main_Slot_Overlay:		; Memory Address ($B0D4) and binary offset [$AD50]
-	; ReSource: Applies the selected socket or lock-slot colour mask and draws the main-wall slot component.
+	; Applies the selected socket or lock-slot colour mask and draws the main-wall slot component.
 	move.l	d0,Buffer_Colour_Mask.l	;23C00000B4C0
 	move.w	#$FFFF,Buffer_Colour_Mask_Toggle.l	;33FCFFFF0000B4BE
 	bsr	Draw_WallComponentFace	;6100032C
@@ -18535,7 +18533,7 @@ Draw_Main_Slot_Overlay:		; Memory Address ($B0D4) and binary offset [$AD50]
 	rts	;4E75
 
 Draw_Main_Switch_Overlay:		; Memory Address ($B0EE) and binary offset [$AD6A]
-	; ReSource: Selects the main-wall switch graphic and builds its state-dependent colour mask.
+	; Selects the main-wall switch graphic and builds its state-dependent colour mask.
 	lea	GFX_Main_Switches_Offsets.l,a0	;41F900018C2E
 	lea	GFX_Main_Switches_Positions.l,a2	;45F90000BEA6
 	lea	GFX_Switches.l,a1	;43F9000284E8
@@ -18550,7 +18548,7 @@ Draw_Main_Switch_Overlay:		; Memory Address ($B0EE) and binary offset [$AD6A]
 	swap	d0	;4840
 	move.b	$02(a6,d1.w),d0	;10361002
 Draw_Main_Switch_Overlay_WithColourMask:		; Memory Address ($B122) and binary offset [$AD9E]
-	; ReSource: Applies the resolved switch-state colour mask and draws the main-wall switch component.
+	; Applies the resolved switch-state colour mask and draws the main-wall switch component.
 	move.l	d0,Buffer_Colour_Mask.l	;23C00000B4C0
 	move.w	#$FFFF,Buffer_Colour_Mask_Toggle.l	;33FCFFFF0000B4BE
 	bsr	Draw_WallComponentFace	;610002DE
@@ -18558,7 +18556,7 @@ Draw_Main_Switch_Overlay_WithColourMask:		; Memory Address ($B122) and binary of
 	rts	;4E75
 
 Draw_Main_Sign_Overlay:		; Memory Address ($B13C) and binary offset [$ADB8]
-	; ReSource: Draws a recoloured wall sign followed by its directional generated-symbol overlay when applicable.
+	; Draws a recoloured wall sign followed by its directional generated-symbol overlay when applicable.
 	move.w	d6,-(sp)	;3F06
 	lea	GFX_Main_Sign_Offsets.l,a0	;41F900018BB0
 	lea	GFX_Main_Sign_Positions.l,a2	;45F90000BD56
@@ -18574,10 +18572,10 @@ Draw_Main_Sign_Overlay:		; Memory Address ($B13C) and binary offset [$ADB8]
 	bra.s	Draw_Main_Sign_Base	;6002
 
 Select_Main_Sign_MapColour:		; Memory Address ($B16C) and binary offset [$ADE8]
-	; ReSource: Falls back to a coordinate-derived colour for sign types without a fixed colour entry.
+	; Falls back to a coordinate-derived colour for sign types without a fixed colour entry.
 	bsr.s	Calculate_WallOverlay_ColourIndex	;615E
 Draw_Main_Sign_Base:		; Memory Address ($B16E) and binary offset [$ADEA]
-	; ReSource: Draws the recoloured sign base before selecting its directional sign-overlay picture.
+	; Draws the recoloured sign base before selecting its directional sign-overlay picture.
 	move.l	d0,Buffer_Colour_Mask.l	;23C00000B4C0
 	move.w	#$FFFF,Buffer_Colour_Mask_Toggle.l	;33FCFFFF0000B4BE
 	bsr	Draw_WallComponentFace	;61000292
@@ -18592,12 +18590,12 @@ Draw_Main_Sign_Base:		; Memory Address ($B16E) and binary offset [$ADEA]
 	bra.s	Draw_Main_SignOverlay	;600A
 
 Select_Main_SignOverlay_Direction:		; Memory Address ($B19A) and binary offset [$AE16]
-	; ReSource: Derives the generated sign-overlay direction from the map coordinates.
+	; Derives the generated sign-overlay direction from the map coordinates.
 	move.b	-$0019(a3),d1	;122BFFE7
 	add.w	d1,d1	;D241
 	sub.b	-$001A(a3),d1	;922BFFE6
 Draw_Main_SignOverlay:		; Memory Address ($B1A4) and binary offset [$AE20]
-	; ReSource: Selects and draws one of the four directional pictures from SignOverlay.gfx.
+	; Selects and draws one of the four directional pictures from SignOverlay.gfx.
 	and.w	#$0003,d1	;02410003
 	mulu	#$0610,d1	;C2FC0610
 	lea	GFX_SignOverlay.l,a1	;43F900026CA8
@@ -18609,34 +18607,34 @@ adrCd00B1C4:		; Memory Address ($B1C4) and binary offset [$AE40]
 	rts	;4E75
 
 Select_MainSwitch_ColourMask:		; Memory Address ($B1C6) and binary offset [$AE42]
-	; ReSource: Selects the switch colour table before falling through to the coordinate-derived colour-mask lookup.
+	; Selects the switch colour table before falling through to the coordinate-derived colour-mask lookup.
 	lea	GFX_Switches_Colours.l,a6	;4DF90000B244
 Calculate_WallOverlay_ColourIndex:		; Memory Address ($B1CC) and binary offset [$AE48]
-	; ReSource: Calculates map X plus map Y for generated signs, wall scrolls and non-zero switch colour selection.
+	; Calculates map X plus map Y for generated signs, wall scrolls and non-zero switch colour selection.
 	move.b	-$0019(a3),d1	;122BFFE7
 	add.b	-$001A(a3),d1	;D22BFFE6
 Load_WallOverlay_ColourMask:		; Memory Address ($B1D4) and binary offset [$AE50]
-	; ReSource: Masks the colour index to eight entries, multiplies it by four and loads the selected four-byte colour mask.
+	; Masks the colour index to eight entries, multiplies it by four and loads the selected four-byte colour mask.
 	and.w	#$0007,d1	;02410007
 	asl.w	#$02,d1	;E541
 	move.l	$00(a6,d1.w),d0	;20361000
 	rts	;4E75
 
 Draw_Main_Shelf_Overlay:		; Memory Address ($B1E0) and binary offset [$AE5C]
-	; ReSource: Suppresses an occluded shelf where necessary and otherwise draws the projected shelf component.
+	; Suppresses an occluded shelf where necessary and otherwise draws the projected shelf component.
 	tst.b	-$001F(a3)	;4A2BFFE1
 	bne.s	Draw_Main_Shelf_Visible	;6608
 	btst	#$03,-$0011(a3)	;082B0003FFEF
 	bne.s	adrCd00B1C4	;66D6
 Draw_Main_Shelf_Visible:		; Memory Address ($B1EE) and binary offset [$AE6A]
-	; ReSource: Loads the shelf graphics tables and draws the shelf when its wall-face visibility conditions permit.
+	; Loads the shelf graphics tables and draws the shelf when its wall-face visibility conditions permit.
 	lea	GFX_Main_Shelf_Offsets.l,a0	;41F900018B90
 	lea	GFX_Main_Shelf_Positions.l,a2	;45F90000BCE6
 	lea	GFX_Shelf.l,a1	;43F900025490
 	bra	Draw_WallComponentFace	;6000020E
 
 GFX_Main_Slots_Palette:		; Memory Address ($B204) and binary offset [$AE80]
-	; ReSource: Supplies the colour selections.
+	; Supplies the colour selections.
 	dc.w	$0004	;0004
 	dc.w	$0506	;0506
 	dc.w	$0004	;0004
@@ -18654,7 +18652,7 @@ GFX_Main_Slots_Palette:		; Memory Address ($B204) and binary offset [$AE80]
 	dc.w	$0004	;0004
 	dc.w	$0A0B	;0A0B
 GFX_Main_Slots_Offsets:		; Memory Address ($B224) and binary offset [$AEA0]
-	; ReSource: Selects individual socket pictures.
+	; Selects individual socket pictures.
 	dc.w	$0000	;0000
 	dc.w	$0008	;0008
 	dc.w	$0038	;0038
@@ -18672,7 +18670,7 @@ GFX_Main_Slots_Offsets:		; Memory Address ($B224) and binary offset [$AEA0]
 	dc.w	$03A0	;03A0
 	dc.w	$03F8	;03F8
 GFX_Switches_Colours:		; Memory Address ($B244) and binary offset [$AEC0]
-	; ReSource: Eight four-byte colour masks used to recolour switch artwork according to position and state.
+	; Eight four-byte colour masks used to recolour switch artwork according to position and state.
 	dc.w	$000D	;000D
 	dc.w	$0708	;0708
 	dc.w	$000E	;000E
@@ -18690,7 +18688,7 @@ GFX_Switches_Colours:		; Memory Address ($B244) and binary offset [$AEC0]
 	dc.w	$000D	;000D
 	dc.w	$090A	;090A
 GFX_Main_Sign_Colours:		; Memory Address ($B264) and binary offset [$AEE0]
-	; ReSource: Eight four-byte colour masks used for fixed and coordinate-derived main-wall sign colours.
+	; Eight four-byte colour masks used for fixed and coordinate-derived main-wall sign colours.
 	dc.w	$0005	;0005
 	dc.w	$060D	;060D
 	dc.w	$0009	;0009
@@ -18708,7 +18706,7 @@ GFX_Main_Sign_Colours:		; Memory Address ($B264) and binary offset [$AEE0]
 	dc.w	$000A	;000A
 	dc.w	$0B0D	;0B0D
 GFX_Main_Signoverlay_Offsets:		; Memory Address ($B284) and binary offset [$AF00]
-	; ReSource: Sixteen big-endian offsets selecting directional pictures from SignOverlay.gfx.
+	; Sixteen big-endian offsets selecting directional pictures from SignOverlay.gfx.
 	dc.w	$0000	;0000
 	dc.w	$0038	;0038
 	dc.w	$0070	;0070
@@ -18727,7 +18725,7 @@ GFX_Main_Signoverlay_Offsets:		; Memory Address ($B284) and binary offset [$AF00
 	dc.w	$04B0	;04B0
 
 Draw_MainWallFace:		; Memory Address ($B2A4) and binary offset [$AF20]
-	; ReSource: Selects and draws one projected stone-wall face. Selects the parity-1 main-wall picture using GFX_Main_Wall_SpriteTable and draws it through the bit-reversed path.
+	; Selects and draws one projected stone-wall face. Selects the parity-1 main-wall picture using GFX_Main_Wall_SpriteTable and draws it through the bit-reversed path.
 	moveq	#$00,d0	;7000
 	move.b	GFX_Main_Wall_SpriteTable(pc,d6.w),d0	;103B6012
 	bsr	Select_MainWallGraphicTables	;610001C8
@@ -18737,7 +18735,7 @@ Draw_MainWallFace:		; Memory Address ($B2A4) and binary offset [$AF20]
 	bra	Draw_Main_Object_Overlay	;6000FDD4
 
 GFX_Main_Wall_SpriteTable:		; Memory Address ($B2BA) and binary offset [$AF36]
-	; ReSource: Maps each of the 28 projected wall-face slots to a picture in Main_Walls.gfx.
+	; Maps each of the 28 projected wall-face slots to a picture in Main_Walls.gfx.
 	dc.b	$0C	;0C
 	dc.b	$0D	;0D
 	dc.b	$0E	;0E
@@ -18767,7 +18765,7 @@ GFX_Main_Wall_SpriteTable:		; Memory Address ($B2BA) and binary offset [$AF36]
 	dc.b	$1A	;1A
 	dc.b	$1B	;1B
 Door_Lock_Colours:		; Memory Address ($B2D6) and binary offset [$AF52]
-	; ReSource: Eight recolour values selected from the door-state high nibble for locked-door artwork.
+	; Eight recolour values selected from the door-state high nibble for locked-door artwork.
 	dc.b	$01	;01
 	dc.b	$09	;09
 	dc.b	$04	;04
@@ -18778,7 +18776,7 @@ Door_Lock_Colours:		; Memory Address ($B2D6) and binary offset [$AF52]
 	dc.b	$0E	;0E
 
 Draw_Main_Door_Or_Stairs:		; Memory Address ($B2DE) and binary offset [$AF5A]
-	; ReSource: Applies the large-door lock mask and selects open, metal or portcullis artwork, or dispatches the shared stairs path.
+	; Applies the large-door lock mask and selects open, metal or portcullis artwork, or dispatches the shared stairs path.
 	cmp.b	#$01,-$0013(a3)	;0C2B0001FFED
 	beq	Draw_Main_Stairs	;6700009E
 	move.w	#$FFFF,Buffer_Colour_Mask_Toggle.l	;33FCFFFF0000B4BE
@@ -18791,7 +18789,7 @@ Draw_Main_Door_Or_Stairs:		; Memory Address ($B2DE) and binary offset [$AF5A]
 	move.b	Door_Lock_Colours(pc,d0.w),d0	;103B00CC
 	move.b	d0,Buffer_Colour_Mask+$02.l	;13C00000B4C2
 Select_Main_Door_Graphic:		; Memory Address ($B312) and binary offset [$AF8E]
-	; ReSource: Selects open-door, metal-door, or portcullis artwork from the door-state bits.
+	; Selects open-door, metal-door, or portcullis artwork from the door-state bits.
 	lea	GFX_Door_Offsets.l,a0	;41F900018C14
 	lea	GFX_Door_Positions.l,a2	;45F90000BC4E
 	lea	GFX_Door_Open.l,a1	;43F90002D660
@@ -18802,7 +18800,7 @@ Select_Main_Door_Graphic:		; Memory Address ($B312) and binary offset [$AF8E]
 	beq.s	Draw_Main_Door_ByViewCell	;6706
 	lea	GFX_Door_PortCullis.l,a1	;43F900030650
 Draw_Main_Door_ByViewCell:		; Memory Address ($B340) and binary offset [$AFBC]
-	; ReSource: Chooses the side-face component path or centred two-half construction for the current view cell.
+	; Chooses the side-face component path or centred two-half construction for the current view cell.
 	move.b	-$0016(a3),d6	;1C2BFFEA
 	cmpi.b	#$0E,d6	;0C06000E
 	bcc.s	Draw_Main_Door_CentredFace	;6406
@@ -18810,7 +18808,7 @@ Draw_Main_Door_ByViewCell:		; Memory Address ($B340) and binary offset [$AFBC]
 	bra.s	adrCd00B374	;6024
 
 Draw_Main_Door_CentredFace:		; Memory Address ($B350) and binary offset [$AFCC]
-	; ReSource: Adjusts the centred door slot and orientation before constructing the door from two reflected halves.
+	; Adjusts the centred door slot and orientation before constructing the door from two reflected halves.
 	move.w	d6,d0	;3006
 	subq.w	#$07,d0	;5F40
 	cmpi.w	#$000B,d0	;0C40000B
@@ -18823,7 +18821,7 @@ Draw_Main_Door_CentredFace:		; Memory Address ($B350) and binary offset [$AFCC]
 	addq.w	#$01,d6	;5246
 	addq.w	#$01,d0	;5240
 Draw_Main_Door_Centred_TwoHalves:		; Memory Address ($B370) and binary offset [$AFEC]
-	; ReSource: Draws a centred main door from its source half and reflected partner.
+	; Draws a centred main door from its source half and reflected partner.
 	bsr	Draw_WallComponent_TwoHalves	;610000E6
 adrCd00B374:		; Memory Address ($B374) and binary offset [$AFF0]
 	clr.w	Buffer_Colour_Mask_Toggle.l	;42790000B4BE
@@ -18832,7 +18830,7 @@ adrCd00B374:		; Memory Address ($B374) and binary offset [$AFF0]
 	rts	;4E75
 
 Draw_Main_Stairs:		; Memory Address ($B384) and binary offset [$B000]
-	; ReSource: Selects ascending or descending stairs graphics, offsets, and projected positions.
+	; Selects ascending or descending stairs graphics, offsets, and projected positions.
 	lea	GFX_Stairs_Up.l,a1	;43F90002AB38
 	lea	GFX_Stairs_Up_Offsets.l,a0	;41F900018BD0
 	lea	GFX_Stairs_Up_Positions.l,a2	;45F90000BB1E
@@ -18842,7 +18840,7 @@ Draw_Main_Stairs:		; Memory Address ($B384) and binary offset [$B000]
 	lea	GFX_Stairs_Down_Offsets.l,a0	;41F900018BF2
 	lea	GFX_Stairs_Down_Positions.l,a2	;45F90000BB92
 Draw_Main_Stairs_ByViewCell:		; Memory Address ($B3B0) and binary offset [$B02C]
-	; ReSource: Chooses the side-face path, suppresses the farthest central slot, or constructs centred stairs from two halves.
+	; Chooses the side-face path, suppresses the farthest central slot, or constructs centred stairs from two halves.
 	cmp.b	#$0E,-$0016(a3)	;0C2B000EFFEA
 	bcs.s	Draw_Main_Stairs_SideFace	;6514
 	beq.s	adrCd00B3CE	;6714
@@ -18854,7 +18852,7 @@ Draw_Main_Stairs_ByViewCell:		; Memory Address ($B3B0) and binary offset [$B02C]
 	bra.s	adrCd00B3CE	;6002
 
 Draw_Main_Stairs_SideFace:		; Memory Address ($B3CC) and binary offset [$B048]
-	; ReSource: Draws the complete stairs component for a side view cell.
+	; Draws the complete stairs component for a side view cell.
 	bsr.s	Draw_WallComponentFace	;6142
 adrCd00B3CE:		; Memory Address ($B3CE) and binary offset [$B04A]
 	tst.b	-$0011(a3)	;4A2BFFEF
@@ -18862,7 +18860,7 @@ adrCd00B3CE:		; Memory Address ($B3CE) and binary offset [$B04A]
 	rts	;4E75
 
 Draw_WoodenWallOrDoorFace:		; Memory Address ($B3D8) and binary offset [$B054]
-	; ReSource: Selects a solid wooden wall, open doorway frame and optional closed-door overlay.
+	; Selects a solid wooden wall, open doorway frame and optional closed-door overlay.
 	lea	GFX_WoodenWalls.l,a1	;43F90001F980
 	lea	GFX_Wooden_Wall_Offsets.l,a0	;41F900018B70
 	lea	GFX_Wooden_Wall_Positions.l,a2	;45F90000BAAE
@@ -18876,10 +18874,10 @@ Draw_WoodenWallOrDoorFace:		; Memory Address ($B3D8) and binary offset [$B054]
 	lea	GFX_Wooden_Doors_Positions.l,a2	;45F90000BFAE
 	lea	GFX_WoodDoors.l,a1	;43F9000242B0
 Draw_Selected_WoodenWallOrDoorComponent:		; Memory Address ($B40E) and binary offset [$B08A]
-	; ReSource: Draws the selected solid wall, doorway frame, or closed wooden-door component.
+	; Draws the selected solid wall, doorway frame, or closed wooden-door component.
 	nop	;4E71
 Draw_WallComponentFace:		; Memory Address ($B410) and binary offset [$B08C]
-	; ReSource: Selects a wall-component picture and chooses its normal, mirrored or two-half drawing path.
+	; Selects a wall-component picture and chooses its normal, mirrored or two-half drawing path.
 	moveq	#$00,d0	;7000
 	move.b	GFX_WallComponent_SpriteMirrorTable(pc,d6.w),d0	;103B6028
 	bmi.s	Flip_Sprite	;6B16
@@ -18894,7 +18892,7 @@ adrCd00B42C:		; Memory Address ($B42C) and binary offset [$B0A8]
 	rts	;4E75
 
 Flip_Sprite:		; Memory Address ($B42E) and binary offset [$B0AA]
-	; ReSource: Clears the component mirror flag, resolves its geometry, and draws it through the bit-reversed path.
+	; Clears the component mirror flag, resolves its geometry, and draws it through the bit-reversed path.
 	and.w	#$007F,d0	;0240007F
 	bsr.s	Prepare_WallSpriteDraw	;6152
 	add.w	d3,a0	;D0C3
@@ -18902,7 +18900,7 @@ Flip_Sprite:		; Memory Address ($B42E) and binary offset [$B0AA]
 	bra	Draw_WallSprite_BitReversed	;60000334
 
 GFX_WallComponent_SpriteMirrorTable:		; Memory Address ($B43C) and binary offset [$B0B8]
-	; ReSource: Maps the 28 wall-face slots to component pictures; bit 7 selects the horizontally mirrored drawing path.
+	; Maps the 28 wall-face slots to component pictures; bit 7 selects the horizontally mirrored drawing path.
 	dc.b	$00	;00
 	dc.b	$01	;01
 	dc.b	$02	;02
@@ -18933,7 +18931,7 @@ GFX_WallComponent_SpriteMirrorTable:		; Memory Address ($B43C) and binary offset
 	dc.b	$0F	;0F
 
 Draw_WallComponent_TwoHalves:		; Memory Address ($B458) and binary offset [$B0D4]
-	; ReSource: Draws one source half and its reflected partner to construct a complete central component.
+	; Draws one source half and its reflected partner to construct a complete central component.
 	bsr.s	Prepare_WallSpriteDraw	;612C
 	swap	d3	;4843
 	movem.l	d1/d3/d5/a0/a1/a3,-(sp)	;48E754D0
@@ -18945,12 +18943,12 @@ Draw_WallComponent_TwoHalves:		; Memory Address ($B458) and binary offset [$B0D4
 	bra	Draw_WallSprite_BitReversed	;600002FC
 
 Select_MainWallGraphicTables:		; Memory Address ($B474) and binary offset [$B0F0]
-	; ReSource: Selects the Main_Walls graphics, picture offsets and packed position tables.
+	; Selects the Main_Walls graphics, picture offsets and packed position tables.
 	lea	GFX_Main_Walls_Positions.l,a2	;45F90000BA3E
 	lea	GFX_Main_Walls_Offsets.l,a0	;41F900018ADE
 	lea	GFX_MainWalls.l,a1	;43F90001B050
 Prepare_WallSpriteDraw:		; Memory Address ($B486) and binary offset [$B102]
-	; ReSource: Resolves a picture offset and packed position into source pointer, destination pointer, width and height.
+	; Resolves a picture offset and packed position into source pointer, destination pointer, width and height.
 	add.w	d0,d0	;D040
 	add.w	$00(a0,d0.w),a1	;D2F00000
 	move.w	d6,d0	;3006
@@ -18985,7 +18983,7 @@ Buffer_Colour_Mask:		; Memory Address ($B4C0) and binary offset [$B13C]
 	dc.b	$08	;08
 	dc.b	$0C	;0C
 GFX_WallComponent_DrawTransformFlags:		; Memory Address ($B4C4) and binary offset [$B140]
-	; ReSource: Per-face transformation flags used by wall components, wooden walls, doors and stairs. Bits 0 and 2 select edge passes; bit 1 selects the perspective centre path.
+	; Per-face transformation flags used by wall components, wooden walls, doors and stairs. Bits 0 and 2 select edge passes; bit 1 selects the perspective centre path.
 	dc.b	$01	;01
 	dc.b	$05	;05
 	dc.b	$07	;07
@@ -19016,7 +19014,7 @@ GFX_WallComponent_DrawTransformFlags:		; Memory Address ($B4C4) and binary offse
 	dc.b	$07	;07
 
 Draw_WallComponent_Transformed:		; Memory Address ($B4E0) and binary offset [$B15C]
-	; ReSource: Applies wall-component transformation flags and perspective trimming.
+	; Applies wall-component transformation flags and perspective trimming.
 	lea	GFX_WallComponent_DrawTransformFlags.l,a2	;45F90000B4C4
 	add.w	d6,a2	;D4C6
 	btst	#$01,(a2)	;08120001
@@ -19068,7 +19066,7 @@ adrCd00B554:		; Memory Address ($B554) and binary offset [$B1D0]
 	rts	;4E75
 
 GFX_WallComponent_PerspectiveTrimLookup:		; Memory Address ($B558) and binary offset [$B1D4]
-	; ReSource: Maps the low three component-transform flag bits to zero, one or two source word-columns trimmed during perspective drawing.
+	; Maps the low three component-transform flag bits to zero, one or two source word-columns trimmed during perspective drawing.
 	dc.b	$00	;00
 	dc.b	$00	;00
 	dc.b	$00	;00
@@ -19079,7 +19077,7 @@ GFX_WallComponent_PerspectiveTrimLookup:		; Memory Address ($B558) and binary of
 	dc.b	$02	;02
 
 Draw_WallComponent_EdgeTransform:		; Memory Address ($B560) and binary offset [$B1DC]
-	; ReSource: Draws the extra perspective edge pass for a wall component.
+	; Draws the extra perspective edge pass for a wall component.
 	movem.l	a0/a1,-(sp)	;48E700C0
 	swap	d3	;4843
 	move.w	d3,d6	;3C03
@@ -19126,10 +19124,10 @@ adrLp00B570:		; Memory Address ($B570) and binary offset [$B1EC]
 	rts	;4E75
 
 Draw_WallSprite_Normal:		; Memory Address ($B5CA) and binary offset [$B246]
-	; ReSource: Initialises the normal wall-sprite source-row stride before entering the shared planar compositor.
+	; Initialises the normal wall-sprite source-row stride before entering the shared planar compositor.
 	sub.w	a3,a3	;96CB
 Draw_WallSprite_Rows_Loop:		; Memory Address ($B5CC) and binary offset [$B248]
-	; ReSource: Iterates the source rows and words of an ordinary planar wall or wall-feature sprite.
+	; Iterates the source rows and words of an ordinary planar wall or wall-feature sprite.
 	swap	d5	;4845
 	move.w	d5,d3	;3605
 adrLp00B5D0:		; Memory Address ($B5D0) and binary offset [$B24C]
@@ -19140,7 +19138,7 @@ adrLp00B5D0:		; Memory Address ($B5D0) and binary offset [$B24C]
 	lea	Buffer_Colour_Mask.l,a6	;4DF90000B4C0
 	bsr	Remap_PlanarSpriteColours	;6100F9EC
 Composite_WallSprite_Row:		; Memory Address ($B5E6) and binary offset [$B262]
-	; ReSource: Builds the transparency mask and merges one ordinary planar sprite word into all four destination bitplanes.
+	; Builds the transparency mask and merges one ordinary planar sprite word into all four destination bitplanes.
 	move.l	d1,d2	;2401
 	and.l	d0,d2	;C480
 	addq.l	#$01,d2	;5282
@@ -19187,7 +19185,7 @@ adrCd00B632:		; Memory Address ($B632) and binary offset [$B2AE]
 	rts	;4E75
 
 GFX_Main_Wall_DrawTransformFlags:		; Memory Address ($B64A) and binary offset [$B2C6]
-	; ReSource: Per-face transformation flags for stone-wall graphics. This differs from the component table at wall-face slots 6 and 18.
+	; Per-face transformation flags for stone-wall graphics. This differs from the component table at wall-face slots 6 and 18.
 	dc.w	$0105	;0105
 	dc.w	$0705	;0705
 	dc.w	$0101	;0101
@@ -19204,7 +19202,7 @@ GFX_Main_Wall_DrawTransformFlags:		; Memory Address ($B64A) and binary offset [$
 	dc.w	$0207	;0207
 
 Draw_MainWall_Transformed:		; Memory Address ($B666) and binary offset [$B2E2]
-	; ReSource: Applies main-wall transformation flags, horizontal bit reversal and perspective trimming.
+	; Applies main-wall transformation flags, horizontal bit reversal and perspective trimming.
 	lea	GFX_Main_Wall_DrawTransformFlags.l,a2	;45F90000B64A
 	add.w	d6,a2	;D4C6
 	btst	#$01,(a2)	;08120001
@@ -19263,7 +19261,7 @@ adrCd00B6EE:		; Memory Address ($B6EE) and binary offset [$B36A]
 	rts	;4E75
 
 GFX_Main_Wall_PerspectiveTrimLookup:		; Memory Address ($B6F2) and binary offset [$B36E]
-	; ReSource: Maps the low three main-wall transform flag bits to zero, one or two source word-columns trimmed during perspective drawing.
+	; Maps the low three main-wall transform flag bits to zero, one or two source word-columns trimmed during perspective drawing.
 	dc.b	$00	;00
 	dc.b	$00	;00
 	dc.b	$00	;00
@@ -19274,7 +19272,7 @@ GFX_Main_Wall_PerspectiveTrimLookup:		; Memory Address ($B6F2) and binary offset
 	dc.b	$02	;02
 
 Draw_MainWall_EdgeTransform:		; Memory Address ($B6FA) and binary offset [$B376]
-	; ReSource: Draws the horizontally reversed perspective edge pass for a stone wall.
+	; Draws the horizontally reversed perspective edge pass for a stone wall.
 	movem.l	a0/a1,-(sp)	;48E700C0
 	swap	d3	;4843
 	move.w	d3,d6	;3C03
@@ -19324,11 +19322,11 @@ adrLp00B70A:		; Memory Address ($B70A) and binary offset [$B386]
 	rts	;4E75
 
 Draw_WallSprite_BitReversed:		; Memory Address ($B76E) and binary offset [$B3EA]
-	; ReSource: Writes normal wall rows after horizontally reversing their planar source bits.
+	; Writes normal wall rows after horizontally reversing their planar source bits.
 	swap	d5	;4845
 	move.w	d5,d3	;3605
 Draw_WallSprite_BitReversed_Rows_Loop:		; Memory Address ($B772) and binary offset [$B3EE]
-	; ReSource: Iterates a horizontally bit-reversed wall sprite through its planar source rows and words.
+	; Iterates a horizontally bit-reversed wall sprite through its planar source rows and words.
 	move.l	(a1)+,d1	;2219
 	move.l	(a1)+,d0	;2019
 	bsr	Reverse_PlanarLongwordBits	;6100F5EE
@@ -19339,7 +19337,7 @@ Draw_WallSprite_BitReversed_Rows_Loop:		; Memory Address ($B772) and binary offs
 	lea	Buffer_Colour_Mask.l,a6	;4DF90000B4C0
 	bsr	Remap_PlanarSpriteColours	;6100F840
 Composite_BitReversedWallSprite_Row:		; Memory Address ($B792) and binary offset [$B40E]
-	; ReSource: Builds the transparency mask and merges one bit-reversed sprite word into all four destination bitplanes.
+	; Builds the transparency mask and merges one bit-reversed sprite word into all four destination bitplanes.
 	move.l	d1,d2	;2401
 	and.l	d0,d2	;C480
 	addq.l	#$01,d2	;5282
@@ -19385,7 +19383,7 @@ adrCd00B7DE:		; Memory Address ($B7DE) and binary offset [$B45A]
 	rts	;4E75
 
 Draw_FloorAndCeiling:		; Memory Address ($B7F4) and binary offset [$B470]
-	; ReSource: Draws the floor and ceiling bands used by the dungeon viewport. Selects the ordinary or horizontally bit-reversed floor/ceiling renderer according to the dungeon pattern parity.
+	; Draws the floor and ceiling bands used by the dungeon viewport. Selects the ordinary or horizontally bit-reversed floor/ceiling renderer according to the dungeon pattern parity.
 	lea	GFX_FloorCeiling.l,a1	;43F900032120
 	move.l	-$0008(a3),a0	;206BFFF8
 	tst.w	-$000C(a3)	;4A6BFFF4
@@ -19395,7 +19393,7 @@ Draw_FloorAndCeiling:		; Memory Address ($B7F4) and binary offset [$B470]
 	bsr.s	Clear_FloorCeiling_ViewGap	;6120
 	moveq	#$21,d0	;7021
 Draw_FloorAndCeiling_CopyRows_Loop:		; Memory Address ($B80C) and binary offset [$B488]
-	; ReSource: Copies source rows into the floor and ceiling areas of the dungeon viewport. Copies the parity-1 floor and ceiling rows directly into the dungeon viewport.
+	; Copies source rows into the floor and ceiling areas of the dungeon viewport. Copies the parity-1 floor and ceiling rows directly into the dungeon viewport.
 	moveq	#$07,d1	;7207
 adrLp00B80E:		; Memory Address ($B80E) and binary offset [$B48A]
 	move.w	(a1)+,(a0)+	;30D9
@@ -19408,7 +19406,7 @@ adrLp00B80E:		; Memory Address ($B80E) and binary offset [$B48A]
 	rts	;4E75
 
 Clear_FloorCeiling_ViewGap:		; Memory Address ($B82A) and binary offset [$B4A6]
-	; ReSource: Clears the nineteen-rowhorizontal  view area between the ceiling and floor bands.
+	; Clears the nineteen-rowhorizontal  view area between the ceiling and floor bands.
 	moveq	#$12,d0	;7012
 	moveq	#$00,d1	;7200
 adrLp00B82E:		; Memory Address ($B82E) and binary offset [$B4AA]
@@ -19436,7 +19434,7 @@ adrLp00B82E:		; Memory Address ($B82E) and binary offset [$B4AA]
 	rts	;4E75
 
 Draw_FloorAndCeiling_BitReversed:		; Memory Address ($B864) and binary offset [$B4E0]
-	; ReSource: Draws the horizontally bit-reversed floor and ceiling bands for parity 0.
+	; Draws the horizontally bit-reversed floor and ceiling bands for parity 0.
 	lea	BitReverse_LookupBuffer.l,a6	;4DF90001684C
 	lea	$0010(a0),a0	;41E80010
 	moveq	#$16,d7	;7E16
@@ -19446,7 +19444,7 @@ Draw_FloorAndCeiling_BitReversed:		; Memory Address ($B864) and binary offset [$
 	lea	$0010(a0),a0	;41E80010
 	moveq	#$21,d7	;7E21
 Draw_FloorAndCeiling_BitReversed_Loop:		; Memory Address ($B87E) and binary offset [$B4FA]
-	; ReSource: Loop used to write the bit-reversed floor and ceiling rows. Bit-reverses and writes each floor/ceiling source row from the opposite side of the viewport.
+	; Loop used to write the bit-reversed floor and ceiling rows. Bit-reverses and writes each floor/ceiling source row from the opposite side of the viewport.
 	moveq	#$07,d3	;7607
 adrLp00B880:		; Memory Address ($B880) and binary offset [$B4FC]
 	move.l	(a1)+,d0	;2019
@@ -19466,7 +19464,7 @@ adrLp00B880:		; Memory Address ($B880) and binary offset [$B4FC]
 	rts	;4E75
 
 Dungeon_ViewCell_RelativeCoordinates:		; Memory Address ($B8AE) and binary offset [$B52A]
-	; ReSource: Four player-facing groups of 19 signed relative X/Y coordinate words defining the dungeon cells examined by the renderer.
+	; Four player-facing groups of 19 signed relative X/Y coordinate words defining the dungeon cells examined by the renderer.
 	dc.w	$FEFC	;FEFC
 	dc.w	$FFFC	;FFFC
 	dc.w	$FEFD	;FEFD
@@ -19620,7 +19618,7 @@ Dungeon_ViewCell_RelativeCoordinates:		; Memory Address ($B8AE) and binary offse
 	dc.w	$0880	;0880
 	dc.w	$0800	;0800
 Dungeon_ViewCell_CentredSlots:		; Memory Address ($B9DE) and binary offset [$B65A]
-	; ReSource: Maps the 19 view cells to centred projected slots used by pillars, beds, pits and pads; FF means unavailable. The twentieth byte is spare.
+	; Maps the 19 view cells to centred projected slots used by pillars, beds, pits and pads; FF means unavailable. The twentieth byte is spare.
 	dc.w	$0002	;0002
 	dc.w	$FF06	;FF06
 	dc.w	$080A	;080A
@@ -19632,7 +19630,7 @@ Dungeon_ViewCell_CentredSlots:		; Memory Address ($B9DE) and binary offset [$B65
 	dc.w	$1A1B	;1A1B
 	dc.w	$FF00	;FF00
 Dungeon_ViewCell_WallFaceSlots:		; Memory Address ($B9F2) and binary offset [$B66E]
-	; ReSource: Four N/E/S/W wall-face slot numbers per view cell; FF means that face is unavailable from that cell.
+	; Four N/E/S/W wall-face slot numbers per view cell; FF means that face is unavailable from that cell.
 	dc.w	$FFFF	;FFFF
 	dc.w	$0001	;0001
 	dc.w	$FF01	;FF01
@@ -20190,7 +20188,7 @@ GFX_Main_Signoverlay_Positions:		; Memory Address ($BDC6) and binary offset [$BA
 	dc.w	$1019	;1019
 	dc.w	$0115	;0115
 GFX_Main_Slots_Positions:		; Memory Address ($BE36) and binary offset [$BAB2]
-	; ReSource: Contains the exact X/Y/width/height rectangle for each projected wall view.
+	; Contains the exact X/Y/width/height rectangle for each projected wall view.
 	dc.w	$001D	;001D
 	dc.w	$0000	;0000
 	dc.w	$081D	;081D
@@ -20305,7 +20303,7 @@ GFX_Main_Switches_Positions:		; Memory Address ($BEA6) and binary offset [$BB22]
 	dc.w	$181C	;181C
 	dc.w	$000C	;000C
 GFX_FloorPit_TriggerPad_Positions:		; Memory Address ($BF16) and binary offset [$BB92]
-	; ReSource: Shared projected positions for floor pits and trigger pads, including the current-player square.
+	; Shared projected positions for floor pits and trigger pads, including the current-player square.
 	dc.w	$002A	;002A
 	dc.w	$0000	;0000
 	dc.w	$082A	;082A
@@ -20345,7 +20343,7 @@ GFX_FloorPit_TriggerPad_Positions:		; Memory Address ($BF16) and binary offset [
 	dc.w	$1049	;1049
 	dc.w	$0302	;0302
 GFX_Ceiling_Hole_Positions:		; Memory Address ($BF62) and binary offset [$BBDE]
-	; ReSource: Projected ceiling-hole positions, including the current-player square.
+	; Projected ceiling-hole positions, including the current-player square.
 	dc.w	$0016	;0016
 	dc.w	$0000	;0000
 	dc.w	$0816	;0816
@@ -20585,7 +20583,7 @@ adrCd00C1F6:		; Memory Address ($C1F6) and binary offset [$BE72]
 	bra	adrCd00C650			;60000420
 
 Process_ChampionSelectionAction:		; Memory Address ($C5B6) and binary offset [$C232]
-	; ReSource: Processes the champion-selection screen's separate action state.
+	; Processes the champion-selection screen's separate action state.
 	move.w	$0014(a5),d0			;302D0014
 	bmi.s	ExitOrLoop			;6BBC
 	cmpi.b	#$03,d0				;0C000003
@@ -20599,14 +20597,14 @@ Process_ChampionSelectionAction:		; Memory Address ($C5B6) and binary offset [$C
 adrCd00C24E:		; Memory Address ($C24E) and binary offset [$BECA]
 	move.w	d0,$000C(a5)	;3B40000C
 Dispatch_ChampionSelectionAction:		; Memory Address ($C5D6) and binary offset [$C252]
-	; ReSource: Dispatches champion-selection actions through the local preview/action table.
+	; Dispatches champion-selection actions through the local preview/action table.
 	move.w	$000C(a5),d0	;302D000C
 	beq.s	ExitOrLoop	;679C
 	asl.w	#$02,d0	;E540
 	lea	ChampionSelection_ActionHandlers.l,a0	;41F90000C262
 	move.l	$00(a0,d0.w),a0	;20700000
 ChampionSelection_ActionHandlers:		equ	*-2		; Memory Address ($C5E6) and binary offset [$C262]
-	; ReSource: Champion-selection action handler table; its numeric meanings differ from dungeon InterfaceButtons.
+	; Champion-selection action handler table; its numeric meanings differ from dungeon InterfaceButtons.
 	jmp	(a0)	;4ED0
 
 ChampionPreviews_LookupTable:		; Memory Address ($C266) and binary offset [$BEE2]
@@ -21406,10 +21404,10 @@ adrCd00CB1C:		; Memory Address ($CB1C) and binary offset [$C798]
 	jmp	adrCd00CE28.l	;4EF90000CE28
 
 Draw_ChampionStats_DefaultPosition:		; Memory Address ($CB28) and binary offset [$C7A4]
-	; ReSource: Sets the default scroll Y position to $2A, then enters Draw_ChampionStats.
+	; Sets the default scroll Y position to $2A, then enters Draw_ChampionStats.
 	moveq	#$2A,d5	;7A2A
 Draw_ChampionStats:		; Memory Address ($CB2A) and binary offset [$C7A6]
-	; ReSource: Draws the scroll frame, inserts fields from the selected 32-byte champion record into ChampionStatsScroll_TextTemplate, then calls Print_fflim_text. D5 supplies the scroll Y position.
+	; Draws the scroll frame, inserts fields from the selected 32-byte champion record into ChampionStatsScroll_TextTemplate, then calls Print_fflim_text. D5 supplies the scroll Y position.
 	move.w	$0006(a5),-(sp)	;3F2D0006
 	bsr	Draw_ScrollFrame	;6100010A
 	move.w	(sp),d0	;3017
@@ -21421,7 +21419,7 @@ Draw_ChampionStats:		; Memory Address ($CB2A) and binary offset [$C7A6]
 	moveq	#$06,d7	;7E06
 	moveq	#$00,d0	;7000
 ChampionStats_InsertFieldsLoop:		; Memory Address ($CB4E) and binary offset [$C7CA]
-	; ReSource: Copies seven champion fields into their corresponding positions within the writable formatted-text template.
+	; Copies seven champion fields into their corresponding positions within the writable formatted-text template.
 	move.b	$00(a2,d7.w),d0	;10327000
 	move.b	$00(a0,d0.w),d0	;10300000
 	bsr	Convert_ByteToDecimalText	;6100036C
@@ -21461,7 +21459,7 @@ adrCd00CBB0:		; Memory Address ($CBB0) and binary offset [$C82C]
 	bra	Print_fflim_text	;60000504
 
 ChampionStatsScroll_FieldAndTextOffsets:		; Memory Address ($CBC4) and binary offset [$C840]
-	; ReSource: Two parallel seven-byte tables: champion-record field offsets followed by destination offsets within ChampionStatsScroll_TextTemplate.
+	; Two parallel seven-byte tables: champion-record field offsets followed by destination offsets within ChampionStatsScroll_TextTemplate.
 	dc.b	$00	;00
 	dc.b	$01	;01
 	dc.b	$02	;02
@@ -21477,7 +21475,7 @@ ChampionStatsScroll_FieldAndTextOffsets:		; Memory Address ($CBC4) and binary of
 	dc.b	$5E	;5E
 	dc.b	$65	;65
 ChampionStatsScroll_TextTemplate:		; Memory Address ($CBD2) and binary offset [$C84E]
-	; ReSource: Writable Print_fflim_text command stream for the stats scroll. $FC sets coordinates, $FE ink, $FD background and $FF terminates; runtime code inserts the selected champion’s values.
+	; Writable Print_fflim_text command stream for the stats scroll. $FC sets coordinates, $FE ink, $FD background and $FF terminates; runtime code inserts the selected champion’s values.
 	dc.b	$FC	;FC
 	dc.b	$1E	;1E
 	dc.b	$03	;03
@@ -21563,7 +21561,7 @@ ChampionStatsScroll_TextTemplate:		; Memory Address ($CBD2) and binary offset [$
 	dc.b	$FF	;FF
 
 Draw_ScrollFrame:		; Memory Address ($CC3A) and binary offset [$C8B6]
-	; ReSource: Generic scroll-frame renderer used outside the champion screen too. Draws colour-$3 background, 96x15 caps and 16x58 sides at X offsets 0 and 80; applies player-specific screen offsets.
+	; Generic scroll-frame renderer used outside the champion screen too. Draws colour-$3 background, 96x15 caps and 16x58 sides at X offsets 0 and 80; applies player-specific screen offsets.
 	or.b	#$0C,$0054(a5)	;002D000C0054
 	swap	d5	;4845
 	move.w	#$0018,d5	;3A3C0018
@@ -21596,7 +21594,7 @@ Draw_ScrollFrame:		; Memory Address ($CC3A) and binary offset [$C8B6]
 	add.w	$000A(a5),a0	;D0ED000A
 	move.l	#$0005000E,d5	;2A3C0005000E	;Long Addr replaced with Symbol
 Draw_PlanarGraphic:		; Memory Address ($CCB8) and binary offset [$C934]
-	; ReSource: Pushes the packed DBRA width/height counts from D5 and enters the generic four-plane graphic renderer.
+	; Pushes the packed DBRA width/height counts from D5 and enters the generic four-plane graphic renderer.
 	move.l	d5,-(sp)	;2F05
 	bra	adrCd00CE28	;6000016C
 
@@ -21640,7 +21638,7 @@ adrB_00CD14:		; Memory Address ($CD14) and binary offset [$C990]
 	dc.b	$08	;08
 
 Draw_ChampionLargeAvatar:		; Memory Address ($CD1C) and binary offset [$C998]
-	; ReSource: Selects and draws one 32×30 large champion avatar.
+	; Selects and draws one 32×30 large champion avatar.
 	add.l	screen_ptr.l,a0	;D1F900008D36
 	add.w	$000A(a5),a0	;D0ED000A
 	lea	GFX_Avatars_Large.l,a1	;43F900041D30
@@ -21657,7 +21655,7 @@ Draw_ChampionLargeAvatar:		; Memory Address ($CD1C) and binary offset [$C998]
 	bra	adrCd00CE28	;600000E0
 
 Get_ChampionShieldScreenPosition:		; Memory Address ($CD4A) and binary offset [$C9C6]
-	; ReSource: Calculates the screen destination for a champion shield/avatar slot.
+	; Calculates the screen destination for a champion shield/avatar slot.
 	move.w	d7,d5	;3A07
 	and.w	#$0003,d5	;02450003
 	move.w	d5,d0	;3005
@@ -21697,7 +21695,7 @@ Draw_Select_Avatars:
 	bsr.s	Get_ChampionShieldScreenPosition	;61AC
 	moveq	#$04,d3	;7604
 Draw_ShieldAvatar:		; Memory Address ($CDA0) and binary offset [$CA1C]
-	; ReSource: Composes a champion shield avatar from its top, avatar, class-mask, and bottom planar components.
+	; Composes a champion shield avatar from its top, avatar, class-mask, and bottom planar components.
 	move.l	#$00020103,d0	;203C00020103	;Long Addr replaced with Symbol
 	tst.w	d3	;4A43
 	beq.s	adrCd00CDBC	;6712
@@ -21799,7 +21797,7 @@ adrCd00CE86:		; Memory Address ($CE86) and binary offset [$CB02]
 	rts	;4E75
 
 ConvertByteToDecimal_HighNibbleAdjustments:		; Memory Address ($CEBC) and binary offset [$CB38]
-	; ReSource: Adjustment table used while converting a binary byte into printable decimal digits.
+	; Adjustment table used while converting a binary byte into printable decimal digits.
 	dc.b	$00	;00
 	dc.b	$16	;16
 	dc.b	$32	;32
@@ -21810,7 +21808,7 @@ ConvertByteToDecimal_HighNibbleAdjustments:		; Memory Address ($CEBC) and binary
 	dc.b	$00	;00
 
 Convert_ByteToDecimalText:		; Memory Address ($CEC4) and binary offset [$CB40]
-	; ReSource: Converts the byte in D0 into two ASCII decimal digits returned in D1 for insertion into formatted text.
+	; Converts the byte in D0 into two ASCII decimal digits returned in D1 for insertion into formatted text.
 	move.b	d0,d1	;1200
 	lsr.b	#$04,d1	;E809
 	and.w	#$000F,d1	;0241000F
@@ -21829,14 +21827,14 @@ Convert_ByteToDecimalText:		; Memory Address ($CEC4) and binary offset [$CB40]
 	swap	d1	;4841
 	move.w	(sp)+,d0	;301F
 Convert_PackedBCDToASCII:		; Memory Address ($CEEA) and binary offset [$CB66]
-	; ReSource: Converts both nibbles of the packed value into ASCII characters.
+	; Converts both nibbles of the packed value into ASCII characters.
 	move.b	d0,d1	;1200
 	ror.b	#$04,d1	;E819
 	bsr.s	Convert_NibbleToASCII	;6104
 	rol.w	#$08,d1	;E159
 	move.b	d0,d1	;1200
 Convert_NibbleToASCII:		; Memory Address ($CEF4) and binary offset [$CB70]
-	; ReSource: Converts a hexadecimal nibble to its ASCII character representation.
+	; Converts a hexadecimal nibble to its ASCII character representation.
 	and.b	#$0F,d1	;0201000F
 	cmpi.b	#$0A,d1	;0C01000A
 	bcs.s	adrCd00CF02	;6504
@@ -23993,7 +23991,7 @@ Notice_SelectChampion:
 	dc.b	$FF	;FF
 	dc.b	$00	;00
 Object_Definition_Table:		; Memory Address ($E4C2) and binary offset [$E13E]
-	; ReSource: Complete $6E × 4 object-definition table: pocket graphic, pocket colour, first name word and second name word.
+	; Complete $6E × 4 object-definition table: pocket graphic, pocket colour, first name word and second name word.
 	dc.b	$00	;00
 	dc.b	$00	;00
 	dc.w	$0001	;0001
@@ -24659,7 +24657,7 @@ BeginGameScroll:		; Memory Address ($E9A8) and binary offset [$E624]
 	dc.b	'THY QUEST'	;544859205155455354
 	dc.b	$FF	;FF
 ChampionStatsScroll_FoodTextTemplate:		; Memory Address ($E9E8) and binary offset [$E664]
-	; ReSource: Print_fflim_text stream for FOOD. Uses ink $D for the heading and ink $4 for raw GameFont glyphs $02/$03 surrounding six bar cells.
+	; Print_fflim_text stream for FOOD. Uses ink $D for the heading and ink $4 for raw GameFont glyphs $02/$03 surrounding six bar cells.
 	dc.b	$FC	;FC
 	dc.b	' '	;20
 	dc.b	$08	;08
@@ -24838,7 +24836,7 @@ adrEA00EAFA:		; Memory Address ($EAFA) and binary offset [$E776]
 	dc.w	$003A	;003A
 	dc.w	$0057	;0057
 Character_Stats_DataTable:		; Memory Address ($EB2A) and binary offset [$E7A6]
-	; ReSource: Sixteen 32-byte champion-stat records.
+	; Sixteen 32-byte champion-stat records.
 	dc.b	$01	;01
 	dc.b	$23	;23
 	dc.b	$11	;11
@@ -25365,7 +25363,7 @@ adrB_00EECE:		; Memory Address ($EECE) and binary offset [$EB4A]
 	dc.b	$00	;00
 	dc.b	$00	;00
 Player1_PendingAction:		; Memory Address ($F256) and binary offset [$EED2]
-	; ReSource: Pending action byte for player 1; keyboard and external overlays can write here before the player loop consumes it.
+	; Pending action byte for player 1; keyboard and external overlays can write here before the player loop consumes it.
 	dc.b	$00	;00
 	dc.b	$00	;00
 	dc.b	$00	;00
@@ -25435,7 +25433,7 @@ adrW_00EF18:		; Memory Address ($EF18) and binary offset [$EB94]
 	dc.w	$00FF	;00FF
 	dc.w	$0000	;0000
 Player2_PendingAction:		; Memory Address ($F2B8) and binary offset [$EF34]
-	; ReSource: Pending action byte for player 2; keyboard and external overlays can write here before the player loop consumes it.
+	; Pending action byte for player 2; keyboard and external overlays can write here before the player loop consumes it.
 	dc.b	$00	;00
 	dc.b	$00	;00
 	dc.b	$00	;00
@@ -40960,7 +40958,7 @@ adrEA0167CC:		; Memory Address ($167CC) and binary offset [$16448]
 	dc.w	$0000	;0000
 	dc.w	$0000	;0000
 BitReverse_LookupBuffer:		; Memory Address ($1684C) and binary offset [$164C8]
-	; ReSource: Working lookup buffer containing bit-reversed byte values used by the floor and ceiling renderer.
+	; Working lookup buffer containing bit-reversed byte values used by the floor and ceiling renderer.
 	dc.w	$0000	;0000
 	dc.w	$0000	;0000
 	dc.w	$0000	;0000
@@ -41348,7 +41346,7 @@ BigMonsterList:
 	dc.w	$0000	;0000
 	dc.w	$0000	;0000
 Comms_StateRecords:		; Memory Address ($16B4C) and binary offset [$167C8]
-	; ReSource: Two sixteen-byte communication state records, one for each player.
+	; Two sixteen-byte communication state records, one for each player.
 	dc.w	$0000	;0000
 	dc.w	$0000	;0000
 	dc.w	$0000	;0000
@@ -41366,7 +41364,7 @@ Comms_StateRecords:		; Memory Address ($16B4C) and binary offset [$167C8]
 	dc.w	$0000	;0000
 	dc.w	$0000	;0000
 PhysicalAttack_WorkingValues:		; Memory Address ($16B6C) and binary offset [$167E8]
-	; ReSource: Temporary physical-attack result, attacker, defender, weapon and armour values.
+	; Temporary physical-attack result, attacker, defender, weapon and armour values.
 	dc.w	$0000	;0000
 	dc.w	$0000	;0000
 	dc.w	$0000	;0000
@@ -41377,7 +41375,7 @@ PhysicalAttack_WorkingValues:		; Memory Address ($16B6C) and binary offset [$167
 	dc.w	$0000	;0000
 	dc.w	$FFFF	;FFFF
 UnpackedMonsters:
-	; ReSource: Live monster workspace at $16B7E, preceded by a two-byte count.
+	; Live monster workspace at $16B7E, preceded by a two-byte count.
 	dc.w	$0000	;0000
 	dc.w	$0000	;0000
 	dc.w	$0000	;0000
@@ -42412,10 +42410,10 @@ adrEA01737E:		; Memory Address ($1737E) and binary offset [$16FFA]
 	dc.w	$0000	;0000
 	dc.w	$0000	;0000
 MonsterTeamGroupCount:		; Memory Address ($1738E) and binary offset [$1700A]
-	; ReSource: Count of populated team groups in MonsterTeamIndexTable.
+	; Count of populated team groups in MonsterTeamIndexTable.
 	dc.w	$FFFF	;FFFF
 MonsterTeamIndexTable:		; Memory Address ($17390) and binary offset [$1700C]
-	; ReSource: Twenty-five four-byte team groups; $FF marks an empty member slot.
+	; Twenty-five four-byte team groups; $FF marks an empty member slot.
 	dc.w	$0000	;0000
 	dc.w	$0000	;0000
 	dc.w	$0000	;0000
@@ -45135,13 +45133,13 @@ Character_RenderLayout_Standard:		; Memory Address ($18804) and binary offset [$
 	dc.w	$0420	;0420
 	dc.w	$0470	;0470
 Character_Distant4_Positions_Standard:		; Memory Address ($18934) and binary offset [$185B0]
-	; ReSource: Four signed XY pairs for the corresponding distant graphics slot.
+	; Four signed XY pairs for the corresponding distant graphics slot.
 	dc.w	$0001	;0001
 	dc.w	$0501	;0501
 	dc.w	$0001	;0001
 	dc.w	$F801	;F801
 Character_Distant5_Positions_Standard:		; Memory Address ($1893C) and binary offset [$185B8]
-	; ReSource: Four signed XY pairs for the corresponding distant graphics slot.
+	; Four signed XY pairs for the corresponding distant graphics slot.
 	dc.w	$0000	;0000
 	dc.w	$0300	;0300
 	dc.w	$0000	;0000
@@ -45300,19 +45298,19 @@ Character_RenderLayout_Alternate:		; Memory Address ($18944) and binary offset [
 	dc.w	$03B8	;03B8
 	dc.w	$0400	;0400
 Character_Distant4_Positions_Alternate:		; Memory Address ($18A74) and binary offset [$186F0]
-	; ReSource: Four signed XY pairs for the corresponding distant graphics slot.
+	; Four signed XY pairs for the corresponding distant graphics slot.
 	dc.w	$0002	;0002
 	dc.w	$0402	;0402
 	dc.w	$0002	;0002
 	dc.w	$F802	;F802
 Character_Distant5_Positions_Alternate:		; Memory Address ($18A7C) and binary offset [$186F8]
-	; ReSource: Four signed XY pairs for the corresponding distant graphics slot.
+	; Four signed XY pairs for the corresponding distant graphics slot.
 	dc.w	$0001	;0001
 	dc.w	$0201	;0201
 	dc.w	$0001	;0001
 	dc.w	$F601	;F601
 Monster_ViewCell_SubPosition_XPositions:		; Memory Address ($18A84) and binary offset [$18700]
-	; ReSource: Provides the horizontal screen position for every view-cell and sub-position combination.
+	; Provides the horizontal screen position for every view-cell and sub-position combination.
 	dc.w	$01FF	;01FF
 	dc.w	$FFFF	;FFFF
 	dc.w	$FC20	;FC20
@@ -45554,7 +45552,7 @@ GFX_Main_Switches_Offsets:		; Memory Address ($18C2E) and binary offset [$188AA]
 	dc.w	$0208	;0208
 	dc.w	$0250	;0250
 GFX_FloorPit_TriggerPad_Offsets:		; Memory Address ($18C4E) and binary offset [$188CA]
-	; ReSource: Shared picture offsets for floor-pit and trigger-pad artwork.
+	; Shared picture offsets for floor-pit and trigger-pad artwork.
 	dc.w	$0000	;0000
 	dc.w	$0008	;0008
 	dc.w	$0018	;0018
@@ -45568,7 +45566,7 @@ GFX_FloorPit_TriggerPad_Offsets:		; Memory Address ($18C4E) and binary offset [$
 	dc.w	$0128	;0128
 	dc.w	$01E8	;01E8
 GFX_Ceiling_Hole_Offsets:		; Memory Address ($18C66) and binary offset [$188E2]
-	; ReSource: Picture offsets for ceiling-hole artwork.
+	; Picture offsets for ceiling-hole artwork.
 	dc.w	$0000	;0000
 	dc.w	$0008	;0008
 	dc.w	$0018	;0018
@@ -45582,7 +45580,7 @@ GFX_Ceiling_Hole_Offsets:		; Memory Address ($18C66) and binary offset [$188E2]
 	dc.w	$00B8	;00B8
 	dc.w	$0138	;0138
 GameFont:		; Memory Address ($18C7E) and binary offset [$188FA]
-	; ReSource: Packed four-plane glyph sheet used by the text renderer, including readable glyphs and rune/symbol positions.
+	; Packed four-plane glyph sheet used by the text renderer, including readable glyphs and rune/symbol positions.
 	dc.w	$001F	;001F
 	dc.w	$311C	;311C
 	dc.w	$0000	;0000
@@ -76961,7 +76959,7 @@ GFX_Switches:		; Memory Address ($284E8) and binary offset [$28164]
 	dc.w	$FFFE	;FFFE
 	dc.w	$FFFE	;FFFE
 GFX_Slots:		; Memory Address ($287A0) and binary offset [$2841C]
-	; ReSource: Raw socket pixels
+	; Raw socket pixels
 	dc.w	$FFFF	;FFFF
 	dc.w	$FFFF	;FFFF
 	dc.w	$FFFF	;FFFF
@@ -95814,7 +95812,7 @@ GFX_Door_PortCullis:		; Memory Address ($30650) and binary offset [$302CC]
 	dc.w	$FFFF	;FFFF
 	dc.w	$FFFF	;FFFF
 GFX_Floor_Pit:		; Memory Address ($31AD8) and binary offset [$31754]
-	; ReSource: Floor-pit artwork used for type-6 floor holes.
+	; Floor-pit artwork used for type-6 floor holes.
 	dc.w	$007F	;007F
 	dc.w	$007F	;007F
 	dc.w	$007F	;007F
@@ -96108,7 +96106,7 @@ GFX_Floor_Pit:		; Memory Address ($31AD8) and binary offset [$31754]
 	dc.w	$000F	;000F
 	dc.w	$000F	;000F
 GFX_Trigger_Pad:		; Memory Address ($31D20) and binary offset [$3199C]
-	; ReSource: Recolourable trigger-pad template, also reused by Firepath.
+	; Recolourable trigger-pad template, also reused by Firepath.
 	dc.w	$B7FF	;B7FF
 	dc.w	$07FF	;07FF
 	dc.w	$47FF	;47FF
@@ -96402,7 +96400,7 @@ GFX_Trigger_Pad:		; Memory Address ($31D20) and binary offset [$3199C]
 	dc.w	$9FE7	;9FE7
 	dc.w	$74E7	;74E7
 GFX_Ceiling_Hole:		; Memory Address ($31F68) and binary offset [$31BE4]
-	; ReSource: Ceiling-hole artwork; may coexist with a floor pit or trigger pad.
+	; Ceiling-hole artwork; may coexist with a floor pit or trigger pad.
 	dc.w	$007F	;007F
 	dc.w	$007F	;007F
 	dc.w	$007F	;007F
@@ -96624,7 +96622,7 @@ GFX_Ceiling_Hole:		; Memory Address ($31F68) and binary offset [$31BE4]
 	dc.w	$FFFF	;FFFF
 	dc.w	$FFFF	;FFFF
 GFX_FloorCeiling:		; Memory Address ($32120) and binary offset [$31D9C]
-	; ReSource: 128x76 floor-and-ceiling source copied into the dungeon viewport by the parity-dependent renderer.
+	; 128x76 floor-and-ceiling source copied into the dungeon viewport by the parity-dependent renderer.
 	dc.w	$6EA5	;6EA5
 	dc.w	$DFFF	;DFFF
 	dc.w	$0000	;0000
@@ -98450,7 +98448,7 @@ GFX_FloorCeiling:		; Memory Address ($32120) and binary offset [$31D9C]
 	dc.w	$0140	;0140
 	dc.w	$0000	;0000
 GFX_ObjectsOnFloor:		; Memory Address ($32F60) and binary offset [$32BDC]
-	; ReSource: Packed planar floor-object graphics selected by the object shape, colour, and projection tables.
+	; Packed planar floor-object graphics selected by the object shape, colour, and projection tables.
 	dc.w	$FFFF	;FFFF
 	dc.w	$FFC7	;FFC7
 	dc.w	$FFC7	;FFC7
@@ -101536,7 +101534,7 @@ GFX_ObjectsOnFloor:		; Memory Address ($32F60) and binary offset [$32BDC]
 	dc.w	$E1FF	;E1FF
 	dc.w	$E1FF	;E1FF
 GFX_FireBall:		; Memory Address ($34778) and binary offset [$343F4]
-	; ReSource: Packed planar fireball pictures used for airborne spell codes $80-$85.
+	; Packed planar fireball pictures used for airborne spell codes $80-$85.
 	dc.w	$FFFF	;FFFF
 	dc.w	$FFFE	;FFFE
 	dc.w	$FFFE	;FFFE
@@ -101886,7 +101884,7 @@ GFX_FireBall:		; Memory Address ($34778) and binary offset [$343F4]
 	dc.w	$FFFF	;FFFF
 	dc.w	$FFFF	;FFFF
 GFX_AirbourneSpells:		; Memory Address ($34A30) and binary offset [$346AC]
-	; ReSource: Packed planar airborne-spell pictures; the renderer uses separate stationary and flying layout tables.
+	; Packed planar airborne-spell pictures; the renderer uses separate stationary and flying layout tables.
 	dc.w	$FFFD	;FFFD
 	dc.w	$FFF9	;FFF9
 	dc.w	$FFFB	;FFFB
@@ -135421,7 +135419,7 @@ GFX_Fairy:		; Memory Address ($44ED0) and binary offset [$44B4C]
 	dc.w	$FFFB	;FFFB
 	dc.w	$FFFB	;FFFB
 GFX_Summon:		; Memory Address ($45018) and binary offset [$44C94]
-	; ReSource: Packed Summon body and arm pictures shared by the distance, facing, and arm-variant tables.
+	; Packed Summon body and arm pictures shared by the distance, facing, and arm-variant tables.
 	dc.w	$FFFF	;FFFF
 	dc.w	$FE3F	;FE3F
 	dc.w	$FE3F	;FE3F
@@ -138331,7 +138329,7 @@ GFX_Summon:		; Memory Address ($45018) and binary offset [$44C94]
 	dc.w	$F3FF	;F3FF
 	dc.w	$F3FF	;F3FF
 GFX_Behemoth:		; Memory Address ($466D0) and binary offset [$4634C]
-	; ReSource: Packed Behemoth body and claw pictures selected by the Behemoth and Entropy render layouts.
+	; Packed Behemoth body and claw pictures selected by the Behemoth and Entropy render layouts.
 	dc.w	$FFFF	;FFFF
 	dc.w	$FFFF	;FFFF
 	dc.w	$FFFF	;FFFF
@@ -140881,7 +140879,7 @@ GFX_Behemoth:		; Memory Address ($466D0) and binary offset [$4634C]
 	dc.w	$F8FF	;F8FF
 	dc.w	$F8FF	;F8FF
 GFX_Crab:		; Memory Address ($47AB8) and binary offset [$47734]
-	; ReSource: Packed Crab body and face pictures selected by the Crab render layouts.
+	; Packed Crab body and face pictures selected by the Crab render layouts.
 	dc.w	$FFFF	;FFFF
 	dc.w	$FFE7	;FFE7
 	dc.w	$FFE7	;FFE7
@@ -142770,7 +142768,7 @@ _GFX_Beholder_9:
 	dc.w	$13FF	;13FF
 	dc.w	$3DFF	;3DFF
 GFX_Dragon:		; Memory Address ($48960) and binary offset [$485DC]
-	; ReSource: Packed Dragon body and claw pictures selected by the Dragon render layouts.
+	; Packed Dragon body and claw pictures selected by the Dragon render layouts.
 	dc.w	$FFFF	;FFFF
 	dc.w	$FFFF	;FFFF
 	dc.w	$FFFF	;FFFF
@@ -148045,7 +148043,7 @@ GFX_Dragon:		; Memory Address ($48960) and binary offset [$485DC]
 	dc.w	$C1FF	;C1FF
 
 GFX_Entropy:		; Memory Address ($4B290) and binary offset [$4AF0C]
-	; ReSource: Packed Entropy body and limb pictures selected by the shared Behemoth/Entropy renderer.
+	; Packed Entropy body and limb pictures selected by the shared Behemoth/Entropy renderer.
 	dc.w	$FFFF	;FFFF
 	dc.w	$FEFD	;FEFD
 	dc.w	$FEFD	;FEFD
@@ -150664,7 +150662,7 @@ GFX_Entropy:		; Memory Address ($4B290) and binary offset [$4AF0C]
 	dc.w	$0777	;0777
 	dc.w	$0706	;0706
 GFX_Pockets:		; Memory Address ($4C702) and binary offset [$4C37E]
-	; ReSource: Packed pocket/object picture bank addressed in 20-picture banks by the object graphic selector.
+	; Packed pocket/object picture bank addressed in 20-picture banks by the object graphic selector.
 	dc.w	$0000	;0000
 	dc.w	$0000	;0000
 	dc.w	$0000	;0000
@@ -166682,7 +166680,7 @@ GFX_Pockets:		; Memory Address ($4C702) and binary offset [$4C37E]
 	dc.w	$002A	;002A
 	dc.w	$0000	;0000
 SFX_AudioSample_1:		; Memory Address ($54422) and binary offset [$5409E]
-	; ReSource: First packed 8SVX sound sample. Contains the switch/click sound data and the second sound selected by ID 1.
+	; First packed 8SVX sound sample. Contains the switch/click sound data and the second sound selected by ID 1.
 	dc.b	'FORM'	;464F524D
 	dc.b	$00	;00
 	dc.b	$00	;00
@@ -166803,7 +166801,7 @@ SFX_AudioSample_1:		; Memory Address ($54422) and binary offset [$5409E]
 	dc.b	$FD	;FD
 	dc.b	$FF	;FF
 SFX_AudioSample_2:		; Memory Address ($544A6) and binary offset [$54122]
-	; ReSource: 8SVX fighting or attack-clink sound data selected by sound ID 2.
+	; 8SVX fighting or attack-clink sound data selected by sound ID 2.
 	dc.b	'FORM'	;464F524D
 	dc.b	$00	;00
 	dc.b	$00	;00
@@ -168266,7 +168264,7 @@ SFX_AudioSample_2:		; Memory Address ($544A6) and binary offset [$54122]
 	dc.b	$0A	;0A
 	dc.b	$09	;09
 SFX_AudioSample_3:		; Memory Address ($54A68) and binary offset [$546E4]
-	; ReSource: 8SVX character-death sound data selected by sound ID 3.
+	; 8SVX character-death sound data selected by sound ID 3.
 	dc.b	'FORM'	;464F524D
 	dc.b	$00	;00
 	dc.b	$00	;00
@@ -174535,7 +174533,7 @@ SFX_AudioSample_3:		; Memory Address ($54A68) and binary offset [$546E4]
 	dc.b	$DF	;DF
 	dc.b	$E9	;E9
 SFX_AudioSample_4:		; Memory Address ($562F0) and binary offset [$55F6C]
-	; ReSource: 8SVX spell or fireball sound data selected by sound ID 4.
+	; 8SVX spell or fireball sound data selected by sound ID 4.
 	dc.b	'FORM'	;464F524D
 	dc.b	$00	;00
 	dc.b	$00	;00
@@ -180594,7 +180592,7 @@ SFX_AudioSample_4:		; Memory Address ($562F0) and binary offset [$55F6C]
 	dc.b	$25	;25
 	dc.b	$37	;37
 SFX_AudioSample_5:		; Memory Address ($57AA6) and binary offset [$57722]
-	; ReSource: 8SVX alternative spell sound data selected by sound ID 5.
+	; 8SVX alternative spell sound data selected by sound ID 5.
 	dc.b	'FORM'	;464F524D
 	dc.b	$00	;00
 	dc.b	$00	;00
@@ -187047,22 +187045,22 @@ ReserveSpace_2:		; Memory Address ($58828) and binary offset [$584A4]
 	dc.b	$00	;00
 	dc.b	$00	;00
 GameEnd:
-; ReSource: temporary data_append aliases
-MonsterTotalsCounts_serp:		equ	MonsterTotalsCounts_mod0+$2	; ReSource: temporary data_append alias
-MonsterTotalsCounts_moon:		equ	MonsterTotalsCounts_mod0+$4	; ReSource: temporary data_append alias
-MonsterTotalsCounts_drag:		equ	MonsterTotalsCounts_mod0+$6	; ReSource: temporary data_append alias
-MonsterTotalsCounts_chaos:		equ	MonsterTotalsCounts_mod0+$8	; ReSource: temporary data_append alias
-MonsterTotalsCounts_zendik:		equ	MonsterTotalsCounts_mod0+$A	; ReSource: temporary data_append alias
-MonsteBlock_serp:		equ	MonsterBlock_mod0+$300	; ReSource: temporary data_append alias
-MonsterBlock_moon:		equ	MonsterBlock_mod0+$600	; ReSource: temporary data_append alias
-MonsterBlock_drag:		equ	MonsterBlock_mod0+$900	; ReSource: temporary data_append alias
-MonsterBlock_chaos:		equ	MonsterBlock_mod0+$C00	; ReSource: temporary data_append alias
-MonsterBlock_zendik:		equ	MonsterBlock_mod0+$F00	; ReSource: temporary data_append alias
-GFX_Beholder_UpperEyes:		equ	GFX_Beholder_Body+$2A0	; ReSource: temporary data_append alias
-GFX_Beholder_CentralEye_Near:		equ	GFX_Beholder_Body+$340	; ReSource: temporary data_append alias
-GFX_Beholder_CentralEye_Far:		equ	GFX_Beholder_Body+$6A0	; ReSource: temporary data_append alias
-Dungeon_ViewCell_OcclusionMasks:		equ	Dungeon_ViewCell_RelativeCoordinates+$98	; ReSource: temporary data_append alias
-Dungeon_ViewCell_VisibleFaceMasks:		equ	Dungeon_ViewCell_RelativeCoordinates+$E4	; ReSource: temporary data_append alias
-; ReSource: end temporary data_append aliases
+; temporary data_append aliases
+MonsterTotalsCounts_serp:		equ	MonsterTotalsCounts_mod0+$2	; temporary data_append alias
+MonsterTotalsCounts_moon:		equ	MonsterTotalsCounts_mod0+$4	; temporary data_append alias
+MonsterTotalsCounts_drag:		equ	MonsterTotalsCounts_mod0+$6	; temporary data_append alias
+MonsterTotalsCounts_chaos:		equ	MonsterTotalsCounts_mod0+$8	; temporary data_append alias
+MonsterTotalsCounts_zendik:		equ	MonsterTotalsCounts_mod0+$A	; temporary data_append alias
+MonsteBlock_serp:		equ	MonsterBlock_mod0+$300	; temporary data_append alias
+MonsterBlock_moon:		equ	MonsterBlock_mod0+$600	; temporary data_append alias
+MonsterBlock_drag:		equ	MonsterBlock_mod0+$900	; temporary data_append alias
+MonsterBlock_chaos:		equ	MonsterBlock_mod0+$C00	; temporary data_append alias
+MonsterBlock_zendik:		equ	MonsterBlock_mod0+$F00	; temporary data_append alias
+GFX_Beholder_UpperEyes:		equ	GFX_Beholder_Body+$2A0	; temporary data_append alias
+GFX_Beholder_CentralEye_Near:		equ	GFX_Beholder_Body+$340	; temporary data_append alias
+GFX_Beholder_CentralEye_Far:		equ	GFX_Beholder_Body+$6A0	; temporary data_append alias
+Dungeon_ViewCell_OcclusionMasks:		equ	Dungeon_ViewCell_RelativeCoordinates+$98	; temporary data_append alias
+Dungeon_ViewCell_VisibleFaceMasks:		equ	Dungeon_ViewCell_RelativeCoordinates+$E4	; temporary data_append alias
+; end temporary data_append aliases
 
 	end
