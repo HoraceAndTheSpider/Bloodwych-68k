@@ -23,7 +23,8 @@ Never discard, overwrite, reformat, or stage unrelated user work. In particular,
 
 ## Canonical repository layout
 
-- `segments.xlsx` — master version-specific addresses, names, extraction definitions, source comments, resource layouts, and scoped equates.
+- `segments.xlsx` — protected master version-specific labels, addresses, extraction definitions, source comments, and resource layouts. It must not contain the maintenance EQUATES or COMMENTS tabs.
+- `cleanup.xlsx` — directly maintained source metadata: the EQUATES and COMMENTS worksheets used by relabelling and final source formatting.
 - `main.py` — top-level CLI and Pygame launcher.
 - `asm/` — reverse-engineered source. The usual sequence is `BINARY.asm`, `BINARY_relabel.asm`, then `BINARY_relabel_data.asm`.
 - `binaries/` — original game binaries.
@@ -78,7 +79,9 @@ Do not patch a modified resource into an incompatible binary profile. Larger res
 
 ## Spreadsheet collaboration
 
-The user generally prefers to enter spreadsheet changes manually. When proposing additions, provide a complete, copy-ready table using the exact columns of the relevant sheet, including blank cells. Do not provide a shortened selection of columns that makes duplicate anchors or actions ambiguous.
+`segments.xlsx` is a NO EDIT file for the agent. Its version sheets remain under the existing review process and contain labels/resources only. The agent is authorised to edit `cleanup.xlsx` directly; keep its `EQUATES` and `COMMENTS` headers and column order stable, preserve useful workbook readability, and make changes in a repeatable, auditable way. The command-line tools automatically prefer `cleanup.xlsx` beside the selected segments workbook, with `--cleanup` available for an explicit path.
+
+When proposing additions to a protected profile sheet, provide a complete, copy-ready table using the exact columns of the relevant sheet, including blank cells. Do not provide a shortened selection of columns that makes duplicate anchors or actions ambiguous. For cleanup metadata, maintain the workbook directly unless the user specifically requests a TSV handoff.
 
 For label/relabel proposals on a profile sheet, include every column from column A (`label`) through column K (`source_comment`), retaining any blank cells between them. For `BLOODWYCH439`, the required chat-table columns are:
 
@@ -103,7 +106,7 @@ If an extracted asset or table is discovered to have a misleading name, explicit
 
 ### Deep-dive investigation handoff
 
-After any deep-dive reverse-engineering or data-flow investigation, provide the user with copy-ready spreadsheet proposals in the exact format of the relevant sheet. The output must be literal tab-separated values (TSV) in a plain code block: one header row, one data row per line, real tab characters between cells, blank cells preserved as empty fields, and no Markdown table pipes or explanatory text inside the TSV block. For `BLOODWYCH439` profile-sheet findings, include every column from `label` through `source_comment` (columns A-K), including blank cells, and include verified labels, relevant scoped-EQU proposals, evidence locations, and cautions about unresolved interpretations. For `EQUATES`, use every maintained column from `profile` through `notes` in its exact order. Do this proactively in the same response; the user should not need to ask for the spreadsheet table separately. Do not edit `segments.xlsx` unless the user explicitly authorises spreadsheet editing.
+After any deep-dive reverse-engineering or data-flow investigation, update evidence-backed EQUATES/COMMENTS rows directly in `cleanup.xlsx` and give the user a concise summary. Use literal TSV only when handing off proposed changes for a protected profile sheet or when the user asks for a copy-ready table. Do not edit `segments.xlsx` unless the user explicitly authorises spreadsheet editing.
 
 Before proposing any relabel, trace the original source label and inspect the existing profile-sheet mapping. Verify every symbol by exact-text search in the original ASM before putting it in a table; never infer a label prefix or construct a symbol from its address and nearby routine names. A symbol that is already a relabel of an original label must be reported as an existing mapping/reference, not proposed again as a new relabel. For example, if `adrJT0057CE` already maps to `InterfaceButtons`, do not emit a new row with `InterfaceButtons` as though it were the original label. Preserve the original-label-to-relabel chain in all investigation tables and explanations; if the chain is uncertain, mark it unresolved rather than silently substituting a relabel as the original anchor. If an earlier table contains a symbol that fails exact-text verification, call out and correct that error before presenting the next handoff. In `EQUATES`, an EQU-only row must leave `scope_start`, `scope_end`, `source_match`, and `source_replace` all blank. Never provide `source_match` without a complete same-mnemonic `source_replace`; a verified scoped rule must populate all four fields and use valid start/end labels.
 
@@ -139,7 +142,7 @@ profile | equ_name | equ_value | scope_start | scope_end | source_match | expect
 
 Use stable routine labels plus an exact source/instruction match; never use mutable ASM line numbers. `expected_matches` defaults to `1`; set it above `1` only when every matching instruction in the scope has been independently confirmed to use the same EQU. A literal such as `#$40` must not be replaced globally because it may mean Zendik in one routine and an unrelated value elsewhere.
 
-Only `verified` rows should affect generated source. `proposed` rows document candidates; `disabled` rows are retained but inactive. Repeating an `equ_name` for several verified uses is acceptable when the value is consistent and each source occurrence is independently scoped.
+Only `verified` rows should affect generated source. In this project, `proposed` is not a general holding state for a reverse-engineered finding: use it only when a specific unresolved point requires a live-data, emulator, or controlled binary check from the user. The row's `notes` must state the exact check required and what result would promote it to `verified`. If no such check is required, enter the evidence-backed row as `verified` so that the EQU and its scoped replacement are actually applied. `disabled` rows are retained but inactive. Repeating an `equ_name` for several verified uses is acceptable when the value is consistent and each source occurrence is independently scoped.
 
 Use an EQU for meaningful IDs, thresholds, table lengths, hard-coded render adjustments, flags, and special-case values. Temporary working variables or runtime state may deserve labels but normally do not deserve extracted data files.
 

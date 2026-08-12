@@ -4,9 +4,7 @@ from __future__ import annotations
 
 from pathlib import Path
 
-import pandas as pd
-
-from .resource_layout import resource_layouts
+from .resource_layout import resource_layouts, resource_name
 from .tool_common import (
     ToolError,
     binary_path,
@@ -38,10 +36,8 @@ def extract_segments(
     with source.open("rb") as binary:
         source_size = source.stat().st_size
         for _, row in frame.iterrows():
-            if pd.isna(row["name"]):
-                continue
-            name = str(row["name"]).strip()
-            if not name or name.casefold() == "nan":
+            name = resource_name(row)
+            if not name:
                 continue
             if name_filter and name.casefold() != name_filter.casefold():
                 continue

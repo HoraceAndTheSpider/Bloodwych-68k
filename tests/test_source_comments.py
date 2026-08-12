@@ -77,8 +77,8 @@ class SourceCommentTests(unittest.TestCase):
             once,
             [
                 "Monster_Table:\t\t; Memory Address ($1000) and binary offset [$0C7C]",
-                "\t; ReSource: Maps view slots.",
-                "\t; ReSource: $FF means hidden.",
+                "\t; Maps view slots.",
+                "\t; $FF means hidden.",
                 "\t; handwritten note",
                 "\tdc.b\t$00",
             ],
@@ -151,7 +151,7 @@ class SourceCommentTests(unittest.TestCase):
             apply_source_comments(["GeneratedPart:", "\tdc.b\t$00"], frame),
             [
                 "GeneratedPart:",
-                "\t; ReSource: Packed render layout.",
+                "\t; Packed render layout.",
                 "\tdc.b\t$00",
             ],
         )
@@ -176,7 +176,7 @@ class SourceCommentTests(unittest.TestCase):
             apply_source_comments(["GeneratedPart:", "\tdc.b\t$00"], frame),
             [
                 "GeneratedPart:",
-                "\t; ReSource: Packed render layout.",
+                "\t; Packed render layout.",
                 "\tdc.b\t$00",
             ],
         )
@@ -202,7 +202,7 @@ class SourceCommentTests(unittest.TestCase):
             apply_source_comments(["GeneratedPart:", "\tdc.b\t$00"], frame),
             [
                 "GeneratedPart:",
-                "\t; ReSource: Generated resource description.",
+                "\t; Generated resource description.",
                 "\tdc.b\t$00",
             ],
         )

@@ -187,6 +187,33 @@ class SourceRuleTests(unittest.TestCase):
         self.assertEqual(equates, ())
         self.assertEqual(rules, ())
 
+    def test_sibling_cleanup_workbook_is_preferred(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary_directory:
+            workbook = Path(temporary_directory) / "segments.xlsx"
+            cleanup = workbook.with_name("cleanup.xlsx")
+            pd.DataFrame({"label": ["A"]}).to_excel(
+                workbook, sheet_name="BLOODWYCH439", index=False
+            )
+            pd.DataFrame(
+                {
+                    "profile": ["BLOODWYCH439"],
+                    "equ_name": ["CleanupOnlyConstant"],
+                    "equ_value": ["$40"],
+                    "scope_start": [""],
+                    "scope_end": [""],
+                    "source_match": [""],
+                    "expected_opcode": [""],
+                    "source_replace": [""],
+                    "expected_matches": [""],
+                    "status": ["verified"],
+                    "source_comment": ["Loaded from cleanup workbook."],
+                    "notes": [""],
+                }
+            ).to_excel(cleanup, sheet_name="EQUATES", index=False)
+            equates, rules = load_source_metadata(workbook, "BLOODWYCH439")
+        self.assertEqual([item.name for item in equates], ["CleanupOnlyConstant"])
+        self.assertEqual(rules, ())
+
     def test_workbook_rows_load_and_validate(self) -> None:
         with tempfile.TemporaryDirectory() as temporary_directory:
             workbook = Path(temporary_directory) / "segments.xlsx"

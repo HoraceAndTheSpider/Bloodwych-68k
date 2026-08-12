@@ -17,6 +17,7 @@ from .resource_layout import (
     cell_text,
     data_action,
     layout_row_indices,
+    resource_name,
     resource_layouts,
 )
 from .resource_aliases import remove_temporary_aliases
@@ -258,7 +259,7 @@ def _part_from_row(
     grouped: bool,
 ) -> ReplacementPart:
     excel_row = _row_number(index)
-    name = cell_text(row, "name")
+    name = resource_name(row)
     source_label = cell_text(row, "label")
     size = parse_int(row.get("size"))
 
@@ -326,7 +327,7 @@ def _rows_match_filters(
     label_filter: str | None,
 ) -> bool:
     if name_filter and not any(
-        cell_text(row, "name").casefold() == name_filter.casefold()
+        resource_name(row).casefold() == name_filter.casefold()
         for _, row in rows
     ):
         return False
@@ -519,8 +520,8 @@ def inspect_source(
     for index, row in frame.iterrows():
         action = data_action(row)
         if action == EXTRACT_ONLY:
-            if debug and cell_text(row, "name"):
-                print(f"Skip {cell_text(row, 'name')} (extract_only)")
+            if debug and resource_name(row):
+                print(f"Skip {resource_name(row)} (extract_only)")
             continue
         if index in grouped_indices and action == DATA_APPEND:
             continue
@@ -535,7 +536,7 @@ def inspect_source(
             if grouped:
                 parts = _layout_parts(layouts_by_start[index], clean_dir, label_col)
             else:
-                name = cell_text(row, "name")
+                name = resource_name(row)
                 label = cell_text(row, label_col)
                 if not name or not label:
                     continue

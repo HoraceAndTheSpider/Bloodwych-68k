@@ -54,7 +54,7 @@ class SourceFormatterTests(unittest.TestCase):
     def test_equ_fields_and_comments_are_aligned(self):
         lines = [
             "  Short:   equ   $01   ",
-            "\t; ReSource: short value.  ",
+            "\t; short value.  ",
             "\tLonger_Equate_Name: equ $1234 ; existing inline comment.   ",
             "NoComment: equ $02",
         ]
@@ -72,14 +72,14 @@ class SourceFormatterTests(unittest.TestCase):
             _display_column(line.split(";", 1)[0]) for line in commented
         }
         self.assertEqual(len(comment_columns), 1)
-        self.assertIn("; ReSource: short value.", result[0])
+        self.assertIn("; short value.", result[0])
         self.assertIn("; existing inline comment.", result[1])
         self.assertFalse(any(line.lstrip().startswith(";") for line in result))
 
     def test_multiline_equ_comment_is_joined_and_formatting_is_idempotent(self):
         lines = [
             "Value: equ $40",
-            "\t; ReSource: First part of the comment",
+            "\t; First part of the comment",
             "\t; continues on its second line.",
         ]
         once = format_asm_lines(lines)
@@ -87,7 +87,7 @@ class SourceFormatterTests(unittest.TestCase):
         self.assertEqual(once, twice)
         self.assertEqual(len(once), 1)
         self.assertIn(
-            "; ReSource: First part of the comment continues on its second line.",
+            "; First part of the comment continues on its second line.",
             once[0],
         )
 
@@ -110,6 +110,37 @@ class SourceFormatterTests(unittest.TestCase):
             path.write_text("\tmove.w\td0,d1\t; test\n", encoding="utf-8")
             self.assertEqual(format_relabel_data(path), path)
             self.assertTrue(path.read_text(encoding="utf-8").endswith("\n"))
+
+    def test_sibling_cleanup_comments_are_used(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            asm = root / "BLOODWYCH439_relabel_data.asm"
+            segments = root / "segments.xlsx"
+            cleanup = root / "cleanup.xlsx"
+            asm.write_text(
+                "Routine_Start:\n"
+                "\tmove.w\td0,d1\t;302D0001\n"
+                "Routine_End:\n",
+                encoding="utf-8",
+            )
+            pd.DataFrame({"label": ["Routine_Start"]}).to_excel(
+                segments, sheet_name="BLOODWYCH439", index=False
+            )
+            pd.DataFrame(
+                [
+                    {
+                        "profile": "BLOODWYCH439",
+                        "scope_start": "Routine_Start",
+                        "scope_end": "Routine_End",
+                        "source_match": "move.w d0,d1",
+                        "source_comment": "Loaded from cleanup.xlsx.",
+                        "expected_matches": 1,
+                    }
+                ]
+            ).to_excel(cleanup, sheet_name="COMMENTS", index=False)
+
+            format_relabel_data(asm, segments, "BLOODWYCH439")
+            self.assertIn(";Loaded from cleanup.xlsx.", asm.read_text())
 
     def test_instruction_comments_replace_hex_only_inside_scope(self):
         frame = pd.DataFrame(

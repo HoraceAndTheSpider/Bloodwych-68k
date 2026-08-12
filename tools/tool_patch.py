@@ -5,9 +5,12 @@ from __future__ import annotations
 import shutil
 from pathlib import Path
 
-import pandas as pd
-
-from .resource_layout import EXTRACT_ONLY, data_action, resource_layouts
+from .resource_layout import (
+    EXTRACT_ONLY,
+    data_action,
+    resource_layouts,
+    resource_name,
+)
 from .tool_common import (
     BINARIES_DIR,
     ToolError,
@@ -43,13 +46,13 @@ def patch_segments(
         binary_size = patched.stat().st_size
         for _, row in frame.iterrows():
             if data_action(row) == EXTRACT_ONLY:
-                if debug and not pd.isna(row.get("name")):
-                    print(f"Skipping '{str(row.get('name')).strip()}': extract_only")
+                if debug:
+                    name = resource_name(row)
+                    if name:
+                        print(f"Skipping '{name}': extract_only")
                 continue
-            if pd.isna(row["name"]):
-                continue
-            name = str(row["name"]).strip()
-            if not name or name.casefold() == "nan":
+            name = resource_name(row)
+            if not name:
                 continue
             if name_filter and name.casefold() != name_filter.casefold():
                 continue

@@ -60,10 +60,14 @@ def _undefined_legacy_labels(lines: list[str]) -> list[str]:
     return sorted(references - definitions)
 
 
-def relabel_segments(master: str, sheet: str | Path) -> Path:
+def relabel_segments(
+    master: str,
+    sheet: str | Path,
+    cleanup: str | Path | None = None,
+) -> Path:
     frame = load_segments(sheet, master)
     require_columns(frame, ("label", "relabel"))
-    equates, source_rules = load_source_metadata(sheet, master)
+    equates, source_rules = load_source_metadata(sheet, master, cleanup)
 
     original = asm_path(master, "source")
     if not original.is_file():

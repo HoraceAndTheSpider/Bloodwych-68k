@@ -11,7 +11,7 @@ from .tool_common import parse_int
 
 
 SOURCE_COMMENT_COLUMN = "source_comment"
-GENERATED_COMMENT = re.compile(r"^\s*;\s*ReSource:\s*", re.IGNORECASE)
+LEGACY_GENERATED_COMMENT = re.compile(r"^\s*;\s*ReSource:\s*", re.IGNORECASE)
 GENERATED_ADDRESS = re.compile(
     r"\s*;\s*Memory Address \(\$[0-9A-F]+\) and binary offset "
     r"\[\$[0-9A-F]+\]\s*$",
@@ -70,8 +70,8 @@ def _target_label(row: pd.Series) -> str:
 def apply_source_comments(lines: list[str], frame: pd.DataFrame) -> list[str]:
     """Replace generated comments after labels, leaving handwritten comments alone.
 
-    Every generated line is prefixed ``ReSource:`` so rerunning Relabel or
-    Inspect is idempotent. Rows whose final label is not present in this source
+    Generated comments are replaced on reruns. Rows whose final label is not
+    present in this source
     variant are ignored; this allows ``data_append`` labels to appear only in
     the generated ``*_data.asm`` file.
     """
@@ -151,11 +151,19 @@ def apply_source_comments(lines: list[str], frame: pd.DataFrame) -> list[str]:
                 continue
             start = matches[0] + 1
             end = start
-            while end < len(result) and GENERATED_COMMENT.match(result[end]):
-                end += 1
+            while end < len(result):
+                candidate = result[end]
+                if LEGACY_GENERATED_COMMENT.match(candidate):
+                    end += 1
+                    continue
+                comment = candidate.lstrip(" \t")
+                if comment.startswith(";") and comment[1:].strip() in comment_lines:
+                    end += 1
+                    continue
+                break
             edits.append((start, end, comment_lines))
 
         for start, end, comment_lines in sorted(edits, reverse=True):
-            generated = [f"\t; ReSource: {line}" for line in comment_lines]
+            generated = [f"\t; {line}" for line in comment_lines]
             result[start:end] = generated
     return result

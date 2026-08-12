@@ -26,6 +26,11 @@ For a grouped replacement:
    contiguous.
 5. Ensure every extracted file exists and exactly matches its declared size.
 
+For compatibility with older/profile rows, a blank `name` is resolved as
+`<type>/<DATA BLOCK FILE>` when both source cells are populated. This mirrors
+the worksheet formula `=IF(D<>"",C&"/"&D,"")`; an explicit `name` always takes
+precedence.
+
 `inspect` concatenates all files in the group and compares every byte against
 the source. It consumes the declared number of `dc.b`, `dc.w`, and `dc.l`
 bytes, crossing any obsolete internal source labels. Only an exact match is

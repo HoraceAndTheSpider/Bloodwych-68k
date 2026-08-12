@@ -15,6 +15,7 @@ BINARIES_DIR = PROJECT_ROOT / "binaries"
 DATA_DIR = PROJECT_ROOT / "data"
 WHDLOAD_DIR = PROJECT_ROOT / "whdload"
 DEFAULT_SEGMENTS_FILE = PROJECT_ROOT / "segments.xlsx"
+DEFAULT_CLEANUP_FILE = PROJECT_ROOT / "cleanup.xlsx"
 
 
 class ToolError(RuntimeError):
@@ -103,6 +104,25 @@ def get_profile(master: str) -> BinaryProfile:
 def resolve_project_path(path: str | Path) -> Path:
     value = Path(path)
     return value if value.is_absolute() else PROJECT_ROOT / value
+
+
+def resolve_cleanup_path(
+    sheet: str | Path,
+    cleanup: str | Path | None = None,
+) -> Path:
+    """Resolve the EQUATES/COMMENTS workbook for a project operation."""
+
+    if cleanup is not None:
+        path = resolve_project_path(cleanup)
+        if not path.is_file():
+            raise ToolError(f"Cleanup workbook not found: {path}")
+        return path
+    sheet_path = resolve_project_path(sheet)
+    sibling = sheet_path.with_name(DEFAULT_CLEANUP_FILE.name)
+    if sibling.is_file():
+        return sibling
+    # Compatibility fallback for older workbooks and isolated test fixtures.
+    return sheet_path
 
 
 def binary_path(master: str) -> Path:

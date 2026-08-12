@@ -8,7 +8,7 @@ from unittest.mock import patch
 
 import pandas as pd
 
-from tools.resource_layout import resource_layouts
+from tools.resource_layout import resource_layouts, resource_name
 from tools.tool_common import ToolError
 from tools.tool_relabel import (
     _reference_pattern,
@@ -18,6 +18,29 @@ from tools.tool_relabel import (
 
 
 class ResourceLayoutTests(unittest.TestCase):
+    def test_resource_name_uses_explicit_name_first(self) -> None:
+        row = pd.Series(
+            {
+                "type": "sfx",
+                "data block file": "sample1.sound",
+                "name": "custom/sample1.sound",
+            }
+        )
+        self.assertEqual(resource_name(row), "custom/sample1.sound")
+
+    def test_resource_name_recreates_worksheet_formula_when_name_is_blank(self) -> None:
+        row = pd.Series(
+            {
+                "type": "sfx",
+                "data block file": "sample1.sound",
+                "name": "",
+            }
+        )
+        self.assertEqual(resource_name(row), "sfx/sample1.sound")
+
+    def test_resource_name_stays_blank_without_type_or_data_file(self) -> None:
+        self.assertEqual(resource_name(pd.Series({"name": ""})), "")
+
     def test_relabel_reference_pattern_supports_question_mark_labels(self) -> None:
         source = "add.b Monster_Grades?_5FD6(pc,d2.w),d3"
         rewritten = re.sub(
@@ -143,7 +166,7 @@ class ResourceLayoutTests(unittest.TestCase):
             self.assertIn("NewFirst:\n\tdc.w\t$0102", generated)
             self.assertIn(
                 "NewSecond:\t\tequ\tNewFirst+$2"
-                "\t; ReSource: temporary data_append alias",
+                "\t; temporary data_append alias",
                 generated,
             )
             self.assertNotIn("OldInternal:", generated)

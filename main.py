@@ -8,6 +8,7 @@ from pathlib import Path
 import sys
 
 from tools.tool_common import (
+    DEFAULT_CLEANUP_FILE,
     DEFAULT_SEGMENTS_FILE,
     PROFILES,
     PROJECT_ROOT,
@@ -106,6 +107,14 @@ def build_parser() -> argparse.ArgumentParser:
         default=str(DEFAULT_SEGMENTS_FILE),
         help="segments.xlsx or compatible CSV definition",
     )
+    parser.add_argument(
+        "--cleanup",
+        default=None,
+        help=(
+            "EQUATES/COMMENTS workbook (default: cleanup.xlsx when present; "
+            f"expected at {DEFAULT_CLEANUP_FILE})"
+        ),
+    )
     subparsers = parser.add_subparsers(dest="command")
 
     extract = subparsers.add_parser("extract", help="Extract configured segments")
@@ -166,11 +175,11 @@ def run(args: argparse.Namespace, parser: argparse.ArgumentParser) -> int:
             getattr(args, "debug", False),
         )
     elif args.command == "relabel":
-        relabel_segments(args.master, args.sheet)
+        relabel_segments(args.master, args.sheet, args.cleanup)
     elif args.command == "format":
         try:
             destination = format_relabel_data(
-                asm_path(args.master, "data"), args.sheet, args.master
+                asm_path(args.master, "data"), args.sheet, args.master, args.cleanup
             )
         except FileNotFoundError as error:
             raise ToolError(str(error)) from error

@@ -10,7 +10,7 @@ import re
 import pandas as pd
 
 from .resource_layout import cell_text
-from .tool_common import ToolError, get_profile, parse_int, resolve_project_path
+from .tool_common import ToolError, get_profile, parse_int, resolve_cleanup_path
 
 
 EQUATES_SHEET = "EQUATES"
@@ -104,11 +104,13 @@ def _row_number(index: object) -> int:
 
 
 def load_source_metadata(
-    sheet: str | Path, master: str
+    sheet: str | Path,
+    master: str,
+    cleanup: str | Path | None = None,
 ) -> tuple[tuple[EquateDefinition, ...], tuple[SourceRule, ...]]:
-    """Load the optional combined EQU definition/source-rule worksheet."""
+    """Load EQU definitions and scoped rules from the cleanup workbook."""
 
-    path = resolve_project_path(sheet)
+    path = resolve_cleanup_path(sheet, cleanup)
     frame = _optional_workbook_sheet(path, EQUATES_SHEET)
     if frame.empty:
         return (), ()
@@ -440,10 +442,9 @@ def insert_generated_equates(
         if seen_equ:
             break
 
-    generated = ["; ReSource: generated EQU definitions from segments.xlsx/EQUATES"]
+    generated = []
     for equate in verified:
         generated.append(f"{equate.name}:\t\tequ\t{equate.value_text}")
         if equate.source_comment:
-            generated.append(f"\t; ReSource: {equate.source_comment}")
-    generated.append("; ReSource: end generated EQU definitions")
+            generated.append(f"\t; {equate.source_comment}")
     return lines[:insertion] + generated + [""] + lines[insertion:]

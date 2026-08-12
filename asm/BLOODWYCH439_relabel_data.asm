@@ -38,25 +38,47 @@ wd_SIZEOF:									equ	$00000088
 dsklen:										equ	$00000024
 ac_len:										equ	$00000004
 ciacra:										equ	$00000E00
-Champion_Count:								equ	$10			; Number of standard champions and champion-remains objects.
+AirbourneSpell_GeneralFirstCode:			equ	$86			; First airborne-spell code using the general spell picture/layout family rather than the fireball family.
+Champion_Count:								equ	$10			; Loops over all champion records during location lookup.
 ChampionPocket_BodyArmour:					equ	$02			; Offset of the dedicated body-armour pocket.
 ChampionPocket_CountedObjectCountsOffset:	equ	$0B			; Base offset of the object-code-indexed counted-object quantities in a champion-pockets record.
-ChampionPocket_LastIndex:					equ	$0B			; Highest ordinary pocket index in the twelve-pocket duplicate-removal scan.
+ChampionPocket_LastIndex:					equ	$0B			; Highest ordinary pocket index in the twelve-pocket scan.
 ChampionPocket_LeftHand:					equ	$00			; Offset of the left-hand pocket in a sixteen-byte champion-pockets record.
 ChampionPocket_RightHand:					equ	$01			; Offset of the right-hand pocket in a champion-pockets record.
 ChampionPocket_Shield:						equ	$03			; Offset of the dedicated shield pocket.
 ChampionSelection_TableEntrySize:			equ	$04			; Champion-selection action entries are longwords.
+ChampionStat_Agility:						equ	$02			; Champion record agility field.
+ChampionStat_ArmourLevel:					equ	$0B			; Champion record armour level field.
+ChampionStat_AttackCooldown:				equ	$1B			; Clears the champion attack cooldown.
 ChampionStat_Charisma:						equ	$04			; Offset of Charisma in a thirty-two-byte champion-stat record.
-ChampionStat_FoodLevel:						equ	$10			; Offset of food level in a character-stat record.
-ChampionStat_HitPointsCurrent:				equ	$05			; Offset of current hit points in a 32-byte character-stat record.
+ChampionStat_Direction:						equ	$18			; Reads the saved champion facing direction.
+ChampionStat_FairySpellCount:				equ	$1E			; Clears spells available for purchase.
+ChampionStat_Floor:							equ	$1A			; Compares the champion floor during location lookup.
+ChampionStat_FoodLevel:						equ	$10			; Stores the updated food level.
+ChampionStat_HitPointsCurrent:				equ	$05			; Restores current hit points to maximum.
 ChampionStat_HitPointsMaximum:				equ	$06			; Offset of maximum hit points in a character-stat record.
-ChampionStat_SpellCooldown:					equ	$15			; Offset of the spell cooldown in a character-stat record.
-ChampionStat_SpellPointsCurrent:			equ	$09			; Offset of current spell points in a character-stat record.
+ChampionStat_Intelligence:					equ	$03			; Champion record intelligence field.
+ChampionStat_Level:							equ	$00			; Champion record level field.
+ChampionStat_LevelProgress:					equ	$1C			; Champion level-progress field.
+ChampionStat_RecordSize:					equ	$20			; Advances to the next champion record.
+ChampionStat_RecordSizeShift:				equ	$05			; Right-shift count corresponding to the $20-byte champion record size.
+ChampionStat_Speed:							equ	$19			; Champion movement-speed field.
+ChampionStat_SpellCooldown:					equ	$15			; Brimstone Broth clears spell cooldown.
+ChampionStat_SpellPointsCurrent:			equ	$09			; Selects the current/max spell-point pair for halfway restoration.
 ChampionStat_SpellPointsMaximum:			equ	$0A			; Offset of maximum spell points in a character-stat record.
-ChampionStat_VitalityCurrent:				equ	$07			; Offset of current vitality in a character-stat record.
+ChampionStat_SpellPowerBoost:				equ	$14			; Champion spell-power adjustment field.
+ChampionStat_SpellToCast:					equ	$13			; Marks the champion as not currently casting a spell.
+ChampionStat_Strength:						equ	$01			; Champion record strength field.
+ChampionStat_Tower:							equ	$1F			; Compares the champion tower during location lookup.
+ChampionStat_VitalityCurrent:				equ	$07			; Selects the current/max vitality pair for halfway restoration.
 ChampionStat_VitalityMaximum:				equ	$08			; Offset of maximum vitality in a character-stat record.
 ChampionStat_WornHandArmour:				equ	$12			; Offset of the worn hand-armour object in a champion-stat record.
+ChampionStat_WornSpell:						equ	$11			; Clears the worn spell at session start.
+ChampionStat_XPosition:						equ	$16			; Compares the champion X/Y position word during location lookup.
+ChampionStat_XPToNextLevel:					equ	$1D			; Initialises the next-level experience value.
+ChampionStat_YPosition:						equ	$17			; Loads the champion starting Y coordinate.
 Character_ProfessionMask:					equ	$03			; Low two bits used to select one of the four character professions.
+Character_Zendik:							equ	$40			; Character identifier $40 represents Zendik; specific source uses still need identifying.
 Combat_StrengthBias:						equ	$08			; Internal Strength bias applied before physical-combat thresholds.
 Comms_CharismaBaseline:						equ	$14			; Charisma receives no initial communication bonus at or below this value.
 Comms_CharismaShift:						equ	$02			; Right shift converting excess Charisma into an initial attitude bonus.
@@ -103,17 +125,19 @@ CommsTradeMode_None:						equ	$00			; No communication trade is pending.
 CommsTradeMode_Purchase:					equ	$01			; Purchase communication mode.
 CommsTradeMode_Sell:						equ	$03			; Sell communication mode.
 DiskReadTimeoutCount:						equ	$000186A0	; Disk-read timeout counter used while waiting for DMA completion.
-Food_DrinkPortionValue:						equ	$14			; Food-level increase for each `$0E-$13` drink portion.
-Food_LevelLimitExclusive:					equ	$C8			; Exclusive upper limit used before clamping food level to `$C7`.
-Food_LevelMaximum:							equ	$C7			; Highest stored character food level.
-Food_PortionGroupSize:						equ	$03			; Number of visual consumption stages in each portioned-food family.
-Food_SolidPortionValue:						equ	$20			; Food-level increase for each `$05-$0D` solid-food portion.
-Food_WholeValueStep:						equ	$42			; Food-level step applied once, twice or three times by objects `$14-$16`.
-HeldItem_ObjectCodeByteOffset:				equ	$2F			; Offset of the low byte of the currently held object code.
+Dungeon_CellTypeMask:						equ	$07			; Mask retaining the three-bit dungeon map-cell type.
+Dungeon_ViewCell_Count:						equ	$13			; Number of player-relative dungeon view cells scanned by the renderer.
+Food_DrinkPortionValue:						equ	$14			; Default portion value for Mead and Water.
+Food_LevelLimitExclusive:					equ	$C8			; Tests whether food level must be clamped.
+Food_LevelMaximum:							equ	$C7			; Clamps food level to its maximum.
+Food_PortionGroupSize:						equ	$03			; Finds whether the selected object is the first stage of a three-object food group.
+Food_SolidPortionValue:						equ	$20			; Selects the larger solid-food portion value.
+Food_WholeValueStep:						equ	$42			; Adds one food-value step for each N'Egg size.
+HeldItem_ObjectCodeByteOffset:				equ	$2F			; Offset of the low byte of the held object code.
 HeldItem_ObjectCodeOffset:					equ	$2E			; Offset of the currently held object code in the interface state.
 HeldItem_QuantityByteOffset:				equ	$2D			; Offset of the low byte of the held-object quantity.
-HeldItem_QuantityOffset:					equ	$2C			; Offset of the held-object quantity word in player interface state.
-HeldItem_StateOffset:						equ	$2C			; Offset of the four-byte held-item state containing the quantity word followed by the object-code word.
+HeldItem_QuantityOffset:					equ	$2C			; Offset of the held-object quantity word.
+HeldItem_StateOffset:						equ	$2C			; Consumes the complete held potion before applying its effect.
 InterfaceAction_BackLeftChampion:			equ	$09			; Selects the back-left champion icon.
 InterfaceAction_BackRightChampion:			equ	$08			; Selects the back-right champion icon.
 InterfaceAction_Display:					equ	$10			; Displays the dungeon view.
@@ -139,7 +163,42 @@ InterfaceAction_TableEntrySize:				equ	$04			; Size in bytes of each dungeon act
 InterfaceAction_WallClick:					equ	$23			; Handles a clicked wall feature.
 InterfaceAction_WallFeature:				equ	$24			; Direct contextual wall-feature action, including door interaction.
 InterfaceMode_Communication:				equ	$08			; Interface mode value active while communicating with another character.
-Object_AceOfSwords:							equ	$37			; Ace of Swords object code.
+InterfaceState_MenuOffset:					equ	$44			; Converts the visible communication menu level into a communication action index.
+Monster_ColourGradeCount:					equ	$08			; Number of SPS 439 monster palette grades before the renderer clamps to the highest grade index.
+Monster_RenderFlagMask:						equ	$1F			; Mask retaining the five monster render-state bits used by the animation lookup.
+Monster_Type_First:							equ	$64			; Converts the monster type code into the renderer dispatch index; codes below the first monster type continue to character drawing.
+MonsterActionCountdown_LevelBase:			equ	$0E			; Level value used as the starting point for monster action-countdown calculation.
+MonsterActionCountdown_Minimum:				equ	$08			; Minimum monster action-countdown level.
+MonsterForm_Zendik:							equ	$40			; Checks the reserved Zendik form.
+MonsterHitPoints_BaseBonus:					equ	$19			; Base value added to calculated monster hit points.
+MonsterHitPoints_DefaultMultiplierHigh:		equ	$0190		; Default high-level monster hit-point multiplier.
+MonsterHitPoints_DefaultMultiplierMid:		equ	$FA			; Default middle-level monster hit-point multiplier.
+MonsterLive_RecordCapacity:					equ	$80			; Maximum number of live monster records represented by the cleared workspace.
+MonsterLive_RecordCountOffset:				equ	-$02		; Reads the live monster count before removing a record.
+MonsterLive_WorkspaceLongwordCount:			equ	$0200		; Clears the live-monster workspace.
+MonsterRecord_ActionCountdown:				equ	$03			; Assigns the special action countdown used for object-bearing monsters.
+MonsterRecord_ActionState:					equ	$05			; Clears the live monster action/status byte.
+MonsterRecord_BaseLevel:					equ	$07			; Writes the live level into the packed record.
+MonsterRecord_CarriedObject:				equ	$0C			; Tests whether the monster has a carried object during later monster interaction.
+MonsterRecord_CurrentLevel:					equ	$06			; Stores the current live monster level.
+MonsterRecord_Floor:						equ	$04			; Copies the floor while compacting team records.
+MonsterRecord_Form:							equ	$0B			; Writes the live form into the packed record.
+MonsterRecord_HitPoints:					equ	$08			; Stores calculated starting hit points.
+MonsterRecord_NoPosition:					equ	$FF			; Marks the source live record as removed.
+MonsterRecord_NoTeamGroup:					equ	$FF			; Clears the first team member's group assignment.
+MonsterRecord_RotationAndSpace:				equ	$02			; Reads the rotation or occupied-space field while rebuilding teams.
+MonsterRecord_Size:							equ	$10			; Advances the live monster offset to the next record.
+MonsterRecord_SizeShift:					equ	$04			; Converts a live monster byte offset into a record index.
+MonsterRecord_TeamGroupIndex:				equ	$0D			; Reads a live monster's team group index.
+MonsterRecord_Type:							equ	$0A			; Reads the live monster type for repacking.
+MonsterRecord_XPosition:					equ	$00			; Copies the X coordinate while compacting team records.
+MonsterRecord_YPosition:					equ	$01			; Copies the Y coordinate while compacting team records.
+MonsterTeamData_GroupShift:					equ	$02			; Converts packed member data to a team-group index.
+MonsterTeamIndexTable_CountOffset:			equ	-$02		; Reads the number of populated team groups.
+MonsterTeamIndexTable_LongwordCount:		equ	$19			; Clears all twenty-five team groups.
+MonsterTeamMember_Count:					equ	$04			; Loops over all four members of each team.
+MonsterTeamMember_SlotMask:					equ	$03			; Extracts the team-member slot.
+Object_AceOfSwords:							equ	$37			; Assigns the Ace of Swords to Zendik.
 Object_Armour_First:						equ	$1B			; First body-armour object and exclusive end of potions.
 Object_Arrows_First:						equ	$03			; First arrow object code.
 Object_Axes_First:							equ	$38			; First axe object.
@@ -151,7 +210,7 @@ Object_Coinage:								equ	$01			; Coinage object code.
 Object_CommonKeys:							equ	$02			; Common-key object code.
 Object_Crystals_First:						equ	$60			; First crystal object.
 Object_DepletedRing:						equ	$68			; Depleted-ring object code.
-Object_Drinks_First:						equ	$0E			; First drink-like food object.
+Object_Drinks_First:						equ	$0E			; Separates solid-food portions from drink portions.
 Object_EmptySlot:							equ	$00			; Empty object-slot code.
 Object_Food_First:							equ	$05			; First food object and exclusive end of counted objects.
 Object_Gems_First:							equ	$64			; First gem object.
@@ -159,10 +218,10 @@ Object_Gloves_First:						equ	$2B			; First glove object and exclusive end of al
 Object_Keys_First:							equ	$50			; First named-key object.
 Object_LargeShields_First:					equ	$27			; First large-shield object.
 Object_MagicRings_First:					equ	$69			; First rechargeable magic-ring object.
-Object_Neggs_First:							equ	$14			; First high-value N'Egg food object.
+Object_Neggs_First:							equ	$14			; Separates three-stage food from whole N'Egg food.
 Object_Permit:								equ	$5F			; Permit object and exclusive end of bows.
 Object_PocketGraphicBankSize:				equ	$14			; Number of pocket graphics in each source-bank step.
-Object_Potions_First:						equ	$17			; First potion object code and exclusive end of food.
+Object_Potions_First:						equ	$17			; Separates potion objects from food and counted objects.
 Object_PowerStaff:							equ	$3F			; Power Staff object code.
 Object_Remains_First:						equ	$40			; First champion-remains object and first normally non-tradable object.
 Object_Rings_First:							equ	$68			; First member of the complete ring family.
@@ -173,14 +232,44 @@ Object_Staffs_First:						equ	$3D			; First staff object.
 Object_Swords_First:						equ	$32			; First sword object.
 Object_TradeValueTable_First:				equ	$14			; First object represented by the trade-value lookup table.
 Object_Wands_First:							equ	$57			; First wand object.
+PackedMonster_FloorEncodingBias:			equ	$01			; Removes the packed floor encoding bias before splitting type and floor.
+PackedMonster_FormOffset:					equ	$04			; Packed monster form/graphic identifier.
+PackedMonster_LevelOffset:					equ	$03			; Packed monster level.
+PackedMonster_NibbleMask:					equ	$0F			; Extracts the packed floor nibble.
+PackedMonster_NoTeamData:					equ	$FF			; Detects a packed record without team data.
+PackedMonster_RecordSize:					equ	$06			; Size of one packed monster record.
+PackedMonster_TeamDataOffset:				equ	$05			; Writes team data into packed byte five.
+PackedMonster_TowerBlockLongwordCount:		equ	$C0			; Clears one complete packed monster tower block.
+PackedMonster_TowerBlockShift:				equ	$08			; Selects the packed tower block during live-to-packed transfer.
+PackedMonster_TowerBlockSize:				equ	$0300		; Size of one packed monster tower block.
+PackedMonster_TypeAndFloorOffset:			equ	$00			; Packed byte containing monster type in the high nibble and floor in the low nibble.
+PackedMonster_TypeShift:					equ	$04			; Extracts the packed monster type nibble.
+PackedMonster_XCoordinateOffset:			equ	$01			; Packed monster X coordinate.
+PackedMonster_YCoordinateOffset:			equ	$02			; Packed monster Y coordinate.
 PhysicalAttack_CooldownInitial:				equ	$07			; Initial cooldown written whenever a champion performs a physical attack.
 PhysicalAttack_VitalityCost:				equ	$03			; Vitality removed when champion combat values are loaded for physical combat.
+PlanarColourMask_IndexMask:					equ	$0C			; Mask converting a two-bit destination colour value into a longword mask-table offset.
 Player_ActionCommandOffset:					equ	$0C			; Offset of the active per-player interface command.
 Player_ActionInvalid:						equ	$FFFF		; Value meaning no active action.
 Player_AttackPrimaryStateBit:				equ	$01			; State bit set by the primary attack handler.
-Player_PendingActionOffset:					equ	$56			; Offset of the pending action byte written by keyboard input.
+Player_PendingActionOffset:					equ	$56			; Offset read when transferring a pending action into the active command.
+PlayerData_Direction:						equ	$20			; Stores the champion facing direction in the active player record.
+PlayerData_Floor:							equ	$58			; Stores the champion floor in the active player record.
+PlayerData_StartXPosition:					equ	$1C			; Stores the champion start X position in the active player record.
+PlayerData_StartYPosition:					equ	$1E			; Stores the champion start Y position in the active player record.
 PowerStaff_SpellCastingBonus:				equ	$05			; Spell-casting quality bonus supplied by a held Power Staff.
+Screen_BitplaneRowBytes:					equ	$28			; Number of bytes in one 320-pixel screen row for a single bitplane.
+Sound_AlternativeSpell:						equ	$05			; Alternative spell-effect sound ID.
+Sound_AttackClink:							equ	$02			; Sound ID for the physical attack or fighting clink.
+Sound_CharacterDeath:						equ	$03			; Sound ID played when a character reaches the death-state handling path.
+Sound_DoorClick:							equ	$01			; Sound ID for the ordinary wall-feature or door toggle click.
+Sound_SpellRoar:							equ	$04			; Sound ID for the spell or fireball sound.
+Sound_SwitchClick:							equ	$00			; Sound ID for the switch or interface click effect.
 SpellCasting_VitalityCost:					equ	$04			; Vitality removed when a champion launches a spell.
+WallOverlay_ColourEntryShift:				equ	$02			; Shift converting a wall-overlay colour index into a four-byte table offset.
+WallOverlay_ColourIndexMask:				equ	$07			; Mask selecting one of eight wall-overlay colour entries.
+WallSprite_IndexMask:						equ	$7F			; Mask removing the horizontal-mirror flag from a wall-component picture index.
+WallTransform_FlagMask:						equ	$07			; Mask retaining the three wall perspective-transform control bits.
 Weapon_AceOfSwordsRecordOffset:				equ	$1C			; Byte offset of the Ace of Swords record within Weapon_CombatModifiers.
 Weapon_BackstabEligibleByteLimit:			equ	$08			; Exclusive byte-offset limit for weapon records which preserve a Cutpurse backstab.
 Weapon_CombatModifierRecordCount:			equ	$10			; Number of four-byte records in Weapon_CombatModifiers.
@@ -260,12 +349,12 @@ GameStart:
 	bsr		MainMenu															;61000314
 	jsr		adrCd008DA8.l														;4EB900008DA8
 	jsr		adrCd008DA0.l														;4EB900008DA0
-	moveq	#$00,d0																;7000
+	moveq	#Sound_SwitchClick,d0												;Selects the initial switch or interface click sound.
 	jsr		PlaySound.l															;4EB9000088BE
 	tst.w	MainMenuBuffer.l													;4A7900000656
 	bmi.s	MainMenu_ReturnToStart_AI_TBC										;6B3E
 	beq.s	PostMainMenu_ChampionSetup_AI_TBC									;6704
-	bra		adrCd000BA6															;60000752
+	bra		InitialiseActivePlayerData											;60000752
 
 PostMainMenu_ChampionSetup_AI_TBC:		; Memory Address ($0456) and binary offset [$00D2]
 	jsr		ChampionSelection_Main.l											;4EB90000C0FA
@@ -278,7 +367,7 @@ DBFWait1a:		; Memory Address ($0486) and binary offset [$0102]
 	dbra	d1,DBFWait1a														;51C9FFFE
 	dbra	d0,DBFWait1a														;51C8FFFA
 MainMenu_ReturnToStart_AI_TBC:		; Memory Address ($048E) and binary offset [$010A]
-	bra		PrepareCharacterData_AI_TBC											;60000712
+	bra		InitialiseNewGameSession											;60000712
 
 Init_CustomChipRegisters_AI_TBC:		; Memory Address ($0492) and binary offset [$010E]
 	jsr		adrCd008DBA.l														;4EB900008DBA
@@ -680,31 +769,31 @@ PrepareCharacters:
 	; recalculates derived values, and marks placed champions on the working map.
 	bsr		Select_CurrentTowerMapData											;610001D0
 	lea		Character_Stats_DataTable.l,a4										;49F90000EB2A
-	moveq	#$0F,d6																;7C0F
+	moveq	#Champion_Count-1,d6												;7C0F
 PrepareCharacters_ChampionLoop:
 	; Processes the sixteen champion records in table order.
-	clr.b	$0011(a4)															;422C0011
-	move.b	#$FF,$0013(a4)														;197C00FF0013
-	clr.b	$001E(a4)															;422C001E
-	clr.b	$001B(a4)															;422C001B
-	move.b	#$FF,$001D(a4)														;197C00FF001D
+	clr.b	ChampionStat_WornSpell(a4)											;422C0011
+	move.b	#$FF,ChampionStat_SpellToCast(a4)									;197C00FF0013
+	clr.b	ChampionStat_FairySpellCount(a4)									;422C001E
+	clr.b	ChampionStat_AttackCooldown(a4)										;422C001B
+	move.b	#$FF,ChampionStat_XPToNextLevel(a4)									;197C00FF001D
 	move.w	d6,d0																;3006
-	eor.b	#$0F,d0																;0A00000F
+	eor.b	#Champion_Count-1,d0												;0A00000F
 	bsr		Recalculate_CharacterDerivedStats									;6100420C
-	move.b	$000A(a4),$0009(a4)													;196C000A0009
+	move.b	ChampionStat_SpellPointsMaximum(a4),ChampionStat_SpellPointsCurrent(a4)	;196C000A0009
 	moveq	#$00,d0																;7000
-	move.b	$001A(a4),d0														;102C001A
+	move.b	ChampionStat_Floor(a4),d0											;102C001A
 	jsr		adrCd0084DA.l														;4EB9000084DA
 	moveq	#$00,d7																;7E00
-	move.b	$0016(a4),d7														;1E2C0016
+	move.b	ChampionStat_XPosition(a4),d7										;1E2C0016
 	bmi.s	.PrepareCharacters_NextChampion										;6B10
 	swap	d7																	;4847
-	move.b	$0017(a4),d7														;1E2C0017
+	move.b	ChampionStat_YPosition(a4),d7										;1E2C0017
 	bsr		CoordToMap															;61007AB6
 	bset	#$07,$01(a6,d0.w)													;08F600070001
 .PrepareCharacters_NextChampion:		; Memory Address ($09EE) and binary offset [$066A]
 	; Advances to the next champion record after the optional map update.
-	add.w	#$0020,a4															;D8FC0020
+	add.w	#ChampionStat_RecordSize,a4											;D8FC0020
 	dbra	d6,PrepareCharacters_ChampionLoop									;51CEFFAE
 UnpackTowerMonsters:		; Memory Address ($09F6) and binary offset [$0672]
 	; Clears transient state and expands the current tower’s packed monster records
@@ -712,14 +801,14 @@ UnpackTowerMonsters:		; Memory Address ($09F6) and binary offset [$0672]
 	bsr		Map_Traps_InitProcessing_AI_TBC										;6100FF68
 	lea		MonsterTeamIndexTable.l,a4											;49F900017390
 	moveq	#-$01,d6															;7CFF
-	move.w	d6,-$0002(a4)														;3946FFFE
-	moveq	#$18,d0																;7018
+	move.w	d6,MonsterTeamIndexTable_CountOffset(a4)							;3946FFFE
+	moveq	#MonsterTeamIndexTable_LongwordCount-1,d0							;7018
 .ClearMonsterTeamIndexLoop:		; Memory Address ($0A08) and binary offset [$0684]
 	; Clears the twenty-five four-member team slots.
 	move.l	d6,(a4)+															;28C6
 	dbra	d0,.ClearMonsterTeamIndexLoop										;51C8FFFC
 	lea		UnpackedMonsters.l,a4												;49F900016B7E
-	move.w	#$01FF,d0															;303C01FF
+	move.w	#MonsterLive_WorkspaceLongwordCount-1,d0							;303C01FF
 .ClearLiveMonsterRecordsLoop:
 	; Clears the live-monster workspace before unpacking.
 	move.l	d6,(a4)+															;28C6
@@ -730,31 +819,31 @@ UnpackTowerMonsters:		; Memory Address ($09F6) and binary offset [$0672]
 	lea		MonsterTotalsCounts_mod0.l,a4										;49F900017578
 	move.w	$00(a4,d0.w),d6														;3C340000
 	lea		UnpackedMonsters.l,a4												;49F900016B7E
-	move.w	d6,-$0002(a4)														;3946FFFE
+	move.w	d6,MonsterLive_RecordCountOffset(a4)								;3946FFFE
 	bmi		Trigger_00_t00_Null													;6B0065D8
 	add.w	d1,d0																;D041
-	asl.w	#$08,d0																;E140
+	asl.w	#PackedMonster_TowerBlockShift,d0									;E140
 	lea		MonsterBlock_mod0.l,a3												;47F900017584
 	add.w	d0,a3																;D6C0
 	moveq	#$00,d4																;7800
 .UnpackNextMonsterRecord:
 	; Expands one packed six-byte monster record into a sixteen-byte live record.
-	clr.b	$0005(a4)															;422C0005
-	clr.b	$0002(a4)															;422C0002
+	clr.b	MonsterRecord_ActionState(a4)										;422C0005
+	clr.b	MonsterRecord_RotationAndSpace(a4)									;422C0002
 	move.b	(a3)+,d0															;101B
-	subq.b	#$01,d0																;5300
+	subq.b	#PackedMonster_FloorEncodingBias,d0									;5300
 	move.b	d0,d1																;1200
-	lsr.b	#$04,d1																;E809
-	move.b	d1,$000A(a4)														;1941000A
-	and.w	#$000F,d0															;0240000F
-	move.b	d0,$0004(a4)														;19400004
+	lsr.b	#PackedMonster_TypeShift,d1											;E809
+	move.b	d1,MonsterRecord_Type(a4)											;1941000A
+	and.w	#PackedMonster_NibbleMask,d0										;0240000F
+	move.b	d0,MonsterRecord_Floor(a4)											;19400004
 	bsr		adrCd0084DA															;61007A6E
 	moveq	#$00,d7																;7E00
 	move.b	(a3)+,d7															;1E1B
-	move.b	d7,$0000(a4)														;19470000
+	move.b	d7,MonsterRecord_XPosition(a4)										;19470000
 	swap	d7																	;4847
 	move.b	(a3)+,d7															;1E1B
-	move.b	d7,$0001(a4)														;19470001
+	move.b	d7,MonsterRecord_YPosition(a4)										;19470001
 	btst	#$17,d7																;08070017
 	bne.s	.MonsterPositionHandled												;660A
 	bsr		CoordToMap															;61007A16
@@ -763,8 +852,8 @@ UnpackTowerMonsters:		; Memory Address ($09F6) and binary offset [$0672]
 	; Continues after packed-coordinate map handling.
 	moveq	#$00,d0																;7000
 	move.b	(a3)+,d0															;101B
-	move.b	d0,$0006(a4)														;19400006
-	move.b	d0,$0007(a4)														;19400007
+	move.b	d0,MonsterRecord_CurrentLevel(a4)									;19400006
+	move.b	d0,MonsterRecord_BaseLevel(a4)										;19400007
 	moveq	#$0E,d1																;720E
 	sub.b	d0,d1																;9200
 	bcs.s	.UseMinimumActionCountdown											;6506
@@ -776,7 +865,7 @@ UnpackTowerMonsters:		; Memory Address ($09F6) and binary offset [$0672]
 .StoreActionCountdown:		; Memory Address ($0AA8) and binary offset [$0724]
 	; Stores the level-derived action countdown.
 	asl.b	#$04,d1																;E901
-	move.b	d1,$0003(a4)														;19410003
+	move.b	d1,MonsterRecord_ActionCountdown(a4)								;19410003
 	move.w	#$0190,d1															;323C0190
 	cmpi.b	#$19,d0																;0C000019
 	bcc.s	.StoreStartingHitPoints												;640E
@@ -788,35 +877,35 @@ UnpackTowerMonsters:		; Memory Address ($09F6) and binary offset [$0672]
 	; Calculates starting hit points from the monster level.
 	mulu	d1,d0																;C0C1
 	add.w	#$0019,d0															;06400019
-	move.w	d0,$0008(a4)														;39400008
-	move.b	(a3)+,$000B(a4)														;195B000B
-	bpl.s	.CheckCarriedObject													;6A08
-	move.b	#$10,$0003(a4)														;197C00100003
+	move.w	d0,MonsterRecord_HitPoints(a4)										;39400008
+	move.b	(a3)+,MonsterRecord_Form(a4)										;195B000B
+	bpl.s	CheckMonsterFormForCarriedObject									;6A08
+	move.b	#$10,MonsterRecord_ActionCountdown(a4)								;197C00100003
 	bra.s	.StoreTeamData														;600E
 
-.CheckCarriedObject:
-	; Checks the special form that receives a fixed carried object.
-	cmp.b	#$40,$000B(a4)														;0C2C0040000B	;
+CheckMonsterFormForCarriedObject:
+	; Handles the monster-form special case that assigns a fixed carried object.
+	cmp.b	#MonsterForm_Zendik,MonsterRecord_Form(a4)							;0C2C0040000B	;
 	bne.s	.StoreTeamData														;6606
-	move.b	#$37,$000C(a4)														;197C0037000C
+	move.b	#Object_AceOfSwords,MonsterRecord_CarriedObject(a4)					;197C0037000C
 .StoreTeamData:		; Memory Address ($0AEC) and binary offset [$0768]
 	; Stores the team-group index derived from packed team-data.
 	moveq	#$00,d0																;7000
 	move.b	(a3)+,d0															;101B
-	cmpi.b	#$FF,d0																;0C0000FF
+	cmpi.b	#PackedMonster_NoTeamData,d0										;0C0000FF
 	beq.s	.AdvanceToNextMonster												;6720
 	lea		MonsterTeamIndexTable.l,a0											;41F900017390
 	move.b	d4,$00(a0,d0.w)														;11840000
 	move.b	d0,d1																;1200
-	and.b	#$03,d1																;02010003
-	tst.b	$0000(a4)															;4A2C0000
+	and.b	#MonsterTeamMember_SlotMask,d1										;02010003
+	tst.b	MonsterRecord_XPosition(a4)											;4A2C0000
 	bmi.s	.AdvanceToNextMonster												;6B0A
-	addq.w	#$01,-$0002(a0)														;5268FFFE
-	lsr.b	#$02,d0																;E408
-	move.b	d0,$000D(a4)														;1940000D
+	addq.w	#$01,MonsterTeamIndexTable_CountOffset(a0)							;5268FFFE
+	lsr.b	#MonsterTeamData_GroupShift,d0										;E408
+	move.b	d0,MonsterRecord_TeamGroupIndex(a4)									;1940000D
 .AdvanceToNextMonster:		; Memory Address ($0B16) and binary offset [$0792]
 	; Advances to the next packed and live monster record.
-	add.w	#$0010,a4															;D8FC0010
+	add.w	#MonsterRecord_Size,a4												;D8FC0010
 	addq.w	#$01,d4																;5244
 	dbra	d6,.UnpackNextMonsterRecord											;51CEFF30
 	rts																			;4E75
@@ -844,17 +933,17 @@ TransferChampionStartPosition:		; Memory Address ($0B32) and binary offset [$07A
 	; Copies a champion’s saved start position into the active player record.
 	bsr		Load_CurrentChampionStatRecord										;61005B28
 	moveq	#$00,d0																;7000
-	move.b	$0016(a4),d0														;102C0016
+	move.b	ChampionStat_XPosition(a4),d0										;102C0016
 	bmi.s	.NoChampionStartPosition											;6B28
-	move.b	#$FF,$0016(a4)														;197C00FF0016
-	move.w	d0,$001C(a5)														;3B40001C
-	move.b	$0017(a4),d0														;102C0017
-	move.b	#$FF,$0017(a4)														;197C00FF0017
-	move.w	d0,$001E(a5)														;3B40001E
-	move.b	$0018(a4),d0														;102C0018
-	move.w	d0,$0020(a5)														;3B400020
-	move.b	$001A(a4),d0														;102C001A
-	move.w	d0,$0058(a5)														;3B400058
+	move.b	#$FF,ChampionStat_XPosition(a4)										;197C00FF0016
+	move.w	d0,PlayerData_StartXPosition(a5)									;3B40001C
+	move.b	ChampionStat_YPosition(a4),d0										;102C0017
+	move.b	#$FF,ChampionStat_YPosition(a4)										;197C00FF0017
+	move.w	d0,PlayerData_StartYPosition(a5)									;3B40001E
+	move.b	ChampionStat_Direction(a4),d0										;102C0018
+	move.w	d0,PlayerData_Direction(a5)											;3B400020
+	move.b	ChampionStat_Floor(a4),d0											;102C001A
+	move.w	d0,PlayerData_Floor(a5)												;3B400058
 .NoChampionStartPosition:		; Memory Address ($0B66) and binary offset [$07E2]
 	; Returns when the champion has no saved position.
 	rts																			;4E75
@@ -887,39 +976,46 @@ Current_TowerMapOffsets:
 	dc.w	MapData5-MapData1	;5008
 	dc.w	MapData6-MapData1	;640A
 
-PrepareCharacterData_AI_TBC:		; Memory Address ($0BA2) and binary offset [$081E]
+InitialiseNewGameSession:		; Memory Address ($0BA2) and binary offset [$081E]
+	; Prepares champion records and enters the shared active-player session
+	; initialisation.
 	bsr		PrepareCharacters													;6100FDF2
-adrCd000BA6:		; Memory Address ($0BA6) and binary offset [$0822]
+InitialiseActivePlayerData:		; Memory Address ($0BA6) and binary offset [$0822]
+	; Initialises the active player structures after champion preparation or when
+	; resuming through the shared entry point.
 	clr.w	FrameSyncFlagWord_AI_TBC.l											;427900008C1E
 	move.b	#$FF,adrB_00EE2C.l													;13FC00FF0000EE2C
 	lea		Player1_Data.l,a5													;4BF90000EE7C
 	move.l	#$00F00020,$0002(a5)												;2B7C00F000200002
 	move.w	#$5601,$003A(a5)													;3B7C5601003A
 	tst.w	MultiPlayer.l														;4A790000EE30
-	beq.s	adrCd000BF6															;6726
+	beq.s	InitialisePlayer2Data												;6726
 	move.w	#$8223,$003A(a5)													;3B7C8223003A
 	move.l	#$FFFFFFFF,Player2_ChampionPointer.l								;23FCFFFFFFFF0000EEF6
 	move.w	#$0027,$0008(a5)													;3B7C00270008
 	move.w	#$0618,$000A(a5)													;3B7C0618000A
 	clr.l	adrL_00EEE0.l														;42B90000EEE0
 	moveq	#$00,d7																;7E00
-	bra.s	adrLp000C18															;6022
+	bra.s	InitialisePlayerDataLoop											;6022
 
-adrCd000BF6:		; Memory Address ($0BF6) and binary offset [$0872]
+InitialisePlayer2Data:		; Memory Address ($0BF6) and binary offset [$0872]
+	; Initialises the second player structure for a two-player session.
 	lea		Player2_Data.l,a5													;4BF90000EEDE
 	move.l	#$00F00088,$0002(a5)												;2B7C00F000880002
 	move.w	#$BE68,$003A(a5)													;3B7CBE68003A
 	move.w	#$0068,$0008(a5)													;3B7C00680008
 	move.w	#$1040,$000A(a5)													;3B7C1040000A
 	moveq	#$01,d7																;7E01
-adrLp000C18:		; Memory Address ($0C18) and binary offset [$0894]
+InitialisePlayerDataLoop:		; Memory Address ($0C18) and binary offset [$0894]
+	; Initialises each active player structure and transfers its saved champion
+	; start position.
 	clr.w	$0014(a5)															;426D0014
 	move.w	#$FFFF,$0042(a5)													;3B7CFFFF0042
 	move.w	#$FFFF,$0040(a5)													;3B7CFFFF0040
 	bsr		TransferChampionStartPosition										;6100FF08
 	bset	#$04,$0018(a5)														;08ED00040018
 	lea		Player1_Data.l,a5													;4BF90000EE7C
-	dbra	d7,adrLp000C18														;51CFFFDE
+	dbra	d7,InitialisePlayerDataLoop											;51CFFFDE
 	bsr		adrCd0042BA															;6100367C
 	move.w	#$FFFF,FrameSyncFlagWord_AI_TBC.l									;33FCFFFF00008C1E
 Wait_FrameSync_AI_TBC:		; Memory Address ($0C48) and binary offset [$08C4]
@@ -1315,30 +1411,30 @@ adrCd001090:		; Memory Address ($1090) and binary offset [$0D0C]
 	moveq	#$00,d6																;7C00
 	lea		UnpackedMonsters.l,a3												;47F900016B7E
 	lea		MonsterTeamIndexTable.l,a0											;41F900017390
-	move.w	-$0002(a0),d7														;3E28FFFE
+	move.w	MonsterTeamIndexTable_CountOffset(a0),d7							;3E28FFFE
 	bmi.s	adrCd00108E															;6BEA
 adrLp0010A4:		; Memory Address ($10A4) and binary offset [$0D20]
 	cmp.l	#$FFFFFFFF,(a0)														;0C90FFFFFFFF
 	beq.s	adrCd0010EA															;673E
 	moveq	#-$01,d4															;78FF
-	moveq	#$03,d1																;7203
+	moveq	#MonsterTeamMember_Count-1,d1										;7203
 adrLp0010B0:		; Memory Address ($10B0) and binary offset [$0D2C]
 	moveq	#$00,d2																;7400
 	move.b	$00(a0,d1.w),d2														;14301000
 	bmi.s	adrCd0010CA															;6B12
 	addq.w	#$01,d4																;5244
 	asl.w	#$04,d2																;E942
-	move.b	$0D(a3,d2.w),d3														;1633200D
+	move.b	MonsterRecord_TeamGroupIndex(a3,d2.w),d3							;1633200D
 	bmi.s	adrCd0010CA															;6B08
 	sub.b	d6,d3																;9606
-	move.b	d3,$0D(a3,d2.w)														;1783200D
+	move.b	d3,MonsterRecord_TeamGroupIndex(a3,d2.w)							;1783200D
 	move.w	d2,d5																;3A02
 adrCd0010CA:		; Memory Address ($10CA) and binary offset [$0D46]
 	dbra	d1,adrLp0010B0														;51C9FFE4
 	tst.w	d4																	;4A44
 	bne.s	adrCd00110A															;6638
-	move.b	#$FF,$0D(a3,d5.w)													;17BC00FF500D
-	move.b	$02(a3,d5.w),d4														;18335002
+	move.b	#MonsterRecord_NoTeamGroup,MonsterRecord_TeamGroupIndex(a3,d5.w)	;17BC00FF500D
+	move.b	MonsterRecord_RotationAndSpace(a3,d5.w),d4							;18335002
 	and.w	#$0003,d4															;02440003
 	move.w	d4,d2																;3404
 	asl.w	#$04,d4																;E944
@@ -1384,13 +1480,13 @@ adrCd001132:		; Memory Address ($1132) and binary offset [$0DAE]
 	beq.s	adrCd00116C															;672E
 	move.b	(a0),d3																;1610
 	asl.w	#$04,d3																;E943
-	move.b	$00(a3,d5.w),$00(a3,d3.w)											;17B350003000
-	move.b	$01(a3,d5.w),$01(a3,d3.w)											;17B350013001
-	move.b	$04(a3,d5.w),$04(a3,d3.w)											;17B350043004
+	move.b	MonsterRecord_XPosition(a3,d5.w),MonsterRecord_XPosition(a3,d3.w)	;17B350003000
+	move.b	MonsterRecord_YPosition(a3,d5.w),MonsterRecord_YPosition(a3,d3.w)	;17B350013001
+	move.b	MonsterRecord_Floor(a3,d5.w),MonsterRecord_Floor(a3,d3.w)			;17B350043004
 	move.b	#$FF,$00(a3,d5.w)													;17BC00FF5000
-	move.b	$02(a3,d5.w),$02(a3,d3.w)											;17B350023002
-	move.b	$0D(a3,d5.w),$0D(a3,d3.w)											;17B3500D300D
-	move.b	#$FF,$0D(a3,d5.w)													;17BC00FF500D
+	move.b	MonsterRecord_RotationAndSpace(a3,d5.w),MonsterRecord_RotationAndSpace(a3,d3.w)	;17B350023002
+	move.b	MonsterRecord_TeamGroupIndex(a3,d5.w),MonsterRecord_TeamGroupIndex(a3,d3.w)	;17B3500D300D
+	move.b	#MonsterRecord_NoTeamGroup,MonsterRecord_TeamGroupIndex(a3,d5.w)	;17BC00FF500D
 adrCd00116C:		; Memory Address ($116C) and binary offset [$0DE8]
 	addq.w	#$04,a0																;5848
 adrCd00116E:		; Memory Address ($116E) and binary offset [$0DEA]
@@ -2038,17 +2134,17 @@ adrCd00185C:		; Memory Address ($185C) and binary offset [$14D8]
 	tst.b	d0																	;4A00
 	bmi		adrCd001AB6															;6B000246
 	cmpi.b	#$10,d0																;0C000010
-	bcs		adrCd001982															;6500010A
+	bcs		CheckMonsterHeldObject												;6500010A
 	move.b	$000B(a4),d2														;142C000B
-	bmi		adrCd001982															;6B000102
+	bmi		CheckMonsterHeldObject												;6B000102
 	cmpi.b	#$64,d2																;0C020064
 	bne.s	adrCd001894															;660C
 	move.b	$000C(a4),adrB_00EE3E.l												;13EC000C0000EE3E
-	bra		adrCd001982															;600000F0
+	bra		CheckMonsterHeldObject												;600000F0
 
 adrCd001894:		; Memory Address ($1894) and binary offset [$1510]
 	cmp.b	#$64,$000B(a1)														;0C290064000B
-	beq		adrCd001982															;670000E6
+	beq		CheckMonsterHeldObject												;670000E6
 	cmpi.b	#$40,d2																;0C020040
 	beq		adrCd001BB8															;67000314
 	cmpi.b	#$67,d2																;0C020067
@@ -2120,14 +2216,18 @@ adrCd001956:		; Memory Address ($1956) and binary offset [$15D2]
 	bclr	#$07,$01(a6,d0.w)													;08B600070001
 	rts																			;4E75
 
-adrCd001982:		; Memory Address ($1982) and binary offset [$15FE]
+CheckMonsterHeldObject:		; Memory Address ($1982) and binary offset [$15FE]
+	; Checks whether a monster form and carried object require held-object
+	; processing.
 	move.w	d0,d1																;3200
-adrCd001984:		; Memory Address ($1984) and binary offset [$1600]
-	move.b	$000B(a4),d0														;102C000B
+CheckMonsterHeldObjectByLevel:		; Memory Address ($1984) and binary offset [$1600]
+	; Continues held-object processing using the current interaction or level
+	; threshold.
+	move.b	MonsterRecord_Form(a4),d0											;102C000B
 	bpl		adrCd001A4A															;6A0000C0
 	cmpi.b	#$10,d1																;0C010010
 	bcs.s	adrCd00199C															;650A
-	tst.b	$000C(a4)															;4A2C000C
+	tst.b	MonsterRecord_CarriedObject(a4)										;4A2C000C
 	bpl		adrCd001A4A															;6A0000B2
 	rts																			;4E75
 
@@ -2242,7 +2342,7 @@ adrCd001AB6:		; Memory Address ($1AB6) and binary offset [$1732]
 	move.b	$0002(a4),d0														;102C0002
 	bsr		adrCd006018															;61004550
 	tst.b	$000B(a4)															;4A2C000B
-	bpl		adrCd001984															;6A00FEB4
+	bpl		CheckMonsterHeldObjectByLevel										;6A00FEB4
 	movem.l	d0/d1/a5,-(sp)														;48E7C004
 	move.l	a1,a5																;2A49
 	move.w	d1,d0																;3001
@@ -2250,7 +2350,7 @@ adrCd001AB6:		; Memory Address ($1AB6) and binary offset [$1732]
 	bclr	d1,$003C(a5)														;03AD003C
 	clr.w	PhysicalAttack_DoubleDefenceFlag.l									;427900006458
 	movem.l	(sp)+,d0/d1/a5														;4CDF2003
-	bra		adrCd001984															;6000FE96
+	bra		CheckMonsterHeldObjectByLevel										;6000FE96
 
 adrCd001AF0:		; Memory Address ($1AF0) and binary offset [$176C]
 	move.w	adrW_0013C2.w,d1													;323813C2	;Short Absolute converted to symbol!
@@ -2491,7 +2591,7 @@ PrepareTeleportOrEquipValue_AI_TBC:		; Memory Address ($1D7A) and binary offset 
 	cmpi.b	#$8B,d7																;0C07008B
 	bcs.s	adrCd001DA0															;6502
 adrCd001D9E:		; Memory Address ($1D9E) and binary offset [$1A1A]
-	moveq	#$05,d0																;7005
+	moveq	#Sound_AlternativeSpell,d0											;7005
 adrCd001DA0:		; Memory Address ($1DA0) and binary offset [$1A1C]
 	jsr		PlaySound.l															;4EB9000088BE
 	movem.l	(sp)+,d0/a0															;4CDF0101
@@ -2543,7 +2643,7 @@ adrCd001E08:		; Memory Address ($1E08) and binary offset [$1A84]
 	beq.s	adrCd001E28															;670E
 	cmpi.b	#$0B,d5																;0C05000B
 	bcc.s	adrCd001E28															;6408
-	moveq	#$04,d0																;7004
+	moveq	#Sound_SpellRoar,d0													;7004
 	jsr		PlaySound.l															;4EB9000088BE
 adrCd001E28:		; Memory Address ($1E28) and binary offset [$1AA4]
 	movem.l	(sp)+,d0-d7/a0-a6													;4CDF7FFF
@@ -3247,7 +3347,7 @@ adrCd0024BE:		; Memory Address ($24BE) and binary offset [$213A]
 	clr.b	$0011(a4)															;422C0011
 	move.b	#$FF,$0013(a4)														;197C00FF0013
 	move.l	a0,-(sp)															;2F08
-	moveq	#$03,d0																;7003
+	moveq	#Sound_CharacterDeath,d0											;7003
 	jsr		PlaySound.l															;4EB9000088BE
 	move.l	(sp)+,a0															;205F
 	moveq	#$00,d0																;7000
@@ -3528,8 +3628,8 @@ adrCd0027C6:		; Memory Address ($27C6) and binary offset [$2442]
 adrCd0027E0:		; Memory Address ($27E0) and binary offset [$245C]
 	move.l	a4,d0																;200C
 	sub.l	#UnpackedMonsters,d0												;048000016B7E
-	lsr.w	#$04,d0																;E848
-	add.w	#$0010,d0															;06400010
+	lsr.w	#MonsterRecord_SizeShift,d0											;E848
+	add.w	#MonsterRecord_Size,d0												;06400010
 	bra.s	adrCd0027F6															;6006
 
 adrCd0027F0:		; Memory Address ($27F0) and binary offset [$246C]
@@ -3537,12 +3637,12 @@ adrCd0027F0:		; Memory Address ($27F0) and binary offset [$246C]
 adrCd0027F6:		; Memory Address ($27F6) and binary offset [$2472]
 	bsr.s	adrCd002848															;6150
 	lea		UnpackedMonsters.l,a2												;45F900016B7E
-	move.w	-$0002(a2),d2														;342AFFFE
-	subq.w	#$01,-$0002(a2)														;536AFFFE
+	move.w	MonsterLive_RecordCountOffset(a2),d2								;342AFFFE
+	subq.w	#$01,MonsterLive_RecordCountOffset(a2)								;536AFFFE
 	sub.w	d0,d2																;9440
-	asl.w	#$04,d0																;E940
+	asl.w	#MonsterRecord_SizeShift,d0											;E940
 	lea		$00(a2,d0.w),a2														;45F20000
-	lea		$0010(a2),a3														;47EA0010
+	lea		MonsterRecord_Size(a2),a3											;47EA0010
 	bra.s	adrCd00281C															;6008
 
 adrLp002814:		; Memory Address ($2814) and binary offset [$2490]
@@ -3578,9 +3678,9 @@ adrCd002848:		; Memory Address ($2848) and binary offset [$24C4]
 	bsr.s	adrCd00282C															;61DC
 	lea		Player2_Data.l,a0													;41F90000EEDE
 	bsr.s	adrCd00282C															;61D4
-	sub.w	#$0010,d0															;04400010
+	sub.w	#MonsterRecord_Size,d0												;04400010
 	lea		MonsterTeamIndexTable.l,a0											;41F900017390
-	move.w	-$0002(a0),d2														;3428FFFE
+	move.w	MonsterTeamIndexTable_CountOffset(a0),d2							;3428FFFE
 	bmi.s	adrCd00282A															;6BC2
 	move.w	d5,-(sp)															;3F05
 adrLp00286A:		; Memory Address ($286A) and binary offset [$24E6]
@@ -3592,7 +3692,7 @@ adrLp00286A:		; Memory Address ($286A) and binary offset [$24E6]
 	rts																			;4E75
 
 adrCd00287C:		; Memory Address ($287C) and binary offset [$24F8]
-	moveq	#$03,d3																;7603
+	moveq	#MonsterTeamMember_Count-1,d3										;7603
 	moveq	#$00,d2																;7400
 adrLp002880:		; Memory Address ($2880) and binary offset [$24FC]
 	move.b	$00(a0,d3.w),d5														;1A303000
@@ -3609,10 +3709,10 @@ adrCd002896:		; Memory Address ($2896) and binary offset [$2512]
 	tst.w	d2																	;4A42
 	beq.s	adrCd0028B8															;671A
 	lea		UnpackedMonsters.l,a2												;45F900016B7E
-	asl.w	#$04,d0																;E940
+	asl.w	#MonsterRecord_SizeShift,d0											;E940
 	tst.b	$0D(a2,d0.w)														;4A32000D
 	bmi.s	adrCd0028B8															;6B0C
-	moveq	#$03,d3																;7603
+	moveq	#MonsterTeamMember_Count-1,d3										;7603
 adrLp0028AE:		; Memory Address ($28AE) and binary offset [$252A]
 	tst.b	$00(a0,d3.w)														;4A303000
 	bpl.s	adrCd0028BC															;6A08
@@ -3631,13 +3731,13 @@ adrCd0028BC:		; Memory Address ($28BC) and binary offset [$2538]
 adrCd0028D0:		; Memory Address ($28D0) and binary offset [$254C]
 	lea		$00(a2,d3.w),a3														;47F23000
 	lea		$00(a2,d0.w),a2														;45F20000
-	move.b	$0000(a2),$0000(a3)													;176A00000000
-	move.b	$0001(a2),$0001(a3)													;176A00010001
-	move.b	$0004(a2),$0004(a3)													;176A00040004
-	move.b	$0002(a2),$0002(a3)													;176A00020002
-	move.b	$000D(a2),$000D(a3)													;176A000D000D
-	move.b	#$FF,$000D(a2)														;157C00FF000D
-	move.b	#$FF,$0000(a2)														;157C00FF0000
+	move.b	MonsterRecord_XPosition(a2),MonsterRecord_XPosition(a3)				;176A00000000
+	move.b	MonsterRecord_YPosition(a2),MonsterRecord_YPosition(a3)				;176A00010001
+	move.b	MonsterRecord_Floor(a2),MonsterRecord_Floor(a3)						;176A00040004
+	move.b	MonsterRecord_RotationAndSpace(a2),MonsterRecord_RotationAndSpace(a3)	;176A00020002
+	move.b	MonsterRecord_TeamGroupIndex(a2),MonsterRecord_TeamGroupIndex(a3)	;176A000D000D
+	move.b	#MonsterRecord_NoTeamGroup,MonsterRecord_TeamGroupIndex(a2)			;157C00FF000D
+	move.b	#MonsterRecord_NoPosition,MonsterRecord_XPosition(a2)				;157C00FF0000
 	bra.s	adrCd0028B8															;60B4
 
 adrCd002904:		; Memory Address ($2904) and binary offset [$2580]
@@ -4853,7 +4953,7 @@ adrCd00349A:		; Memory Address ($349A) and binary offset [$3116]
 Comms_HandleMenuSelection:		; Memory Address ($34CC) and binary offset [$3148]
 	; Converts the visible communication menu and button into an action and runs
 	; it.
-	move.w	$0044(a5),d0														;302D0044
+	move.w	InterfaceState_MenuOffset(a5),d0									;302D0044
 	subq.w	#$04,d0																;5940
 	beq.s	adrCd0034E0															;670C
 	addq.w	#$04,d1																;5841
@@ -4866,7 +4966,7 @@ adrCd0034E0:		; Memory Address ($34E0) and binary offset [$315C]
 	bsr		Comms_GetState														;61000D18
 	addq.b	#$01,CommsState_AttitudeOffset(a4)									;Offset of mutable communication attitude or rapport.
 	bsr.s	Comms_RunAction														;6126
-	cmp.w	#$0006,$0044(a5)													;0C6D00060044
+	cmp.w	#$0006,InterfaceState_MenuOffset(a5)								;0C6D00060044
 	bcs.s	adrCd0034FE															;650C
 	cmp.b	#$06,$0001(a4)														;0C2C00060001
 	bcs.s	adrCd00350E															;6514
@@ -8457,7 +8557,7 @@ Sockets_Actions:		; Memory Address ($5986) and binary offset [$5602]
 	lea		SocketActions_SerpentCrystal.l,a0									;41F9000059CE
 	add.w	Sockets_LookupTable(pc,d1.w),a0										;D0FB100A
 	jsr		(a0)																;4E90
-	moveq	#$05,d0																;7005
+	moveq	#Sound_AlternativeSpell,d0											;7005
 	bra		PlaySound															;60002F02
 
 Sockets_LookupTable:		; Memory Address ($59BE) and binary offset [$563A]
@@ -9163,7 +9263,7 @@ Close_PlayerCommunicationIfTargetAttacked:		; Memory Address ($61D0) and binary 
 Resolve_PhysicalAttack:		; Memory Address ($61DA) and binary offset [$5E56]
 	; Performs the opposed attack roll, calculates weapon damage, subtracts armour
 	; and applies the hit-quality multiplier.
-	moveq	#$02,d0																;7002
+	moveq	#Sound_AttackClink,d0												;Selects the fighting clink played when a physical attack begins.
 	bsr		PlaySound															;610026E0
 	bsr.s	Close_AttackedChampionCommunicationPanels							;61D4
 	bsr		Prepare_AttackAndDefenceScores										;61000238
@@ -9562,7 +9662,7 @@ adrCd00657C:		; Memory Address ($657C) and binary offset [$61F8]
 	btst	#$04,$01(a6,d0.w)													;083600040001
 	bne.s	Return_WallFeatureLocked											;660E
 	bchg	d2,$00(a6,d0.w)														;05760000
-	moveq	#$01,d0																;7001
+	moveq	#Sound_DoorClick,d0													;Selects the click played when a wall feature or door changes state.
 	bsr		PlaySound															;61002330
 	bra		adrCd00CF96															;60006A04
 
@@ -10181,15 +10281,15 @@ Check_WornHandArmourSlot:		; Memory Address ($6AB4) and binary offset [$6730]
 	; Handles Chaos Gloves and other worn hand-armour exchanges involving the two
 	; hand pockets.
 	bcc.s	Handle_SelectedPocketObject											;643C
-	cmp.w	#Object_Gloves_First,HeldItem_ObjectCodeOffset(a5)					;0C6D002B002E
+	cmp.w	#Object_Gloves_First,HeldItem_ObjectCodeOffset(a5)					;Offset of the currently held object code in the interface state.
 	bcs.s	Unequip_WornHandArmourToEmptyHand									;651E
-	cmp.w	#Object_Blades_First,HeldItem_ObjectCodeOffset(a5)					;0C6D0030002E
+	cmp.w	#Object_Blades_First,HeldItem_ObjectCodeOffset(a5)					;Offset of the currently held object code in the interface state.
 	bcc.s	Unequip_WornHandArmourToEmptyHand									;6416
 	move.b	ChampionStat_WornHandArmour(a4),d1									;Offset of the worn hand-armour object in a champion-stat record.
 	move.b	HeldItem_ObjectCodeByteOffset(a5),ChampionStat_WornHandArmour(a4)	;Offset of the low byte of the held object code.
 	move.b	d1,HeldItem_ObjectCodeByteOffset(a5)								;Offset of the low byte of the held object code.
 	bne.s	Handle_SelectedPocketObject											;661C
-	clr.w	HeldItem_QuantityOffset(a5)											;426D002C
+	clr.w	HeldItem_QuantityOffset(a5)											;Offset of the held-object quantity word.
 	bra.s	Handle_SelectedPocketObject											;6016
 
 Unequip_WornHandArmourToEmptyHand:		; Memory Address ($6ADC) and binary offset [$6758]
@@ -10197,7 +10297,7 @@ Unequip_WornHandArmourToEmptyHand:		; Memory Address ($6ADC) and binary offset [
 	; held.
 	tst.b	$00(a6,d0.w)														;4A360000
 	bne.s	Handle_SelectedPocketObject											;6610
-	tst.w	HeldItem_ObjectCodeOffset(a5)										;4A6D002E
+	tst.w	HeldItem_ObjectCodeOffset(a5)										;Offset of the currently held object code in the interface state.
 	bne.s	Handle_SelectedPocketObject											;660A
 	move.b	ChampionStat_WornHandArmour(a4),$00(a6,d0.w)						;Offset of the worn hand-armour object in a champion-stat record.
 	clr.b	ChampionStat_WornHandArmour(a4)										;Offset of the worn hand-armour object in a champion-stat record.
@@ -11286,39 +11386,39 @@ adrCd007974:		; Memory Address ($7974) and binary offset [$75F0]
 	move.w	d0,d1																;3200
 	add.w	d0,d0																;D040
 	add.w	d0,d1																;D240
-	asl.w	#$08,d1																;E141
+	asl.w	#PackedMonster_TowerBlockShift,d1									;E141
 	lea		MonsterBlock_mod0.l,a3												;47F900017584
 	add.w	d1,a3																;D6C1
 	lea		UnpackedMonsters.l,a4												;49F900016B7E
-	move.w	-$0002(a4),d1														;322CFFFE
+	move.w	MonsterLive_RecordCountOffset(a4),d1								;322CFFFE
 	lea		MonsterTotalsCounts_mod0.l,a0										;41F900017578
 	move.w	d1,$00(a0,d0.w)														;31810000
 	bmi.s	adrCd007A10															;6B6C
 	move.l	a3,a0																;204B
-	move.w	#$00BF,d0															;303C00BF
+	move.w	#PackedMonster_TowerBlockLongwordCount-1,d0							;303C00BF
 	moveq	#-$01,d2															;74FF
 adrLp0079AC:		; Memory Address ($79AC) and binary offset [$7628]
 	move.l	d2,(a0)+															;20C2
 	dbra	d0,adrLp0079AC														;51C8FFFC
 	move.l	a3,a0																;204B
 adrLp0079B4:		; Memory Address ($79B4) and binary offset [$7630]
-	move.b	$000A(a4),d2														;142C000A
+	move.b	MonsterRecord_Type(a4),d2											;142C000A
 	asl.b	#$04,d2																;E902
-	move.b	$0004(a4),d3														;162C0004
+	move.b	MonsterRecord_Floor(a4),d3											;162C0004
 	addq.w	#$01,d3																;5243
 	and.w	#$000F,d3															;0243000F
 	or.b	d2,d3																;8602
 	move.b	d3,(a3)+															;16C3
-	move.b	$0000(a4),(a3)+														;16EC0000
-	move.b	$0001(a4),(a3)+														;16EC0001
-	move.b	$0006(a4),(a3)+														;16EC0006
-	move.b	$000B(a4),(a3)+														;16EC000B
-	move.b	$000D(a4),d3														;162C000D
+	move.b	MonsterRecord_XPosition(a4),(a3)+									;16EC0000
+	move.b	MonsterRecord_YPosition(a4),(a3)+									;16EC0001
+	move.b	MonsterRecord_BaseLevel(a4),(a3)+									;16EC0006
+	move.b	MonsterRecord_Form(a4),(a3)+										;16EC000B
+	move.b	MonsterRecord_TeamGroupIndex(a4),d3									;162C000D
 	bmi.s	adrCd007A06															;6B28
 	lea		MonsterTeamIndexTable.l,a6											;4DF900017390
 	asl.w	#$02,d3																;E543
 	add.w	d3,a6																;DCC3
-	moveq	#$03,d2																;7403
+	moveq	#MonsterTeamMember_Count-1,d2										;7403
 adrLp0079EA:		; Memory Address ($79EA) and binary offset [$7666]
 	moveq	#$00,d0																;7000
 	move.b	$00(a6,d2.w),d0														;10362000
@@ -11328,7 +11428,7 @@ adrLp0079EA:		; Memory Address ($79EA) and binary offset [$7666]
 	add.w	d0,d0																;D040
 	move.b	d3,d4																;1803
 	add.b	d2,d4																;D802
-	move.b	d4,$05(a0,d0.w)														;11840005
+	move.b	d4,PackedMonster_TeamDataOffset(a0,d0.w)							;11840005
 adrCd007A02:		; Memory Address ($7A02) and binary offset [$767E]
 	dbra	d2,adrLp0079EA														;51CAFFE6
 adrCd007A06:		; Memory Address ($7A06) and binary offset [$7682]
@@ -12808,14 +12908,14 @@ PlaySound:
 	move.w	d1,-(sp)															;3F01
 	move.w	#$0001,_custom+dmacon.l												;33FC000100DFF096
 	move.w	#$0080,_custom+intena.l												;33FC008000DFF09A
-	asl.w	#$02,d0																;E540
+	asl.w	#$02,d0																;Converts the zero-based sound ID into a four-byte index for the sample-offset and playback-period table.
 	lea		SFX_AudioSample_1.l,a0												;41F900054422
 	add.w	AudioSampleOffsets(pc,d0.w),a0										;Adds the selected sample base offset to locate the sound data.
 	move.w	AudioSampleOffsets+$2(pc,d0.w),d0									;Loads the selected Paula playback-period value.
 	lea		$0030(a0),a0														;Skips the 8SVX header and points Paula at the sample body.
 	move.w	-$0002(a0),d1														;Reads the sample-body length stored immediately before the sample data.
 	lsr.w	#$01,d1																;E249
-	asl.w	#$02,d0																;E540
+	asl.w	#$02,d0																;Converts the zero-based sound ID into a four-byte index for the sample-offset and playback-period table.
 	move.l	a0,_custom+aud.l													;23C800DFF0A0
 	move.w	d1,_custom+aud0+ac_len.l											;Programs Paula channel 0 with the selected sample length.
 	move.w	#$0040,_custom+aud0+ac_vol.l										;Sets Paula channel 0 to maximum volume used by this routine.
@@ -13767,7 +13867,7 @@ Draw_VisibleDungeonCells_Loop:		; Memory Address ($9202) and binary offset [$8E7
 	movem.l	(sp)+,d5-d7															;4CDF00E0
 adrCd009212:		; Memory Address ($9212) and binary offset [$8E8E]
 	addq.w	#$01,d6																;5246
-	cmpi.b	#$13,d6																;0C060013
+	cmpi.b	#Dungeon_ViewCell_Count,d6											;Continues through all nineteen player-relative view cells.
 	bcs.s	Draw_VisibleDungeonCells_Loop										;65E8
 	unlk	a3																	;4E5B
 	rts																			;4E75
@@ -13898,7 +13998,7 @@ GFX_StationarySpell_RenderLayout:		; Memory Address ($9368) and binary offset [$
 Dispatch_DungeonCellType:		; Memory Address ($9378) and binary offset [$8FF4]
 	; Masks the map-cell type and dispatches non-empty cells to the
 	; dungeon-location renderer.
-	and.w	#$0007,d1															;02410007
+	and.w	#Dungeon_CellTypeMask,d1											;Retains only the three map bits that select the dungeon cell renderer.
 	bne.s	Draw_DungeonLocation_ByType											;660A
 	tst.b	-$0011(a3)															;4A2BFFEF
 	bmi		Draw_DungeonCellOccupants											;6B00066C
@@ -14357,29 +14457,29 @@ adrCd0098D2:		; Memory Address ($98D2) and binary offset [$954E]
 	rol.w	#$08,d2																;E15A
 	move.b	d0,d2																;1400
 	move.w	CurrentTower.l,d3													;36390000EE2E
-	moveq	#$0F,d0																;700F
+	moveq	#Champion_Count-1,d0												;700F
 adrLp0098E8:		; Memory Address ($98E8) and binary offset [$9564]
-	cmp.b	$001F(a1),d3														;B629001F
+	cmp.b	ChampionStat_Tower(a1),d3											;B629001F
 	bne.s	adrCd0098FA															;660C
-	cmp.b	$001A(a1),d1														;B229001A
+	cmp.b	ChampionStat_Floor(a1),d1											;B229001A
 	bne.s	adrCd0098FA															;6606
-	cmp.w	$0016(a1),d2														;B4690016
+	cmp.w	ChampionStat_XPosition(a1),d2										;B4690016
 	beq.s	adrCd00992A															;6730
 adrCd0098FA:		; Memory Address ($98FA) and binary offset [$9576]
 	add.w	#$0020,a1															;D2FC0020
 	dbra	d0,adrLp0098E8														;51C8FFE8
 	moveq	#$10,d0																;7010
 	lea		UnpackedMonsters.l,a1												;43F900016B7E
-	move.w	-$0002(a1),d3														;3629FFFE
+	move.w	MonsterLive_RecordCountOffset(a1),d3								;3629FFFE
 	bmi.s	adrCd009926															;6B16
 adrLp009910:		; Memory Address ($9910) and binary offset [$958C]
-	cmp.b	$0004(a1),d1														;B2290004
+	cmp.b	MonsterRecord_Floor(a1),d1											;B2290004
 	bne.s	adrCd00991C															;6606
-	cmp.w	$0000(a1),d2														;B4690000
+	cmp.w	MonsterRecord_XPosition(a1),d2										;B4690000
 	beq.s	adrCd009930															;6714
 adrCd00991C:		; Memory Address ($991C) and binary offset [$9598]
 	addq.w	#$01,d0																;5240
-	add.w	#$0010,a1															;D2FC0010
+	add.w	#MonsterRecord_Size,a1												;D2FC0010
 	dbra	d3,adrLp009910														;51CBFFEC
 adrCd009926:		; Memory Address ($9926) and binary offset [$95A2]
 	swap	d1																	;4841
@@ -14639,7 +14739,7 @@ Decode_Monster_RenderFlags:		; Memory Address ($9BC0) and binary offset [$983C]
 	; Masks a monster render state to five bits and uses the resulting lookup entry
 	; for arm or claw animation flags.
 	clr.b	-$0015(a3)															;422BFFEB
-	and.w	#$001F,d0															;0240001F
+	and.w	#Monster_RenderFlagMask,d0											;Keeps only the five bits used to choose monster arm or claw animation flags.
 	move.b	Monster_RenderFlags_LookupTable(pc,d0.w),-$0015(a3)					;177B0006FFEB
 	rts																			;4E75
 
@@ -14656,7 +14756,7 @@ Draw_AirbourneSpell:		; Memory Address ($9BF0) and binary offset [$986C]
 	add.w	d1,d1																;D241
 	lea		GFX_FireBall.l,a1													;43F900034778
 	lea		GFX_AirbourneFireball_RenderLayout.l,a2								;45F900009C6E
-	cmpi.b	#$86,d0																;0C000086
+	cmpi.b	#AirbourneSpell_GeneralFirstCode,d0									;Separates fireball codes from the general airborne-spell graphic family.
 	bcs.s	.RenderSelectedLayout												;650A
 	add.w	#$0798,a1															;D2FC0798
 	lea		GFX_AirbourneSpells_RenderLayout.l,a2								;45F900009C86
@@ -14836,7 +14936,7 @@ MonsterColourGrading:		; Memory Address ($9E94) and binary offset [$9B10]
 	bcc.s	.gradelower															;6402
 	moveq	#$00,d2																;7400
 .gradelower:		; Memory Address ($9EA0) and binary offset [$9B1C]
-	cmpi.b	#$08,d2																;0C020008
+	cmpi.b	#Monster_ColourGradeCount,d2										;Clamps the colour-grade index to the eight palette grades available in the SPS 439 monster renderer.
 	bcs.s	.gradeupper															;6502
 	moveq	#$07,d2																;7407
 .gradeupper:		; Memory Address ($9EA8) and binary offset [$9B24]
@@ -15788,7 +15888,7 @@ adrCd00A70A:		; Memory Address ($A70A) and binary offset [$A386]
 	and.w	#$0003,d0															;02400003
 	moveq	#$00,d2																;7400
 	move.b	-$0017(a3),d2														;142BFFE9
-	sub.b	#$64,d2																;04020064
+	sub.b	#Monster_Type_First,d2												;Converts the monster type code into the renderer dispatch index; codes below the first monster type continue to character drawing.
 	bcs.s	Draw_Character														;6526
 	cmpi.b	#$02,d2																;0C020002
 	beq		Draw_Beholder														;6700FA66
@@ -16785,12 +16885,12 @@ Accumulate_PlanarColourMask:		; Memory Address ($B03C) and binary offset [$ACB8]
 	beq.s	adrCd00B062															;6720
 	add.w	d6,d6																;DC46
 	add.w	d6,d6																;DC46
-	and.w	#$000C,d6															;0246000C
+	and.w	#PlanarColourMask_IndexMask,d6										;Converts each two-bit destination colour pair into one of four longword plane masks.
 	move.l	Bitplane_Mask(pc,d6.w),d6											;2C3B6018
 	and.l	d3,d6																;CC83
 	or.l	d6,d4																;8886
 	move.b	$00(a6,d7.w),d6														;1C367000
-	and.w	#$000C,d6															;0246000C
+	and.w	#PlanarColourMask_IndexMask,d6										;Converts each two-bit destination colour pair into one of four longword plane masks.
 	move.l	Bitplane_Mask(pc,d6.w),d6											;2C3B6008
 	and.l	d3,d6																;CC83
 	or.l	d6,d5																;8A86
@@ -16935,8 +17035,8 @@ Calculate_WallOverlay_ColourIndex:		; Memory Address ($B1CC) and binary offset [
 Load_WallOverlay_ColourMask:		; Memory Address ($B1D4) and binary offset [$AE50]
 	; Masks the colour index to eight entries, multiplies it by four and loads the
 	; selected four-byte colour mask.
-	and.w	#$0007,d1															;02410007
-	asl.w	#$02,d1																;E541
+	and.w	#WallOverlay_ColourIndexMask,d1										;Wraps coordinate-derived and fixed colour selections to the eight available masks.
+	asl.w	#WallOverlay_ColourEntryShift,d1									;Converts the colour index into a byte offset for four-byte mask records.
 	move.l	$00(a6,d1.w),d0														;20361000
 	rts																			;4E75
 
@@ -17122,7 +17222,7 @@ adrCd00B42C:		; Memory Address ($B42C) and binary offset [$B0A8]
 Flip_Sprite:		; Memory Address ($B42E) and binary offset [$B0AA]
 	; Clears the component mirror flag, resolves its geometry, and draws it through
 	; the bit-reversed path.
-	and.w	#$007F,d0															;0240007F
+	and.w	#WallSprite_IndexMask,d0											;Removes the mirror flag while retaining the component picture index.
 	bsr.s	Prepare_WallSpriteDraw												;6152
 	add.w	d3,a0																;D0C3
 	swap	d3																	;4843
@@ -17205,9 +17305,9 @@ Draw_WallComponent_Transformed:		; Memory Address ($B4E0) and binary offset [$B1
 	bsr.s	Draw_WallComponent_EdgeTransform									;6166
 adrCd00B4FA:		; Memory Address ($B4FA) and binary offset [$B176]
 	move.b	(a2),d6																;1C12
-	and.w	#$0007,d6															;02460007
+	and.w	#WallTransform_FlagMask,d6											;Retains the edge and perspective controls used to index the component trim table.
 	swap	d3																	;4843
-	moveq	#$28,d2																;7428
+	moveq	#Screen_BitplaneRowBytes,d2											;Uses the forty-byte single-bitplane screen-row stride when advancing transformed component rows.
 	sub.w	d3,d2																;9443
 	swap	d3																	;4843
 	move.w	d5,d4																;3805
@@ -17380,9 +17480,9 @@ Draw_MainWall_Transformed:		; Memory Address ($B666) and binary offset [$B2E2]
 adrCd00B680:		; Memory Address ($B680) and binary offset [$B2FC]
 	movem.l	d7/a0/a1,-(sp)														;48E701C0
 	move.b	(a2),d6																;1C12
-	and.w	#$0007,d6															;02460007
+	and.w	#WallTransform_FlagMask,d6											;Retains the edge and perspective controls used to index the main-wall trim table.
 	swap	d3																	;4843
-	move.w	#$0028,d7															;3E3C0028
+	move.w	#Screen_BitplaneRowBytes,d7											;Uses the forty-byte single-bitplane screen-row stride when advancing transformed wall rows.
 	add.w	d3,d7																;DE43
 	swap	d3																	;4843
 	move.w	d5,d4																;3805

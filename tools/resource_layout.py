@@ -27,6 +27,24 @@ def cell_text(row: pd.Series, column: str) -> str:
     return "" if text.casefold() == "nan" else text
 
 
+def resource_name(row: pd.Series) -> str:
+    """Return the output path, with the workbook's legacy formula as fallback.
+
+    The maintained ``name`` column normally contains the complete relative
+    path. Older/profile rows may leave it blank while retaining ``Type`` and
+    ``DATA BLOCK FILE``; those columns correspond to the worksheet formula
+    ``=IF(D<>"",C&"/"&D,"")``.
+    """
+    name = cell_text(row, "name")
+    if name:
+        return name
+    resource_type = cell_text(row, "type")
+    data_block_file = cell_text(row, "data block file")
+    if resource_type and data_block_file:
+        return f"{resource_type}/{data_block_file}"
+    return ""
+
+
 def data_action(row: pd.Series) -> str:
     """Return a normalised resource-layout action from a spreadsheet row."""
     action = cell_text(row, DATA_ACTION_COLUMN).casefold()

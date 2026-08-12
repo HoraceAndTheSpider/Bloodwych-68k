@@ -12,7 +12,7 @@ from .tool_common import (
     ToolError,
     get_profile,
     parse_int,
-    resolve_project_path,
+    resolve_cleanup_path,
 )
 from .resource_layout import cell_text
 
@@ -194,9 +194,13 @@ def _label_indices(lines: list[str]) -> dict[str, list[int]]:
     return indices
 
 
-def _comment_rows(sheet: str | Path, master: str) -> pd.DataFrame:
+def _comment_rows(
+    sheet: str | Path,
+    master: str,
+    cleanup: str | Path | None = None,
+) -> pd.DataFrame:
     """Load the profile's COMMENTS rows, or an empty frame if the tab is absent."""
-    path = resolve_project_path(sheet)
+    path = resolve_cleanup_path(sheet, cleanup)
     if path.suffix.casefold() == ".csv":
         return pd.DataFrame(columns=COMMENT_COLUMNS)
     with pd.ExcelFile(path) as book:
@@ -346,6 +350,7 @@ def format_relabel_data(
     asm_path: Path,
     sheet: str | Path | None = None,
     master: str | None = None,
+    cleanup: str | Path | None = None,
 ) -> Path:
     """Apply COMMENTS and format one existing ``*_relabel_data.asm`` file."""
     if not asm_path.is_file():
@@ -354,7 +359,9 @@ def format_relabel_data(
     had_final_newline = original.endswith("\n")
     lines = original.splitlines()
     if sheet is not None and master is not None:
-        lines = apply_instruction_comments(lines, _comment_rows(sheet, master))
+        lines = apply_instruction_comments(
+            lines, _comment_rows(sheet, master, cleanup)
+        )
     formatted = "\n".join(format_asm_lines(lines))
     if had_final_newline:
         formatted += "\n"

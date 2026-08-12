@@ -89,6 +89,55 @@ class InspectSourceTests(unittest.TestCase):
                 output_log.getvalue(),
             )
 
+    def test_blank_name_uses_type_and_data_block_file_for_incbins(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary_directory:
+            root = Path(temporary_directory)
+            clean_dir = root / "data"
+            (clean_dir / "sfx").mkdir(parents=True)
+            relabel_source = root / "GAME_relabel.asm"
+            relabel_source.write_text(
+                "Sample:\n"
+                "\tdc.b\t$01,$02,$03,$04\n"
+                "After:\n"
+                "\trts\n",
+                encoding="utf-8",
+            )
+            (clean_dir / "sfx/sample.sound").write_bytes(bytes((1, 2, 3, 4)))
+            segments = pd.DataFrame(
+                (
+                    {
+                        "label": "Sample",
+                        "relabel": "Sample",
+                        "type": "sfx",
+                        "data block file": "sample.sound",
+                        "name": "",
+                        "size": 4,
+                    },
+                )
+            )
+
+            def fake_asm_path(_master: str, stage: str) -> Path:
+                if stage == "relabel":
+                    return relabel_source
+                return root / "GAME.asm"
+
+            with (
+                patch(
+                    "tools.tool_inspect.get_profile",
+                    return_value=SimpleNamespace(clean_dir=clean_dir),
+                ),
+                patch("tools.tool_inspect.project_asm_path", side_effect=fake_asm_path),
+                patch("tools.tool_inspect.load_segments", return_value=segments),
+                patch(
+                    "tools.tool_inspect.relative_to_root",
+                    side_effect=lambda path: path.relative_to(root),
+                ),
+            ):
+                output_path = inspect_source("GAME", root / "segments.xlsx")
+
+            generated = output_path.read_text(encoding="utf-8")
+            self.assertIn('Sample:\n\tINCBIN "/data/sfx/sample.sound"', generated)
+
     def test_zero_resource_uses_ds_b(self) -> None:
         with tempfile.TemporaryDirectory() as temporary_directory:
             root = Path(temporary_directory)
@@ -180,7 +229,7 @@ class InspectSourceTests(unittest.TestCase):
             state_words = "\n".join("\tdc.w\t$0000\t;0000" for _ in range(16))
             relabel_source.write_text(
                 "Comms_StateRecords:\t\t; Memory Address ($16B4C) and binary offset [$167C8]\n"
-                "\t; ReSource: Two sixteen-byte communication state records, one for each player.\n"
+                "\t; Two sixteen-byte communication state records, one for each player.\n"
                 f"{state_words}\n"
                 "PhysicalAttack_WorkingValues:\t\n"
                 "\tdc.w\t$0000\n"
@@ -318,11 +367,11 @@ class InspectSourceTests(unittest.TestCase):
                 "After:\n"
                 "\trts\n"
                 "Beholder_UpperEyes:\t\tequ\tBeholder_Body+$2"
-                "\t; ReSource: temporary data_append alias\n"
+                "\t; temporary data_append alias\n"
                 "Beholder_CentralEye_Near:\t\tequ\tBeholder_Body+$4"
-                "\t; ReSource: temporary data_append alias\n"
+                "\t; temporary data_append alias\n"
                 "Beholder_CentralEye_Far:\t\tequ\tBeholder_Body+$5"
-                "\t; ReSource: temporary data_append alias\n",
+                "\t; temporary data_append alias\n",
                 encoding="utf-8",
             )
             files = {
@@ -464,7 +513,7 @@ class InspectSourceTests(unittest.TestCase):
             relabel_source.write_text(
                 "Combined:\n\tdc.b\t$01,$02\nAfter:\n\trts\n"
                 "Second:\t\tequ\tCombined+$2"
-                "\t; ReSource: temporary data_append alias\n",
+                "\t; temporary data_append alias\n",
                 encoding="utf-8",
             )
             (clean_dir / "one.bin").write_bytes(b"\x01")

@@ -10,9 +10,9 @@ from .resource_layout import ResourceLayout, cell_text
 from .tool_common import ToolError, parse_int
 
 
-TEMPORARY_ALIAS_MARKER = "ReSource: temporary data_append alias"
-TEMPORARY_ALIAS_BEGIN = "; ReSource: temporary data_append aliases"
-TEMPORARY_ALIAS_END = f"; ReSource: end temporary data_append aliases"
+TEMPORARY_ALIAS_MARKER = "temporary data_append alias"
+TEMPORARY_ALIAS_BEGIN = "; temporary data_append aliases"
+TEMPORARY_ALIAS_END = "; end temporary data_append aliases"
 LABEL_DEFINITION = re.compile(r"^\s*([A-Za-z_.$?][\w.$?]*)\s*:")
 END_DIRECTIVE = re.compile(r"^\s*end(?:\s|$)", re.IGNORECASE)
 

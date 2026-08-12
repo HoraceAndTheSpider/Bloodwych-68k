@@ -1,19 +1,22 @@
 # Spreadsheet-owned EQU definitions and source rules
 
-`segments.xlsx` keeps binary resource ranges on the version sheet and source
-constants on one optional `EQUATES` worksheet. Each row defines an EQU and may
-also identify one confirmed instruction where it replaces a literal or
-misleading disassembly label.
+`segments.xlsx` keeps the protected version-specific labels and binary resource
+ranges. Source constants and instruction comments are maintained in the
+separate `cleanup.xlsx` workbook, in its `EQUATES` and `COMMENTS` worksheets.
+Each EQUATES row defines an EQU and may also identify one confirmed instruction
+where it replaces a literal or misleading disassembly label.
 
 The columns are `profile`, `equ_name`, `equ_value`, `scope_start`, `scope_end`,
 `source_match`, `expected_opcode`, `source_replace`, `expected_matches`,
 `status`, `source_comment`, and optional `notes`.
 
-The Relabel step treats this worksheet as optional. A workbook without it
+The Relabel step treats the cleanup workbook as optional. A project without it
 continues to use the original label workflow.
 
-Only rows marked `verified` affect generated source. `proposed` rows remain
-visible for research and `disabled` rows are retained but ignored.
+Only rows marked `verified` affect generated source. Use `proposed` only for a
+specific unresolved live-data, emulator, or controlled-binary check, and record
+that check and its promotion criterion in `notes`. `disabled` rows are retained
+but ignored.
 
 ## Stable instruction matching
 
