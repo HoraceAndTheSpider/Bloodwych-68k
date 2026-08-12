@@ -3908,7 +3908,7 @@ adrCd0029D8:		; Memory Address ($29D8) and binary offset [$2654]
 	movem.w	d2/d3/d7,-(sp)	;48A73100
 	bsr	PostDoorToggle_Enter_AI_TBC	;6100006C
 	bmi.s	DoorToggle_Lower_AI_TBC	;6B06
-	bsr	adrCd0033BE	;610009C0
+	bsr	Interface_CheckSelectedCellInteraction	;610009C0
 	bcs.s	adrCd002A14	;6512
 DoorToggle_Lower_AI_TBC:		; Memory Address ($2A02) and binary offset [$267E]
 	movem.w	(sp)+,d2/d3/d7	;4C9F008C
@@ -4118,7 +4118,7 @@ adrCd002BD8:		; Memory Address ($2BD8) and binary offset [$2854]
 	cmpi.b	#$09,d0	;0C000009
 	bne.s	adrCd002C40	;6638
 	movem.l	d0/a4/a5,-(sp)	;48E7800C
-	bsr	adrCd0033BE	;610007B0
+	bsr	Interface_CheckSelectedCellInteraction	;610007B0
 	bcc.s	adrCd002C3C	;642A
 	tst.b	d0	;4A00
 	bmi.s	adrCd002C3C	;6B26
@@ -4859,7 +4859,8 @@ adrCd00334A:		; Memory Address ($334A) and binary offset [$2FC6]
 	move.w	d7,d0	;3007
 	jmp	adrCd00CAEA.l	;4EF90000CAEA
 
-adrJA00336A:		; Memory Address ($336A) and binary offset [$2FE6]
+Interface_DispatchPageAction:		; Memory Address ($336A) and binary offset [$2FE6]
+	; ReSource: Derives the interface action index from the selected command bytes and dispatches the current interface page state.
 	move.l	$0046(a5),a6	;2C6D0046
 	moveq	#$00,d1	;7200
 	move.b	$0040(a5),d0	;102D0040
@@ -4875,31 +4876,35 @@ adrCd003386:		; Memory Address ($3386) and binary offset [$3002]
 	dbra	d0,adrLp00337C	;51C8FFF4
 adrCd00338A:		; Memory Address ($338A) and binary offset [$3006]
 	add.b	$0041(a5),d1	;D22D0041
-adrCd00338E:		; Memory Address ($338E) and binary offset [$300A]
+Interface_DispatchPageState:		; Memory Address ($338E) and binary offset [$300A]
+	; ReSource: Uses the current interface page state in the player record to select a handler from the relative-offset table at $33A0.
 	move.w	$0042(a5),d0	;302D0042
 	add.w	d0,d0	;D040
-	lea	adrJB0033B2.l,a0	;41F9000033B2
-	add.w	adrJT0033A0(pc,d0.w),a0	;D0FB0004
+	lea	Interface_AdvancePageState.l,a0	;41F9000033B2
+	add.w	Interface_PageStateHandlers(pc,d0.w),a0	;D0FB0004
 	jmp	(a0)	;4ED0
 
-adrJT0033A0:		; Memory Address ($33A0) and binary offset [$301C]
-	dc.w	adrJB0033B2-adrJB0033B2	;0000
-	dc.w	adrJA0033EE-adrJB0033B2	;003C
-	dc.w	adrJA004150-adrJB0033B2	;0D9E
-	dc.w	adrJA0040E4-adrJB0033B2	;0D32
-	dc.w	adrJA003F60-adrJB0033B2	;0BAE
-	dc.w	adrJA004144-adrJB0033B2	;0D92
-	dc.w	adrJA003F5C-adrJB0033B2	;0BAA
-	dc.w	adrJA003E9C-adrJB0033B2	;0AEA
-	dc.w	Comms_HandleMenuSelection-adrJB0033B2	;011A
+Interface_PageStateHandlers:		; Memory Address ($33A0) and binary offset [$301C]
+	; ReSource: Nine word-relative handler offsets for interface page states 0 through 8; entry 8 already targets the existing Comms_HandleMenuSelection relabel.
+	dc.w	Interface_AdvancePageState-Interface_AdvancePageState	;0000
+	dc.w	Interface_EnterCommunication-Interface_AdvancePageState	;003C
+	dc.w	Interface_ProcessSelectedAction_11-Interface_AdvancePageState	;0D9E
+	dc.w	Interface_HandleInventoryObjectAction-Interface_AdvancePageState	;0D32
+	dc.w	Interface_ProcessSelectedAction_13-Interface_AdvancePageState	;0BAE
+	dc.w	Interface_ProcessSelectedAction_14-Interface_AdvancePageState	;0D92
+	dc.w	Interface_ProcessSelectedAction_15-Interface_AdvancePageState	;0BAA
+	dc.w	Interface_ReportOtherPlayerProximity-Interface_AdvancePageState	;0AEA
+	dc.w	Comms_HandleMenuSelection-Interface_AdvancePageState	;011A
 
-adrJB0033B2:		; Memory Address ($33B2) and binary offset [$302E]
+Interface_AdvancePageState:		; Memory Address ($33B2) and binary offset [$302E]
+	; ReSource: Clears the temporary selection flag, advances the interface page state, and loops back through the page-state dispatcher.
 	clr.b	$004E(a5)	;422D004E
 	addq.w	#$01,d1	;5241
 	move.w	d1,$0042(a5)	;3B410042
-	bra.s	adrCd00338E	;60D0
+	bra.s	Interface_DispatchPageState	;60D0
 
-adrCd0033BE:		; Memory Address ($33BE) and binary offset [$303A]
+Interface_CheckSelectedCellInteraction:		; Memory Address ($33BE) and binary offset [$303A]
+	; ReSource: Checks map bounds and selected-cell metadata, then resolves an interaction target; communication entry uses its carry result but other paths also call it.
 	bsr	adrCd00847E	;610050BE
 	move.l	d7,d2	;2407
 	cmp.w	adrW_00EE72.l,d7	;BE790000EE72
@@ -4913,16 +4918,18 @@ adrCd0033BE:		; Memory Address ($33BE) and binary offset [$303A]
 	subq.w	#$01,d1	;5341
 	beq.s	adrCd0033EC	;6708
 	move.w	$0058(a5),d1	;322D0058
-	bra	adrCd0098A8	;600064BE
+	bra	Find_DungeonCellOccupant	;600064BE
 
 adrCd0033EC:		; Memory Address ($33EC) and binary offset [$3068]
 	rts	;4E75
 
-adrJA0033EE:		; Memory Address ($33EE) and binary offset [$306A]
-	bsr.s	adrCd0033BE	;61CE
+Interface_EnterCommunication:		; Memory Address ($33EE) and binary offset [$306A]
+	; ReSource: Validates the selected interaction target and enters communication through the existing Comms_StartWithTarget routine; failure prints Notice_CommunicationTargetUnavailable.
+	bsr.s	Interface_CheckSelectedCellInteraction	;61CE
 	bcs.s	Comms_StartWithTarget	;6510
-adrCd0033F2:		; Memory Address ($33F2) and binary offset [$306E]
-	lea	adrEA0041F3.l,a6	;4DF9000041F3
+Interface_ReportCommunicationTargetUnavailable:		; Memory Address ($33F2) and binary offset [$306E]
+	; ReSource: Prints the unavailable-target notice and clears the interface page state.
+	lea	Notice_NobodyHere.l,a6	;4DF9000041F3
 	clr.w	$0042(a5)	;426D0042
 	jmp	Print_timed_message.l	;4EF90000D86A
 
@@ -4944,7 +4951,7 @@ Comms_StartWithTarget:		; Memory Address ($3402) and binary offset [$307E]
 	cmpi.w	#$0010,d0	;0C400010
 	bcs.s	adrCd003444	;650C
 	tst.b	$000B(a1)	;4A29000B
-	bmi.s	adrCd0033F2	;6BB4
+	bmi.s	Interface_ReportCommunicationTargetUnavailable	;6BB4
 	bsr	Comms_InitialiseMonsterTrader	;6100FE3C
 	moveq	#$02,d4	;7802
 adrCd003444:		; Memory Address ($3444) and binary offset [$30C0]
@@ -5917,8 +5924,9 @@ Msg_Recruit:
 	dc.b	$FF	;FF
 	dc.b	$00	;00
 
-adrJA003E9C:		; Memory Address ($3E9C) and binary offset [$3B18]
-	lea	adrEA0041D4.l,a6	;4DF9000041D4
+Interface_ReportOtherPlayerProximity:		; Memory Address ($3E9C) and binary offset [$3B18]
+	; ReSource: Reports the other player when both players are active on the same map index; builds a distance-sensitive notice in the shared message buffer.
+	lea	Notice_CallOut.l,a6	;4DF9000041D4
 	jsr	Print_timed_message.l	;4EB90000D86A
 	move.b	#$FF,$0050(a5)	;1B7C00FF0050
 	lea	Player1_Data.l,a1	;43F90000EE7C
@@ -5979,34 +5987,38 @@ adrCd003F36:		; Memory Address ($3F36) and binary offset [$3BB2]
 adrCd003F58:		; Memory Address ($3F58) and binary offset [$3BD4]
 	bra	adrCd00332A	;6000F3D0
 
-adrJA003F5C:		; Memory Address ($3F5C) and binary offset [$3BD8]
+Interface_ProcessSelectedAction_15:		; Memory Address ($3F5C) and binary offset [$3BD8]
+	; ReSource: Dispatches action value $15 through the shared selected-inventory-action path; exact user-facing operation remains unresolved.
 	moveq	#$15,d7	;7E15
-	bra.s	adrCd003F66	;6006
+	bra.s	Interface_ProcessSelectedInventoryAction	;6006
 
-adrJA003F60:		; Memory Address ($3F60) and binary offset [$3BDC]
+Interface_ProcessSelectedAction_13:		; Memory Address ($3F60) and binary offset [$3BDC]
+	; ReSource: Clears the message context, then dispatches action value $13 through the shared selected-inventory-action path.
 	clr.b	$0050(a5)	;422D0050
 	moveq	#$13,d7	;7E13
-adrCd003F66:		; Memory Address ($3F66) and binary offset [$3BE2]
+Interface_ProcessSelectedInventoryAction:		; Memory Address ($3F66) and binary offset [$3BE2]
+	; ReSource: Maps the selected inventory entry, tests the destination cell, removes or applies the object, and prints success or blocked notices.
 	tst.b	$004E(a5)	;4A2D004E
-	beq	adrCd0040A0	;67000134
-	bsr	adrCd00417E	;6100020E
+	beq	Interface_OpenInventoryActionSelector	;67000134
+	bsr	Interface_MapSelectedAction	;6100020E
 	move.w	d7,-(sp)	;3F07
 	move.b	d0,$004F(a5)	;1B40004F
 	move.l	$001C(a5),d7	;2E2D001C
 	move.w	$0020(a5),d6	;3C2D0020
 	bsr	Compute_NewMapIndex_AI_TBC	;61003AC2
-	bcc.s	adrCd003F9C	;6416
+	bcc.s	Interface_FinalizeSelectedWorldAction	;6416
 	addq.w	#$02,sp	;544F
-	lea	adrEA0041BB.l,a6	;4DF9000041BB
+	lea	Notice_DepartureBlocked.l,a6	;4DF9000041BB
 	move.b	$004F(a5),(a6)	;1CAD004F
 	jsr	Print_timed_message.l	;4EB90000D86A
 	bra	adrCd00332A	;6000F390
 
-adrCd003F9C:		; Memory Address ($3F9C) and binary offset [$3C18]
+Interface_FinalizeSelectedWorldAction:		; Memory Address ($3F9C) and binary offset [$3C18]
+	; ReSource: Completes a valid selected-object world action, updates the champion record, and displays the resulting notice.
 	bset	#$07,$01(a6,d2.w)	;08F600072001
 	move.b	$004F(a5),d0	;102D004F
-	bsr	adrCd004004	;6100005C
-	lea	adrEA0041C6.l,a6	;4DF9000041C6
+	bsr	Interface_RemoveSelectedInventoryObject	;6100005C
+	lea	Notice_PartyMemberLeaves.l,a6	;4DF9000041C6
 	move.w	(sp)+,d1	;321F
 	cmpi.w	#$0015,d1	;0C410015
 	beq.s	adrCd003FCE	;6716
@@ -6014,7 +6026,7 @@ adrCd003F9C:		; Memory Address ($3F9C) and binary offset [$3C18]
 	move.b	$004F(a5),d0	;102D004F
 	bset	#$05,d0	;08C00005
 	move.b	d0,$18(a5,d1.w)	;1B801018
-	lea	adrEA0041C1.l,a6	;4DF9000041C1
+	lea	Notice_PartyMemberWaits.l,a6	;4DF9000041C1
 adrCd003FCE:		; Memory Address ($3FCE) and binary offset [$3C4A]
 	move.b	$004F(a5),d0	;102D004F
 	move.b	d0,(a6)	;1C80
@@ -6029,7 +6041,8 @@ adrCd003FCE:		; Memory Address ($3FCE) and binary offset [$3C4A]
 	bsr	adrCd008246	;61004248
 	bra	adrCd00332A	;6000F328
 
-adrCd004004:		; Memory Address ($4004) and binary offset [$3C80]
+Interface_RemoveSelectedInventoryObject:		; Memory Address ($4004) and binary offset [$3C80]
+	; ReSource: Removes the selected inventory object, compacts the pocket flags, and refreshes inventory state.
 	bsr	adrCd004092	;6100008C
 	move.b	#$FF,$26(a5,d2.w)	;1BBC00FF2026
 	cmp.w	$0016(a5),d2	;B46D0016
@@ -6100,32 +6113,37 @@ adrLp004094:		; Memory Address ($4094) and binary offset [$3D10]
 adrCd00409E:		; Memory Address ($409E) and binary offset [$3D1A]
 	rts	;4E75
 
-adrCd0040A0:		; Memory Address ($40A0) and binary offset [$3D1C]
+Interface_OpenInventoryActionSelector:		; Memory Address ($40A0) and binary offset [$3D1C]
+	; ReSource: Builds the selectable inventory-object list and either opens selection or displays the supplied no-selection notice.
 	bsr	adrJA007CA6	;61003C04
 	tst.w	d2	;4A42
 	bne.s	adrCd0040BC	;6614
-	lea	adrEA0041CD.l,a6	;4DF9000041CD
+	lea	Notice_NoPartyCommandTarget.l,a6	;4DF9000041CD
 	move.b	d7,$0005(a6)	;1D470005
-adrCd0040B2:		; Memory Address ($40B2) and binary offset [$3D2E]
+Interface_ShowInventoryActionNotice:		; Memory Address ($40B2) and binary offset [$3D2E]
+	; ReSource: Clears the page state and prints a fixed inventory/action notice.
 	clr.w	$0042(a5)	;426D0042
 	jmp	Print_timed_message.l	;4EF90000D86A
 
 adrCd0040BC:		; Memory Address ($40BC) and binary offset [$3D38]
 	move.w	#$0001,$0044(a5)	;3B7C00010044
-	bra.s	adrCd0040CA	;6006
+	bra.s	Interface_InitInventoryActionSelector	;6006
 
-adrCd0040C4:		; Memory Address ($40C4) and binary offset [$3D40]
+Interface_OpenInventorySelection:		; Memory Address ($40C4) and binary offset [$3D40]
+	; ReSource: Selects the inventory-selection page and enters the common selection-prompt path.
 	move.w	#$0003,$0044(a5)	;3B7C00030044
-adrCd0040CA:		; Memory Address ($40CA) and binary offset [$3D46]
+Interface_InitInventoryActionSelector:		; Memory Address ($40CA) and binary offset [$3D46]
+	; ReSource: Marks selection as active, patches the prompt template with the action value, and opens the fixed-message selector.
 	move.b	#$01,$004E(a5)	;1B7C0001004E
-	lea	adrEA0041A0.l,a6	;4DF9000041A0
+	lea	Notice_PartyCommand_SelectTarget.l,a6	;4DF9000041A0
 	move.b	d7,$0007(a6)	;1D470007
 	jsr	Print_fix_message.l	;4EB90000D870
 	bra	adrCd007D6C	;60003C8A
 
-adrJA0040E4:		; Memory Address ($40E4) and binary offset [$3D60]
+Interface_HandleInventoryObjectAction:		; Memory Address ($40E4) and binary offset [$3D60]
+	; ReSource: Counts usable inventory entries, opens selection when available, or reports that no usable inventory action exists; selected entries become a pending action.
 	tst.b	$004E(a5)	;4A2D004E
-	bne.s	adrCd004114	;662A
+	bne.s	Interface_CommitSelectedInventoryAction	;662A
 	moveq	#$12,d7	;7E12
 	moveq	#$03,d1	;7203
 	moveq	#$00,d2	;7400
@@ -6140,35 +6158,39 @@ adrLp0040F0:		; Memory Address ($40F0) and binary offset [$3D6C]
 adrCd004104:		; Memory Address ($4104) and binary offset [$3D80]
 	dbra	d1,adrLp0040F0	;51C9FFEA
 	tst.w	d2	;4A42
-	bne.s	adrCd0040C4	;66B8
-	lea	adrEA0041E9.l,a6	;4DF9000041E9
-	bra.s	adrCd0040B2	;609E
+	bne.s	Interface_OpenInventorySelection	;66B8
+	lea	Notice_EveryonePresent.l,a6	;4DF9000041E9
+	bra.s	Interface_ShowInventoryActionNotice	;609E
 
-adrCd004114:		; Memory Address ($4114) and binary offset [$3D90]
-	bsr	adrCd00417E	;61000068
+Interface_CommitSelectedInventoryAction:		; Memory Address ($4114) and binary offset [$3D90]
+	; ReSource: Stores the selected inventory action nibble, patches its notice template, and commits the pending action.
+	bsr	Interface_MapSelectedAction	;61000068
 	move.b	d0,$0053(a5)	;1B400053
 	and.b	#$0F,$0053(a5)	;022D000F0053
 	move.b	#$01,$0014(a5)	;1B7C00010014
-	lea	adrEA0041E3.l,a6	;4DF9000041E3
+	lea	Notice_ViewThroughPartyMember.l,a6	;4DF9000041E3
 	move.b	$0053(a5),$0004(a6)	;1D6D00530004
 	jsr	Print_fix_message.l	;4EB90000D870
 	move.w	#$0101,$0040(a5)	;3B7C01010040
 	bra	adrCd00332A	;6000F1E8
 
-adrJA004144:		; Memory Address ($4144) and binary offset [$3DC0]
+Interface_ProcessSelectedAction_14:		; Memory Address ($4144) and binary offset [$3DC0]
+	; ReSource: Applies action value $14 to the selected object and reports the resulting pocket-state change.
 	moveq	#$14,d7	;7E14
-	lea	adrEA0041B2.l,a6	;4DF9000041B2
+	lea	Notice_CorrectionApology.l,a6	;4DF9000041B2
 	moveq	#$10,d3	;7610
-	bra.s	adrCd00415A	;600A
+	bra.s	Interface_CommitSelectedObjectFlags	;600A
 
-adrJA004150:		; Memory Address ($4150) and binary offset [$3DCC]
-	lea	adrEA0041AB.l,a6	;4DF9000041AB
+Interface_ProcessSelectedAction_11:		; Memory Address ($4150) and binary offset [$3DCC]
+	; ReSource: Applies action value $11 to the selected object and reports the resulting pocket-state change.
+	lea	Notice_CommendAccepted.l,a6	;4DF9000041AB
 	moveq	#$11,d7	;7E11
 	moveq	#$00,d3	;7600
-adrCd00415A:		; Memory Address ($415A) and binary offset [$3DD6]
+Interface_CommitSelectedObjectFlags:		; Memory Address ($415A) and binary offset [$3DD6]
+	; ReSource: Maps the selected object, clears its active flag, updates the pocket flags, and prints the action notice.
 	tst.b	$004E(a5)	;4A2D004E
-	beq	adrCd0040A0	;6700FF40
-	bsr.s	adrCd00417E	;611A
+	beq	Interface_OpenInventoryActionSelector	;6700FF40
+	bsr.s	Interface_MapSelectedAction	;611A
 	bclr	#$04,$19(a5,d2.w)	;08B500042019
 	or.b	$19(a5,d2.w),d3	;86352019
 	move.b	d3,$19(a5,d2.w)	;1B832019
@@ -6176,8 +6198,9 @@ adrCd00415A:		; Memory Address ($415A) and binary offset [$3DD6]
 	jsr	Print_timed_message.l	;4EB90000D86A
 	bra	adrCd00332A	;6000F1AE
 
-adrCd00417E:		; Memory Address ($417E) and binary offset [$3DFA]
-	lea	adrEA007C24.l,a1	;43F900007C24
+Interface_MapSelectedAction:		; Memory Address ($417E) and binary offset [$3DFA]
+	; ReSource: Maps the selected button index through the runtime action-selection scratch entries at $7C24; negative entries return the existing Return_InvalidPlayerAction path.
+	lea	Interface_ActionSelectionScratchEntries.l,a1	;43F900007C24
 	and.w	#$0003,d1	;02410003
 	move.w	d1,d2	;3401
 	add.w	d1,d1	;D241
@@ -6192,7 +6215,8 @@ Return_InvalidPlayerAction:		; Memory Address ($451A) and binary offset [$4196]
 	addq.w	#$04,sp	;584F
 	rts	;4E75
 
-adrEA0041A0:		; Memory Address ($41A0) and binary offset [$3E1C]
+Notice_PartyCommand_SelectTarget:		; Memory Address ($41A0) and binary offset [$3E1C]
+	; ReSource: Packed-word prompt displayed as "WHOM DOST THOU WISH TO <ACTION>?"; the action word is patched at runtime.
 	dc.b	$18	;18
 	dc.b	$FA	;FA
 	dc.b	$4D	;4D
@@ -6204,7 +6228,8 @@ adrEA0041A0:		; Memory Address ($41A0) and binary offset [$3E1C]
 	dc.b	$FA	;FA
 	dc.b	$3F	;3F
 	dc.b	$FF	;FF
-adrEA0041AB:		; Memory Address ($41AB) and binary offset [$3E27]
+Notice_CommendAccepted:		; Memory Address ($41AB) and binary offset [$3E27]
+	; ReSource: Packed-word Commend result displayed as "<NAME> ACCEPTS THY HONOUR"; the selected party-member token replaces the default BLODWYN token.
 	dc.b	$00	;00
 	dc.b	$1D	;1D
 	dc.b	$FA	;FA
@@ -6212,7 +6237,8 @@ adrEA0041AB:		; Memory Address ($41AB) and binary offset [$3E27]
 	dc.b	$1E	;1E
 	dc.b	$1F	;1F
 	dc.b	$FF	;FF
-adrEA0041B2:		; Memory Address ($41B2) and binary offset [$3E2E]
+Notice_CorrectionApology:		; Memory Address ($41B2) and binary offset [$3E2E]
+	; ReSource: Packed-word Correct result displayed as "<NAME> APOLOGISES FOR BREATHING"; the selected party-member token replaces the default BLODWYN token.
 	dc.b	$00	;00
 	dc.b	$21	;21
 	dc.b	$FA	;FA
@@ -6222,20 +6248,23 @@ adrEA0041B2:		; Memory Address ($41B2) and binary offset [$3E2E]
 	dc.b	$FB	;FB
 	dc.b	$4A	;4A
 	dc.b	$FF	;FF
-adrEA0041BB:		; Memory Address ($41BB) and binary offset [$3E37]
+Notice_DepartureBlocked:		; Memory Address ($41BB) and binary offset [$3E37]
+	; ReSource: Packed-word party-management result displayed as "<NAME> IS UNABLE TO DEPART"; the selected party-member token replaces the default BLODWYN token.
 	dc.b	$00	;00
 	dc.b	$35	;35
 	dc.b	$17	;17
 	dc.b	$1C	;1C
 	dc.b	$30	;30
 	dc.b	$FF	;FF
-adrEA0041C1:		; Memory Address ($41C1) and binary offset [$3E3D]
+Notice_PartyMemberWaits:		; Memory Address ($41C1) and binary offset [$3E3D]
+	; ReSource: Packed-word Wait result displayed as "<NAME> WAITS"; the selected party-member token replaces the default BLODWYN token.
 	dc.b	$00	;00
 	dc.b	$13	;13
 	dc.b	$FA	;FA
 	dc.b	$53	;53
 	dc.b	$FF	;FF
-adrEA0041C6:		; Memory Address ($41C6) and binary offset [$3E42]
+Notice_PartyMemberLeaves:		; Memory Address ($41C6) and binary offset [$3E42]
+	; ReSource: Packed-word Dismiss result displayed as "<NAME> LEAVES THE PARTY"; the selected party-member token replaces the default BLODWYN token.
 	dc.b	$00	;00
 	dc.b	$24	;24
 	dc.b	$FA	;FA
@@ -6243,7 +6272,8 @@ adrEA0041C6:		; Memory Address ($41C6) and binary offset [$3E42]
 	dc.b	$25	;25
 	dc.b	$26	;26
 	dc.b	$FF	;FF
-adrEA0041CD:		; Memory Address ($41CD) and binary offset [$3E49]
+Notice_NoPartyCommandTarget:		; Memory Address ($41CD) and binary offset [$3E49]
+	; ReSource: Packed-word result displayed as "THOU HAST NONE PRESENT TO <ACTION>"; the action word is patched at runtime.
 	dc.b	$1A	;1A
 	dc.b	$27	;27
 	dc.b	$28	;28
@@ -6251,7 +6281,8 @@ adrEA0041CD:		; Memory Address ($41CD) and binary offset [$3E49]
 	dc.b	$1C	;1C
 	dc.b	$00	;00
 	dc.b	$FF	;FF
-adrEA0041D4:		; Memory Address ($41D4) and binary offset [$3E50]
+Notice_CallOut:		; Memory Address ($41D4) and binary offset [$3E50]
+	; ReSource: Contains the packed phrase "THOU DOST CALL OUT", followed by a second terminated phrase "<NAME> DEPARTS"; only the first phrase is directly referenced here and use of the second remains unresolved.
 	dc.b	$1A	;1A
 	dc.b	$19	;19
 	dc.b	$16	;16
@@ -6262,32 +6293,37 @@ adrEA0041D4:		; Memory Address ($41D4) and binary offset [$3E50]
 	dc.b	$FA	;FA
 	dc.b	$53	;53
 	dc.b	$FF	;FF
-adrEA0041DE:		; Memory Address ($41DE) and binary offset [$3E5A]
+Notice_PartyMemberRejoins:		; Memory Address ($41DE) and binary offset [$3E5A]
+	; ReSource: Packed-word party-management result displayed as "<NAME> REJOINS THE PARTY"; the party-member token is patched at runtime.
 	dc.b	$00	;00
 	dc.b	$32	;32
 	dc.b	$25	;25
 	dc.b	$26	;26
 	dc.b	$FF	;FF
-adrEA0041E3:		; Memory Address ($41E3) and binary offset [$3E5F]
+Notice_ViewThroughPartyMember:		; Memory Address ($41E3) and binary offset [$3E5F]
+	; ReSource: Packed-word View notice displayed as "VIEWING THROUGH <NAME>"; the viewed party-member token is patched at runtime.
 	dc.b	$12	;12
 	dc.b	$FB	;FB
 	dc.b	$4A	;4A
 	dc.b	$34	;34
 	dc.b	$00	;00
 	dc.b	$FF	;FF
-adrEA0041E9:		; Memory Address ($41E9) and binary offset [$3E65]
+Notice_EveryonePresent:		; Memory Address ($41E9) and binary offset [$3E65]
+	; ReSource: Packed-word party-management notice displayed as "EVERYONE IS PRESENT".
 	dc.b	$20	;20
 	dc.b	$35	;35
 	dc.b	$36	;36
 	dc.b	$FF	;FF
-adrEA0041ED:		; Memory Address ($41ED) and binary offset [$3E69]
+Notice_NormalViewingRestored:		; Memory Address ($41ED) and binary offset [$3E69]
+	; ReSource: Packed-word View notice displayed as "NORMAL VIEWING RESTORED".
 	dc.b	$37	;37
 	dc.b	$12	;12
 	dc.b	$FB	;FB
 	dc.b	$4A	;4A
 	dc.b	$38	;38
 	dc.b	$FF	;FF
-adrEA0041F3:		; Memory Address ($41F3) and binary offset [$3E6F]
+Notice_NobodyHere:		; Memory Address ($41F3) and binary offset [$3E6F]
+	; ReSource: Packed-word party-management notice displayed as "THERE IS NOBODY HERE".
 	dc.b	$39	;39
 	dc.b	$35	;35
 	dc.b	$3D	;3D
@@ -7198,7 +7234,7 @@ adrCd004CB2:		; Memory Address ($4CB2) and binary offset [$492E]
 adrCd004D08:		; Memory Address ($4D08) and binary offset [$4984]
 	cmp.w	#$0008,$0042(a5)	;0C6D00080042
 	bne.s	adrCd004D1A	;660A
-	bsr	adrCd0033BE	;6100E6AC
+	bsr	Interface_CheckSelectedCellInteraction	;6100E6AC
 	bcs.s	adrCd004D1A	;6504
 	bsr	adrCd00332A	;6100E612
 adrCd004D1A:		; Memory Address ($4D1A) and binary offset [$4996]
@@ -7246,7 +7282,7 @@ adrCd004D8C:		; Memory Address ($4D8C) and binary offset [$4A08]
 	beq.s	adrCd004DA8	;6714
 	clr.b	$0014(a5)	;422D0014
 	move.b	#$FF,$0053(a5)	;1B7C00FF0053
-	lea	adrEA0041ED.w,a6	;4DF841ED	;Short Absolute converted to symbol!
+	lea	Notice_NormalViewingRestored.w,a6	;4DF841ED	;Short Absolute converted to symbol!
 	jmp	Print_timed_message.l	;4EF90000D86A
 
 adrCd004DA8:		; Memory Address ($4DA8) and binary offset [$4A24]
@@ -7757,7 +7793,7 @@ adrCd005276:		; Memory Address ($5276) and binary offset [$4EF2]
 Spells_19_Vivify:		; Memory Address ($527E) and binary offset [$4EFA]
 	bsr	adrCd008498	;61003218
 	bsr	adrCd0078FA	;61002676
-	bsr	adrCd0033BE	;6100E136
+	bsr	Interface_CheckSelectedCellInteraction	;6100E136
 	bcc.s	adrCd0052A0	;6414
 	tst.b	d0	;4A00
 	bpl.s	adrCd00529E	;6A0E
@@ -8387,7 +8423,7 @@ DungeonInterfaceActionTable:		; Memory Address ($5B52) and binary offset [$57CE]
 	dc.l	Click_SleepParty	;00004536
 	dc.l	Click_ShowTeamAvatars	;000032DE
 	dc.l	adrJA004C10	;00004C10
-	dc.l	adrJA00336A	;0000336A
+	dc.l	Interface_DispatchPageAction	;0000336A
 	dc.l	adrJA005D3E	;00005D3E
 	dc.l	Handle_WallFeatureClick	;00005894
 	dc.l	adrJA0064D0	;000064D0
@@ -8447,19 +8483,21 @@ Handle_WallFeatureClick:		; Memory Address ($5C18) and binary offset [$5894]
 	and.w	#$0003,d3	;02430003
 	add.w	d3,d3	;D643
 	lea	MainWall_Action_01_Shelf.l,a0	;41F9000058F4
-	add.w	adrJT0058EC(pc,d3.w),a0	;D0FB3006
+	add.w	MainWall_Action_LookupTable(pc,d3.w),a0	;D0FB3006
 	jmp	(a0)	;4ED0
 
 adrCd0058EA:		; Memory Address ($58EA) and binary offset [$5566]
 	rts	;4E75
 
-adrJT0058EC:		; Memory Address ($58EC) and binary offset [$5568]
+MainWall_Action_LookupTable:		; Memory Address ($58EC) and binary offset [$5568]
+	; ReSource: Relative dispatch offsets for shelf, wall-decoration, switch, and socket click handlers.
 	dc.w	MainWall_Action_01_Shelf-MainWall_Action_01_Shelf	;0000
 	dc.w	MainWall_Action_02_WallDecoration-MainWall_Action_01_Shelf	;0018
 	dc.w	MainWall_Action_03_Switches-MainWall_Action_01_Shelf	;0236
 	dc.w	MainWall_Action_04_Sockets-MainWall_Action_01_Shelf	;0064
 
 MainWall_Action_01_Shelf:		; Memory Address ($58F4) and binary offset [$5570]
+	; ReSource: Maps the clicked shelf height to one of the two shelf object subpositions before shared object handling.
 	move.w	$0004(a5),d1	;322D0004
 	sub.w	$0008(a5),d1	;926D0008
 	moveq	#$02,d6	;7C02
@@ -8469,6 +8507,7 @@ MainWall_Action_01_Shelf:		; Memory Address ($58F4) and binary offset [$5570]
 	bra	adrCd005D4E	;60000444
 
 MainWall_Action_02_WallDecoration:		; Memory Address ($590C) and binary offset [$5588]
+	; ReSource: Accepts scroll-bearing wall decorations and converts their subtype into a scroll index.
 	moveq	#$00,d1	;7200
 	move.b	$00(a6,d0.w),d1	;12360000
 	lsr.b	#$02,d1	;E409
@@ -8477,6 +8516,7 @@ MainWall_Action_02_WallDecoration:		; Memory Address ($590C) and binary offset [
 	rts	;4E75
 
 MainWall_Action_02_Scrolls:		; Memory Address ($591A) and binary offset [$5596]
+	; ReSource: Draws the scroll frame, resolves the tower-specific scroll text, and prints it in the interface.
 	move.w	d1,-(sp)	;3F01
 	moveq	#$38,d5	;7A38
 	bsr	Draw_ScrollFrame	;6100731A
@@ -8500,6 +8540,7 @@ Scroll_TowerOffsets_DataTable:		; Memory Address ($5952) and binary offset [$55C
 	dc.b	$3B	;3B
 
 MainWall_Action_04_Sockets:		; Memory Address ($5958) and binary offset [$55D4]
+	; ReSource: Places a held crystal or gem into a wall socket, or dispatches the action for an occupied socket.
 	moveq	#$00,d1	;7200
 	move.b	$00(a6,d0.w),d1	;12360000
 	btst	#$02,d1	;08010002
@@ -8517,6 +8558,7 @@ Socket_ClickExit:		; Memory Address ($5984) and binary offset [$5600]
 	rts	;4E75
 
 Sockets_Actions:		; Memory Address ($5986) and binary offset [$5602]
+	; ReSource: Verifies the held object matches the occupied socket and dispatches the crystal or gem-specific effect.
 	lsr.w	#$03,d1	;E649
 	add.w	#$0060,d1	;06410060
 	cmp.w	$002E(a5),d1	;B26D002E
@@ -8671,6 +8713,7 @@ BlueGemLocs:		; Memory Address ($5B12) and binary offset [$578E]
 	dc.w	$0802	;0802
 
 MainWall_Action_03_Switches:		; Memory Address ($5B2A) and binary offset [$57A6]
+	; ReSource: Toggles the switch display state and dispatches the tower-specific switch trigger.
 	moveq	#$00,d1	;7200
 	move.b	$00(a6,d0.w),d1	;12360000
 	and.w	#$00F8,d1	;024100F8
@@ -10794,7 +10837,7 @@ Draw_Arrow_Highlights:		; Memory Address ($6DA2) and binary offset [$6A1E]
 	addq.w	#$01,d3	;5243
 	add.w	d3,d3	;D643
 	swap	d3	;4843
-	bra	adrCd00B5CA	;600047DE
+	bra	Draw_WallSprite_Normal	;600047DE
 
 Click_MoveForwards:		; Memory Address ($6DEE) and binary offset [$6A6A]
 	moveq	#$00,d0	;7000
@@ -12242,12 +12285,14 @@ adrEA007C0E:		; Memory Address ($7C0E) and binary offset [$788A]
 	dc.b	$FC	;FC
 	dc.b	$16	;16
 	dc.b	$FF	;FF
-adrEA007C20:		; Memory Address ($7C20) and binary offset [$789C]
+Interface_ActionSelectionScratchBuffer:		; Memory Address ($7C20) and binary offset [$789C]
+	; ReSource: Runtime scratch buffer initialised by adrCd007D06 for up to four inventory/action choices; it is not a static extractable table.
 	dc.b	$5F	;5F
 	dc.b	$5F	;5F
 	dc.b	$5F	;5F
 	dc.b	$5F	;5F
-adrEA007C24:		; Memory Address ($7C24) and binary offset [$78A0]
+Interface_ActionSelectionScratchEntries:		; Memory Address ($7C24) and binary offset [$78A0]
+	; ReSource: Interior four-entry action/object list populated by adrJA007CA6 and read by Interface_MapSelectedAction; values change with inventory contents.
 	dc.b	$00	;00
 	dc.b	$FF	;FF
 	dc.b	$00	;00
@@ -12424,7 +12469,7 @@ adrCd007D00:		; Memory Address ($7D00) and binary offset [$797C]
 	rts	;4E75
 
 adrCd007D06:		; Memory Address ($7D06) and binary offset [$7982]
-	lea	adrEA007C20.w,a6	;4DF87C20	;Short Absolute converted to symbol!
+	lea	Interface_ActionSelectionScratchBuffer.w,a6	;4DF87C20	;Short Absolute converted to symbol!
 	move.b	#$FC,d0	;103C00FC
 	moveq	#$08,d2	;7408
 adrCd007D10:		; Memory Address ($7D10) and binary offset [$798C]
@@ -12583,7 +12628,7 @@ adrCd007E82:		; Memory Address ($7E82) and binary offset [$7AFE]
 	move.w	adrW_007EAA(pc,d7.w),d5	;3A3B7016
 	move.w	adrW_007EAC(pc,d7.w),d1	;323B7014
 	moveq	#$00,d0	;7000
-	move.w	#$FFFF,adrW_00AD64.l	;33FCFFFF0000AD64
+	move.w	#$FFFF,MonsterStrip_BottomY.l	;33FCFFFF0000AD64
 	bra	Draw_Character	;6000289E
 
 adrW_007EA8:		; Memory Address ($7EA8) and binary offset [$7B24]
@@ -12917,7 +12962,7 @@ adrCd008230:		; Memory Address ($8230) and binary offset [$7EAC]
 	move.b	$0034(a5),d0	;102D0034
 	bmi.s	adrCd008256	;6B20
 	move.b	#$FF,$0034(a5)	;1B7C00FF0034
-	lea	adrEA0041DE.w,a6	;4DF841DE	;Short Absolute converted to symbol!
+	lea	Notice_PartyMemberRejoins.w,a6	;4DF841DE	;Short Absolute converted to symbol!
 	move.b	d0,(a6)	;1C80
 	bsr	Print_timed_message	;61005626
 adrCd008246:		; Memory Address ($8246) and binary offset [$7EC2]
@@ -13981,7 +14026,8 @@ adrLp008DC8:		; Memory Address ($8DC8) and binary offset [$8A44]
 	dbra	d0,adrLp008DC8	;51C8FFFC
 	rts	;4E75
 
-GamePalette:
+GamePalette:		; Memory Address ($8DD0) and binary offset [$8A4C]
+	; ReSource: Thirty-two Amiga colour-register words: the first sixteen are the main game palette and the remaining entries support the hardware display palette.
 	dc.w	$0000	;0000
 	dc.w	$0444	;0444
 	dc.w	$0666	;0666
@@ -14386,7 +14432,8 @@ Draw_DungeonViewport:		; Memory Address ($90D4) and binary offset [$8D50]
 	move.l	-$0004(a3),d3	;262BFFFC
 	move.l	Current_TowerMapDataBase.l,a6	;2C790000EE78
 	moveq	#$00,d6	;7C00
-adrCd009130:		; Memory Address ($9130) and binary offset [$8DAC]
+Build_DungeonVisibilityMasks_Loop:		; Memory Address ($9130) and binary offset [$8DAC]
+	; ReSource: Scans one player-relative view cell and records whether its map contents block or contribute visible faces.
 	lsr.l	#$01,d5	;E28D
 	lsr.l	#$01,d4	;E28C
 	move.l	d3,d7	;2E03
@@ -14451,7 +14498,7 @@ adrCd0091C4:		; Memory Address ($91C4) and binary offset [$8E40]
 	addq.w	#$02,a0	;5448
 	addq.w	#$01,d6	;5246
 	cmpi.w	#$0013,d6	;0C460013
-	bcs	adrCd009130	;6500FF62
+	bcs	Build_DungeonVisibilityMasks_Loop	;6500FF62
 	rol.l	#$03,d5	;E79D
 	swap	d5	;4845
 	rol.l	#$03,d4	;E79C
@@ -14461,7 +14508,8 @@ adrCd0091C4:		; Memory Address ($91C4) and binary offset [$8E40]
 	moveq	#$00,d7	;7E00
 	moveq	#-$01,d0	;70FF
 	moveq	#$12,d6	;7C12
-adrLp0091EA:		; Memory Address ($91EA) and binary offset [$8E66]
+Apply_DungeonOcclusionMasks_Loop:		; Memory Address ($91EA) and binary offset [$8E66]
+	; ReSource: Combines the per-cell visible-face and occlusion masks from farthest view cell to nearest.
 	btst	d6,d5	;0D05
 	beq.s	adrCd0091F6	;6708
 	or.l	(a6),d7	;8E96
@@ -14471,10 +14519,11 @@ adrLp0091EA:		; Memory Address ($91EA) and binary offset [$8E66]
 adrCd0091F6:		; Memory Address ($91F6) and binary offset [$8E72]
 	subq.w	#$04,a6	;594E
 	subq.w	#$04,a4	;594C
-	dbra	d6,adrLp0091EA	;51CEFFEE
+	dbra	d6,Apply_DungeonOcclusionMasks_Loop	;51CEFFEE
 	and.l	d0,d7	;CE80
 	moveq	#$00,d6	;7C00
-adrCd009202:		; Memory Address ($9202) and binary offset [$8E7E]
+Draw_VisibleDungeonCells_Loop:		; Memory Address ($9202) and binary offset [$8E7E]
+	; ReSource: Visits each visible player-relative cell and calls the per-cell dungeon renderer.
 	btst	d6,d5	;0D05
 	beq.s	adrCd009212	;670C
 	movem.l	d5-d7,-(sp)	;48E70700
@@ -14483,7 +14532,7 @@ adrCd009202:		; Memory Address ($9202) and binary offset [$8E7E]
 adrCd009212:		; Memory Address ($9212) and binary offset [$8E8E]
 	addq.w	#$01,d6	;5246
 	cmpi.b	#$13,d6	;0C060013
-	bcs.s	adrCd009202	;65E8
+	bcs.s	Draw_VisibleDungeonCells_Loop	;65E8
 	unlk	a3	;4E5B
 	rts	;4E75
 
@@ -14499,10 +14548,10 @@ Draw_DungeonViewCell:		; Memory Address ($921E) and binary offset [$8E9A]
 	add.b	(a0)+,d5	;DA18
 	move.b	d5,-$0019(a3)	;1745FFE7
 	cmp.w	adrW_00EE70.l,d5	;BA790000EE70
-	beq.s	adrCd00926C	;672C
+	beq.s	Process_DungeonViewCellContents	;672C
 	bcs.s	adrCd009248	;6506
 	addq.b	#$01,d5	;5205
-	beq.s	adrCd00926C	;6726
+	beq.s	Process_DungeonViewCellContents	;6726
 	rts	;4E75
 
 adrCd009248:		; Memory Address ($9248) and binary offset [$8EC4]
@@ -14510,10 +14559,10 @@ adrCd009248:		; Memory Address ($9248) and binary offset [$8EC4]
 	add.b	(a0),d5	;DA10
 	move.b	d5,-$001A(a3)	;1745FFE6
 	cmp.w	adrW_00EE72.l,d5	;BA790000EE72
-	beq.s	adrCd00926C	;6714
+	beq.s	Process_DungeonViewCellContents	;6714
 	bcs.s	adrCd009260	;6506
 	addq.b	#$01,d5	;5205
-	beq.s	adrCd00926C	;670E
+	beq.s	Process_DungeonViewCellContents	;670E
 	rts	;4E75
 
 adrCd009260:		; Memory Address ($9260) and binary offset [$8EDC]
@@ -14521,23 +14570,24 @@ adrCd009260:		; Memory Address ($9260) and binary offset [$8EDC]
 	bsr	CoordToMap	;6100F238
 	exg	d5,d7	;CB47
 	move.w	$00(a6,d0.w),d1	;32360000
-adrCd00926C:		; Memory Address ($926C) and binary offset [$8EE8]
+Process_DungeonViewCellContents:		; Memory Address ($926C) and binary offset [$8EE8]
+	; ReSource: Processes floor objects, stationary spells, wall geometry, and occupants for the resolved view cell.
 	clr.b	-$0013(a3)	;422BFFED
 	move.w	d1,-$0012(a3)	;3741FFEE
 	btst	#$06,d1	;08010006
 	beq.s	adrCd009286	;670C
 	movem.l	d0/d1/d6/d7,-(sp)	;48E7C300
-	bsr	adrCd00960A	;6100038A
+	bsr	Draw_DungeonCellFloorObjects	;6100038A
 	movem.l	(sp)+,d0/d1/d6/d7	;4CDF00C3
 adrCd009286:		; Memory Address ($9286) and binary offset [$8F02]
 	btst	#$05,d1	;08010005
-	beq	adrCd009378	;670000EC
+	beq	Dispatch_DungeonCellType	;670000EC
 	move.w	d1,d2	;3401
 	and.w	#$0007,d2	;02420007
 	subq.w	#$01,d2	;5342
-	beq	adrCd009378	;670000E0
+	beq	Dispatch_DungeonCellType	;670000E0
 	move.w	d0,-(sp)	;3F00
-	bsr	adrCd009378	;610000DA
+	bsr	Dispatch_DungeonCellType	;610000DA
 	move.w	(sp)+,d0	;301F
 	bsr	adrCd005F4E	;6100CCAA
 	move.w	$0002(a0),d1	;32280002
@@ -14589,7 +14639,7 @@ adrCd0092E8:		; Memory Address ($92E8) and binary offset [$8F64]
 	lea	GFX_Spell_ColourMasks.l,a0	;41F900009B70
 	move.l	$00(a0,d0.w),Buffer_Colour_Mask.l	;23F000000000B4C0
 	move.l	a3,-(sp)	;2F0B
-	bsr	adrCd00AE5E	;61001B10
+	bsr	Draw_PlanarSprite_Normal	;61001B10
 	move.l	(sp)+,a3	;265F
 	clr.w	Buffer_Colour_Mask_Toggle.l	;42790000B4BE
 adrCd009358:		; Memory Address ($9358) and binary offset [$8FD4]
@@ -14628,11 +14678,12 @@ GFX_StationarySpell_RenderLayout:		; Memory Address ($9368) and binary offset [$
 	dc.b	$00	;00
 	dc.b	$08	;08
 
-adrCd009378:		; Memory Address ($9378) and binary offset [$8FF4]
+Dispatch_DungeonCellType:		; Memory Address ($9378) and binary offset [$8FF4]
+	; ReSource: Masks the map-cell type and dispatches non-empty cells to the dungeon-location renderer.
 	and.w	#$0007,d1	;02410007
 	bne.s	Draw_DungeonLocation_ByType	;660A
 	tst.b	-$0011(a3)	;4A2BFFEF
-	bmi	adrCd0099F0	;6B00066C
+	bmi	Draw_DungeonCellOccupants	;6B00066C
 	rts	;4E75
 
 Draw_DungeonLocation_ByType:		; Memory Address ($9388) and binary offset [$9004]
@@ -14642,23 +14693,24 @@ Draw_DungeonLocation_ByType:		; Memory Address ($9388) and binary offset [$9004]
 	add.w	d6,a6	;DCC6
 	moveq	#$03,d5	;7A03
 	subq.b	#$01,d1	;5301
-	beq.s	adrLp0093C2	;672A
+	beq.s	Draw_DungeonWallFaces_Loop	;672A
 	subq.b	#$01,d1	;5301
 	beq.s	adrCd0093BC	;6720
 	subq.b	#$01,d1	;5301
-	beq	adrCd00956A	;670001CA
+	beq	Draw_BedOrPillar	;670001CA
 	cmpi.b	#$03,d1	;0C010003
 	beq	Set_TriggerPad_ColourMask	;67000134
 	cmpi.b	#$04,d1	;0C010004
-	beq	adrCd009496	;670000E6
+	beq	Draw_FirepathCell	;670000E6
 	move.b	d1,-$0013(a3)	;1741FFED
 	addq.w	#$02,a6	;544E
 	moveq	#$01,d5	;7A01
-	bra.s	adrLp0093C2	;6006
+	bra.s	Draw_DungeonWallFaces_Loop	;6006
 
 adrCd0093BC:		; Memory Address ($93BC) and binary offset [$9038]
 	move.b	#$FF,-$0013(a3)	;177C00FFFFED
-adrLp0093C2:		; Memory Address ($93C2) and binary offset [$903E]
+Draw_DungeonWallFaces_Loop:		; Memory Address ($93C2) and binary offset [$903E]
+	; ReSource: Iterates the candidate projected faces for the current dungeon cell and draws those surviving visibility tests.
 	moveq	#$00,d6	;7C00
 	move.b	(a6)+,d6	;1C1E
 	bmi.s	adrCd00943A	;6B72
@@ -14668,11 +14720,12 @@ adrLp0093C2:		; Memory Address ($93C2) and binary offset [$903E]
 	clr.b	-$0015(a3)	;422BFFEB
 	bsr	Resolve_DungeonWallFaceDirection	;610001FE
 	tst.b	-$0013(a3)	;4A2BFFED
-	bmi.s	adrCd0093E4	;6B06
-	beq.s	adrCd009440	;6760
-	bra	adrCd009482	;600000A0
+	bmi.s	Resolve_WoodenWallFace	;6B06
+	beq.s	Draw_StoneWallFace	;6760
+	bra	Draw_DoorOrStairsFace	;600000A0
 
-adrCd0093E4:		; Memory Address ($93E4) and binary offset [$9060]
+Resolve_WoodenWallFace:		; Memory Address ($93E4) and binary offset [$9060]
+	; ReSource: Resolves whether a wooden wall or doorway face is visible from the current candidate direction.
 	cmpi.w	#$0002,d5	;0C450002
 	bcc.s	adrCd009412	;6428
 	tst.w	d5	;4A45
@@ -14688,7 +14741,7 @@ adrCd009400:		; Memory Address ($9400) and binary offset [$907C]
 	tst.b	-$0011(a3)	;4A2BFFEF
 	bpl.s	adrCd009412	;6A0C
 	movem.l	d1/d5-d7/a6,-(sp)	;48E74702
-	bsr	adrCd0099F0	;610005E4
+	bsr	Draw_DungeonCellOccupants	;610005E4
 	movem.l	(sp)+,d1/d5-d7/a6	;4CDF40E2
 adrCd009412:		; Memory Address ($9412) and binary offset [$908E]
 	add.w	d1,d1	;D241
@@ -14706,10 +14759,11 @@ adrCd00942E:		; Memory Address ($942E) and binary offset [$90AA]
 	bsr	Draw_WoodenWallOrDoorFace	;61001FA4
 	movem.l	(sp)+,d5/a6	;4CDF4020
 adrCd00943A:		; Memory Address ($943A) and binary offset [$90B6]
-	dbra	d5,adrLp0093C2	;51CDFF86
+	dbra	d5,Draw_DungeonWallFaces_Loop	;51CDFF86
 	rts	;4E75
 
-adrCd009440:		; Memory Address ($9440) and binary offset [$90BC]
+Draw_StoneWallFace:		; Memory Address ($9440) and binary offset [$90BC]
+	; ReSource: Selects the projected stone-wall face and any main-wall overlay for the current direction.
 	move.b	-$0011(a3),d0	;102BFFEF
 	bpl.s	adrCd009474	;6A2E
 	lsr.b	#$04,d0	;E808
@@ -14733,20 +14787,22 @@ adrCd009474:		; Memory Address ($9474) and binary offset [$90F0]
 	movem.l	(sp)+,d5/a6	;4CDF4020
 	bra.s	adrCd00943A	;60B8
 
-adrCd009482:		; Memory Address ($9482) and binary offset [$90FE]
-	bsr	adrCd0099DC	;61000558
+Draw_DoorOrStairsFace:		; Memory Address ($9482) and binary offset [$90FE]
+	; ReSource: Resolves the visible face slot before dispatching the shared main-door or stairs renderer.
+	bsr	Resolve_DungeonCellCentredSlot	;61000558
 	bmi	Draw_Main_Door_Or_Stairs	;6B001E56
 	btst	d1,d7	;0307
 	beq	Draw_Main_Door_Or_Stairs	;67001E50
 	move.w	d1,d6	;3C01
 	bra	Draw_Main_Door_Or_Stairs	;60001E4A
 
-adrCd009496:		; Memory Address ($9496) and binary offset [$9112]
+Draw_FirepathCell:		; Memory Address ($9496) and binary offset [$9112]
+	; ReSource: Interprets the Firepath cell state and selects its ordinary or randomly varied colour mask.
 	move.b	-$0012(a3),d1	;122BFFEE
 	and.w	#$0003,d1	;02410003
 	beq.s	adrCd0094B2	;6712
 	cmpi.w	#$0001,d1	;0C410001
-	beq.s	adrCd0094BC	;6716
+	beq.s	Select_Firepath_ColourMask	;6716
 	cmpi.b	#$03,d1	;0C010003
 	beq.s	adrCd0094B4	;6708
 	tst.b	-$001F(a3)	;4A2BFFE1
@@ -14757,41 +14813,46 @@ adrCd0094B2:		; Memory Address ($94B2) and binary offset [$912E]
 adrCd0094B4:		; Memory Address ($94B4) and binary offset [$9130]
 	lsr.w	#$01,d6	;E24E
 	moveq	#$01,d1	;7201
-	bra	adrCd00926C	;6000FDB2
+	bra	Process_DungeonViewCellContents	;6000FDB2
 
-adrCd0094BC:		; Memory Address ($94BC) and binary offset [$9138]
+Select_Firepath_ColourMask:		; Memory Address ($94BC) and binary offset [$9138]
+	; ReSource: Selects one of two Firepath colour masks using the random-value bit at offset four.
 	bsr	RandomGen_BytewithOffset	;6100C0EE
 	and.w	#$0004,d0	;02400004
 	move.l	GFX_Firepath_ColourMasks(pc,d0.w),Buffer_Colour_Mask.l	;23FB000E0000B4C0
 	move.b	#$02,-$0012(a3)	;177C0002FFEE
-	bra.s	adrCd0094E6	;6012
+	bra.s	Draw_FloorFeature	;6012
 
 GFX_Firepath_ColourMasks:		; Memory Address ($94D4) and binary offset [$9150]
+	; ReSource: Two four-byte colour masks selected by the Firepath renderer after the random colour choice.
 	dc.l	$090C0B0D	;090C0B0D
 	dc.l	$090A0B0D	;090A0B0D
 
 Set_TriggerPad_ColourMask:		; Memory Address ($94DC) and binary offset [$9158]
 	move.l	#$01050406,Buffer_Colour_Mask.l	;23FC010504060000B4C0
-adrCd0094E6:		; Memory Address ($94E6) and binary offset [$9162]
-	bsr	adrCd0099DC	;610004F4
+Draw_FloorFeature:		; Memory Address ($94E6) and binary offset [$9162]
+	; ReSource: Checks centred-slot visibility before composing ceiling holes, floor pits, or trigger pads.
+	bsr	Resolve_DungeonCellCentredSlot	;610004F4
 	cmpi.w	#$0012,d0	;0C400012
-	beq.s	adrCd0094F8	;6708
+	beq.s	Draw_CeilingHole	;6708
 	tst.b	d1	;4A01
 	bmi.s	adrCd009568	;6B74
 	btst	d1,d7	;0307
 	beq.s	adrCd009568	;6770
-adrCd0094F8:		; Memory Address ($94F8) and binary offset [$9174]
+Draw_CeilingHole:		; Memory Address ($94F8) and binary offset [$9174]
+	; ReSource: Draws the ceiling-hole component when requested, then continues with the corresponding floor feature.
 	move.b	-$0012(a3),d1	;122BFFEE
 	move.w	d0,d6	;3C00
 	btst	#$02,d1	;08010002
-	beq.s	adrCd009522	;671E
+	beq.s	Draw_FloorPitOrTriggerPad	;671E
 	movem.l	d1/d6,-(sp)	;48E74200
 	lea	GFX_Ceiling_Hole.l,a1	;43F900031F68
 	lea	GFX_Ceiling_Hole_Positions.l,a2	;45F90000BF62
 	lea	GFX_Ceiling_Hole_Offsets.l,a0	;41F900018C66
-	bsr	adrCd0095B4	;61000098
+	bsr	Draw_CentredDungeonComponent	;61000098
 	movem.l	(sp)+,d1/d6	;4CDF0042
-adrCd009522:		; Memory Address ($9522) and binary offset [$919E]
+Draw_FloorPitOrTriggerPad:		; Memory Address ($9522) and binary offset [$919E]
+	; ReSource: Selects floor-pit or trigger-pad artwork and applies the temporary trigger-pad colour mask.
 	lea	GFX_FloorPit_TriggerPad_Offsets.l,a0	;41F900018C4E
 	lea	GFX_FloorPit_TriggerPad_Positions.l,a2	;45F90000BF16
 	lea	GFX_Floor_Pit.l,a1	;43F900031AD8
@@ -14803,20 +14864,21 @@ adrCd009522:		; Memory Address ($9522) and binary offset [$919E]
 	bne.s	adrCd00955E	;6618
 	lea	GFX_Trigger_Pad.l,a1	;43F900031D20
 	move.w	#$FFFF,Buffer_Colour_Mask_Toggle.l	;33FCFFFF0000B4BE
-	bsr.s	adrCd0095B4	;615E
+	bsr.s	Draw_CentredDungeonComponent	;615E
 	clr.w	Buffer_Colour_Mask_Toggle.l	;42790000B4BE
 	bra.s	adrCd009560	;6002
 
 adrCd00955E:		; Memory Address ($955E) and binary offset [$91DA]
-	bsr.s	adrCd0095B4	;6154
+	bsr.s	Draw_CentredDungeonComponent	;6154
 adrCd009560:		; Memory Address ($9560) and binary offset [$91DC]
 	tst.b	-$0011(a3)	;4A2BFFEF
-	bmi	adrCd0099F0	;6B00048A
+	bmi	Draw_DungeonCellOccupants	;6B00048A
 adrCd009568:		; Memory Address ($9568) and binary offset [$91E4]
 	rts	;4E75
 
-adrCd00956A:		; Memory Address ($956A) and binary offset [$91E6]
-	bsr	adrCd0099DC	;61000470
+Draw_BedOrPillar:		; Memory Address ($956A) and binary offset [$91E6]
+	; ReSource: Selects the bed or pillar graphics, offsets, and projected positions for a centred dungeon cell.
+	bsr	Resolve_DungeonCellCentredSlot	;61000470
 	bmi.s	adrCd00959E	;6B2E
 	btst	d1,d7	;0307
 	beq.s	adrCd00959E	;672A
@@ -14827,20 +14889,23 @@ adrCd00956A:		; Memory Address ($956A) and binary offset [$91E6]
 	lea	GFX_Bed.l,a1	;43F900028C28
 	move.w	d0,d6	;3C00
 Draw_Wall_Sprite:		; Memory Address ($9590) and binary offset [$920C]
+	; ReSource: Prepares and draws a centred dungeon component through the ordinary planar wall-sprite compositor.
 	bsr	Prepare_WallSpriteDraw	;61001EF4
 	swap	d3	;4843
 	move.l	a3,-(sp)	;2F0B
-	bsr	adrCd00B5CA	;61002030
+	bsr	Draw_WallSprite_Normal	;61002030
 	move.l	(sp)+,a3	;265F
 adrCd00959E:		; Memory Address ($959E) and binary offset [$921A]
 	rts	;4E75
 
 Draw_Pillar:		; Memory Address ($95A0) and binary offset [$921C]
+	; ReSource: Selects the pillar graphics tables before entering the centred-component drawing path.
 	lea	GFX_Misc_Pillar_Offsets.l,a0	;41F900018B16
 	lea	GFX_Misc_Pillar_Positions.l,a2	;45F90000BC06
 	lea	GFX_Pillar.l,a1	;43F9000296A0
 	move.w	d0,d6	;3C00
-adrCd0095B4:		; Memory Address ($95B4) and binary offset [$9230]
+Draw_CentredDungeonComponent:		; Memory Address ($95B4) and binary offset [$9230]
+	; ReSource: Maps a centred view cell to a component picture and chooses its normal or mirrored drawing path.
 	moveq	#$00,d0	;7000
 	move.b	GFX_CentredDungeonComponent_SpriteMirrorTable(pc,d6.w),d0	;103B6008
 	bpl.s	Draw_Wall_Sprite	;6AD4
@@ -14892,7 +14957,8 @@ adrCd009600:		; Memory Address ($9600) and binary offset [$927C]
 	and.w	#$0003,d1	;02410003
 	rts	;4E75
 
-adrCd00960A:		; Memory Address ($960A) and binary offset [$9286]
+Draw_DungeonCellFloorObjects:		; Memory Address ($960A) and binary offset [$9286]
+	; ReSource: Checks floor-object visibility and walks the four rotated object subpositions in the current dungeon cell.
 	tst.b	-$001F(a3)	;4A2BFFE1
 	bne.s	adrCd00961A	;660A
 	btst	#$03,$01(a6,d0.w)	;083600030001
@@ -14918,7 +14984,8 @@ adrCd00963A:		; Memory Address ($963A) and binary offset [$92B6]
 	movem.l	(sp)+,d0/d1/d6/d7	;4CDF00C3
 adrCd009648:		; Memory Address ($9648) and binary offset [$92C4]
 	moveq	#$00,d1	;7200
-adrCd00964A:		; Memory Address ($964A) and binary offset [$92C6]
+Draw_DungeonCellObjectSubpositions_Loop:		; Memory Address ($964A) and binary offset [$92C6]
+	; ReSource: Iterates the four object subpositions after rotating them into the player-relative facing.
 	move.w	d1,-(sp)	;3F01
 	move.w	d1,d6	;3C01
 	bsr	adrCd005F2E	;6100C8DE
@@ -14928,19 +14995,20 @@ adrCd00964A:		; Memory Address ($964A) and binary offset [$92C6]
 	lea	$02(a0,d7.w),a0	;41F07002
 	moveq	#$00,d7	;7E00
 	move.b	(a0)+,d7	;1E18
-adrLp009662:		; Memory Address ($9662) and binary offset [$92DE]
+Draw_DungeonCellObjects_Loop:		; Memory Address ($9662) and binary offset [$92DE]
+	; ReSource: Draws every object record attached to the current floor subposition.
 	movem.l	d0/d6/d7/a0/a3,-(sp)	;48E78390
 	moveq	#$00,d2	;7400
 	move.b	(a0),d2	;1410
 	bsr.s	Draw_ObjectOnFloor	;6152
 	movem.l	(sp)+,d0/d6/d7/a0/a3	;4CDF09C1
 	addq.w	#$02,a0	;5448
-	dbra	d7,adrLp009662	;51CFFFEE
+	dbra	d7,Draw_DungeonCellObjects_Loop	;51CFFFEE
 adrCd009676:		; Memory Address ($9676) and binary offset [$92F2]
 	move.w	(sp)+,d1	;321F
 	addq.w	#$01,d1	;5241
 	cmpi.w	#$0004,d1	;0C410004
-	bcs.s	adrCd00964A	;65CA
+	bcs.s	Draw_DungeonCellObjectSubpositions_Loop	;65CA
 adrCd009680:		; Memory Address ($9680) and binary offset [$92FC]
 	rts	;4E75
 
@@ -15083,7 +15151,7 @@ Draw_ObjectOnFloor_Blit:		; Memory Address ($9780) and binary offset [$93FC]
 	ext.w	d6	;4886
 	asr.w	#$04,d6	;E846
 	move.w	#$FFFF,Buffer_Colour_Mask_Toggle.l	;33FCFFFF0000B4BE
-	bsr	adrCd00AE5E	;610016B2
+	bsr	Draw_PlanarSprite_Normal	;610016B2
 	clr.w	Buffer_Colour_Mask_Toggle.l	;42790000B4BE
 	rts	;4E75
 
@@ -15336,7 +15404,8 @@ GFX_ObjectsOnFloor_YAdjustments:		; Memory Address ($981C) and binary offset [$9
 
 adrCd0098A4:		; Memory Address ($98A4) and binary offset [$9520]
 	bsr	adrCd0084FC	;6100EC56
-adrCd0098A8:		; Memory Address ($98A8) and binary offset [$9524]
+Find_DungeonCellOccupant:		; Memory Address ($98A8) and binary offset [$9524]
+	; ReSource: Searches players, champions, and unpacked monsters for an occupant at the requested tower and map coordinates.
 	move.w	#$0080,d0	;303C0080
 	lea	Player1_Data.l,a1	;43F90000EE7C
 	cmp.w	$0058(a1),d1	;B2690058
@@ -15443,8 +15512,9 @@ Prepare_CentredMonster_ScreenPosition:		; Memory Address ($995C) and binary offs
 	; ReSource: Entry point for centrally positioned monsters; forces the centre sub-position before using Prepare_Monster_ScreenPosition.
 	moveq	#$04,d1	;7204
 Prepare_Monster_ScreenPosition:		; Memory Address ($995E) and binary offset [$95DA]
+	; ReSource: Converts a visible monster's view cell and sub-position into its graphics distance, screen coordinates, and strip height.
 	move.w	d1,d2	;3401
-	move.w	#$004B,adrW_00AD64.l	;33FC004B0000AD64
+	move.w	#$004B,MonsterStrip_BottomY.l	;33FC004B0000AD64
 	moveq	#$00,d0	;7000
 	moveq	#$00,d4	;7800
 	move.b	-$0016(a3),d0	;102BFFEA
@@ -15474,7 +15544,7 @@ Prepare_Monster_ScreenPosition:		; Memory Address ($995E) and binary offset [$95
 	moveq	#$4B,d2	;744B
 adrCd0099BE:		; Memory Address ($99BE) and binary offset [$963A]
 	add.b	d0,d5	;DA00
-	move.w	d2,adrW_00AD64.l	;33C20000AD64
+	move.w	d2,MonsterStrip_BottomY.l	;33C20000AD64
 adrCd0099C6:		; Memory Address ($99C6) and binary offset [$9642]
 	rts	;4E75
 
@@ -15501,7 +15571,8 @@ adrB_0099D4:		; Memory Address ($99D4) and binary offset [$9650]
 	dc.b	$4B	;4B
 	dc.b	$4B	;4B
 
-adrCd0099DC:		; Memory Address ($99DC) and binary offset [$9658]
+Resolve_DungeonCellCentredSlot:		; Memory Address ($99DC) and binary offset [$9658]
+	; ReSource: Maps the current view cell to its centred visibility bit and projected slot.
 	moveq	#$00,d0	;7000
 	moveq	#$00,d1	;7200
 	lea	Dungeon_ViewCell_CentredSlots.l,a0	;41F90000B9DE
@@ -15510,8 +15581,9 @@ adrCd0099DC:		; Memory Address ($99DC) and binary offset [$9658]
 adrCd0099EE:		; Memory Address ($99EE) and binary offset [$966A]
 	rts	;4E75
 
-adrCd0099F0:		; Memory Address ($99F0) and binary offset [$966C]
-	bsr.s	adrCd0099DC	;61EA
+Draw_DungeonCellOccupants:		; Memory Address ($99F0) and binary offset [$966C]
+	; ReSource: Finds and draws players, champions, or monsters occupying the visible centred slot.
+	bsr.s	Resolve_DungeonCellCentredSlot	;61EA
 	bmi.s	adrCd0099EE	;6BFA
 	btst	d1,d7	;0307
 	beq.s	adrCd0099EE	;67F6
@@ -15520,7 +15592,7 @@ adrCd0099F0:		; Memory Address ($99F0) and binary offset [$966C]
 	swap	d2	;4842
 	move.b	-$001A(a3),d2	;142BFFE6
 	move.w	-$001E(a3),d1	;322BFFE2
-	bsr	adrCd0098A8	;6100FE9E
+	bsr	Find_DungeonCellOccupant	;6100FE9E
 	bcc.s	adrCd0099EE	;64E0
 	tst.b	d0	;4A00
 	bmi	adrCd009AFA	;6B0000E8
@@ -15677,6 +15749,7 @@ GFX_Spell_ColourMasks:		; Memory Address ($9B70) and binary offset [$97EC]
 	dc.l	$0708060D	;0708060D
 
 Decode_Monster_RenderFlags:		; Memory Address ($9BC0) and binary offset [$983C]
+	; ReSource: Masks a monster render state to five bits and uses the resulting lookup entry for arm or claw animation flags.
 	clr.b	-$0015(a3)	;422BFFEB
 	and.w	#$001F,d0	;0240001F
 	move.b	Monster_RenderFlags_LookupTable(pc,d0.w),-$0015(a3)	;177B0006FFEB
@@ -15748,7 +15821,7 @@ Draw_AirbourneSpell:		; Memory Address ($9BF0) and binary offset [$986C]
 	lea	GFX_Spell_ColourMasks.l,a0		;41F900009B70
 	asl.b	#$02,d0	;E500
 	move.l	$00(a0,d0.w),Buffer_Colour_Mask.l	;23F000000000B4C0
-	bsr	adrCd00AE5E	;61001202
+	bsr	Draw_PlanarSprite_Normal	;61001202
 	clr.w	Buffer_Colour_Mask_Toggle.l	;42790000B4BE
 	move.l	(sp)+,a3	;265F
 	rts	;4E75
@@ -16019,6 +16092,7 @@ Monster_Palettes:		; Memory Address ($9E60) and binary offset [$9ADC]
 	dc.w	$080D	;080D
 
 MonsterColourGrading:		; Memory Address ($9E94) and binary offset [$9B10]
+	; ReSource: Selects the monster colour-grade mask from the active grade and the monster-specific palette table.
 	moveq	#$00,d2	;7400
 	move.b	-$0018(a3),d2	;142BFFE8
 	sub.b	d3,d2	;9403
@@ -16315,6 +16389,7 @@ adrCd00A0B4:		; Memory Address ($A0B4) and binary offset [$9D30]
 	moveq	#$00,d6	;7C00
 	moveq	#$01,d2	;7401
 GFX_Beholder:		; Memory Address ($A0D2) and binary offset [$9D4E]
+	; ReSource: Draws the Beholder's optional eye components selected by its render flags.
 	btst	d2,-$0015(a3)	;052BFFEB
 	beq.s	adrCd00A0F4	;671C
 	movem.w	d0/d1/d4/d5/d7,-(sp)	;48A7CD00
@@ -16577,6 +16652,7 @@ GFX_Beholder_Near_MirroredHalf_XPositions:		; Memory Address ($A2E2) and binary 
 	dc.b	$04	;04
 
 Select_Beholder_GfxFromLookup:		; Memory Address ($A2E4) and binary offset [$9F60]
+	; ReSource: Converts a Beholder component index into an offset from the packed Beholder graphic bank.
 	move.w	d1,d2	;3401
 	add.w	d2,d2	;D442
 	lea	GFX_Beholder_Body.l,a1	;43F900048260
@@ -17113,6 +17189,7 @@ GFX_Behemoth_Claw_LookupTable:		; Memory Address ($A6C2) and binary offset [$A33
 	dc.w	$1378	;1378
 
 Draw_Monster_CompositeBitmap:		; Memory Address ($A6CA) and binary offset [$A346]
+	; ReSource: Dispatches a monster component to the normal or off-screen drawing path after applying its screen offset.
 	add.w	$0008(a5),d5	;DA6D0008
 	move.b	d4,d6	;1C04
 	add.b	#$60,d4	;06040060
@@ -17121,11 +17198,11 @@ Draw_Monster_CompositeBitmap:		; Memory Address ($A6CA) and binary offset [$A346
 	move.l	a3,-(sp)	;2F0B
 	tst.l	d6	;4A86
 	bmi.s	adrCd00A6E4	;6B06
-	bsr	adrCd00AE5E	;6100077E
+	bsr	Draw_PlanarSprite_Normal	;6100077E
 	bra.s	adrCd00A6E8	;6004
 
 adrCd00A6E4:		; Memory Address ($A6E4) and binary offset [$A360]
-	bsr	adrCd00AF1E	;61000838
+	bsr	Draw_PlanarSprite_BitReversed	;61000838
 adrCd00A6E8:		; Memory Address ($A6E8) and binary offset [$A364]
 	move.l	(sp)+,a3	;265F
 	rts	;4E75
@@ -18007,9 +18084,10 @@ adrCd00AD26:		; Memory Address ($AD26) and binary offset [$A9A2]
 adrCd00AD2E:		; Memory Address ($AD2E) and binary offset [$A9AA]
 	add.l	#GFX_BodyParts,a1	;D3FC000396F0	;Long Addr replaced with Symbol
 Draw_Monster_16PixelStrip:		; Memory Address ($AD34) and binary offset [$A9B0]
+	; ReSource: Writes one 16-pixel planar monster strip into the dungeon viewport, applying mirroring and colour substitution.
 	move.w	d5,d0	;3005
 	add.w	d7,d0	;D047
-	sub.w	adrW_00AD64.l,d0	;90790000AD64
+	sub.w	MonsterStrip_BottomY.l,d0	;90790000AD64
 	bcs.s	adrCd00AD42	;6502
 	sub.w	d0,d7	;9E40
 adrCd00AD42:		; Memory Address ($AD42) and binary offset [$A9BE]
@@ -18024,16 +18102,19 @@ adrCd00AD42:		; Memory Address ($AD42) and binary offset [$A9BE]
 	add.w	d5,a0	;D0C5
 	asr.w	#$01,d7	;E247
 	move.l	a3,-(sp)	;2F0B
-	bsr.s	adrCd00AD90	;6130
+	bsr.s	Draw_MonsterStrip_Shifted	;6130
 	move.l	(sp)+,a3	;265F
 	rts	;4E75
 
-adrW_00AD64:		; Memory Address ($AD64) and binary offset [$A9E0]
+MonsterStrip_BottomY:		; Memory Address ($AD64) and binary offset [$A9E0]
+	; ReSource: Mutable lower Y clipping boundary used by the 16-pixel monster-strip renderer.
 	dc.w	$004B	;004B
 
-adrCd00AD66:		; Memory Address ($AD66) and binary offset [$A9E2]
+Reverse_PlanarLongwordBits:		; Memory Address ($AD66) and binary offset [$A9E2]
+	; ReSource: Loads the byte-reversal lookup and reverses all 32 bits of a planar source longword.
 	lea	BitReverse_LookupBuffer.l,a6	;4DF90001684C
-adrCd00AD6C:		; Memory Address ($AD6C) and binary offset [$A9E8]
+Reverse_PlanarLongwordBits_WithLookup:		; Memory Address ($AD6C) and binary offset [$A9E8]
+	; ReSource: Reverses a planar source longword using four byte lookups when the lookup base is already loaded.
 	moveq	#$00,d2	;7400
 	move.b	d0,d2	;1400
 	move.b	$00(a6,d2.w),d0	;10362000
@@ -18049,7 +18130,8 @@ adrCd00AD6C:		; Memory Address ($AD6C) and binary offset [$A9E8]
 	swap	d0	;4840
 	rts	;4E75
 
-adrCd00AD90:		; Memory Address ($AD90) and binary offset [$AA0C]
+Draw_MonsterStrip_Shifted:		; Memory Address ($AD90) and binary offset [$AA0C]
+	; ReSource: Shifts, clips, mirrors when requested, recolours, and merges a monster strip into the dungeon viewport.
 	and.w	#$000F,d4	;0244000F
 	swap	d6	;4846
 	move.w	d7,d6	;3C07
@@ -18067,9 +18149,9 @@ adrLp00ADA4:		; Memory Address ($ADA4) and binary offset [$AA20]
 	tst.l	d6	;4A86
 	bpl.s	adrCd00ADBC	;6A0C
 	move.l	a6,a2	;244E
-	bsr.s	adrCd00AD66	;61B2
+	bsr.s	Reverse_PlanarLongwordBits	;61B2
 	exg	d0,d1	;C141
-	bsr.s	adrCd00AD6C	;61B4
+	bsr.s	Reverse_PlanarLongwordBits_WithLookup	;61B4
 	exg	d0,d1	;C141
 	move.l	a2,a6	;2C4A
 adrCd00ADBC:		; Memory Address ($ADBC) and binary offset [$AA38]
@@ -18082,7 +18164,7 @@ adrCd00ADBC:		; Memory Address ($ADBC) and binary offset [$AA38]
 	not.l	d5	;4685
 	or.l	d5,d0	;8085
 	or.l	d5,d1	;8285
-	bsr	adrCd00AE0A	;6100003A
+	bsr	Composite_PlanarSpriteWord_IfVisible	;6100003A
 	addq.w	#$01,d7	;5247
 	move.l	a2,d0	;200A
 	move.l	a3,d1	;220B
@@ -18101,7 +18183,7 @@ adrCd00ADBC:		; Memory Address ($ADBC) and binary offset [$AA38]
 	bra.s	adrCd00ADF6	;6004
 
 adrCd00ADF2:		; Memory Address ($ADF2) and binary offset [$AA6E]
-	bsr	adrCd00AE0A	;61000016
+	bsr	Composite_PlanarSpriteWord_IfVisible	;61000016
 adrCd00ADF6:		; Memory Address ($ADF6) and binary offset [$AA72]
 	add.w	#$0024,a0	;D0FC0024
 	swap	d7	;4847
@@ -18111,13 +18193,15 @@ adrCd00ADF6:		; Memory Address ($ADF6) and binary offset [$AA72]
 adrCd00AE02:		; Memory Address ($AE02) and binary offset [$AA7E]
 	cmpi.w	#$0008,d6	;0C460008
 	bcc.s	adrCd00AE58	;6450
-	bra.s	adrCd00AE14	;600A
+	bra.s	Merge_PlanarSpriteWord	;600A
 
-adrCd00AE0A:		; Memory Address ($AE0A) and binary offset [$AA86]
+Composite_PlanarSpriteWord_IfVisible:		; Memory Address ($AE0A) and binary offset [$AA86]
+	; ReSource: Skips horizontally clipped words and otherwise recolours and merges one planar sprite word.
 	cmpi.w	#$0008,d7	;0C470008
 	bcc.s	adrCd00AE58	;6448
-	bsr	adrCd00AFD0	;610001BE
-adrCd00AE14:		; Memory Address ($AE14) and binary offset [$AA90]
+	bsr	Remap_PlanarSpriteColours	;610001BE
+Merge_PlanarSpriteWord:		; Memory Address ($AE14) and binary offset [$AA90]
+	; ReSource: Builds the transparent-pixel mask and merges one sprite word into all four destination bitplanes.
 	move.l	d1,d2	;2401
 	and.l	d0,d2	;C480
 	swap	d2	;4842
@@ -18154,13 +18238,15 @@ adrCd00AE58:		; Memory Address ($AE58) and binary offset [$AAD4]
 adrW_00AE5C:		; Memory Address ($AE5C) and binary offset [$AAD8]
 	dc.w	$0000	;0000
 
-adrCd00AE5E:		; Memory Address ($AE5E) and binary offset [$AADA]
+Draw_PlanarSprite_Normal:		; Memory Address ($AE5E) and binary offset [$AADA]
+	; ReSource: Initialises and draws an ordinary aligned or shifted planar sprite into the screen bitplanes.
 	clr.w	adrW_00AE5C.l	;42790000AE5C
-	bra.s	adrCd00AE6E	;6008
+	bra.s	Draw_PlanarSprite_Normal_Setup	;6008
 
 adrCd00AE66:		; Memory Address ($AE66) and binary offset [$AAE2]
 	move.w	#$FFFF,adrW_00AE5C.l	;33FCFFFF0000AE5C
-adrCd00AE6E:		; Memory Address ($AE6E) and binary offset [$AAEA]
+Draw_PlanarSprite_Normal_Setup:		; Memory Address ($AE6E) and binary offset [$AAEA]
+	; ReSource: Calculates the destination address and horizontal shift before entering the normal planar sprite loops.
 	move.w	d4,d1	;3204
 	and.w	#$FFF7,d4	;0244FFF7
 	bsr	BW_xy_to_offset	;61002DDE
@@ -18186,7 +18272,7 @@ adrLp00AEA2:		; Memory Address ($AEA2) and binary offset [$AB1E]
 	move.l	(a1)+,d1	;2219
 	tst.w	Buffer_Colour_Mask_Toggle.l	;4A790000B4BE
 	beq.s	adrCd00AEB2	;6704
-	bsr	adrCd00AFD0	;61000120
+	bsr	Remap_PlanarSpriteColours	;61000120
 adrCd00AEB2:		; Memory Address ($AEB2) and binary offset [$AB2E]
 	ror.l	d4,d0	;E8B8
 	ror.l	d4,d1	;E8B9
@@ -18239,7 +18325,8 @@ adrCd00AF0E:		; Memory Address ($AF0E) and binary offset [$AB8A]
 	dbra	d7,adrLp00AE98	;51CFFF7E
 	rts	;4E75
 
-adrCd00AF1E:		; Memory Address ($AF1E) and binary offset [$AB9A]
+Draw_PlanarSprite_BitReversed:		; Memory Address ($AF1E) and binary offset [$AB9A]
+	; ReSource: Draws a horizontally reversed aligned or shifted planar sprite into the screen bitplanes.
 	move.w	d4,d1	;3204
 	and.w	#$FFF7,d4	;0244FFF7
 	bsr	BW_xy_to_offset	;61002D2E
@@ -18266,13 +18353,13 @@ adrLp00AF42:		; Memory Address ($AF42) and binary offset [$ABBE]
 adrLp00AF54:		; Memory Address ($AF54) and binary offset [$ABD0]
 	move.l	d2,a2	;2442
 	move.l	-(a1),d0	;2021
-	bsr	adrCd00AD66	;6100FE0C
+	bsr	Reverse_PlanarLongwordBits	;6100FE0C
 	move.l	d0,d1	;2200
 	move.l	-(a1),d0	;2021
-	bsr	adrCd00AD6C	;6100FE0A
+	bsr	Reverse_PlanarLongwordBits_WithLookup	;6100FE0A
 	move.l	a2,d2	;240A
 	lea	Buffer_Colour_Mask.l,a6	;4DF90000B4C0
-	bsr	adrCd00AFD0	;61000062
+	bsr	Remap_PlanarSpriteColours	;61000062
 	ror.l	d4,d0	;E8B8
 	ror.l	d4,d1	;E8B9
 	move.l	d0,a2	;2440
@@ -18320,7 +18407,8 @@ adrCd00AFB6:		; Memory Address ($AFB6) and binary offset [$AC32]
 	dbra	d7,adrLp00AF42	;51CFFF76
 	rts	;4E75
 
-adrCd00AFD0:		; Memory Address ($AFD0) and binary offset [$AC4C]
+Remap_PlanarSpriteColours:		; Memory Address ($AFD0) and binary offset [$AC4C]
+	; ReSource: Remaps the planar source colour indices through the active four-byte colour-mask table.
 	movem.l	d2-d7,-(sp)	;48E73F00
 	move.l	d0,d2	;2400
 	swap	d2	;4842
@@ -18337,7 +18425,7 @@ adrCd00AFD0:		; Memory Address ($AFD0) and binary offset [$AC4C]
 	not.l	d3	;4683
 	and.l	d2,d3	;C682
 	beq.s	adrCd00AFF4	;6702
-	bsr.s	adrCd00B03C	;6148
+	bsr.s	Accumulate_PlanarColourMask	;6148
 adrCd00AFF4:		; Memory Address ($AFF4) and binary offset [$AC70]
 	addq.w	#$01,d7	;5247
 	move.l	d3,d0	;2003
@@ -18349,7 +18437,7 @@ adrCd00AFF4:		; Memory Address ($AFF4) and binary offset [$AC70]
 	and.l	d0,d3	;C680
 	and.l	d2,d3	;C682
 	beq.s	adrCd00B00A	;6702
-	bsr.s	adrCd00B03C	;6132
+	bsr.s	Accumulate_PlanarColourMask	;6132
 adrCd00B00A:		; Memory Address ($B00A) and binary offset [$AC86]
 	addq.w	#$01,d7	;5247
 	move.l	d1,d3	;2601
@@ -18359,7 +18447,7 @@ adrCd00B00A:		; Memory Address ($B00A) and binary offset [$AC86]
 	and.l	d0,d3	;C680
 	and.l	d2,d3	;C682
 	beq.s	adrCd00B01C	;6702
-	bsr.s	adrCd00B03C	;6120
+	bsr.s	Accumulate_PlanarColourMask	;6120
 adrCd00B01C:		; Memory Address ($B01C) and binary offset [$AC98]
 	addq.w	#$01,d7	;5247
 	move.l	d1,d3	;2601
@@ -18367,7 +18455,7 @@ adrCd00B01C:		; Memory Address ($B01C) and binary offset [$AC98]
 	and.l	d1,d3	;C681
 	and.l	d2,d3	;C682
 	beq.s	adrCd00B02A	;6702
-	bsr.s	adrCd00B03C	;6112
+	bsr.s	Accumulate_PlanarColourMask	;6112
 adrCd00B02A:		; Memory Address ($B02A) and binary offset [$ACA6]
 	not.l	d2	;4682
 	move.l	(sp)+,d0	;201F
@@ -18379,7 +18467,8 @@ adrCd00B036:		; Memory Address ($B036) and binary offset [$ACB2]
 	movem.l	(sp)+,d2-d7	;4CDF00FC
 	rts	;4E75
 
-adrCd00B03C:		; Memory Address ($B03C) and binary offset [$ACB8]
+Accumulate_PlanarColourMask:		; Memory Address ($B03C) and binary offset [$ACB8]
+	; ReSource: Accumulates destination bitplane bits for one populated source-colour combination.
 	move.b	$00(a6,d7.w),d6	;1C367000
 	beq.s	adrCd00B062	;6720
 	add.w	d6,d6	;DC46
@@ -18397,6 +18486,7 @@ adrCd00B062:		; Memory Address ($B062) and binary offset [$ACDE]
 	rts	;4E75
 
 Bitplane_Mask:		; Memory Address ($B064) and binary offset [$ACE0]
+	; ReSource: Four 32-bit plane-write masks selected by a two-bit colour value during planar graphic composition.
 	dc.w	$0000	;0000
 	dc.w	$0000	;0000
 	dc.w	$FFFF	;FFFF
@@ -18417,6 +18507,7 @@ Draw_MainWallFace_ByPatternParity:		; Memory Address ($B074) and binary offset [
 	bsr	Draw_WallComponent_Transformed	;61000458
 	move.l	(sp)+,a3	;265F
 Draw_Main_Object_Overlay:		; Memory Address ($B08C) and binary offset [$AD08]
+	; ReSource: Draws the selected wall overlay and dispatches switch, sign, shelf, socket, or other wall-feature artwork.
 	tst.b	-$0015(a3)	;4A2BFFEB
 	beq.s	adrCd00B062	;67D0
 	addq.b	#$01,-$0015(a3)	;522BFFEB
@@ -18433,9 +18524,10 @@ Draw_Main_Object_Overlay:		; Memory Address ($B08C) and binary offset [$AD08]
 	lsr.w	#$03,d1	;E649
 	bsr	Load_WallOverlay_ColourMask	;6100010C
 	btst	#$02,-$0012(a3)	;082B0002FFEE
-	beq.s	adrCd00B0D4	;6702
+	beq.s	Draw_Main_Slot_Overlay	;6702
 	clr.b	d0	;4200
-adrCd00B0D4:		; Memory Address ($B0D4) and binary offset [$AD50]
+Draw_Main_Slot_Overlay:		; Memory Address ($B0D4) and binary offset [$AD50]
+	; ReSource: Applies the selected socket or lock-slot colour mask and draws the main-wall slot component.
 	move.l	d0,Buffer_Colour_Mask.l	;23C00000B4C0
 	move.w	#$FFFF,Buffer_Colour_Mask_Toggle.l	;33FCFFFF0000B4BE
 	bsr	Draw_WallComponentFace	;6100032C
@@ -18443,20 +18535,22 @@ adrCd00B0D4:		; Memory Address ($B0D4) and binary offset [$AD50]
 	rts	;4E75
 
 Draw_Main_Switch_Overlay:		; Memory Address ($B0EE) and binary offset [$AD6A]
+	; ReSource: Selects the main-wall switch graphic and builds its state-dependent colour mask.
 	lea	GFX_Main_Switches_Offsets.l,a0	;41F900018C2E
 	lea	GFX_Main_Switches_Positions.l,a2	;45F90000BEA6
 	lea	GFX_Switches.l,a1	;43F9000284E8
 	moveq	#$00,d0	;7000
 	move.b	-$0012(a3),d1	;122BFFEE
 	and.w	#$00F8,d1	;024100F8
-	beq.s	adrCd00B122	;6716
+	beq.s	Draw_Main_Switch_Overlay_WithColourMask	;6716
 	bsr	Select_MainSwitch_ColourMask	;610000B8
 	btst	#$02,-$0012(a3)	;082B0002FFEE
-	beq.s	adrCd00B122	;670A
+	beq.s	Draw_Main_Switch_Overlay_WithColourMask	;670A
 	and.w	#$00FF,d0	;024000FF
 	swap	d0	;4840
 	move.b	$02(a6,d1.w),d0	;10361002
-adrCd00B122:		; Memory Address ($B122) and binary offset [$AD9E]
+Draw_Main_Switch_Overlay_WithColourMask:		; Memory Address ($B122) and binary offset [$AD9E]
+	; ReSource: Applies the resolved switch-state colour mask and draws the main-wall switch component.
 	move.l	d0,Buffer_Colour_Mask.l	;23C00000B4C0
 	move.w	#$FFFF,Buffer_Colour_Mask_Toggle.l	;33FCFFFF0000B4BE
 	bsr	Draw_WallComponentFace	;610002DE
@@ -18464,6 +18558,7 @@ adrCd00B122:		; Memory Address ($B122) and binary offset [$AD9E]
 	rts	;4E75
 
 Draw_Main_Sign_Overlay:		; Memory Address ($B13C) and binary offset [$ADB8]
+	; ReSource: Draws a recoloured wall sign followed by its directional generated-symbol overlay when applicable.
 	move.w	d6,-(sp)	;3F06
 	lea	GFX_Main_Sign_Offsets.l,a0	;41F900018BB0
 	lea	GFX_Main_Sign_Positions.l,a2	;45F90000BD56
@@ -18471,16 +18566,18 @@ Draw_Main_Sign_Overlay:		; Memory Address ($B13C) and binary offset [$ADB8]
 	lea	GFX_Main_Sign_Colours.l,a6	;4DF90000B264
 	move.b	-$0012(a3),d1	;122BFFEE
 	lsr.b	#$02,d1	;E409
-	beq.s	adrCd00B16C	;670E
+	beq.s	Select_Main_Sign_MapColour	;670E
 	cmpi.b	#$05,d1	;0C010005
-	bcc.s	adrCd00B16C	;6408
+	bcc.s	Select_Main_Sign_MapColour	;6408
 	subq.b	#$01,d1	;5301
 	bsr	Load_WallOverlay_ColourMask	;6100006C
-	bra.s	adrCd00B16E	;6002
+	bra.s	Draw_Main_Sign_Base	;6002
 
-adrCd00B16C:		; Memory Address ($B16C) and binary offset [$ADE8]
+Select_Main_Sign_MapColour:		; Memory Address ($B16C) and binary offset [$ADE8]
+	; ReSource: Falls back to a coordinate-derived colour for sign types without a fixed colour entry.
 	bsr.s	Calculate_WallOverlay_ColourIndex	;615E
-adrCd00B16E:		; Memory Address ($B16E) and binary offset [$ADEA]
+Draw_Main_Sign_Base:		; Memory Address ($B16E) and binary offset [$ADEA]
+	; ReSource: Draws the recoloured sign base before selecting its directional sign-overlay picture.
 	move.l	d0,Buffer_Colour_Mask.l	;23C00000B4C0
 	move.w	#$FFFF,Buffer_Colour_Mask_Toggle.l	;33FCFFFF0000B4BE
 	bsr	Draw_WallComponentFace	;61000292
@@ -18488,17 +18585,19 @@ adrCd00B16E:		; Memory Address ($B16E) and binary offset [$ADEA]
 	move.w	(sp)+,d6	;3C1F
 	move.b	-$0012(a3),d1	;122BFFEE
 	lsr.b	#$02,d1	;E409
-	beq.s	adrCd00B19A	;670A
+	beq.s	Select_Main_SignOverlay_Direction	;670A
 	cmpi.b	#$05,d1	;0C010005
 	bcc.s	adrCd00B1C4	;642E
 	subq.b	#$01,d1	;5301
-	bra.s	adrCd00B1A4	;600A
+	bra.s	Draw_Main_SignOverlay	;600A
 
-adrCd00B19A:		; Memory Address ($B19A) and binary offset [$AE16]
+Select_Main_SignOverlay_Direction:		; Memory Address ($B19A) and binary offset [$AE16]
+	; ReSource: Derives the generated sign-overlay direction from the map coordinates.
 	move.b	-$0019(a3),d1	;122BFFE7
 	add.w	d1,d1	;D241
 	sub.b	-$001A(a3),d1	;922BFFE6
-adrCd00B1A4:		; Memory Address ($B1A4) and binary offset [$AE20]
+Draw_Main_SignOverlay:		; Memory Address ($B1A4) and binary offset [$AE20]
+	; ReSource: Selects and draws one of the four directional pictures from SignOverlay.gfx.
 	and.w	#$0003,d1	;02410003
 	mulu	#$0610,d1	;C2FC0610
 	lea	GFX_SignOverlay.l,a1	;43F900026CA8
@@ -18524,11 +18623,13 @@ Load_WallOverlay_ColourMask:		; Memory Address ($B1D4) and binary offset [$AE50]
 	rts	;4E75
 
 Draw_Main_Shelf_Overlay:		; Memory Address ($B1E0) and binary offset [$AE5C]
+	; ReSource: Suppresses an occluded shelf where necessary and otherwise draws the projected shelf component.
 	tst.b	-$001F(a3)	;4A2BFFE1
-	bne.s	adrCd00B1EE	;6608
+	bne.s	Draw_Main_Shelf_Visible	;6608
 	btst	#$03,-$0011(a3)	;082B0003FFEF
 	bne.s	adrCd00B1C4	;66D6
-adrCd00B1EE:		; Memory Address ($B1EE) and binary offset [$AE6A]
+Draw_Main_Shelf_Visible:		; Memory Address ($B1EE) and binary offset [$AE6A]
+	; ReSource: Loads the shelf graphics tables and draws the shelf when its wall-face visibility conditions permit.
 	lea	GFX_Main_Shelf_Offsets.l,a0	;41F900018B90
 	lea	GFX_Main_Shelf_Positions.l,a2	;45F90000BCE6
 	lea	GFX_Shelf.l,a1	;43F900025490
@@ -18571,6 +18672,7 @@ GFX_Main_Slots_Offsets:		; Memory Address ($B224) and binary offset [$AEA0]
 	dc.w	$03A0	;03A0
 	dc.w	$03F8	;03F8
 GFX_Switches_Colours:		; Memory Address ($B244) and binary offset [$AEC0]
+	; ReSource: Eight four-byte colour masks used to recolour switch artwork according to position and state.
 	dc.w	$000D	;000D
 	dc.w	$0708	;0708
 	dc.w	$000E	;000E
@@ -18588,6 +18690,7 @@ GFX_Switches_Colours:		; Memory Address ($B244) and binary offset [$AEC0]
 	dc.w	$000D	;000D
 	dc.w	$090A	;090A
 GFX_Main_Sign_Colours:		; Memory Address ($B264) and binary offset [$AEE0]
+	; ReSource: Eight four-byte colour masks used for fixed and coordinate-derived main-wall sign colours.
 	dc.w	$0005	;0005
 	dc.w	$060D	;060D
 	dc.w	$0009	;0009
@@ -18605,6 +18708,7 @@ GFX_Main_Sign_Colours:		; Memory Address ($B264) and binary offset [$AEE0]
 	dc.w	$000A	;000A
 	dc.w	$0B0D	;0B0D
 GFX_Main_Signoverlay_Offsets:		; Memory Address ($B284) and binary offset [$AF00]
+	; ReSource: Sixteen big-endian offsets selecting directional pictures from SignOverlay.gfx.
 	dc.w	$0000	;0000
 	dc.w	$0038	;0038
 	dc.w	$0070	;0070
@@ -18663,6 +18767,7 @@ GFX_Main_Wall_SpriteTable:		; Memory Address ($B2BA) and binary offset [$AF36]
 	dc.b	$1A	;1A
 	dc.b	$1B	;1B
 Door_Lock_Colours:		; Memory Address ($B2D6) and binary offset [$AF52]
+	; ReSource: Eight recolour values selected from the door-state high nibble for locked-door artwork.
 	dc.b	$01	;01
 	dc.b	$09	;09
 	dc.b	$04	;04
@@ -18675,65 +18780,71 @@ Door_Lock_Colours:		; Memory Address ($B2D6) and binary offset [$AF52]
 Draw_Main_Door_Or_Stairs:		; Memory Address ($B2DE) and binary offset [$AF5A]
 	; ReSource: Applies the large-door lock mask and selects open, metal or portcullis artwork, or dispatches the shared stairs path.
 	cmp.b	#$01,-$0013(a3)	;0C2B0001FFED
-	beq	adrCd00B384	;6700009E
+	beq	Draw_Main_Stairs	;6700009E
 	move.w	#$FFFF,Buffer_Colour_Mask_Toggle.l	;33FCFFFF0000B4BE
 	move.l	#$0004000C,Buffer_Colour_Mask.l	;23FC0004000C0000B4C0	;Long Addr replaced with Symbol
 	moveq	#$00,d0	;7000
 	move.b	-$0012(a3),d0	;102BFFEE
 	btst	#$03,d0	;08000003
-	bne.s	adrCd00B312	;660C
+	bne.s	Select_Main_Door_Graphic	;660C
 	lsr.b	#$04,d0	;E808
 	move.b	Door_Lock_Colours(pc,d0.w),d0	;103B00CC
 	move.b	d0,Buffer_Colour_Mask+$02.l	;13C00000B4C2
-adrCd00B312:		; Memory Address ($B312) and binary offset [$AF8E]
+Select_Main_Door_Graphic:		; Memory Address ($B312) and binary offset [$AF8E]
+	; ReSource: Selects open-door, metal-door, or portcullis artwork from the door-state bits.
 	lea	GFX_Door_Offsets.l,a0	;41F900018C14
 	lea	GFX_Door_Positions.l,a2	;45F90000BC4E
 	lea	GFX_Door_Open.l,a1	;43F90002D660
 	btst	#$00,-$0012(a3)	;082B0000FFEE
-	beq.s	adrCd00B340	;6714
+	beq.s	Draw_Main_Door_ByViewCell	;6714
 	lea	GFX_Door_Metal.l,a1	;43F90002F1C8
 	btst	#$01,-$0012(a3)	;082B0001FFEE
-	beq.s	adrCd00B340	;6706
+	beq.s	Draw_Main_Door_ByViewCell	;6706
 	lea	GFX_Door_PortCullis.l,a1	;43F900030650
-adrCd00B340:		; Memory Address ($B340) and binary offset [$AFBC]
+Draw_Main_Door_ByViewCell:		; Memory Address ($B340) and binary offset [$AFBC]
+	; ReSource: Chooses the side-face component path or centred two-half construction for the current view cell.
 	move.b	-$0016(a3),d6	;1C2BFFEA
 	cmpi.b	#$0E,d6	;0C06000E
-	bcc.s	adrCd00B350	;6406
-	bsr	adrCd0095B4	;6100E268
+	bcc.s	Draw_Main_Door_CentredFace	;6406
+	bsr	Draw_CentredDungeonComponent	;6100E268
 	bra.s	adrCd00B374	;6024
 
-adrCd00B350:		; Memory Address ($B350) and binary offset [$AFCC]
+Draw_Main_Door_CentredFace:		; Memory Address ($B350) and binary offset [$AFCC]
+	; ReSource: Adjusts the centred door slot and orientation before constructing the door from two reflected halves.
 	move.w	d6,d0	;3006
 	subq.w	#$07,d0	;5F40
 	cmpi.w	#$000B,d0	;0C40000B
-	bne.s	adrCd00B370	;6616
+	bne.s	Draw_Main_Door_Centred_TwoHalves	;6616
 	move.w	-$000A(a3),d1	;322BFFF6
 	asl.w	#$02,d1	;E541
 	eor.b	d1,-$0012(a3)	;B32BFFEE
 	btst	#$02,-$0012(a3)	;082B0002FFEE
-	beq.s	adrCd00B370	;6704
+	beq.s	Draw_Main_Door_Centred_TwoHalves	;6704
 	addq.w	#$01,d6	;5246
 	addq.w	#$01,d0	;5240
-adrCd00B370:		; Memory Address ($B370) and binary offset [$AFEC]
+Draw_Main_Door_Centred_TwoHalves:		; Memory Address ($B370) and binary offset [$AFEC]
+	; ReSource: Draws a centred main door from its source half and reflected partner.
 	bsr	Draw_WallComponent_TwoHalves	;610000E6
 adrCd00B374:		; Memory Address ($B374) and binary offset [$AFF0]
 	clr.w	Buffer_Colour_Mask_Toggle.l	;42790000B4BE
 	tst.b	-$0011(a3)	;4A2BFFEF
-	bmi	adrCd0099F0	;6B00E670
+	bmi	Draw_DungeonCellOccupants	;6B00E670
 	rts	;4E75
 
-adrCd00B384:		; Memory Address ($B384) and binary offset [$B000]
+Draw_Main_Stairs:		; Memory Address ($B384) and binary offset [$B000]
+	; ReSource: Selects ascending or descending stairs graphics, offsets, and projected positions.
 	lea	GFX_Stairs_Up.l,a1	;43F90002AB38
 	lea	GFX_Stairs_Up_Offsets.l,a0	;41F900018BD0
 	lea	GFX_Stairs_Up_Positions.l,a2	;45F90000BB1E
 	btst	#$00,-$0012(a3)	;082B0000FFEE
-	beq.s	adrCd00B3B0	;6712
+	beq.s	Draw_Main_Stairs_ByViewCell	;6712
 	lea	GFX_Stairs_Down.l,a1	;43F90002C9E0
 	lea	GFX_Stairs_Down_Offsets.l,a0	;41F900018BF2
 	lea	GFX_Stairs_Down_Positions.l,a2	;45F90000BB92
-adrCd00B3B0:		; Memory Address ($B3B0) and binary offset [$B02C]
+Draw_Main_Stairs_ByViewCell:		; Memory Address ($B3B0) and binary offset [$B02C]
+	; ReSource: Chooses the side-face path, suppresses the farthest central slot, or constructs centred stairs from two halves.
 	cmp.b	#$0E,-$0016(a3)	;0C2B000EFFEA
-	bcs.s	adrCd00B3CC	;6514
+	bcs.s	Draw_Main_Stairs_SideFace	;6514
 	beq.s	adrCd00B3CE	;6714
 	move.b	-$0016(a3),d6	;1C2BFFEA
 	move.w	d6,d0	;3006
@@ -18742,11 +18853,12 @@ adrCd00B3B0:		; Memory Address ($B3B0) and binary offset [$B02C]
 	bsr	Draw_WallComponent_TwoHalves	;61000090
 	bra.s	adrCd00B3CE	;6002
 
-adrCd00B3CC:		; Memory Address ($B3CC) and binary offset [$B048]
+Draw_Main_Stairs_SideFace:		; Memory Address ($B3CC) and binary offset [$B048]
+	; ReSource: Draws the complete stairs component for a side view cell.
 	bsr.s	Draw_WallComponentFace	;6142
 adrCd00B3CE:		; Memory Address ($B3CE) and binary offset [$B04A]
 	tst.b	-$0011(a3)	;4A2BFFEF
-	bmi	adrCd0099F0	;6B00E61C
+	bmi	Draw_DungeonCellOccupants	;6B00E61C
 	rts	;4E75
 
 Draw_WoodenWallOrDoorFace:		; Memory Address ($B3D8) and binary offset [$B054]
@@ -18755,7 +18867,7 @@ Draw_WoodenWallOrDoorFace:		; Memory Address ($B3D8) and binary offset [$B054]
 	lea	GFX_Wooden_Wall_Offsets.l,a0	;41F900018B70
 	lea	GFX_Wooden_Wall_Positions.l,a2	;45F90000BAAE
 	tst.b	-$0014(a3)	;4A2BFFEC
-	beq.s	adrCd00B40E	;671E
+	beq.s	Draw_Selected_WoodenWallOrDoorComponent	;671E
 	add.w	#$2498,a1	;D2FC2498
 	bsr.s	Draw_WallComponentFace	;611A
 	tst.b	-$0015(a3)	;4A2BFFEB
@@ -18763,7 +18875,8 @@ Draw_WoodenWallOrDoorFace:		; Memory Address ($B3D8) and binary offset [$B054]
 	lea	GFX_Wooden_Doors_Offsets.l,a0	;41F900018B50
 	lea	GFX_Wooden_Doors_Positions.l,a2	;45F90000BFAE
 	lea	GFX_WoodDoors.l,a1	;43F9000242B0
-adrCd00B40E:		; Memory Address ($B40E) and binary offset [$B08A]
+Draw_Selected_WoodenWallOrDoorComponent:		; Memory Address ($B40E) and binary offset [$B08A]
+	; ReSource: Draws the selected solid wall, doorway frame, or closed wooden-door component.
 	nop	;4E71
 Draw_WallComponentFace:		; Memory Address ($B410) and binary offset [$B08C]
 	; ReSource: Selects a wall-component picture and chooses its normal, mirrored or two-half drawing path.
@@ -18775,12 +18888,13 @@ Draw_WallComponentFace:		; Memory Address ($B410) and binary offset [$B08C]
 	bsr.s	Prepare_WallSpriteDraw	;6164
 	swap	d3	;4843
 	move.l	a3,-(sp)	;2F0B
-	bsr	adrCd00B5CA	;610001A2
+	bsr	Draw_WallSprite_Normal	;610001A2
 	move.l	(sp)+,a3	;265F
 adrCd00B42C:		; Memory Address ($B42C) and binary offset [$B0A8]
 	rts	;4E75
 
 Flip_Sprite:		; Memory Address ($B42E) and binary offset [$B0AA]
+	; ReSource: Clears the component mirror flag, resolves its geometry, and draws it through the bit-reversed path.
 	and.w	#$007F,d0	;0240007F
 	bsr.s	Prepare_WallSpriteDraw	;6152
 	add.w	d3,a0	;D0C3
@@ -18823,7 +18937,7 @@ Draw_WallComponent_TwoHalves:		; Memory Address ($B458) and binary offset [$B0D4
 	bsr.s	Prepare_WallSpriteDraw	;612C
 	swap	d3	;4843
 	movem.l	d1/d3/d5/a0/a1/a3,-(sp)	;48E754D0
-	bsr	adrCd00B5CA	;61000168
+	bsr	Draw_WallSprite_Normal	;61000168
 	movem.l	(sp)+,d1/d3/d5/a0/a1/a3	;4CDF0B2A
 	add.w	#$0010,a0	;D0FC0010
 	add.w	d1,d1	;D241
@@ -18906,7 +19020,7 @@ Draw_WallComponent_Transformed:		; Memory Address ($B4E0) and binary offset [$B1
 	lea	GFX_WallComponent_DrawTransformFlags.l,a2	;45F90000B4C4
 	add.w	d6,a2	;D4C6
 	btst	#$01,(a2)	;08120001
-	beq	adrCd00B5CA	;670000DC
+	beq	Draw_WallSprite_Normal	;670000DC
 	swap	d6	;4846
 	btst	#$00,(a2)	;08120000
 	beq.s	adrCd00B4FA	;6702
@@ -19011,19 +19125,22 @@ adrLp00B570:		; Memory Address ($B570) and binary offset [$B1EC]
 	addq.w	#$08,a1	;5049
 	rts	;4E75
 
-adrCd00B5CA:		; Memory Address ($B5CA) and binary offset [$B246]
+Draw_WallSprite_Normal:		; Memory Address ($B5CA) and binary offset [$B246]
+	; ReSource: Initialises the normal wall-sprite source-row stride before entering the shared planar compositor.
 	sub.w	a3,a3	;96CB
-adrLp00B5CC:		; Memory Address ($B5CC) and binary offset [$B248]
+Draw_WallSprite_Rows_Loop:		; Memory Address ($B5CC) and binary offset [$B248]
+	; ReSource: Iterates the source rows and words of an ordinary planar wall or wall-feature sprite.
 	swap	d5	;4845
 	move.w	d5,d3	;3605
 adrLp00B5D0:		; Memory Address ($B5D0) and binary offset [$B24C]
 	move.l	(a1)+,d0	;2019
 	move.l	(a1)+,d1	;2219
 	tst.w	Buffer_Colour_Mask_Toggle.l	;4A790000B4BE
-	beq.s	adrCd00B5E6	;670A
+	beq.s	Composite_WallSprite_Row	;670A
 	lea	Buffer_Colour_Mask.l,a6	;4DF90000B4C0
-	bsr	adrCd00AFD0	;6100F9EC
-adrCd00B5E6:		; Memory Address ($B5E6) and binary offset [$B262]
+	bsr	Remap_PlanarSpriteColours	;6100F9EC
+Composite_WallSprite_Row:		; Memory Address ($B5E6) and binary offset [$B262]
+	; ReSource: Builds the transparency mask and merges one ordinary planar sprite word into all four destination bitplanes.
 	move.l	d1,d2	;2401
 	and.l	d0,d2	;C480
 	addq.l	#$01,d2	;5282
@@ -19066,7 +19183,7 @@ adrCd00B632:		; Memory Address ($B632) and binary offset [$B2AE]
 	add.w	#$0028,a0	;D0FC0028
 	add.w	a3,a1	;D2CB
 	swap	d5	;4845
-	dbra	d5,adrLp00B5CC	;51CDFF86
+	dbra	d5,Draw_WallSprite_Rows_Loop	;51CDFF86
 	rts	;4E75
 
 GFX_Main_Wall_DrawTransformFlags:		; Memory Address ($B64A) and binary offset [$B2C6]
@@ -19115,9 +19232,9 @@ adrLp00B6A2:		; Memory Address ($B6A2) and binary offset [$B31E]
 adrLp00B6A4:		; Memory Address ($B6A4) and binary offset [$B320]
 	move.l	(a1)+,d1	;2219
 	move.l	(a1)+,d0	;2019
-	bsr	adrCd00AD66	;6100F6BC
+	bsr	Reverse_PlanarLongwordBits	;6100F6BC
 	exg	d0,d1	;C141
-	bsr	adrCd00AD66	;6100F6B6
+	bsr	Reverse_PlanarLongwordBits	;6100F6B6
 	move.w	d1,$5DBE(a0)	;31415DBE
 	swap	d1	;4841
 	move.w	d1,$3E7E(a0)	;31413E7E
@@ -19168,9 +19285,9 @@ Draw_MainWall_EdgeTransform:		; Memory Address ($B6FA) and binary offset [$B376]
 adrLp00B70A:		; Memory Address ($B70A) and binary offset [$B386]
 	move.l	(a1)+,d1	;2219
 	move.l	(a1)+,d0	;2019
-	bsr	adrCd00AD66	;6100F656
+	bsr	Reverse_PlanarLongwordBits	;6100F656
 	exg	d0,d1	;C141
-	bsr	adrCd00AD66	;6100F650
+	bsr	Reverse_PlanarLongwordBits	;6100F650
 	move.l	d1,d2	;2401
 	and.l	d0,d2	;C480
 	swap	d2	;4842
@@ -19210,17 +19327,19 @@ Draw_WallSprite_BitReversed:		; Memory Address ($B76E) and binary offset [$B3EA]
 	; ReSource: Writes normal wall rows after horizontally reversing their planar source bits.
 	swap	d5	;4845
 	move.w	d5,d3	;3605
-adrLp00B772:		; Memory Address ($B772) and binary offset [$B3EE]
+Draw_WallSprite_BitReversed_Rows_Loop:		; Memory Address ($B772) and binary offset [$B3EE]
+	; ReSource: Iterates a horizontally bit-reversed wall sprite through its planar source rows and words.
 	move.l	(a1)+,d1	;2219
 	move.l	(a1)+,d0	;2019
-	bsr	adrCd00AD66	;6100F5EE
+	bsr	Reverse_PlanarLongwordBits	;6100F5EE
 	exg	d0,d1	;C141
-	bsr	adrCd00AD66	;6100F5E8
+	bsr	Reverse_PlanarLongwordBits	;6100F5E8
 	tst.w	Buffer_Colour_Mask_Toggle.l	;4A790000B4BE
-	beq.s	adrCd00B792	;670A
+	beq.s	Composite_BitReversedWallSprite_Row	;670A
 	lea	Buffer_Colour_Mask.l,a6	;4DF90000B4C0
-	bsr	adrCd00AFD0	;6100F840
-adrCd00B792:		; Memory Address ($B792) and binary offset [$B40E]
+	bsr	Remap_PlanarSpriteColours	;6100F840
+Composite_BitReversedWallSprite_Row:		; Memory Address ($B792) and binary offset [$B40E]
+	; ReSource: Builds the transparency mask and merges one bit-reversed sprite word into all four destination bitplanes.
 	move.l	d1,d2	;2401
 	and.l	d0,d2	;C480
 	addq.l	#$01,d2	;5282
@@ -19256,7 +19375,7 @@ adrCd00B792:		; Memory Address ($B792) and binary offset [$B40E]
 adrCd00B7DC:		; Memory Address ($B7DC) and binary offset [$B458]
 	subq.w	#$02,a0	;5548
 adrCd00B7DE:		; Memory Address ($B7DE) and binary offset [$B45A]
-	dbra	d3,adrLp00B772	;51CBFF92
+	dbra	d3,Draw_WallSprite_BitReversed_Rows_Loop	;51CBFF92
 	swap	d3	;4843
 	add.w	d3,a0	;D0C3
 	swap	d3	;4843
@@ -19331,10 +19450,10 @@ Draw_FloorAndCeiling_BitReversed_Loop:		; Memory Address ($B87E) and binary offs
 	moveq	#$07,d3	;7607
 adrLp00B880:		; Memory Address ($B880) and binary offset [$B4FC]
 	move.l	(a1)+,d0	;2019
-	bsr	adrCd00AD6C	;6100F4E8
+	bsr	Reverse_PlanarLongwordBits_WithLookup	;6100F4E8
 	move.l	d0,d1	;2200
 	move.l	(a1)+,d0	;2019
-	bsr	adrCd00AD6C	;6100F4E0
+	bsr	Reverse_PlanarLongwordBits_WithLookup	;6100F4E0
 	move.w	d0,$5DBE(a0)	;31405DBE
 	swap	d0	;4840
 	move.w	d0,$3E7E(a0)	;31403E7E
@@ -20640,7 +20759,7 @@ adrCd00C3DE:		; Memory Address ($C3DE) and binary offset [$C05A]
 	swap	d3	;4843
 	move.l	#$00000090,a3	;267C00000090
 	move.w	#$FFFF,Buffer_Colour_Mask_Toggle.l	;33FCFFFF0000B4BE
-	bsr	adrLp00B5CC	;6100F1B2
+	bsr	Draw_WallSprite_Rows_Loop	;6100F1B2
 	clr.w	Buffer_Colour_Mask_Toggle.l	;42790000B4BE
 	tst.b	adrB_00EE2C.l	;4A390000EE2C
 	beq.s	adrCd00C434	;670A
@@ -21578,6 +21697,7 @@ Draw_Select_Avatars:
 	bsr.s	Get_ChampionShieldScreenPosition	;61AC
 	moveq	#$04,d3	;7604
 Draw_ShieldAvatar:		; Memory Address ($CDA0) and binary offset [$CA1C]
+	; ReSource: Composes a champion shield avatar from its top, avatar, class-mask, and bottom planar components.
 	move.l	#$00020103,d0	;203C00020103	;Long Addr replaced with Symbol
 	tst.w	d3	;4A43
 	beq.s	adrCd00CDBC	;6712
@@ -21627,7 +21747,7 @@ adrLp00CE2E:		; Memory Address ($CE2E) and binary offset [$CAAA]
 	move.l	(a1)+,d1	;2219
 	tst.w	Buffer_Colour_Mask_Toggle.l	;4A790000B4BE
 	beq.s	adrCd00CE3E	;6704
-	bsr	adrCd00AFD0	;6100E194
+	bsr	Remap_PlanarSpriteColours	;6100E194
 adrCd00CE3E:		; Memory Address ($CE3E) and binary offset [$CABA]
 	bsr	adrCd00CE86	;61000046
 	move.b	d1,$5DC1(a0)	;11415DC1
@@ -22936,7 +23056,7 @@ Draw_woundflash_digit:		; Memory Address ($D92E) and binary offset [$D5AA]
 	moveq	#$04,d7	;7E04
 	swap	d7	;4847
 	moveq	#$00,d6	;7C00
-	bra	adrCd00AD90	;6000D40A
+	bra	Draw_MonsterStrip_Shifted	;6000D40A
 
 Data_Woundflash:		; Memory Address ($D988) and binary offset [$D604]
 	dc.l	$00000000	;00000000
@@ -45462,6 +45582,7 @@ GFX_Ceiling_Hole_Offsets:		; Memory Address ($18C66) and binary offset [$188E2]
 	dc.w	$00B8	;00B8
 	dc.w	$0138	;0138
 GameFont:		; Memory Address ($18C7E) and binary offset [$188FA]
+	; ReSource: Packed four-plane glyph sheet used by the text renderer, including readable glyphs and rune/symbol positions.
 	dc.w	$001F	;001F
 	dc.w	$311C	;311C
 	dc.w	$0000	;0000
@@ -96503,6 +96624,7 @@ GFX_Ceiling_Hole:		; Memory Address ($31F68) and binary offset [$31BE4]
 	dc.w	$FFFF	;FFFF
 	dc.w	$FFFF	;FFFF
 GFX_FloorCeiling:		; Memory Address ($32120) and binary offset [$31D9C]
+	; ReSource: 128x76 floor-and-ceiling source copied into the dungeon viewport by the parity-dependent renderer.
 	dc.w	$6EA5	;6EA5
 	dc.w	$DFFF	;DFFF
 	dc.w	$0000	;0000
@@ -98328,6 +98450,7 @@ GFX_FloorCeiling:		; Memory Address ($32120) and binary offset [$31D9C]
 	dc.w	$0140	;0140
 	dc.w	$0000	;0000
 GFX_ObjectsOnFloor:		; Memory Address ($32F60) and binary offset [$32BDC]
+	; ReSource: Packed planar floor-object graphics selected by the object shape, colour, and projection tables.
 	dc.w	$FFFF	;FFFF
 	dc.w	$FFC7	;FFC7
 	dc.w	$FFC7	;FFC7
@@ -101413,6 +101536,7 @@ GFX_ObjectsOnFloor:		; Memory Address ($32F60) and binary offset [$32BDC]
 	dc.w	$E1FF	;E1FF
 	dc.w	$E1FF	;E1FF
 GFX_FireBall:		; Memory Address ($34778) and binary offset [$343F4]
+	; ReSource: Packed planar fireball pictures used for airborne spell codes $80-$85.
 	dc.w	$FFFF	;FFFF
 	dc.w	$FFFE	;FFFE
 	dc.w	$FFFE	;FFFE
@@ -101762,6 +101886,7 @@ GFX_FireBall:		; Memory Address ($34778) and binary offset [$343F4]
 	dc.w	$FFFF	;FFFF
 	dc.w	$FFFF	;FFFF
 GFX_AirbourneSpells:		; Memory Address ($34A30) and binary offset [$346AC]
+	; ReSource: Packed planar airborne-spell pictures; the renderer uses separate stationary and flying layout tables.
 	dc.w	$FFFD	;FFFD
 	dc.w	$FFF9	;FFF9
 	dc.w	$FFFB	;FFFB
@@ -135296,6 +135421,7 @@ GFX_Fairy:		; Memory Address ($44ED0) and binary offset [$44B4C]
 	dc.w	$FFFB	;FFFB
 	dc.w	$FFFB	;FFFB
 GFX_Summon:		; Memory Address ($45018) and binary offset [$44C94]
+	; ReSource: Packed Summon body and arm pictures shared by the distance, facing, and arm-variant tables.
 	dc.w	$FFFF	;FFFF
 	dc.w	$FE3F	;FE3F
 	dc.w	$FE3F	;FE3F
@@ -138205,6 +138331,7 @@ GFX_Summon:		; Memory Address ($45018) and binary offset [$44C94]
 	dc.w	$F3FF	;F3FF
 	dc.w	$F3FF	;F3FF
 GFX_Behemoth:		; Memory Address ($466D0) and binary offset [$4634C]
+	; ReSource: Packed Behemoth body and claw pictures selected by the Behemoth and Entropy render layouts.
 	dc.w	$FFFF	;FFFF
 	dc.w	$FFFF	;FFFF
 	dc.w	$FFFF	;FFFF
@@ -140754,6 +140881,7 @@ GFX_Behemoth:		; Memory Address ($466D0) and binary offset [$4634C]
 	dc.w	$F8FF	;F8FF
 	dc.w	$F8FF	;F8FF
 GFX_Crab:		; Memory Address ($47AB8) and binary offset [$47734]
+	; ReSource: Packed Crab body and face pictures selected by the Crab render layouts.
 	dc.w	$FFFF	;FFFF
 	dc.w	$FFE7	;FFE7
 	dc.w	$FFE7	;FFE7
@@ -142642,6 +142770,7 @@ _GFX_Beholder_9:
 	dc.w	$13FF	;13FF
 	dc.w	$3DFF	;3DFF
 GFX_Dragon:		; Memory Address ($48960) and binary offset [$485DC]
+	; ReSource: Packed Dragon body and claw pictures selected by the Dragon render layouts.
 	dc.w	$FFFF	;FFFF
 	dc.w	$FFFF	;FFFF
 	dc.w	$FFFF	;FFFF
@@ -147916,6 +148045,7 @@ GFX_Dragon:		; Memory Address ($48960) and binary offset [$485DC]
 	dc.w	$C1FF	;C1FF
 
 GFX_Entropy:		; Memory Address ($4B290) and binary offset [$4AF0C]
+	; ReSource: Packed Entropy body and limb pictures selected by the shared Behemoth/Entropy renderer.
 	dc.w	$FFFF	;FFFF
 	dc.w	$FEFD	;FEFD
 	dc.w	$FEFD	;FEFD
@@ -150534,6 +150664,7 @@ GFX_Entropy:		; Memory Address ($4B290) and binary offset [$4AF0C]
 	dc.w	$0777	;0777
 	dc.w	$0706	;0706
 GFX_Pockets:		; Memory Address ($4C702) and binary offset [$4C37E]
+	; ReSource: Packed pocket/object picture bank addressed in 20-picture banks by the object graphic selector.
 	dc.w	$0000	;0000
 	dc.w	$0000	;0000
 	dc.w	$0000	;0000
@@ -166551,6 +166682,7 @@ GFX_Pockets:		; Memory Address ($4C702) and binary offset [$4C37E]
 	dc.w	$002A	;002A
 	dc.w	$0000	;0000
 SFX_AudioSample_1:		; Memory Address ($54422) and binary offset [$5409E]
+	; ReSource: First packed 8SVX sound sample. Contains the switch/click sound data and the second sound selected by ID 1.
 	dc.b	'FORM'	;464F524D
 	dc.b	$00	;00
 	dc.b	$00	;00
@@ -166671,6 +166803,7 @@ SFX_AudioSample_1:		; Memory Address ($54422) and binary offset [$5409E]
 	dc.b	$FD	;FD
 	dc.b	$FF	;FF
 SFX_AudioSample_2:		; Memory Address ($544A6) and binary offset [$54122]
+	; ReSource: 8SVX fighting or attack-clink sound data selected by sound ID 2.
 	dc.b	'FORM'	;464F524D
 	dc.b	$00	;00
 	dc.b	$00	;00
@@ -168133,6 +168266,7 @@ SFX_AudioSample_2:		; Memory Address ($544A6) and binary offset [$54122]
 	dc.b	$0A	;0A
 	dc.b	$09	;09
 SFX_AudioSample_3:		; Memory Address ($54A68) and binary offset [$546E4]
+	; ReSource: 8SVX character-death sound data selected by sound ID 3.
 	dc.b	'FORM'	;464F524D
 	dc.b	$00	;00
 	dc.b	$00	;00
@@ -174401,6 +174535,7 @@ SFX_AudioSample_3:		; Memory Address ($54A68) and binary offset [$546E4]
 	dc.b	$DF	;DF
 	dc.b	$E9	;E9
 SFX_AudioSample_4:		; Memory Address ($562F0) and binary offset [$55F6C]
+	; ReSource: 8SVX spell or fireball sound data selected by sound ID 4.
 	dc.b	'FORM'	;464F524D
 	dc.b	$00	;00
 	dc.b	$00	;00
@@ -180459,6 +180594,7 @@ SFX_AudioSample_4:		; Memory Address ($562F0) and binary offset [$55F6C]
 	dc.b	$25	;25
 	dc.b	$37	;37
 SFX_AudioSample_5:		; Memory Address ($57AA6) and binary offset [$57722]
+	; ReSource: 8SVX alternative spell sound data selected by sound ID 5.
 	dc.b	'FORM'	;464F524D
 	dc.b	$00	;00
 	dc.b	$00	;00

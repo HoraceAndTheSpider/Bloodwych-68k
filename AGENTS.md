@@ -147,6 +147,30 @@ Use an EQU for meaningful IDs, thresholds, table lengths, hard-coded render adju
 
 `source_comment` is the spreadsheet-controlled comment attached to a table, function, or label. Comments should explain what the code/data does in plain English, not narrate the reverse-engineering process. Apostrophes in comments must remain valid.
 
+Instruction-level comments are maintained separately on the `COMMENTS` worksheet,
+using these columns in this exact order:
+
+```text
+profile | scope_start | scope_end | source_match | source_comment | expected_matches
+```
+
+The Formatting tool applies these rows only to the final
+`<PROFILE>_relabel_data.asm` output, after relabelling, EQU substitutions, and
+data replacements have been generated. `source_match` must therefore contain
+the final instruction text, including any EQU names that appear in the output.
+Matching is whitespace-insensitive but remains scoped between the declared
+labels. `expected_matches` defaults to `1`; set it higher only when every
+matching instruction in that scope has been independently confirmed to receive
+the same explanation. A mismatched count or missing scope label leaves that
+comment rule unchanged and reports the problem.
+
+The formatter replaces only an existing instruction comment consisting entirely
+of the original hexadecimal byte block. It must not remove hexadecimal comments
+from `dc.*`, `ds.*`, or `INCBIN` data declarations, and it must leave handwritten
+non-hex comments alone. The original byte comments remain in
+`<PROFILE>_relabel.asm` as the machine-evidence source; human-readable
+instruction comments are a presentation pass on `_relabel_data.asm` only.
+
 ## Resource naming
 
 Use faux extensions consistently:
