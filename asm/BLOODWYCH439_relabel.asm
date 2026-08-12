@@ -4859,8 +4859,8 @@ adrCd00334A:		; Memory Address ($334A) and binary offset [$2FC6]
 	move.w	d7,d0	;3007
 	jmp	adrCd00CAEA.l	;4EF90000CAEA
 
-Interface_DispatchPageAction:		; Memory Address ($336A) and binary offset [$2FE6]
-	; ReSource: Derives the interface action index from the selected command bytes and dispatches the current interface page state.
+PartyCommand_DispatchSelection:		; Memory Address ($336A) and binary offset [$2FE6]
+	; ReSource: Decodes the selected party-command button from the interface selection bytes and dispatches the current party-command state.
 	move.l	$0046(a5),a6	;2C6D0046
 	moveq	#$00,d1	;7200
 	move.b	$0040(a5),d0	;102D0040
@@ -4876,35 +4876,35 @@ adrCd003386:		; Memory Address ($3386) and binary offset [$3002]
 	dbra	d0,adrLp00337C	;51C8FFF4
 adrCd00338A:		; Memory Address ($338A) and binary offset [$3006]
 	add.b	$0041(a5),d1	;D22D0041
-Interface_DispatchPageState:		; Memory Address ($338E) and binary offset [$300A]
-	; ReSource: Uses the current interface page state in the player record to select a handler from the relative-offset table at $33A0.
+PartyCommand_DispatchState:		; Memory Address ($338E) and binary offset [$300A]
+	; ReSource: Dispatches party-command states 0 through 8 through PartyCommand_HandlerOffsets: resolve selection, Communicate, Commend, View, Wait, Correct, Dismiss, Call, or handle the active communication menu.
 	move.w	$0042(a5),d0	;302D0042
 	add.w	d0,d0	;D040
-	lea	Interface_AdvancePageState.l,a0	;41F9000033B2
-	add.w	Interface_PageStateHandlers(pc,d0.w),a0	;D0FB0004
+	lea	PartyCommand_ResolveSelection.l,a0	;41F9000033B2
+	add.w	PartyCommand_HandlerOffsets(pc,d0.w),a0	;D0FB0004
 	jmp	(a0)	;4ED0
 
-Interface_PageStateHandlers:		; Memory Address ($33A0) and binary offset [$301C]
-	; ReSource: Nine word-relative handler offsets for interface page states 0 through 8; entry 8 already targets the existing Comms_HandleMenuSelection relabel.
-	dc.w	Interface_AdvancePageState-Interface_AdvancePageState	;0000
-	dc.w	Interface_EnterCommunication-Interface_AdvancePageState	;003C
-	dc.w	Interface_ProcessSelectedAction_11-Interface_AdvancePageState	;0D9E
-	dc.w	Interface_HandleInventoryObjectAction-Interface_AdvancePageState	;0D32
-	dc.w	Interface_ProcessSelectedAction_13-Interface_AdvancePageState	;0BAE
-	dc.w	Interface_ProcessSelectedAction_14-Interface_AdvancePageState	;0D92
-	dc.w	Interface_ProcessSelectedAction_15-Interface_AdvancePageState	;0BAA
-	dc.w	Interface_ReportOtherPlayerProximity-Interface_AdvancePageState	;0AEA
-	dc.w	Comms_HandleMenuSelection-Interface_AdvancePageState	;011A
+PartyCommand_HandlerOffsets:		; Memory Address ($33A0) and binary offset [$301C]
+	; ReSource: Nine word-relative handler offsets for party-command states 0 through 8: resolve selection, Communicate, Commend, View, Wait, Correct, Dismiss, Call, and the active communication menu.
+	dc.w	PartyCommand_ResolveSelection-PartyCommand_ResolveSelection	;0000
+	dc.w	PartyCommand_Communicate-PartyCommand_ResolveSelection	;003C
+	dc.w	PartyCommand_Commend-PartyCommand_ResolveSelection	;0D9E
+	dc.w	PartyCommand_View-PartyCommand_ResolveSelection	;0D32
+	dc.w	PartyCommand_Wait-PartyCommand_ResolveSelection	;0BAE
+	dc.w	PartyCommand_Correct-PartyCommand_ResolveSelection	;0D92
+	dc.w	PartyCommand_Dismiss-PartyCommand_ResolveSelection	;0BAA
+	dc.w	PartyCommand_Call-PartyCommand_ResolveSelection	;0AEA
+	dc.w	Comms_HandleMenuSelection-PartyCommand_ResolveSelection	;011A
 
-Interface_AdvancePageState:		; Memory Address ($33B2) and binary offset [$302E]
-	; ReSource: Clears the temporary selection flag, advances the interface page state, and loops back through the page-state dispatcher.
+PartyCommand_ResolveSelection:		; Memory Address ($33B2) and binary offset [$302E]
+	; ReSource: Clears the pending target-selection flag, converts the decoded button number to party-command state 1 through 8, stores it, and redispatches.
 	clr.b	$004E(a5)	;422D004E
 	addq.w	#$01,d1	;5241
 	move.w	d1,$0042(a5)	;3B410042
-	bra.s	Interface_DispatchPageState	;60D0
+	bra.s	PartyCommand_DispatchState	;60D0
 
 Interface_CheckSelectedCellInteraction:		; Memory Address ($33BE) and binary offset [$303A]
-	; ReSource: Checks map bounds and selected-cell metadata, then resolves an interaction target; communication entry uses its carry result but other paths also call it.
+	; ReSource: Checks map bounds and selected-cell metadata, then resolves an interaction target; Communicate uses its carry result, but this helper is also called by other interface paths.
 	bsr	adrCd00847E	;610050BE
 	move.l	d7,d2	;2407
 	cmp.w	adrW_00EE72.l,d7	;BE790000EE72
@@ -4923,13 +4923,13 @@ Interface_CheckSelectedCellInteraction:		; Memory Address ($33BE) and binary off
 adrCd0033EC:		; Memory Address ($33EC) and binary offset [$3068]
 	rts	;4E75
 
-Interface_EnterCommunication:		; Memory Address ($33EE) and binary offset [$306A]
-	; ReSource: Validates the selected interaction target and enters communication through the existing Comms_StartWithTarget routine; failure prints Notice_CommunicationTargetUnavailable.
+PartyCommand_Communicate:		; Memory Address ($33EE) and binary offset [$306A]
+	; ReSource: Resolves a valid character or monster at the selected map cell and starts communication through Comms_StartWithTarget; otherwise displays "THERE IS NOBODY HERE".
 	bsr.s	Interface_CheckSelectedCellInteraction	;61CE
 	bcs.s	Comms_StartWithTarget	;6510
 Interface_ReportCommunicationTargetUnavailable:		; Memory Address ($33F2) and binary offset [$306E]
 	; ReSource: Prints the unavailable-target notice and clears the interface page state.
-	lea	Notice_NobodyHere.l,a6	;4DF9000041F3
+	lea	Notice_Communicate_NobodyHere.l,a6	;4DF9000041F3
 	clr.w	$0042(a5)	;426D0042
 	jmp	Print_timed_message.l	;4EF90000D86A
 
@@ -5924,9 +5924,9 @@ Msg_Recruit:
 	dc.b	$FF	;FF
 	dc.b	$00	;00
 
-Interface_ReportOtherPlayerProximity:		; Memory Address ($3E9C) and binary offset [$3B18]
-	; ReSource: Reports the other player when both players are active on the same map index; builds a distance-sensitive notice in the shared message buffer.
-	lea	Notice_CallOut.l,a6	;4DF9000041D4
+PartyCommand_Call:		; Memory Address ($3E9C) and binary offset [$3B18]
+	; ReSource: Displays "THOU DOST CALL OUT" and, when the other player is active on the same map, builds a direction-and-distance call notice for that player.
+	lea	Notice_Call_Out.l,a6	;4DF9000041D4
 	jsr	Print_timed_message.l	;4EB90000D86A
 	move.b	#$FF,$0050(a5)	;1B7C00FF0050
 	lea	Player1_Data.l,a1	;43F90000EE7C
@@ -5987,13 +5987,13 @@ adrCd003F36:		; Memory Address ($3F36) and binary offset [$3BB2]
 adrCd003F58:		; Memory Address ($3F58) and binary offset [$3BD4]
 	bra	adrCd00332A	;6000F3D0
 
-Interface_ProcessSelectedAction_15:		; Memory Address ($3F5C) and binary offset [$3BD8]
-	; ReSource: Dispatches action value $15 through the shared selected-inventory-action path; exact user-facing operation remains unresolved.
+PartyCommand_Dismiss:		; Memory Address ($3F5C) and binary offset [$3BD8]
+	; ReSource: Opens party-member selection for Dismiss or removes the selected member from the active party; displays "<NAME> LEAVES THE PARTY" or "<NAME> IS UNABLE TO DEPART".
 	moveq	#$15,d7	;7E15
 	bra.s	Interface_ProcessSelectedInventoryAction	;6006
 
-Interface_ProcessSelectedAction_13:		; Memory Address ($3F60) and binary offset [$3BDC]
-	; ReSource: Clears the message context, then dispatches action value $13 through the shared selected-inventory-action path.
+PartyCommand_Wait:		; Memory Address ($3F60) and binary offset [$3BDC]
+	; ReSource: Opens party-member selection for Wait or removes and marks the selected member as waiting; displays "<NAME> WAITS" or "<NAME> IS UNABLE TO DEPART".
 	clr.b	$0050(a5)	;422D0050
 	moveq	#$13,d7	;7E13
 Interface_ProcessSelectedInventoryAction:		; Memory Address ($3F66) and binary offset [$3BE2]
@@ -6008,7 +6008,7 @@ Interface_ProcessSelectedInventoryAction:		; Memory Address ($3F66) and binary o
 	bsr	Compute_NewMapIndex_AI_TBC	;61003AC2
 	bcc.s	Interface_FinalizeSelectedWorldAction	;6416
 	addq.w	#$02,sp	;544F
-	lea	Notice_DepartureBlocked.l,a6	;4DF9000041BB
+	lea	Notice_PartyCommand_UnableToDepart.l,a6	;4DF9000041BB
 	move.b	$004F(a5),(a6)	;1CAD004F
 	jsr	Print_timed_message.l	;4EB90000D86A
 	bra	adrCd00332A	;6000F390
@@ -6018,7 +6018,7 @@ Interface_FinalizeSelectedWorldAction:		; Memory Address ($3F9C) and binary offs
 	bset	#$07,$01(a6,d2.w)	;08F600072001
 	move.b	$004F(a5),d0	;102D004F
 	bsr	Interface_RemoveSelectedInventoryObject	;6100005C
-	lea	Notice_PartyMemberLeaves.l,a6	;4DF9000041C6
+	lea	Notice_Dismiss_PartyMemberLeaves.l,a6	;4DF9000041C6
 	move.w	(sp)+,d1	;321F
 	cmpi.w	#$0015,d1	;0C410015
 	beq.s	adrCd003FCE	;6716
@@ -6026,7 +6026,7 @@ Interface_FinalizeSelectedWorldAction:		; Memory Address ($3F9C) and binary offs
 	move.b	$004F(a5),d0	;102D004F
 	bset	#$05,d0	;08C00005
 	move.b	d0,$18(a5,d1.w)	;1B801018
-	lea	Notice_PartyMemberWaits.l,a6	;4DF9000041C1
+	lea	Notice_Wait_PartyMemberWaits.l,a6	;4DF9000041C1
 adrCd003FCE:		; Memory Address ($3FCE) and binary offset [$3C4A]
 	move.b	$004F(a5),d0	;102D004F
 	move.b	d0,(a6)	;1C80
@@ -6118,7 +6118,7 @@ Interface_OpenInventoryActionSelector:		; Memory Address ($40A0) and binary offs
 	bsr	adrJA007CA6	;61003C04
 	tst.w	d2	;4A42
 	bne.s	adrCd0040BC	;6614
-	lea	Notice_NoPartyCommandTarget.l,a6	;4DF9000041CD
+	lea	Notice_PartyCommand_NoTarget.l,a6	;4DF9000041CD
 	move.b	d7,$0005(a6)	;1D470005
 Interface_ShowInventoryActionNotice:		; Memory Address ($40B2) and binary offset [$3D2E]
 	; ReSource: Clears the page state and prints a fixed inventory/action notice.
@@ -6140,8 +6140,8 @@ Interface_InitInventoryActionSelector:		; Memory Address ($40CA) and binary offs
 	jsr	Print_fix_message.l	;4EB90000D870
 	bra	adrCd007D6C	;60003C8A
 
-Interface_HandleInventoryObjectAction:		; Memory Address ($40E4) and binary offset [$3D60]
-	; ReSource: Counts usable inventory entries, opens selection when available, or reports that no usable inventory action exists; selected entries become a pending action.
+PartyCommand_View:		; Memory Address ($40E4) and binary offset [$3D60]
+	; ReSource: Opens selection for an eligible waiting party member and switches the viewpoint through that member; otherwise displays "EVERYONE IS PRESENT".
 	tst.b	$004E(a5)	;4A2D004E
 	bne.s	Interface_CommitSelectedInventoryAction	;662A
 	moveq	#$12,d7	;7E12
@@ -6159,7 +6159,7 @@ adrCd004104:		; Memory Address ($4104) and binary offset [$3D80]
 	dbra	d1,adrLp0040F0	;51C9FFEA
 	tst.w	d2	;4A42
 	bne.s	Interface_OpenInventorySelection	;66B8
-	lea	Notice_EveryonePresent.l,a6	;4DF9000041E9
+	lea	Notice_View_EveryonePresent.l,a6	;4DF9000041E9
 	bra.s	Interface_ShowInventoryActionNotice	;609E
 
 Interface_CommitSelectedInventoryAction:		; Memory Address ($4114) and binary offset [$3D90]
@@ -6168,22 +6168,22 @@ Interface_CommitSelectedInventoryAction:		; Memory Address ($4114) and binary of
 	move.b	d0,$0053(a5)	;1B400053
 	and.b	#$0F,$0053(a5)	;022D000F0053
 	move.b	#$01,$0014(a5)	;1B7C00010014
-	lea	Notice_ViewThroughPartyMember.l,a6	;4DF9000041E3
+	lea	Notice_View_ThroughPartyMember.l,a6	;4DF9000041E3
 	move.b	$0053(a5),$0004(a6)	;1D6D00530004
 	jsr	Print_fix_message.l	;4EB90000D870
 	move.w	#$0101,$0040(a5)	;3B7C01010040
 	bra	adrCd00332A	;6000F1E8
 
-Interface_ProcessSelectedAction_14:		; Memory Address ($4144) and binary offset [$3DC0]
-	; ReSource: Applies action value $14 to the selected object and reports the resulting pocket-state change.
+PartyCommand_Correct:		; Memory Address ($4144) and binary offset [$3DC0]
+	; ReSource: Opens party-member selection for Correct or sets bit 4 in the selected member's stored party-state byte; displays "<NAME> APOLOGISES FOR BREATHING".
 	moveq	#$14,d7	;7E14
-	lea	Notice_CorrectionApology.l,a6	;4DF9000041B2
+	lea	Notice_Correct_Apology.l,a6	;4DF9000041B2
 	moveq	#$10,d3	;7610
 	bra.s	Interface_CommitSelectedObjectFlags	;600A
 
-Interface_ProcessSelectedAction_11:		; Memory Address ($4150) and binary offset [$3DCC]
-	; ReSource: Applies action value $11 to the selected object and reports the resulting pocket-state change.
-	lea	Notice_CommendAccepted.l,a6	;4DF9000041AB
+PartyCommand_Commend:		; Memory Address ($4150) and binary offset [$3DCC]
+	; ReSource: Opens party-member selection for Commend or clears bit 4 in the selected member's stored party-state byte; displays "<NAME> ACCEPTS THY HONOUR".
+	lea	Notice_Commend_Accepted.l,a6	;4DF9000041AB
 	moveq	#$11,d7	;7E11
 	moveq	#$00,d3	;7600
 Interface_CommitSelectedObjectFlags:		; Memory Address ($415A) and binary offset [$3DD6]
@@ -6228,7 +6228,7 @@ Notice_PartyCommand_SelectTarget:		; Memory Address ($41A0) and binary offset [$
 	dc.b	$FA	;FA
 	dc.b	$3F	;3F
 	dc.b	$FF	;FF
-Notice_CommendAccepted:		; Memory Address ($41AB) and binary offset [$3E27]
+Notice_Commend_Accepted:		; Memory Address ($41AB) and binary offset [$3E27]
 	; ReSource: Packed-word Commend result displayed as "<NAME> ACCEPTS THY HONOUR"; the selected party-member token replaces the default BLODWYN token.
 	dc.b	$00	;00
 	dc.b	$1D	;1D
@@ -6237,7 +6237,7 @@ Notice_CommendAccepted:		; Memory Address ($41AB) and binary offset [$3E27]
 	dc.b	$1E	;1E
 	dc.b	$1F	;1F
 	dc.b	$FF	;FF
-Notice_CorrectionApology:		; Memory Address ($41B2) and binary offset [$3E2E]
+Notice_Correct_Apology:		; Memory Address ($41B2) and binary offset [$3E2E]
 	; ReSource: Packed-word Correct result displayed as "<NAME> APOLOGISES FOR BREATHING"; the selected party-member token replaces the default BLODWYN token.
 	dc.b	$00	;00
 	dc.b	$21	;21
@@ -6248,22 +6248,22 @@ Notice_CorrectionApology:		; Memory Address ($41B2) and binary offset [$3E2E]
 	dc.b	$FB	;FB
 	dc.b	$4A	;4A
 	dc.b	$FF	;FF
-Notice_DepartureBlocked:		; Memory Address ($41BB) and binary offset [$3E37]
-	; ReSource: Packed-word party-management result displayed as "<NAME> IS UNABLE TO DEPART"; the selected party-member token replaces the default BLODWYN token.
+Notice_PartyCommand_UnableToDepart:		; Memory Address ($41BB) and binary offset [$3E37]
+	; ReSource: Packed-word Wait or Dismiss failure displayed as "<NAME> IS UNABLE TO DEPART"; the selected party-member token replaces the default BLODWYN token.
 	dc.b	$00	;00
 	dc.b	$35	;35
 	dc.b	$17	;17
 	dc.b	$1C	;1C
 	dc.b	$30	;30
 	dc.b	$FF	;FF
-Notice_PartyMemberWaits:		; Memory Address ($41C1) and binary offset [$3E3D]
+Notice_Wait_PartyMemberWaits:		; Memory Address ($41C1) and binary offset [$3E3D]
 	; ReSource: Packed-word Wait result displayed as "<NAME> WAITS"; the selected party-member token replaces the default BLODWYN token.
 	dc.b	$00	;00
 	dc.b	$13	;13
 	dc.b	$FA	;FA
 	dc.b	$53	;53
 	dc.b	$FF	;FF
-Notice_PartyMemberLeaves:		; Memory Address ($41C6) and binary offset [$3E42]
+Notice_Dismiss_PartyMemberLeaves:		; Memory Address ($41C6) and binary offset [$3E42]
 	; ReSource: Packed-word Dismiss result displayed as "<NAME> LEAVES THE PARTY"; the selected party-member token replaces the default BLODWYN token.
 	dc.b	$00	;00
 	dc.b	$24	;24
@@ -6272,7 +6272,7 @@ Notice_PartyMemberLeaves:		; Memory Address ($41C6) and binary offset [$3E42]
 	dc.b	$25	;25
 	dc.b	$26	;26
 	dc.b	$FF	;FF
-Notice_NoPartyCommandTarget:		; Memory Address ($41CD) and binary offset [$3E49]
+Notice_PartyCommand_NoTarget:		; Memory Address ($41CD) and binary offset [$3E49]
 	; ReSource: Packed-word result displayed as "THOU HAST NONE PRESENT TO <ACTION>"; the action word is patched at runtime.
 	dc.b	$1A	;1A
 	dc.b	$27	;27
@@ -6281,7 +6281,7 @@ Notice_NoPartyCommandTarget:		; Memory Address ($41CD) and binary offset [$3E49]
 	dc.b	$1C	;1C
 	dc.b	$00	;00
 	dc.b	$FF	;FF
-Notice_CallOut:		; Memory Address ($41D4) and binary offset [$3E50]
+Notice_Call_Out:		; Memory Address ($41D4) and binary offset [$3E50]
 	; ReSource: Contains the packed phrase "THOU DOST CALL OUT", followed by a second terminated phrase "<NAME> DEPARTS"; only the first phrase is directly referenced here and use of the second remains unresolved.
 	dc.b	$1A	;1A
 	dc.b	$19	;19
@@ -6294,27 +6294,27 @@ Notice_CallOut:		; Memory Address ($41D4) and binary offset [$3E50]
 	dc.b	$53	;53
 	dc.b	$FF	;FF
 Notice_PartyMemberRejoins:		; Memory Address ($41DE) and binary offset [$3E5A]
-	; ReSource: Packed-word party-management result displayed as "<NAME> REJOINS THE PARTY"; the party-member token is patched at runtime.
+	; ReSource: Packed-word party-management result displayed as "<NAME> REJOINS THE PARTY"; the party-member token replaces the default BLODWYN token at runtime.
 	dc.b	$00	;00
 	dc.b	$32	;32
 	dc.b	$25	;25
 	dc.b	$26	;26
 	dc.b	$FF	;FF
-Notice_ViewThroughPartyMember:		; Memory Address ($41E3) and binary offset [$3E5F]
-	; ReSource: Packed-word View notice displayed as "VIEWING THROUGH <NAME>"; the viewed party-member token is patched at runtime.
+Notice_View_ThroughPartyMember:		; Memory Address ($41E3) and binary offset [$3E5F]
+	; ReSource: Packed-word View notice displayed as "VIEWING THROUGH <NAME>"; the viewed party-member token replaces the default BLODWYN token at runtime.
 	dc.b	$12	;12
 	dc.b	$FB	;FB
 	dc.b	$4A	;4A
 	dc.b	$34	;34
 	dc.b	$00	;00
 	dc.b	$FF	;FF
-Notice_EveryonePresent:		; Memory Address ($41E9) and binary offset [$3E65]
-	; ReSource: Packed-word party-management notice displayed as "EVERYONE IS PRESENT".
+Notice_View_EveryonePresent:		; Memory Address ($41E9) and binary offset [$3E65]
+	; ReSource: Packed-word View notice displayed as "EVERYONE IS PRESENT".
 	dc.b	$20	;20
 	dc.b	$35	;35
 	dc.b	$36	;36
 	dc.b	$FF	;FF
-Notice_NormalViewingRestored:		; Memory Address ($41ED) and binary offset [$3E69]
+Notice_View_NormalRestored:		; Memory Address ($41ED) and binary offset [$3E69]
 	; ReSource: Packed-word View notice displayed as "NORMAL VIEWING RESTORED".
 	dc.b	$37	;37
 	dc.b	$12	;12
@@ -6322,8 +6322,8 @@ Notice_NormalViewingRestored:		; Memory Address ($41ED) and binary offset [$3E69
 	dc.b	$4A	;4A
 	dc.b	$38	;38
 	dc.b	$FF	;FF
-Notice_NobodyHere:		; Memory Address ($41F3) and binary offset [$3E6F]
-	; ReSource: Packed-word party-management notice displayed as "THERE IS NOBODY HERE".
+Notice_Communicate_NobodyHere:		; Memory Address ($41F3) and binary offset [$3E6F]
+	; ReSource: Packed-word Communicate failure displayed as "THERE IS NOBODY HERE".
 	dc.b	$39	;39
 	dc.b	$35	;35
 	dc.b	$3D	;3D
@@ -7282,7 +7282,7 @@ adrCd004D8C:		; Memory Address ($4D8C) and binary offset [$4A08]
 	beq.s	adrCd004DA8	;6714
 	clr.b	$0014(a5)	;422D0014
 	move.b	#$FF,$0053(a5)	;1B7C00FF0053
-	lea	Notice_NormalViewingRestored.w,a6	;4DF841ED	;Short Absolute converted to symbol!
+	lea	Notice_View_NormalRestored.w,a6	;4DF841ED	;Short Absolute converted to symbol!
 	jmp	Print_timed_message.l	;4EF90000D86A
 
 adrCd004DA8:		; Memory Address ($4DA8) and binary offset [$4A24]
@@ -8423,7 +8423,7 @@ DungeonInterfaceActionTable:		; Memory Address ($5B52) and binary offset [$57CE]
 	dc.l	Click_SleepParty	;00004536
 	dc.l	Click_ShowTeamAvatars	;000032DE
 	dc.l	adrJA004C10	;00004C10
-	dc.l	Interface_DispatchPageAction	;0000336A
+	dc.l	PartyCommand_DispatchSelection	;0000336A
 	dc.l	adrJA005D3E	;00005D3E
 	dc.l	Handle_WallFeatureClick	;00005894
 	dc.l	adrJA0064D0	;000064D0
