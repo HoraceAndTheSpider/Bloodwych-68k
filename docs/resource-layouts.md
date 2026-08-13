@@ -63,10 +63,48 @@ The relabel process now has explicit passes:
 
 1. `_delete` label definitions.
 2. `_offset_..._0x...` conversions.
-3. Ordinary relabels, `data_start` anchors, and `data_append` rows that name a
-   distinct internal source label.
+3. Verified `FIX_LABELS` rules, ordinary relabels, `data_start` anchors, and
+   `data_append` rows that name a distinct internal source label.
 4. Temporary EQU aliases for `data_append` output labels whose rows repeat the
    group anchor and therefore have no original source label.
+
+### Inserting a label at a marked data boundary
+
+Some ReSource source files contain an existing code label followed by an
+unlabelled data boundary:
+
+```asm
+ExistingCodeLabel:
+        rts
+
+;fiX Label expected
+        dc.w    ...
+```
+
+An ordinary relabel would incorrectly rename `ExistingCodeLabel`. These cases
+are kept in the `FIX_LABELS` cleanup worksheet. Its columns are:
+
+```text
+profile | anchor_label | insert_label | source_match | source_replace | expected_opcode | expected_matches | status | source_comment
+```
+
+The two ReSource marker texts are fixed conventions, so they are not repeated
+in every row. A verified rule finds the unique `;fiX Label expected` between
+`anchor_label` and the next source label, replaces it with `insert_label`, then
+rewrites only instructions immediately followed by
+`;fiX Data reference expected` which exactly match `source_match`. The opcode
+and expected match count must also agree. The replacement expression is
+recorded explicitly; no displacement is inferred from spreadsheet addresses.
+Normal segment relabelling runs afterwards. Proposed and disabled rows do
+nothing.
+
+For the player colour table, the normal segment row can rename
+`adrCd008BE8` to `PlayerColourRampLookupBase_Exit`, while the separate
+`FIX_LABELS` row inserts `PlayerColourRampTable` at the following `$8BEA`
+boundary and changes only the lookup to
+`PlayerColourRampTable-2(pc,d0.w)`. The `rts` remains outside the extracted
+resource. The `-2` is part of this row's explicit `source_replace`; another
+fix may use a different positive or negative displacement, or none at all.
 
 The aliases are derived from the component offsets, so `_relabel.asm` can
 reference later component names and still compile before INCBIN generation.

@@ -5,6 +5,10 @@ from __future__ import annotations
 import re
 from pathlib import Path
 
+from .fix_labels import (
+    apply_fix_label_rules,
+    load_fix_label_metadata,
+)
 from .resource_layout import (
     DATA_APPEND,
     EXTRACT_ONLY,
@@ -68,6 +72,7 @@ def relabel_segments(
     frame = load_segments(sheet, master)
     require_columns(frame, ("label", "relabel"))
     equates, source_rules = load_source_metadata(sheet, master, cleanup)
+    fix_label_rules = load_fix_label_metadata(sheet, master, cleanup)
 
     original = asm_path(master, "source")
     if not original.is_file():
@@ -138,8 +143,15 @@ def relabel_segments(
         lines = [re.sub(reference_pattern, replacement, line) for line in lines]
         print(f"Replaced '{label}' references with '{replacement}'")
 
-    # Explicit pass 3: ordinary labels and data_start anchors are renamed after
-    # all definition deletions. data_append labels are emitted by inspect_source.
+    # Explicit pass 3: apply separately maintained fix-label rules before
+    # ordinary relabels. This keeps an inserted data label independent from
+    # the existing code label used to locate the source boundary. No rule is
+    # inferred from address adjacency.
+    lines, _ = apply_fix_label_rules(lines, fix_label_rules)
+
+    # Explicit pass 4: ordinary labels and data_start anchors are renamed after
+    # all definition deletions and fix-label insertions. data_append labels are
+    # emitted by inspect_source.
     for label, new_label in rows:
         if new_label.casefold().startswith(("_delete", "_offset_")):
             continue

@@ -514,6 +514,132 @@ WornSpell_Beguile_PowerShift:		equ	$02
 	; Right shift converting Beguile spell power into its communication bonus.
 WornSpell_Warpower:		equ	$02
 	; Low three-bit worn-spell type used for Warpower.
+AirbourneSpell_Fireball:		equ	$80
+	; Live-entity form code used by Fireball projectiles.
+AirbourneSpell_Wychwind:		equ	$81
+	; Live-entity form code used by each Wychwind projectile.
+AirbourneSpell_ArcBolt:		equ	$82
+	; Live-entity form code used by Arc Bolt projectiles.
+AirbourneSpell_Disrupt:		equ	$83
+	; Live-entity form code used by Disrupt projectiles.
+AirbourneSpell_Blaze:		equ	$84
+	; Live-entity form code used by Blaze projectiles.
+AirbourneSpell_Firepath:		equ	$87
+	; Live-entity form code used to launch Firepath.
+AirbourneSpell_Missile:		equ	$8A
+	; Live-entity form code used by Missile projectiles.
+AirbourneSpell_Confuse:		equ	$8B
+	; Live-entity form code used by Confuse projectiles.
+AirbourneSpell_Paralyze:		equ	$8C
+	; Live-entity form code used by Paralyze projectiles.
+AirbourneSpell_Beguile:		equ	$8D
+	; Spell-effect code queued after Beguile changes the communication state.
+AirbourneSpell_Spelltap:		equ	$8E
+	; Live-entity form code used by Spelltap projectiles.
+AirbourneSpell_Terror:		equ	$8F
+	; Live-entity form code used by Terror projectiles.
+WornSpell_Armour:		equ	$00
+	; Low three-bit worn-spell type used for Armour.
+WornSpell_Deflect:		equ	$01
+	; Low three-bit worn-spell type used for Deflect.
+WornSpell_Vanish:		equ	$03
+	; Low three-bit worn-spell type used for Vanish.
+WornSpell_Compass:		equ	$04
+	; Low three-bit worn-spell type used for Compass.
+WornSpell_Levitate:		equ	$05
+	; Low three-bit worn-spell type used for Levitate.
+WornSpell_Antimage:		equ	$06
+	; Low three-bit worn-spell type used for Antimage.
+WornSpell_Trueview:		equ	$07
+	; Low three-bit worn-spell type used for Trueview.
+WornSpell_TypeMask:		equ	$07
+	; Clears the low three type bits before a worn-spell type is packed into the value.
+WornSpell_PowerMaximum:		equ	$3F
+	; Largest worn-spell power accepted before packing.
+WornSpell_PowerShift:		equ	$02
+	; Shift placing worn-spell power above the low three-bit type field.
+SpellCasting_ActionCooldown:		equ	$0F
+	; Champion action cooldown applied when a spell-cast attempt begins.
+SpellCasting_CooldownMaximum:		equ	$64
+	; Maximum accumulated spell cooldown.
+Alchemy_BaseCoinageGain:		equ	$05
+	; Coinage added by Alchemy before the spell-power contribution.
+Recharge_PowerShift:		equ	$03
+	; Right shift converting spell power into replacement magic-ring uses.
+Wychwind_ProjectileCount:		equ	$08
+	; Number of radial Wychwind projectiles created by one cast.
+Wychwind_PowerBonus:		equ	$0A
+	; Power added before Wychwind creates its eight projectiles.
+MagicFeature_Mindrock:		equ	$02
+	; Low two-bit map magic-feature subtype used for Mindrock.
+MagicFeature_Formwall:		equ	$03
+	; Low two-bit map magic-feature subtype used for Formwall.
+MapCell_MagicFeatureType:		equ	$07
+	; Map-cell type value shared by Firepath, Mindrock and Formwall.
+MapCell_ConcealedBit:		equ	$03
+	; Map-cell flag bit set by Conceal and cleared by Dispel.
+MapCell_MagelockedBit:		equ	$04
+	; Door-state flag bit toggled by Magelock.
+MapCell_SpellEntityBit:		equ	$07
+	; Marks a map cell as containing a live spell or summoned entity.
+InterfaceAction_SpellBook:		equ	$00
+	; Action 0 opens the spell-book and active-spell page through the dungeon interface action table.
+InterfaceAction_LaunchSpellFromBook:		equ	$15
+	; Launches the selected spell from the spell book.
+InterfaceAction_ViewSpell:		equ	$16
+	; Views the selected spell in the spell book.
+InterfaceAction_TurnSpellBookPage:		equ	$17
+	; Turns a spell-book page through the dungeon interface action table.
+InterfaceAction_CloseCurrentPage:		equ	$18
+	; Closes the current spell-book or interface page.
+InterfaceAction_TurnSpellBookPage_Alternate:		equ	$19
+	; Second spell-book page-control action; it enters the same page-turn handler through the opposite control.
+InterfaceAction_CommsAndOptions:		equ	$1A
+	; Opens the communications and party-options surface.
+InterfaceAction_SleepParty:		equ	$1E
+	; Requests party sleep from the communications/options surface.
+InterfaceAction_ShowTeamAvatars:		equ	$1F
+	; Shows the team avatars from the communications/options surface.
+InterfaceAction_PartyCommandMode:		equ	$20
+	; Changes or toggles the active party-command row.
+InterfaceAction_PartyCommandSelection:		equ	$21
+	; Dispatches a selected party-command menu entry.
+InterfaceHitbox_RecordWords:		equ	$04
+	; Each interface hitbox is four 16-bit words: X minimum, X maximum, Y minimum and Y maximum.
+InterfaceHitbox_RecordBytes:		equ	$08
+	; The hit-test scanner advances eight bytes for each rectangle record.
+InterfaceHitbox_MainActionCount:		equ	$11
+	; The main player-panel hitbox table contains 17 records for action IDs $00-$10.
+InterfaceHitbox_CommandActionBase:		equ	$1C
+	; The command-row hitbox table starts at action ID $1C (pause).
+InterfaceHitbox_CommandActionCount:		equ	$06
+	; The command-row hitbox table contains six records for action IDs $1C-$21.
+InterfaceHitbox_DisplayActionBase:		equ	$22
+	; The display/context hitbox table starts at action ID $22.
+InterfaceHitbox_DisplayActionCount:		equ	$03
+	; The display/context hitbox table contains three records for action IDs $22-$24.
+PlayerData_UIColourOffset:		equ	$4C
+	; Active PlayerX_Data stores the current hardware/UI accent colour word at offset $4C.
+PlayerData_UIColourStateOffset:		equ	$52
+	; Active PlayerX_Data stores UI-colour animation/state flags at offset $52.
+PlayerData_PlayerIdentityBit:		equ	$00
+	; Bit 0 of the active player record selects the second player's colour-ramp family when set.
+PlayerData_UIColourFadeBit:		equ	$06
+	; Bit 6 of the player UI-colour state byte selects the alternate animated/fade ramp.
+PlayerColourRamp_EntriesPerState:		equ	$06
+	; Each player-colour state ramp contains six hardware-colour words.
+PlayerColourRamp_Player2Offset:		equ	$0C
+	; Player 2 adds $0C to the colour entry index; after the code doubles d0 this selects a 24-byte displacement from the PC-relative base.
+GFX_Pockets_InventoryInterfaceOffset:		equ	$3C00
+	; Packed Pockets.gfx offset containing the inventory chain/interface strip.
+GFX_Pockets_SpellBookOffset:		equ	$4100
+	; Packed Pockets.gfx offset used for the spell-book surface.
+GFX_Pockets_SelectedSpellMarkerOffset:		equ	$4130
+	; Packed Pockets.gfx offset used for the selected-spell marker.
+GFX_Pockets_StatusPanelOffset:		equ	$67C0
+	; Packed Pockets.gfx offset used by the status-panel interface pieces.
+GFX_Pockets_CommandPanelOffset:		equ	$7580
+	; Packed Pockets.gfx offset used by the lower status/command interface pieces.
 
 ****************************************************************************
 
@@ -1279,7 +1405,7 @@ adrCd000C96:		; Memory Address ($0C96) and binary offset [$0912]
 	beq.s	adrCd000CB4	;6702
 	bsr.s	DelayLoop1a_AI_TBC	;610E
 adrCd000CB4:		; Memory Address ($0CB4) and binary offset [$0930]
-	move.w	#$0001,adrW_00505A.l	;33FC00010000505A
+	move.w	#$0001,SpellEntity_PlacementConflictFlag.l	;33FC00010000505A
 	bsr	adrCd001238	;6100057A
 	bra.s	Menu_RenderLoop_AI_TBC	;608E
 
@@ -2179,7 +2305,7 @@ adrCd00162C:		; Memory Address ($162C) and binary offset [$12A8]
 	move.b	#$1F,$0005(a4)	;197C001F0005
 	move.l	a4,-(sp)	;2F0C
 	move.b	#$FF,adrB_00EE3E.l	;13FC00FF0000EE3E
-	bsr	adrCd00533C	;61003CDE
+	bsr	SpellEntity_CheckPlacement	;61003CDE
 	move.l	(sp)+,a4	;285F
 	rts	;4E75
 
@@ -2272,7 +2398,7 @@ adrCd001746:		; Memory Address ($1746) and binary offset [$13C2]
 	move.b	d1,$00(a6,d0.w)	;1D810000
 	move.w	#$0100,d1	;323C0100
 	move.b	$000C(a4),d1	;122C000C
-	bsr	adrCd0054BE	;61003D66
+	bsr	Formwall_PrepareLinkedFeature	;61003D66
 AttackType_Drone:		; Memory Address ($175A) and binary offset [$13D6]
 	move.b	$02(a4,d4.w),d6	;1C344002
 	and.w	#$0003,d6	;02460003
@@ -2539,7 +2665,7 @@ adrCd001A06:		; Memory Address ($1A06) and binary offset [$1682]
 	and.w	#$007F,d3	;0243007F
 	add.w	d3,d3	;D643
 	move.b	d1,adrB_00EE3E.l	;13C10000EE3E
-	bra	adrCd00533C	;600038F4
+	bra	SpellEntity_CheckPlacement	;600038F4
 
 adrCd001A4A:		; Memory Address ($1A4A) and binary offset [$16C6]
 	moveq	#$00,d3	;7600
@@ -4231,7 +4357,7 @@ adrLp002B3E:		; Memory Address ($2B3E) and binary offset [$27BA]
 	add.b	Bow_ActionValueAdjustments(pc,d5.w),d0	;D03B5013
 	add.w	d0,d0	;D040
 	move.w	d0,d7	;3E00
-	bsr	adrCd005328	;610027B0
+	bsr	SpellEntity_PrepareDirection	;610027B0
 	moveq	#$01,d4	;7801
 	bra	Call_DoorToggleRoutine_AI_TBC	;6000FEC6
 
@@ -4272,7 +4398,7 @@ adrCd002BA4:		; Memory Address ($2BA4) and binary offset [$2820]
 adrCd002BB4:		; Memory Address ($2BB4) and binary offset [$2830]
 	tst.b	$0013(a4)	;4A2C0013
 	bmi.s	adrCd002BD6	;6B1C
-	bsr	adrCd004EA0	;610022E4
+	bsr	CastSpell_ValidateSelection	;610022E4
 	moveq	#$03,d4	;7803
 	tst.b	$0013(a4)	;4A2C0013
 	bmi	Call_DoorToggleRoutine_AI_TBC	;6B00FE7E
@@ -7347,7 +7473,7 @@ adrCd004C3E:		; Memory Address ($4C3E) and binary offset [$48BA]
 adrCd004C40:		; Memory Address ($4C40) and binary offset [$48BC]
 	bclr	#$07,$0001(a5)	;08AD00070001
 	beq.s	adrCd004C56	;670E
-	lea	adrEA00EAFA.l,a6	;4DF90000EAFA
+	lea	Interface_Hitboxes_Command.l,a6	;4DF90000EAFA
 	moveq	#$1C,d0	;701C
 	moveq	#$22,d2	;7422
 	bra	HitTest_PlayerInterfaceActions	;60000160
@@ -7471,7 +7597,7 @@ adrCd004DA8:		; Memory Address ($4DA8) and binary offset [$4A24]
 	rts	;4E75
 
 adrJA004DAA:		; Memory Address ($4DAA) and binary offset [$4A26]
-	lea	adrEA00EA72.l,a6	;4DF90000EA72
+	lea	Interface_Hitboxes_Main.l,a6	;4DF90000EA72
 	moveq	#$00,d0	;7000
 	moveq	#$11,d2	;7411
 HitTest_PlayerInterfaceActions:		; Memory Address ($5138) and binary offset [$4DB4]
@@ -7563,7 +7689,7 @@ adrCd004E72:		; Memory Address ($4E72) and binary offset [$4AEE]
 	bra	adrCd0066F6	;6000187E
 
 Click_LaunchSpellFromBook:		; Memory Address ($4E7A) and binary offset [$4AF6]
-	bsr.s	Resolve_MultiFunctionAction	;6112
+	bsr.s	Cast_SelectedChampionSpell	;6112
 	bne.s	adrCd004E86	;6608
 	bsr	adrCd006698	;61001818
 	bsr	adrCd00C85E	;610079DA
@@ -7572,40 +7698,44 @@ adrCd004E86:		; Memory Address ($4E86) and binary offset [$4B02]
 adrCd004E8C:		; Memory Address ($4E8C) and binary offset [$4B08]
 	rts	;4E75
 
-Resolve_MultiFunctionAction:		; Memory Address ($5212) and binary offset [$4E8E]
-	; Resolves the context-sensitive multi-function command, including interactions such as opening a door.
+Cast_SelectedChampionSpell:		; Memory Address ($5212) and binary offset [$4E8E]
+	; Validates and charges the selected champion spell, performs its cast check, dispatches the spell handler, records practice, and reports failure.
 	bsr	Load_CurrentChampionStatRecord	;610017CC
-	clr.w	adrW_00505A.l	;42790000505A
+	clr.w	SpellEntity_PlacementConflictFlag.l	;42790000505A
 	move.b	$0007(a5),adrB_00EE3E.l	;13ED00070000EE3E
-adrCd004EA0:		; Memory Address ($4EA0) and binary offset [$4B1C]
+CastSpell_ValidateSelection:		; Memory Address ($5224) and binary offset [$4EA0]
+	; Rejects an empty spell selection and closes communication mode before every spell except Beguile.
 	move.b	$0013(a4),d0	;102C0013
 	bmi.s	adrCd004E8C	;6BE6
 	subq.b	#$03,d0	;5700
-	beq.s	adrCd004EBE	;6714
+	beq.s	CastSpell_ApplyVitalityCost	;6714
 	cmp.w	#$0008,$0042(a5)	;0C6D00080042
-	bne.s	adrCd004EBE	;660C
+	bne.s	CastSpell_ApplyVitalityCost	;660C
 	movem.l	d0-d7/a0-a6,-(sp)	;48E7FFFE
 	bsr	adrCd00332A	;6100E472
 	movem.l	(sp)+,d0-d7/a0-a6	;4CDF7FFF
-adrCd004EBE:		; Memory Address ($4EBE) and binary offset [$4B3A]
+CastSpell_ApplyVitalityCost:		; Memory Address ($5242) and binary offset [$4EBE]
+	; Removes four vitality for the cast attempt and clamps the champion's current vitality to zero.
 	subq.b	#SpellCasting_VitalityCost,$0007(a4)	;592C0007
-	bcc.s	adrCd004EC8	;6404
+	bcc.s	CastSpell_ApplySpellPointCost	;6404
 	clr.b	$0007(a4)	;422C0007
-adrCd004EC8:		; Memory Address ($4EC8) and binary offset [$4B44]
-	move.b	#$0F,$001B(a4)	;197C000F001B
+CastSpell_ApplySpellPointCost:		; Memory Address ($524C) and binary offset [$4EC8]
+	; Applies action state, calculates spell-point cost, consumes ring-assisted casts, and rejects insufficient spell points.
+	move.b	#SpellCasting_ActionCooldown,$001B(a4)	;197C000F001B
 	clr.b	$0011(a4)	;422C0011
 	bsr	adrCd00688C	;610019B8
 	move.b	$0009(a4),d1	;122C0009
 	sub.b	d0,d1	;9200
-	bcs	adrCd004FD6	;650000F8
+	bcs	CastSpell_RejectInsufficientSpellPoints	;650000F8
 	move.b	d1,$0009(a4)	;19410009
 	tst.b	d0	;4A00
-	bne.s	adrCd004EFA	;6612
+	bne.s	CastSpell_CalculateQualityAndCooldown	;6612
 	move.b	$0013(a4),d0	;102C0013
 	bsr	Character_GetClassIndex	;61001A12
 	lea	RingUses.l,a0	;41F90000EE32
 	subq.b	#$01,$00(a0,d0.w)	;53300000
-adrCd004EFA:		; Memory Address ($4EFA) and binary offset [$4B76]
+CastSpell_CalculateQualityAndCooldown:		; Memory Address ($527E) and binary offset [$4EFA]
+	; Calculates signed casting quality and accumulates the selected spell's cooldown up to 100.
 	bsr	adrCd0080CA	;610031CE
 	bsr	Calculate_SpellCastingQuality	;61001878
 	moveq	#$00,d0	;7000
@@ -7614,10 +7744,11 @@ adrCd004EFA:		; Memory Address ($4EFA) and binary offset [$4B76]
 	move.b	$00(a6,d0.w),d1	;12360000
 	addq.b	#$05,d1	;5A01
 	add.b	$0015(a4),d1	;D22C0015
-	cmpi.b	#$64,d1	;0C010064
-	bcs.s	adrCd004F20	;6502
+	cmpi.b	#SpellCasting_CooldownMaximum,d1	;0C010064
+	bcs.s	CastSpell_SelectHandler	;6502
 	moveq	#$64,d1	;7264
-adrCd004F20:		; Memory Address ($4F20) and binary offset [$4B9C]
+CastSpell_SelectHandler:		; Memory Address ($52A4) and binary offset [$4F20]
+	; Loads the selected spell routine from the thirty-two-entry relative-offset dispatch table and performs the final cast roll.
 	move.b	d1,$0015(a4)	;19410015
 	add.w	d0,d0	;D040
 	lea	Spells_01_Armour.l,a0	;41F90000505C
@@ -7625,73 +7756,82 @@ adrCd004F20:		; Memory Address ($4F20) and binary offset [$4B9C]
 	add.w	$00(a6,d0.w),a0	;D0F60000
 	bsr	adrCd005546	;6100060E
 	add.b	d0,d7	;DE00
-	bmi.s	adrCd004FB0	;6B72
+	bmi.s	CastSpell_SelectFailedNotice	;6B72
 	move.w	d7,-(sp)	;3F07
 	bsr	adrCd008498	;61003556
 	move.w	(sp)+,d7	;3E1F
 	move.w	$00(a6,d0.w),d1	;32360000
 	and.w	#$0007,d1	;02410007
 	subq.w	#$06,d1	;5D41
-	bne.s	adrCd004F5E	;660C
+	bne.s	CastSpell_ExecuteHandler	;660C
 	move.b	$00(a6,d0.w),d1	;12360000
 	and.w	#$0003,d1	;02410003
-	beq	adrCd004FEE	;67000092
-adrCd004F5E:		; Memory Address ($4F5E) and binary offset [$4BDA]
+	beq	CastSpell_SelectFizzledNotice	;67000092
+CastSpell_ExecuteHandler:		; Memory Address ($52E2) and binary offset [$4F5E]
+	; Executes the selected spell handler and refreshes champion or player state after the effect is applied.
 	move.l	a4,-(sp)	;2F0C
 	jsr	(a0)	;4E90
 	moveq	#$00,d0	;7000
 	move.b	adrB_00EE3E.l,d0	;10390000EE3E
 	bsr	adrCd004078	;6100F10C
 	tst.w	d1	;4A41
-	bmi.s	adrCd004F8E	;6B1C
-	beq.s	adrCd004F86	;6712
+	bmi.s	CastSpell_RecordPractice	;6B1C
+	beq.s	CastSpell_RefreshChampionStatus	;6712
 	move.w	d1,d7	;3E01
 	tst.w	$0042(a5)	;4A6D0042
-	bpl.s	adrCd004F8E	;6A12
+	bpl.s	CastSpell_RecordPractice	;6A12
 	bsr	adrCd007EF0	;61002F72
 	bsr	adrCd007ED2	;61002F50
-	bra.s	adrCd004F8E	;6008
+	bra.s	CastSpell_RecordPractice	;6008
 
-adrCd004F86:		; Memory Address ($4F86) and binary offset [$4C02]
+CastSpell_RefreshChampionStatus:		; Memory Address ($530A) and binary offset [$4F86]
+	; Refreshes the selected champion's displayed status when the post-spell party lookup returns the active slot.
 	move.w	$0006(a5),d7	;3E2D0006
 	bsr	adrCd00CCD8	;61007D4C
-adrCd004F8E:		; Memory Address ($4F8E) and binary offset [$4C0A]
+CastSpell_RecordPractice:		; Memory Address ($5312) and binary offset [$4F8E]
+	; Increments the casting champion's per-spell practice counter with saturation at $FF.
 	move.l	(sp)+,a4	;285F
 	move.l	#adrL_007E22,a0	;207C00007E22
 	add.l	a4,a0	;D1CC
 	moveq	#$00,d0	;7000
 	move.b	$0013(a4),d0	;102C0013
 	addq.b	#$01,$00(a0,d0.w)	;52300000
-	bcc.s	adrCd004FA8	;6404
+	bcc.s	CastSpell_Complete	;6404
 	subq.b	#$01,$00(a0,d0.w)	;53300000
-adrCd004FA8:		; Memory Address ($4FA8) and binary offset [$4C24]
+CastSpell_Complete:		; Memory Address ($532C) and binary offset [$4FA8]
+	; Selects the empty notice after a successful spell before common cast finalisation.
 	lea	NullString.l,a6	;4DF90000CAE9
-	bra.s	adrCd004FBE	;600E
+	bra.s	CastSpell_Finalize	;600E
 
-adrCd004FB0:		; Memory Address ($4FB0) and binary offset [$4C2C]
+CastSpell_SelectFailedNotice:		; Memory Address ($5334) and binary offset [$4FB0]
+	; Selects SPELL FAILED and its message-state value after a negative casting-quality result.
 	lea	Notice_SpellFailed.l,a6	;4DF90000504C
 	move.w	#$0004,adrW_00D92A.l	;33FC00040000D92A
-adrCd004FBE:		; Memory Address ($4FBE) and binary offset [$4C3A]
+CastSpell_Finalize:		; Memory Address ($5342) and binary offset [$4FBE]
+	; Clears the queued spell and displays the selected result notice when message output is enabled.
 	move.b	#$FF,$0013(a4)	;197C00FF0013
-	tst.b	adrB_00505B.l	;4A390000505B
-	bne.s	adrCd004FD4	;6608
+	tst.b	SpellEntity_AIOriginFlag.l	;4A390000505B
+	bne.s	Return_CastSpell	;6608
 	jsr	LowerText.l	;4EB90000CFB8
 	moveq	#$00,d0	;7000
-adrCd004FD4:		; Memory Address ($4FD4) and binary offset [$4C50]
+Return_CastSpell:		; Memory Address ($5358) and binary offset [$4FD4]
+	; Shared return from spell-cast success and notice handling.
 	rts	;4E75
 
-adrCd004FD6:		; Memory Address ($4FD6) and binary offset [$4C52]
-	tst.b	adrB_00505B.l	;4A390000505B
-	bne.s	adrCd004FD4	;66F6
+CastSpell_RejectInsufficientSpellPoints:		; Memory Address ($535A) and binary offset [$4FD6]
+	; Displays the cost-too-high notice and returns one when the champion cannot pay the spell-point cost.
+	tst.b	SpellEntity_AIOriginFlag.l	;4A390000505B
+	bne.s	Return_CastSpell	;66F6
 	lea	Msg_CostTooHigh.l,a6	;4DF90000EA62
 	jsr	LowerText.l	;4EB90000CFB8
 	moveq	#$01,d0	;7001
 	rts	;4E75
 
-adrCd004FEE:		; Memory Address ($4FEE) and binary offset [$4C6A]
+CastSpell_SelectFizzledNotice:		; Memory Address ($5372) and binary offset [$4FEE]
+	; Selects SPELL FIZZLED and its message-state value when the target cell suppresses the spell.
 	lea	Notice_SpellFizzle.l,a6	;4DF900004FFE
 	move.w	#$0008,adrW_00D92A.l	;33FC00080000D92A
-	bra.s	adrCd004FBE	;60C0
+	bra.s	CastSpell_Finalize	;60C0
 
 Notice_SpellFizzle:
 	dc.b	'SPELL FIZZLED'	;5350454C4C2046495A5A4C4544
@@ -7733,39 +7873,43 @@ Notice_SpellFailed:
 	dc.b	'SPELL FAILED'	;5350454C4C204641494C4544
 	dc.b	$FF	;FF
 	dc.b	$00	;00
-adrW_00505A:		; Memory Address ($505A) and binary offset [$4CD6]
+SpellEntity_PlacementConflictFlag:		; Memory Address ($53DE) and binary offset [$505A]
+	; Working flag set when spell-entity placement crosses or conflicts with the resolved map destination.
 	dc.b	$00	;00
-adrB_00505B:		; Memory Address ($505B) and binary offset [$4CD7]
+SpellEntity_AIOriginFlag:		; Memory Address ($53DF) and binary offset [$505B]
+	; Working origin value used by AI-created entities and to suppress player-facing cast notices.
 	dc.b	$00	;00
 
 Spells_01_Armour:		; Memory Address ($505C) and binary offset [$4CD8]
-	moveq	#$00,d4	;7800
+	moveq	#WornSpell_Armour,d4	;7800
 	addq.w	#$02,d7	;5447
-adrCd005060:		; Memory Address ($5060) and binary offset [$4CDC]
+StoreWornSpell_ClampPower:		; Memory Address ($53E4) and binary offset [$5060]
+	; Clamps worn-spell power to sixty-three before packing it with the low three-bit spell type.
 	cmpi.w	#$0040,d7	;0C470040
-	bcs.s	adrCd005068	;6502
-	moveq	#$3F,d7	;7E3F
-adrCd005068:		; Memory Address ($5068) and binary offset [$4CE4]
-	asl.w	#$02,d7	;E547
-	and.w	#$00F8,d7	;024700F8
+	bcs.s	StoreWornSpell	;6502
+	moveq	#WornSpell_PowerMaximum,d7	;7E3F
+StoreWornSpell:		; Memory Address ($53EC) and binary offset [$5068]
+	; Packs worn-spell power and type into the champion record and requests a status refresh.
+	asl.w	#WornSpell_PowerShift,d7	;E547
+	and.w	#~WornSpell_TypeMask&$FF,d7	;024700F8
 	add.b	d4,d7	;DE04
 	move.b	d7,$0011(a4)	;19470011
 	move.b	#$02,adrB_00EE3C.l	;13FC00020000EE3C
 	rts	;4E75
 
 Spells_02_Terror:		; Memory Address ($507E) and binary offset [$4CFA]
-	move.w	#$008F,d4	;383C008F
-	bra	adrCd005316	;60000292
+	move.w	#AirbourneSpell_Terror,d4	;383C008F
+	bra	SpellEntity_SetPowerFlag	;60000292
 
 Spells_03_Vitalise:		; Memory Address ($5086) and binary offset [$4D02]
 	moveq	#$07,d4	;7807
 	lsr.w	#$02,d7	;E44F
-	bra	adrCd005236	;600001AA
+	bra	RestorePartyStat_CalculateAmount	;600001AA
 
 Spells_04_Beguile:		; Memory Address ($508E) and binary offset [$4D0A]
 	; While communication is active, adds floor(spell power / 4) + 1 to both attitude and patience.
 	cmp.w	#InterfaceMode_Communication,$0042(a5)	;0C6D00080042
-	bne.s	adrCd0050BC	;6626
+	bne.s	Return_Beguile	;6626
 	lsr.b	#WornSpell_Beguile_PowerShift,d7	;E40F
 	addq.w	#WornSpell_Beguile_BaseBonus,d7	;5247
 	bsr	Comms_GetState	;6100F15E
@@ -7775,58 +7919,63 @@ Spells_04_Beguile:		; Memory Address ($508E) and binary offset [$4D0A]
 	add.b	CommsState_PatienceOffset(a4),d0	;D02C0007
 	move.b	d0,CommsState_PatienceOffset(a4)	;19400007
 	bsr	adrCd00847E	;610033CC
-	move.w	#$008D,d7	;3E3C008D
+	move.w	#AirbourneSpell_Beguile,d7	;3E3C008D
 	bra	adrCd001DBC	;6000CD02
 
-adrCd0050BC:		; Memory Address ($50BC) and binary offset [$4D38]
+Return_Beguile:		; Memory Address ($5440) and binary offset [$50BC]
+	; Returns without changing communication state when Beguile is cast outside communication mode.
 	rts	;4E75
 
 Spells_05_Deflect:		; Memory Address ($50BE) and binary offset [$4D3A]
-	moveq	#$01,d4	;7801
-	bra.s	adrCd005060	;609E
+	moveq	#WornSpell_Deflect,d4	;7801
+	bra.s	StoreWornSpell_ClampPower	;609E
 
 Spells_06_Magelock:		; Memory Address ($50C2) and binary offset [$4D3E]
 	bsr	adrCd008498	;610033D4
 	move.b	$01(a6,d0.w),d1	;12360001
 	and.w	#$0007,d1	;02410007
 	subq.w	#$02,d1	;5541
-	bne.s	adrCd0050E8	;6616
+	bne.s	Magelock_CheckTargetCell	;6616
 	move.w	$0020(a5),d2	;342D0020
 	add.w	d2,d2	;D442
 	addq.w	#$01,d2	;5242
 	btst	d2,$00(a6,d0.w)	;05360000
-	bne.s	adrCd00512E	;664E
+	bne.s	Magelock_ToggleLock	;664E
 	subq.w	#$01,d2	;5342
 	btst	d2,$00(a6,d0.w)	;05360000
-	bne.s	adrCd005134	;664C
-adrCd0050E8:		; Memory Address ($50E8) and binary offset [$4D64]
+	bne.s	Return_Magelock	;664C
+Magelock_CheckTargetCell:		; Memory Address ($546C) and binary offset [$50E8]
+	; Checks the cell in front of the party and validates a door side before changing its Magelock flag.
 	bsr	adrCd00847E	;61003394
 	cmp.w	adrW_00EE72.l,d7	;BE790000EE72
-	bcc.s	adrCd005134	;6440
+	bcc.s	Return_Magelock	;6440
 	swap	d7	;4847
 	cmp.w	adrW_00EE70.l,d7	;BE790000EE70
-	bcc.s	adrCd005134	;6436
+	bcc.s	Return_Magelock	;6436
 	move.b	$01(a6,d0.w),d1	;12360001
 	and.w	#$0007,d1	;02410007
 	cmpi.w	#$0002,d1	;0C410002
-	beq.s	adrCd00511C	;6710
+	beq.s	Magelock_CheckOppositeDoorSide	;6710
 	cmpi.w	#$0005,d1	;0C410005
-	bne.s	adrCd005134	;6622
+	bne.s	Return_Magelock	;6622
 	move.b	$00(a6,d0.w),d1	;12360000
 	lsr.b	#$04,d1	;E809
-	beq.s	adrCd00512E	;6714
+	beq.s	Magelock_ToggleLock	;6714
 	rts	;4E75
 
-adrCd00511C:		; Memory Address ($511C) and binary offset [$4D98]
+Magelock_CheckOppositeDoorSide:		; Memory Address ($54A0) and binary offset [$511C]
+	; Checks the opposite side of a door cell against the party's facing direction.
 	move.w	$0020(a5),d2	;342D0020
 	eor.w	#$0002,d2	;0A420002
 	add.w	d2,d2	;D442
 	addq.w	#$01,d2	;5242
 	btst	d2,$00(a6,d0.w)	;05360000
-	beq.s	adrCd005134	;6706
-adrCd00512E:		; Memory Address ($512E) and binary offset [$4DAA]
-	bchg	#$04,$01(a6,d0.w)	;087600040001
-adrCd005134:		; Memory Address ($5134) and binary offset [$4DB0]
+	beq.s	Return_Magelock	;6706
+Magelock_ToggleLock:		; Memory Address ($54B2) and binary offset [$512E]
+	; Toggles bit four of the validated door cell's state byte.
+	bchg	#MapCell_MagelockedBit,$01(a6,d0.w)	;087600040001
+Return_Magelock:		; Memory Address ($54B8) and binary offset [$5134]
+	; Shared return for rejected and completed Magelock operations.
 	rts	;4E75
 
 Spells_07_Conceal:		; Memory Address ($5136) and binary offset [$4DB2]
@@ -7835,26 +7984,26 @@ Spells_07_Conceal:		; Memory Address ($5136) and binary offset [$4DB2]
 	bcc.s	adrCd005150	;640E
 	cmp.w	adrW_00EE70.l,d7	;BE790000EE70
 	bcc.s	adrCd005150	;6406
-	bset	#$03,$01(a6,d0.w)	;08F600030001
+	bset	#MapCell_ConcealedBit,$01(a6,d0.w)	;08F600030001
 adrCd005150:		; Memory Address ($5150) and binary offset [$4DCC]
 	rts	;4E75
 
 Spells_08_Warpower:		; Memory Address ($5152) and binary offset [$4DCE]
 	moveq	#WornSpell_Warpower,d4	;7802
-	bra	adrCd005060	;6000FF0A
+	bra	StoreWornSpell_ClampPower	;6000FF0A
 
 Spells_09_Missle:		; Memory Address ($5158) and binary offset [$4DD4]
-	move.w	#$008A,d4	;383C008A
+	move.w	#AirbourneSpell_Missile,d4	;383C008A
 	lsr.w	#$01,d7	;E24F
-	bra	adrCd005328	;600001C8
+	bra	SpellEntity_PrepareDirection	;600001C8
 
 Spells_10_Vanish:		; Memory Address ($5162) and binary offset [$4DDE]
-	moveq	#$03,d4	;7803
-	bra	adrCd005060	;6000FEFA
+	moveq	#WornSpell_Vanish,d4	;7803
+	bra	StoreWornSpell_ClampPower	;6000FEFA
 
 Spells_11_Paralyze:		; Memory Address ($5168) and binary offset [$4DE4]
-	move.w	#$008C,d4	;383C008C
-	bra	adrCd005316	;600001A8
+	move.w	#AirbourneSpell_Paralyze,d4	;383C008C
+	bra	SpellEntity_SetPowerFlag	;600001A8
 
 Spells_12_Alchemy:		; Memory Address ($5170) and binary offset [$4DEC]
 	moveq	#$00,d0	;7000
@@ -7864,47 +8013,52 @@ Spells_12_Alchemy:		; Memory Address ($5170) and binary offset [$4DEC]
 	add.w	d0,a0	;D0C0
 	moveq	#$00,d0	;7000
 	move.b	(a0),d1	;1210
-	cmpi.b	#$1B,d1	;0C01001B
-	bcs.s	adrCd005192	;6506
-	cmpi.b	#$3F,d1	;0C01003F
-	bcs.s	adrCd0051A4	;6512
-adrCd005192:		; Memory Address ($5192) and binary offset [$4E0E]
+	cmpi.b	#Object_Armour_First,d1	;0C01001B
+	bcs.s	Alchemy_CheckRightHand	;6506
+	cmpi.b	#Object_PowerStaff,d1	;0C01003F
+	bcs.s	Alchemy_ConvertHeldItemToCoinage	;6512
+Alchemy_CheckRightHand:		; Memory Address ($5516) and binary offset [$5192]
+	; Checks the right hand when the left-hand object is outside Alchemy's convertible range.
 	move.b	$0001(a0),d1	;12280001
 	moveq	#$01,d0	;7001
-	cmpi.b	#$1B,d1	;0C01001B
-	bcs.s	adrCd0051CE	;6530
-	cmpi.b	#$3F,d1	;0C01003F
-	bcc.s	adrCd0051CE	;642A
-adrCd0051A4:		; Memory Address ($51A4) and binary offset [$4E20]
-	addq.w	#$05,d7	;5A47
+	cmpi.b	#Object_Armour_First,d1	;0C01001B
+	bcs.s	Return_Alchemy	;6530
+	cmpi.b	#Object_PowerStaff,d1	;0C01003F
+	bcc.s	Return_Alchemy	;642A
+Alchemy_ConvertHeldItemToCoinage:		; Memory Address ($5528) and binary offset [$51A4]
+	; Adds five plus spell power to coinage, clamps the quantity to ninety-nine, and prepares the hand conversion.
+	addq.w	#Alchemy_BaseCoinageGain,d7	;5A47
 	add.b	$000C(a0),d7	;DE28000C
 	cmpi.b	#$64,d7						;0C070064
-	bcs.s	adrCd0051B2	;6502
-	moveq	#$63,d7	;7E63
-adrCd0051B2:		; Memory Address ($51B2) and binary offset [$4E2E]
+	bcs.s	Alchemy_StoreCoinage	;6502
+	moveq	#Object_StackMaximum,d7	;7E63
+Alchemy_StoreCoinage:		; Memory Address ($5536) and binary offset [$51B2]
+	; Stores the updated coinage quantity and removes duplicate coinage object slots.
 	move.b	d7,$000C(a0)	;1147000C
 	moveq	#$0B,d2	;740B
-adrLp0051B8:		; Memory Address ($51B8) and binary offset [$4E34]
+Alchemy_RemoveDuplicateCoinageLoop:		; Memory Address ($553C) and binary offset [$51B8]
+	; Scans all twelve ordinary pockets and clears existing coinage object slots.
 	cmp.b	#$01,$00(a0,d2.w)	;0C3000012000
 	bne.s	adrCd0051C4	;6604
 	clr.b	$00(a0,d2.w)	;42302000
 adrCd0051C4:		; Memory Address ($51C4) and binary offset [$4E40]
-	dbra	d2,adrLp0051B8	;51CAFFF2
-	move.b	#$01,$00(a0,d0.w)	;11BC00010000
-adrCd0051CE:		; Memory Address ($51CE) and binary offset [$4E4A]
+	dbra	d2,Alchemy_RemoveDuplicateCoinageLoop	;51CAFFF2
+	move.b	#Object_Coinage,$00(a0,d0.w)	;11BC00010000
+Return_Alchemy:		; Memory Address ($5552) and binary offset [$51CE]
+	; Returns after Alchemy conversion or when neither hand contains an eligible object.
 	rts	;4E75
 
 Spells_13_Confuse:		; Memory Address ($51D0) and binary offset [$4E4C]
-	move.w	#$008B,d4	;383C008B
-	bra	adrCd005316	;60000140
+	move.w	#AirbourneSpell_Confuse,d4	;383C008B
+	bra	SpellEntity_SetPowerFlag	;60000140
 
 Spells_14_Levitate:		; Memory Address ($51D8) and binary offset [$4E54]
-	moveq	#$05,d4	;7805
-	bra	adrCd005060	;6000FE84
+	moveq	#WornSpell_Levitate,d4	;7805
+	bra	StoreWornSpell_ClampPower	;6000FE84
 
 Spells_15_Antimage:		; Memory Address ($51DE) and binary offset [$4E5A]
-	moveq	#$06,d4	;7806
-	bra	adrCd005060	;6000FE7E
+	moveq	#WornSpell_Antimage,d4	;7806
+	bra	StoreWornSpell_ClampPower	;6000FE7E
 
 Spells_16_Recharge:		; Memory Address ($51E4) and binary offset [$4E60]
 	moveq	#$00,d0			;7000
@@ -7913,27 +8067,30 @@ Spells_16_Recharge:		; Memory Address ($51E4) and binary offset [$4E60]
 	lea	Character_Pockets_DataTable.l,a0	;41F90000ED2A
 	add.w	d0,a0			;D0C0
 	move.b	(a0),d0			;1010
-	cmpi.b	#$69,d0			;0C000069
-	bcs.s	adrCd005204		;6506
-	cmpi.b	#$6D,d0			;0C00006D
-	bcs.s	adrCd005214		;6510
-adrCd005204:		; Memory Address ($5204) and binary offset [$4E80]
+	cmpi.b	#Object_MagicRings_First,d0			;0C000069
+	bcs.s	Recharge_CheckRightHand		;6506
+	cmpi.b	#Object_BookOfSkulls,d0			;0C00006D
+	bcs.s	Recharge_SelectedRing		;6510
+Recharge_CheckRightHand:		; Memory Address ($5588) and binary offset [$5204]
+	; Checks the right hand when the left hand does not contain one of the four rechargeable magic rings.
 	move.b	$0001(a0),d0		;10280001
-	cmpi.b	#$69,d0			;0C000069
-	bcs.s	adrCd005224		;6516
-	cmpi.b	#$6D,d0			;0C00006D
-	bcc.s	adrCd005224		;6410
-adrCd005214:		; Memory Address ($5214) and binary offset [$4E90]
-	sub.w	#$0069,d0		;04400069
+	cmpi.b	#Object_MagicRings_First,d0			;0C000069
+	bcs.s	Return_Recharge		;6516
+	cmpi.b	#Object_BookOfSkulls,d0			;0C00006D
+	bcc.s	Return_Recharge		;6410
+Recharge_SelectedRing:		; Memory Address ($5598) and binary offset [$5214]
+	; Maps the selected magic-ring object to RingUses and replaces its uses with spell power divided by eight.
+	sub.w	#Object_MagicRings_First,d0		;04400069
 	lea	RingUses.l,a0	;41F90000EE32
-	lsr.w	#$03,d7			;E64F
+	lsr.w	#Recharge_PowerShift,d7			;E64F
 	move.b	d7,$00(a0,d0.w)		;11870000
-adrCd005224:		; Memory Address ($5224) and binary offset [$4EA0]
+Return_Recharge:		; Memory Address ($55A8) and binary offset [$5224]
+	; Returns after Recharge or when neither hand contains a rechargeable ring.
 	rts	;4E75
 
 Spells_17_Trueview:		; Memory Address ($5226) and binary offset [$4EA2]
-	moveq	#$07,d4	;7807
-	bra	adrCd005060	;6000FE36
+	moveq	#WornSpell_Trueview,d4	;7807
+	bra	StoreWornSpell_ClampPower	;6000FE36
 
 Spells_18_Renew:		; Memory Address ($522C) and binary offset [$4EA8]
 	move.w	d7,d4	;3807
@@ -7941,151 +8098,173 @@ Spells_18_Renew:		; Memory Address ($522C) and binary offset [$4EA8]
 	add.w	d4,d7	;DE44
 	lsr.w	#$04,d7	;E84F
 	moveq	#$05,d4	;7805
-adrCd005236:		; Memory Address ($5236) and binary offset [$4EB2]
+RestorePartyStat_CalculateAmount:		; Memory Address ($55BA) and binary offset [$5236]
+	; Adds random variation to Vitalise or Renew's base amount and clamps the restoration value to one byte.
 	move.w	d7,d5	;3A07
-adrLp005238:		; Memory Address ($5238) and binary offset [$4EB4]
+RestorePartyStat_RandomiseLoop:		; Memory Address ($55BC) and binary offset [$5238]
+	; Accumulates the spell-power-controlled sequence of six-sided random values.
 	bsr	adrCd005556	;6100031C
 	add.w	d0,d5	;DA40
-	dbra	d7,adrLp005238	;51CFFFF8
+	dbra	d7,RestorePartyStat_RandomiseLoop	;51CFFFF8
 	cmpi.w	#$0100,d5	;0C450100
-	bcs.s	adrCd00524A	;6502
+	bcs.s	RestorePartyStat_BeginChampionLoop	;6502
 	moveq	#-$01,d5	;7AFF
-adrCd00524A:		; Memory Address ($524A) and binary offset [$4EC6]
+RestorePartyStat_BeginChampionLoop:		; Memory Address ($55CE) and binary offset [$524A]
+	; Initialises the four-slot active-party scan for Vitalise and Renew.
 	moveq	#$03,d1	;7203
-adrLp00524C:		; Memory Address ($524C) and binary offset [$4EC8]
+RestorePartyStat_ChampionLoop:		; Memory Address ($55D0) and binary offset [$524C]
+	; Applies the restoration to each occupied active-party slot and clamps current stat to maximum.
 	move.b	$18(a5,d1.w),d0	;10351018
 	and.w	#$00E0,d0	;024000E0
-	bne.s	adrCd005276	;6620
+	bne.s	RestorePartyStat_NextChampion	;6620
 	move.b	$18(a5,d1.w),d0	;10351018
 	bsr	Load_ChampionStatRecord	;61001404
 	move.b	$00(a4,d4.w),d0	;10344000
 	add.b	d5,d0	;D005
-	bcc.s	adrCd005268	;6402
+	bcc.s	RestorePartyStat_ClampOverflow	;6402
 	moveq	#-$01,d0	;70FF
-adrCd005268:		; Memory Address ($5268) and binary offset [$4EE4]
+RestorePartyStat_ClampOverflow:		; Memory Address ($55EC) and binary offset [$5268]
+	; Converts byte overflow in the restored current stat to $FF before maximum-stat clamping.
 	cmp.b	$01(a4,d4.w),d0	;B0344001
-	bcs.s	adrCd005272	;6504
+	bcs.s	RestorePartyStat_StoreCurrent	;6504
 	move.b	$01(a4,d4.w),d0	;10344001
-adrCd005272:		; Memory Address ($5272) and binary offset [$4EEE]
+RestorePartyStat_StoreCurrent:		; Memory Address ($55F6) and binary offset [$5272]
+	; Stores the clamped current hit-point or vitality value for one active champion.
 	move.b	d0,$00(a4,d4.w)	;19804000
-adrCd005276:		; Memory Address ($5276) and binary offset [$4EF2]
-	dbra	d1,adrLp00524C	;51C9FFD4
+RestorePartyStat_NextChampion:		; Memory Address ($55FA) and binary offset [$5276]
+	; Advances the active-party restoration loop and refreshes the champion display when complete.
+	dbra	d1,RestorePartyStat_ChampionLoop	;51C9FFD4
 	bra	adrCd0080CA	;60002E4E
 
 Spells_19_Vivify:		; Memory Address ($527E) and binary offset [$4EFA]
 	bsr	adrCd008498	;61003218
 	bsr	adrCd0078FA	;61002676
 	bsr	Interface_CheckSelectedCellInteraction	;6100E136
-	bcc.s	adrCd0052A0	;6414
+	bcc.s	Vivify_ResolveTargetCell	;6414
 	tst.b	d0	;4A00
-	bpl.s	adrCd00529E	;6A0E
+	bpl.s	Return_Vivify	;6A0E
 	move.l	a5,-(sp)	;2F0D
 	move.l	a1,a5	;2A49
 	bsr	adrCd008498	;61003202
 	bsr	adrCd0078FA	;61002660
 	move.l	(sp)+,a5	;2A5F
-adrCd00529E:		; Memory Address ($529E) and binary offset [$4F1A]
+Return_Vivify:		; Memory Address ($5622) and binary offset [$529E]
+	; Returns after Vivify has resolved its selected cell or linked player context.
 	rts	;4E75
 
-adrCd0052A0:		; Memory Address ($52A0) and binary offset [$4F1C]
+Vivify_ResolveTargetCell:		; Memory Address ($5624) and binary offset [$52A0]
+	; Checks the target cell type and enters the shared Vivify-machine or cell-resolution path when appropriate.
 	bsr	adrCd00847E	;610031DC
 	move.b	$01(a6,d0.w),d1	;12360001
 	and.w	#$0007,d1	;02410007
 	subq.w	#$01,d1	;5341
-	beq.s	adrCd00529E	;67EE
+	beq.s	Return_Vivify	;67EE
 	bra	adrCd007812	;60002560
 
 Spells_20_Dispell:		; Memory Address ($52B4) and binary offset [$4F30]
 	bsr	adrCd00847E	;610031C8
-	bclr	#$03,$01(a6,d0.w)	;08B600030001
+	bclr	#MapCell_ConcealedBit,$01(a6,d0.w)	;08B600030001
 	move.b	$01(a6,d0.w),d1	;12360001
 	not.b	d1	;4601
 	and.w	#$0007,d1	;02410007
-	bne.s	adrCd0052D8	;660E
+	bne.s	Return_Dispel	;660E
 	btst	#$00,$00(a6,d0.w)	;083600000000
-	bne.s	adrCd0052DA	;6608
-adrCd0052D2:		; Memory Address ($52D2) and binary offset [$4F4E]
+	bne.s	Dispel_FindLinkedFeature	;6608
+Dispel_ClearCellFeature:		; Memory Address ($5656) and binary offset [$52D2]
+	; Clears the target cell's feature bits after any linked feature record has been removed.
 	and.w	#$00F8,$00(a6,d0.w)	;027600F80000
-adrCd0052D8:		; Memory Address ($52D8) and binary offset [$4F54]
+Return_Dispel:		; Memory Address ($565C) and binary offset [$52D8]
+	; Returns when Dispel has no linked target or after the target has been cleared.
 	rts	;4E75
 
-adrCd0052DA:		; Memory Address ($52DA) and binary offset [$4F56]
+Dispel_FindLinkedFeature:		; Memory Address ($565E) and binary offset [$52DA]
+	; Initialises the scan for a four-byte linked feature record associated with the target map cell.
 	lea	adrEA0173F6.l,a0	;41F9000173F6
 	moveq	#-$04,d1	;72FC
-adrCd0052E2:		; Memory Address ($52E2) and binary offset [$4F5E]
+Dispel_FindLinkedFeatureLoop:		; Memory Address ($5666) and binary offset [$52E2]
+	; Scans linked feature records and removes the matching target record when found.
 	addq.w	#$04,d1	;5841
 	cmp.w	-$0002(a0),d1	;B268FFFE
-	bcc.s	adrCd0052D2	;64E8
+	bcc.s	Dispel_ClearCellFeature	;64E8
 	cmp.w	$02(a0,d1.w),d0	;B0701002
-	bne.s	adrCd0052E2	;66F2
+	bne.s	Dispel_FindLinkedFeatureLoop	;66F2
 	bra	adrCd001212	;6000BF20
 
 Spells_21_Firepath:		; Memory Address ($52F4) and binary offset [$4F70]
-	move.w	#$0087,d4	;383C0087
+	move.w	#AirbourneSpell_Firepath,d4	;383C0087
 	addq.w	#$02,d7	;5447
-	bra.s	adrCd005316	;601A
+	bra.s	SpellEntity_SetPowerFlag	;601A
 
 Spells_22_Illusion:		; Memory Address ($52FC) and binary offset [$4F78]
 	moveq	#$65,d4	;7865
-	bra	adrCd005328	;60000028
+	bra	SpellEntity_PrepareDirection	;60000028
 
 Spells_23_Compass:		; Memory Address ($5302) and binary offset [$4F7E]
-	moveq	#$04,d4	;7804
-	bra	adrCd005060	;6000FD5A
+	moveq	#WornSpell_Compass,d4	;7804
+	bra	StoreWornSpell_ClampPower	;6000FD5A
 
 Spells_24_Spelltap:		; Memory Address ($5308) and binary offset [$4F84]
-	move.w	#$008E,d4	;383C008E
-	bra.s	adrCd005316	;6008
+	move.w	#AirbourneSpell_Spelltap,d4	;383C008E
+	bra.s	SpellEntity_SetPowerFlag	;6008
 
 Spells_25_Disrupt:		; Memory Address ($530E) and binary offset [$4F8A]
-	move.w	#$0083,d4	;383C0083
+	move.w	#AirbourneSpell_Disrupt,d4	;383C0083
 	addq.w	#$05,d7	;5A47
 	add.w	d7,d7	;DE47
-adrCd005316:		; Memory Address ($5316) and binary offset [$4F92]
+SpellEntity_SetPowerFlag:		; Memory Address ($569A) and binary offset [$5316]
+	; Sets the high spell-power flag used by Terror, Paralyze, Firepath, Spelltap, and Disrupt before entity creation.
 	bset	#$08,d7	;08C70008
-	bra.s	adrCd005328	;600C
+	bra.s	SpellEntity_PrepareDirection	;600C
 
 Spells_26_Fireball:		; Memory Address ($531C) and binary offset [$4F98]
-	move.w	#$0080,d4	;383C0080
-adrCd005320:		; Memory Address ($5320) and binary offset [$4F9C]
+	move.w	#AirbourneSpell_Fireball,d4	;383C0080
+SpellEntity_ScalePowerThreeHalves:		; Memory Address ($56A4) and binary offset [$5320]
+	; Scales Fireball and Arc Bolt effective power to three halves before creating the live spell entity.
 	move.w	d7,d3	;3607
 	add.w	d7,d7	;DE47
 	add.w	d3,d7	;DE43
 	lsr.w	#$01,d7	;E24F
-adrCd005328:		; Memory Address ($5328) and binary offset [$4FA4]
+SpellEntity_PrepareDirection:		; Memory Address ($56AC) and binary offset [$5328]
+	; Packs the player's facing direction for the shared spell, Illusion, and Summon entity creator.
 	move.w	$0020(a5),d6	;3C2D0020
 	swap	d6	;4846
 	move.w	$0020(a5),d6	;3C2D0020
-adrCd005332:		; Memory Address ($5332) and binary offset [$4FAE]
+CreateSpellEntity:		; Memory Address ($56B6) and binary offset [$5332]
+	; Creates an airborne spell, Illusion, or Summon entity at the resolved map position.
 	move.w	d7,d3	;3607
 	move.l	$001C(a5),d7	;2E2D001C
 	move.w	$0058(a5),d5	;3A2D0058
-adrCd00533C:		; Memory Address ($533C) and binary offset [$4FB8]
+SpellEntity_CheckPlacement:		; Memory Address ($56C0) and binary offset [$533C]
+	; Resolves the destination map cell and records whether placement crossed a map boundary or conflict.
 	move.w	d5,-(sp)	;3F05
 	bsr	Compute_NewMapIndex_AI_TBC	;61002704
-	bcc.s	adrCd005352	;640E
+	bcc.s	SpellEntity_PlacementInsideMap	;640E
 	move.w	(sp)+,d5	;3A1F
-	move.b	#$FF,adrW_00505A.w	;11FC00FF505A	;Short Absolute converted to symbol!
+	move.b	#$FF,SpellEntity_PlacementConflictFlag.w	;11FC00FF505A	;Short Absolute converted to symbol!
 	cmp.w	d0,d2	;B440
-	bne.s	adrCd005358	;6608
+	bne.s	SpellEntity_MarkMapCell	;6608
 	rts	;4E75
 
-adrCd005352:		; Memory Address ($5352) and binary offset [$4FCE]
-	clr.b	adrW_00505A.w	;4238505A	;Short Absolute converted to symbol!
+SpellEntity_PlacementInsideMap:		; Memory Address ($56D6) and binary offset [$5352]
+	; Clears the placement-conflict flag when the destination lies inside the current map.
+	clr.b	SpellEntity_PlacementConflictFlag.w	;4238505A	;Short Absolute converted to symbol!
 	move.w	(sp)+,d5	;3A1F
-adrCd005358:		; Memory Address ($5358) and binary offset [$4FD4]
-	bset	#$07,$01(a6,d2.w)	;08F600072001
-adrCd00535E:		; Memory Address ($535E) and binary offset [$4FDA]
+SpellEntity_MarkMapCell:		; Memory Address ($56DC) and binary offset [$5358]
+	; Marks the destination cell as containing a live spell or summoned entity.
+	bset	#MapCell_SpellEntityBit,$01(a6,d2.w)	;08F600072001
+SpellEntity_AllocateRecord:		; Memory Address ($56E2) and binary offset [$535E]
+	; Allocates a sixteen-byte record in the overloaded live-monster workspace, freeing one when the spell-entity limit is reached.
 	lea	UnpackedMonsters.l,a4	;49F900016B7E
 	addq.w	#$01,-$0002(a4)	;526CFFFE
 	move.w	-$0002(a4),d1	;322CFFFE
 	cmpi.w	#$007D,d1	;0C41007D
-	bcs.s	adrCd00537C	;650A
+	bcs.s	SpellEntity_InitialiseRecord	;650A
 	subq.w	#$01,-$0002(a4)	;536CFFFE
 	bsr	adrCd00277E	;6100D406
-	bra.s	adrCd00535E	;60E2
+	bra.s	SpellEntity_AllocateRecord	;60E2
 
-adrCd00537C:		; Memory Address ($537C) and binary offset [$4FF8]
+SpellEntity_InitialiseRecord:		; Memory Address ($5700) and binary offset [$537C]
+	; Initialises position, facing, floor, caster, form, power, state, and team fields for a new spell entity.
 	asl.w	#$04,d1	;E941
 	add.w	d1,a4	;D8C1
 	move.b	d7,$0001(a4)	;19470001
@@ -8097,75 +8276,83 @@ adrCd00537C:		; Memory Address ($537C) and binary offset [$4FF8]
 	swap	d5	;4845
 	move.b	adrB_00EE3E.l,$000C(a4)	;19790000EE3E000C
 	move.b	d4,$000B(a4)	;1944000B
-	move.b	adrB_00505B.w,$0003(a4)	;1978505B0003	;Short Absolute converted to symbol!
+	move.b	SpellEntity_AIOriginFlag.w,$0003(a4)	;1978505B0003	;Short Absolute converted to symbol!
 	clr.w	$0008(a4)	;426C0008
 	clr.b	$0005(a4)	;422C0005
 	move.b	#$03,$000A(a4)	;197C0003000A
 	move.b	#$FF,$000D(a4)	;197C00FF000D
 	tst.b	d4	;4A04
-	bmi.s	adrCd0053FE	;6B3E
+	bmi.s	SpellEntity_InitialiseAirbourne	;6B3E
 	move.b	#$64,$000B(a4)	;197C0064000B
 	cmpi.b	#$65,d4	;0C040065
-	beq.s	adrCd0053D6	;670A
+	beq.s	SpellEntity_InitialiseIllusion	;670A
 	moveq	#$06,d4	;7806
 	add.w	d3,d4	;D843
 	asl.w	#$03,d4	;E744
 	move.w	d4,$0008(a4)	;39440008
-adrCd0053D6:		; Memory Address ($53D6) and binary offset [$5052]
+SpellEntity_InitialiseIllusion:		; Memory Address ($575A) and binary offset [$53D6]
+	; Applies Illusion's special power flag before common monster-like entity initialisation.
 	lsr.w	#$02,d3	;E44B
 	cmpi.b	#$65,d4	;0C040065
-	bne.s	adrCd0053E2	;6604
+	bne.s	SpellEntity_InitialiseMonsterLike	;6604
 	bset	#$07,d3	;08C30007
-adrCd0053E2:		; Memory Address ($53E2) and binary offset [$505E]
+SpellEntity_InitialiseMonsterLike:		; Memory Address ($5766) and binary offset [$53E2]
+	; Initialises the level and state fields shared by Illusion and Summon entities.
 	addq.w	#$02,d3	;5443
 	move.b	d3,$0006(a4)	;19430006
 	and.w	#$007F,d3	;0243007F
 	move.b	d3,$0007(a4)	;19430007
 	move.b	#$80,$0003(a4)	;197C00800003
 	move.b	#$1F,$0005(a4)	;197C001F0005
-	bra.s	adrCd005412	;6014
+	bra.s	SpellEntity_FinalizeCreation	;6014
 
-adrCd0053FE:		; Memory Address ($53FE) and binary offset [$507A]
+SpellEntity_InitialiseAirbourne:		; Memory Address ($5782) and binary offset [$53FE]
+	; Initialises airborne-spell power fields and transfers the high spell-power flag into the record.
 	move.b	d3,$0006(a4)	;19430006
 	clr.b	$0007(a4)	;422C0007
 	btst	#$08,d3	;08030008
-	beq.s	adrCd005412	;6706
+	beq.s	SpellEntity_FinalizeCreation	;6706
 	bset	#$07,$0006(a4)	;08EC00070006
-adrCd005412:		; Memory Address ($5412) and binary offset [$508E]
-	tst.b	adrW_00505A.w	;4A38505A	;Short Absolute converted to symbol!
+SpellEntity_FinalizeCreation:		; Memory Address ($5796) and binary offset [$5412]
+	; Runs the placement-conflict follow-up when required and otherwise returns from entity creation.
+	tst.b	SpellEntity_PlacementConflictFlag.w	;4A38505A	;Short Absolute converted to symbol!
 	bne	CheckEquipCostsAndAttrs_AI_TBC	;6600C940
 	rts	;4E75
 
 Spells_27_Wychwind:		; Memory Address ($541C) and binary offset [$5098]
-	add.w	#$000A,d7	;0647000A
+	add.w	#Wychwind_PowerBonus,d7	;0647000A
 	add.w	d7,d7	;DE47
-	moveq	#$07,d5	;7A07
-.wychwind_loop:		; Memory Address ($5424) and binary offset [$50A0]
+	moveq	#Wychwind_ProjectileCount-1,d5	;7A07
+.Wychwind_SpawnProjectileLoop:		; Memory Address ($57A8) and binary offset [$5424]
+	; Creates one Wychwind projectile for each of the eight directions around the caster.
 	movem.w	d5/d7,-(sp)	;48A70500
-	move.w	#$0081,d4	;383C0081
+	move.w	#AirbourneSpell_Wychwind,d4	;383C0081
 	move.w	$0020(a5),d6	;3C2D0020
-	add.b	.wychwind_data(pc,d5.w),d6	;DC3B5034
+	add.b	.Wychwind_DirectionAdjustments(pc,d5.w),d6	;DC3B5034
 	and.w	#$0003,d6	;02460003
 	swap	d6	;4846
 	move.w	d5,d6	;3C05
 	cmpi.w	#$0004,d6	;0C460004
-	bcc.s	.wychwind_skip1	;640A
+	bcc.s	.Wychwind_RotateSecondDirectionGroup	;640A
 	add.w	$0020(a5),d6	;DC6D0020
 	and.w	#$0003,d6	;02460003
-	bra.s	.wychwind_skip2	;600C
+	bra.s	.Wychwind_CreateProjectile	;600C
 
-.wychwind_skip1:		; Memory Address ($544C) and binary offset [$50C8]
+.Wychwind_RotateSecondDirectionGroup:		; Memory Address ($57D0) and binary offset [$544C]
+	; Normalises Wychwind directions four through seven before applying the party facing.
 	subq.w	#$04,d6	;5946
 	add.w	$0020(a5),d6	;DC6D0020
 	and.w	#$0003,d6	;02460003
 	addq.w	#$04,d6	;5846
-.wychwind_skip2:		; Memory Address ($5458) and binary offset [$50D4]
-	bsr	adrCd005332	;6100FED8
+.Wychwind_CreateProjectile:		; Memory Address ($57DC) and binary offset [$5458]
+	; Calls the shared spell-entity creator with one Wychwind direction and restores loop state.
+	bsr	CreateSpellEntity	;6100FED8
 	movem.w	(sp)+,d5/d7	;4C9F00A0
-	dbra	d5,.wychwind_loop	;51CDFFC2
+	dbra	d5,.Wychwind_SpawnProjectileLoop	;51CDFFC2
 	rts	;4E75
 
-.wychwind_data:		; Memory Address ($5466) and binary offset [$50E2]
+.Wychwind_DirectionAdjustments:		; Memory Address ($57EA) and binary offset [$5466]
+	; Eight mechanic-owned direction adjustments used to rotate Wychwind's radial projectiles; retained in source rather than extracted.
 	dc.b	$00	;00
 	dc.b	$01	;01
 	dc.b	$02	;02
@@ -8176,68 +8363,74 @@ Spells_27_Wychwind:		; Memory Address ($541C) and binary offset [$5098]
 	dc.b	$00	;00
 
 Spells_28_ArcBolt:		; Memory Address ($546E) and binary offset [$50EA]
-	move.w	#$0082,d4	;383C0082
-	bra	adrCd005320	;6000FEAC
+	move.w	#AirbourneSpell_ArcBolt,d4	;383C0082
+	bra	SpellEntity_ScalePowerThreeHalves	;6000FEAC
 
 Spells_29_Formwall:		; Memory Address ($5476) and binary offset [$50F2]
-	moveq	#$03,d4	;7803
-adrCd005478:		; Memory Address ($5478) and binary offset [$50F4]
+	moveq	#MagicFeature_Formwall,d4	;7803
+CreateMagicWallFeature:		; Memory Address ($57FC) and binary offset [$5478]
+	; Creates a power-scaled Formwall or Mindrock in an empty map cell directly in front of the party.
 	move.w	d7,d3	;3607
 	addq.w	#$02,d3	;5443
 	asl.w	#$02,d3	;E543
 	bsr	adrCd00847E	;61002FFE
 	cmp.w	adrW_00EE72.l,d7	;BE790000EE72
-	bcc.s	adrCd0054E4	;645A
+	bcc.s	Return_CreateMagicWallFeature	;645A
 	swap	d7	;4847
 	cmp.w	adrW_00EE70.l,d7	;BE790000EE70
-	bcc.s	adrCd0054E4	;6450
+	bcc.s	Return_CreateMagicWallFeature	;6450
 	move.b	$01(a6,d0.w),d1	;12360001
-	bmi.s	adrCd0054E4	;6B4A
+	bmi.s	Return_CreateMagicWallFeature	;6B4A
 	and.w	#$0007,d1	;02410007
-	bne.s	adrCd0054E4	;6644
+	bne.s	Return_CreateMagicWallFeature	;6644
 	tst.b	$00(a6,d0.w)	;4A360000
-	bne.s	adrCd0054E4	;663E
-	or.b	#$07,$01(a6,d0.w)	;003600070001
+	bne.s	Return_CreateMagicWallFeature	;663E
+	or.b	#MapCell_MagicFeatureType,$01(a6,d0.w)	;003600070001
 	or.b	d3,d4	;8803
 	move.b	d4,$00(a6,d0.w)	;1D840000
 	and.w	#$0003,d4	;02440003
 	subq.b	#$03,d4	;5704
-	bne.s	adrCd0054E4	;662A
+	bne.s	Return_CreateMagicWallFeature	;662A
 	move.w	#$03FF,d1	;323C03FF
-adrCd0054BE:		; Memory Address ($54BE) and binary offset [$513A]
+Formwall_PrepareLinkedFeature:		; Memory Address ($5842) and binary offset [$54BE]
+	; Builds the packed map-position key used to register a Formwall in the linked feature list.
 	lea	adrEA0173F6.l,a0	;41F9000173F6
 	swap	d0	;4840
 	move.w	d1,d0	;3001
 	swap	d0	;4840
 	moveq	#$00,d1	;7200
-adrCd0054CC:		; Memory Address ($54CC) and binary offset [$5148]
+Formwall_FindLinkedFeatureLoop:		; Memory Address ($5850) and binary offset [$54CC]
+	; Searches the linked feature list for the Formwall's packed map-position key.
 	cmp.w	-$0002(a0),d1	;B268FFFE
-	bcc.s	adrCd0054DC	;640A
+	bcc.s	Formwall_AppendLinkedFeature	;640A
 	cmp.w	$02(a0,d1.w),d0	;B0701002
-	beq.s	adrCd0054E0	;6708
+	beq.s	Formwall_StoreLinkedFeature	;6708
 	addq.w	#$04,d1	;5841
-	bra.s	adrCd0054CC	;60F0
+	bra.s	Formwall_FindLinkedFeatureLoop	;60F0
 
-adrCd0054DC:		; Memory Address ($54DC) and binary offset [$5158]
+Formwall_AppendLinkedFeature:		; Memory Address ($5860) and binary offset [$54DC]
+	; Extends the linked feature list when the Formwall's map-position key is not already present.
 	addq.w	#$04,-$0002(a0)	;5868FFFE
-adrCd0054E0:		; Memory Address ($54E0) and binary offset [$515C]
+Formwall_StoreLinkedFeature:		; Memory Address ($5864) and binary offset [$54E0]
+	; Stores the Formwall's packed map-position key in the linked feature list.
 	move.l	d0,$00(a0,d1.w)	;21801000
-adrCd0054E4:		; Memory Address ($54E4) and binary offset [$5160]
+Return_CreateMagicWallFeature:		; Memory Address ($5868) and binary offset [$54E4]
+	; Returns after Formwall or Mindrock creation or when the target cell is unsuitable.
 	rts	;4E75
 
 Spells_30_Summon:		; Memory Address ($54E6) and binary offset [$5162]
 	moveq	#$64,d4	;7864
-	bra	adrCd005328	;6000FE3E
+	bra	SpellEntity_PrepareDirection	;6000FE3E
 
 Spells_31_Blaze:		; Memory Address ($54EC) and binary offset [$5168]
-	move.w	#$0084,d4	;383C0084
+	move.w	#AirbourneSpell_Blaze,d4	;383C0084
 	add.w	#$000A,d7	;0647000A
 	lsr.w	#$01,d7	;E24F
-	bra	adrCd005328	;6000FE30
+	bra	SpellEntity_PrepareDirection	;6000FE30
 
 Spells_32_Mindrock:		; Memory Address ($54FA) and binary offset [$5176]
-	moveq	#$02,d4	;7802
-	bra	adrCd005478	;6000FF7A
+	moveq	#MagicFeature_Mindrock,d4	;7802
+	bra	CreateMagicWallFeature	;6000FF7A
 
 adrCd005500:		; Memory Address ($5500) and binary offset [$517C]
 	moveq	#-$01,d3	;76FF
@@ -8613,7 +8806,8 @@ DungeonInterfaceActionTable:		; Memory Address ($5B52) and binary offset [$57CE]
 adrJA005862:		; Memory Address ($5862) and binary offset [$54DE]
 	rts	;4E75
 
-adrEA005864:		; Memory Address ($5864) and binary offset [$54E0]
+Interface_Hitboxes_Display:		; Memory Address ($5864) and binary offset [$54E0]
+	; Three display/context hitbox records for action IDs $22-$24, stored as inclusive X/Y rectangle words.
 	dc.w	$0074	;0074
 	dc.w	$00CC	;00CC
 	dc.w	$0049	;0049
@@ -8631,7 +8825,7 @@ HitTest_DisplayAction:		; Memory Address ($5C00) and binary offset [$587C]
 	; Tests display-area rectangles and stores a resulting command in PlayerX_Data+$0C.
 	moveq	#$22,d0	;7022
 	moveq	#$26,d2	;7426
-	lea	adrEA005864.w,a6	;4DF85864	;Short Absolute converted to symbol!
+	lea	Interface_Hitboxes_Display.w,a6	;4DF85864	;Short Absolute converted to symbol!
 	move.w	#$FFFF,$000C(a5)	;3B7CFFFF000C
 	bra	HitTest_PlayerInterfaceActions	;6000F528
 
@@ -8643,10 +8837,10 @@ Handle_WallFeatureClick:		; Memory Address ($5C18) and binary offset [$5894]
 	; Handles a clicked wall feature and can route to the contextual wall-feature command.
 	bsr	adrCd00847E	;61002BE8
 	cmp.w	adrW_00EE72.l,d7	;BE790000EE72
-	bcc.s	adrCd0058EA	;644A
+	bcc.s	Return_WallFeatureClick	;644A
 	swap	d7	;4847
 	cmp.w	adrW_00EE70.l,d7	;BE790000EE70
-	bcc.s	adrCd0058EA	;6440
+	bcc.s	Return_WallFeatureClick	;6440
 	swap	d7	;4847
 	move.w	$00(a6,d0.w),d2	;34360000
 	move.w	d2,d3	;3602
@@ -8654,13 +8848,13 @@ Handle_WallFeatureClick:		; Memory Address ($5C18) and binary offset [$5894]
 	subq.w	#$01,d2	;5342
 	bne	adrJA0064D0	;66000C16
 	tst.b	d3	;4A03
-	bpl.s	adrCd0058EA	;6A2A
+	bpl.s	Return_WallFeatureClick	;6A2A
 	move.b	$01(a6,d0.w),d3	;16360001
 	lsr.w	#$04,d3	;E84B
 	and.w	#$0003,d3	;02430003
 	eor.w	#$0002,d3	;0A430002
 	cmp.w	$0020(a5),d3	;B66D0020
-	bne.s	adrCd0058EA	;6616
+	bne.s	Return_WallFeatureClick	;6616
 	move.b	$00(a6,d0.w),d3	;16360000
 	and.w	#$0003,d3	;02430003
 	add.w	d3,d3	;D643
@@ -8668,7 +8862,8 @@ Handle_WallFeatureClick:		; Memory Address ($5C18) and binary offset [$5894]
 	add.w	MainWall_Action_LookupTable(pc,d3.w),a0	;D0FB3006
 	jmp	(a0)	;4ED0
 
-adrCd0058EA:		; Memory Address ($58EA) and binary offset [$5566]
+Return_WallFeatureClick:		; Memory Address ($58EA) and binary offset [$5566]
+	; Return point used when a wall-feature click does not resolve to a supported action.
 	rts	;4E75
 
 MainWall_Action_LookupTable:		; Memory Address ($58EC) and binary offset [$5568]
@@ -10021,7 +10216,7 @@ Resolve_MultiFunctionContext:		; Memory Address ($6846) and binary offset [$64C2
 	; Continuation of the multi-function handler; selects interaction, spell, or map-AI behaviour from context.
 	tst.b	$0013(a4)	;4A2C0013
 	bmi.s	adrJA0064D0	;6B08
-	bsr	Resolve_MultiFunctionAction	;6100E9C4
+	bsr	Cast_SelectedChampionSpell	;6100E9C4
 adrCd0064CC:		; Memory Address ($64CC) and binary offset [$6148]
 	bra	Load_MapPosition_AI_TBC	;60001D00
 
@@ -13981,7 +14176,7 @@ adrCd008B64:		; Memory Address ($8B64) and binary offset [$87E0]
 
 adrCd008B72:		; Memory Address ($8B72) and binary offset [$87EE]
 	tst.w	Paused_Marker.l	;4A7900008C1C
-	bne.s	adrCd008BE8	;666E
+	bne.s	PlayerColourRampLookupBase_Exit	;666E
 	tst.b	$0052(a5)	;4A2D0052
 	bmi.s	adrCd008BE0	;6B60
 	moveq	#$00,d0	;7000
@@ -14013,8 +14208,8 @@ adrCd008BC0:		; Memory Address ($8BC0) and binary offset [$883C]
 	addq.w	#$06,d0	;5C40
 adrCd008BCA:		; Memory Address ($8BCA) and binary offset [$8846]
 	add.w	d0,d0	;D040
-	move.w	adrCd008BE8(pc,d0.w),d0	;303B001A
-;fiX Data reference expected
+	move.w PlayerColourRampTable-2(pc,d0.w),d0	;303B001A
+
 	move.w	d0,_custom+color+$0000001E.l	;33C000DFF19E
 	move.w	d0,$004C(a5)	;3B40004C
 	rts	;4E75
@@ -14023,10 +14218,12 @@ adrCd008BDC:		; Memory Address ($8BDC) and binary offset [$8858]
 	subq.b	#$01,$004A(a5)	;532D004A
 adrCd008BE0:		; Memory Address ($8BE0) and binary offset [$885C]
 	move.w	$004C(a5),_custom+color+$0000001E.l	;33ED004C00DFF19E
-adrCd008BE8:		; Memory Address ($8BE8) and binary offset [$8864]
+PlayerColourRampLookupBase_Exit:		; Memory Address ($8BE8) and binary offset [$8864]
+	; Exit point and PC-relative base used by the player-colour update routine.
 	rts	;4E75
 
-;fiX Label expected
+PlayerColourRampTable:		; Memory Address ($8BEA) and binary offset [$8866]
+	; 24 hardware colour words in four six-step Player 1/Player 2 UI accent ramps; the preceding RTS at $8BE8 is outside the resource.
 	dc.w	$00C0	;00C0
 	dc.w	$0080	;0080
 	dc.w	$0060	;0060
@@ -24925,7 +25122,8 @@ Msg_CostTooHigh:		; Memory Address ($EA62) and binary offset [$E6DE]
 	dc.b	$0C	;0C
 	dc.b	'COST TOO HIGH'	;434F535420544F4F2048494748
 	dc.b	$FF	;FF
-adrEA00EA72:		; Memory Address ($EA72) and binary offset [$E6EE]
+Interface_Hitboxes_Main:		; Memory Address ($EA72) and binary offset [$E6EE]
+	; Seventeen main player-interface hitbox records for action IDs $00-$10; each record is X minimum, X maximum, Y minimum and Y maximum.
 	dc.w	$00E2	;00E2
 	dc.w	$0106	;0106
 	dc.w	$0021	;0021
@@ -24994,7 +25192,8 @@ adrEA00EA72:		; Memory Address ($EA72) and binary offset [$E6EE]
 	dc.w	$00CD	;00CD
 	dc.w	$001C	;001C
 	dc.w	$0057	;0057
-adrEA00EAFA:		; Memory Address ($EAFA) and binary offset [$E776]
+Interface_Hitboxes_Command:		; Memory Address ($EAFA) and binary offset [$E776]
+	; Six communications/options hitbox records for action IDs $1C-$21, stored as inclusive X/Y rectangle words.
 	dc.w	$0038	;0038
 	dc.w	$0047	;0047
 	dc.w	$0008	;0008

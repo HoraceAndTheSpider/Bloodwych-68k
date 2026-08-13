@@ -10,6 +10,7 @@ import pandas as pd
 
 from tools.resource_layout import resource_layouts, resource_name
 from tools.tool_common import ToolError
+from tools.fix_labels import FixLabelRule, load_fix_label_metadata
 from tools.tool_relabel import (
     _reference_pattern,
     _undefined_legacy_labels,
@@ -213,6 +214,95 @@ class ResourceLayoutTests(unittest.TestCase):
             self.assertIn("NewSecond:\n\tdc.w\t$0304", generated)
             self.assertNotIn("OldInternal", generated)
 
+    def test_relabel_separates_fix_label_from_ordinary_anchor_relabel(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary_directory:
+            root = Path(temporary_directory)
+            source = root / "GAME.asm"
+            destination = root / "GAME_relabel.asm"
+            source.write_text(
+                "LookupRoutine:\n"
+                "\tmove.w\tOldAnchor(pc,d0.w),d0\t;303B001A\n"
+                ";fiX Data reference expected\n"
+                "\trts\n"
+                "OldAnchor:\n"
+                "\trts\n"
+                "\tdc.w\t$1111,$2222,$3333,$4444\n"
+                ";fiX Label expected\n"
+                "\tdc.w\t$0102,$0304\n",
+                encoding="utf-8",
+            )
+            frame = pd.DataFrame(
+                (
+                    {
+                        "label": "OldAnchor",
+                        "relabel": "NewBase_Exit",
+                        "data_action": "",
+                    },
+                )
+            )
+            fix_rule = FixLabelRule(
+                profile="GAME",
+                anchor_label="OldAnchor",
+                insert_label="NewTable",
+                source_match="move.w OldAnchor(pc,d0.w),d0",
+                source_replace="move.w NewTable-10(pc,d0.w),d0",
+                expected_opcode="303B001A",
+                expected_matches=1,
+                status="verified",
+            )
+
+            def fake_asm_path(_master: str, stage: str) -> Path:
+                return source if stage == "source" else destination
+
+            with (
+                patch("tools.tool_relabel.asm_path", side_effect=fake_asm_path),
+                patch("tools.tool_relabel.load_segments", return_value=frame),
+                patch(
+                    "tools.tool_relabel.load_fix_label_metadata",
+                    return_value=(fix_rule,),
+                ),
+            ):
+                output = relabel_segments("GAME", root / "segments.xlsx")
+
+            generated = output.read_text(encoding="utf-8")
+            self.assertIn("move.w NewTable-10(pc,d0.w),d0", generated)
+            self.assertIn(
+                "NewBase_Exit:\n\trts\n\tdc.w\t$1111,$2222,$3333,$4444\nNewTable:\n",
+                generated,
+            )
+            self.assertNotIn(";fiX Label expected", generated)
+            self.assertNotIn(";fiX Data reference expected", generated)
+
+    def test_fix_label_loader_uses_minimal_cleanup_columns(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary_directory:
+            root = Path(temporary_directory)
+            segments = root / "segments.xlsx"
+            cleanup = root / "cleanup.xlsx"
+            segments.touch()
+            pd.DataFrame(
+                (
+                    {
+                        "profile": "BLOODWYCH439",
+                        "anchor_label": "adrCd008BE8",
+                        "insert_label": "PlayerColourRampTable",
+                        "source_match": "move.w adrCd008BE8(pc,d0.w),d0",
+                        "source_replace": "move.w PlayerColourRampTable-2(pc,d0.w),d0",
+                        "expected_opcode": "303B001A",
+                        "expected_matches": 1,
+                        "status": "verified",
+                        "source_comment": "Insert the colour-ramp table label.",
+                    },
+                )
+            ).to_excel(cleanup, sheet_name="FIX_LABELS", index=False)
+
+            rules = load_fix_label_metadata(
+                segments, "BLOODWYCH439", cleanup
+            )
+
+            self.assertEqual(len(rules), 1)
+            self.assertEqual(rules[0].anchor_label, "adrCd008BE8")
+            self.assertEqual(rules[0].insert_label, "PlayerColourRampTable")
+            self.assertEqual(rules[0].expected_matches, 1)
 
 if __name__ == "__main__":
     unittest.main()
