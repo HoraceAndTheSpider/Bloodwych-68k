@@ -8,9 +8,35 @@ viewer-only reconstruction.
 
 Each player has a separate `PlayerX_Data` record. The renderer adds the
 player's screen-buffer offset at `$000A(a5)` to fixed screen-buffer addresses.
-The hit-test path subtracts the player's horizontal coordinate at `$0008(a5)`
-from the low word of the packed pointer position before comparing it with the
-interface tables.
+The hit-test path subtracts the player's vertical screen coordinate at
+`$0008(a5)` from the low word of the packed pointer position before comparing
+it with the interface tables. Player 1 uses vertical offset `$0000` and screen
+byte offset `$0000`; Player 2 uses vertical offset `$0060` and screen byte
+offset `$0F00`. Because a 320-pixel four-plane row occupies 40 bytes,
+`$0F00 / 40 = 96`: the players occupy stacked 320×96 interface halves, not
+horizontally shifted panels.
+
+## Drawing-call register model
+
+Most screen placement is procedural rather than held in one master layout
+table. The common planar path uses a repeatable register contract:
+
+- `A1` points at a graphic or an interior `GFX_Pockets+offset`;
+- `A0` is `screen_ptr + PlayerX_Data+$000A + destination byte offset`;
+- `D5` packs DBRA width and height counts, so each dimension is one more than
+  the stored count;
+- `A3` supplies the source-row stride when the graphic is a rectangular crop
+  within the 320-pixel-wide `Pockets.gfx` backing sheet;
+- `D3` supplies mask/colour behaviour to the lower renderer;
+- `Draw_PlanarGraphic` pushes `D5` and enters the common renderer at
+  `adrCd00CE28`.
+
+A screen destination byte offset can be converted back to native coordinates
+with `y = offset / 40` and `x = (offset mod 40) * 8`. For example, inventory
+offset `$051C` is `(224,32)`, exactly where the first six 16×16 pocket pictures
+form the upper inventory row. This register-level contract should receive
+instruction comments in the final source: the constants are editable geometry,
+not arbitrary literals.
 
 `HitTest_PlayerInterfaceActions` at `$5138` treats each hitbox as four words:
 
@@ -74,6 +100,24 @@ one action namespace; the champion-selection screen has a separate eight-entry
 
 ## Main player panel
 
+Original Player 1 screenshots confirm the native player-local arrangement:
+
+```text
+x=0                    96                         224                320
+  left status/commands | 128×76 dungeon at y=10 | fixed control bank
+```
+
+The compact left statistics display and party-command display are mutually
+exclusive states of the same 96-pixel region. They do not replace or shift the
+dungeon viewport or the fixed right controls. The compact `STATS` display must
+also not be confused with the separately opened, full champion Statistics
+page.
+
+The captured visible strip is 320×120. The 320×96 player-local buffer is
+positioned at visible `y=8`, between full-width horizontal chrome bars. Those
+outer bars are presentation framing and do not change the `PlayerX_Data`
+coordinates used by drawing and hit testing.
+
 When `PlayerX_Data+$0042` is negative, `adrCd0080CA` draws the ordinary player
 panel. It uses fixed buffer offsets relative to `screen_ptr+$000A(a5)`:
 
@@ -88,7 +132,8 @@ panel. It uses fixed buffer offsets relative to `screen_ptr+$000A(a5)`:
   `adrCd007D6C`, with menu text beginning at `$0910` and successive entries
   separated by `$0140` bytes in the screen buffer.
 
-The class bar colour sequence at `adrB0081CA` is `[6, 13, 12, 7]`. It is a
+The class bar colour sequence at original label `adrB_0081CA` is
+`[6, 13, 12, 7]`. It is a
 profession/class colour choice, not the two-player blue/red accent.
 
 ## Inventory
@@ -113,7 +158,47 @@ spell-book surface around `$4100`, and status/command pieces around `$67C0`,
 `GFX_ButtonHighlights` and the three small tables at `$6D7E`, `$6D8A`, and
 `$6D96` position the directional/rotation button highlight sprites. The
 highlight routine uses `screen_ptr+$08DC+$000A(a5)` and selects the source
-position from those tables.
+position from `Arrow_Highlights_Y_Offsets`,
+`Arrow_Highlights_X_Positions`, and `Arrow_Highlights_Offsets`.
+
+The twelve displayed inventory entries are one six-slot row beginning at
+`(224,32)` and a second row beginning at `(224,48)`. Their record meanings are:
+
+| Slot | Meaning when empty |
+| ---: | --- |
+| 0 | left hand (`Pockets.gfx` picture `$6C`, or worn hand armour) |
+| 1 | right hand (`$6D`, or worn hand armour) |
+| 2 | body armour (`$6E`) |
+| 3 | shield (`$6F`/`$70`, selected by champion variant) |
+| 4-11 | ordinary pockets (generic empty pocket) |
+
+The source therefore does not render every zero byte as one generic empty
+slot. Preserving the hand, armour, and shield placeholders is required for
+both the interface viewer and the future character inventory editor.
+
+When this page is active, the movement and dungeon-display hitboxes are not
+active and must not remain in the viewer overlay. The same state filtering
+applies to the Statistics and spell-book pages; the six party-command
+rectangles belong only to the command state.
+
+### The 32 bytes after the Pockets image
+
+`Pockets.gfx` is currently extracted as 32,032 bytes. The first 32,000 bytes
+are exactly a 320×200 four-plane image (`320 * 200 / 2`). The remaining 32
+bytes are therefore excluded from the editable image surface. They occupy:
+
+```text
+memory          $54402-$54421
+binary offsets  $5407E-$5409D
+next label      SFX_AudioSample_1 at $54422 / $5409E
+words           0001 0004 0008 000C 000E 0007 000B 000F
+                0001 0001 0001 0001 0080 0054 002A 0000
+```
+
+No direct absolute or `GFX_Pockets+offset` reference to this tail has yet been
+found. It must be tested and labelled separately before `Pockets.gfx` is
+reduced to the exact 32,000-byte image or the tail is exposed as another
+resource.
 
 ## Statistics page
 
@@ -157,7 +242,15 @@ page, while 21 launches a selected spell and 22 views it.
 `Click_CommsAndOptions` starts the party-command surface. The command state at
 `PlayerX_Data+$0042` and visible-menu offset at `+$0044` are dispatched through
 `PartyCommand_HandlerOffsets` at `$33A0`. The active communication mode is
-value `$08`.
+value `$08`; `$FFFF` means that no numbered command state is active. On the
+big-endian 68000, Player 1's state word occupies `$EEBE-$EEBF`. A live watch of
+`$EEBE` therefore shows `$FF` for the inactive `$FFFF` state and `$00` for all
+active states `$0000-$0008`; the low byte at `$EEBF` is required to distinguish
+the initial menu state `$00` from Communication `$08` and the other handlers.
+A live watch while opening Communication observed a short-lived `$0001` state
+before the word settled at `$0008`; Sleep restored `$FFFF`. This agrees with
+the dispatcher: the opening action passes through handler state 1 before the
+Communication selection becomes the persistent state 8.
 
 The menu renderer `adrCd007D6C` selects one of the descriptor streams at
 `adrEA007C0E`, `adrEA007C2C`, `adrEA007C3A`, `adrEA007C4D`, `adrEA007C6F`,
@@ -173,19 +266,55 @@ not screen geometry. Greeting and response text is emitted through the packed
 message streams, so no separate communication icon bank has been proven in
 the source.
 
-## Player 1 blue / Player 2 red colour selection
+## Player-record interface colours
 
-The colour selection is in the player data and VBlank path:
+Each `PlayerX_Data` record supplies two fixed-interface palette indices. They
+are separate from both dialogue ink `$F` and the compact statistics bars.
+
+| Record field | Player 1 | Player 2 | Verified role |
+| --- | ---: | ---: | --- |
+| `PlayerX_Data+$10` | `$0007` | `$0009` | Primary interface colour: name-panel background, selected team-member frame, selection blocks, and highlighted menu backgrounds. |
+| `PlayerX_Data+$12` | `$0008` | `$000C` | Secondary/template colour: replaces source ink `$F` in pocket graphics used for command/toggle icons, missing-character shields, and empty hand, armour, shield, and pocket pictures. |
+
+The exact addresses are `$EE8C` and `$EE8E` for Player 1, and `$EEEE` and
+`$EEF0` for Player 2. Their SPS 439 binary offsets are respectively `$EB08`,
+`$EB0A`, `$EB6A`, and `$EB6C`.
+
+A controlled Player 1 test changed `$0007` to `$0005` and `$0008` to `$000B`.
+The name background and team-member selection square became green, while the
+missing-character shield, command toggle, highlighted command graphics, and
+empty equipment pictures became pink. This confirms that the two words are
+semantic UI colour channels rather than one general player accent.
+
+`Draw_PocketGraphic` passes the secondary index in `D3` to the common planar
+renderer. `adrCd00CE86` detects source pixels whose four bitplanes are all set
+(palette index `$F`), clears those bits, and writes the four bits of `D3` in
+their place. Stored `$F` pixels in these pictures are therefore recolourable
+template pixels; they are not the dialogue colour that eventually reaches the
+screen.
+
+The compact panel contains exactly three statistics bars. `Draw_MainPlayerInterface`
+loads DBRA count `$02`, then uses hard-coded colour `$07` for Player 1 or `$0C`
+for Player 2. These bars deliberately do not read either `+$10` or `+$12`, which
+explains why the Player 1 live edit did not change them.
+
+## Raster-split dialogue colours and fade ramps
+
+The table at `$8BEA` controls dialogue text, not the Player 1 blue / Player 2
+red interface chrome. `InitialiseText` sets the foreground ink to palette index
+`$F`; the colour-selection state is then held in each player record:
 
 - `Player1_Data` begins with `$00` at `$EE7C`;
 - `Player2_Data` begins with `$01` at `$EEDE`;
-- `adrCd008B72` tests bit 0 of the active player record;
+- `adrCd008B72` (`Update_PlayerDialogueTextColour`) tests bit 0 of the active
+  player record;
 - for Player 2 it adds `$0C` to the colour-table index;
-- bit 6 of `$0052(a5)` adds another `$06`, supporting the animated/fade state;
+- bit 6 of `$0052(a5)` adds another `$06`, selecting the shared red
+  monster/alternate-speaker ramp;
 - the selected word is loaded from the 24-word table immediately after the
   `adrCd008BE8` return and stored in `PlayerX_Data+$004C`;
 - the same word is written to `_custom+color+$1E`, the hardware colour
-  register used by the UI/VBlank path.
+  register for palette index 15.
 
 The data starts at memory `$8BEA` / binary offset `$8866` and is exactly 24
 words (`$30` bytes), ending at `$8C19`. The following word at `$8C1A` is
@@ -193,17 +322,45 @@ words (`$30` bytes), ending at `$8C19`. The following word at `$8C1A` is
 selected as follows:
 
 ```text
-entry indices  1-6   Player 1 base ramp       $8BEA-$8BF4
-entry indices  7-12  Player 1 alternate ramp $8BF6-$8C00
-entry indices 13-18  Player 2 base ramp       $8C02-$8C0C
-entry indices 19-24  Player 2 alternate ramp $8C0E-$8C18
+entry indices  1-6   Player 1 speech: green fade  $8BEA-$8BF4
+entry indices  7-12  Alternate/monster: red fade $8BF6-$8C00
+entry indices 13-18  Player 2 speech: orange fade $8C02-$8C0C
+entry indices 19-24  Alternate/monster: red fade $8C0E-$8C18
 ```
 
-The first ramp is `$00C0,$0080,$0060,$0040,$0020,$0000`; the third ramp is
-`$0E80,$0A60,$0640,$0420,$0200,$0000`. These are hardware colour words,
-not entries in `CharacterColours` or `ClassColours`. The six-step ramp
-selection explains the animated accent transitions as well as the stable
-Player 1 blue / Player 2 red appearance.
+The four ramps are:
+
+```text
+Player 1 speech      $0C0 $080 $060 $040 $020 $000
+Player 1 alternate   $C00 $800 $600 $400 $200 $000
+Player 2 speech      $E80 $A60 $640 $420 $200 $000
+Player 2 alternate   $C00 $800 $600 $400 $200 $000
+```
+
+These values match the captures: Player 1 dialogue is green, Player 2 dialogue
+is orange, and monster replies are red. The six entries are fade levels, ending
+at black.
+
+### How two colours share ink `$F`
+
+`CopperList_01` waits at raster positions `$9801` and `$FF01`. At each wait it
+writes `$8010` to `INTREQ`, requesting a Copper interrupt. The shared interrupt
+handler at `VerticalBlankInterupt` distinguishes a real vertical blank from
+these Copper interrupts and toggles `VBI_Marker`:
+
+- `adrCd008C40` (`Handle_CopperRasterInterrupt`) services Player 2 on one
+  raster interrupt;
+- `adrCd008C62` (`Handle_Player1RasterAndFrameUpdate`) services Player 1 on
+  the other and performs the normal frame work;
+- both branches call `Update_PlayerDialogueTextColour`, which writes the
+  selected word to colour register 15.
+
+The Copper therefore schedules the Y-axis boundaries, while the CPU interrupt
+routine performs the actual colour-register write. Pixels in both player
+buffers can use the same planar ink index `$F` yet display with different RGB
+values in one frame. The ramp step can also change independently for each
+player. The fixed blue/red interface colours come from the two player-record
+fields documented above and are not changed by this raster split.
 
 The load is deliberately based on the code label immediately before the
 data:
@@ -246,14 +403,42 @@ return label at the end of `Handle_WallFeatureClick`. It is not the `$8BEA`
 colour-data boundary and should not be used as its anchor.
 
 This is distinct from `CharacterColours` at `$351C8`, which remaps character
-body parts, and `ClassColours` at `$846E`, which remaps champion shield/class
-avatars.
+body parts, and `ClassColours` at `$846E`, which remaps only the professional
+symbol within a champion shield.
+
+### Party shield states
+
+`Draw_PartyShieldSlot` at `$7F54` selects three materially different occupied
+slot paths. Ordinary and dead slots reach `Draw_ShieldAvatar` at `$CDA0`, which
+composes `GFX_Shield_Top`, the unmodified 32×16 image from
+`GFX_Avatars_Small`, one professional symbol from `GFX_Shield_Classes`, and
+`GFX_Shield_Bottom`. The colour-mask toggle is enabled only around the
+professional-symbol draw. The face's ordinary indexed colours are never
+four-colour remapped; the common planar renderer separately replaces ink `$F`
+in the shield background/surround with the colour held in `D3`.
+
+For a dead slot, `D3=0` both selects black for the ink-`$F` surround and leaves
+the compositor's initial mask `$00020103` active, mapping the four
+professional-symbol template values to palette indices `$0,$2,$1,$3`. For a
+normal occupied slot, `$CCFE` reads `ChampionStat_WornSpell`: zero retains the
+default light-grey surround ink `$04`, while a nonzero spell selects another
+ink through `WornSpellShieldInkColourLookup`. The compositor separately
+replaces the professional-symbol mask with one four-byte record from
+`ClassColours`. Tower-start setup clears `ChampionStat_WornSpell`, so the
+ordinary unenchanted living shield uses the light-grey surround seen in the
+original capture.
+
+The selected living slot instead branches at `$7F86`. It draws the 32×41
+selected shield surround stored at `GFX_Pockets+$5070`, using `A3=$90` as the
+per-row source skip for a two-word-wide crop from the 320-pixel Pockets sheet,
+then calls the character renderer through `$7FB2/$7E6A`. This is why the live
+slot has a brighter shield background/surround without recolouring its face.
 
 ## Cleanup/Wiki follow-up
 
-The protected profile sheet already maps the named scroll, button-highlight,
-Pockets, class-colour and player-data blocks. The missing profile-sheet data
-candidates from this investigation are the three hitbox blocks:
+The protected profile sheet maps the named scroll, button-highlight, Pockets,
+class-colour and player-data blocks. The three hitbox blocks identified by this
+investigation are now extracted as:
 
 ```text
 adrEA00EA72  Interface_Hitboxes_Main       data/Interface_Hitboxes_Main.lookup       $E6EE  $88
@@ -263,23 +448,23 @@ adrEA005864  Interface_Hitboxes_Display    data/Interface_Hitboxes_Display.looku
 
 `cleanup.xlsx` now contains verified EQUATES for the shared action IDs, hitbox
 record format and counts, packed `Pockets.gfx` UI offsets, and the
-`PlayerX_Data` colour/state fields. Its COMMENTS sheet also documents the
-three hit-test entry paths and the Player 2 colour-ramp selection in
-`adrCd008B72`.
+`PlayerX_Data` dialogue-colour/state fields. Its COMMENTS sheet also documents
+the three hit-test entry paths, palette-index-15 text setup, Copper raster
+split, and Player 2 dialogue-ramp selection.
 
 The protected profile row for the extracted colour bytes should describe the
 new data label, not the preceding `rts`:
 
 ```text
 label                 relabel                 Type      DATA BLOCK FILE             name                              BW439 Position  offset  size  Length (Hexidecimal)  data_action  source_comment
-PlayerColourRampTable PlayerColourRampTable   gfx-data  PlayerColourRamps.colours   gfx-data/PlayerColourRamps.colours $8866          34918   48    30                    data_start   24 hardware colour words in four six-step Player 1/Player 2 UI accent ramps; the preceding rts at $8BE8 is outside the resource.
+PlayerColourRampTable PlayerColourRampTable   gfx-data  PlayerColourRamps.colours   gfx-data/PlayerColourRamps.colours $8866          34918   48    30                    data_start   24 hardware colour words forming green Player 1, orange Player 2, and shared red alternate dialogue fades; the preceding rts at $8BE8 is outside the resource.
 ```
 
 The ordinary code-label row is separate:
 
 ```text
 label           relabel                         Type   DATA BLOCK FILE  name  BW439 Position  offset  size  Length (Hexidecimal)  data_action  source_comment
-adrCd008BE8     PlayerColourRampLookupBase_Exit label  [blank]          [blank] $8864          34916   [blank] [blank]               [blank]       Exit point and PC-relative base used by the player-colour update routine.
+adrCd008BE8     PlayerColourRampLookupBase_Exit label  [blank]          [blank] $8864          34916   [blank] [blank]               [blank]       Exit point and PC-relative base used by the dialogue-text colour update routine.
 ```
 
 The `FIX_LABELS` cleanup row that connects the original source marker to the
@@ -297,7 +482,7 @@ label           relabel                   Type   DATA BLOCK FILE  name  BW439 Po
 adrCd0058EA     Return_WallFeatureClick   label  [blank]          [blank] $5566          21862   [blank] [blank]               [blank]       Return point used when a wall-feature click does not resolve to a supported action.
 ```
 
-The `$8BEA` 24-word player-colour table has no original source label in
+The `$8BEA` 24-word dialogue-colour table has no original source label in
 `BLOODWYCH439.asm`; it is now an explicit fix-label insertion candidate,
 anchored by the verified `adrCd008BE8` source label. The original code label
 still names the `$8BE8` `rts`; `PlayerColourRampTable` names only the 48-byte

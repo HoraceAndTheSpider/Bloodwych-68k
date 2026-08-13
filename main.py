@@ -24,7 +24,9 @@ from tools.tool_relabel import relabel_segments
 from tools.source_formatter import format_relabel_data
 
 
-GUI_COMMANDS = ("extract", "relabel", "inspect", "format", "patch", "graphics", "maps")
+DATA_GUI_COMMANDS = ("extract", "relabel", "inspect", "format", "patch")
+VIEWER_GUI_COMMANDS = ("graphics", "maps", "interface")
+GUI_COMMANDS = DATA_GUI_COMMANDS + VIEWER_GUI_COMMANDS
 GUI_LABELS = {
     "extract": "Extract",
     "relabel": "Relabel",
@@ -33,10 +35,11 @@ GUI_LABELS = {
     "patch": "Patch",
     "graphics": "Data Viewer",
     "maps": "Map Viewer / Editor",
+    "interface": "Interface Viewer / Editor",
 }
 
 
-def launch_gui() -> str | None:
+def launch_gui(screenshot_path: Path | None = None) -> str | None:
     """Show the legacy Pygame command chooser for a bare ``main.py`` launch."""
     try:
         import pygame
@@ -48,36 +51,49 @@ def launch_gui() -> str | None:
 
     pygame.init()
     try:
-        window_size = (400, 420)
+        window_size = (620, 390)
         surface = pygame.display.set_mode(window_size)
         pygame.display.set_caption("Bloodwych ReSource")
+        title_font = pygame.font.SysFont(None, 28)
         font = pygame.font.SysFont(None, 24)
-        button_width, button_height, spacing = 180, 40, 10
-        total_height = len(GUI_COMMANDS) * (button_height + spacing) - spacing
-        start_y = (window_size[1] - total_height) // 2
-        buttons = [
-            (
-                pygame.Rect(
-                    (400 - button_width) // 2,
-                    start_y + index * (button_height + spacing),
-                    button_width,
-                    button_height,
-                ),
-                command,
+        heading_font = pygame.font.SysFont(None, 21)
+        button_width, button_height, spacing = 240, 44, 10
+        start_y = 82
+        column_x = (55, 325)
+        buttons = []
+        for column, commands in enumerate((DATA_GUI_COMMANDS, VIEWER_GUI_COMMANDS)):
+            buttons.extend(
+                (
+                    pygame.Rect(
+                        column_x[column],
+                        start_y + index * (button_height + spacing),
+                        button_width,
+                        button_height,
+                    ),
+                    command,
+                )
+                for index, command in enumerate(commands)
             )
-            for index, command in enumerate(GUI_COMMANDS)
-        ]
         clock = pygame.time.Clock()
 
         while True:
             mouse_position = pygame.mouse.get_pos()
             surface.fill((30, 30, 30))
+            title = title_font.render("Bloodwych ReSource", True, (245, 245, 248))
+            surface.blit(title, title.get_rect(center=(window_size[0] // 2, 25)))
+            for x, label in zip(column_x, ("SOURCE & DATA", "VIEWERS & EDITORS")):
+                heading = heading_font.render(label, True, (175, 180, 190))
+                surface.blit(heading, heading.get_rect(center=(x + button_width // 2, 58)))
             for rectangle, command in buttons:
                 colour = (80, 80, 240) if rectangle.collidepoint(mouse_position) else (50, 50, 200)
                 pygame.draw.rect(surface, colour, rectangle)
                 label = font.render(GUI_LABELS[command], True, (255, 255, 255))
                 surface.blit(label, label.get_rect(center=rectangle.center))
             pygame.display.flip()
+            if screenshot_path is not None:
+                screenshot_path.parent.mkdir(parents=True, exist_ok=True)
+                pygame.image.save(surface, str(screenshot_path))
+                return None
 
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
@@ -146,6 +162,14 @@ def build_parser() -> argparse.ArgumentParser:
         type=Path,
         help="overlay a WHDLoad save instead of the extracted game maps",
     )
+    interface = subparsers.add_parser(
+        "interface", help="Open the source-led interface viewer/editor"
+    )
+    interface.add_argument(
+        "--modified",
+        action="store_true",
+        help="start with the sparse modified-data overlay enabled",
+    )
     subparsers.add_parser("profiles", help="List configured game binaries")
     subparsers.add_parser("paths", help="Show the canonical project paths")
     return parser
@@ -204,6 +228,16 @@ def run(args: argparse.Namespace, parser: argparse.ArgumentParser) -> int:
             )
         except MapEditorError as error:
             raise ToolError(str(error)) from error
+    elif args.command == "interface":
+        from tools.interface_viewer import InterfaceViewerError, launch_interface_viewer
+
+        try:
+            launch_interface_viewer(
+                get_profile(args.master).clean_dir,
+                prefer_modified=getattr(args, "modified", False),
+            )
+        except InterfaceViewerError as error:
+            raise ToolError(str(error)) from error
     elif args.command == "profiles":
         for profile in PROFILES:
             sheet = profile.segment_sheet or "not yet mapped"
@@ -236,13 +270,24 @@ def main() -> int:
             return 0
         args.command = selected
         try:
-            if selected in {"graphics", "maps"}:
+            if selected in {"graphics", "maps", "interface"}:
                 if selected == "maps":
                     from tools.map_editor.app import MapEditorError, launch_map_editor
 
                     try:
                         launch_map_editor()
                     except MapEditorError as error:
+                        raise ToolError(str(error)) from error
+                    continue
+                if selected == "interface":
+                    from tools.interface_viewer import (
+                        InterfaceViewerError,
+                        launch_interface_viewer,
+                    )
+
+                    try:
+                        launch_interface_viewer()
+                    except InterfaceViewerError as error:
                         raise ToolError(str(error)) from error
                     continue
                 from tools.graphics_viewer import GraphicsViewerError, launch_graphics_viewer

@@ -24,11 +24,28 @@ class ProjectStructureTests(unittest.TestCase):
     def test_gui_commands_follow_the_source_generation_workflow(self) -> None:
         self.assertEqual(
             main.GUI_COMMANDS,
-            ("extract", "relabel", "inspect", "format", "patch", "graphics", "maps"),
+            (
+                "extract",
+                "relabel",
+                "inspect",
+                "format",
+                "patch",
+                "graphics",
+                "maps",
+                "interface",
+            ),
+        )
+        self.assertEqual(
+            main.DATA_GUI_COMMANDS,
+            ("extract", "relabel", "inspect", "format", "patch"),
+        )
+        self.assertEqual(
+            main.VIEWER_GUI_COMMANDS, ("graphics", "maps", "interface")
         )
         self.assertEqual(main.GUI_LABELS["inspect"], "Inspect / Data")
         self.assertEqual(main.GUI_LABELS["graphics"], "Data Viewer")
         self.assertEqual(main.GUI_LABELS["maps"], "Map Viewer / Editor")
+        self.assertEqual(main.GUI_LABELS["interface"], "Interface Viewer / Editor")
 
     def test_bare_main_launch_uses_gui_command(self) -> None:
         commands = []
@@ -106,6 +123,19 @@ class ProjectStructureTests(unittest.TestCase):
         self.assertEqual(launch_gui.call_count, 3)
         viewer.assert_called_once_with()
 
+    def test_interface_editor_returns_to_launcher(self) -> None:
+        with (
+            patch("sys.argv", ["main.py"]),
+            patch(
+                "main.launch_gui", side_effect=["interface", "profiles", None]
+            ) as launch_gui,
+            patch("tools.interface_viewer.launch_interface_viewer") as viewer,
+            patch("main.run", return_value=0),
+        ):
+            self.assertEqual(main.main(), 0)
+        self.assertEqual(launch_gui.call_count, 3)
+        viewer.assert_called_once_with()
+
     def test_graphics_cli_can_start_with_modified_overlay(self) -> None:
         parser = main.build_parser()
         args = parser.parse_args(["graphics", "--modified"])
@@ -124,6 +154,16 @@ class ProjectStructureTests(unittest.TestCase):
         viewer.assert_called_once_with(
             get_profile("BLOODWYCH439").clean_dir,
             savegame_path=main.Path("whdload/bloodsave0"),
+        )
+
+    def test_interface_cli_can_start_with_modified_overlay(self) -> None:
+        parser = main.build_parser()
+        args = parser.parse_args(["interface", "--modified"])
+        with patch("tools.interface_viewer.launch_interface_viewer") as viewer:
+            self.assertEqual(main.run(args, parser), 0)
+        viewer.assert_called_once_with(
+            get_profile("BLOODWYCH439").clean_dir,
+            prefer_modified=True,
         )
 
     def test_configured_binary_names(self) -> None:

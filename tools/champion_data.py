@@ -84,6 +84,8 @@ CLASS_COLOUR_MASKS = (
     (0, 11, 12, 13),
     (0, 8, 7, 14),
 )
+DEAD_CLASS_COLOUR_MASK = (0, 2, 1, 3)
+WORN_SPELL_SHIELD_INK_COLOURS = (6, 13, 6, 8, 6, 6, 13, 8)
 PROFESSION_NAMES = ("WARRIOR", "WIZARD", "ADVENTURER", "CUTPURSE")
 MAGIC_CLASS_NAMES = ("SERPENT", "CHAOS", "DRAGON", "MOON")
 
@@ -115,6 +117,9 @@ POCKET_CUSTOM_SPRITES = {
         "inventory_controls_moon", 128, 176, 80, 24
     ),
     "inventory_chain": PocketCustomSprite("inventory_chain", 0, 96, 128, 16),
+    "inventory_chain_with_avatars": PocketCustomSprite(
+        "inventory_chain_with_avatars", 96, 96, 128, 16
+    ),
     "inventory_empty_pockets": PocketCustomSprite(
         "inventory_empty_pockets", 0, 0, 16, 16
     ),
@@ -200,8 +205,10 @@ class PocketsAssets:
         image_size = POCKET_SHEET_WIDTH_WORDS * POCKET_SHEET_HEIGHT * 8
         if len(self.data) < image_size:
             raise ValueError(f"{path.name}: expected at least {image_size} bytes")
+        self.image_data = self.data[:image_size]
+        self.trailing_data = self.data[image_size:]
         self.sheet_pixels = decode_planar(
-            self.data[:image_size], POCKET_SHEET_WIDTH_WORDS, POCKET_SHEET_HEIGHT
+            self.image_data, POCKET_SHEET_WIDTH_WORDS, POCKET_SHEET_HEIGHT
         )
         self.icons_per_row = POCKET_SHEET_WIDTH // POCKET_ICON_SIZE
         self.icon_rows = POCKET_SHEET_HEIGHT // POCKET_ICON_SIZE
@@ -285,6 +292,7 @@ class ChampionAssets:
         "gfx/ShieldClasses.gfx",
         "gfx/ShieldTop.gfx",
         "gfx/ShieldBottom.gfx",
+        "gfx/Shield_Clicked.gfx",
         "gfx/GameFont",
         "gfx/Pockets.gfx",
         "gfx/Scroll_Edge_Top.gfx",
@@ -336,6 +344,13 @@ class ChampionAssets:
             count=1,
             name_prefix="shield_bottom",
         )[0]
+        self.shield_clicked = decode_fixed_sprites(
+            gfx / "Shield_Clicked.gfx",
+            width_words=2,
+            height=41,
+            count=1,
+            name_prefix="shield_clicked",
+        )[0]
         self.game_font = read_font(gfx / "GameFont")
 
     def record(self, champion: int) -> ChampionRecord:
@@ -362,31 +377,91 @@ class ChampionAssets:
             raise ValueError("champion must be $00-$0F")
         return (champion + champion // 4) & 3
 
-    def shield_avatar(self, champion: int) -> IndexedSprite:
+    def party_shield_ink_colour(
+        self, champion: int, *, worn_spell: int = 0
+    ) -> int:
+        """Reproduce the living party-shield ink selection at $CCFE/$7FE0."""
+        self.record(champion)
+        if not 0 <= worn_spell <= 0xFF:
+            raise ValueError("worn_spell must be a byte value")
+        if not worn_spell:
+            return 4
+        colour = WORN_SPELL_SHIELD_INK_COLOURS[worn_spell & 7]
+        return 7 if colour == 8 else colour
+
+    def shield_avatar(
+        self,
+        champion: int,
+        *,
+        state: str = "alive",
+        ink15_colour: int | None = None,
+    ) -> IndexedSprite:
+        if state not in ("alive", "dead"):
+            raise ValueError("state must be 'alive' or 'dead'")
+        if ink15_colour is None:
+            ink15_colour = 0 if state == "dead" else 4
+        if not 0 <= ink15_colour <= 15:
+            raise ValueError("ink15_colour must be a palette index from 0 to 15")
         profession_index = self.profession_index(champion)
         magic_class_index = self.magic_class_index(champion)
-        mask = CLASS_COLOUR_MASKS[magic_class_index]
-        pieces = (
-            (self.shield_top, False),
-            (self.small_avatars[champion], False),
-            (self.shield_classes[profession_index], True),
-            (self.shield_bottom, False),
+        mask = (
+            DEAD_CLASS_COLOUR_MASK
+            if state == "dead"
+            else CLASS_COLOUR_MASKS[magic_class_index]
         )
-        # Index $F is transparent in these UI components.  The shields are
-        # drawn over the game's black panel, so skipped pixels resolve to $0.
-        canvas = [[0] * 32 for _ in range(sum(piece.height for piece, _ in pieces))]
+        class_pixels = remap_template_colours(
+            self.shield_classes[profession_index].pixels, mask
+        )
+        source_pieces = (
+            self.shield_top.pixels,
+            self.small_avatars[champion].pixels,
+            class_pixels,
+            self.shield_bottom.pixels,
+        )
+        # Draw_ShieldAvatar applies the four-colour mask only to the class
+        # symbol. The common planar renderer then replaces ink $F in every
+        # component with D3; in the avatar graphic those pixels form the
+        # shield background/surround rather than the champion's face.
+        pieces = tuple(
+            [
+                [ink15_colour if colour == 15 else colour for colour in row]
+                for row in piece
+            ]
+            for piece in source_pieces
+        )
+        canvas = [[0] * 32 for _ in range(sum(len(piece) for piece in pieces))]
         y = 0
-        for piece, recolour in pieces:
-            pixels = (
-                remap_template_colours(piece.pixels, mask)
-                if recolour
-                else piece.pixels
-            )
-            blit(canvas, pixels, 0, y)
-            y += piece.height
+        for piece in pieces:
+            blit(canvas, piece, 0, y, transparent_index=None)
+            y += len(piece)
         return IndexedSprite(
             f"champion_shield_{champion:02X}",
             "ShieldTop/Shield_Avatars/ShieldClasses/ShieldBottom.gfx",
             0,
             canvas,
         )
+
+    def large_avatar_pixels(
+        self, champion: int, *, colour_mask: tuple[int, int, int] | None = None
+    ) -> list[list[int]]:
+        """Return a large portrait, optionally applying an Extended Levels mask.
+
+        The standard interface displays the source colours unchanged.  The
+        optional three-entry mask is retained for the Extended Levels avatar
+        editor and substitutes only template indices $4/$8/$C. Palette index
+        $0 remains the portrait's original black outline/background colour.
+        """
+        if not 0 <= champion < CHAMPION_COUNT:
+            raise ValueError("champion must be $00-$0F")
+        pixels = self.large_avatars[champion].pixels
+        if colour_mask is None:
+            return [list(row) for row in pixels]
+        if len(colour_mask) != 3:
+            raise ValueError(
+                "avatar colour mask must contain replacements for $4/$8/$C"
+            )
+        return remap_template_colours(pixels, (0, *colour_mask))
+
+    def missing_shield(self) -> IndexedSprite:
+        """Return the horse emblem used for an empty party shield slot."""
+        return self.shield_clicked

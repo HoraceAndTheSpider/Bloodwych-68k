@@ -79,6 +79,7 @@ python main.py profiles
 python main.py paths
 python main.py graphics
 python main.py maps
+python main.py interface
 python main.py maps --savegame whdload/bloodsave0
 python main.py --master BLOODWYCH439 extract
 python main.py --master BLOODWYCH439 inspect
@@ -92,6 +93,10 @@ tools usable in terminals, tests, build workers, and the future web
 application. The `graphics` subcommand opens the Pygame data viewer directly.
 The `maps` subcommand opens the map workspace; its optional `--savegame`
 argument reads the maps and other later resources from a WHDLoad save overlay.
+The `interface` subcommand opens the source-led Interface Viewer / Editor with
+dialogue-text colour-ramp editing and hitbox overlays. The graphical launcher groups
+source/data operations in its left column and viewers/editors in its right
+column.
 Map edits are never written to the clean extraction or supplied save. The Save
 button writes replacement maps and edited shared switch/trigger resources
 under `data/BLOODWYCH439-modified/maps/`, or a copied edited save under

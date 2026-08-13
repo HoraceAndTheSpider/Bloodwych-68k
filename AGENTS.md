@@ -81,6 +81,8 @@ Do not patch a modified resource into an incompatible binary profile. Larger res
 
 `segments.xlsx` is a NO EDIT file for the agent. Its version sheets remain under the existing review process and contain labels/resources only. The agent is authorised to edit `cleanup.xlsx` directly; keep its `EQUATES` and `COMMENTS` headers and column order stable, preserve useful workbook readability, and make changes in a repeatable, auditable way. The command-line tools automatically prefer `cleanup.xlsx` beside the selected segments workbook, with `--cleanup` available for an explicit path.
 
+When the bundled spreadsheet runtime is unavailable, Codex may use `openpyxl` to maintain `cleanup.xlsx`, preserving existing sheets, headers, formatting and unrelated rows, then validate the saved workbook before replacing it.
+
 When proposing additions to a protected profile sheet, provide a complete, copy-ready table using the exact columns of the relevant sheet, including blank cells. Do not provide a shortened selection of columns that makes duplicate anchors or actions ambiguous. For cleanup metadata, maintain the workbook directly unless the user specifically requests a TSV handoff.
 
 For label/relabel proposals on a profile sheet, include every column from column A (`label`) through column K (`source_comment`), retaining any blank cells between them. For `BLOODWYCH439`, the required chat-table columns are:
