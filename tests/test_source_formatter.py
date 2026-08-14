@@ -189,6 +189,74 @@ class SourceFormatterTests(unittest.TestCase):
         ]
         self.assertEqual(apply_instruction_comments(lines, frame), lines)
 
+    def test_instruction_comments_resolve_segments_relabels(self):
+        frame = pd.DataFrame(
+            [
+                {
+                    "scope_start": "Old_Start",
+                    "scope_end": "Old_End",
+                    "source_match": "bsr Old_Target",
+                    "source_comment": "Uses relabelled segments metadata.",
+                    "expected_matches": 1,
+                }
+            ]
+        )
+        lines = [
+            "New_Start:",
+            "\tbsr\t\tNew_Target\t;61000002",
+            "New_End:",
+        ]
+        self.assertEqual(
+            apply_instruction_comments(
+                lines,
+                frame,
+                label_relabels={
+                    "Old_Start": "New_Start",
+                    "Old_End": "New_End",
+                    "Old_Target": "New_Target",
+                },
+            ),
+            [
+                "New_Start:",
+                "\tbsr\t\tNew_Target\t; Uses relabelled segments metadata.",
+                "New_End:",
+            ],
+        )
+
+    def test_file_formatting_loads_scope_relabels_from_segments(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            asm = root / "BLOODWYCH439_relabel_data.asm"
+            segments = root / "segments.xlsx"
+            cleanup = root / "cleanup.xlsx"
+            asm.write_text(
+                "New_Start:\n"
+                "\tmove.w\td0,d1\t;3001\n"
+                "New_End:\n",
+                encoding="utf-8",
+            )
+            pd.DataFrame(
+                {
+                    "label": ["Old_Start", "Old_End"],
+                    "relabel": ["New_Start", "New_End"],
+                }
+            ).to_excel(segments, sheet_name="BLOODWYCH439", index=False)
+            pd.DataFrame(
+                [
+                    {
+                        "profile": "BLOODWYCH439",
+                        "scope_start": "Old_Start",
+                        "scope_end": "Old_End",
+                        "source_match": "move.w d0,d1",
+                        "source_comment": "Resolved through segments.xlsx.",
+                        "expected_matches": 1,
+                    }
+                ]
+            ).to_excel(cleanup, sheet_name="COMMENTS", index=False)
+
+            format_relabel_data(asm, segments, "BLOODWYCH439")
+            self.assertIn(";Resolved through segments.xlsx.", asm.read_text())
+
 
 if __name__ == "__main__":
     unittest.main()

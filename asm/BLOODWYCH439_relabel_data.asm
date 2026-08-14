@@ -7351,7 +7351,7 @@ Begin_HitTestMainInterfaceActions:		; Memory Address ($4DAA) and binary offset [
 	; tester.
 	lea		Interface_Hitboxes_Main.l,a6										;4DF90000EA72
 	moveq	#$00,d0																;7000
-	moveq	#$11,d2																;7411
+	moveq	#$11,d2																;Sets the exclusive upper bound for the 17-record main player-interface hitbox scan, covering action IDs $00-$10.
 HitTest_PlayerInterfaceActions:		; Memory Address ($5138) and binary offset [$4DB4]
 	; Tests pointer coordinates against interface rectangles and writes the
 	; resulting action directly to PlayerX_Data+$0C.
@@ -11814,7 +11814,7 @@ Draw_PartyCommandInterface:		; Memory Address ($7B50) and binary offset [$77CC]
 	add.w	#$0147,a0															;D0FC0147
 	add.w	$000A(a5),a0														;D0ED000A
 	moveq	#$71,d7																;7E71
-	move.w	$0012(a5),d3														;362D0012
+	move.w	$0012(a5),d3														;Loads the active player's secondary UI colour before drawing the six command/toggle pocket graphics.
 adrCd007BC0:		; Memory Address ($7BC0) and binary offset [$783C]
 	move.w	d7,d0																;3007
 	bsr		Draw_PocketGraphic													;61004F26
@@ -12128,7 +12128,7 @@ adrCd007D9C:		; Memory Address ($7D9C) and binary offset [$7A18]
 	bne.s	adrCd007DAC															;660A
 	tst.b	$0041(a5)															;4A2D0041
 	bne.s	adrCd007DAC															;6604
-	move.w	$0010(a5),d3														;362D0010
+	move.w	$0010(a5),d3														;Uses the active player's primary UI colour for either selected party-command row state.
 adrCd007DAC:		; Memory Address ($7DAC) and binary offset [$7A28]
 	subq.w	#$01,d4																;5344
 	swap	d4																	;4844
@@ -12153,7 +12153,7 @@ adrCd007DAC:		; Memory Address ($7DAC) and binary offset [$7A28]
 	bne.s	adrCd007DEE															;660A
 	tst.b	$0041(a5)															;4A2D0041
 	beq.s	adrCd007DEE															;6704
-	move.w	$0010(a5),d3														;362D0010
+	move.w	$0010(a5),d3														;Uses the active player's primary UI colour for either selected party-command row state.
 adrCd007DEE:		; Memory Address ($7DEE) and binary offset [$7A6A]
 	bsr		BW_draw_bar															;61005C78
 adrCd007DF2:		; Memory Address ($7DF2) and binary offset [$7A6E]
@@ -12306,7 +12306,7 @@ Draw_PartyShieldSlot:		; Memory Address ($7F54) and binary offset [$7BD0]
 	subq.w	#$01,d7																;5347
 	asl.w	#$02,d7																;E547
 	add.w	d7,a0																;D0C7
-	move.b	$18(a5,d0.w),d7														;1E350018
+	move.b	$18(a5,d0.w),d7														;Loads the selected party-slot state byte; a negative value denotes a vacant slot and the low nibble identifies an occupied champion.
 	bpl.s	Select_OccupiedPartyShieldRendering									;6A16
 	lea		GFX_Shield_Clicked.l,a1												;43F900019BFE
 	sub.l	a3,a3																;97CB
@@ -12316,16 +12316,16 @@ Draw_PartyShieldSlot:		; Memory Address ($7F54) and binary offset [$7BD0]
 
 Select_OccupiedPartyShieldRendering:		; Memory Address ($7F86) and binary offset [$7C02]
 	; Distinguish the selected living slot from ordinary and dead occupied slots.
-	btst	d0,$003E(a5)														;012D003E
+	btst	d0,$003E(a5)														;Tests whether this party slot is the active selected member before choosing its shield-rendering path.
 	beq.s	Select_PartyShieldClassColours										;674A
 	btst	#$05,d7																;08070005
 	bne.s	Select_PartyShieldClassColours										;6644
 	btst	#$06,d7																;08070006
 	bne.s	Use_DeadPartyShieldClassColours										;6646
 	move.w	d0,-(sp)															;3F00
-	lea		GFX_Pockets+GFX_Pockets_SelectedPartyShieldFrameOffset.l,a1			;43F900051772
+	lea		GFX_Pockets+GFX_Pockets_SelectedPartyShieldFrameOffset.l,a1			;Selects the 32x41 light-grey shield surround used for the active living party member.
 	move.l	#$00010028,d5														;2A3C00010028	;Long Addr replaced with Symbol
-	move.l	#PartyShieldFrameSourceRowSkip,a3									;267C00000090
+	move.l	#PartyShieldFrameSourceRowSkip,a3									;Skips the unused remainder of each Pockets.gfx source row after drawing the two-word-wide shield surround.
 	bsr		Draw_PlanarGraphic													;61004D0A
 	move.w	(sp)+,d7															;3E1F
 Draw_SelectedPartyChampionInShield:		; Memory Address ($7FB2) and binary offset [$7C2E]
@@ -12351,7 +12351,7 @@ Select_PartyShieldClassColours:		; Memory Address ($7FD6) and binary offset [$7C
 Use_DeadPartyShieldClassColours:		; Memory Address ($7FDE) and binary offset [$7C5A]
 	; Set D3 to zero, selecting black surround ink and the fixed dead
 	; professional-symbol mask.
-	moveq	#$00,d3																;7600
+	moveq	#$00,d3																;Selects black for shield ink $F and retains the fixed dead-state professional-symbol colour mask.
 Prepare_ComposedPartyShieldAvatar:		; Memory Address ($7FE0) and binary offset [$7C5C]
 	; Resolve the champion ID and living shield ink before entering the common
 	; shield compositor.
@@ -12374,7 +12374,7 @@ Draw_CompactStatsFrame:		; Memory Address ($7FF8) and binary offset [$7C74]
 	moveq	#$36,d4																;7836
 	moveq	#$0A,d5																;7A0A
 	add.w	$0008(a5),d5														;DA6D0008
-	move.l	#$00240001,d3														;263C00240001
+	move.l	#$00240001,d3														;Top stats-frame line: DBRA terminal count $24 draws $25 pixels using palette index $01.
 	bsr		BW_blit_horiz_line													;61005B76
 	addq.w	#$01,d5																;5245
 	subq.w	#$02,d4																;5544
@@ -12385,21 +12385,21 @@ Draw_CompactStatsFrame:		; Memory Address ($7FF8) and binary offset [$7C74]
 	add.l	#$00020001,d3														;068300020001	;Long Addr replaced with Symbol
 	bsr		BW_blit_horiz_line													;61005B5A
 	addq.w	#$01,d5																;5245
-	addq.w	#$01,d3																;5243
+	addq.w	#$01,d3																;Fourth top frame line keeps the width and advances to palette index $04.
 	bsr		BW_blit_horiz_line													;61005B52
 	addq.w	#$01,d5																;5245
-	subq.w	#$03,d3																;5743
+	subq.w	#$03,d3																;Fifth top frame line returns the packed colour to palette index $01.
 	bsr		BW_blit_horiz_line													;61005B4A
 	moveq	#$31,d5																;7A31
 	add.w	$0008(a5),d5														;DA6D0008
 	moveq	#$33,d4																;7833
-	move.l	#$002A0001,d3														;263C002A0001
+	move.l	#$002A0001,d3														;First lower stats-frame line: DBRA terminal count $2A draws $2B pixels using palette index $01.
 	bsr		BW_blit_horiz_line													;61005B38
 	addq.w	#$01,d5																;5245
-	addq.w	#$03,d3																;5643
+	addq.w	#$03,d3																;Second lower frame line advances to palette index $04.
 	bsr		BW_blit_horiz_line													;61005B30
 	addq.w	#$01,d5																;5245
-	subq.w	#$01,d3																;5343
+	subq.w	#$01,d3																;Third lower frame line advances back to palette index $03.
 	bsr		BW_blit_horiz_line													;61005B28
 	addq.w	#$01,d4																;5244
 	addq.w	#$01,d5																;5245
@@ -12412,17 +12412,17 @@ Draw_CompactStatsFrame:		; Memory Address ($7FF8) and binary offset [$7C74]
 	moveq	#$10,d5																;7A10
 	add.w	$0008(a5),d5														;DA6D0008
 	moveq	#$34,d4																;7834
-	move.l	#$001F0001,d3														;263C001F0001
+	move.l	#$001F0001,d3														;Side frame lines use terminal count $1F, drawing $20 pixels in palette index $01.
 	bsr		BW_blit_vertical_line												;61005A7A
 	moveq	#$5C,d4																;785C
 	bsr		BW_blit_vertical_line												;61005A74
 	swap	d5																	;4845
 	move.w	#$001F,d5															;3A3C001F
 	swap	d5																	;4845
-	move.l	#$00260035,d4														;283C00260035
-	moveq	#$02,d3																;7602
+	move.l	#$00260035,d4														;Stats background packs X=$35 with horizontal terminal count $26, drawing $27 pixels wide.
+	moveq	#$02,d3																;Stats background uses palette index $02, the light-grey panel fill.
 	bsr		BW_draw_bar															;610059C4
-	lea		GFX_Pockets+$7580.l,a1												;43F900053C82
+	lea		GFX_Pockets+$7580.l,a1												;Selects the pre-drawn `<STATS>` title graphic from GFX_Pockets.
 	move.l	#$00000088,a3														;267C00000088
 	move.l	screen_ptr.l,a0														;207900008D36
 	add.w	$000A(a5),a0														;D0ED000A
@@ -12623,7 +12623,7 @@ adrCd00828A:		; Memory Address ($828A) and binary offset [$7F06]
 	move.l	#$00070010,d5														;2A3C00070010
 	add.w	$0008(a5),d5														;DA6D0008
 	move.l	#$005D00E2,d4														;283C005D00E2
-	move.w	$0010(a5),d3														;362D0010
+	move.w	$0010(a5),d3														;Loads the active player's primary UI colour for the champion-name background block.
 	bsr		BW_draw_bar															;610057B4
 	move.w	#$0001,d3															;363C0001
 Draw_ChampionNamePanelLowerEdge:		; Memory Address ($82BA) and binary offset [$7F36]
@@ -13441,23 +13441,23 @@ adrCd008BAC:		; Memory Address ($8BAC) and binary offset [$8828]
 	move.b	#$02,$004A(a5)														;1B7C0002004A
 	btst	#$00,(a5)															;08150000
 	beq.s	adrCd008BC0															;6704
-	add.w	#$000C,d0															;0640000C
+	add.w	#$000C,d0															;Selects Player 2's orange dialogue-ramp family by adding $0C to the table index; doubling then produces a 24-byte displacement.
 adrCd008BC0:		; Memory Address ($8BC0) and binary offset [$883C]
-	btst	#$06,$0052(a5)														;082D00060052
+	btst	#$06,$0052(a5)														;Tests the dialogue state bit that selects the shared red monster/alternate-speaker ramp.
 	beq.s	adrCd008BCA															;6702
 	addq.w	#$06,d0																;5C40
 adrCd008BCA:		; Memory Address ($8BCA) and binary offset [$8846]
 	add.w	d0,d0																;D040
-	move.w	PlayerColourRampTable-2(pc,d0.w),d0									;303B001A
+	move.w	PlayerColourRampTable-2(pc,d0.w),d0									;Uses PlayerColourRampTable-2 as the preserved $8BE8 PC-relative base; indices 1-24 address the green, red, orange, and red dialogue fades at $8BEA.
 
-	move.w	d0,_custom+color+$0000001E.l										;33C000DFF19E
-	move.w	d0,$004C(a5)														;3B40004C
+	move.w	d0,_custom+color+$0000001E.l										;Writes the active player's dialogue ink to hardware colour register 15 for the current Copper-scheduled raster region.
+	move.w	d0,$004C(a5)														;Stores the selected hardware dialogue-text colour 15 word in the active PlayerX_Data record.
 	rts																			;4E75
 
 adrCd008BDC:		; Memory Address ($8BDC) and binary offset [$8858]
 	subq.b	#$01,$004A(a5)														;532D004A
 adrCd008BE0:		; Memory Address ($8BE0) and binary offset [$885C]
-	move.w	$004C(a5),_custom+color+$0000001E.l									;33ED004C00DFF19E
+	move.w	$004C(a5),_custom+color+$0000001E.l									;Restores the active player's current dialogue colour 15 at this Copper-scheduled raster region when no fade step advances.
 PlayerColourRampLookupBase_Exit:		; Memory Address ($8BE8) and binary offset [$8864]
 	; Exit point and preserved PC-relative lookup base used by the dialogue-text
 	; colour update routine.
@@ -13494,8 +13494,8 @@ Handle_CopperRasterInterrupt:		; Memory Address ($8C40) and binary offset [$88BC
 	eor.w	#$0001,VBI_Marker.l													;0A79000100008C1A
 	beq.s	Handle_Player1RasterAndFrameUpdate									;6716
 	movem.l	d0/a5,-(sp)															;48E78004
-	lea		Player2_Data.l,a5													;4BF90000EEDE
-	bsr		Update_PlayerDialogueTextColour										;6100FF1A
+	lea		Player2_Data.l,a5													;Selects Player 2 for the first Copper-scheduled dialogue-colour raster service.
+	bsr		Update_PlayerDialogueTextColour										;Updates hardware colour 15 from Player 2's dialogue fade state for the lower player region.
 	movem.l	(sp)+,d0/a5															;4CDF2001
 	bra		adrCd008CC0															;60000060
 
@@ -13519,8 +13519,8 @@ adrLp008C8A:		; Memory Address ($8C8A) and binary offset [$8906]
 	clr.w	-$0002(a0)															;4268FFFE
 adrCd008C92:		; Memory Address ($8C92) and binary offset [$890E]
 	dbra	d0,adrLp008C8A														;51C8FFF6
-	lea		Player1_Data.l,a5													;4BF90000EE7C
-	bsr		Update_PlayerDialogueTextColour										;6100FED4
+	lea		Player1_Data.l,a5													;Selects Player 1 for the second Copper-scheduled dialogue-colour service and frame update.
+	bsr		Update_PlayerDialogueTextColour										;Updates hardware colour 15 from Player 1's dialogue fade state after the raster/frame wrap.
 	tst.b	SyncFlagHighByte_AI_TBC.l											;4A3900008C1F
 	beq.s	adrCd008CBC															;6714
 	bsr		InputControls														;6100FD72
@@ -18085,7 +18085,7 @@ adrCd00C0D4:		; Memory Address ($C0D4) and binary offset [$BD50]
 	addq.w	#$01,d5																;5245
 	sub.l	#$00020000,d5														;048500020000	;Long Addr replaced with Symbol
 	sub.l	#$00020000,d4														;048400020000	;Long Addr replaced with Symbol
-	addq.w	#$01,d3																;5243
+	addq.w	#$01,d3																;Advances through the three grey outline colours as the frame moves inward.
 	movem.l	d3-d5,-(sp)															;48E71C00
 	bsr		BW_draw_frame														;610019E8
 	movem.l	(sp)+,d3-d5															;4CDF0038
@@ -18885,7 +18885,7 @@ adrCd00C9DC:		; Memory Address ($C9DC) and binary offset [$C658]
 Select_EmptyInventorySlotGraphic:		; Memory Address ($CA14) and binary offset [$C690]
 	; Selects the semantic empty hand, armour, shield, or pocket picture and the
 	; player secondary UI colour.
-	move.w	$0012(a5),d3														;362D0012
+	move.w	$0012(a5),d3														;Loads the secondary UI colour used to recolour empty hand, armour, shield, and pocket template graphics.
 	cmpi.w	#$0004,d7															;0C470004
 	bcc.s	adrCd00CA32															;6414
 	move.w	d7,d0																;3007
@@ -19136,9 +19136,9 @@ Select_ChampionShieldInkColour:		; Memory Address ($CCFE) and binary offset [$C9
 	; index $F.
 	move.w	d7,d0																;3007
 	bsr		Load_ChampionStatRecord												;6100995E
-	move.b	ChampionStat_WornSpell(a4),d0										;102C0011
+	move.b	ChampionStat_WornSpell(a4),d0										;Reads the currently worn spell; zero leaves the normal light-grey shield-surround ink unchanged.
 	beq.s	adrCd00CD12															;6708
-	and.w	#$0007,d0															;02400007
+	and.w	#$0007,d0															;Uses the worn spell's low three bits to select one of eight shield-surround ink colours.
 	move.b	ChampionShieldInkColourLookup(pc,d0.w),d3							;163B0004
 adrCd00CD12:		; Memory Address ($CD12) and binary offset [$C98E]
 	rts																			;4E75
@@ -19216,7 +19216,7 @@ Draw_ShieldAvatar:		; Memory Address ($CDA0) and binary offset [$CA1C]
 	; Composes a champion shield avatar from its top, avatar, class-mask, and
 	; bottom planar components.
 	move.l	#DeadPartyShieldClassColourMask,d0									;203C00020103	;Long Addr replaced with Symbol
-	tst.w	d3																	;4A43
+	tst.w	d3																	;Keeps the fixed dead mask when D3 is zero; living shields replace it with a ClassColours record.
 	beq.s	Store_ShieldClassColourMask											;6712
 	lea		ClassColours.l,a6													;4DF90000846E
 	move.w	d7,d0																;3007
@@ -19305,7 +19305,7 @@ Replace_PlanarInk15WithColour:		; Memory Address ($CE86) and binary offset [$CB0
 	and.l	d0,d2																;C480
 	and.l	d1,d2																;C481
 	lea		Bitplane_Mask.l,a2													;45F90000B064
-	move.w	d3,d6																;3C03
+	move.w	d3,d6																;Begins converting the supplied colour index into bitplane masks that replace source ink $F pixels.
 	and.w	#$000C,d6															;0246000C
 	move.l	$00(a2,d6.w),d6														;2C326000
 	move.w	d3,d4																;3803

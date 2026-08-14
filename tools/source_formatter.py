@@ -5,12 +5,14 @@ from __future__ import annotations
 import re
 import textwrap
 from pathlib import Path
+from typing import Mapping
 
 import pandas as pd
 
 from .tool_common import (
     ToolError,
     get_profile,
+    load_segments,
     parse_int,
     resolve_cleanup_path,
 )
@@ -194,6 +196,72 @@ def _label_indices(lines: list[str]) -> dict[str, list[int]]:
     return indices
 
 
+def _segment_label_relabels(
+    sheet: str | Path,
+    master: str,
+) -> dict[str, str]:
+    """Return unambiguous original-to-relabel mappings from segments metadata."""
+
+    frame = load_segments(sheet, master)
+    if "label" not in frame.columns or "relabel" not in frame.columns:
+        return {}
+
+    candidates: dict[str, dict[str, str]] = {}
+    for _index, row in frame.iterrows():
+        label = cell_text(row, "label")
+        relabel = cell_text(row, "relabel")
+        if (
+            not label
+            or not relabel
+            or label.casefold() == relabel.casefold()
+            or relabel.casefold().startswith(("_delete", "_offset_"))
+        ):
+            continue
+        candidates.setdefault(label.casefold(), {})[relabel.casefold()] = relabel
+
+    return {
+        label: next(iter(relabels.values()))
+        for label, relabels in candidates.items()
+        if len(relabels) == 1
+    }
+
+
+def _scope_matches(
+    labels: Mapping[str, list[int]],
+    label: str,
+    label_relabels: Mapping[str, str],
+) -> tuple[list[int], str | None]:
+    """Find a scope label directly, then through its segments relabel."""
+
+    matches = labels.get(label.casefold(), [])
+    fallback = label_relabels.get(label.casefold())
+    if not matches and fallback and fallback.casefold() != label.casefold():
+        matches = labels.get(fallback.casefold(), [])
+    return matches, fallback
+
+
+def _relabel_source_match(
+    value: str,
+    label_relabels: Mapping[str, str],
+) -> str:
+    """Mirror segments relabelling inside an instruction comment match."""
+
+    if not label_relabels:
+        return value
+    identifier_character = r"A-Za-z0-9_$?"
+    alternatives = "|".join(
+        re.escape(label) for label in sorted(label_relabels, key=len, reverse=True)
+    )
+    pattern = re.compile(
+        rf"(?<![{identifier_character}])(?:{alternatives})(?![{identifier_character}])",
+        re.IGNORECASE,
+    )
+    return pattern.sub(
+        lambda match: label_relabels[match.group(0).casefold()],
+        value,
+    )
+
+
 def _comment_rows(
     sheet: str | Path,
     master: str,
@@ -228,7 +296,10 @@ def _comment_rows(
 
 
 def apply_instruction_comments(
-    lines: list[str], frame: pd.DataFrame
+    lines: list[str],
+    frame: pd.DataFrame,
+    *,
+    label_relabels: Mapping[str, str] | None = None,
 ) -> list[str]:
     """Replace generated HEX instruction comments from the COMMENTS sheet.
 
@@ -237,11 +308,19 @@ def apply_instruction_comments(
     themselves are excluded and the end label is not part of the scope. A rule
     only edits a line whose existing comment is a hexadecimal byte block, so
     data declarations and handwritten comments remain untouched.
+
+    For compatibility with cleanup metadata anchored to original source labels,
+    scope labels and label operands are retried through the unambiguous
+    original-to-relabel mapping loaded from segments.xlsx.
     """
     if frame.empty:
         return list(lines)
 
     labels = _label_indices(lines)
+    relabels = {
+        label.casefold(): relabel
+        for label, relabel in (label_relabels or {}).items()
+    }
     result = list(lines)
     for row_index, row in frame.iterrows():
         source_match = cell_text(row, "source_match")
@@ -260,11 +339,13 @@ def apply_instruction_comments(
         scope_start = cell_text(row, "scope_start")
         scope_end = cell_text(row, "scope_end")
         if scope_start:
-            starts = labels.get(scope_start.casefold(), [])
+            starts, fallback = _scope_matches(labels, scope_start, relabels)
             if len(starts) != 1:
+                fallback_text = f" (or relabel '{fallback}')" if fallback else ""
                 print(
                     f"Error applying instruction comment at COMMENTS row {row_index + 2}: "
-                    f"expected one label '{scope_start}', found {len(starts)}; "
+                    f"expected one label '{scope_start}'{fallback_text}, "
+                    f"found {len(starts)}; "
                     "leaving this rule unchanged and continuing"
                 )
                 continue
@@ -272,11 +353,13 @@ def apply_instruction_comments(
         else:
             start = -1
         if scope_end:
-            ends = labels.get(scope_end.casefold(), [])
+            ends, fallback = _scope_matches(labels, scope_end, relabels)
             if len(ends) != 1:
+                fallback_text = f" (or relabel '{fallback}')" if fallback else ""
                 print(
                     f"Error applying instruction comment at COMMENTS row {row_index + 2}: "
-                    f"expected one label '{scope_end}', found {len(ends)}; "
+                    f"expected one label '{scope_end}'{fallback_text}, "
+                    f"found {len(ends)}; "
                     "leaving this rule unchanged and continuing"
                 )
                 continue
@@ -291,12 +374,20 @@ def apply_instruction_comments(
             )
             continue
 
-        wanted = _normalise_source_match(source_match)
-        candidates: list[int] = []
-        for index in range(start + 1, end):
-            code, _comment = _split_source_comment(result[index])
-            if _normalise_source_match(code.strip()) == wanted:
-                candidates.append(index)
+        def matching_lines(match_text: str) -> list[int]:
+            wanted = _normalise_source_match(match_text)
+            candidates: list[int] = []
+            for index in range(start + 1, end):
+                code, _comment = _split_source_comment(result[index])
+                if _normalise_source_match(code.strip()) == wanted:
+                    candidates.append(index)
+            return candidates
+
+        candidates = matching_lines(source_match)
+        if not candidates:
+            relabelled_match = _relabel_source_match(source_match, relabels)
+            if relabelled_match != source_match:
+                candidates = matching_lines(relabelled_match)
         if len(candidates) != expected:
             print(
                 f"Error applying instruction comment at COMMENTS row {row_index + 2}: "
@@ -360,7 +451,9 @@ def format_relabel_data(
     lines = original.splitlines()
     if sheet is not None and master is not None:
         lines = apply_instruction_comments(
-            lines, _comment_rows(sheet, master, cleanup)
+            lines,
+            _comment_rows(sheet, master, cleanup),
+            label_relabels=_segment_label_relabels(sheet, master),
         )
     formatted = "\n".join(format_asm_lines(lines))
     if had_final_newline:
