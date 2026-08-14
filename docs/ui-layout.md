@@ -181,6 +181,65 @@ active and must not remain in the viewer overlay. The same state filtering
 applies to the Statistics and spell-book pages; the six party-command
 rectangles belong only to the command state.
 
+## Procedural compact statistics frame
+
+The compact statistics panel is constructed by `Draw_CompactStatsFrame` at
+`$7FF8`; it is not a single decorative bitmap. The routine draws ten
+horizontal lines, two vertical side lines, a background rectangle, and
+the packed `<STATS>` title graphic. In native player-local coordinates the
+line arguments are:
+
+```text
+top:    ($36,$0A,$25,$01) ($34,$0B,$29,$02) ($33,$0C,$2B,$03)
+        ($34,$0D,$2B,$04) ($34,$0E,$2B,$01)
+bottom: ($33,$31,$2B,$01) ($33,$32,$2B,$04) ($33,$33,$2B,$03)
+        ($34,$34,$29,$02) ($36,$35,$25,$01)
+sides:  ($34,$10,$20,$01) ($5C,$10,$20,$01)
+fill:   ($35,$10,$27,$20,$02)
+```
+
+These are rendered extents: the packed high words in the original instructions
+are DBRA terminal counts, so each produces one more pixel than its stored
+value. In particular, `swap d5; move.w #$001F,d5; swap d5` preserves Y `$10`
+in the low word and installs a 32-row terminal count in the high word. It does
+not change Y to `$37`; the earlier viewer interpretation placed the fill an
+entire box too low. Each line tuple is `(X, Y, width/height, palette index)`;
+the fill tuple is `(X, Y, width, height, palette index)`. The three bars are
+then drawn by
+`Draw_CompactStatsBarsLoop` at `(X=$37, Y=$19)`, `(X=$37, Y=$20)`, and
+`(X=$37, Y=$27)`, each `$23×$05` pixels. Their colours are the independent
+hard-coded Player 1 `$07` and Player 2 `$0C` values, not the two
+`PlayerX_Data` interface-colour fields. The viewer now reproduces these
+primitive operations directly.
+
+## Large champion avatar panel
+
+The large avatar panel is likewise procedural, and the source separates its
+parts exactly as the bypass tests demonstrate. `adrCd00CCBE` (proposed name
+`Draw_MainChampionAvatarPanel`) performs three stages:
+
+1. `adrCd00C0BA` (`Draw_BevelledPanelFrame`) fills a `$30×$2C` rectangle at
+   `($00,$0A)` with colour 1, then draws inset outlines in colours 2, 3, and 4.
+2. `Draw_ChampionLargeAvatar` draws only the `$20×$1E` portrait at
+   `($08,$11)`. Its destination byte offset `$02A9` resolves to that coordinate.
+3. `adrCd00CCD8` (`Draw_MainChampionAvatarInnerFrame`) draws a `$24×$22`
+   outline at `($06,$0F)`, normally in colour 1. A worn spell can select a
+   different outline ink, and a player-state flag can suppress this stage.
+
+Bypassing the composite routine therefore removes the frame and portrait;
+bypassing only `Draw_ChampionLargeAvatar` leaves both procedural frames in
+place. The viewer now follows this source ordering and geometry directly.
+
+Other procedural decoration requiring the same treatment has now been
+identified in the source: `Draw_PartyCommandPanelEdge` (`$7B2E`),
+`Draw_ChampionNamePanelBackground` (`$8258`),
+`Draw_ChampionNamePanelFrame` (`$8278`),
+`Draw_ChampionNamePanelLowerEdge` (`$82BA`), and
+`Draw_DungeonDisplayLowerEdge` (`$833C`). These routines combine
+`BW_blit_horiz_line`, `BW_blit_vertical_line`, `BW_draw_bar`, and
+`Draw_PlanarGraphic`; their packed coordinate/colour arguments are the next
+source-backed UI decoration pass.
+
 ### The 32 bytes after the Pockets image
 
 `Pockets.gfx` is currently extracted as 32,032 bytes. The first 32,000 bytes

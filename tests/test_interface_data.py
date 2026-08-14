@@ -13,6 +13,10 @@ from tools.interface_data import (
     GFX_POCKETS_CHAIN_WITH_AVATARS_OFFSET,
     GFX_POCKETS_SELECTED_PARTY_SHIELD_OFFSET,
     INTERFACE_MODES,
+    LARGE_AVATAR_INNER_FRAME,
+    LARGE_AVATAR_PANEL_FILL,
+    LARGE_AVATAR_PANEL_FRAMES,
+    LARGE_AVATAR_RECT,
     PLAYER_POINTER_Y_OFFSETS,
     PLAYER_COMPACT_STATS_COLOUR_INDICES,
     PLAYER_DATA_UI_PRIMARY_COLOUR_OFFSET,
@@ -22,6 +26,10 @@ from tools.interface_data import (
     PLAYER_UI_SECONDARY_COLOUR_INDICES,
     POCKETS_TRAILING_BINARY_OFFSET,
     POCKETS_TRAILING_MEMORY_ADDRESS,
+    STATS_BAR_RECTS,
+    STATS_FRAME_FILL,
+    STATS_FRAME_HORIZONTAL_LINES,
+    STATS_FRAME_VERTICAL_LINES,
     SOURCE_REFS,
     InterfaceProject,
     amiga_colour_to_rgb,
@@ -152,6 +160,27 @@ class InterfaceDataTests(unittest.TestCase):
         self.assertEqual(PLAYER_COMPACT_STATS_COLOUR_INDICES, (0x07, 0x0C))
         self.assertEqual(COPPER_PLAYER_RASTER_SPLIT_Y, 0x98)
         self.assertEqual(COPPER_FRAME_WRAP_Y, 0xFF)
+
+    def test_compact_stats_frame_matches_source_primitive_arguments(self) -> None:
+        self.assertEqual(len(STATS_FRAME_HORIZONTAL_LINES), 10)
+        self.assertEqual(STATS_FRAME_HORIZONTAL_LINES[0], (0x36, 0x0A, 0x25, 0x01))
+        self.assertEqual(STATS_FRAME_HORIZONTAL_LINES[-1], (0x36, 0x35, 0x25, 0x01))
+        self.assertEqual(STATS_FRAME_VERTICAL_LINES, ((0x34, 0x10, 0x20, 0x01), (0x5C, 0x10, 0x20, 0x01)))
+        self.assertEqual(STATS_FRAME_FILL, (0x35, 0x10, 0x27, 0x20, 0x02))
+        self.assertEqual(STATS_BAR_RECTS, ((0x37, 0x19, 0x23, 0x05),) * 3)
+
+    def test_large_avatar_panel_matches_composite_source_routines(self) -> None:
+        self.assertEqual(LARGE_AVATAR_PANEL_FILL, (0x00, 0x0A, 0x30, 0x2C, 0x01))
+        self.assertEqual(
+            LARGE_AVATAR_PANEL_FRAMES,
+            (
+                (0x01, 0x0B, 0x2E, 0x2A, 0x02),
+                (0x02, 0x0C, 0x2C, 0x28, 0x03),
+                (0x03, 0x0D, 0x2A, 0x26, 0x04),
+            ),
+        )
+        self.assertEqual(LARGE_AVATAR_RECT, (0x08, 0x11, 0x20, 0x1E))
+        self.assertEqual(LARGE_AVATAR_INNER_FRAME, (0x06, 0x0F, 0x24, 0x22, 0x01))
 
     def test_pockets_tail_has_exact_live_test_addresses(self) -> None:
         self.assertEqual(POCKETS_TRAILING_MEMORY_ADDRESS, 0x54402)

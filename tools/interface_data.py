@@ -43,6 +43,33 @@ PLAYER_UI_PRIMARY_COLOUR_INDICES = (0x07, 0x09)
 PLAYER_UI_SECONDARY_COLOUR_INDICES = (0x08, 0x0C)
 COMPACT_STATS_BAR_COUNT = 3
 PLAYER_COMPACT_STATS_COLOUR_INDICES = (0x07, 0x0C)
+STATS_FRAME_HORIZONTAL_LINES = (
+    (0x36, 0x0A, 0x25, 0x01),
+    (0x34, 0x0B, 0x29, 0x02),
+    (0x33, 0x0C, 0x2B, 0x03),
+    (0x34, 0x0D, 0x2B, 0x04),
+    (0x34, 0x0E, 0x2B, 0x01),
+    (0x33, 0x31, 0x2B, 0x01),
+    (0x33, 0x32, 0x2B, 0x04),
+    (0x33, 0x33, 0x2B, 0x03),
+    (0x34, 0x34, 0x29, 0x02),
+    (0x36, 0x35, 0x25, 0x01),
+)
+STATS_FRAME_VERTICAL_LINES = (
+    (0x34, 0x10, 0x20, 0x01),
+    (0x5C, 0x10, 0x20, 0x01),
+)
+STATS_FRAME_FILL = (0x35, 0x10, 0x27, 0x20, 0x02)
+STATS_BAR_RECTS = ((0x37, 0x19, 0x23, 0x05),) * COMPACT_STATS_BAR_COUNT
+STATS_BAR_Y_STEP = 0x07
+LARGE_AVATAR_PANEL_FILL = (0x00, 0x0A, 0x30, 0x2C, 0x01)
+LARGE_AVATAR_PANEL_FRAMES = (
+    (0x01, 0x0B, 0x2E, 0x2A, 0x02),
+    (0x02, 0x0C, 0x2C, 0x28, 0x03),
+    (0x03, 0x0D, 0x2A, 0x26, 0x04),
+)
+LARGE_AVATAR_RECT = (0x08, 0x11, 0x20, 0x1E)
+LARGE_AVATAR_INNER_FRAME = (0x06, 0x0F, 0x24, 0x22, 0x01)
 COPPER_PLAYER_RASTER_SPLIT_Y = 0x98
 COPPER_FRAME_WRAP_Y = 0xFF
 
@@ -158,10 +185,40 @@ SOURCE_REFS = (
         "Clears and composes the party-command panel for the current command state.",
     ),
     InterfaceSourceRef(
+        "adrCd007B2E",
+        "Draw_PartyCommandPanelEdge",
+        0x7B2E,
+        "Builds the command-panel edge with repeated horizontal lines before the menu contents are drawn.",
+    ),
+    InterfaceSourceRef(
         "adrCd007D6C",
         "Draw_PartyCommandMenu",
         0x7D6C,
         "Selects a command descriptor stream and draws its selectable rows and text.",
+    ),
+    InterfaceSourceRef(
+        "adrCd008258",
+        "Draw_ChampionNamePanelBackground",
+        0x8258,
+        "Clears the right-hand name/display panel with a source-sized bar before its decorative frame is added.",
+    ),
+    InterfaceSourceRef(
+        "adrCd008278",
+        "Draw_ChampionNamePanelFrame",
+        0x8278,
+        "Draws the right-hand name-panel bevel, primary-colour name strip, and lower frame lines.",
+    ),
+    InterfaceSourceRef(
+        "adrCd0082BA",
+        "Draw_ChampionNamePanelLowerEdge",
+        0x82BA,
+        "Draws the lower decorative edge and the adjacent packed status graphics for the right panel.",
+    ),
+    InterfaceSourceRef(
+        "adrCd00833C",
+        "Draw_DungeonDisplayLowerEdge",
+        0x833C,
+        "Completes the lower display edge with procedural lines before drawing the continuous chain strip.",
     ),
     InterfaceSourceRef(
         "adrCd00C9BC",
@@ -192,6 +249,30 @@ SOURCE_REFS = (
         "Draw_CompactStatsBarsLoop",
         0x811E,
         "Draws the three compact player statistics bars using the player-specific hard-coded bar colour.",
+    ),
+    InterfaceSourceRef(
+        "adrCd007FF8",
+        "Draw_CompactStatsFrame",
+        0x7FF8,
+        "Builds the compact statistics-panel frame from horizontal/vertical lines, a lower fill bar, and the STATS graphic.",
+    ),
+    InterfaceSourceRef(
+        "adrCd00C0BA",
+        "Draw_BevelledPanelFrame",
+        0xC0BA,
+        "Fills a panel rectangle and draws three successively inset grey frame outlines.",
+    ),
+    InterfaceSourceRef(
+        "adrCd00CCBE",
+        "Draw_MainChampionAvatarPanel",
+        0xCCBE,
+        "Composes the large champion panel from its outer bevel, portrait graphic, and optional inner frame.",
+    ),
+    InterfaceSourceRef(
+        "adrCd00CCD8",
+        "Draw_MainChampionAvatarInnerFrame",
+        0xCCD8,
+        "Draws the inner large-avatar outline unless the player state suppresses it.",
     ),
     InterfaceSourceRef(
         "adrCd00CA14",
@@ -344,7 +425,7 @@ INTERFACE_MODES = (
         "Dungeon / stats",
         ("main", "display"),
         "observed layout",
-        ("Draw_MainPlayerInterface", "DungeonInterfaceActionTable"),
+        ("Draw_MainPlayerInterface", "Draw_CompactStatsFrame", "DungeonInterfaceActionTable"),
         tuple(range(0x00, 0x11)) + tuple(range(0x22, 0x25)),
     ),
     InterfaceMode(

@@ -15,7 +15,6 @@ from tools.champion_data import CLASS_COLOUR_MASKS
 from tools.gamefont_converter import glyph_pixels
 from tools.graphics_preview import remap_template_colours
 from tools.interface_data import (
-    COMPACT_STATS_BAR_COUNT,
     DIALOGUE_TEXT_PALETTE_INDEX,
     DUNGEON_VIEW_RECT,
     GFX_POCKETS_CHAIN_COMMAND_OFFSET,
@@ -23,10 +22,19 @@ from tools.interface_data import (
     GFX_POCKETS_CHAIN_WITH_AVATARS_OFFSET,
     INTERFACE_MODES,
     INTERFACE_WIDTH,
+    LARGE_AVATAR_INNER_FRAME,
+    LARGE_AVATAR_PANEL_FILL,
+    LARGE_AVATAR_PANEL_FRAMES,
+    LARGE_AVATAR_RECT,
     PLAYER_COMPACT_STATS_COLOUR_INDICES,
     PLAYER_UI_PRIMARY_COLOUR_INDICES,
     PLAYER_UI_SECONDARY_COLOUR_INDICES,
     PLAYER_PANEL_HEIGHT,
+    STATS_BAR_RECTS,
+    STATS_BAR_Y_STEP,
+    STATS_FRAME_FILL,
+    STATS_FRAME_HORIZONTAL_LINES,
+    STATS_FRAME_VERTICAL_LINES,
     InterfaceDataError,
     InterfaceHitbox,
     InterfaceMode,
@@ -170,17 +178,36 @@ def _draw_avatar_panel(
     project: InterfaceProject,
     palette: Sequence[tuple[int, int, int]],
 ) -> None:
-    _draw_bevel(pygame, panel, (1, 10, 47, 43))
-    pygame.draw.rect(panel, GAME_PALETTE_RGB8[2], (5, 14, 39, 35))
-    pygame.draw.rect(panel, GAME_PALETTE_RGB8[0], (6, 15, 37, 33), 1)
+    # adrCd00CCBE composes this in three independent stages.  adrCd00C0BA
+    # draws the filled outer bevel first, Draw_ChampionLargeAvatar draws only
+    # the 32x30 portrait, and adrCd00CCD8 adds the optional inner outline.
+    fill_x, fill_y, fill_width, fill_height, fill_colour = LARGE_AVATAR_PANEL_FILL
+    pygame.draw.rect(
+        panel,
+        palette[fill_colour],
+        (fill_x, fill_y, fill_width, fill_height),
+    )
+    for x, y, width, height, colour in LARGE_AVATAR_PANEL_FRAMES:
+        pygame.draw.rect(panel, palette[colour], (x, y, width, height), 1)
+
     champion = project.preview_character_ids[0]
+    avatar_x, avatar_y, _, _ = LARGE_AVATAR_RECT
     _draw_indexed(
         pygame,
         panel,
         project.champions.large_avatar_pixels(champion),
-        8,
-        17,
+        avatar_x,
+        avatar_y,
         palette,
+    )
+    frame_x, frame_y, frame_width, frame_height, frame_colour = (
+        LARGE_AVATAR_INNER_FRAME
+    )
+    pygame.draw.rect(
+        panel,
+        palette[frame_colour],
+        (frame_x, frame_y, frame_width, frame_height),
+        1,
     )
 
 
@@ -256,13 +283,38 @@ def _draw_compact_stats_left(
     player: int,
 ) -> None:
     _draw_avatar_panel(pygame, panel, project, palette)
-    _draw_bevel(pygame, panel, (51, 10, 44, 42))
-    pygame.draw.rect(panel, GAME_PALETTE_RGB8[2], (54, 13, 38, 36))
-    pygame.draw.rect(panel, GAME_PALETTE_RGB8[0], (55, 14, 36, 34), 1)
+
+    # Draw_CompactStatsFrame ($7FF8) constructs this panel procedurally.
+    # Constants below are the rendered extents. The source stores DBRA terminal
+    # counts in the packed high words, so each count renders count + 1 pixels.
+    for x, y, width, colour in STATS_FRAME_HORIZONTAL_LINES:
+        pygame.draw.line(
+            panel,
+            palette[colour],
+            (x, y),
+            (x + width - 1, y),
+        )
+    for x, y, height, colour in STATS_FRAME_VERTICAL_LINES:
+        pygame.draw.line(
+            panel,
+            palette[colour],
+            (x, y),
+            (x, y + height - 1),
+        )
+    fill_x, fill_y, fill_width, fill_height, fill_colour = STATS_FRAME_FILL
+    pygame.draw.rect(
+        panel,
+        palette[fill_colour],
+        (fill_x, fill_y, fill_width, fill_height),
+    )
     title = _pockets_crop(project, 0x7580, 48, 6)
     _draw_indexed(pygame, panel, title.pixels, 48, 16, palette, transparent_index=0)
-    for index in range(COMPACT_STATS_BAR_COUNT):
-        pygame.draw.rect(panel, stats_colour, (55, 25 + index * 7, 35, 5))
+    for index, (x, y, width, height) in enumerate(STATS_BAR_RECTS):
+        pygame.draw.rect(
+            panel,
+            stats_colour,
+            (x, y + index * STATS_BAR_Y_STEP, width, height),
+        )
 
     chain = _pockets_crop(project, GFX_POCKETS_CHAIN_WITH_AVATARS_OFFSET, 96, 7)
     _draw_indexed(pygame, panel, chain.pixels, 0, 89, palette)

@@ -15,6 +15,15 @@ original label is `adrB_0081CA`.
 | `adrCd0058EA` | `Return_WallFeatureClick` | `$58EA` | Return when a wall-feature click has no supported action. |
 | `adrJA004DAA` | `Begin_HitTestMainInterfaceActions` | `$4DAA` | Select the main hitbox table and enter the shared hit tester. |
 | `adrCd0080CA` | `Draw_MainPlayerInterface` | `$80CA` | Draw the ordinary player interface. |
+| `adrCd007FF8` | `Draw_CompactStatsFrame` | `$7FF8` | Build the compact statistics frame from procedural lines, a fill bar, and the `<STATS>` graphic. |
+| `adrCd00C0BA` | `Draw_BevelledPanelFrame` | `$C0BA` | Fill a panel rectangle and add three successively inset grey frame outlines. |
+| `adrCd00CCBE` | `Draw_MainChampionAvatarPanel` | `$CCBE` | Compose the large champion panel from its outer bevel, portrait, and optional inner frame. |
+| `adrCd00CCD8` | `Draw_MainChampionAvatarInnerFrame` | `$CCD8` | Draw the inner large-avatar outline unless the current player state suppresses it. |
+| `adrCd007B2E` | `Draw_PartyCommandPanelEdge` | `$7B2E` | Build the procedural edge around the party-command panel. |
+| `adrCd008258` | `Draw_ChampionNamePanelBackground` | `$8258` | Clear the right-hand name/display panel before its frame is drawn. |
+| `adrCd008278` | `Draw_ChampionNamePanelFrame` | `$8278` | Draw the right-hand name strip and its bevel lines. |
+| `adrCd0082BA` | `Draw_ChampionNamePanelLowerEdge` | `$82BA` | Draw the lower name/status-panel edge and packed status graphics. |
+| `adrCd00833C` | `Draw_DungeonDisplayLowerEdge` | `$833C` | Draw the lower dungeon-display edge before the chain strip. |
 | `adrW_00EE86` | `Player1_InterfaceScreenBufferOffset` | `$EE86` | Player 1 screen-buffer destination offset; later words in the record hold its two interface colour roles. |
 | `adrCd007B50` | `Draw_PartyCommandInterface` | `$7B50` | Compose the party-command panel for its current state. |
 | `adrCd007D6C` | `Draw_PartyCommandMenu` | `$7D6C` | Select and draw a party-command descriptor stream. |

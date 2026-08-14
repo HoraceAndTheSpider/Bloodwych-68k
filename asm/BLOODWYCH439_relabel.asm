@@ -318,12 +318,12 @@ MonsterRecord_ActionCountdown:		equ	$03
 	; Assigns the special action countdown used for object-bearing monsters.
 MonsterRecord_ActionState:		equ	$05
 	; Clears the live monster action/status byte.
+MonsterRecord_CurrentLevel:		equ	$06
+	; Writes the current live level into the packed record.
 MonsterRecord_BaseLevel:		equ	$07
-	; Writes the live level into the packed record.
+	; Stores the base live monster level.
 MonsterRecord_CarriedObject:		equ	$0C
 	; Tests whether the monster has a carried object during later monster interaction.
-MonsterRecord_CurrentLevel:		equ	$06
-	; Stores the current live monster level.
 MonsterRecord_Floor:		equ	$04
 	; Copies the floor while compacting team records.
 MonsterRecord_Form:		equ	$0B
@@ -666,6 +666,12 @@ GFX_Pockets_SelectedPartyShieldFrameOffset:		equ	$5070
 	; Offset of the 32x41 selected living-party shield surround in Pockets.gfx.
 PartyShieldFrameSourceRowSkip:		equ	$90
 	; Source-row skip after reading a two-word-wide crop from the 320-pixel Pockets sheet.
+PlayerData_PartyCommandStateOffset:		equ	$42
+	; Offset of the signed party-command/interface state word in each PlayerData record; $FFFF means inactive and states $0000-$0008 select dispatcher states.
+MainChampionAvatar_ScreenByteOffset:		equ	$02A9
+	; Player-local screen byte offset for the 32 by 30 large champion portrait at coordinate ($08,$11).
+ChampionLargeAvatar_DrawDimensions:		equ	$0001001D
+	; Packed DBRA terminal counts for a large champion portrait: two 16-pixel words across and 30 rows.
 
 ****************************************************************************
 
@@ -1278,7 +1284,6 @@ CheckMonsterFormForCarriedObject:
 	cmp.b	#MonsterForm_Zendik,MonsterRecord_Form(a4)	;0C2C0040000B	;
 	bne.s	StoreTeamData	;6606
 	move.b	#Object_AceOfSwords,MonsterRecord_CarriedObject(a4)	;197C0037000C
-
 StoreTeamData:		; Memory Address ($0AEC) and binary offset [$0768]
 	; Stores the team-group index derived from packed team-data.
 	moveq	#$00,d0	;7000
@@ -3845,7 +3850,7 @@ Dispatch_PartyAction_AI_TBC:		; Memory Address ($25EE) and binary offset [$226A]
 Clear_PartyActionState_AI_TBC:		; Memory Address ($25FE) and binary offset [$227A]
 	clr.w	$0014(a5)	;426D0014
 	clr.b	$003E(a5)	;422D003E
-	bsr	adrCd008278	;61005C70
+	bsr	Draw_ChampionNamePanelFrame	;61005C70
 Finalize_PartyAction_AI_TBC:		; Memory Address ($260A) and binary offset [$2286]
 	move.w	#$FFFF,$0042(a5)	;3B7CFFFF0042
 	move.w	#$FFFF,$0040(a5)	;3B7CFFFF0040
@@ -6917,7 +6922,7 @@ adrLp004554:		; Memory Address ($4554) and binary offset [$41D0]
 adrCd004574:		; Memory Address ($4574) and binary offset [$41F0]
 	dbra	d7,adrLp004554	;51CFFFDE
 	bsr	Draw_PartyCommandInterface	;610035D6
-	bsr	adrCd008278	;61003CFA
+	bsr	Draw_ChampionNamePanelFrame	;61003CFA
 adrCd004580:		; Memory Address ($4580) and binary offset [$41FC]
 	bsr	adrCd002734	;6100E1B2
 	and.b	#$01,(a5)	;02150001
@@ -7816,7 +7821,7 @@ CastSpell_ExecuteHandler:		; Memory Address ($52E2) and binary offset [$4F5E]
 CastSpell_RefreshChampionStatus:		; Memory Address ($530A) and binary offset [$4F86]
 	; Refreshes the selected champion's displayed status when the post-spell party lookup returns the active slot.
 	move.w	$0006(a5),d7	;3E2D0006
-	bsr	adrCd00CCD8	;61007D4C
+	bsr	Draw_MainChampionAvatarInnerFrame	;61007D4C
 CastSpell_RecordPractice:		; Memory Address ($5312) and binary offset [$4F8E]
 	; Increments the casting champion's per-spell practice counter with saturation at $FF.
 	move.l	(sp)+,a4	;285F
@@ -8776,7 +8781,7 @@ MovementOffsetTable:		; Memory Address ($5794) and binary offset [$5410]
 
 Click_CloseCurrentPage:		; Memory Address ($57A4) and binary offset [$5420]
 	clr.w	$0014(a5)	;426D0014
-	bra	adrCd008278	;60002ACE
+	bra	Draw_ChampionNamePanelFrame	;60002ACE
 
 Dispatch_PlayerInterfaceActionGuarded:		; Memory Address ($5B30) and binary offset [$57AC]
 	; Checks player state before dispatching the active action.
@@ -9059,7 +9064,7 @@ adrCd005A94:		; Memory Address ($5A94) and binary offset [$5710]
 	bsr	adrCd008498	;610029FE
 	move.w	d6,d7	;3E06
 	bsr	adrCd001DBC	;6100C31C
-	bra	adrCd007FF8	;60002554
+	bra	Draw_CompactStatsFrame	;60002554
 
 SocketActions_TanGem:		; Memory Address ($5AA6) and binary offset [$5722]
 	lea	TanGemLocs.l,a0	;41F900005AFA
@@ -10238,7 +10243,7 @@ Click_MultiFunctionButton:		; Memory Address ($64AA) and binary offset [$6126]
 	beq.s	Resolve_MultiFunctionContext	;670E
 	clr.b	$0011(a4)	;422C0011
 	move.w	$0006(a5),d7	;3E2D0006
-	bsr	adrCd00CCD8	;6100681A
+	bsr	Draw_MainChampionAvatarInnerFrame	;6100681A
 	bra.s	adrCd0064CC	;600A
 
 Resolve_MultiFunctionContext:		; Memory Address ($6846) and binary offset [$64C2]
@@ -10362,7 +10367,7 @@ adrCd0065E8:		; Memory Address ($65E8) and binary offset [$6264]
 	bset	#$04,$0018(a5)	;08ED00040018
 adrCd006608:		; Memory Address ($6608) and binary offset [$6284]
 	move.w	#$FFFF,$0016(a5)	;3B7CFFFF0016
-	bsr	adrCd008278	;61001C68
+	bsr	Draw_ChampionNamePanelFrame	;61001C68
 	bra	Draw_PartyCommandInterface	;6000153C
 
 Click_ShowStats:		; Memory Address ($6616) and binary offset [$6292]
@@ -10410,7 +10415,7 @@ adrCd006682:		; Memory Address ($6682) and binary offset [$62FE]
 
 Click_OpenSpellBook:		; Memory Address ($6684) and binary offset [$6300]
 	; Opens and composes the selected champion's spell-book interface page.
-	bsr	adrCd008258	;61001BD2
+	bsr	Draw_ChampionNamePanelBackground	;61001BD2
 	bsr	Prepare_AndDrawSpellBookSurface	;6100613E
 	bsr.s	adrCd006670	;61E2
 	bsr	adrCd00C85E	;610061CE
@@ -10759,7 +10764,7 @@ Click_Item_17_to_1A_Potions:		; Memory Address ($6914) and binary offset [$6590]
 	add.w	d1,d1	;D241
 	add.w	Potion_LookupTable(pc,d1.w),a0	;D0FB100C
 	jsr	(a0)	;4E90
-	bsr	adrCd007FF8	;610016AC
+	bsr	Draw_CompactStatsFrame	;610016AC
 	bra	Refresh_HeldItemDisplay	;600002E4
 
 Potion_LookupTable:		; Memory Address ($6952) and binary offset [$65CE]
@@ -12080,7 +12085,7 @@ GameEndPicture:
 	clr.w	$0014(a5)	;426D0014
 	move.w	#$FFFF,$0042(a5)	;3B7CFFFF0042
 	bsr	Draw_PartyCommandInterface	;610005AC
-	bsr	adrCd008278	;61000CD0
+	bsr	Draw_ChampionNamePanelFrame	;61000CD0
 	bsr	adrCd002734	;6100B188
 	movem.l	d0-d7/a0-a6,-(sp)	;48E7FFFE
 	link	a3,#-$0020	;4E53FFE0
@@ -12366,7 +12371,7 @@ adrCd0078C0:		; Memory Address ($78C0) and binary offset [$753C]
 	move.w	d3,$0058(a5)	;3B430058
 	move.w	#$0003,$0020(a5)	;3B7C00030020
 	move.b	d0,$0026(a5)	;1B400026
-	bsr	adrCd008278	;6100099A
+	bsr	Draw_ChampionNamePanelFrame	;6100099A
 	clr.b	$0056(a5)	;422D0056
 adrCd0078E4:		; Memory Address ($78E4) and binary offset [$7560]
 	bsr	Draw_PartyCommandInterface	;6100026A
@@ -12446,7 +12451,7 @@ adrLp0079B4:		; Memory Address ($79B4) and binary offset [$7630]
 	move.b	d3,(a3)+	;16C3
 	move.b	MonsterRecord_XPosition(a4),(a3)+	;16EC0000
 	move.b	MonsterRecord_YPosition(a4),(a3)+	;16EC0001
-	move.b	MonsterRecord_BaseLevel(a4),(a3)+	;16EC0006
+	move.b	MonsterRecord_CurrentLevel(a4),(a3)+	;16EC0006
 	move.b	MonsterRecord_Form(a4),(a3)+	;16EC000B
 	move.b	MonsterRecord_TeamGroupIndex(a4),d3	;162C000D
 	bmi.s	adrCd007A06	;6B28
@@ -12595,16 +12600,17 @@ adrCd007B08:		; Memory Address ($7B08) and binary offset [$7784]
 	tst.w	MultiPlayer.l	;4A790000EE30
 	beq.s	adrCd007B20	;6708
 	moveq	#$1F,d5	;7A1F
-	bsr.s	adrCd007B2E	;6112
+	bsr.s	Draw_PartyCommandPanelEdge	;6112
 	move.w	#$0090,d5	;3A3C0090
 adrCd007B20:		; Memory Address ($7B20) and binary offset [$779C]
-	bsr.s	adrCd007B2E	;610C
+	bsr.s	Draw_PartyCommandPanelEdge	;610C
 adrCd007B22:		; Memory Address ($7B22) and binary offset [$779E]
-	bsr	adrCd008278	;61000754
+	bsr	Draw_ChampionNamePanelFrame	;61000754
 	bsr	Draw_PartyCommandInterface	;61000028
 	bra	adrCd008FB8	;6000148C
 
-adrCd007B2E:		; Memory Address ($7B2E) and binary offset [$77AA]
+Draw_PartyCommandPanelEdge:		; Memory Address ($7B2E) and binary offset [$77AA]
+	; Builds the procedural edge around the party-command panel using repeated horizontal lines.
 	move.l	#$013F0001,d3	;263C013F0001
 adrCd007B34:		; Memory Address ($7B34) and binary offset [$77B0]
 	bsr	BW_blit_horiz_line	;6100604E
@@ -12631,7 +12637,7 @@ Draw_PartyCommandInterface:		; Memory Address ($7B50) and binary offset [$77CC]
 	moveq	#$00,d3	;7600
 	bsr	BW_draw_bar	;61005EF6
 	move.l	#$FFFFFFFF,$005A(a5)	;2B7CFFFFFFFF005A
-	bsr	adrCd00CCBE	;61005140
+	bsr	Draw_MainChampionAvatarPanel	;61005140
 	moveq	#$0A,d5	;7A0A
 	add.w	$0008(a5),d5	;DA6D0008
 	moveq	#$32,d4	;7832
@@ -13074,7 +13080,7 @@ Refresh_DirtyPartyShieldSlots_Loop:		; Memory Address ($7EC2) and binary offset 
 	bsr	Refresh_PartyShieldSlotIfDirty	;6100002A
 	move.w	(sp)+,d7	;3E1F
 	dbra	d7,Refresh_DirtyPartyShieldSlots_Loop	;51CFFFF6
-	bsr	adrCd007FF8	;61000128
+	bsr	Draw_CompactStatsFrame	;61000128
 Draw_PartyShieldChainStrip:		; Memory Address ($7ED2) and binary offset [$7B4E]
 	; Draw the Pockets.gfx chain strip whose gaps accommodate the shield slots.
 	lea	GFX_Pockets+$3C30.l,a1	;43F900050332
@@ -13099,7 +13105,7 @@ adrCd007EF8:		; Memory Address ($7EF8) and binary offset [$7B74]
 
 adrCd007F0A:		; Memory Address ($7F0A) and binary offset [$7B86]
 	tst.w	$0042(a5)	;4A6D0042
-	bpl	adrCd00CCBE	;6A004DAE
+	bpl	Draw_MainChampionAvatarPanel	;6A004DAE
 	moveq	#$00,d3	;7600
 	moveq	#$5F,d4	;785F
 	swap	d4	;4844
@@ -13108,8 +13114,8 @@ adrCd007F0A:		; Memory Address ($7F0A) and binary offset [$7B86]
 	bsr	BW_draw_bar	;61005B44
 	btst	#$00,$003E(a5)	;082D0000003E
 	bne.s	adrCd007F36	;6608
-	bsr	adrCd00CCBE	;61004D8E
-	bra	adrCd007FF8	;600000C4
+	bsr	Draw_MainChampionAvatarPanel	;61004D8E
+	bra	Draw_CompactStatsFrame	;600000C4
 
 adrCd007F36:		; Memory Address ($7F36) and binary offset [$7BB2]
 	move.l	#$00000230,a0	;207C00000230
@@ -13118,7 +13124,7 @@ adrCd007F36:		; Memory Address ($7F36) and binary offset [$7BB2]
 	bsr	adrCd007E4A	;6100FF02
 	moveq	#$00,d7	;7E00
 	bsr	Draw_SelectedPartyChampionInShield	;61000064
-	bra	adrCd007FF8	;600000A6
+	bra	Draw_CompactStatsFrame	;600000A6
 
 Draw_PartyShieldSlot:		; Memory Address ($7F54) and binary offset [$7BD0]
 	; Choose vacant, selected-living, ordinary, or dead rendering for one party shield slot.
@@ -13186,7 +13192,8 @@ Draw_ComposedPartyShieldAvatar:		; Memory Address ($7FF4) and binary offset [$7C
 	; Tail-call Draw_ShieldAvatar with the selected living or dead colour state.
 	bra	Draw_ShieldAvatar	;60004DAA
 
-adrCd007FF8:		; Memory Address ($7FF8) and binary offset [$7C74]
+Draw_CompactStatsFrame:		; Memory Address ($7FF8) and binary offset [$7C74]
+	; Builds the compact statistics panel from procedural lines, a background rectangle, and the packed STATS title graphic.
 	tst.w	$0042(a5)	;4A6D0042
 	bpl.s	Return_PartyShieldDrawing	;6AD6
 	moveq	#$36,d4	;7836
@@ -13265,11 +13272,11 @@ Draw_MainPlayerInterface:		; Memory Address ($80CA) and binary offset [$7D46]
 	lea	$05(a6,d7.w),a6	;4DF67005
 	move.l	#$00040019,d5	;2A3C00040019	;Long Addr replaced with Symbol
 	add.w	$0008(a5),d5	;DA6D0008
-	moveq	#$02,d6	;7C02
-	moveq	#$07,d3	;7607
+	moveq	#CompactStatsBar_LastIndex,d6	;7C02
+	moveq	#Player1_CompactStatsColourIndex,d3	;7607
 	btst	#$00,(a5)	;08150000
 	beq.s	Draw_CompactStatsBarsLoop	;6702
-	moveq	#$0C,d3	;760C
+	moveq	#Player2_CompactStatsColourIndex,d3	;760C
 Draw_CompactStatsBarsLoop:		; Memory Address ($811E) and binary offset [$7D9A]
 	; Draws the three compact player statistics bars using the player-specific hard-coded colour.
 	move.b	(a6)+,d0	;101E
@@ -13407,7 +13414,8 @@ adrCd008246:		; Memory Address ($8246) and binary offset [$7EC2]
 adrCd008256:		; Memory Address ($8256) and binary offset [$7ED2]
 	rts	;4E75
 
-adrCd008258:		; Memory Address ($8258) and binary offset [$7ED4]
+Draw_ChampionNamePanelBackground:		; Memory Address ($8258) and binary offset [$7ED4]
+	; Clears the right-hand champion name and display panel before its decorative frame is drawn.
 	or.b	#$0C,$0054(a5)	;002D000C0054
 	bsr	adrCd00CF96	;61004D36
 	move.l	#$005E00E1,d4	;283C005E00E1
@@ -13416,8 +13424,9 @@ adrCd008258:		; Memory Address ($8258) and binary offset [$7ED4]
 	moveq	#$00,d3	;7600
 	bra	BW_draw_bar	;600057F2
 
-adrCd008278:		; Memory Address ($8278) and binary offset [$7EF4]
-	bsr.s	adrCd008258	;61DE
+Draw_ChampionNamePanelFrame:		; Memory Address ($8278) and binary offset [$7EF4]
+	; Draws the champion name-panel bevel, primary-colour name strip, and lower frame lines.
+	bsr.s	Draw_ChampionNamePanelBackground	;61DE
 	move.w	#$00E2,d4	;383C00E2
 	moveq	#$0A,d5	;7A0A
 	add.w	$0008(a5),d5	;DA6D0008
@@ -13436,12 +13445,13 @@ adrCd00828A:		; Memory Address ($828A) and binary offset [$7F06]
 	move.w	$0010(a5),d3	;362D0010
 	bsr	BW_draw_bar	;610057B4
 	move.w	#$0001,d3	;363C0001
-adrCd0082BA:		; Memory Address ($82BA) and binary offset [$7F36]
+Draw_ChampionNamePanelLowerEdge:		; Memory Address ($82BA) and binary offset [$7F36]
+	; Draws the lower decorative edge and adjacent packed status graphics for the champion name panel.
 	addq.w	#$01,d5	;5245
 	bsr	BW_blit_horiz_line	;610058C6
 	addq.w	#$01,d3	;5243
 	cmpi.w	#$0005,d3	;0C430005
-	bcs.s	adrCd0082BA	;65F2
+	bcs.s	Draw_ChampionNamePanelLowerEdge	;65F2
 	move.w	$0006(a5),d0	;302D0006
 	bsr	adrCd00CF08	;61004C3A
 	move.l	screen_ptr.l,a0	;207900008D36
@@ -13470,12 +13480,13 @@ adrCd008308:		; Memory Address ($8308) and binary offset [$7F84]
 	add.w	#$0011,d5	;06450011
 	bsr	BW_blit_horiz_line	;6100584C
 	addq.w	#$02,d5	;5445
-adrCd00833C:		; Memory Address ($833C) and binary offset [$7FB8]
+Draw_DungeonDisplayLowerEdge:		; Memory Address ($833C) and binary offset [$7FB8]
+	; Completes the lower dungeon-display edge with procedural lines before drawing the continuous chain strip.
 	bsr	BW_blit_horiz_line	;61005846
 	addq.w	#$01,d5	;5245
 	addq.w	#$01,d3	;5243
 	cmpi.w	#$0005,d3	;0C430005
-	bcs.s	adrCd00833C	;65F2
+	bcs.s	Draw_DungeonDisplayLowerEdge	;65F2
 	subq.w	#$04,d3	;5943
 	bsr	BW_blit_horiz_line	;61005836
 	bsr.s	adrCd008396	;6144
@@ -20899,7 +20910,7 @@ adrCd00C060:		; Memory Address ($C060) and binary offset [$BCDC]
 	clr.w	$0014(a5)	;426D0014
 	move.l	#$002F00A8,d4	;283C002F00A8
 	moveq	#$09,d5	;7A09
-	bsr.s	adrCd00C0BA	;614C
+	bsr.s	Draw_BevelledPanelFrame	;614C
 	move.l	#$009700A8,d4	;283C009700A8
 	move.l	#$00070058,d5	;2A3C00070058
 	add.w	$0008(a5),d5	;DA6D0008
@@ -20926,7 +20937,8 @@ adrCd00C0AE:		; Memory Address ($C0AE) and binary offset [$BD2A]
 	bne.s	adrCd00C0AE	;66F6
 	rts	;4E75
 
-adrCd00C0BA:		; Memory Address ($C0BA) and binary offset [$BD36]
+Draw_BevelledPanelFrame:		; Memory Address ($C0BA) and binary offset [$BD36]
+	; Fills a panel rectangle and draws three successively inset grey frame outlines.
 	add.w	$0008(a5),d5	;DA6D0008
 	swap	d5	;4845
 	move.w	#$002B,d5	;3A3C002B
@@ -22046,15 +22058,17 @@ Draw_PlanarGraphic:		; Memory Address ($CCB8) and binary offset [$C934]
 	move.l	d5,-(sp)	;2F05
 	bra	Draw_PlanarGraphicCore	;6000016C
 
-adrCd00CCBE:		; Memory Address ($CCBE) and binary offset [$C93A]
+Draw_MainChampionAvatarPanel:		; Memory Address ($CCBE) and binary offset [$C93A]
+	; Composes the main champion panel from its outer bevel, large portrait, and optional inner frame.
 	move.l	#$002F0000,d4	;283C002F0000
 	moveq	#$0A,d5	;7A0A
-	bsr	adrCd00C0BA	;6100F3F2
+	bsr	Draw_BevelledPanelFrame	;6100F3F2
 	move.w	$0006(a5),d7	;3E2D0006
 	moveq	#-$01,d4	;78FF
-	move.l	#$000002A9,a0	;207C000002A9
+	move.l	#MainChampionAvatar_ScreenByteOffset,a0	;207C000002A9
 	bsr.s	Draw_ChampionLargeAvatar	;6144
-adrCd00CCD8:		; Memory Address ($CCD8) and binary offset [$C954]
+Draw_MainChampionAvatarInnerFrame:		; Memory Address ($CCD8) and binary offset [$C954]
+	; Draws the inner large-avatar outline unless the current player state suppresses it.
 	btst	#$00,$003E(a5)	;082D0000003E
 	bne.s	adrCd00CD12	;6632
 	or.b	#$01,$0054(a5)	;002D00010054
@@ -22098,7 +22112,7 @@ Draw_ChampionLargeAvatar:		; Memory Address ($CD1C) and binary offset [$C998]
 	sub.w	d7,d0	;9047
 	asl.w	#$04,d0	;E940
 	add.w	d0,a1	;D2C0
-	move.l	#$0001001D,-(sp)	;2F3C0001001D	;Long Addr replaced with Symbol
+	move.l	#ChampionLargeAvatar_DrawDimensions,-(sp)	;2F3C0001001D	;Long Addr replaced with Symbol
 	sub.l	a3,a3	;97CB
 	tst.w	d4	;4A44
 	bne	Draw_PlanarGraphicCore	;660000E4

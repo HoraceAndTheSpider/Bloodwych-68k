@@ -178,9 +178,9 @@ MonsterLive_RecordCountOffset:					equ	-$02		; Reads the live monster count befo
 MonsterLive_WorkspaceLongwordCount:				equ	$0200		; Clears the live-monster workspace.
 MonsterRecord_ActionCountdown:					equ	$03			; Assigns the special action countdown used for object-bearing monsters.
 MonsterRecord_ActionState:						equ	$05			; Clears the live monster action/status byte.
-MonsterRecord_BaseLevel:						equ	$07			; Writes the live level into the packed record.
+MonsterRecord_CurrentLevel:						equ	$06			; Writes the current live level into the packed record.
+MonsterRecord_BaseLevel:						equ	$07			; Stores the base live monster level.
 MonsterRecord_CarriedObject:					equ	$0C			; Tests whether the monster has a carried object during later monster interaction.
-MonsterRecord_CurrentLevel:						equ	$06			; Stores the current live monster level.
 MonsterRecord_Floor:							equ	$04			; Copies the floor while compacting team records.
 MonsterRecord_Form:								equ	$0B			; Writes the live form into the packed record.
 MonsterRecord_HitPoints:						equ	$08			; Stores calculated starting hit points.
@@ -352,6 +352,9 @@ PlayerData_InterfaceScreenBufferOffset:			equ	$0A			; PlayerX_Data stores the fr
 DeadPartyShieldClassColourMask:					equ	$00020103	; Fixed four-colour professional-symbol mask used when D3 is zero for a dead party member.
 GFX_Pockets_SelectedPartyShieldFrameOffset:		equ	$5070		; Offset of the 32x41 selected living-party shield surround in Pockets.gfx.
 PartyShieldFrameSourceRowSkip:					equ	$90			; Source-row skip after reading a two-word-wide crop from the 320-pixel Pockets sheet.
+PlayerData_PartyCommandStateOffset:				equ	$42			; Offset of the signed party-command/interface state word in each PlayerData record; $FFFF means inactive and states $0000-$0008 select dispatcher states.
+MainChampionAvatar_ScreenByteOffset:			equ	$02A9		; Player-local screen byte offset for the 32 by 30 large champion portrait at coordinate ($08,$11).
+ChampionLargeAvatar_DrawDimensions:				equ	$0001001D	; Packed DBRA terminal counts for a large champion portrait: two 16-pixel words across and 30 rows.
 
 ****************************************************************************
 
@@ -887,43 +890,43 @@ UnpackTowerMonsters:		; Memory Address ($09F6) and binary offset [$0672]
 	move.w	#MonsterLive_WorkspaceLongwordCount-1,d0							;Sets the clearing loop to cover 512 longwords, the full $800-byte live-monster workspace.
 .ClearLiveMonsterRecordsLoop:
 	; Clears the live-monster workspace before unpacking.
-	move.l	d6,(a4)+															;28C6
-	dbra	d0,.ClearLiveMonsterRecordsLoop										;51C8FFFC
-	move.w	CurrentTower.l,d0													;30390000EE2E
-	move.w	d0,d1																;3200
-	add.w	d0,d0																;D040
-	lea		MonsterTotalsCounts_mod0.l,a4										;49F900017578
-	move.w	$00(a4,d0.w),d6														;3C340000
-	lea		UnpackedMonsters.l,a4												;49F900016B7E
-	move.w	d6,MonsterLive_RecordCountOffset(a4)								;3946FFFE
-	bmi		Trigger_00_t00_Null													;6B0065D8
-	add.w	d1,d0																;D041
-	asl.w	#PackedMonster_TowerBlockShift,d0									;E140
-	lea		MonsterBlock_mod0.l,a3												;47F900017584
-	add.w	d0,a3																;D6C0
-	moveq	#$00,d4																;7800
+	move.l	d6,(a4)+															;Fills the current live-monster longword with the empty sentinel and advances through the workspace.
+	dbra	d0,.ClearLiveMonsterRecordsLoop										;Clears all live monster records before unpacking the selected tower's packed records.
+	move.w	CurrentTower.l,d0													;Reads the selected tower number into d0 to choose its monster count and packed block.
+	move.w	d0,d1																;Copies the tower number to d1 because d0 will be reused to form a table offset.
+	add.w	d0,d0																;Doubles the tower number to address the word-sized monster-count entry for that tower.
+	lea		MonsterTotalsCounts_mod0.l,a4										;Loads the table of per-tower monster totals.
+	move.w	$00(a4,d0.w),d6														;Reads this tower's packed-monster count into d6 for the unpacking loop.
+	lea		UnpackedMonsters.l,a4												;Restores a4 to the live-monster base so the count and records use the same workspace.
+	move.w	d6,MonsterLive_RecordCountOffset(a4)								;Stores the selected tower's live-record count in the workspace count word at offset -2.
+	bmi		Trigger_00_t00_Null													;Exits through the null-trigger path when this tower contains no monsters.
+	add.w	d1,d0																;Forms a three-times-tower index from the preserved tower number for the six-byte monster block table.
+	asl.w	#PackedMonster_TowerBlockShift,d0									;Multiplies the tower block index by $100, the packed monster block spacing.
+	lea		MonsterBlock_mod0.l,a3												;Loads a3 with the base of the packed monster-block table.
+	add.w	d0,a3																;Moves a3 to the selected tower's packed six-byte monster records.
+	moveq	#$00,d4																;Initialises d4 as the zero-based packed/live monster ordinal used in team-table entries.
 UnpackNextMonsterRecord:
 	; Expands one packed six-byte monster record into a sixteen-byte live record.
-	clr.b	MonsterRecord_ActionState(a4)										;422C0005
-	clr.b	MonsterRecord_RotationAndSpace(a4)									;422C0002
-	move.b	(a3)+,d0															;101B
-	subq.b	#PackedMonster_FloorEncodingBias,d0									;5300
-	move.b	d0,d1																;1200
-	lsr.b	#PackedMonster_TypeShift,d1											;E809
-	move.b	d1,MonsterRecord_Type(a4)											;1941000A
-	and.w	#PackedMonster_NibbleMask,d0										;0240000F
-	move.b	d0,MonsterRecord_Floor(a4)											;19400004
-	bsr		adrCd0084DA															;61007A6E
-	moveq	#$00,d7																;7E00
-	move.b	(a3)+,d7															;1E1B
-	move.b	d7,MonsterRecord_XPosition(a4)										;19470000
-	swap	d7																	;4847
-	move.b	(a3)+,d7															;1E1B
-	move.b	d7,MonsterRecord_YPosition(a4)										;19470001
-	btst	#$17,d7																;08070017
-	bne.s	.MonsterPositionHandled												;660A
-	bsr		CoordToMap															;61007A16
-	bset	#$07,$01(a6,d0.w)													;08F600070001
+	clr.b	MonsterRecord_ActionState(a4)										;Clears the live action/status byte before copying data into this monster record.
+	clr.b	MonsterRecord_RotationAndSpace(a4)									;Clears the live rotation/occupied-space byte because it is rebuilt later by movement logic.
+	move.b	(a3)+,d0															;Reads the packed type-and-floor byte and advances a3 to the packed X coordinate.
+	subq.b	#PackedMonster_FloorEncodingBias,d0									;Removes the packed floor encoding bias before splitting type and floor.
+	move.b	d0,d1																;Copies the adjusted packed byte into d1 so its high nibble can be extracted without losing the floor nibble.
+	lsr.b	#PackedMonster_TypeShift,d1											;Shifts the packed high nibble down to produce the monster type code.
+	move.b	d1,MonsterRecord_Type(a4)											;Stores the decoded monster type in the live record's type field.
+	and.w	#PackedMonster_NibbleMask,d0										;Masks off the high nibble, retaining the packed floor number in d0.
+	move.b	d0,MonsterRecord_Floor(a4)											;Stores the decoded floor number in the live monster record.
+	bsr		adrCd0084DA															;Selects the floor-specific map context used for this monster's coordinate conversion.
+	moveq	#$00,d7																;Clears d7 before assembling the packed live X/Y coordinate.
+	move.b	(a3)+,d7															;Reads the packed X byte into the high-byte staging register d7 and advances to packed Y.
+	move.b	d7,MonsterRecord_XPosition(a4)										;Stores the decoded X coordinate in the live monster record.
+	swap	d7																	;Swaps d7 so the staged X coordinate occupies the high word while Y is appended below it.
+	move.b	(a3)+,d7															;Reads the packed X byte into the high-byte staging register d7 and advances to packed Y.
+	move.b	d7,MonsterRecord_YPosition(a4)										;Stores the decoded Y coordinate in the live monster record.
+	btst	#$17,d7																;Tests the packed-coordinate validity bit to detect the $FF/no-position monster sentinel.
+	bne.s	.MonsterPositionHandled												;Skips map occupancy marking when this monster has no valid starting position.
+	bsr		CoordToMap															;Converts the decoded monster X/Y coordinate into a map-cell index.
+	bset	#$07,$01(a6,d0.w)													;Sets the occupied-by-monster bit in the corresponding current-map cell.
 .MonsterPositionHandled:		; Memory Address ($0A8E) and binary offset [$070A]
 	; Continues after packed-coordinate map handling.
 	moveq	#$00,d0																;Clears d0 before reading the packed monster level.
@@ -957,33 +960,33 @@ UnpackNextMonsterRecord:
 	move.b	(a3)+,MonsterRecord_Form(a4)										;Reads the packed monster form/graphic identifier into the live record.
 	bpl.s	CheckMonsterFormForCarriedObject									;Branches to the Zendik special-case check only for non-negative, ordinary monster forms.
 	move.b	#$10,MonsterRecord_ActionCountdown(a4)								;Gives a negative/special form the fixed action countdown used by that special behaviour.
-	bra.s	StoreTeamData														;600E
+	bra.s	StoreTeamData														;Skips the Zendik object check and continues with packed team-data processing.
 
 CheckMonsterFormForCarriedObject:
 	; Handles the monster-form special case that assigns a fixed carried object.
 	cmp.b	#MonsterForm_Zendik,MonsterRecord_Form(a4)							;0C2C0040000B	;
-	bne.s	StoreTeamData														;6606
-	move.b	#Object_AceOfSwords,MonsterRecord_CarriedObject(a4)					;197C0037000C
+	bne.s	StoreTeamData														;Continues normal unpacking when the form is not the Zendik special case.
+	move.b	#Object_AceOfSwords,MonsterRecord_CarriedObject(a4)					;Assigns the Ace of Swords object to Zendik's carried-object field for the unique drop encounter.
 StoreTeamData:		; Memory Address ($0AEC) and binary offset [$0768]
 	; Stores the team-group index derived from packed team-data.
-	moveq	#$00,d0																;7000
-	move.b	(a3)+,d0															;101B
-	cmpi.b	#PackedMonster_NoTeamData,d0										;0C0000FF
-	beq.s	.AdvanceToNextMonster												;6720
-	lea		MonsterTeamIndexTable.l,a0											;41F900017390
-	move.b	d4,$00(a0,d0.w)														;11840000
-	move.b	d0,d1																;1200
-	and.b	#MonsterTeamMember_SlotMask,d1										;02010003
-	tst.b	MonsterRecord_XPosition(a4)											;4A2C0000
-	bmi.s	.AdvanceToNextMonster												;6B0A
-	addq.w	#$01,MonsterTeamIndexTable_CountOffset(a0)							;5268FFFE
-	lsr.b	#MonsterTeamData_GroupShift,d0										;E408
-	move.b	d0,MonsterRecord_TeamGroupIndex(a4)									;1940000D
+	moveq	#$00,d0																;Clears d0 before reading the packed team byte.
+	move.b	(a3)+,d0															;Reads the packed team byte and advances a3 to the next monster record.
+	cmpi.b	#PackedMonster_NoTeamData,d0										;Checks for $FF, the packed marker meaning that this monster has no team data.
+	beq.s	.AdvanceToNextMonster												;Skips team-table insertion for a monster without packed team data.
+	lea		MonsterTeamIndexTable.l,a0											;Loads the base of the team-index table used to map packed team slots to live records.
+	move.b	d4,$00(a0,d0.w)														;Stores this monster's ordinal in the team slot selected by the packed team byte.
+	move.b	d0,d1																;Copies the packed team byte into d1 for slot and group extraction.
+	and.b	#MonsterTeamMember_SlotMask,d1										;Masks the low two bits to select one of the four member slots in the team.
+	tst.b	MonsterRecord_XPosition(a4)											;Tests the live X coordinate so an unpositioned monster is not counted as an active team member.
+	bmi.s	.AdvanceToNextMonster												;Skips team counting and group assignment when the monster has no valid position.
+	addq.w	#$01,MonsterTeamIndexTable_CountOffset(a0)							;Increments the active team-member count stored before the team-index table.
+	lsr.b	#MonsterTeamData_GroupShift,d0										;Shifts away the member-slot bits, leaving the packed team group number.
+	move.b	d0,MonsterRecord_TeamGroupIndex(a4)									;Stores the decoded team group index in the live monster record.
 .AdvanceToNextMonster:		; Memory Address ($0B16) and binary offset [$0792]
 	; Advances to the next packed and live monster record.
 	add.w	#MonsterRecord_Size,a4												;Advances a4 by the $10-byte live monster record size.
 	addq.w	#$01,d4																;Increments the zero-based monster ordinal used by team-table entries.
-	dbra	d6,UnpackNextMonsterRecord											;51CEFF30
+	dbra	d6,UnpackNextMonsterRecord											;Repeats unpacking until d6 has processed every packed monster in this tower.
 	rts																			;Returns after all packed monster records have been expanded and team membership has been rebuilt.
 
 MonsterLevelHitPointMultipliers:		; Memory Address ($0B22) and binary offset [$079E]
@@ -3519,7 +3522,7 @@ Dispatch_PartyAction_AI_TBC:		; Memory Address ($25EE) and binary offset [$226A]
 Clear_PartyActionState_AI_TBC:		; Memory Address ($25FE) and binary offset [$227A]
 	clr.w	$0014(a5)															;426D0014
 	clr.b	$003E(a5)															;422D003E
-	bsr		adrCd008278															;61005C70
+	bsr		Draw_ChampionNamePanelFrame											;61005C70
 Finalize_PartyAction_AI_TBC:		; Memory Address ($260A) and binary offset [$2286]
 	move.w	#$FFFF,$0042(a5)													;3B7CFFFF0042
 	move.w	#$FFFF,$0040(a5)													;3B7CFFFF0040
@@ -6636,7 +6639,7 @@ adrLp004554:		; Memory Address ($4554) and binary offset [$41D0]
 adrCd004574:		; Memory Address ($4574) and binary offset [$41F0]
 	dbra	d7,adrLp004554														;51CFFFDE
 	bsr		Draw_PartyCommandInterface											;610035D6
-	bsr		adrCd008278															;61003CFA
+	bsr		Draw_ChampionNamePanelFrame											;61003CFA
 adrCd004580:		; Memory Address ($4580) and binary offset [$41FC]
 	bsr		adrCd002734															;6100E1B2
 	and.b	#$01,(a5)															;02150001
@@ -7546,7 +7549,7 @@ CastSpell_RefreshChampionStatus:		; Memory Address ($530A) and binary offset [$4
 	; Refreshes the selected champion's displayed status when the post-spell party
 	; lookup returns the active slot.
 	move.w	$0006(a5),d7														;3E2D0006
-	bsr		adrCd00CCD8															;61007D4C
+	bsr		Draw_MainChampionAvatarInnerFrame									;61007D4C
 CastSpell_RecordPractice:		; Memory Address ($5312) and binary offset [$4F8E]
 	; Increments the casting champion's per-spell practice counter with saturation
 	; at $FF.
@@ -8554,7 +8557,7 @@ MovementOffsetTable:		; Memory Address ($5794) and binary offset [$5410]
 
 Click_CloseCurrentPage:		; Memory Address ($57A4) and binary offset [$5420]
 	clr.w	$0014(a5)															;426D0014
-	bra		adrCd008278															;60002ACE
+	bra		Draw_ChampionNamePanelFrame											;60002ACE
 
 Dispatch_PlayerInterfaceActionGuarded:		; Memory Address ($5B30) and binary offset [$57AC]
 	; Checks player state before dispatching the active action.
@@ -8831,7 +8834,7 @@ adrCd005A94:		; Memory Address ($5A94) and binary offset [$5710]
 	bsr		adrCd008498															;610029FE
 	move.w	d6,d7																;3E06
 	bsr		adrCd001DBC															;6100C31C
-	bra		adrCd007FF8															;60002554
+	bra		Draw_CompactStatsFrame												;60002554
 
 SocketActions_TanGem:		; Memory Address ($5AA6) and binary offset [$5722]
 	lea		TanGemLocs.l,a0														;41F900005AFA
@@ -9779,7 +9782,7 @@ Click_MultiFunctionButton:		; Memory Address ($64AA) and binary offset [$6126]
 	beq.s	Resolve_MultiFunctionContext										;670E
 	clr.b	$0011(a4)															;422C0011
 	move.w	$0006(a5),d7														;3E2D0006
-	bsr		adrCd00CCD8															;6100681A
+	bsr		Draw_MainChampionAvatarInnerFrame									;6100681A
 	bra.s	adrCd0064CC															;600A
 
 Resolve_MultiFunctionContext:		; Memory Address ($6846) and binary offset [$64C2]
@@ -9904,7 +9907,7 @@ adrCd0065E8:		; Memory Address ($65E8) and binary offset [$6264]
 	bset	#$04,$0018(a5)														;08ED00040018
 adrCd006608:		; Memory Address ($6608) and binary offset [$6284]
 	move.w	#$FFFF,$0016(a5)													;3B7CFFFF0016
-	bsr		adrCd008278															;61001C68
+	bsr		Draw_ChampionNamePanelFrame											;61001C68
 	bra		Draw_PartyCommandInterface											;6000153C
 
 Click_ShowStats:		; Memory Address ($6616) and binary offset [$6292]
@@ -9956,7 +9959,7 @@ adrCd006682:		; Memory Address ($6682) and binary offset [$62FE]
 
 Click_OpenSpellBook:		; Memory Address ($6684) and binary offset [$6300]
 	; Opens and composes the selected champion's spell-book interface page.
-	bsr		adrCd008258															;61001BD2
+	bsr		Draw_ChampionNamePanelBackground									;61001BD2
 	bsr		Prepare_AndDrawSpellBookSurface										;6100613E
 	bsr.s	adrCd006670															;61E2
 	bsr		adrCd00C85E															;610061CE
@@ -10292,7 +10295,7 @@ Click_Item_17_to_1A_Potions:		; Memory Address ($6914) and binary offset [$6590]
 	add.w	d1,d1																;D241
 	add.w	Potion_LookupTable(pc,d1.w),a0										;D0FB100C
 	jsr		(a0)																;4E90
-	bsr		adrCd007FF8															;610016AC
+	bsr		Draw_CompactStatsFrame												;610016AC
 	bra		Refresh_HeldItemDisplay												;600002E4
 
 Potion_LookupTable:		; Memory Address ($6952) and binary offset [$65CE]
@@ -11240,7 +11243,7 @@ GameEndPicture:
 	clr.w	$0014(a5)															;426D0014
 	move.w	#$FFFF,$0042(a5)													;3B7CFFFF0042
 	bsr		Draw_PartyCommandInterface											;610005AC
-	bsr		adrCd008278															;61000CD0
+	bsr		Draw_ChampionNamePanelFrame											;61000CD0
 	bsr		adrCd002734															;6100B188
 	movem.l	d0-d7/a0-a6,-(sp)													;48E7FFFE
 	link	a3,#-$0020															;4E53FFE0
@@ -11526,7 +11529,7 @@ adrCd0078C0:		; Memory Address ($78C0) and binary offset [$753C]
 	move.w	d3,$0058(a5)														;3B430058
 	move.w	#$0003,$0020(a5)													;3B7C00030020
 	move.b	d0,$0026(a5)														;1B400026
-	bsr		adrCd008278															;6100099A
+	bsr		Draw_ChampionNamePanelFrame											;6100099A
 	clr.b	$0056(a5)															;422D0056
 adrCd0078E4:		; Memory Address ($78E4) and binary offset [$7560]
 	bsr		Draw_PartyCommandInterface											;6100026A
@@ -11606,7 +11609,7 @@ adrLp0079B4:		; Memory Address ($79B4) and binary offset [$7630]
 	move.b	d3,(a3)+															;16C3
 	move.b	MonsterRecord_XPosition(a4),(a3)+									;16EC0000
 	move.b	MonsterRecord_YPosition(a4),(a3)+									;16EC0001
-	move.b	MonsterRecord_BaseLevel(a4),(a3)+									;16EC0006
+	move.b	MonsterRecord_CurrentLevel(a4),(a3)+								;16EC0006
 	move.b	MonsterRecord_Form(a4),(a3)+										;16EC000B
 	move.b	MonsterRecord_TeamGroupIndex(a4),d3									;162C000D
 	bmi.s	adrCd007A06															;6B28
@@ -11755,16 +11758,18 @@ adrCd007B08:		; Memory Address ($7B08) and binary offset [$7784]
 	tst.w	MultiPlayer.l														;4A790000EE30
 	beq.s	adrCd007B20															;6708
 	moveq	#$1F,d5																;7A1F
-	bsr.s	adrCd007B2E															;6112
+	bsr.s	Draw_PartyCommandPanelEdge											;6112
 	move.w	#$0090,d5															;3A3C0090
 adrCd007B20:		; Memory Address ($7B20) and binary offset [$779C]
-	bsr.s	adrCd007B2E															;610C
+	bsr.s	Draw_PartyCommandPanelEdge											;610C
 adrCd007B22:		; Memory Address ($7B22) and binary offset [$779E]
-	bsr		adrCd008278															;61000754
+	bsr		Draw_ChampionNamePanelFrame											;61000754
 	bsr		Draw_PartyCommandInterface											;61000028
 	bra		adrCd008FB8															;6000148C
 
-adrCd007B2E:		; Memory Address ($7B2E) and binary offset [$77AA]
+Draw_PartyCommandPanelEdge:		; Memory Address ($7B2E) and binary offset [$77AA]
+	; Builds the procedural edge around the party-command panel using repeated
+	; horizontal lines.
 	move.l	#$013F0001,d3														;263C013F0001
 adrCd007B34:		; Memory Address ($7B34) and binary offset [$77B0]
 	bsr		BW_blit_horiz_line													;6100604E
@@ -11791,7 +11796,7 @@ Draw_PartyCommandInterface:		; Memory Address ($7B50) and binary offset [$77CC]
 	moveq	#$00,d3																;7600
 	bsr		BW_draw_bar															;61005EF6
 	move.l	#$FFFFFFFF,$005A(a5)												;2B7CFFFFFFFF005A
-	bsr		adrCd00CCBE															;61005140
+	bsr		Draw_MainChampionAvatarPanel										;61005140
 	moveq	#$0A,d5																;7A0A
 	add.w	$0008(a5),d5														;DA6D0008
 	moveq	#$32,d4																;7832
@@ -12245,7 +12250,7 @@ Refresh_DirtyPartyShieldSlots_Loop:		; Memory Address ($7EC2) and binary offset 
 	bsr		Refresh_PartyShieldSlotIfDirty										;6100002A
 	move.w	(sp)+,d7															;3E1F
 	dbra	d7,Refresh_DirtyPartyShieldSlots_Loop								;51CFFFF6
-	bsr		adrCd007FF8															;61000128
+	bsr		Draw_CompactStatsFrame												;61000128
 Draw_PartyShieldChainStrip:		; Memory Address ($7ED2) and binary offset [$7B4E]
 	; Draw the Pockets.gfx chain strip whose gaps accommodate the shield slots.
 	lea		GFX_Pockets+$3C30.l,a1												;43F900050332
@@ -12270,7 +12275,7 @@ adrCd007EF8:		; Memory Address ($7EF8) and binary offset [$7B74]
 
 adrCd007F0A:		; Memory Address ($7F0A) and binary offset [$7B86]
 	tst.w	$0042(a5)															;4A6D0042
-	bpl		adrCd00CCBE															;6A004DAE
+	bpl		Draw_MainChampionAvatarPanel										;6A004DAE
 	moveq	#$00,d3																;7600
 	moveq	#$5F,d4																;785F
 	swap	d4																	;4844
@@ -12279,8 +12284,8 @@ adrCd007F0A:		; Memory Address ($7F0A) and binary offset [$7B86]
 	bsr		BW_draw_bar															;61005B44
 	btst	#$00,$003E(a5)														;082D0000003E
 	bne.s	adrCd007F36															;6608
-	bsr		adrCd00CCBE															;61004D8E
-	bra		adrCd007FF8															;600000C4
+	bsr		Draw_MainChampionAvatarPanel										;61004D8E
+	bra		Draw_CompactStatsFrame												;600000C4
 
 adrCd007F36:		; Memory Address ($7F36) and binary offset [$7BB2]
 	move.l	#$00000230,a0														;207C00000230
@@ -12289,7 +12294,7 @@ adrCd007F36:		; Memory Address ($7F36) and binary offset [$7BB2]
 	bsr		adrCd007E4A															;6100FF02
 	moveq	#$00,d7																;7E00
 	bsr		Draw_SelectedPartyChampionInShield									;61000064
-	bra		adrCd007FF8															;600000A6
+	bra		Draw_CompactStatsFrame												;600000A6
 
 Draw_PartyShieldSlot:		; Memory Address ($7F54) and binary offset [$7BD0]
 	; Choose vacant, selected-living, ordinary, or dead rendering for one party
@@ -12361,7 +12366,9 @@ Draw_ComposedPartyShieldAvatar:		; Memory Address ($7FF4) and binary offset [$7C
 	; Tail-call Draw_ShieldAvatar with the selected living or dead colour state.
 	bra		Draw_ShieldAvatar													;60004DAA
 
-adrCd007FF8:		; Memory Address ($7FF8) and binary offset [$7C74]
+Draw_CompactStatsFrame:		; Memory Address ($7FF8) and binary offset [$7C74]
+	; Builds the compact statistics panel from procedural lines, a background
+	; rectangle, and the packed STATS title graphic.
 	tst.w	$0042(a5)															;4A6D0042
 	bpl.s	Return_PartyShieldDrawing											;6AD6
 	moveq	#$36,d4																;7836
@@ -12441,11 +12448,11 @@ Draw_MainPlayerInterface:		; Memory Address ($80CA) and binary offset [$7D46]
 	lea		$05(a6,d7.w),a6														;4DF67005
 	move.l	#$00040019,d5														;2A3C00040019	;Long Addr replaced with Symbol
 	add.w	$0008(a5),d5														;DA6D0008
-	moveq	#$02,d6																;7C02
-	moveq	#$07,d3																;7607
+	moveq	#CompactStatsBar_LastIndex,d6										;Initialises the three-bar DBRA loop with terminal index 2.
+	moveq	#Player1_CompactStatsColourIndex,d3									;Selects Player 1's hard-coded colour for each compact statistics bar.
 	btst	#$00,(a5)															;08150000
 	beq.s	Draw_CompactStatsBarsLoop											;6702
-	moveq	#$0C,d3																;760C
+	moveq	#Player2_CompactStatsColourIndex,d3									;Selects Player 2's hard-coded colour for each compact statistics bar.
 Draw_CompactStatsBarsLoop:		; Memory Address ($811E) and binary offset [$7D9A]
 	; Draws the three compact player statistics bars using the player-specific
 	; hard-coded colour.
@@ -12586,7 +12593,9 @@ adrCd008246:		; Memory Address ($8246) and binary offset [$7EC2]
 adrCd008256:		; Memory Address ($8256) and binary offset [$7ED2]
 	rts																			;4E75
 
-adrCd008258:		; Memory Address ($8258) and binary offset [$7ED4]
+Draw_ChampionNamePanelBackground:		; Memory Address ($8258) and binary offset [$7ED4]
+	; Clears the right-hand champion name and display panel before its decorative
+	; frame is drawn.
 	or.b	#$0C,$0054(a5)														;002D000C0054
 	bsr		adrCd00CF96															;61004D36
 	move.l	#$005E00E1,d4														;283C005E00E1
@@ -12595,8 +12604,10 @@ adrCd008258:		; Memory Address ($8258) and binary offset [$7ED4]
 	moveq	#$00,d3																;7600
 	bra		BW_draw_bar															;600057F2
 
-adrCd008278:		; Memory Address ($8278) and binary offset [$7EF4]
-	bsr.s	adrCd008258															;61DE
+Draw_ChampionNamePanelFrame:		; Memory Address ($8278) and binary offset [$7EF4]
+	; Draws the champion name-panel bevel, primary-colour name strip, and lower
+	; frame lines.
+	bsr.s	Draw_ChampionNamePanelBackground									;61DE
 	move.w	#$00E2,d4															;383C00E2
 	moveq	#$0A,d5																;7A0A
 	add.w	$0008(a5),d5														;DA6D0008
@@ -12612,15 +12623,17 @@ adrCd00828A:		; Memory Address ($828A) and binary offset [$7F06]
 	move.l	#$00070010,d5														;2A3C00070010
 	add.w	$0008(a5),d5														;DA6D0008
 	move.l	#$005D00E2,d4														;283C005D00E2
-	move.w	$0010(a5),d3														;Loads the active player's primary UI colour for the champion-name background block.
+	move.w	$0010(a5),d3														;362D0010
 	bsr		BW_draw_bar															;610057B4
 	move.w	#$0001,d3															;363C0001
-adrCd0082BA:		; Memory Address ($82BA) and binary offset [$7F36]
+Draw_ChampionNamePanelLowerEdge:		; Memory Address ($82BA) and binary offset [$7F36]
+	; Draws the lower decorative edge and adjacent packed status graphics for the
+	; champion name panel.
 	addq.w	#$01,d5																;5245
 	bsr		BW_blit_horiz_line													;610058C6
 	addq.w	#$01,d3																;5243
 	cmpi.w	#$0005,d3															;0C430005
-	bcs.s	adrCd0082BA															;65F2
+	bcs.s	Draw_ChampionNamePanelLowerEdge										;65F2
 	move.w	$0006(a5),d0														;302D0006
 	bsr		adrCd00CF08															;61004C3A
 	move.l	screen_ptr.l,a0														;207900008D36
@@ -12649,12 +12662,14 @@ adrCd008308:		; Memory Address ($8308) and binary offset [$7F84]
 	add.w	#$0011,d5															;06450011
 	bsr		BW_blit_horiz_line													;6100584C
 	addq.w	#$02,d5																;5445
-adrCd00833C:		; Memory Address ($833C) and binary offset [$7FB8]
+Draw_DungeonDisplayLowerEdge:		; Memory Address ($833C) and binary offset [$7FB8]
+	; Completes the lower dungeon-display edge with procedural lines before drawing
+	; the continuous chain strip.
 	bsr		BW_blit_horiz_line													;61005846
 	addq.w	#$01,d5																;5245
 	addq.w	#$01,d3																;5243
 	cmpi.w	#$0005,d3															;0C430005
-	bcs.s	adrCd00833C															;65F2
+	bcs.s	Draw_DungeonDisplayLowerEdge										;65F2
 	subq.w	#$04,d3																;5943
 	bsr		BW_blit_horiz_line													;61005836
 	bsr.s	adrCd008396															;6144
@@ -18027,7 +18042,7 @@ adrCd00C060:		; Memory Address ($C060) and binary offset [$BCDC]
 	clr.w	$0014(a5)															;426D0014
 	move.l	#$002F00A8,d4														;283C002F00A8
 	moveq	#$09,d5																;7A09
-	bsr.s	adrCd00C0BA															;614C
+	bsr.s	Draw_BevelledPanelFrame												;614C
 	move.l	#$009700A8,d4														;283C009700A8
 	move.l	#$00070058,d5														;2A3C00070058
 	add.w	$0008(a5),d5														;DA6D0008
@@ -18054,12 +18069,14 @@ adrCd00C0AE:		; Memory Address ($C0AE) and binary offset [$BD2A]
 	bne.s	adrCd00C0AE															;66F6
 	rts																			;4E75
 
-adrCd00C0BA:		; Memory Address ($C0BA) and binary offset [$BD36]
+Draw_BevelledPanelFrame:		; Memory Address ($C0BA) and binary offset [$BD36]
+	; Fills a panel rectangle and draws three successively inset grey frame
+	; outlines.
 	add.w	$0008(a5),d5														;DA6D0008
 	swap	d5																	;4845
-	move.w	#$002B,d5															;3A3C002B
+	move.w	#$002B,d5															;Sets vertical terminal count $2B; the panel fill therefore spans $2C rows.
 	swap	d5																	;4845
-	moveq	#$01,d3																;7601
+	moveq	#$01,d3																;Selects palette index $01 for the initial filled panel rectangle.
 	movem.l	d3-d5,-(sp)															;48E71C00
 	bsr		BW_draw_bar															;6100199A
 	movem.l	(sp)+,d3-d5															;4CDF0038
@@ -19091,24 +19108,28 @@ Draw_PlanarGraphic:		; Memory Address ($CCB8) and binary offset [$C934]
 	move.l	d5,-(sp)															;2F05
 	bra		Draw_PlanarGraphicCore												;6000016C
 
-adrCd00CCBE:		; Memory Address ($CCBE) and binary offset [$C93A]
-	move.l	#$002F0000,d4														;283C002F0000
-	moveq	#$0A,d5																;7A0A
-	bsr		adrCd00C0BA															;6100F3F2
+Draw_MainChampionAvatarPanel:		; Memory Address ($CCBE) and binary offset [$C93A]
+	; Composes the main champion panel from its outer bevel, large portrait, and
+	; optional inner frame.
+	move.l	#$002F0000,d4														;Sets outer avatar-panel X=$00 and horizontal terminal count $2F, producing a $30-pixel width.
+	moveq	#$0A,d5																;Sets the outer avatar-panel top edge to player-local Y=$0A.
+	bsr		Draw_BevelledPanelFrame												;6100F3F2
 	move.w	$0006(a5),d7														;3E2D0006
 	moveq	#-$01,d4															;78FF
-	move.l	#$000002A9,a0														;207C000002A9
-	bsr.s	Draw_ChampionLargeAvatar											;6144
-adrCd00CCD8:		; Memory Address ($CCD8) and binary offset [$C954]
+	move.l	#MainChampionAvatar_ScreenByteOffset,a0								;Selects screen byte offset $02A9, which resolves to player-local portrait coordinate ($08,$11).
+	bsr.s	Draw_ChampionLargeAvatar											;Draws only the 32 by 30 champion portrait; the surrounding frames are separate procedural stages.
+Draw_MainChampionAvatarInnerFrame:		; Memory Address ($CCD8) and binary offset [$C954]
+	; Draws the inner large-avatar outline unless the current player state
+	; suppresses it.
 	btst	#$00,$003E(a5)														;082D0000003E
 	bne.s	adrCd00CD12															;6632
 	or.b	#$01,$0054(a5)														;002D00010054
-	move.l	#$0021000F,d5														;2A3C0021000F
+	move.l	#$0021000F,d5														;Sets inner-frame Y=$0F and vertical terminal count $21, producing a $22-pixel height.
 	add.w	$0008(a5),d5														;DA6D0008
-	move.l	#$00230006,d4														;283C00230006
+	move.l	#$00230006,d4														;Sets inner-frame X=$06 and horizontal terminal count $23, producing a $24-pixel width.
 	moveq	#$01,d3																;7601
 	bsr.s	Select_ChampionShieldInkColour										;6104
-	bra		BW_draw_frame														;60000DD8
+	bra		BW_draw_frame														;Draws the optional inner outline after the portrait, using the default or worn-spell-selected ink.
 
 Select_ChampionShieldInkColour:		; Memory Address ($CCFE) and binary offset [$C97A]
 	; Map champion-record byte $11 to the palette ink replacing shield-surround
@@ -19145,7 +19166,7 @@ Draw_ChampionLargeAvatar:		; Memory Address ($CD1C) and binary offset [$C998]
 	sub.w	d7,d0																;9047
 	asl.w	#$04,d0																;E940
 	add.w	d0,a1																;D2C0
-	move.l	#$0001001D,-(sp)													;2F3C0001001D	;Long Addr replaced with Symbol
+	move.l	#ChampionLargeAvatar_DrawDimensions,-(sp)							;2F3C0001001D	;Long Addr replaced with Symbol
 	sub.l	a3,a3																;97CB
 	tst.w	d4																	;4A44
 	bne		Draw_PlanarGraphicCore												;660000E4
