@@ -41,6 +41,18 @@ PLAYER_DATA_UI_PRIMARY_COLOUR_OFFSET = 0x10
 PLAYER_DATA_UI_SECONDARY_COLOUR_OFFSET = 0x12
 PLAYER_UI_PRIMARY_COLOUR_INDICES = (0x07, 0x09)
 PLAYER_UI_SECONDARY_COLOUR_INDICES = (0x08, 0x0C)
+INTERFACE_ACTION_SPELL_BOOK = 0x00
+INTERFACE_ACTION_STATS = 0x01
+INTERFACE_ACTION_MULTI_FUNCTION = 0x02
+INTERFACE_ACTION_INVENTORY = 0x03
+INTERFACE_ACTION_DISPLAY = 0x10
+INTERFACE_ACTION_COMMS_AND_OPTIONS = 0x1A
+INTERFACE_ACTION_PAUSE = 0x1C
+INTERFACE_ACTION_LOAD_SAVE = 0x1D
+INTERFACE_ACTION_SLEEP_PARTY = 0x1E
+INTERFACE_ACTION_SHOW_TEAM_AVATARS = 0x1F
+INTERFACE_ACTION_PARTY_COMMAND_MODE = 0x20
+INTERFACE_ACTION_PARTY_COMMAND_SELECTION = 0x21
 COMPACT_STATS_BAR_COUNT = 3
 PLAYER_COMPACT_STATS_COLOUR_INDICES = (0x07, 0x0C)
 STATS_FRAME_HORIZONTAL_LINES = (
@@ -59,7 +71,11 @@ STATS_FRAME_VERTICAL_LINES = (
     (0x34, 0x10, 0x20, 0x01),
     (0x5C, 0x10, 0x20, 0x01),
 )
+# Draw_CompactStatsFrame's outer fill uses palette index $02.
 STATS_FRAME_FILL = (0x35, 0x10, 0x27, 0x20, 0x02)
+# Draw_MainPlayerInterface then fills the smaller rectangle directly behind
+# the three statistics bars with palette index $03 at memory address $80E8.
+STATS_BARS_BACKGROUND = (0x36, 0x17, 0x25, 0x17, 0x03)
 STATS_BAR_RECTS = ((0x37, 0x19, 0x23, 0x05),) * COMPACT_STATS_BAR_COUNT
 STATS_BAR_Y_STEP = 0x07
 LARGE_AVATAR_PANEL_FILL = (0x00, 0x0A, 0x30, 0x2C, 0x01)
@@ -70,12 +86,24 @@ LARGE_AVATAR_PANEL_FRAMES = (
 )
 LARGE_AVATAR_RECT = (0x08, 0x11, 0x20, 0x1E)
 LARGE_AVATAR_INNER_FRAME = (0x06, 0x0F, 0x24, 0x22, 0x01)
+# Draw_PartyCommandMenu starts at the lower edge of the large avatar panel.
+# These are rendered extents, not the descriptor-stream DBRA counts: each bar
+# begins three pixels below the avatar border, is seven pixels high, and ends
+# at X=$5D. Draw_PartyCommandMenu subsequently draws black vertical lines at
+# X=$5E and X=$5F, leaving two clear pixels before the viewport at X=$60.
+COMMUNICATION_BUTTON_TOP = 0x39
+COMMUNICATION_BUTTON_HEIGHT = 0x07
+COMMUNICATION_BUTTON_ROW_STEP = 0x08
+COMMUNICATION_BUTTON_RIGHT_EDGE = 0x5D
+COMMUNICATION_BACKGROUND_COLOUR_INDEX = 0x02
 COPPER_PLAYER_RASTER_SPLIT_Y = 0x98
 COPPER_FRAME_WRAP_Y = 0xFF
 
-# Native player-local geometry confirmed against the original 2x screenshots.
-# The dungeon and fixed control bank do not move when the left panel toggles.
-DUNGEON_VIEW_RECT = (96, 10, 128, 76)
+# Native player-local geometry confirmed by adrCd008FA4 / adrCd002734: the
+# viewport clear and sleep frame both begin at ($60,$0C), two pixels below the
+# compact-stats top decoration at y=$0A. The dungeon and fixed control bank do
+# not move when the left panel toggles.
+DUNGEON_VIEW_RECT = (96, 12, 128, 76)
 LEFT_PANEL_RECT = (0, 7, 96, 89)
 RIGHT_PANEL_X = 224
 
@@ -137,6 +165,24 @@ ACTION_NAMES = (
     "Handle wall-feature click",
     "Resolve wall-feature context",
 )
+
+# These are the verified labels in BLOODWYCH439_relabel_data.asm's
+# DungeonInterfaceActionTable. Keep the action number and handler together so
+# the viewer cannot silently drift back to an action-number-only description.
+ACTION_ROUTINES = {
+    INTERFACE_ACTION_SPELL_BOOK: "Click_OpenSpellBook",
+    INTERFACE_ACTION_STATS: "Click_ShowStats",
+    INTERFACE_ACTION_MULTI_FUNCTION: "Click_MultiFunctionButton",
+    INTERFACE_ACTION_INVENTORY: "Click_OpenInventory",
+    INTERFACE_ACTION_DISPLAY: "Click_Display",
+    INTERFACE_ACTION_COMMS_AND_OPTIONS: "Click_CommsAndOptions",
+    INTERFACE_ACTION_PAUSE: "Click_PauseGame",
+    INTERFACE_ACTION_LOAD_SAVE: "Click_LoadSaveGame",
+    INTERFACE_ACTION_SLEEP_PARTY: "Click_SleepParty",
+    INTERFACE_ACTION_SHOW_TEAM_AVATARS: "Click_ShowTeamAvatars",
+    INTERFACE_ACTION_PARTY_COMMAND_MODE: "Click_TogglePartyCommandRow",
+    INTERFACE_ACTION_PARTY_COMMAND_SELECTION: "PartyCommand_DispatchSelection",
+}
 
 
 @dataclass(frozen=True)
@@ -406,6 +452,42 @@ SOURCE_REFS = (
         0x6684,
         "Opens and composes the selected champion's spell-book interface page.",
     ),
+    InterfaceSourceRef(
+        "adrJA006616",
+        "Click_ShowStats",
+        0x6616,
+        "Selects statistics mode and draws the full champion statistics page.",
+    ),
+    InterfaceSourceRef(
+        "adrJA00425E",
+        "Click_PauseGame",
+        0x425E,
+        "Pauses the game until either player's pending input resumes it.",
+    ),
+    InterfaceSourceRef(
+        "adrJA00432A",
+        "Click_LoadSaveGame",
+        0x432A,
+        "Replaces the player display with the load/save function-key prompt.",
+    ),
+    InterfaceSourceRef(
+        "adrJA004536",
+        "Click_SleepParty",
+        0x4536,
+        "Clears the dungeon view, draws the sleep frame, and prints THOU ART ASLEEP.",
+    ),
+    InterfaceSourceRef(
+        "adrJA0032DE",
+        "Click_ShowTeamAvatars",
+        0x32DE,
+        "Updates the party-command display and refreshes the team-avatar view.",
+    ),
+    InterfaceSourceRef(
+        "adrCd002734",
+        "Clear_DungeonViewWithFrames",
+        0x2734,
+        "Clears the dungeon view and draws the nested frame used by dead and sleep screens.",
+    ),
 )
 
 
@@ -442,7 +524,7 @@ INTERFACE_MODES = (
         ("main",),
         "source-led",
         ("Click_ShowStats", "Draw_ChampionStats", "Draw_ScrollFrame"),
-        (0x00, 0x01, 0x02, 0x03),
+        (INTERFACE_ACTION_SPELL_BOOK, INTERFACE_ACTION_STATS, INTERFACE_ACTION_MULTI_FUNCTION, INTERFACE_ACTION_INVENTORY),
     ),
     InterfaceMode(
         "spellbook",
@@ -458,7 +540,13 @@ INTERFACE_MODES = (
         ("command",),
         "observed layout",
         ("Draw_PartyCommandInterface", "Draw_PartyCommandMenu"),
-        tuple(range(0x1C, 0x22)),
+        (
+            INTERFACE_ACTION_PAUSE,
+            INTERFACE_ACTION_LOAD_SAVE,
+            INTERFACE_ACTION_SLEEP_PARTY,
+            INTERFACE_ACTION_SHOW_TEAM_AVATARS,
+            INTERFACE_ACTION_PARTY_COMMAND_MODE,
+        ),
     ),
 )
 
@@ -485,8 +573,74 @@ class InterfaceHitbox:
     def action_name(self) -> str:
         return ACTION_NAMES[self.action]
 
+    @property
+    def handler_name(self) -> str:
+        return ACTION_ROUTINES.get(self.action, "Unlabelled action")
+
     def contains(self, x: int, y: int) -> bool:
         return self.x_min <= x <= self.x_max and self.y_min <= y <= self.y_max
+
+
+@dataclass(frozen=True)
+class CommunicationButton:
+    """One source-ordered party-command menu control in player-local pixels."""
+
+    state: int
+    word_index: int
+    label: str
+    x_min: int
+    x_max: int
+    y_min: int
+    y_max: int
+    text_x: int
+
+    @property
+    def width(self) -> int:
+        return self.x_max - self.x_min + 1
+
+    @property
+    def height(self) -> int:
+        return self.y_max - self.y_min + 1
+
+    def contains(self, x: int, y: int) -> bool:
+        return self.x_min <= x <= self.x_max and self.y_min <= y <= self.y_max
+
+
+# WordsText entries $10-$16 and PartyCommand_HandlerOffsets states 1-$07.
+# The visible fills omit source-drawn black borders/separators. The packed
+# source stream advances one 8-pixel character cell before each right word;
+# the viewer's literal GameFont renderer needs a verified two-pixel correction
+# so the visible right text ends at the coloured bar edge rather than trailing
+# over the source's black X=$5E/$5F border.
+COMMUNICATION_BUTTONS = (
+    CommunicationButton(1, 0x10, "COMMUNICATE", 1, COMMUNICATION_BUTTON_RIGHT_EDGE, COMMUNICATION_BUTTON_TOP, COMMUNICATION_BUTTON_TOP + COMMUNICATION_BUTTON_HEIGHT - 1, 0),
+    CommunicationButton(2, 0x11, "COMMEND", 1, 59, COMMUNICATION_BUTTON_TOP + COMMUNICATION_BUTTON_ROW_STEP, COMMUNICATION_BUTTON_TOP + COMMUNICATION_BUTTON_ROW_STEP + COMMUNICATION_BUTTON_HEIGHT - 1, 0),
+    CommunicationButton(3, 0x12, "VIEW", 61, COMMUNICATION_BUTTON_RIGHT_EDGE, COMMUNICATION_BUTTON_TOP + COMMUNICATION_BUTTON_ROW_STEP, COMMUNICATION_BUTTON_TOP + COMMUNICATION_BUTTON_ROW_STEP + COMMUNICATION_BUTTON_HEIGHT - 1, 62),
+    CommunicationButton(4, 0x13, "WAIT", 1, 35, COMMUNICATION_BUTTON_TOP + COMMUNICATION_BUTTON_ROW_STEP * 2, COMMUNICATION_BUTTON_TOP + COMMUNICATION_BUTTON_ROW_STEP * 2 + COMMUNICATION_BUTTON_HEIGHT - 1, 0),
+    CommunicationButton(5, 0x14, "CORRECT", 37, COMMUNICATION_BUTTON_RIGHT_EDGE, COMMUNICATION_BUTTON_TOP + COMMUNICATION_BUTTON_ROW_STEP * 2, COMMUNICATION_BUTTON_TOP + COMMUNICATION_BUTTON_ROW_STEP * 2 + COMMUNICATION_BUTTON_HEIGHT - 1, 38),
+    CommunicationButton(6, 0x15, "DISMISS", 1, 59, COMMUNICATION_BUTTON_TOP + COMMUNICATION_BUTTON_ROW_STEP * 3, COMMUNICATION_BUTTON_TOP + COMMUNICATION_BUTTON_ROW_STEP * 3 + COMMUNICATION_BUTTON_HEIGHT - 1, 0),
+    CommunicationButton(7, 0x16, "CALL", 61, COMMUNICATION_BUTTON_RIGHT_EDGE, COMMUNICATION_BUTTON_TOP + COMMUNICATION_BUTTON_ROW_STEP * 3, COMMUNICATION_BUTTON_TOP + COMMUNICATION_BUTTON_ROW_STEP * 3 + COMMUNICATION_BUTTON_HEIGHT - 1, 62),
+)
+
+
+def communication_button_at(x: int, y: int) -> CommunicationButton | None:
+    """Return the visible party-command control at a player-local coordinate."""
+    return next(
+        (button for button in COMMUNICATION_BUTTONS if button.contains(x, y)), None
+    )
+
+
+def communication_button_handler(
+    button: CommunicationButton, *, character_in_front: bool
+) -> str:
+    """Resolve the source dispatcher branch for a communication button click."""
+    if button.state == 1:
+        return (
+            "Comms_StartWithTarget (Greeting)"
+            if character_in_front
+            else "Interface_ReportCommunicationTargetUnavailable"
+        )
+    return f"PartyCommand_{button.label.title()}"
 
 
 def decode_hitboxes(

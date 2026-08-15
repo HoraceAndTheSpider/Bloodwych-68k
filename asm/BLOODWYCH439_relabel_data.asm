@@ -12421,7 +12421,7 @@ Draw_CompactStatsFrame:		; Memory Address ($7FF8) and binary offset [$7C74]
 	swap	d5																	;4845
 	move.l	#$00260035,d4														;Stats background packs X=$35 with horizontal terminal count $26, drawing $27 pixels wide.
 	moveq	#$02,d3																;Stats background uses palette index $02, the light-grey panel fill.
-	bsr		BW_draw_bar															;610059C4
+	bsr		BW_draw_bar															;Draws the stats background rectangle using the dimensions in D4 and the current palette index in D3.
 	lea		GFX_Pockets+$7580.l,a1												;Selects the pre-drawn `<STATS>` title graphic from GFX_Pockets.
 	move.l	#$00000088,a3														;267C00000088
 	move.l	screen_ptr.l,a0														;207900008D36
@@ -12438,8 +12438,8 @@ Draw_MainPlayerInterface:		; Memory Address ($80CA) and binary offset [$7D46]
 	move.l	#$00240036,d4														;283C00240036
 	move.l	#$00160017,d5														;2A3C00160017
 	add.w	$0008(a5),d5														;DA6D0008
-	moveq	#$03,d3																;7603
-	bsr		BW_draw_bar															;6100597C
+	moveq	#$03,d3																;The stats-bar background uses palette index $03.
+	bsr		BW_draw_bar															;Draws the stats-bar background rectangle using D4 dimensions and D3.
 	btst	#$00,$003E(a5)														;082D0000003E
 	bne		adrCd00815C															;66000066
 	move.w	$0006(a5),d7														;3E2D0006

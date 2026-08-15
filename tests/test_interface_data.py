@@ -2,7 +2,10 @@ from pathlib import Path
 import unittest
 
 from tools.interface_data import (
+    ACTION_ROUTINES,
     ACTION_NAMES,
+    COMMUNICATION_BUTTONS,
+    COMMUNICATION_BACKGROUND_COLOUR_INDEX,
     COMPACT_STATS_BAR_COUNT,
     COPPER_FRAME_WRAP_Y,
     COPPER_PLAYER_RASTER_SPLIT_Y,
@@ -12,6 +15,11 @@ from tools.interface_data import (
     GFX_POCKETS_CHAIN_CONTINUOUS_OFFSET,
     GFX_POCKETS_CHAIN_WITH_AVATARS_OFFSET,
     GFX_POCKETS_SELECTED_PARTY_SHIELD_OFFSET,
+    INTERFACE_ACTION_LOAD_SAVE,
+    INTERFACE_ACTION_PARTY_COMMAND_MODE,
+    INTERFACE_ACTION_PAUSE,
+    INTERFACE_ACTION_SLEEP_PARTY,
+    INTERFACE_ACTION_SHOW_TEAM_AVATARS,
     INTERFACE_MODES,
     LARGE_AVATAR_INNER_FRAME,
     LARGE_AVATAR_PANEL_FILL,
@@ -27,6 +35,7 @@ from tools.interface_data import (
     POCKETS_TRAILING_BINARY_OFFSET,
     POCKETS_TRAILING_MEMORY_ADDRESS,
     STATS_BAR_RECTS,
+    STATS_BARS_BACKGROUND,
     STATS_FRAME_FILL,
     STATS_FRAME_HORIZONTAL_LINES,
     STATS_FRAME_VERTICAL_LINES,
@@ -37,6 +46,8 @@ from tools.interface_data import (
     replace_colour_nibble,
     remap_ui_template_colour,
     screen_byte_offset_to_xy,
+    communication_button_at,
+    communication_button_handler,
 )
 
 
@@ -80,6 +91,17 @@ class InterfaceDataTests(unittest.TestCase):
         self.assertEqual(ACTION_NAMES[0x1C], "Pause game")
         self.assertEqual(ACTION_NAMES[0x20], "Toggle party-command row")
         self.assertEqual(ACTION_NAMES[0x24], "Resolve wall-feature context")
+        self.assertEqual(ACTION_ROUTINES[INTERFACE_ACTION_PAUSE], "Click_PauseGame")
+        self.assertEqual(ACTION_ROUTINES[INTERFACE_ACTION_LOAD_SAVE], "Click_LoadSaveGame")
+        self.assertEqual(ACTION_ROUTINES[INTERFACE_ACTION_SLEEP_PARTY], "Click_SleepParty")
+        self.assertEqual(
+            ACTION_ROUTINES[INTERFACE_ACTION_SHOW_TEAM_AVATARS],
+            "Click_ShowTeamAvatars",
+        )
+        self.assertEqual(
+            ACTION_ROUTINES[INTERFACE_ACTION_PARTY_COMMAND_MODE],
+            "Click_TogglePartyCommandRow",
+        )
 
     def test_interface_modes_select_the_expected_hitbox_groups(self) -> None:
         modes = {mode.key: mode for mode in INTERFACE_MODES}
@@ -92,13 +114,64 @@ class InterfaceDataTests(unittest.TestCase):
         )
         self.assertEqual(
             [item.action for item in self.project.mode_hitboxes(modes["comms"])],
-            list(range(0x1C, 0x22)),
+            [0x1C, 0x1D, 0x1E, 0x1F, 0x20],
+        )
+        self.assertEqual(
+            self.project.hitboxes["command"][4].handler_name,
+            "Click_TogglePartyCommandRow",
         )
 
     def test_observed_main_layout_uses_the_native_dungeon_rectangle(self) -> None:
-        self.assertEqual(DUNGEON_VIEW_RECT, (96, 10, 128, 76))
+        self.assertEqual(DUNGEON_VIEW_RECT, (96, 12, 128, 76))
         self.assertEqual(len(self.project.dungeon_preview), 76)
         self.assertTrue(all(len(row) == 128 for row in self.project.dungeon_preview))
+
+    def test_communication_controls_are_separate_seven_pixel_bars(self) -> None:
+        self.assertEqual(
+            [(button.word_index, button.label) for button in COMMUNICATION_BUTTONS],
+            [
+                (0x10, "COMMUNICATE"),
+                (0x11, "COMMEND"),
+                (0x12, "VIEW"),
+                (0x13, "WAIT"),
+                (0x14, "CORRECT"),
+                (0x15, "DISMISS"),
+                (0x16, "CALL"),
+            ],
+        )
+        self.assertTrue(all(button.height == 7 for button in COMMUNICATION_BUTTONS))
+        self.assertEqual(COMMUNICATION_BUTTONS[0].x_min, 1)
+        self.assertEqual(COMMUNICATION_BACKGROUND_COLOUR_INDEX, 0x02)
+        self.assertEqual(COMMUNICATION_BUTTONS[0].x_max, DUNGEON_VIEW_RECT[0] - 3)
+        self.assertEqual(
+            DUNGEON_VIEW_RECT[0] - COMMUNICATION_BUTTONS[0].x_max - 1,
+            2,
+        )
+        self.assertEqual(
+            sorted({(button.y_min, button.y_max) for button in COMMUNICATION_BUTTONS}),
+            [(57, 63), (65, 71), (73, 79), (81, 87)],
+        )
+        self.assertEqual(
+            COMMUNICATION_BUTTONS[-1].y_max,
+            DUNGEON_VIEW_RECT[1] + DUNGEON_VIEW_RECT[3] - 1,
+        )
+        self.assertEqual(COMMUNICATION_BUTTONS[1].x_max + 2, COMMUNICATION_BUTTONS[2].x_min)
+        self.assertEqual(COMMUNICATION_BUTTONS[3].x_max + 2, COMMUNICATION_BUTTONS[4].x_min)
+        self.assertEqual(
+            [button.text_x for button in COMMUNICATION_BUTTONS],
+            [0, 0, 62, 0, 38, 0, 62],
+        )
+        self.assertEqual(communication_button_at(1, 57).label, "COMMUNICATE")
+        self.assertEqual(communication_button_at(93, 85).label, "CALL")
+        self.assertIsNone(communication_button_at(34, 72))
+        self.assertEqual(
+            communication_button_handler(COMMUNICATION_BUTTONS[0], character_in_front=True),
+            "Comms_StartWithTarget (Greeting)",
+        )
+        self.assertEqual(
+            communication_button_handler(COMMUNICATION_BUTTONS[0], character_in_front=False),
+            "Interface_ReportCommunicationTargetUnavailable",
+        )
 
     def test_selected_party_shield_changes_only_the_surround(self) -> None:
         champion = 0
@@ -167,7 +240,15 @@ class InterfaceDataTests(unittest.TestCase):
         self.assertEqual(STATS_FRAME_HORIZONTAL_LINES[-1], (0x36, 0x35, 0x25, 0x01))
         self.assertEqual(STATS_FRAME_VERTICAL_LINES, ((0x34, 0x10, 0x20, 0x01), (0x5C, 0x10, 0x20, 0x01)))
         self.assertEqual(STATS_FRAME_FILL, (0x35, 0x10, 0x27, 0x20, 0x02))
+        self.assertEqual(STATS_BARS_BACKGROUND, (0x36, 0x17, 0x25, 0x17, 0x03))
         self.assertEqual(STATS_BAR_RECTS, ((0x37, 0x19, 0x23, 0x05),) * 3)
+
+    def test_compact_stats_fill_colour_matches_original_call_site(self) -> None:
+        # The stats-background moveq at memory address $80E8 is file offset
+        # $7D64 in the primary SPS 439 executable.
+        original = (ROOT / "binaries/BLOODWYCH439").read_bytes()
+        self.assertEqual(original[0x7D64 : 0x7D6A], bytes.fromhex("76036100597C"))
+        self.assertEqual(STATS_BARS_BACKGROUND[-1], original[0x7D65])
 
     def test_large_avatar_panel_matches_composite_source_routines(self) -> None:
         self.assertEqual(LARGE_AVATAR_PANEL_FILL, (0x00, 0x0A, 0x30, 0x2C, 0x01))

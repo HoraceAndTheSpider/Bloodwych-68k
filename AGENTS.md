@@ -176,6 +176,18 @@ non-hex comments alone. The original byte comments remain in
 `<PROFILE>_relabel.asm` as the machine-evidence source; human-readable
 instruction comments are a presentation pass on `_relabel_data.asm` only.
 
+## Agent scope boundary for ASM rebuilds
+
+Unless the user explicitly requests a rebuild handoff, the agent must not run
+`relabel`, `inspect`, `format`, `patch`, or the Devpac/68000 assembler. These
+operations are intentionally user-controlled because they can be slow and the
+user performs the final annotated-source regeneration and byte-identity build
+check. For Python viewer/app work, inspect the original ASM and executable
+read-only, implement the Python change, add focused tests, and report any
+source/comment findings. Do not regenerate or hand-edit `_relabel.asm` or
+`_relabel_data.asm`, and do not modify `cleanup.xlsx` as a side effect of a
+Python-only fix, unless the user explicitly asks for those outputs.
+
 ## Resource naming
 
 Use faux extensions consistently:

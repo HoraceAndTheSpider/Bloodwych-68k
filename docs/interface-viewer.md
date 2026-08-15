@@ -42,11 +42,31 @@ The hitbox overlay reads the extracted main, command, and display rectangle
 tables. It is state-aware: movement and dungeon-display rectangles are shown
 only on the ordinary dungeon interface, party-command rectangles only on the
 command state, and page modes retain only the four active page-navigation
-buttons. Every rectangle retains its action number and the corresponding entry
-in the 37-entry `DungeonInterfaceActionTable`. Clicking an overlay rectangle
-shows its inclusive native coordinates, action meaning, and source table.
+buttons. In communication mode the overlay shows the five visible grid
+hot-boxes: pause, load/save, sleep, team avatars, and the wide third-row
+communication toggle. The sixth raw command-table record is the broad
+party-command selection region and is intentionally not drawn as a grid
+hot-box. Every displayed rectangle retains its action number, verified handler
+name, and corresponding entry in the 37-entry `DungeonInterfaceActionTable`.
+Clicking an overlay rectangle invokes the viewer's source-led preview action:
+pause is simulated without blocking the viewer, load/save shows the original
+function-key prompt at the top of the current interface, sleep clears the
+dungeon viewport and draws the framed `THOU ART ASLEEP` state, the team-avatar
+control returns to compact statistics, and the Statistics hit-box opens the
+Statistics mode. The third-row communication toggle has no invented visual
+stand-in: the original only acts while its separate communication-state flag is
+active, so the viewer reports that condition rather than drawing a speculative
+selection frame.
 The overlay starts disabled for an unobstructed layout review; use the
 `Hitboxes` button or press `H` to toggle it.
+
+The sleep reconstruction follows the verified source flow: `Click_SleepParty`
+calls `adrCd002734`, the same shared clear-and-frame routine called before
+`ThouArtDead`, then prints the `ThouArtAsleep` control-coded text stream. Its
+three frame rectangles and text positions are rendered from that routine and
+stream: its clear begins at `(96,12,128,76)`, two pixels below the compact
+stats top decoration; its frame has a two-scanline top and three nested
+side/bottom edges. `THOU ART` is at `(128,32)` and `ASLEEP` at `(136,48)`.
 
 The inventory preview draws the same twelve slots as the source. Slots 0-3
 are left hand, right hand, body armour, and shield. Empty equipment positions

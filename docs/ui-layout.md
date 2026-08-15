@@ -80,6 +80,13 @@ command-row hitboxes. It is scanned with action indices 28 through 33:
 | 32 | change/toggle party-command row (`adrJA004C10`) | `$0038-$0057`, `$0028-$0037` |
 | 33 | select party-command entry | `$0000-$005D`, `$003A-$0057` |
 
+The interface viewer displays the first five records as the visible command
+grid: two boxes on row 1, two on row 2, and one wide box on row 3. The row-3
+box is active only in communication mode and invokes `Click_TogglePartyCommandRow`
+to switch between the two highest communication options. Record 33 remains a
+raw selection region used by the game dispatcher but is not drawn as a sixth
+grid hot-box by the viewer.
+
 `adrEA005864` at memory `$5864` (binary offset `$54E0`) contains three more
 four-word records, scanned as actions 34 through 36 by `HitTest_DisplayAction`:
 
@@ -197,6 +204,9 @@ bottom: ($33,$31,$2B,$01) ($33,$32,$2B,$04) ($33,$33,$2B,$03)
 sides:  ($34,$10,$20,$01) ($5C,$10,$20,$01)
 fill:   ($35,$10,$27,$20,$02)
 ```
+
+The smaller statistics-bar background is then drawn at `($36,$17)` with
+rendered size `$25×$17` in palette index `$03`, directly behind the three bars.
 
 These are rendered extents: the packed high words in the original instructions
 are DBRA terminal counts, so each produces one more pixel than its stored

@@ -16,10 +16,22 @@ from tools.gamefont_converter import glyph_pixels
 from tools.graphics_preview import remap_template_colours
 from tools.interface_data import (
     DIALOGUE_TEXT_PALETTE_INDEX,
+    COMMUNICATION_BUTTONS,
+    COMMUNICATION_BACKGROUND_COLOUR_INDEX,
+    communication_button_at,
+    communication_button_handler,
     DUNGEON_VIEW_RECT,
     GFX_POCKETS_CHAIN_COMMAND_OFFSET,
     GFX_POCKETS_CHAIN_CONTINUOUS_OFFSET,
     GFX_POCKETS_CHAIN_WITH_AVATARS_OFFSET,
+    INTERFACE_ACTION_INVENTORY,
+    INTERFACE_ACTION_LOAD_SAVE,
+    INTERFACE_ACTION_PARTY_COMMAND_MODE,
+    INTERFACE_ACTION_PAUSE,
+    INTERFACE_ACTION_SLEEP_PARTY,
+    INTERFACE_ACTION_SHOW_TEAM_AVATARS,
+    INTERFACE_ACTION_SPELL_BOOK,
+    INTERFACE_ACTION_STATS,
     INTERFACE_MODES,
     INTERFACE_WIDTH,
     LARGE_AVATAR_INNER_FRAME,
@@ -32,6 +44,7 @@ from tools.interface_data import (
     PLAYER_PANEL_HEIGHT,
     STATS_BAR_RECTS,
     STATS_BAR_Y_STEP,
+    STATS_BARS_BACKGROUND,
     STATS_FRAME_FILL,
     STATS_FRAME_HORIZONTAL_LINES,
     STATS_FRAME_VERTICAL_LINES,
@@ -54,6 +67,14 @@ PREVIEW_ORIGIN = (20, 120)
 PREVIEW_FRAME_HEIGHT = 120
 PANEL_FRAME_Y = 8
 PREVIEW_SIZE = (INTERFACE_WIDTH * PREVIEW_SCALE, PREVIEW_FRAME_HEIGHT * PREVIEW_SCALE)
+PAUSE_COLOUR_WORD = 0x0400
+SLEEP_CLEAR_RECT = (96, 12, 128, 76)
+SLEEP_FRAME_OUTER = (96, 12, 128, 76, 4)
+# The sleep frame has three nested side/bottom edges but its top is compressed
+# to two scanlines. Treating every nested edge as a pygame rectangle inflated
+# the top to five scanlines.
+SLEEP_FRAME_MIDDLE = (97, 13, 126, 74, 2)
+SLEEP_FRAME_INNER = (98, 14, 124, 72, 4)
 
 
 class InterfaceViewerError(RuntimeError):
@@ -309,6 +330,14 @@ def _draw_compact_stats_left(
     )
     title = _pockets_crop(project, 0x7580, 48, 6)
     _draw_indexed(pygame, panel, title.pixels, 48, 16, palette, transparent_index=0)
+    background_x, background_y, background_width, background_height, background_colour = (
+        STATS_BARS_BACKGROUND
+    )
+    pygame.draw.rect(
+        panel,
+        palette[background_colour],
+        (background_x, background_y, background_width, background_height),
+    )
     for index, (x, y, width, height) in enumerate(STATS_BAR_RECTS):
         pygame.draw.rect(
             panel,
@@ -514,12 +543,78 @@ def _draw_comms(
             transparent_index=0,
         )
     command_colour = GAME_PALETTE_RGB8[13]
-    for row, text in enumerate(("COMMUNICATE", "COMMAND VIEW", "WAIT CORRECT", "DISMISS CALL")):
-        y = 58 + row * 7
-        pygame.draw.rect(panel, GAME_PALETTE_RGB8[1], (0, y, 94, 6))
-        _draw_gamefont(pygame, panel, project.game_font, text, 1, y, command_colour)
+    for button in COMMUNICATION_BUTTONS:
+        pygame.draw.rect(
+            panel,
+            GAME_PALETTE_RGB8[COMMUNICATION_BACKGROUND_COLOUR_INDEX],
+            (button.x_min, button.y_min, button.width, button.height),
+        )
+        _draw_gamefont(
+            pygame,
+            panel,
+            project.game_font,
+            button.label,
+            button.text_x,
+            button.y_min + 1,
+            command_colour,
+        )
     chain = _pockets_crop(project, GFX_POCKETS_CHAIN_COMMAND_OFFSET, 96, 7)
     _draw_indexed(pygame, panel, chain.pixels, 0, 89, palette)
+
+
+def _draw_load_save_prompt(
+    pygame: object,
+    panel: object,
+    project: InterfaceProject,
+    palette: Sequence[tuple[int, int, int]],
+) -> None:
+    """Model Click_LoadSaveGame's WriteText function-key prompt."""
+    prompt = "F1 - LOAD, F2 - SAVE, F10 - EXIT"
+    _draw_gamefont(pygame, panel, project.game_font, prompt, 1, 0, palette[15])
+
+
+def _draw_sleep_display(
+    pygame: object,
+    panel: object,
+    project: InterfaceProject,
+    palette: Sequence[tuple[int, int, int]],
+) -> None:
+    """Model adrCd002734 followed by Click_SleepParty's text stream."""
+    pygame.draw.rect(panel, palette[0], SLEEP_CLEAR_RECT)
+    x, y, width, height, colour = SLEEP_FRAME_OUTER
+    pygame.draw.rect(panel, palette[colour], (x, y, width, height), 1)
+    x, y, width, height, colour = SLEEP_FRAME_MIDDLE
+    pygame.draw.rect(panel, palette[colour], (x, y, width, height), 1)
+    x, y, width, height, colour = SLEEP_FRAME_INNER
+    pygame.draw.line(panel, palette[colour], (x, y), (x, y + height - 1))
+    pygame.draw.line(
+        panel,
+        palette[colour],
+        (x + width - 1, y),
+        (x + width - 1, y + height - 1),
+    )
+    pygame.draw.line(
+        panel,
+        palette[colour],
+        (x, y + height - 1),
+        (x + width - 1, y + height - 1),
+    )
+    _draw_gamefont(pygame, panel, project.game_font, "THOU ART", 128, 32, palette[10])
+    _draw_gamefont(pygame, panel, project.game_font, "ASLEEP", 136, 48, palette[10])
+
+
+def _replace_colour(
+    pygame: object,
+    surface: object,
+    source: tuple[int, int, int],
+    replacement: tuple[int, int, int],
+) -> None:
+    """Apply a hardware-colour change to pixels already drawn into a preview."""
+    pixels = pygame.PixelArray(surface)
+    try:
+        pixels.replace(surface.map_rgb(source), surface.map_rgb(replacement))
+    finally:
+        del pixels
 
 
 MODE_DRAWERS = {
@@ -539,11 +634,17 @@ def render_interface_panel(
     player: int,
     alternate_ramp: bool,
     ramp_step: int,
+    display_state: str | None = None,
 ) -> tuple[object, tuple[int, int, int]]:
     colour_word = project.colour_word(player, alternate_ramp, ramp_step)
     dialogue_colour = amiga_colour_to_rgb(colour_word)
     primary_colour, secondary_colour, stats_colour = _player_ui_colours(player)
     palette = _palette(dialogue_colour)
+    if display_state == "pause":
+        pause_colour = amiga_colour_to_rgb(PAUSE_COLOUR_WORD)
+        palette[0] = pause_colour
+        palette[15] = pause_colour
+        dialogue_colour = pause_colour
     panel = pygame.Surface((INTERFACE_WIDTH, PLAYER_PANEL_HEIGHT))
     MODE_DRAWERS[mode.key](
         pygame,
@@ -555,20 +656,27 @@ def render_interface_panel(
         stats_colour,
         player,
     )
+    if display_state == "load_save":
+        _draw_load_save_prompt(pygame, panel, project, palette)
+    elif display_state == "sleep":
+        _draw_sleep_display(pygame, panel, project, palette)
     dialogue_sample = (
         "I THINK SO, MY FRIEND"
         if alternate_ramp
         else ("THERE IS NOBODY HERE" if player == 0 else "COME INTO MY MERRY BAND")
     )
-    _draw_gamefont(
-        pygame,
-        panel,
-        project.game_font,
-        dialogue_sample,
-        1,
-        0,
-        dialogue_colour,
-    )
+    if display_state is None:
+        _draw_gamefont(
+            pygame,
+            panel,
+            project.game_font,
+            dialogue_sample,
+            1,
+            0,
+            dialogue_colour,
+        )
+    if display_state == "pause":
+        _replace_colour(pygame, panel, (0, 0, 0), palette[0])
     return panel, dialogue_colour
 
 
@@ -635,8 +743,17 @@ def launch_interface_viewer(
             )
         except StopIteration as error:
             raise InterfaceViewerError(f"unknown interface mode '{initial_mode}'") from error
+        inventory_mode_index = next(
+            index for index, mode in enumerate(INTERFACE_MODES) if mode.key == "inventory"
+        )
         main_mode_index = next(
             index for index, mode in enumerate(INTERFACE_MODES) if mode.key == "main"
+        )
+        stats_mode_index = next(
+            index for index, mode in enumerate(INTERFACE_MODES) if mode.key == "stats"
+        )
+        spellbook_mode_index = next(
+            index for index, mode in enumerate(INTERFACE_MODES) if mode.key == "spellbook"
         )
         command_mode_index = next(
             index for index, mode in enumerate(INTERFACE_MODES) if mode.key == "comms"
@@ -646,6 +763,7 @@ def launch_interface_viewer(
         alternate_ramp = False
         ramp_step = 0
         selected_hitbox: InterfaceHitbox | None = None
+        display_state: str | None = None
         status = "Read-only layout; dialogue-text ramps can be saved to modified data."
 
         player_rects = (pygame.Rect(20, 55, 150, 34), pygame.Rect(180, 55, 150, 34))
@@ -681,6 +799,7 @@ def launch_interface_viewer(
                 player=player,
                 alternate_ramp=alternate_ramp,
                 ramp_step=ramp_step,
+                display_state=display_state,
             )
             framed_panel = frame_interface_panel(pygame, panel)
             chrome_colour, secondary_ui_colour, stats_colour = _player_ui_colours(player)
@@ -735,6 +854,7 @@ def launch_interface_viewer(
             screen.blit(toggle_label, toggle_label.get_rect(center=hitbox_toggle.center))
 
             hovered_hitbox = None
+            hovered_communication = None
             if preview_rect.collidepoint(mouse):
                 native_x = (mouse[0] - preview_rect.x) // PREVIEW_SCALE
                 native_y = (
@@ -748,6 +868,8 @@ def launch_interface_viewer(
                     ),
                     None,
                 )
+                if mode.key == "comms":
+                    hovered_communication = communication_button_at(native_x, native_y)
             if show_hitboxes:
                 overlay = pygame.Surface(PREVIEW_SIZE, pygame.SRCALPHA)
                 for hitbox in project.mode_hitboxes(mode):
@@ -761,8 +883,23 @@ def launch_interface_viewer(
                     colour = (255, 214, 74, 70 if not active else 125)
                     pygame.draw.rect(overlay, colour, rect)
                     pygame.draw.rect(overlay, (255, 224, 92, 230), rect, 1)
-                    number = tiny_font.render(f"{hitbox.action:02X}", True, (0, 0, 0))
+                    number = tiny_font.render(f"{hitbox.action:02X}", True, (255, 255, 255))
                     overlay.blit(number, (rect.x + 2, rect.y + 1))
+                if mode.key == "comms":
+                    for button in COMMUNICATION_BUTTONS:
+                        rect = pygame.Rect(
+                            button.x_min * PREVIEW_SCALE,
+                            (button.y_min + PANEL_FRAME_Y) * PREVIEW_SCALE,
+                            button.width * PREVIEW_SCALE,
+                            button.height * PREVIEW_SCALE,
+                        )
+                        active = button == hovered_communication
+                        pygame.draw.rect(
+                            overlay, (86, 198, 255, 70 if not active else 125), rect
+                        )
+                        pygame.draw.rect(overlay, (126, 218, 255, 230), rect, 1)
+                        label = tiny_font.render(f"{button.word_index:02X}", True, (255, 255, 255))
+                        overlay.blit(label, (rect.x + 2, rect.y + 1))
                 screen.blit(overlay, preview_rect)
 
             info_rect = pygame.Rect(1000, 120, 260, 560)
@@ -791,6 +928,7 @@ def launch_interface_viewer(
                         ("", (0, 0, 0)),
                         (f"Action ${current_hitbox.action:02X}", (255, 216, 92)),
                         (current_hitbox.action_name, (235, 235, 239)),
+                        (current_hitbox.handler_name, (235, 235, 239)),
                         (
                             f"X {current_hitbox.x_min}-{current_hitbox.x_max}",
                             (170, 174, 184),
@@ -915,13 +1053,27 @@ def launch_interface_viewer(
                         ):
                             selected_mode = command_mode_index
                             selected_hitbox = None
+                            display_state = None
                             status = "Compact stats panel toggled to party commands."
-                        elif mode.key == "comms" and pygame.Rect(
-                            56, 40, 32, 16
-                        ).collidepoint(native_x, native_y):
-                            selected_mode = main_mode_index
+                        elif mode.key == "comms" and (
+                            command := communication_button_at(native_x, native_y)
+                        ) is not None:
                             selected_hitbox = None
-                            status = "Triangle control toggled back to compact stats."
+                            if command.state == 1:
+                                # The preview has no decoded live map-character record,
+                                # so it must not claim a target exists. This is the same
+                                # branch that calls Comms_StartWithTarget when one is
+                                # present in the selected front cell.
+                                status = (
+                                    f"{communication_button_handler(command, character_in_front=True)} "
+                                    "when a target is present; target lookup requested; "
+                                    "a front-cell character starts the greeting."
+                                )
+                            else:
+                                status = (
+                                    f"{communication_button_handler(command, character_in_front=False)}: "
+                                    "command selection requested."
+                                )
                         else:
                             selected_hitbox = next(
                                 (
@@ -931,11 +1083,47 @@ def launch_interface_viewer(
                                 ),
                                 None,
                             )
+                            if selected_hitbox is not None:
+                                action = selected_hitbox.action
+                                handler = selected_hitbox.handler_name
+                                if action == INTERFACE_ACTION_STATS:
+                                    selected_mode = stats_mode_index
+                                    display_state = None
+                                    status = f"{handler}: statistics display opened."
+                                elif action == INTERFACE_ACTION_INVENTORY:
+                                    selected_mode = inventory_mode_index
+                                    display_state = None
+                                    status = f"{handler}: inventory display opened."
+                                elif action == INTERFACE_ACTION_SPELL_BOOK:
+                                    selected_mode = spellbook_mode_index
+                                    display_state = None
+                                    status = f"{handler}: spell-book display opened."
+                                elif action == INTERFACE_ACTION_PAUSE:
+                                    display_state = None if display_state == "pause" else "pause"
+                                    status = f"{handler}: pause simulated; the viewer remains responsive."
+                                elif action == INTERFACE_ACTION_LOAD_SAVE:
+                                    display_state = "load_save"
+                                    status = f"{handler}: load/save function-key text displayed."
+                                elif action == INTERFACE_ACTION_SLEEP_PARTY:
+                                    display_state = "sleep"
+                                    status = f"{handler}: dungeon cleared, sleep frame and THOU ART ASLEEP displayed."
+                                elif action == INTERFACE_ACTION_PARTY_COMMAND_MODE:
+                                    status = (
+                                        f"{handler}: active only while the game is in communication state; "
+                                        "no guessed visual substitute is drawn."
+                                    )
+                                elif action == INTERFACE_ACTION_SHOW_TEAM_AVATARS:
+                                    selected_mode = main_mode_index
+                                    display_state = None
+                                    status = f"{handler}: compact stats display restored."
+                                else:
+                                    status = f"{handler}: action selected."
                     else:
                         for index, rect in enumerate(mode_rects):
                             if rect.collidepoint(event.pos):
                                 selected_mode = index
                                 selected_hitbox = None
+                                display_state = None
                                 break
                         for (channel, delta), rect in channel_buttons.items():
                             if rect.collidepoint(event.pos):
