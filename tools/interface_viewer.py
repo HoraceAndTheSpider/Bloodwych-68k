@@ -12,28 +12,40 @@ if not __package__:
     sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
 from tools.champion_data import CLASS_COLOUR_MASKS
+from tools.champion_inventory import render_empty_champion_inventory
+from tools.champion_stats_scroll import render_champion_stats_scroll
 from tools.gamefont_converter import glyph_pixels
-from tools.graphics_preview import remap_template_colours
+from tools.graphics_preview import mirror_pixels, remap_template_colours
 from tools.interface_data import (
     DIALOGUE_TEXT_PALETTE_INDEX,
-    COMMUNICATION_BUTTONS,
     COMMUNICATION_BACKGROUND_COLOUR_INDEX,
+    COMMUNICATION_DEEP_MENU_PAGES,
     communication_button_at,
     communication_button_handler,
+    communication_menu_buttons,
     DUNGEON_VIEW_RECT,
     GFX_POCKETS_CHAIN_COMMAND_OFFSET,
     GFX_POCKETS_CHAIN_CONTINUOUS_OFFSET,
     GFX_POCKETS_CHAIN_WITH_AVATARS_OFFSET,
     INTERFACE_ACTION_INVENTORY,
     INTERFACE_ACTION_LOAD_SAVE,
+    INTERFACE_ACTION_PARTY_MEMBER_FIRST,
+    INTERFACE_ACTION_PARTY_MEMBER_LAST,
     INTERFACE_ACTION_PARTY_COMMAND_MODE,
     INTERFACE_ACTION_PAUSE,
     INTERFACE_ACTION_SLEEP_PARTY,
     INTERFACE_ACTION_SHOW_TEAM_AVATARS,
     INTERFACE_ACTION_SPELL_BOOK,
     INTERFACE_ACTION_STATS,
+    INTERFACE_ACTION_STATS_SCROLL_RETURN,
     INTERFACE_MODES,
     INTERFACE_WIDTH,
+    CHAMPION_NAME_PANEL_BACKGROUND,
+    CHAMPION_NAME_PANEL_LOWER_BEVEL_LINES,
+    CHAMPION_NAME_PANEL_NAME_BAR,
+    CHAMPION_NAME_PANEL_TEXT_POSITION,
+    CHAMPION_NAME_PANEL_UPPER_BEVEL_LINES,
+    FULL_LENGTH_AVATAR_PREVIEW_Y_OFFSET,
     LARGE_AVATAR_INNER_FRAME,
     LARGE_AVATAR_PANEL_FILL,
     LARGE_AVATAR_PANEL_FRAMES,
@@ -41,6 +53,12 @@ from tools.interface_data import (
     PLAYER_COMPACT_STATS_COLOUR_INDICES,
     PLAYER_UI_PRIMARY_COLOUR_INDICES,
     PLAYER_UI_SECONDARY_COLOUR_INDICES,
+    PARTY_COMMAND_ICON_DECORATION_LINES,
+    PARTY_EMPTY_PROFESSION_ICON,
+    PARTY_PENDING_PROFESSION_COLOUR_MASK,
+    PARTY_PROFESSION_ICON_BASE,
+    PARTY_PROFESSION_ICON_POSITIONS,
+    PARTY_SELECTED_PROFESSION_FRAMES,
     PLAYER_PANEL_HEIGHT,
     STATS_BAR_RECTS,
     STATS_BAR_Y_STEP,
@@ -48,6 +66,11 @@ from tools.interface_data import (
     STATS_FRAME_FILL,
     STATS_FRAME_HORIZONTAL_LINES,
     STATS_FRAME_VERTICAL_LINES,
+    RIGHT_STATUS_ICON_BEVEL_LINES,
+    active_party_champion_draw_parameters,
+    body_design_with_worn_armour,
+    click_party_member_preview,
+    promote_preview_avatar_state,
     InterfaceDataError,
     InterfaceHitbox,
     InterfaceMode,
@@ -211,7 +234,7 @@ def _draw_avatar_panel(
     for x, y, width, height, colour in LARGE_AVATAR_PANEL_FRAMES:
         pygame.draw.rect(panel, palette[colour], (x, y, width, height), 1)
 
-    champion = project.preview_character_ids[0]
+    champion = project.active_preview_champion
     avatar_x, avatar_y, _, _ = LARGE_AVATAR_RECT
     _draw_indexed(
         pygame,
@@ -229,6 +252,66 @@ def _draw_avatar_panel(
         palette[frame_colour],
         (frame_x, frame_y, frame_width, frame_height),
         1,
+    )
+
+
+def _draw_active_party_champion(
+    pygame: object,
+    panel: object,
+    project: InterfaceProject,
+    palette: Sequence[tuple[int, int, int]],
+    champion: int,
+    slot: int,
+) -> None:
+    """Draw the selected champion with Draw_Character's slot parameters."""
+    anchor_x, anchor_y, distance = active_party_champion_draw_parameters(slot)
+    worn_body_armour = project.champion_pockets[champion][2]
+    body_design = body_design_with_worn_armour(
+        project.character_assets.body_design(champion), worn_body_armour
+    )
+    for component in project.character_assets.draw_operations(
+        champion,
+        distance=distance,
+        facing=0,
+        render_flags=0,
+        body_design_override=body_design,
+    ):
+        pixels = remap_template_colours(
+            component.operation.sprite.pixels, component.replacements
+        )
+        if component.operation.mirrored:
+            pixels = mirror_pixels(pixels)
+        _draw_indexed(
+            pygame,
+            panel,
+            pixels,
+            anchor_x + component.operation.x,
+            anchor_y + FULL_LENGTH_AVATAR_PREVIEW_Y_OFFSET + component.operation.y,
+            palette,
+            transparent_index=15,
+        )
+
+
+def _draw_selected_main_champion(
+    pygame: object,
+    panel: object,
+    project: InterfaceProject,
+    palette: Sequence[tuple[int, int, int]],
+) -> None:
+    # Refresh_PartyShieldSlotIfDirty takes this path when selected-slot bit 0
+    # is set: two 16x37 Pockets.gfx decorative strips replace the portrait
+    # panel and Draw_ActivePartyChampionInShield anchors the full character at
+    # ($11,$1C), distance zero.
+    panel.fill((0, 0, 0), (0, 10, 48, 44))
+    decoration = _pockets_crop(project, 0x6500, 16, 37)
+    _draw_indexed(
+        pygame, panel, decoration.pixels, 0, 14, palette, transparent_index=15
+    )
+    _draw_indexed(
+        pygame, panel, decoration.pixels, 40, 14, palette, transparent_index=15
+    )
+    _draw_active_party_champion(
+        pygame, panel, project, palette, project.active_preview_champion, 0
     )
 
 
@@ -251,17 +334,35 @@ def _draw_fixed_dungeon_and_controls(
         palette,
     )
 
-    # The right bank is fixed while the left panel toggles. These source crops
-    # reproduce the exact SPS 439 placements at $0544, $067C and $0E04.
-    pygame.draw.rect(panel, GAME_PALETTE_RGB8[1], (224, 9, 96, 3))
-    pygame.draw.rect(panel, GAME_PALETTE_RGB8[2], (226, 13, 94, 4))
-    pygame.draw.rect(panel, primary_colour, (226, 17, 94, 9))
-    name = project.champions.record(project.preview_character_ids[0]).given_name[:7]
-    _draw_gamefont(pygame, panel, project.game_font, name, 238, 18, GAME_PALETTE_RGB8[13])
-    pygame.draw.rect(panel, GAME_PALETTE_RGB8[2], (226, 27, 94, 3))
+    # Draw_ChampionNamePanelFrame draws these with BW_draw_bar followed by two
+    # horizontal-line loops.  The packed source values have already been
+    # converted from DBRA terminal counts to rendered widths/heights.
+    background_x, background_y, background_width, background_height, background_colour = (
+        CHAMPION_NAME_PANEL_BACKGROUND
+    )
+    pygame.draw.rect(
+        panel,
+        palette[background_colour],
+        (background_x, background_y, background_width, background_height),
+    )
+    for x, y, width, colour in CHAMPION_NAME_PANEL_UPPER_BEVEL_LINES:
+        pygame.draw.line(panel, palette[colour], (x, y), (x + width - 1, y))
+    name_x, name_y, name_width, name_height = CHAMPION_NAME_PANEL_NAME_BAR
+    pygame.draw.rect(
+        panel, primary_colour, (name_x, name_y, name_width, name_height)
+    )
+    for x, y, width, colour in CHAMPION_NAME_PANEL_LOWER_BEVEL_LINES:
+        pygame.draw.line(panel, palette[colour], (x, y), (x + width - 1, y))
+    name = project.champions.record(project.active_preview_champion).given_name[:7]
+    name_text_x, name_text_y = CHAMPION_NAME_PANEL_TEXT_POSITION
+    _draw_gamefont(
+        pygame, panel, project.game_font, name, name_text_x, name_text_y, GAME_PALETTE_RGB8[13]
+    )
 
     status = _pockets_crop(project, 0x67C0, 64, 22)
     _draw_indexed(pygame, panel, status.pixels, 224, 33, palette)
+    for x, y, width, colour in RIGHT_STATUS_ICON_BEVEL_LINES:
+        pygame.draw.line(panel, palette[colour], (x, y), (x + width - 1, y))
     for icon, x in ((0x63, 288), (0x62, 304)):
         _draw_indexed(
             pygame,
@@ -276,21 +377,44 @@ def _draw_fixed_dungeon_and_controls(
     controls_offset = 0x6800 if player == 0 else 0x67E0
     controls = _pockets_crop(project, controls_offset, 64, 31)
     _draw_indexed(pygame, panel, controls.pixels, 224, 56, palette)
-    for icon, colour_mask, x, y in (
-        (0x4B, CLASS_COLOUR_MASKS[0], 288, 56),
-        (0x4D, CLASS_COLOUR_MASKS[1], 304, 56),
-        (0x4E, CLASS_COLOUR_MASKS[3], 288, 72),
-        (0x4C, CLASS_COLOUR_MASKS[2], 304, 72),
+    for slot, (champion, (x, y)) in enumerate(
+        zip(project.preview_party_members, PARTY_PROFESSION_ICON_POSITIONS)
     ):
+        if champion is None:
+            pixels = project.pockets.icon(PARTY_EMPTY_PROFESSION_ICON).pixels
+        elif project.preview_champion_is_dead(champion):
+            # Dead members remain in the profession-order array as valid swap
+            # destinations, but the control itself has no profession icon.
+            continue
+        else:
+            colour_mask = (
+                PARTY_PENDING_PROFESSION_COLOUR_MASK
+                if slot == project.pending_preview_party_slot
+                else CLASS_COLOUR_MASKS[project.champions.magic_class_index(champion)]
+            )
+            pixels = remap_template_colours(
+                project.pockets.icon(PARTY_PROFESSION_ICON_BASE + (champion & 3)).pixels,
+                colour_mask,
+            )
         _draw_indexed(
             pygame,
             panel,
-            remap_template_colours(project.pockets.icon(icon).pixels, colour_mask),
+            pixels,
             x,
             y,
             palette,
             transparent_index=0,
         )
+    active_slot = project.preview_party_members.index(project.active_preview_champion)
+    frame_x, frame_y, frame_width, frame_height = PARTY_SELECTED_PROFESSION_FRAMES[
+        active_slot
+    ]
+    pygame.draw.rect(
+        panel,
+        primary_colour,
+        (frame_x, frame_y, frame_width, frame_height),
+        1,
+    )
     chain = _pockets_crop(project, GFX_POCKETS_CHAIN_CONTINUOUS_OFFSET, 96, 7)
     _draw_indexed(pygame, panel, chain.pixels, 224, 89, palette)
 
@@ -303,7 +427,12 @@ def _draw_compact_stats_left(
     stats_colour: tuple[int, int, int],
     player: int,
 ) -> None:
-    _draw_avatar_panel(pygame, panel, project, palette)
+    party_members = project.preview_avatar_members
+    expanded_slots = project.expanded_preview_party_slots
+    if 0 in expanded_slots and not project.preview_avatar_slot_is_dead(0):
+        _draw_selected_main_champion(pygame, panel, project, palette)
+    else:
+        _draw_avatar_panel(pygame, panel, project, palette)
 
     # Draw_CompactStatsFrame ($7FF8) constructs this panel procedurally.
     # Constants below are the rendered extents. The source stores DBRA terminal
@@ -348,37 +477,49 @@ def _draw_compact_stats_left(
     chain = _pockets_crop(project, GFX_POCKETS_CHAIN_WITH_AVATARS_OFFSET, 96, 7)
     _draw_indexed(pygame, panel, chain.pixels, 0, 89, palette)
 
-    # Representative source states: one living champion, one dead champion,
-    # and one vacant party slot. The runtime selects these from PlayerX_Data;
-    # the viewer keeps the three states visible while that live record is not
-    # yet an extracted editor resource.
-    team_ids = project.preview_character_ids[1:]
-    for state, champion, x in zip(
-        ("alive", "dead", "missing"), team_ids, (0, 32, 64)
-    ):
-        if state == "missing":
+    # Draw_PartyShieldSlot uses the composed shield avatar by default.  Its
+    # selected-living path replaces only the clicked slot with the 32x41
+    # surround at $5070 and a real Draw_Character rendering.
+    for slot, champion in enumerate(party_members[1:], start=1):
+        x = (slot - 1) * 32
+        if champion is None:
             shield = project.champions.missing_shield()
             pixels = remap_ui_template_colour(
                 shield.pixels, PLAYER_UI_SECONDARY_COLOUR_INDICES[player]
             )
-        elif state == "alive":
-            pixels = project.champions.shield_avatar(
-                champion,
-                ink15_colour=project.champions.party_shield_ink_colour(champion),
-            ).pixels
-        else:
-            pixels = project.champions.shield_avatar(
-                champion, state="dead"
-            ).pixels
+            _draw_indexed(
+                pygame, panel, pixels, x, 55, palette, transparent_index=0
+            )
+            continue
+        if slot in expanded_slots and not project.preview_avatar_slot_is_dead(slot):
+            selected_frame = _pockets_crop(project, 0x5070, 32, 41)
+            _draw_indexed(
+                pygame,
+                panel,
+                selected_frame.pixels,
+                x,
+                55,
+                palette,
+                transparent_index=15,
+            )
+            _draw_active_party_champion(
+                pygame, panel, project, palette, champion, slot
+            )
+            continue
+        pixels = project.champions.shield_avatar(
+            champion,
+            state="dead" if project.preview_avatar_slot_is_dead(slot) else "alive",
+            ink15_colour=(
+                0
+                if project.preview_avatar_slot_is_dead(slot)
+                else project.champions.party_shield_ink_colour(champion)
+            ),
+        ).pixels
         _draw_indexed(
-            pygame,
-            panel,
-            pixels,
-            x,
-            55,
-            palette,
-            transparent_index=0,
+            pygame, panel, pixels, x, 55, palette, transparent_index=0
         )
+
+
 def _draw_main(
     pygame: object,
     panel: object,
@@ -404,34 +545,29 @@ def _draw_inventory(
     secondary_colour: tuple[int, int, int],
     stats_colour: tuple[int, int, int],
     player: int,
+    inventory_party_slot: int = 0,
 ) -> None:
-    _draw_main(
-        pygame, panel, project, palette,
-        primary_colour, secondary_colour, stats_colour, player,
+    party_members = project.preview_party_members
+    inspected_champion = party_members[inventory_party_slot]
+    if inspected_champion is None:
+        # A vacant $18(a5) slot is not a meaningful inventory record.  Keep
+        # the existing page visible rather than silently treating champion 0
+        # as the selection.
+        inspected_champion = project.active_preview_champion
+    inventory = render_empty_champion_inventory(
+        pygame,
+        pockets=project.pockets,
+        font_data=project.game_font,
+        record=project.champions.record(inspected_champion),
+        champion=inspected_champion,
+        pocket_record=project.champion_pockets[inspected_champion],
+        party_members=party_members,
+        selected_party_slot=inventory_party_slot,
+        secondary_colour_index=PLAYER_UI_SECONDARY_COLOUR_INDICES[player],
+        palette=palette,
+        is_dead=project.preview_champion_is_dead,
     )
-    pygame.draw.rect(panel, (0, 0, 0), (224, 7, 96, 58))
-    _draw_bevel(pygame, panel, (224, 7, 96, 58))
-    _draw_gamefont(
-        pygame, panel, project.game_font, "INVENTORY", 232, 12, primary_colour
-    )
-    for index in range(12):
-        x = 224 + index % 6 * 16
-        y = 32 + index // 6 * 16
-        pixels = project.inventory_slot_pixels(
-            0,
-            index,
-            ui_colour_index=PLAYER_UI_SECONDARY_COLOUR_INDICES[player],
-        )
-        _draw_indexed(
-            pygame,
-            panel,
-            pixels,
-            x,
-            y,
-            palette,
-            transparent_index=0,
-        )
-    pygame.draw.rect(panel, primary_colour, (224, 31, 96, 33), 1)
+    panel.blit(inventory, (224, 7))
 
 
 def _draw_stats(
@@ -444,30 +580,17 @@ def _draw_stats(
     stats_colour: tuple[int, int, int],
     player: int,
 ) -> None:
-    _draw_main(
-        pygame, panel, project, palette,
-        primary_colour, secondary_colour, stats_colour, player,
-    )
     pygame.draw.rect(panel, (0, 0, 0), (224, 7, 96, 89))
-    top = project.scroll_edges["top"]
-    bottom = project.scroll_edges["bottom"]
-    left = project.scroll_edges["left"]
-    right = project.scroll_edges["right"]
-    _draw_indexed(pygame, panel, top.pixels, 224, 9, palette)
-    _draw_indexed(pygame, panel, left.pixels, 224, 24, palette)
-    _draw_indexed(pygame, panel, right.pixels, 304, 24, palette)
-    _draw_indexed(pygame, panel, bottom.pixels, 224, 82, palette)
-    for row, text in enumerate(("HP  42/42", "VI  35/35", "SP  18/18", "FOOD")):
-        _draw_gamefont(
+    panel.blit(
+        render_champion_stats_scroll(
             pygame,
-            panel,
+            project.champions.record(project.active_preview_champion),
+            project.scroll_edges,
             project.game_font,
-            text,
-            232,
-            28 + row * 12,
-            primary_colour if row == 3 else (221, 221, 221),
-        )
-    pygame.draw.rect(panel, (130, 70, 25), (240, 68, 48, 4))
+            palette,
+        ),
+        (224, 9),
+    )
 
 
 def _draw_spellbook(
@@ -480,10 +603,6 @@ def _draw_spellbook(
     stats_colour: tuple[int, int, int],
     player: int,
 ) -> None:
-    _draw_main(
-        pygame, panel, project, palette,
-        primary_colour, secondary_colour, stats_colour, player,
-    )
     pygame.draw.rect(panel, (0, 0, 0), (224, 7, 96, 89))
     book = _pockets_crop(project, 0x4100, 96, 62)
     _draw_indexed(pygame, panel, book.pixels, 224, 9, palette)
@@ -512,23 +631,30 @@ def _draw_comms(
     secondary_colour: tuple[int, int, int],
     stats_colour: tuple[int, int, int],
     player: int,
+    *,
+    menu_page: int,
+    hovered_button: object | None,
 ) -> None:
     _draw_fixed_dungeon_and_controls(
         pygame, panel, project, palette, primary_colour, player
     )
     pygame.draw.rect(panel, (0, 0, 0), (0, 7, 96, 89))
     _draw_avatar_panel(pygame, panel, project, palette)
-    pygame.draw.line(panel, GAME_PALETTE_RGB8[2], (50, 8), (50, 55))
-    pygame.draw.line(panel, GAME_PALETTE_RGB8[10], (53, 10), (53, 53))
-    pygame.draw.line(panel, GAME_PALETTE_RGB8[2], (93, 8), (93, 55))
-    command_icons = (
+    for x, y, dbra_count, colour_index in PARTY_COMMAND_ICON_DECORATION_LINES:
+        pygame.draw.line(
+            panel,
+            GAME_PALETTE_RGB8[colour_index],
+            (x, y),
+            (x, y + dbra_count),
+        )
+    command_icons = [
         (56, 8),
         (72, 8),
         (56, 24),
         (72, 24),
-        (56, 40),
-        (72, 40),
-    )
+    ]
+    if menu_page in COMMUNICATION_DEEP_MENU_PAGES:
+        command_icons.extend(((56, 40), (72, 40)))
     for index, (x, y) in enumerate(command_icons):
         _draw_indexed(
             pygame,
@@ -543,17 +669,19 @@ def _draw_comms(
             transparent_index=0,
         )
     command_colour = GAME_PALETTE_RGB8[13]
-    for button in COMMUNICATION_BUTTONS:
+    for button in communication_menu_buttons(menu_page):
         pygame.draw.rect(
             panel,
-            GAME_PALETTE_RGB8[COMMUNICATION_BACKGROUND_COLOUR_INDEX],
+            primary_colour
+            if button == hovered_button
+            else GAME_PALETTE_RGB8[COMMUNICATION_BACKGROUND_COLOUR_INDEX],
             (button.x_min, button.y_min, button.width, button.height),
         )
         _draw_gamefont(
             pygame,
             panel,
             project.game_font,
-            button.label,
+            button.display_text,
             button.text_x,
             button.y_min + 1,
             command_colour,
@@ -617,13 +745,35 @@ def _replace_colour(
         del pixels
 
 
-MODE_DRAWERS = {
-    "main": _draw_main,
+RIGHT_MODE_DRAWERS = {
     "inventory": _draw_inventory,
     "stats": _draw_stats,
     "spellbook": _draw_spellbook,
-    "comms": _draw_comms,
 }
+
+
+def _active_mode_hitboxes(
+    project: InterfaceProject,
+    mode: InterfaceMode,
+    *,
+    comms_menu_page: int,
+    right_mode_key: str = "main",
+) -> tuple[InterfaceHitbox, ...]:
+    """Apply the communication and right-panel visibility rules to hitboxes."""
+    hitboxes = tuple(
+        hitbox
+        for hitbox in project.mode_hitboxes(mode)
+        if (
+            (hitbox.action != INTERFACE_ACTION_PARTY_COMMAND_MODE
+             or comms_menu_page in COMMUNICATION_DEEP_MENU_PAGES)
+            and (right_mode_key == "main" or not 0x00 <= hitbox.action <= 0x0F)
+        )
+    )
+    if right_mode_key == "stats":
+        return hitboxes + project.hitboxes["stats_scroll"]
+    if right_mode_key == "inventory":
+        return hitboxes + project.hitboxes["inventory"]
+    return hitboxes
 
 
 def render_interface_panel(
@@ -635,6 +785,10 @@ def render_interface_panel(
     alternate_ramp: bool,
     ramp_step: int,
     display_state: str | None = None,
+    comms_menu_page: int = 0,
+    comms_hovered_button: object | None = None,
+    right_mode_key: str | None = None,
+    inventory_party_slot: int = 0,
 ) -> tuple[object, tuple[int, int, int]]:
     colour_word = project.colour_word(player, alternate_ramp, ramp_step)
     dialogue_colour = amiga_colour_to_rgb(colour_word)
@@ -646,16 +800,57 @@ def render_interface_panel(
         palette[15] = pause_colour
         dialogue_colour = pause_colour
     panel = pygame.Surface((INTERFACE_WIDTH, PLAYER_PANEL_HEIGHT))
-    MODE_DRAWERS[mode.key](
-        pygame,
-        panel,
-        project,
-        palette,
-        primary_colour,
-        secondary_colour,
-        stats_colour,
-        player,
+    left_mode_key = "comms" if mode.key == "comms" else "main"
+    resolved_right_mode_key = right_mode_key or (
+        mode.key if mode.key in RIGHT_MODE_DRAWERS else "main"
     )
+    if left_mode_key == "comms":
+        _draw_comms(
+            pygame,
+            panel,
+            project,
+            palette,
+            primary_colour,
+            secondary_colour,
+            stats_colour,
+            player,
+            menu_page=comms_menu_page,
+            hovered_button=comms_hovered_button,
+        )
+    else:
+        _draw_main(
+            pygame,
+            panel,
+            project,
+            palette,
+            primary_colour,
+            secondary_colour,
+            stats_colour,
+            player,
+        )
+    if resolved_right_mode_key == "inventory":
+        _draw_inventory(
+            pygame,
+            panel,
+            project,
+            palette,
+            primary_colour,
+            secondary_colour,
+            stats_colour,
+            player,
+            inventory_party_slot,
+        )
+    elif resolved_right_mode_key in RIGHT_MODE_DRAWERS:
+        RIGHT_MODE_DRAWERS[resolved_right_mode_key](
+            pygame,
+            panel,
+            project,
+            palette,
+            primary_colour,
+            secondary_colour,
+            stats_colour,
+            player,
+        )
     if display_state == "load_save":
         _draw_load_save_prompt(pygame, panel, project, palette)
     elif display_state == "sleep":
@@ -743,27 +938,25 @@ def launch_interface_viewer(
             )
         except StopIteration as error:
             raise InterfaceViewerError(f"unknown interface mode '{initial_mode}'") from error
-        inventory_mode_index = next(
-            index for index, mode in enumerate(INTERFACE_MODES) if mode.key == "inventory"
-        )
         main_mode_index = next(
             index for index, mode in enumerate(INTERFACE_MODES) if mode.key == "main"
-        )
-        stats_mode_index = next(
-            index for index, mode in enumerate(INTERFACE_MODES) if mode.key == "stats"
-        )
-        spellbook_mode_index = next(
-            index for index, mode in enumerate(INTERFACE_MODES) if mode.key == "spellbook"
         )
         command_mode_index = next(
             index for index, mode in enumerate(INTERFACE_MODES) if mode.key == "comms"
         )
+        if initial_mode in RIGHT_MODE_DRAWERS:
+            selected_mode = main_mode_index
+            right_mode_key = initial_mode
+        else:
+            right_mode_key = "main"
         player = initial_player
         show_hitboxes = False
         alternate_ramp = False
         ramp_step = 0
         selected_hitbox: InterfaceHitbox | None = None
         display_state: str | None = None
+        comms_menu_page = 0
+        inventory_party_slot = 0
         status = "Read-only layout; dialogue-text ramps can be saved to modified data."
 
         player_rects = (pygame.Rect(20, 55, 150, 34), pygame.Rect(180, 55, 150, 34))
@@ -792,6 +985,15 @@ def launch_interface_viewer(
         while running:
             mouse = pygame.mouse.get_pos()
             mode = INTERFACE_MODES[selected_mode]
+            comms_hovered_button = None
+            if mode.key == "comms" and preview_rect.collidepoint(mouse):
+                native_x = (mouse[0] - preview_rect.x) // PREVIEW_SCALE
+                native_y = (
+                    (mouse[1] - preview_rect.y) // PREVIEW_SCALE - PANEL_FRAME_Y
+                )
+                comms_hovered_button = communication_button_at(
+                    native_x, native_y, menu_page=comms_menu_page
+                )
             panel, dialogue_colour = render_interface_panel(
                 pygame,
                 project,
@@ -800,6 +1002,10 @@ def launch_interface_viewer(
                 alternate_ramp=alternate_ramp,
                 ramp_step=ramp_step,
                 display_state=display_state,
+                comms_menu_page=comms_menu_page,
+                comms_hovered_button=comms_hovered_button,
+                right_mode_key=right_mode_key,
+                inventory_party_slot=inventory_party_slot,
             )
             framed_panel = frame_interface_panel(pygame, panel)
             chrome_colour, secondary_ui_colour, stats_colour = _player_ui_colours(player)
@@ -828,7 +1034,12 @@ def launch_interface_viewer(
                 screen.blit(label, label.get_rect(center=rect.center))
 
             for index, rect in enumerate(mode_rects):
-                active = selected_mode == index
+                mode_key = INTERFACE_MODES[index].key
+                active = (
+                    right_mode_key == mode_key
+                    if mode_key in RIGHT_MODE_DRAWERS
+                    else selected_mode == index and right_mode_key == "main"
+                )
                 pygame.draw.rect(
                     screen,
                     (61, 105, 166) if active else (49, 53, 62),
@@ -863,16 +1074,28 @@ def launch_interface_viewer(
                 hovered_hitbox = next(
                     (
                         hitbox
-                        for hitbox in project.mode_hitboxes(mode)
+                        for hitbox in _active_mode_hitboxes(
+                            project,
+                            mode,
+                            comms_menu_page=comms_menu_page,
+                            right_mode_key=right_mode_key,
+                        )
                         if hitbox.contains(native_x, native_y)
                     ),
                     None,
                 )
                 if mode.key == "comms":
-                    hovered_communication = communication_button_at(native_x, native_y)
+                    hovered_communication = communication_button_at(
+                        native_x, native_y, menu_page=comms_menu_page
+                    )
             if show_hitboxes:
                 overlay = pygame.Surface(PREVIEW_SIZE, pygame.SRCALPHA)
-                for hitbox in project.mode_hitboxes(mode):
+                for hitbox in _active_mode_hitboxes(
+                    project,
+                    mode,
+                    comms_menu_page=comms_menu_page,
+                    right_mode_key=right_mode_key,
+                ):
                     rect = pygame.Rect(
                         hitbox.x_min * PREVIEW_SCALE,
                         (hitbox.y_min + PANEL_FRAME_Y) * PREVIEW_SCALE,
@@ -886,7 +1109,7 @@ def launch_interface_viewer(
                     number = tiny_font.render(f"{hitbox.action:02X}", True, (255, 255, 255))
                     overlay.blit(number, (rect.x + 2, rect.y + 1))
                 if mode.key == "comms":
-                    for button in COMMUNICATION_BUTTONS:
+                    for button in communication_menu_buttons(comms_menu_page):
                         rect = pygame.Rect(
                             button.x_min * PREVIEW_SCALE,
                             (button.y_min + PANEL_FRAME_Y) * PREVIEW_SCALE,
@@ -1054,20 +1277,29 @@ def launch_interface_viewer(
                             selected_mode = command_mode_index
                             selected_hitbox = None
                             display_state = None
+                            comms_menu_page = 0
                             status = "Compact stats panel toggled to party commands."
                         elif mode.key == "comms" and (
-                            command := communication_button_at(native_x, native_y)
+                            command := communication_button_at(
+                                native_x, native_y, menu_page=comms_menu_page
+                            )
                         ) is not None:
                             selected_hitbox = None
-                            if command.state == 1:
-                                # The preview has no decoded live map-character record,
-                                # so it must not claim a target exists. This is the same
-                                # branch that calls Comms_StartWithTarget when one is
-                                # present in the selected front cell.
+                            if comms_menu_page == 0 and command.state == 1:
+                                # The preview has no decoded live map-character record.
+                                # Enter its explicit conversation-preview state without
+                                # asserting that an actual target occupies the front cell.
+                                # In the game, PartyCommand_Communicate reaches this
+                                # branch only after Interface_CheckSelectedCellInteraction
+                                # finds a valid character or monster.
+                                comms_menu_page = 4
                                 status = (
-                                    f"{communication_button_handler(command, character_in_front=True)} "
-                                    "when a target is present; target lookup requested; "
-                                    "a front-cell character starts the greeting."
+                                    f"{communication_button_handler(command, character_in_front=True)} preview: "
+                                    "greeting branch; Recruit communication page opened."
+                                )
+                            elif comms_menu_page in COMMUNICATION_DEEP_MENU_PAGES:
+                                status = (
+                                    f"Comms action ${command.state:02X} ({command.label}) selected."
                                 )
                             else:
                                 status = (
@@ -1078,7 +1310,12 @@ def launch_interface_viewer(
                             selected_hitbox = next(
                                 (
                                     hitbox
-                                    for hitbox in project.mode_hitboxes(mode)
+                                for hitbox in _active_mode_hitboxes(
+                                    project,
+                                    mode,
+                                    comms_menu_page=comms_menu_page,
+                                    right_mode_key=right_mode_key,
+                                )
                                     if hitbox.contains(native_x, native_y)
                                 ),
                                 None,
@@ -1086,16 +1323,110 @@ def launch_interface_viewer(
                             if selected_hitbox is not None:
                                 action = selected_hitbox.action
                                 handler = selected_hitbox.handler_name
-                                if action == INTERFACE_ACTION_STATS:
-                                    selected_mode = stats_mode_index
+                                if selected_hitbox.group == "inventory":
+                                    assert selected_hitbox.party_slot is not None
+                                    inventory_party_slot = selected_hitbox.party_slot
+                                    inspected = project.preview_party_members[inventory_party_slot]
+                                    selected_hitbox = None
+                                    status = (
+                                        f"Inventory party slot {inventory_party_slot + 1} selected; "
+                                        + (
+                                            "that champion's empty pocket layout is now displayed."
+                                            if inspected is not None
+                                            else "the empty profession target is selected; the current leader's record remains displayed."
+                                        )
+                                    )
+                                elif action == INTERFACE_ACTION_STATS_SCROLL_RETURN:
+                                    right_mode_key = "main"
+                                    selected_hitbox = None
+                                    status = (
+                                        "Statistics scroll dismissed; normal name and movement panel restored."
+                                    )
+                                elif selected_hitbox.group == "avatars":
+                                    slot = selected_hitbox.party_slot
+                                    assert slot is not None
+                                    if slot in project.expanded_preview_party_slots:
+                                        project.expanded_preview_party_slots.remove(slot)
+                                        status = (
+                                            f"{handler}: compact avatar restored for party slot {slot + 1}."
+                                        )
+                                    else:
+                                        project.expanded_preview_party_slots.add(slot)
+                                        status = (
+                                            f"{handler}: full-length avatar enabled for party slot {slot + 1}."
+                                        )
+                                elif action == INTERFACE_ACTION_STATS:
+                                    right_mode_key = "stats"
                                     display_state = None
                                     status = f"{handler}: statistics display opened."
                                 elif action == INTERFACE_ACTION_INVENTORY:
-                                    selected_mode = inventory_mode_index
+                                    right_mode_key = "inventory"
                                     display_state = None
+                                    inventory_party_slot = 0
                                     status = f"{handler}: inventory display opened."
+                                elif (
+                                    INTERFACE_ACTION_PARTY_MEMBER_FIRST
+                                    <= action
+                                    <= INTERFACE_ACTION_PARTY_MEMBER_LAST
+                                ):
+                                    previous_party_members = project.preview_party_members
+                                    previous_pending_slot = project.pending_preview_party_slot
+                                    previous_leader = project.active_preview_champion
+                                    clicked_slot = (
+                                        action - INTERFACE_ACTION_PARTY_MEMBER_FIRST
+                                    )
+                                    clicked_champion = previous_party_members[clicked_slot]
+                                    (
+                                        project.preview_party_members,
+                                        project.pending_preview_party_slot,
+                                        project.active_preview_champion,
+                                    ) = click_party_member_preview(
+                                        project.preview_party_members,
+                                        project.pending_preview_party_slot,
+                                        project.active_preview_champion,
+                                        action,
+                                        blocked_leader_ids=project.preview_dead_champion_ids,
+                                    )
+                                    if project.preview_party_members == previous_party_members and (
+                                        project.pending_preview_party_slot
+                                        == previous_pending_slot
+                                    ):
+                                        if project.preview_champion_is_dead(clicked_champion):
+                                            status = (
+                                                f"{handler}: dead party member cannot become lead; "
+                                                "select a living member first to swap into this position."
+                                            )
+                                        else:
+                                            status = (
+                                                f"{handler}: vacant party slot; "
+                                                "the source routine leaves the current selection unchanged."
+                                            )
+                                    elif project.pending_preview_party_slot is not None:
+                                        status = (
+                                            f"{handler}: party slot {project.pending_preview_party_slot + 1} "
+                                            "selected; click it again to make that champion current."
+                                        )
+                                    elif previous_pending_slot == (
+                                        clicked_slot
+                                    ):
+                                        project.preview_avatar_state_bytes = (
+                                            promote_preview_avatar_state(
+                                                project.preview_avatar_state_bytes,
+                                                previous_leader,
+                                                project.active_preview_champion,
+                                            )
+                                        )
+                                        status = (
+                                            f"{handler}: champion made current; "
+                                            "the profession frame and left avatar slots were refreshed."
+                                        )
+                                    else:
+                                        status = (
+                                            f"{handler}: party positions swapped; "
+                                            "selection cancelled as in the source routine."
+                                        )
                                 elif action == INTERFACE_ACTION_SPELL_BOOK:
-                                    selected_mode = spellbook_mode_index
+                                    right_mode_key = "spellbook"
                                     display_state = None
                                     status = f"{handler}: spell-book display opened."
                                 elif action == INTERFACE_ACTION_PAUSE:
@@ -1105,25 +1436,47 @@ def launch_interface_viewer(
                                     display_state = "load_save"
                                     status = f"{handler}: load/save function-key text displayed."
                                 elif action == INTERFACE_ACTION_SLEEP_PARTY:
+                                    # Click_SleepParty resets $0042(a5) and $0040(a5)
+                                    # to $FFFF before it redraws the party-command
+                                    # interface and normal champion-name panel.
+                                    selected_mode = main_mode_index
+                                    right_mode_key = "main"
+                                    comms_menu_page = 0
                                     display_state = "sleep"
-                                    status = f"{handler}: dungeon cleared, sleep frame and THOU ART ASLEEP displayed."
-                                elif action == INTERFACE_ACTION_PARTY_COMMAND_MODE:
+                                    project.expanded_preview_party_slots.clear()
                                     status = (
-                                        f"{handler}: active only while the game is in communication state; "
-                                        "no guessed visual substitute is drawn."
+                                        f"{handler}: compact stats and the normal name/control "
+                                        "panel restored; dungeon cleared for THOU ART ASLEEP."
+                                    )
+                                elif action == INTERFACE_ACTION_PARTY_COMMAND_MODE:
+                                    comms_menu_page = 5 if comms_menu_page == 4 else 4
+                                    status = (
+                                        f"{handler}: switched to "
+                                        f"{'Trading' if comms_menu_page == 5 else 'Recruit'} page."
                                     )
                                 elif action == INTERFACE_ACTION_SHOW_TEAM_AVATARS:
                                     selected_mode = main_mode_index
+                                    right_mode_key = "main"
                                     display_state = None
+                                    comms_menu_page = 0
                                     status = f"{handler}: compact stats display restored."
                                 else:
                                     status = f"{handler}: action selected."
                     else:
                         for index, rect in enumerate(mode_rects):
                             if rect.collidepoint(event.pos):
-                                selected_mode = index
+                                selected_key = INTERFACE_MODES[index].key
+                                if selected_key in RIGHT_MODE_DRAWERS:
+                                    right_mode_key = selected_key
+                                    if selected_key == "inventory":
+                                        inventory_party_slot = 0
+                                else:
+                                    selected_mode = index
+                                    right_mode_key = "main"
                                 selected_hitbox = None
                                 display_state = None
+                                if selected_key != "comms":
+                                    comms_menu_page = 0
                                 break
                         for (channel, delta), rect in channel_buttons.items():
                             if rect.collidepoint(event.pos):

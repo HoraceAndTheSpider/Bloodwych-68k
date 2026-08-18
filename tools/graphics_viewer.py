@@ -13,6 +13,8 @@ from tools.champion_data import (
     PROFESSION_NAMES,
     ChampionAssets,
 )
+from tools.champion_inventory import render_empty_champion_inventory
+from tools.champion_stats_scroll import render_champion_stats_scroll
 from tools.data_overlay import (
     DataOverlayPath,
     data_overlay_root,
@@ -1938,196 +1940,42 @@ def launch_graphics_viewer(
                             pygame.Rect(body_rect.x + 28, body_rect.y + 8, 74, 134),
                         )
 
-                    # Assemble the stats scroll from the four extracted native
-                    # edge strips.  The central area remains deliberately
-                    # plain so the GameFont values are readable.
-                    # Tall source geometry used by Click_ShowStats (D5=$38):
-                    # top/bottom = 96x15, with 57 rendered side rows at X=0
-                    # and X=80.  The resulting 96x87 scroll is shown at 2x.
+                    # The shared renderer follows Draw_ChampionStats and
+                    # Click_ShowStats at native resolution before scaling it
+                    # for this data-viewer inspection panel.
                     scroll_rect = pygame.Rect(592, 132, 192, 174)
-                    pygame.draw.rect(screen, (0, 0, 0), scroll_rect)
-                    # The background bar is drawn by BW_draw_bar with d3=3.
-                    pygame.draw.rect(
-                        screen,
-                        GAME_PALETTE_RGB8[3],
-                        pygame.Rect(
-                            scroll_rect.x,
-                            scroll_rect.y + 30,
-                            scroll_rect.width,
-                            114,
-                        ),
-                    )
-                    def scroll_pixels(name: str) -> list[list[int]]:
-                        # Scroll edge masks use colour 15 for transparent
-                        # pixels.  In this black-backed preview those pixels
-                        # should remain black rather than the palette's
-                        # diagnostic magenta.
-                        return [
-                            [0 if value == TRANSPARENT_INDEX else value for value in row]
-                            for row in champion_assets.scroll_edges[name].pixels
-                        ]
-
-                    edge_top = scroll_pixels("top")
-                    edge_bottom = scroll_pixels("bottom")
-                    edge_left = scroll_pixels("left")[:57]
-                    edge_right = scroll_pixels("right")[:57]
-                    draw_scaled_indexed(
-                        pygame, screen, edge_top,
-                        pygame.Rect(scroll_rect.x, scroll_rect.y, 192, 30),
-                    )
-                    draw_scaled_indexed(
-                        pygame, screen, edge_bottom,
-                        pygame.Rect(scroll_rect.x, scroll_rect.bottom - 30, 192, 30),
-                    )
-                    draw_scaled_indexed(
-                        pygame, screen, edge_left,
-                        pygame.Rect(scroll_rect.x, scroll_rect.y + 30, 32, 114),
-                    )
-                    draw_scaled_indexed(
-                        pygame, screen, edge_right,
-                        pygame.Rect(scroll_rect.x + 160, scroll_rect.y + 30, 32, 114),
-                    )
-
-                    # adrEA00CBD2 is a Print_fflim_text command stream.  Draw
-                    # its visible content using the exact palette indices and
-                    # the raw GameFont glyphs $00/$01 around the level value.
-                    game_font_data = champion_assets.game_font
-                    advance = 16
-
-                    def stat_segments(
-                        y: int,
-                        segments: Sequence[tuple[str | Sequence[int], int]],
-                    ) -> None:
-                        x = scroll_rect.x + 32
-                        for value, palette_index in segments:
-                            if isinstance(value, str):
-                                codes = tuple(ord(character) for character in value)
-                            else:
-                                codes = tuple(value)
-                            draw_gamefont_codes(
-                                pygame,
-                                screen,
-                                game_font_data,
-                                codes,
-                                x,
-                                y,
-                                GAME_PALETTE_RGB8[palette_index],
-                                scale=2,
-                            )
-                            x += len(codes) * advance
-
-                    stat_segments(
-                        scroll_rect.y + 32,
-                        (
-                            ("LEVEL", 13),
-                            ((0x00, 0x01), 1),
-                            (f"{record.byte(0x00):02d}", 14),
-                        ),
-                    )
-                    stat_segments(
-                        scroll_rect.y + 50,
-                        (
-                            ("ST", 7),
-                            (f"{record.byte(0x01):02d}", 13),
-                            ("-", 1),
-                            ("AG", 7),
-                            (f"{record.byte(0x02):02d}", 13),
-                        ),
-                    )
-                    stat_segments(
-                        scroll_rect.y + 68,
-                        (
-                            ("IN", 7),
-                            (f"{record.byte(0x03):02d}", 13),
-                            ("-", 1),
-                            ("CH", 7),
-                            (f"{record.byte(0x04):02d}", 13),
-                        ),
-                    )
-                    stat_segments(
-                        scroll_rect.y + 86,
-                        (
-                            ("HP", 0),
-                            (f"{record.byte(0x05):3d}", 14),
-                            ("/", 1),
-                            (f"{record.byte(0x06):3d}", 6),
-                        ),
-                    )
-                    stat_segments(
-                        scroll_rect.y + 104,
-                        (
-                            ("VI ", 0),
-                            (f"{record.byte(0x07):2d}", 14),
-                            ("/", 1),
-                            (f"{record.byte(0x08):2d}", 6),
-                        ),
-                    )
-
-                    # Click_ShowStats prints adrEA00E9E8 beneath the main
-                    # statistics.  Its six blank character cells define the
-                    # 48-pixel native food-bar span between glyphs $02/$03.
-                    draw_gamefont_text(
+                    stats_scroll = render_champion_stats_scroll(
                         pygame,
-                        screen,
-                        game_font_data,
-                        "FOOD",
-                        scroll_rect.x + 64,
-                        scroll_rect.y + 118,
-                        GAME_PALETTE_RGB8[13],
-                        scale=2,
+                        record,
+                        champion_assets.scroll_edges,
+                        champion_assets.game_font,
+                        GAME_PALETTE_RGB8,
                     )
-                    draw_gamefont_codes(
-                        pygame,
-                        screen,
-                        game_font_data,
-                        (0x02,),
-                        scroll_rect.x + 60,
-                        scroll_rect.y + 134,
-                        GAME_PALETTE_RGB8[4],
-                        scale=2,
-                    )
-                    draw_gamefont_codes(
-                        pygame,
-                        screen,
-                        game_font_data,
-                        (0x03,),
-                        scroll_rect.x + 172,
-                        scroll_rect.y + 134,
-                        GAME_PALETTE_RGB8[4],
-                        scale=2,
-                    )
-                    food_width = min(
-                        96,
-                        (record.byte(0x10) * 96) // 0xC7,
-                    )
-                    if food_width:
-                        pygame.draw.rect(
-                            screen,
-                            GAME_PALETTE_RGB8[9],
-                            pygame.Rect(
-                                scroll_rect.x + 76,
-                                scroll_rect.y + 135,
-                                food_width,
-                                8,
-                            ),
-                        )
+                    screen.blit(pygame.transform.scale(stats_scroll, scroll_rect.size), scroll_rect)
 
-                    # The inventory/object panel is intentionally limited to
-                    # the spellbook until pocket contents are implemented.
+                    # This is the same source-sized empty inventory surface
+                    # used by the Interface Viewer. Stored-object overlays are
+                    # intentionally deferred, but the semantic slot pictures,
+                    # armour modifier, held pocket and profession strip are
+                    # shared instead of being approximated twice.
                     inventory_rect = pygame.Rect(820, 145, 210, 148)
                     pygame.draw.rect(screen, (0, 0, 0), inventory_rect)
-                    book = champion_assets.pockets.custom("inventory_spellbook_open")
-                    draw_scaled_indexed(
+                    inventory = render_empty_champion_inventory(
                         pygame,
-                        screen,
-                        [
-                            [
-                                0 if value == TRANSPARENT_INDEX else value
-                                for value in row
-                            ]
-                            for row in book.pixels
-                        ],
-                        pygame.Rect(inventory_rect.x + 4, inventory_rect.y + 8, 196, 128),
+                        pockets=champion_assets.pockets,
+                        font_data=champion_assets.game_font,
+                        record=record,
+                        champion=selected_character,
+                        pocket_record=champion_assets.pocket_record(selected_character),
+                        party_members=(selected_character, None, None, None),
+                        selected_party_slot=0,
+                        secondary_colour_index=0x08,
+                        palette=GAME_PALETTE_RGB8,
+                    )
+                    scaled_inventory = pygame.transform.scale(inventory, (144, 134))
+                    screen.blit(
+                        scaled_inventory,
+                        (inventory_rect.x + 33, inventory_rect.y + 7),
                     )
 
                     profession = PROFESSION_NAMES[profession_index]
@@ -2156,7 +2004,7 @@ def launch_graphics_viewer(
                     )
                     screen.blit(
                         small_font.render(
-                            "Inventory uses blank Pockets.gfx icons only; object decoding comes later.",
+                            "Shared source-sized empty inventory; stored-object overlays come later.",
                             True,
                             (170, 174, 184),
                         ),

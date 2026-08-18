@@ -668,8 +668,15 @@ class CharacterAssets:
         distance: int = 0,
         facing: int = 0,
         render_flags: int = 0,
+        body_design_override: int | None = None,
     ) -> list[CharacterDrawOperation]:
-        body_index = self.body_design(character)
+        body_index = (
+            self.body_design(character)
+            if body_design_override is None
+            else body_design_override
+        )
+        if not 0 <= body_index < len(self.body_definitions):
+            raise ValueError("body design override references an unknown definition")
         head_index = self.head_design(character)
         layout_selector, legs_offset, torso_offset, arms_offset, distant_offset = (
             self.body_definitions[body_index]
@@ -819,6 +826,7 @@ def render_character_preview(
     distance: int = 0,
     facing: int = 0,
     render_flags: int = 0,
+    body_design_override: int | None = None,
     anchor_x: int,
     anchor_y: int,
 ) -> tuple[list[list[int]], dict[str, object]]:
@@ -826,7 +834,11 @@ def render_character_preview(
     canvas = [list(row) for row in background]
     records: list[dict[str, object]] = []
     for component in assets.draw_operations(
-        character, distance=distance, facing=facing, render_flags=render_flags
+        character,
+        distance=distance,
+        facing=facing,
+        render_flags=render_flags,
+        body_design_override=body_design_override,
     ):
         operation = component.operation
         pixels = remap_template_colours(operation.sprite.pixels, component.replacements)
@@ -847,8 +859,20 @@ def render_character_preview(
         )
     return canvas, {
         "character": character,
-        "body_design": assets.body_design(character),
-        "body_layout": "alternate" if assets.body_layout(character) else "standard",
+        "body_design": (
+            assets.body_design(character)
+            if body_design_override is None
+            else body_design_override
+        ),
+        "body_layout": (
+            "alternate"
+            if assets.body_definitions[
+                assets.body_design(character)
+                if body_design_override is None
+                else body_design_override
+            ][0]
+            else "standard"
+        ),
         "head_design": assets.head_design(character),
         "palettes": [list(palette) for palette in assets.palettes(character)],
         "requested_game_anchor": [anchor_x, anchor_y],

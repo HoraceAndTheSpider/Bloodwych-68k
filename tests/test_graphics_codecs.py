@@ -394,6 +394,20 @@ class GraphicsCodecTests(unittest.TestCase):
         self.assertEqual(metadata["head_design"], 15)
         self.assertEqual(len(metadata["operations"]), 5)
 
+    def test_character_renderer_accepts_the_source_selected_armour_body(self) -> None:
+        assets = CharacterAssets(CHARACTER_DATA_DIR, GFX_DIR)
+        background = load_floor_ceiling_background(GFX_DIR)
+        _, metadata = render_character_preview(
+            background,
+            assets,
+            0,
+            body_design_override=4,
+            anchor_x=17,
+            anchor_y=28,
+        )
+        self.assertEqual(metadata["body_design"], 4)
+        self.assertEqual(metadata["body_layout"], "alternate")
+
     def test_new_beholder_split_partitions_and_round_trips(self) -> None:
         assets = BeholderAssets(MONSTERS_DIR)
         self.assertEqual(
