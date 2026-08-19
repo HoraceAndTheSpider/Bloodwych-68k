@@ -12,10 +12,14 @@ if not __package__:
     sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
 from tools.champion_data import CLASS_COLOUR_MASKS
-from tools.champion_inventory import render_empty_champion_inventory
+from tools.champion_inventory import (
+    INVENTORY_INGAME_CONTENT_RECT,
+    render_empty_ingame_champion_inventory,
+)
 from tools.champion_stats_scroll import render_champion_stats_scroll
 from tools.gamefont_converter import glyph_pixels
 from tools.graphics_preview import mirror_pixels, remap_template_colours
+from tools.pygame_window import set_scaled_fullscreen
 from tools.interface_data import (
     DIALOGUE_TEXT_PALETTE_INDEX,
     COMMUNICATION_BACKGROUND_COLOUR_INDEX,
@@ -28,6 +32,12 @@ from tools.interface_data import (
     GFX_POCKETS_CHAIN_CONTINUOUS_OFFSET,
     GFX_POCKETS_CHAIN_WITH_AVATARS_OFFSET,
     INTERFACE_ACTION_INVENTORY,
+    INTERFACE_ACTION_INVENTORY_EXIT,
+    INTERFACE_ACTION_INVENTORY_HELD_SLOT,
+    INTERFACE_ACTION_INVENTORY_PARTY_MEMBER_FIRST,
+    INTERFACE_ACTION_INVENTORY_PARTY_MEMBER_LAST,
+    INTERFACE_ACTION_INVENTORY_SLOT_FIRST,
+    INTERFACE_ACTION_INVENTORY_SLOT_LAST,
     INTERFACE_ACTION_LOAD_SAVE,
     INTERFACE_ACTION_PARTY_MEMBER_FIRST,
     INTERFACE_ACTION_PARTY_MEMBER_LAST,
@@ -164,6 +174,20 @@ def _draw_gamefont(
                 if value:
                     surface.set_at((x + column, y + row), colour)
         x += 8
+
+
+def _draw_hitbox_id(
+    pygame: object,
+    surface: object,
+    font_data: bytes,
+    action: int,
+    x: int,
+    y: int,
+) -> None:
+    """Stamp a readable hitbox ID without blitting a font surface."""
+    text = f"{action:02X}"
+    _draw_gamefont(pygame, surface, font_data, text, x + 1, y + 1, (12, 14, 18))
+    _draw_gamefont(pygame, surface, font_data, text, x, y, (255, 255, 255))
 
 
 def _pockets_crop(project: InterfaceProject, offset: int, width: int, height: int):
@@ -315,6 +339,46 @@ def _draw_selected_main_champion(
     )
 
 
+def _draw_champion_name_panel_top(
+    pygame: object,
+    panel: object,
+    project: InterfaceProject,
+    palette: Sequence[tuple[int, int, int]],
+    primary_colour: tuple[int, int, int],
+    champion: int,
+) -> None:
+    """Draw the upper `Draw_ChampionNamePanelFrame` portion for one champion."""
+    background_x, background_y, background_width, _, background_colour = (
+        CHAMPION_NAME_PANEL_BACKGROUND
+    )
+    # The lower fade finishes at Y=28.  Keeping this limited to the top frame
+    # lets Click_OpenInventory retain its inventory cells at Y=29 onwards.
+    pygame.draw.rect(
+        panel,
+        palette[background_colour],
+        (background_x, background_y, background_width, 20),
+    )
+    for x, y, width, colour in CHAMPION_NAME_PANEL_UPPER_BEVEL_LINES:
+        pygame.draw.line(panel, palette[colour], (x, y), (x + width - 1, y))
+    name_x, name_y, name_width, name_height = CHAMPION_NAME_PANEL_NAME_BAR
+    pygame.draw.rect(
+        panel, primary_colour, (name_x, name_y, name_width, name_height)
+    )
+    for x, y, width, colour in CHAMPION_NAME_PANEL_LOWER_BEVEL_LINES:
+        pygame.draw.line(panel, palette[colour], (x, y), (x + width - 1, y))
+    name = project.champions.record(champion).given_name[:7]
+    name_text_x, name_text_y = CHAMPION_NAME_PANEL_TEXT_POSITION
+    _draw_gamefont(
+        pygame,
+        panel,
+        project.game_font,
+        name,
+        name_text_x,
+        name_text_y,
+        GAME_PALETTE_RGB8[13],
+    )
+
+
 def _draw_fixed_dungeon_and_controls(
     pygame: object,
     panel: object,
@@ -334,9 +398,8 @@ def _draw_fixed_dungeon_and_controls(
         palette,
     )
 
-    # Draw_ChampionNamePanelFrame draws these with BW_draw_bar followed by two
-    # horizontal-line loops.  The packed source values have already been
-    # converted from DBRA terminal counts to rendered widths/heights.
+    # Draw_ChampionNamePanelFrame first clears the full right-side panel.  Its
+    # reusable top section is also retained by Click_OpenInventory.
     background_x, background_y, background_width, background_height, background_colour = (
         CHAMPION_NAME_PANEL_BACKGROUND
     )
@@ -345,18 +408,13 @@ def _draw_fixed_dungeon_and_controls(
         palette[background_colour],
         (background_x, background_y, background_width, background_height),
     )
-    for x, y, width, colour in CHAMPION_NAME_PANEL_UPPER_BEVEL_LINES:
-        pygame.draw.line(panel, palette[colour], (x, y), (x + width - 1, y))
-    name_x, name_y, name_width, name_height = CHAMPION_NAME_PANEL_NAME_BAR
-    pygame.draw.rect(
-        panel, primary_colour, (name_x, name_y, name_width, name_height)
-    )
-    for x, y, width, colour in CHAMPION_NAME_PANEL_LOWER_BEVEL_LINES:
-        pygame.draw.line(panel, palette[colour], (x, y), (x + width - 1, y))
-    name = project.champions.record(project.active_preview_champion).given_name[:7]
-    name_text_x, name_text_y = CHAMPION_NAME_PANEL_TEXT_POSITION
-    _draw_gamefont(
-        pygame, panel, project.game_font, name, name_text_x, name_text_y, GAME_PALETTE_RGB8[13]
+    _draw_champion_name_panel_top(
+        pygame,
+        panel,
+        project,
+        palette,
+        primary_colour,
+        project.active_preview_champion,
     )
 
     status = _pockets_crop(project, 0x67C0, 64, 22)
@@ -554,7 +612,17 @@ def _draw_inventory(
         # the existing page visible rather than silently treating champion 0
         # as the selection.
         inspected_champion = project.active_preview_champion
-    inventory = render_empty_champion_inventory(
+    # The name frame is the normal movement-panel frame, not the title-and-two
+    # chain layout of Draw_InventoryPanel used by the selection/Data Viewer.
+    _draw_champion_name_panel_top(
+        pygame,
+        panel,
+        project,
+        palette,
+        primary_colour,
+        inspected_champion,
+    )
+    inventory = render_empty_ingame_champion_inventory(
         pygame,
         pockets=project.pockets,
         font_data=project.game_font,
@@ -567,7 +635,12 @@ def _draw_inventory(
         palette=palette,
         is_dead=project.preview_champion_is_dead,
     )
-    panel.blit(inventory, (224, 7))
+    content_x, content_y, _, _ = INVENTORY_INGAME_CONTENT_RECT
+    panel.blit(
+        inventory,
+        (224 + content_x, 7 + content_y),
+        area=INVENTORY_INGAME_CONTENT_RECT,
+    )
 
 
 def _draw_stats(
@@ -772,7 +845,21 @@ def _active_mode_hitboxes(
     if right_mode_key == "stats":
         return hitboxes + project.hitboxes["stats_scroll"]
     if right_mode_key == "inventory":
-        return hitboxes + project.hitboxes["inventory"]
+        inventory_hitboxes = tuple(
+            hitbox
+            for hitbox in project.hitboxes["inventory"]
+            if not (
+                INTERFACE_ACTION_INVENTORY_PARTY_MEMBER_FIRST
+                <= hitbox.action
+                <= INTERFACE_ACTION_INVENTORY_PARTY_MEMBER_LAST
+                and (
+                    hitbox.party_slot is None
+                    or (champion := project.preview_party_members[hitbox.party_slot]) is None
+                    or project.preview_champion_is_dead(champion)
+                )
+            )
+        )
+        return hitboxes + inventory_hitboxes
     return hitboxes
 
 
@@ -922,7 +1009,7 @@ def launch_interface_viewer(
 
     pygame.init()
     try:
-        screen = pygame.display.set_mode(WINDOW_SIZE)
+        screen = set_scaled_fullscreen(pygame, WINDOW_SIZE)
         pygame.display.set_caption("Bloodwych ReSource - Interface Viewer / Editor")
         title_font = pygame.font.SysFont(None, 30)
         font = pygame.font.SysFont(None, 21)
@@ -1089,7 +1176,6 @@ def launch_interface_viewer(
                         native_x, native_y, menu_page=comms_menu_page
                     )
             if show_hitboxes:
-                overlay = pygame.Surface(PREVIEW_SIZE, pygame.SRCALPHA)
                 for hitbox in _active_mode_hitboxes(
                     project,
                     mode,
@@ -1102,13 +1188,29 @@ def launch_interface_viewer(
                         hitbox.width * PREVIEW_SCALE,
                         hitbox.height * PREVIEW_SCALE,
                     )
+                    rect.move_ip(preview_rect.x, preview_rect.y)
                     active = hitbox in (hovered_hitbox, selected_hitbox)
-                    colour = (255, 214, 74, 70 if not active else 125)
-                    pygame.draw.rect(overlay, colour, rect)
-                    pygame.draw.rect(overlay, (255, 224, 92, 230), rect, 1)
-                    number = tiny_font.render(f"{hitbox.action:02X}", True, (255, 255, 255))
-                    overlay.blit(number, (rect.x + 2, rect.y + 1))
+                    # Draw directly onto the scaled preview.  In particular,
+                    # do not blit an otherwise transparent full-preview
+                    # surface here: some display backends replace the
+                    # inventory pixels beneath that surface.
+                    pygame.draw.rect(
+                        screen,
+                        (255, 224, 92),
+                        rect,
+                        2 if active else 1,
+                    )
+                    _draw_hitbox_id(
+                        pygame,
+                        screen,
+                        project.game_font,
+                        hitbox.action,
+                        rect.x + 2,
+                        rect.y + 1,
+                    )
                 if mode.key == "comms":
+                    overlay = pygame.Surface(PREVIEW_SIZE, pygame.SRCALPHA)
+                    overlay.fill((0, 0, 0, 0))
                     for button in communication_menu_buttons(comms_menu_page):
                         rect = pygame.Rect(
                             button.x_min * PREVIEW_SCALE,
@@ -1123,7 +1225,7 @@ def launch_interface_viewer(
                         pygame.draw.rect(overlay, (126, 218, 255, 230), rect, 1)
                         label = tiny_font.render(f"{button.word_index:02X}", True, (255, 255, 255))
                         overlay.blit(label, (rect.x + 2, rect.y + 1))
-                screen.blit(overlay, preview_rect)
+                    screen.blit(overlay, preview_rect)
 
             info_rect = pygame.Rect(1000, 120, 260, 560)
             pygame.draw.rect(screen, (15, 17, 21), info_rect)
@@ -1324,18 +1426,49 @@ def launch_interface_viewer(
                                 action = selected_hitbox.action
                                 handler = selected_hitbox.handler_name
                                 if selected_hitbox.group == "inventory":
-                                    assert selected_hitbox.party_slot is not None
-                                    inventory_party_slot = selected_hitbox.party_slot
-                                    inspected = project.preview_party_members[inventory_party_slot]
-                                    selected_hitbox = None
-                                    status = (
-                                        f"Inventory party slot {inventory_party_slot + 1} selected; "
-                                        + (
-                                            "that champion's empty pocket layout is now displayed."
-                                            if inspected is not None
-                                            else "the empty profession target is selected; the current leader's record remains displayed."
+                                    if (
+                                        INTERFACE_ACTION_INVENTORY_PARTY_MEMBER_FIRST
+                                        <= action
+                                        <= INTERFACE_ACTION_INVENTORY_PARTY_MEMBER_LAST
+                                    ):
+                                        assert selected_hitbox.party_slot is not None
+                                        inventory_party_slot = selected_hitbox.party_slot
+                                        inspected = project.preview_party_members[inventory_party_slot]
+                                        selected_hitbox = None
+                                        if (
+                                            inspected is None
+                                            or project.preview_champion_is_dead(inspected)
+                                        ):
+                                            # The active-hitbox filter prevents this in
+                                            # normal use; retain the guard for any
+                                            # programmatic hitbox activation.
+                                            status = "Vacant or dead inventory party target ignored."
+                                        else:
+                                            status = (
+                                                f"Inventory party slot {inventory_party_slot + 1} selected; "
+                                                "that champion's empty pocket layout is now displayed."
+                                            )
+                                    elif action == INTERFACE_ACTION_INVENTORY_EXIT:
+                                        right_mode_key = "main"
+                                        selected_hitbox = None
+                                        status = (
+                                            "Inventory dismissed; normal name and walking controls restored."
                                         )
-                                    )
+                                    elif action == INTERFACE_ACTION_INVENTORY_HELD_SLOT:
+                                        selected_hitbox = None
+                                        status = (
+                                            "Held-item pocket selected; object pickup/drop handling is not yet overlaid."
+                                        )
+                                    elif (
+                                        INTERFACE_ACTION_INVENTORY_SLOT_FIRST
+                                        <= action
+                                        <= INTERFACE_ACTION_INVENTORY_SLOT_LAST
+                                    ):
+                                        selected_hitbox = None
+                                        slot = action - INTERFACE_ACTION_INVENTORY_SLOT_FIRST
+                                        status = (
+                                            f"Inventory slot {slot + 1} selected; object pickup/drop handling is not yet overlaid."
+                                        )
                                 elif action == INTERFACE_ACTION_STATS_SCROLL_RETURN:
                                     right_mode_key = "main"
                                     selected_hitbox = None
@@ -1344,17 +1477,22 @@ def launch_interface_viewer(
                                     )
                                 elif selected_hitbox.group == "avatars":
                                     slot = selected_hitbox.party_slot
-                                    assert slot is not None
-                                    if slot in project.expanded_preview_party_slots:
-                                        project.expanded_preview_party_slots.remove(slot)
+                                    if slot is None:
+                                        project.expanded_preview_party_slots.clear()
                                         status = (
-                                            f"{handler}: compact avatar restored for party slot {slot + 1}."
+                                            f"{handler}: compact statistics display restored."
                                         )
                                     else:
-                                        project.expanded_preview_party_slots.add(slot)
-                                        status = (
-                                            f"{handler}: full-length avatar enabled for party slot {slot + 1}."
-                                        )
+                                        if slot in project.expanded_preview_party_slots:
+                                            project.expanded_preview_party_slots.remove(slot)
+                                            status = (
+                                                f"{handler}: compact avatar restored for party slot {slot + 1}."
+                                            )
+                                        else:
+                                            project.expanded_preview_party_slots.add(slot)
+                                            status = (
+                                                f"{handler}: full-length avatar enabled for party slot {slot + 1}."
+                                            )
                                 elif action == INTERFACE_ACTION_STATS:
                                     right_mode_key = "stats"
                                     display_state = None

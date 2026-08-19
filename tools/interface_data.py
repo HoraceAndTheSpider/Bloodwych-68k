@@ -64,6 +64,10 @@ INTERFACE_ACTION_PARTY_COMMAND_SELECTION = 0x21
 # viewer-only IDs outside the original $00-$21 action space.
 INTERFACE_ACTION_INVENTORY_PARTY_MEMBER_FIRST = 0x106
 INTERFACE_ACTION_INVENTORY_PARTY_MEMBER_LAST = 0x109
+INTERFACE_ACTION_INVENTORY_SLOT_FIRST = 0x10A
+INTERFACE_ACTION_INVENTORY_SLOT_LAST = 0x115
+INTERFACE_ACTION_INVENTORY_HELD_SLOT = 0x116
+INTERFACE_ACTION_INVENTORY_EXIT = 0x117
 # This is a viewer-only action, deliberately outside the source dispatcher.
 # The original state-specific scroll return record has not yet been located.
 INTERFACE_ACTION_STATS_SCROLL_RETURN = 0xFF
@@ -209,14 +213,17 @@ COPPER_FRAME_WRAP_Y = 0xFF
 DUNGEON_VIEW_RECT = (96, 12, 128, 76)
 LEFT_PANEL_RECT = (0, 7, 96, 89)
 RIGHT_PANEL_X = 224
-# Click_CommsAndOptions ($420C) toggles PlayerX_Data+$003E bits for the large
-# portrait and the three lower shield slots. These presentation hitboxes are
-# procedural, not records in Interface_Hitboxes_Main.
+# Click_CommsAndOptions ($420C) is one source action, not four actions.  It
+# derives bit 0--3 from the click position for the large portrait and the
+# three lower shield slots.  A click over the compact-stat area (X >= $30)
+# clears the presentation bits instead. These regions are procedural, not
+# records in Interface_Hitboxes_Main.
 PARTY_AVATAR_PRESENTATION_HITBOXES = (
     (0x1A, 0, 47, 10, 53, 0, "Toggle full-length large avatar"),
     (0x1A, 0, 31, 55, 95, 1, "Toggle full-length front-right avatar"),
     (0x1A, 32, 63, 55, 95, 2, "Toggle full-length back-right avatar"),
     (0x1A, 64, 95, 55, 95, 3, "Toggle full-length back-left avatar"),
+    (0x1A, 48, 95, 10, 53, None, "Restore compact statistics display"),
 )
 # The statistics mode replaces the normal right panel with this 96x87 scroll.
 # Its return click is observed behaviour, but not yet mapped to an original
@@ -920,6 +927,58 @@ INVENTORY_PARTY_MEMBER_HITBOXES = tuple(
     for slot in range(4)
 )
 
+# `adrCd00C9BC` renders its 12 pockets from screen_ptr+$051C: six cells at
+# native Y=$20 and six at Y=$30.  The first four are left/right hand, armour,
+# and shield; the last eight are ordinary pockets.  The lower PlayerX_Data
+# selection row is described separately above, so the whole page has 16 item
+# or champion targets before its held pocket and exit control.
+INVENTORY_SLOT_NAMES = (
+    "Left-hand equipment slot",
+    "Right-hand equipment slot",
+    "Body-armour slot",
+    "Shield slot",
+    "Pocket 1",
+    "Pocket 2",
+    "Pocket 3",
+    "Pocket 4",
+    "Pocket 5",
+    "Pocket 6",
+    "Pocket 7",
+    "Pocket 8",
+)
+INVENTORY_SLOT_HITBOXES = tuple(
+    (
+        INTERFACE_ACTION_INVENTORY_SLOT_FIRST + slot,
+        0xE0 + (slot % 6) * 0x10,
+        0xEF + (slot % 6) * 0x10,
+        0x20 + (slot // 6) * 0x10,
+        0x2F + (slot // 6) * 0x10,
+        None,
+        INVENTORY_SLOT_NAMES[slot],
+    )
+    for slot in range(12)
+)
+INVENTORY_HELD_AND_EXIT_HITBOXES = (
+    (
+        INTERFACE_ACTION_INVENTORY_HELD_SLOT,
+        0x120,
+        0x12F,
+        0x48,
+        0x57,
+        None,
+        "Held-item pocket",
+    ),
+    (
+        INTERFACE_ACTION_INVENTORY_EXIT,
+        0x130,
+        0x13F,
+        0x48,
+        0x57,
+        None,
+        "Exit inventory",
+    ),
+)
+
 
 @dataclass(frozen=True)
 class CommunicationButton:
@@ -1239,6 +1298,27 @@ class InterfaceProject:
                     party_slot,
                     display_name,
                 ) in INVENTORY_PARTY_MEMBER_HITBOXES
+            ) + tuple(
+                InterfaceHitbox(
+                    "inventory",
+                    action,
+                    x_min,
+                    x_max,
+                    y_min,
+                    y_max,
+                    "Inventory item target (object behaviour deferred)",
+                    party_slot,
+                    display_name,
+                )
+                for (
+                    action,
+                    x_min,
+                    x_max,
+                    y_min,
+                    y_max,
+                    party_slot,
+                    display_name,
+                ) in INVENTORY_SLOT_HITBOXES + INVENTORY_HELD_AND_EXIT_HITBOXES
             )
             (
                 action,
@@ -1344,7 +1424,10 @@ class InterfaceProject:
                     for row in source.pixels
                 ]
 
-        placeholder = 0x6C + slot
+        # In adrCd00C9BC the `cmpi.w #$0004,d7` / `bcc` path skips the
+        # $6C+d7 calculation.  d0 was cleared at the top of the iteration,
+        # so the eight ordinary empty slots all draw Pockets.gfx picture $00.
+        placeholder = 0 if slot >= 4 else 0x6C + slot
         if slot == 3 and champion & 1:
             placeholder += 1
         pixels = self.pockets.icon(placeholder).pixels

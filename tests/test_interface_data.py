@@ -33,6 +33,10 @@ from tools.interface_data import (
     GFX_POCKETS_CHAIN_WITH_AVATARS_OFFSET,
     GFX_POCKETS_SELECTED_PARTY_SHIELD_OFFSET,
     INTERFACE_ACTION_LOAD_SAVE,
+    INTERFACE_ACTION_INVENTORY_EXIT,
+    INTERFACE_ACTION_INVENTORY_HELD_SLOT,
+    INTERFACE_ACTION_INVENTORY_SLOT_FIRST,
+    INTERFACE_ACTION_INVENTORY_SLOT_LAST,
     INTERFACE_ACTION_PARTY_MEMBER_FIRST,
     INTERFACE_ACTION_PARTY_MEMBER_LAST,
     INTERFACE_ACTION_PARTY_COMMAND_MODE,
@@ -109,8 +113,8 @@ class InterfaceDataTests(unittest.TestCase):
                 "main": 17,
                 "command": 6,
                 "display": 3,
-                "avatars": 4,
-                "inventory": 4,
+                "avatars": 5,
+                "inventory": 18,
                 "stats_scroll": 1,
             },
         )
@@ -122,6 +126,14 @@ class InterfaceDataTests(unittest.TestCase):
         self.assertEqual(spellbook.action_name, "Open spell book")
         self.assertTrue(spellbook.contains(0xE2, 0x21))
         self.assertTrue(spellbook.contains(0x106, 0x36))
+        inventory = self.project.hitboxes["inventory"]
+        self.assertEqual(
+            (inventory[4].action, inventory[4].x_min, inventory[4].y_min),
+            (INTERFACE_ACTION_INVENTORY_SLOT_FIRST, 0xE0, 0x20),
+        )
+        self.assertEqual(inventory[15].action, INTERFACE_ACTION_INVENTORY_SLOT_LAST)
+        self.assertEqual(inventory[16].action, INTERFACE_ACTION_INVENTORY_HELD_SLOT)
+        self.assertEqual(inventory[17].action, INTERFACE_ACTION_INVENTORY_EXIT)
 
     def test_action_namespace_matches_37_entry_dispatch_table(self) -> None:
         self.assertEqual(len(ACTION_NAMES), 37)
@@ -270,7 +282,7 @@ class InterfaceDataTests(unittest.TestCase):
         modes = {mode.key: mode for mode in INTERFACE_MODES}
         self.assertEqual(modes["main"].hitbox_groups, ("main", "display", "avatars"))
         self.assertEqual(modes["comms"].hitbox_groups, ("main", "command"))
-        self.assertEqual(len(self.project.mode_hitboxes(modes["main"])), 24)
+        self.assertEqual(len(self.project.mode_hitboxes(modes["main"])), 25)
         self.assertEqual(
             [item.action for item in self.project.mode_hitboxes(modes["inventory"])],
             [],
@@ -302,6 +314,7 @@ class InterfaceDataTests(unittest.TestCase):
                 (0x1A, 0, 31, 55, 95, 1, "Toggle full-length front-right avatar"),
                 (0x1A, 32, 63, 55, 95, 2, "Toggle full-length back-right avatar"),
                 (0x1A, 64, 95, 55, 95, 3, "Toggle full-length back-left avatar"),
+                (0x1A, 48, 95, 10, 53, None, "Restore compact statistics display"),
             ),
         )
         self.assertEqual(
@@ -314,6 +327,7 @@ class InterfaceDataTests(unittest.TestCase):
                 (0x1A, 1, "Toggle full-length front-right avatar"),
                 (0x1A, 2, "Toggle full-length back-right avatar"),
                 (0x1A, 3, "Toggle full-length back-left avatar"),
+                (0x1A, None, "Restore compact statistics display"),
             ],
         )
         self.assertEqual(
@@ -515,7 +529,7 @@ class InterfaceDataTests(unittest.TestCase):
         )
         self.assertEqual(
             self.project.empty_inventory_slot_pixels(0, 11),
-            self.project.pockets.icon(0x77).pixels,
+            self.project.pockets.icon(0x00).pixels,
         )
 
     def test_empty_equipment_template_ink_uses_secondary_ui_colour(self) -> None:

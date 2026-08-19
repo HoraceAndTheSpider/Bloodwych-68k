@@ -13,17 +13,25 @@ CHAMPION_INVENTORY_SIZE = (96, 89)
 INVENTORY_CHAIN_OFFSET = 0x3C00
 INVENTORY_CHAIN_SIZE = (96, 7)
 INVENTORY_NAME_BAR_RECT = (2, 17, 94, 8)
+INVENTORY_SELECTION_TITLE_Y = 19
 INVENTORY_SLOT_ORIGIN = (0, 25)
 INVENTORY_SLOT_COLUMNS = 6
 INVENTORY_SLOT_SIZE = 16
 INVENTORY_ARMOUR_BAR_RECT = (1, 57, 95, 8)
+INVENTORY_ARMOUR_TEXT_Y = 59
 INVENTORY_PARTY_ORIGIN = (0, 65)
 INVENTORY_HELD_SLOT_POSITION = (64, 65)
+INVENTORY_EXIT_SLOT_POSITION = (80, 65)
 INVENTORY_SELECTED_SLOT_FRAME = (1, 66, 16, 15)
-INVENTORY_HELD_SLOT_PICTURE = 0x74
+# In `adrCd00CAEA`, picture $00 is the actual empty-pocket graphic.  Pictures
+# $6C-$6F are the hand/body/shield placeholders, and picture $74 is the exit
+# control drawn after the held-item pocket by `adrCd006C42`.
+INVENTORY_EMPTY_POCKET_PICTURE = 0x00
+INVENTORY_EXIT_PICTURE = 0x74
 INVENTORY_EMPTY_PROFESSION_PICTURE = 0x3B
 INVENTORY_PROFESSION_PICTURE_BASE = 0x4B
 INVENTORY_ARMOUR_PROTECTION_LOOKUP = (1, 2, 4, 3, 4, 5, 7)
+INVENTORY_INGAME_CONTENT_RECT = (0, 22, 96, 60)
 
 
 def _indexed_surface(
@@ -95,6 +103,105 @@ def _inventory_chain_pixels(pockets: object) -> Sequence[Sequence[int]]:
     ).pixels
 
 
+def _template_colour_pixels(
+    pockets: object,
+    picture: int,
+    secondary_colour_index: int,
+) -> list[list[int]]:
+    """Return a Pockets.gfx picture with UI-template ink recoloured."""
+    return [
+        [secondary_colour_index if pixel == 0x0F else pixel for pixel in row]
+        for row in pockets.icon(picture).pixels
+    ]
+
+
+def _draw_empty_inventory_slots(
+    pygame: object,
+    surface: object,
+    *,
+    pockets: object,
+    champion: int,
+    secondary_colour_index: int,
+    palette: Sequence[tuple[int, int, int]],
+) -> None:
+    """Draw the four worn-slot outlines and eight identical empty pockets."""
+    for slot in range(12):
+        # `adrCd00C9BC` uses the $6C-$6F equipment outlines for the first
+        # four cells.  Its `bcc adrCd00CA32` path deliberately leaves d0 at
+        # its per-iteration zero value for all eight ordinary empty pockets.
+        picture = 0x6C + slot if slot < 4 else INVENTORY_EMPTY_POCKET_PICTURE
+        if slot == 3 and champion & 1:
+            picture += 1
+        x = INVENTORY_SLOT_ORIGIN[0] + (slot % INVENTORY_SLOT_COLUMNS) * INVENTORY_SLOT_SIZE
+        y = INVENTORY_SLOT_ORIGIN[1] + (slot // INVENTORY_SLOT_COLUMNS) * INVENTORY_SLOT_SIZE
+        _draw_indexed(
+            pygame,
+            surface,
+            _template_colour_pixels(pockets, picture, secondary_colour_index),
+            (x, y),
+            palette,
+            transparent_index=0,
+        )
+
+
+def _draw_inventory_party_and_held_row(
+    pygame: object,
+    surface: object,
+    *,
+    pockets: object,
+    party_members: Sequence[int | None],
+    selected_party_slot: int,
+    secondary_colour_index: int,
+    palette: Sequence[tuple[int, int, int]],
+    is_dead: Callable[[int | None], bool],
+) -> None:
+    """Draw `adrCd006C42`'s party buttons, held pocket and exit control."""
+    for slot in range(4):
+        party_champion = party_members[slot] if slot < len(party_members) else None
+        if party_champion is None or is_dead(party_champion):
+            pixels = pockets.icon(INVENTORY_EMPTY_PROFESSION_PICTURE).pixels
+        else:
+            pixels = remap_template_colours(
+                pockets.icon(INVENTORY_PROFESSION_PICTURE_BASE + (party_champion & 3)).pixels,
+                CLASS_COLOUR_MASKS[(party_champion + party_champion // 4) & 3],
+            )
+        _draw_indexed(
+            pygame,
+            surface,
+            pixels,
+            (INVENTORY_PARTY_ORIGIN[0] + slot * INVENTORY_SLOT_SIZE, INVENTORY_PARTY_ORIGIN[1]),
+            palette,
+            transparent_index=0,
+        )
+
+    # `adrCd006C42` first calls adrCd00CA66 for the held object.  With no
+    # object selected that invokes adrCd00CAEA with d0=0 at x=$120.  Only then
+    # does it draw the fixed $74 exit picture at x=$130.
+    _draw_indexed(
+        pygame,
+        surface,
+        pockets.icon(INVENTORY_EMPTY_POCKET_PICTURE).pixels,
+        INVENTORY_HELD_SLOT_POSITION,
+        palette,
+        transparent_index=0,
+    )
+    _draw_indexed(
+        pygame,
+        surface,
+        _template_colour_pixels(pockets, INVENTORY_EXIT_PICTURE, secondary_colour_index),
+        INVENTORY_EXIT_SLOT_POSITION,
+        palette,
+        transparent_index=0,
+    )
+    frame_x, frame_y, frame_width, frame_height = INVENTORY_SELECTED_SLOT_FRAME
+    pygame.draw.rect(
+        surface,
+        palette[13],
+        (frame_x + selected_party_slot * INVENTORY_SLOT_SIZE, frame_y, frame_width, frame_height),
+        1,
+    )
+
+
 def champion_armour_level(record: object, pocket_record: bytes) -> int:
     """Reproduce `adrCd00631E` / Calculate_ChampionArmourLevel exactly.
 
@@ -144,11 +251,11 @@ def render_empty_champion_inventory(
     palette: Sequence[tuple[int, int, int]],
     is_dead: Callable[[int | None], bool] | None = None,
 ) -> object:
-    """Render the empty page produced by the inventory draw/update routines.
+    """Render the two-chain empty page used by the selection/Data Viewer.
 
-    This intentionally does not draw stored objects.  The twelve semantic
-    empty pictures come from `Draw_InventoryPocketSlots`; item overlays can be
-    added in a later pass without changing this shared, source-sized surface.
+    This is `adrJA00C938` / Draw_InventoryPanel, rather than the in-game
+    `Click_OpenInventory` view.  It intentionally does not draw stored
+    objects; an object-overlay pass can later reuse this source-sized layout.
     """
     if not 0 <= selected_party_slot < 4:
         raise ValueError("selected_party_slot must be 0..3")
@@ -160,81 +267,105 @@ def render_empty_champion_inventory(
     surface = pygame.Surface(CHAMPION_INVENTORY_SIZE)
     surface.fill(palette[0])
 
-    # Draw_InventoryPanel ($C938) reaches the same GFX_Pockets+$3C00 strip
-    # through adrCd008358 at screen offsets $029C (Y=16) and $0B5C (Y=72).
-    # Its two scaled bars are x=$E2/y=$18 and x=$E1/y=$40 respectively.
+    # Draw_InventoryPanel ($C938) reaches GFX_Pockets+$3C00 through
+    # adrCd008358 at screen offsets $029C (Y=16) and $0B5C (Y=72).  Its two
+    # scaled bars are x=$E2/y=$18 and x=$E1/y=$40 respectively.
     chain = _inventory_chain_pixels(pockets)
     _draw_indexed(pygame, surface, chain, (0, 9), palette)
     pygame.draw.rect(surface, palette[3], INVENTORY_NAME_BAR_RECT)
     _draw_indexed(pygame, surface, chain, INVENTORY_PARTY_ORIGIN, palette)
 
-    # Redraw_Inventory ($6C0A) puts the currently inspected champion's name
-    # back into the title cell.  It does not make that champion the party lead.
-    _draw_text(surface, font_data, record.given_name[:7], 8, 17, palette[13])
-
-    for slot in range(12):
-        picture = 0x6C + slot
-        if slot == 3 and champion & 1:
-            picture += 1
-        pixels = pockets.icon(picture).pixels
-        pixels = [
-            [secondary_colour_index if pixel == 0x0F else pixel for pixel in row]
-            for row in pixels
-        ]
-        x = INVENTORY_SLOT_ORIGIN[0] + (slot % INVENTORY_SLOT_COLUMNS) * INVENTORY_SLOT_SIZE
-        y = INVENTORY_SLOT_ORIGIN[1] + (slot // INVENTORY_SLOT_COLUMNS) * INVENTORY_SLOT_SIZE
-        _draw_indexed(pygame, surface, pixels, (x, y), palette, transparent_index=0)
+    _draw_text(
+        surface,
+        font_data,
+        "INVENTORY",
+        8,
+        INVENTORY_SELECTION_TITLE_Y,
+        palette[13],
+    )
+    _draw_empty_inventory_slots(
+        pygame,
+        surface,
+        pockets=pockets,
+        champion=champion,
+        secondary_colour_index=secondary_colour_index,
+        palette=palette,
+    )
 
     pygame.draw.rect(surface, palette[3], INVENTORY_ARMOUR_BAR_RECT)
-    _draw_text(surface, font_data, "ARMOUR:", 8, 57, palette[13])
+    _draw_text(surface, font_data, "ARMOUR:", 8, INVENTORY_ARMOUR_TEXT_Y, palette[13])
     _draw_text(
         surface,
         font_data,
         champion_armour_modifier_text(record, pocket_record),
         64,
-        57,
+        INVENTORY_ARMOUR_TEXT_Y,
         palette[14],
     )
 
-    # adrCd006C58 repeats adrCd008416 for the four PlayerX_Data+$18 members.
-    # Its destination is $0B5C, so the four 16-pixel pictures precede the
-    # fixed empty held-item picture ($74) at x=$120.
-    for slot in range(4):
-        party_champion = party_members[slot] if slot < len(party_members) else None
-        if party_champion is None or is_dead(party_champion):
-            pixels = pockets.icon(INVENTORY_EMPTY_PROFESSION_PICTURE).pixels
-        else:
-            pixels = remap_template_colours(
-                pockets.icon(INVENTORY_PROFESSION_PICTURE_BASE + (party_champion & 3)).pixels,
-                CLASS_COLOUR_MASKS[(party_champion + party_champion // 4) & 3],
-            )
-        _draw_indexed(
-            pygame,
-            surface,
-            pixels,
-            (INVENTORY_PARTY_ORIGIN[0] + slot * INVENTORY_SLOT_SIZE, INVENTORY_PARTY_ORIGIN[1]),
-            palette,
-            transparent_index=0,
-        )
+    # The Data Viewer selection layout ends at the lower chain.  Unlike the
+    # in-game inventory, it has no party-selector, held-item, or exit row.
+    return surface
 
-    held_pixels = pockets.icon(INVENTORY_HELD_SLOT_PICTURE).pixels
-    held_pixels = [
-        [secondary_colour_index if pixel == 0x0F else pixel for pixel in row]
-        for row in held_pixels
-    ]
-    _draw_indexed(
+
+def render_empty_ingame_champion_inventory(
+    pygame: object,
+    *,
+    pockets: object,
+    font_data: bytes,
+    record: object,
+    champion: int,
+    pocket_record: bytes,
+    party_members: Sequence[int | None],
+    selected_party_slot: int,
+    secondary_colour_index: int,
+    palette: Sequence[tuple[int, int, int]],
+    is_dead: Callable[[int | None], bool] | None = None,
+) -> object:
+    """Render the in-game inventory content without replacing its name frame.
+
+    `Click_OpenInventory` ($6BF0) runs on top of the normal movement panel.
+    Consequently it must leave the upper name-frame bevel and the bottom
+    GFX_Pockets+$3C00 chain intact; only Y=29..88 is cleared and redrawn.
+    """
+    if not 0 <= selected_party_slot < 4:
+        raise ValueError("selected_party_slot must be 0..3")
+    if not 0 <= secondary_colour_index <= 0x0F:
+        raise ValueError("secondary_colour_index must be 0..15")
+    if is_dead is None:
+        is_dead = lambda _champion: False
+
+    # This is an opaque work surface.  The caller blits only
+    # INVENTORY_INGAME_CONTENT_RECT, preserving the normal name frame above
+    # and the continuous chain below without a full-panel alpha composite.
+    surface = pygame.Surface(CHAMPION_INVENTORY_SIZE)
+    surface.fill(palette[0])
+    _draw_empty_inventory_slots(
         pygame,
         surface,
-        held_pixels,
-        INVENTORY_HELD_SLOT_POSITION,
-        palette,
-        transparent_index=0,
+        pockets=pockets,
+        champion=champion,
+        secondary_colour_index=secondary_colour_index,
+        palette=palette,
     )
-    frame_x, frame_y, frame_width, frame_height = INVENTORY_SELECTED_SLOT_FRAME
-    pygame.draw.rect(
+    pygame.draw.rect(surface, palette[3], INVENTORY_ARMOUR_BAR_RECT)
+    _draw_text(surface, font_data, "ARMOUR:", 8, INVENTORY_ARMOUR_TEXT_Y, palette[13])
+    _draw_text(
         surface,
-        palette[13],
-        (frame_x + selected_party_slot * INVENTORY_SLOT_SIZE, frame_y, frame_width, frame_height),
-        1,
+        font_data,
+        champion_armour_modifier_text(record, pocket_record),
+        64,
+        INVENTORY_ARMOUR_TEXT_Y,
+        palette[14],
+    )
+    _draw_inventory_party_and_held_row(
+        pygame,
+        surface,
+        pockets=pockets,
+        party_members=party_members,
+        selected_party_slot=selected_party_slot,
+        secondary_colour_index=secondary_colour_index,
+        palette=palette,
+        is_dead=is_dead,
     )
     return surface

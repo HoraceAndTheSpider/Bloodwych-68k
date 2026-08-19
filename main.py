@@ -22,6 +22,7 @@ from tools.tool_inspect import inspect_source
 from tools.tool_patch import patch_segments
 from tools.tool_relabel import relabel_segments
 from tools.source_formatter import format_relabel_data
+from tools.pygame_window import set_scaled_fullscreen
 
 
 DATA_GUI_COMMANDS = ("extract", "relabel", "inspect", "format", "patch")
@@ -52,7 +53,7 @@ def launch_gui(screenshot_path: Path | None = None) -> str | None:
     pygame.init()
     try:
         window_size = (620, 390)
-        surface = pygame.display.set_mode(window_size)
+        surface = set_scaled_fullscreen(pygame, window_size)
         pygame.display.set_caption("Bloodwych ReSource")
         title_font = pygame.font.SysFont(None, 28)
         font = pygame.font.SysFont(None, 24)

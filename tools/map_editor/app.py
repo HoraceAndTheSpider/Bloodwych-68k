@@ -32,6 +32,7 @@ from tools.map_editor.semantics import (
     apply_cell_action,
     controls_for_cell,
 )
+from tools.pygame_window import set_scaled_fullscreen
 from tools.tool_common import DATA_DIR
 from tools.st_planar_assets import GAME_PALETTE_RGB8
 
@@ -143,6 +144,36 @@ def default_floor(project: MapProject, tower: int) -> int:
     return max(range(len(areas)), key=areas.__getitem__)
 
 
+def joystick_navigation_action(
+    event: object,
+    *,
+    hat_motion_type: int,
+    button_down_type: int,
+) -> str | None:
+    """Translate the first joystick's D-pad/buttons into viewer actions.
+
+    D-pad directions mirror W/A/S/D (forward/back/lateral movement).  The
+    first two joystick buttons are intentionally a provisional Q/E mapping.
+    """
+
+    if getattr(event, "type", None) == hat_motion_type:
+        x, y = getattr(event, "value", (0, 0))
+        if y > 0:
+            return "MOVE-FORWARD"
+        if y < 0:
+            return "MOVE-BACK"
+        if x < 0:
+            return "MOVE-LEFT"
+        if x > 0:
+            return "MOVE-RIGHT"
+    elif getattr(event, "type", None) == button_down_type:
+        if getattr(event, "button", None) == 0:
+            return "TURN-LEFT"
+        if getattr(event, "button", None) == 1:
+            return "TURN-RIGHT"
+    return None
+
+
 def launch_map_editor(
     data_root: Path | None = None,
     *,
@@ -179,9 +210,14 @@ def launch_map_editor(
         raise MapEditorError(f"could not load dungeon preview assets: {error}") from error
 
     pygame.init()
+    pygame.joystick.init()
+    joystick = None
+    if pygame.joystick.get_count() > 0:
+        joystick = pygame.joystick.Joystick(0)
+        joystick.init()
     pygame.key.set_repeat(250, 45)
     try:
-        screen = pygame.display.set_mode(WINDOW_SIZE)
+        screen = set_scaled_fullscreen(pygame, WINDOW_SIZE)
         pygame.display.set_caption("Bloodwych ReSource - Map Editor")
         title_font = pygame.font.SysFont(None, 30)
         small_font = pygame.font.SysFont(None, 17)
@@ -807,6 +843,26 @@ def launch_map_editor(
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
                     running = False
+                elif selected_tab == 0 and joystick is not None:
+                    joystick_action = joystick_navigation_action(
+                        event,
+                        hat_motion_type=pygame.JOYHATMOTION,
+                        button_down_type=pygame.JOYBUTTONDOWN,
+                    )
+                    if joystick_action == "TURN-LEFT":
+                        facing = (facing - 1) & 3
+                    elif joystick_action == "TURN-RIGHT":
+                        facing = (facing + 1) & 3
+                    elif joystick_action == "MOVE-FORWARD":
+                        move_cursor_relative(forward=1)
+                    elif joystick_action == "MOVE-BACK":
+                        move_cursor_relative(forward=-1)
+                    elif joystick_action == "MOVE-LEFT":
+                        move_cursor_relative(lateral=-1)
+                    elif joystick_action == "MOVE-RIGHT":
+                        move_cursor_relative(lateral=1)
+                    if joystick_action is not None:
+                        clamp_selection()
                 elif event.type == pygame.KEYDOWN:
                     if event.key == pygame.K_ESCAPE:
                         running = False

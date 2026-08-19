@@ -8,6 +8,7 @@ from tools.map_editor.app import (
     OVERLAY_ENABLED,
     OVERLAY_NAMES,
     default_floor,
+    joystick_navigation_action,
     reveal_interval_delta,
 )
 from tools.map_editor.first_person import (
@@ -33,6 +34,30 @@ CLEAN_ROOT = DATA_DIR / "BLOODWYCH439-clean"
 
 
 class MapEditorTests(unittest.TestCase):
+    def test_joystick_dpad_maps_to_first_person_movement(self) -> None:
+        hat = type("Event", (), {"type": 10, "value": (0, 1)})()
+        self.assertEqual(
+            joystick_navigation_action(hat, hat_motion_type=10, button_down_type=11),
+            "MOVE-FORWARD",
+        )
+        hat.value = (-1, 0)
+        self.assertEqual(
+            joystick_navigation_action(hat, hat_motion_type=10, button_down_type=11),
+            "MOVE-LEFT",
+        )
+
+    def test_joystick_buttons_zero_and_one_turn(self) -> None:
+        button = type("Event", (), {"type": 11, "button": 0})()
+        self.assertEqual(
+            joystick_navigation_action(button, hat_motion_type=10, button_down_type=11),
+            "TURN-LEFT",
+        )
+        button.button = 1
+        self.assertEqual(
+            joystick_navigation_action(button, hat_motion_type=10, button_down_type=11),
+            "TURN-RIGHT",
+        )
+
     def test_unverified_object_and_monster_overlays_remain_disabled(self) -> None:
         enabled = dict(zip(OVERLAY_NAMES, OVERLAY_ENABLED))
         self.assertFalse(enabled["OBJECTS"])

@@ -58,6 +58,7 @@ from tools.monster_view import (
     visible_subpositions,
 )
 from tools.object_data import OBJECT_COUNT, ObjectAssets
+from tools.pygame_window import set_scaled_fullscreen
 from tools.st_planar_assets import GAME_PALETTE_RGB8
 
 
@@ -882,7 +883,7 @@ def launch_graphics_viewer(
     pygame.init()
     pygame.key.set_repeat(250, 45)
     try:
-        screen = pygame.display.set_mode(WINDOW_SIZE)
+        screen = set_scaled_fullscreen(pygame, WINDOW_SIZE)
         pygame.display.set_caption("Bloodwych ReSource - Data Viewer")
         title_font = pygame.font.SysFont(None, 30)
         font = pygame.font.SysFont(None, 22)
@@ -1953,13 +1954,10 @@ def launch_graphics_viewer(
                     )
                     screen.blit(pygame.transform.scale(stats_scroll, scroll_rect.size), scroll_rect)
 
-                    # This is the same source-sized empty inventory surface
-                    # used by the Interface Viewer. Stored-object overlays are
-                    # intentionally deferred, but the semantic slot pictures,
-                    # armour modifier, held pocket and profession strip are
-                    # shared instead of being approximated twice.
-                    inventory_rect = pygame.Rect(820, 145, 210, 148)
-                    pygame.draw.rect(screen, (0, 0, 0), inventory_rect)
+                    # The selection/Data Viewer layout uses only its source
+                    # surface; do not centre it inside a separate black panel.
+                    # Stored-object overlays remain intentionally deferred.
+                    inventory_position = (853, 152)
                     inventory = render_empty_champion_inventory(
                         pygame,
                         pockets=champion_assets.pockets,
@@ -1973,10 +1971,7 @@ def launch_graphics_viewer(
                         palette=GAME_PALETTE_RGB8,
                     )
                     scaled_inventory = pygame.transform.scale(inventory, (144, 134))
-                    screen.blit(
-                        scaled_inventory,
-                        (inventory_rect.x + 33, inventory_rect.y + 7),
-                    )
+                    screen.blit(scaled_inventory, inventory_position)
 
                     profession = PROFESSION_NAMES[profession_index]
                     magic_class = MAGIC_CLASS_NAMES[magic_index]
