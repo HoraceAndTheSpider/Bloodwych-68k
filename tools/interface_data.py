@@ -1013,10 +1013,10 @@ SPELLBOOK_CONTROL_HITBOXES = (
 SPELLBOOK_RUNE_HITBOXES = tuple(
     (
         INTERFACE_ACTION_SPELLBOOK_RUNE_FIRST + row * 2 + column,
-        231 + column * 40,
-        262 + column * 40,
-        27 + row * 10,
-        34 + row * 10,
+        232 + column * 48,
+        263 + column * 48,
+        25 + row * 8,
+        30 + row * 8,
         f"Select spell-book rune entry {row * 2 + column + 1}",
     )
     for row in range(4)

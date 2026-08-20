@@ -700,27 +700,72 @@ def _draw_spellbook(
     )
     page_offset = (spread % 4) * 32
     for row in range(4):
-        for column in range(2):
-            start = page_offset + (column * 16) + row * 4
+        left_start = page_offset + row * 4
+        right_start = page_offset + 16 + row * 4
+        # Draw_SpellBookRunePage's a0 arithmetic is deliberately asymmetric:
+        # the fourth left rune is one scanline higher, while the first right
+        # rune is one scanline higher.  Each subsequent entry advances eight
+        # scanlines ($0140 screen bytes), not ten.
+        for character, x, y in zip(
+            runes[left_start : left_start + 4],
+            (232, 240, 248, 256),
+            (26 + row * 8, 26 + row * 8, 26 + row * 8, 25 + row * 8),
+        ):
             _draw_gamefont(
                 pygame,
                 panel,
                 project.game_font,
-                runes[start : start + 4],
-                231 + column * 40,
-                27 + row * 10,
+                character,
+                x,
+                y,
                 (221, 221, 221),
                 uppercase=False,
             )
+        for character, x, y in zip(
+            runes[right_start : right_start + 4],
+            (280, 288, 296, 304),
+            (25 + row * 8, 26 + row * 8, 26 + row * 8, 26 + row * 8),
+        ):
+            _draw_gamefont(
+                pygame,
+                panel,
+                project.game_font,
+                character,
+                x,
+                y,
+                (221, 221, 221),
+                uppercase=False,
+            )
+    # The lower row starts at $0B5C (X=$E0/Y=$48). The four central 16-pixel
+    # components are Pockets.gfx $68-$6B; grey star $4F occupies each end
+    # until a selected spell supplies its coloured replacement.
+    for index, picture in enumerate((0x4F, 0x68, 0x69, 0x6A, 0x6B, 0x4F)):
+        _draw_indexed(
+            pygame,
+            panel,
+            project.pockets.icon(picture).pixels,
+            224 + index * 16,
+            72,
+            palette,
+        )
     champion = project.champions.record(project.active_preview_champion)
     _draw_gamefont(
         pygame,
         panel,
         project.game_font,
-        f"SP.PTS {champion.spell_points_current:>2}/{champion.spell_points_maximum:>2}",
-        232,
-        78,
-        GAME_PALETTE_RGB8[0x0D],
+        "SP.PTS ",
+        224,
+        90,
+        GAME_PALETTE_RGB8[0x0B],
+    )
+    _draw_gamefont(
+        pygame,
+        panel,
+        project.game_font,
+        f"{champion.spell_points_current:>2}/{champion.spell_points_maximum:>2}",
+        280,
+        90,
+        GAME_PALETTE_RGB8[0x06],
     )
 
 

@@ -22,6 +22,7 @@ from tools.interface_data import (
     PARTY_PROFESSION_ICON_POSITIONS,
     PARTY_SELECTED_PROFESSION_FRAMES,
     STATS_SCROLL_RETURN_HITBOX,
+    SPELLBOOK_RUNE_HITBOXES,
     RIGHT_STATUS_ICON_BEVEL_LINES,
     COMPACT_STATS_BAR_COUNT,
     COPPER_FRAME_WRAP_Y,
@@ -295,6 +296,19 @@ class InterfaceDataTests(unittest.TestCase):
         self.assertEqual(
             [item.action for item in self.project.mode_hitboxes(modes["spellbook"])],
             [0x19, 0x18, 0x17, *range(0x200, 0x208)],
+        )
+        self.assertEqual(
+            SPELLBOOK_RUNE_HITBOXES,
+            (
+                (0x200, 232, 263, 25, 30, "Select spell-book rune entry 1"),
+                (0x201, 280, 311, 25, 30, "Select spell-book rune entry 2"),
+                (0x202, 232, 263, 33, 38, "Select spell-book rune entry 3"),
+                (0x203, 280, 311, 33, 38, "Select spell-book rune entry 4"),
+                (0x204, 232, 263, 41, 46, "Select spell-book rune entry 5"),
+                (0x205, 280, 311, 41, 46, "Select spell-book rune entry 6"),
+                (0x206, 232, 263, 49, 54, "Select spell-book rune entry 7"),
+                (0x207, 280, 311, 49, 54, "Select spell-book rune entry 8"),
+            ),
         )
         self.assertEqual(
             STATS_SCROLL_RETURN_HITBOX,
