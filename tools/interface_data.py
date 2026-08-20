@@ -59,6 +59,11 @@ INTERFACE_ACTION_SLEEP_PARTY = 0x1E
 INTERFACE_ACTION_SHOW_TEAM_AVATARS = 0x1F
 INTERFACE_ACTION_PARTY_COMMAND_MODE = 0x20
 INTERFACE_ACTION_PARTY_COMMAND_SELECTION = 0x21
+INTERFACE_ACTION_LAUNCH_SPELL = 0x15
+INTERFACE_ACTION_VIEW_SPELL = 0x16
+INTERFACE_ACTION_SPELLBOOK_PAGE_FORWARD = 0x17
+INTERFACE_ACTION_SPELLBOOK_CLOSE = 0x18
+INTERFACE_ACTION_SPELLBOOK_PAGE_BACKWARD = 0x19
 # The inventory page has its own four rendered profession targets.  The
 # source-side click dispatcher has not yet been isolated, so keep these
 # viewer-only IDs outside the original $00-$21 action space.
@@ -71,6 +76,10 @@ INTERFACE_ACTION_INVENTORY_EXIT = 0x117
 # This is a viewer-only action, deliberately outside the source dispatcher.
 # The original state-specific scroll return record has not yet been located.
 INTERFACE_ACTION_STATS_SCROLL_RETURN = 0xFF
+# Spell selection happens through the state-2 input path rather than a record
+# in Interface_Hitboxes_Main. Keep viewer controls outside the dispatcher.
+INTERFACE_ACTION_SPELLBOOK_RUNE_FIRST = 0x200
+INTERFACE_ACTION_SPELLBOOK_RUNE_LAST = INTERFACE_ACTION_SPELLBOOK_RUNE_FIRST + 7
 COMPACT_STATS_BAR_COUNT = 3
 PARTY_AVATAR_CHAMPION_ID_MASK = 0x0F
 PARTY_AVATAR_ACTIVE_FLAG = 0x10
@@ -319,6 +328,11 @@ ACTION_ROUTINES = {
     INTERFACE_ACTION_SHOW_TEAM_AVATARS: "Click_ShowTeamAvatars",
     INTERFACE_ACTION_PARTY_COMMAND_MODE: "Click_TogglePartyCommandRow",
     INTERFACE_ACTION_PARTY_COMMAND_SELECTION: "PartyCommand_DispatchSelection",
+    INTERFACE_ACTION_LAUNCH_SPELL: "Click_LaunchSpellFromBook",
+    INTERFACE_ACTION_VIEW_SPELL: "Click_ViewSpell",
+    INTERFACE_ACTION_SPELLBOOK_PAGE_FORWARD: "Click_TurnSpellBookPage",
+    INTERFACE_ACTION_SPELLBOOK_CLOSE: "Click_CloseCurrentPage",
+    INTERFACE_ACTION_SPELLBOOK_PAGE_BACKWARD: "Click_TurnSpellBookPage",
 }
 
 
@@ -855,10 +869,18 @@ INTERFACE_MODES = (
     InterfaceMode(
         "spellbook",
         "Spell book",
-        ("main",),
+        ("spellbook",),
         "source-led",
         ("Prepare_AndDrawSpellBookSurface", "Draw_SpellBookRunePage"),
-        (),
+        (
+            INTERFACE_ACTION_SPELLBOOK_PAGE_BACKWARD,
+            INTERFACE_ACTION_SPELLBOOK_CLOSE,
+            INTERFACE_ACTION_SPELLBOOK_PAGE_FORWARD,
+            *range(
+                INTERFACE_ACTION_SPELLBOOK_RUNE_FIRST,
+                INTERFACE_ACTION_SPELLBOOK_RUNE_LAST + 1,
+            ),
+        ),
     ),
     InterfaceMode(
         "comms",
@@ -977,6 +999,28 @@ INVENTORY_HELD_AND_EXIT_HITBOXES = (
         None,
         "Exit inventory",
     ),
+)
+
+# adrCd00C650/C69C resolve these controls while PlayerX_Data+$14 is spell-book
+# mode. The two centre-facing arrows share Click_CloseCurrentPage, so they
+# intentionally form one hitbox. Rune entries are four lowercase GameFont
+# glyphs; each source page contains four entries and a spread contains two.
+SPELLBOOK_CONTROL_HITBOXES = (
+    (INTERFACE_ACTION_SPELLBOOK_PAGE_BACKWARD, 232, 247, 9, 24, "Previous spell-book spread"),
+    (INTERFACE_ACTION_SPELLBOOK_CLOSE, 256, 287, 9, 24, "Close spell book"),
+    (INTERFACE_ACTION_SPELLBOOK_PAGE_FORWARD, 296, 311, 9, 24, "Next spell-book spread"),
+)
+SPELLBOOK_RUNE_HITBOXES = tuple(
+    (
+        INTERFACE_ACTION_SPELLBOOK_RUNE_FIRST + row * 2 + column,
+        231 + column * 40,
+        262 + column * 40,
+        27 + row * 10,
+        34 + row * 10,
+        f"Select spell-book rune entry {row * 2 + column + 1}",
+    )
+    for row in range(4)
+    for column in range(2)
 )
 
 
@@ -1339,6 +1383,21 @@ class InterfaceProject:
                     "Unidentified stats-scroll return hitbox",
                     display_name=display_name,
                 ),
+            )
+            self.hitboxes["spellbook"] = tuple(
+                InterfaceHitbox(
+                    "spellbook",
+                    action,
+                    x_min,
+                    x_max,
+                    y_min,
+                    y_max,
+                    "Click_TurnSpellBookPage",
+                    display_name=display_name,
+                )
+                for action, x_min, x_max, y_min, y_max, display_name in (
+                    SPELLBOOK_CONTROL_HITBOXES + SPELLBOOK_RUNE_HITBOXES
+                )
             )
         except (OSError, ValueError) as error:
             raise InterfaceDataError(str(error)) from error

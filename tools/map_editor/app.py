@@ -32,7 +32,7 @@ from tools.map_editor.semantics import (
     apply_cell_action,
     controls_for_cell,
 )
-from tools.pygame_window import set_scaled_fullscreen
+from tools.pygame_window import is_fullscreen, set_display_mode, set_scaled_fullscreen, set_windowed
 from tools.tool_common import DATA_DIR
 from tools.st_planar_assets import GAME_PALETTE_RGB8
 
@@ -217,7 +217,8 @@ def launch_map_editor(
         joystick.init()
     pygame.key.set_repeat(250, 45)
     try:
-        screen = set_scaled_fullscreen(pygame, WINDOW_SIZE)
+        screen = set_display_mode(pygame, WINDOW_SIZE)
+        fullscreen = is_fullscreen()
         pygame.display.set_caption("Bloodwych ReSource - Map Editor")
         title_font = pygame.font.SysFont(None, 30)
         small_font = pygame.font.SysFont(None, 17)
@@ -256,6 +257,7 @@ def launch_map_editor(
             for index in range(len(EDITOR_TABS))
         )
         source_rect = pygame.Rect(935, 52, 255, 34)
+        display_mode_rect = pygame.Rect(WINDOW_SIZE[0] - 60, 12, 50, 28)
         tower_rects = tuple(
             pygame.Rect(20, 112 + index * 42, 220, 36)
             for index in range(len(TOWERS))
@@ -621,6 +623,7 @@ def launch_map_editor(
                 title_font.render("Bloodwych Map Viewer / Editor", True, (240, 240, 245)),
                 (20, 16),
             )
+            draw_button(display_mode_rect, "WIN" if fullscreen else "FULL", active=not fullscreen)
 
             for index, (label, rectangle) in enumerate(zip(EDITOR_TABS, tab_rects)):
                 draw_button(
@@ -914,6 +917,13 @@ def launch_map_editor(
                         pygame.K_DOWN,
                     ) and not event.mod & pygame.KMOD_SHIFT:
                         ensure_selection_visible()
+                elif event.type == pygame.MOUSEBUTTONDOWN and event.button == 1 and display_mode_rect.collidepoint(event.pos):
+                    fullscreen = not fullscreen
+                    screen = (
+                        set_scaled_fullscreen(pygame, WINDOW_SIZE)
+                        if fullscreen
+                        else set_windowed(pygame, WINDOW_SIZE)
+                    )
                 elif event.type == pygame.MOUSEWHEEL and map_rect.collidepoint(mouse):
                     set_zoom(zoom + (1 if event.y > 0 else -1), mouse)
                 elif event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:

@@ -58,7 +58,7 @@ from tools.monster_view import (
     visible_subpositions,
 )
 from tools.object_data import OBJECT_COUNT, ObjectAssets
-from tools.pygame_window import set_scaled_fullscreen
+from tools.pygame_window import is_fullscreen, set_display_mode, set_scaled_fullscreen, set_windowed
 from tools.st_planar_assets import GAME_PALETTE_RGB8
 
 
@@ -883,8 +883,9 @@ def launch_graphics_viewer(
     pygame.init()
     pygame.key.set_repeat(250, 45)
     try:
-        screen = set_scaled_fullscreen(pygame, WINDOW_SIZE)
+        screen = set_display_mode(pygame, WINDOW_SIZE)
         pygame.display.set_caption("Bloodwych ReSource - Data Viewer")
+        fullscreen = is_fullscreen()
         title_font = pygame.font.SysFont(None, 30)
         font = pygame.font.SysFont(None, 22)
         small_font = pygame.font.SysFont(None, 18)
@@ -1266,6 +1267,7 @@ def launch_graphics_viewer(
             nudge_x = nudge_y = 0
 
         running = True
+        display_mode_rect = pygame.Rect(WINDOW_SIZE[0] - 60, 12, 50, 28)
         while running:
             characters_active = selected_graphic_type == "character"
             champions_active = selected_graphic_type == "champion"
@@ -1393,6 +1395,9 @@ def launch_graphics_viewer(
             mouse = pygame.mouse.get_pos()
             if objects_active:
                 screen.fill((24, 26, 31))
+                pygame.draw.rect(screen, (49, 52, 61), display_mode_rect, border_radius=4)
+                mode_label = tiny_font.render("WIN" if fullscreen else "FULL", True, (245, 245, 245))
+                screen.blit(mode_label, mode_label.get_rect(center=display_mode_rect.center))
                 screen.blit(
                     title_font.render(
                         "Bloodwych Data Viewer", True, (240, 240, 245)
@@ -1699,6 +1704,9 @@ def launch_graphics_viewer(
                             selected_object = (selected_object - 1) % OBJECT_COUNT
                         elif event.key in {pygame.K_RIGHT, pygame.K_DOWN}:
                             selected_object = (selected_object + 1) % OBJECT_COUNT
+                    elif event.type == pygame.MOUSEBUTTONDOWN and event.button == 1 and display_mode_rect.collidepoint(event.pos):
+                        fullscreen = not fullscreen
+                        screen = set_scaled_fullscreen(pygame, WINDOW_SIZE) if fullscreen else set_windowed(pygame, WINDOW_SIZE)
                     elif event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
                         if overlay_rect.collidepoint(event.pos) and modified_available:
                             try:
@@ -1727,6 +1735,9 @@ def launch_graphics_viewer(
 
             if champions_active:
                 screen.fill((24, 26, 31))
+                pygame.draw.rect(screen, (49, 52, 61), display_mode_rect, border_radius=4)
+                mode_label = tiny_font.render("WIN" if fullscreen else "FULL", True, (245, 245, 245))
+                screen.blit(mode_label, mode_label.get_rect(center=display_mode_rect.center))
                 screen.blit(
                     title_font.render(
                         "Bloodwych Data Viewer", True, (240, 240, 245)
@@ -2072,6 +2083,9 @@ def launch_graphics_viewer(
                             selected_character = (selected_character - 1) & 0x0F
                         elif event.key in {pygame.K_RIGHT, pygame.K_DOWN}:
                             selected_character = (selected_character + 1) & 0x0F
+                    elif event.type == pygame.MOUSEBUTTONDOWN and event.button == 1 and display_mode_rect.collidepoint(event.pos):
+                        fullscreen = not fullscreen
+                        screen = set_scaled_fullscreen(pygame, WINDOW_SIZE) if fullscreen else set_windowed(pygame, WINDOW_SIZE)
                     elif event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
                         if overlay_rect.collidepoint(event.pos) and modified_available:
                             try:
@@ -2112,6 +2126,9 @@ def launch_graphics_viewer(
                 continue
 
             screen.fill((24, 26, 31))
+            pygame.draw.rect(screen, (49, 52, 61), display_mode_rect, border_radius=4)
+            mode_label = tiny_font.render("WIN" if fullscreen else "FULL", True, (245, 245, 245))
+            screen.blit(mode_label, mode_label.get_rect(center=display_mode_rect.center))
             screen.blit(
                 title_font.render("Bloodwych Data Viewer", True, (240, 240, 245)),
                 (20, 16),
@@ -2976,6 +2993,9 @@ def launch_graphics_viewer(
                     }
                     if event.key in keyboard_actions:
                         running = adjust(keyboard_actions[event.key])
+                elif event.type == pygame.MOUSEBUTTONDOWN and event.button == 1 and display_mode_rect.collidepoint(event.pos):
+                    fullscreen = not fullscreen
+                    screen = set_scaled_fullscreen(pygame, WINDOW_SIZE) if fullscreen else set_windowed(pygame, WINDOW_SIZE)
                 elif event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
                     if overlay_rect.collidepoint(event.pos) and modified_available:
                         try:

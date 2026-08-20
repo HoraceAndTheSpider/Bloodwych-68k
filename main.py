@@ -22,7 +22,7 @@ from tools.tool_inspect import inspect_source
 from tools.tool_patch import patch_segments
 from tools.tool_relabel import relabel_segments
 from tools.source_formatter import format_relabel_data
-from tools.pygame_window import set_scaled_fullscreen
+from tools.pygame_window import is_fullscreen, set_display_mode, set_scaled_fullscreen, set_windowed
 
 
 DATA_GUI_COMMANDS = ("extract", "relabel", "inspect", "format", "patch")
@@ -53,7 +53,10 @@ def launch_gui(screenshot_path: Path | None = None) -> str | None:
     pygame.init()
     try:
         window_size = (620, 390)
-        surface = set_scaled_fullscreen(pygame, window_size)
+        surface = set_display_mode(pygame, window_size)
+        fullscreen = is_fullscreen()
+        display_mode_rect = pygame.Rect(window_size[0] - 55, 8, 48, 24)
+        quit_rect = pygame.Rect(window_size[0] - 78, window_size[1] - 34, 68, 26)
         pygame.display.set_caption("Bloodwych ReSource")
         title_font = pygame.font.SysFont(None, 28)
         font = pygame.font.SysFont(None, 24)
@@ -80,6 +83,12 @@ def launch_gui(screenshot_path: Path | None = None) -> str | None:
         while True:
             mouse_position = pygame.mouse.get_pos()
             surface.fill((30, 30, 30))
+            pygame.draw.rect(surface, (65, 70, 82), display_mode_rect, border_radius=4)
+            mode_label = font.render("WIN" if fullscreen else "FULL", True, (245, 245, 245))
+            surface.blit(mode_label, mode_label.get_rect(center=display_mode_rect.center))
+            pygame.draw.rect(surface, (105, 55, 60), quit_rect, border_radius=4)
+            quit_label = font.render("QUIT", True, (255, 245, 245))
+            surface.blit(quit_label, quit_label.get_rect(center=quit_rect.center))
             title = title_font.render("Bloodwych ReSource", True, (245, 245, 248))
             surface.blit(title, title.get_rect(center=(window_size[0] // 2, 25)))
             for x, label in zip(column_x, ("SOURCE & DATA", "VIEWERS & EDITORS")):
@@ -100,6 +109,12 @@ def launch_gui(screenshot_path: Path | None = None) -> str | None:
                 if event.type == pygame.QUIT:
                     return None
                 if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
+                    if display_mode_rect.collidepoint(event.pos):
+                        fullscreen = not fullscreen
+                        surface = set_scaled_fullscreen(pygame, window_size) if fullscreen else set_windowed(pygame, window_size)
+                        continue
+                    if quit_rect.collidepoint(event.pos):
+                        return None
                     for rectangle, command in buttons:
                         if rectangle.collidepoint(event.pos):
                             return command

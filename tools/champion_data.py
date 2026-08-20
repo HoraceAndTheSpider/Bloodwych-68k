@@ -159,6 +159,16 @@ class ChampionRecord:
         return tuple(spells)
 
     @property
+    def spell_points_current(self) -> int:
+        """Current spell points ($09 in the 32-byte champion record)."""
+        return self.raw[0x09]
+
+    @property
+    def spell_points_maximum(self) -> int:
+        """Maximum spell points ($0A in the 32-byte champion record)."""
+        return self.raw[0x0A]
+
+    @property
     def direction(self) -> int:
         return self.raw[0x18] & 0x03
 

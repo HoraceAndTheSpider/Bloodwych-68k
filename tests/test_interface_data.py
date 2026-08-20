@@ -116,6 +116,7 @@ class InterfaceDataTests(unittest.TestCase):
                 "avatars": 5,
                 "inventory": 18,
                 "stats_scroll": 1,
+                "spellbook": 11,
             },
         )
         spellbook = self.project.hitboxes["main"][0]
@@ -293,7 +294,7 @@ class InterfaceDataTests(unittest.TestCase):
         )
         self.assertEqual(
             [item.action for item in self.project.mode_hitboxes(modes["spellbook"])],
-            [],
+            [0x19, 0x18, 0x17, *range(0x200, 0x208)],
         )
         self.assertEqual(
             STATS_SCROLL_RETURN_HITBOX,

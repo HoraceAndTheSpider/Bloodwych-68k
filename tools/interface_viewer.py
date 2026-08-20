@@ -19,7 +19,7 @@ from tools.champion_inventory import (
 from tools.champion_stats_scroll import render_champion_stats_scroll
 from tools.gamefont_converter import glyph_pixels
 from tools.graphics_preview import mirror_pixels, remap_template_colours
-from tools.pygame_window import set_scaled_fullscreen
+from tools.pygame_window import is_fullscreen, set_display_mode, set_scaled_fullscreen, set_windowed
 from tools.interface_data import (
     DIALOGUE_TEXT_PALETTE_INDEX,
     COMMUNICATION_BACKGROUND_COLOUR_INDEX,
@@ -43,6 +43,11 @@ from tools.interface_data import (
     INTERFACE_ACTION_PARTY_MEMBER_LAST,
     INTERFACE_ACTION_PARTY_COMMAND_MODE,
     INTERFACE_ACTION_PAUSE,
+    INTERFACE_ACTION_SPELLBOOK_CLOSE,
+    INTERFACE_ACTION_SPELLBOOK_PAGE_BACKWARD,
+    INTERFACE_ACTION_SPELLBOOK_PAGE_FORWARD,
+    INTERFACE_ACTION_SPELLBOOK_RUNE_FIRST,
+    INTERFACE_ACTION_SPELLBOOK_RUNE_LAST,
     INTERFACE_ACTION_SLEEP_PARTY,
     INTERFACE_ACTION_SHOW_TEAM_AVATARS,
     INTERFACE_ACTION_SPELL_BOOK,
@@ -167,8 +172,10 @@ def _draw_gamefont(
     x: int,
     y: int,
     colour: tuple[int, int, int],
+    *,
+    uppercase: bool = True,
 ) -> None:
-    for character in text.upper():
+    for character in text.upper() if uppercase else text:
         for row, values in enumerate(glyph_pixels(font_data, ord(character) & 0x7F)):
             for column, value in enumerate(values):
                 if value:
@@ -675,24 +682,46 @@ def _draw_spellbook(
     secondary_colour: tuple[int, int, int],
     stats_colour: tuple[int, int, int],
     player: int,
+    *,
+    spread: int,
 ) -> None:
     pygame.draw.rect(panel, (0, 0, 0), (224, 7, 96, 89))
     book = _pockets_crop(project, 0x4100, 96, 62)
     _draw_indexed(pygame, panel, book.pixels, 224, 9, palette)
-    _draw_gamefont(
-        pygame, panel, project.game_font, "SPELLS", 244, 15, primary_colour
+    runes = (
+        "maryhadalittlela"
+        "aneeitwerraguddu"
+        "tnerewanzednowte"
+        "cozzitwerawuddun"
+        "whyamistillhavin"
+        "totypethiscrapwh"
+        "ithoughtidfinish"
+        "acoupleoflinesqx"
     )
-    for row, text in enumerate(("A B C D", "E F G H", "I J K L", "SP 18/18")):
-        _draw_gamefont(
-            pygame,
-            panel,
-            project.game_font,
-            text,
-            231,
-            31 + row * 10,
-            (221, 221, 221),
-        )
-    pygame.draw.rect(panel, primary_colour, (228, 27, 42, 10), 1)
+    page_offset = (spread % 4) * 32
+    for row in range(4):
+        for column in range(2):
+            start = page_offset + (column * 16) + row * 4
+            _draw_gamefont(
+                pygame,
+                panel,
+                project.game_font,
+                runes[start : start + 4],
+                231 + column * 40,
+                27 + row * 10,
+                (221, 221, 221),
+                uppercase=False,
+            )
+    champion = project.champions.record(project.active_preview_champion)
+    _draw_gamefont(
+        pygame,
+        panel,
+        project.game_font,
+        f"SP.PTS {champion.spell_points_current:>2}/{champion.spell_points_maximum:>2}",
+        232,
+        78,
+        GAME_PALETTE_RGB8[0x0D],
+    )
 
 
 def _draw_comms(
@@ -833,6 +862,8 @@ def _active_mode_hitboxes(
     right_mode_key: str = "main",
 ) -> tuple[InterfaceHitbox, ...]:
     """Apply the communication and right-panel visibility rules to hitboxes."""
+    if right_mode_key == "spellbook":
+        return project.hitboxes["spellbook"]
     hitboxes = tuple(
         hitbox
         for hitbox in project.mode_hitboxes(mode)
@@ -876,6 +907,7 @@ def render_interface_panel(
     comms_hovered_button: object | None = None,
     right_mode_key: str | None = None,
     inventory_party_slot: int = 0,
+    spellbook_spread: int = 0,
 ) -> tuple[object, tuple[int, int, int]]:
     colour_word = project.colour_word(player, alternate_ramp, ramp_step)
     dialogue_colour = amiga_colour_to_rgb(colour_word)
@@ -926,6 +958,18 @@ def render_interface_panel(
             stats_colour,
             player,
             inventory_party_slot,
+        )
+    elif resolved_right_mode_key == "spellbook":
+        _draw_spellbook(
+            pygame,
+            panel,
+            project,
+            palette,
+            primary_colour,
+            secondary_colour,
+            stats_colour,
+            player,
+            spread=spellbook_spread,
         )
     elif resolved_right_mode_key in RIGHT_MODE_DRAWERS:
         RIGHT_MODE_DRAWERS[resolved_right_mode_key](
@@ -1009,8 +1053,9 @@ def launch_interface_viewer(
 
     pygame.init()
     try:
-        screen = set_scaled_fullscreen(pygame, WINDOW_SIZE)
+        screen = set_display_mode(pygame, WINDOW_SIZE)
         pygame.display.set_caption("Bloodwych ReSource - Interface Viewer / Editor")
+        fullscreen = is_fullscreen()
         title_font = pygame.font.SysFont(None, 30)
         font = pygame.font.SysFont(None, 21)
         small_font = pygame.font.SysFont(None, 17)
@@ -1044,6 +1089,7 @@ def launch_interface_viewer(
         display_state: str | None = None
         comms_menu_page = 0
         inventory_party_slot = 0
+        spellbook_spread = 0
         status = "Read-only layout; dialogue-text ramps can be saved to modified data."
 
         player_rects = (pygame.Rect(20, 55, 150, 34), pygame.Rect(180, 55, 150, 34))
@@ -1068,6 +1114,8 @@ def launch_interface_viewer(
         }
 
         running = True
+        display_mode_rect = pygame.Rect(WINDOW_SIZE[0] - 60, 12, 50, 28)
+        back_rect = pygame.Rect(20, 712, 100, 32)
         first_frame = True
         while running:
             mouse = pygame.mouse.get_pos()
@@ -1093,12 +1141,16 @@ def launch_interface_viewer(
                 comms_hovered_button=comms_hovered_button,
                 right_mode_key=right_mode_key,
                 inventory_party_slot=inventory_party_slot,
+                spellbook_spread=spellbook_spread,
             )
             framed_panel = frame_interface_panel(pygame, panel)
             chrome_colour, secondary_ui_colour, stats_colour = _player_ui_colours(player)
             scaled_panel = pygame.transform.scale(framed_panel, PREVIEW_SIZE)
 
             screen.fill((24, 26, 31))
+            pygame.draw.rect(screen, (49, 52, 61), display_mode_rect, border_radius=4)
+            mode_label = tiny_font.render("WIN" if fullscreen else "FULL", True, (245, 245, 245))
+            screen.blit(mode_label, mode_label.get_rect(center=display_mode_rect.center))
             screen.blit(
                 title_font.render(
                     "Interface Viewer / Editor", True, (242, 243, 247)
@@ -1321,6 +1373,9 @@ def launch_interface_viewer(
                 ),
                 (20, 687),
             )
+            pygame.draw.rect(screen, (49, 52, 61), back_rect, border_radius=4)
+            back_label = tiny_font.render("BACK", True, (245, 245, 245))
+            screen.blit(back_label, back_label.get_rect(center=back_rect.center))
 
             pygame.display.flip()
             if screenshot_path is not None and first_frame:
@@ -1337,8 +1392,13 @@ def launch_interface_viewer(
                     selected_hitbox = None
                 elif event.type == pygame.KEYDOWN and event.key == pygame.K_ESCAPE:
                     running = False
+                elif event.type == pygame.MOUSEBUTTONDOWN and event.button == 1 and display_mode_rect.collidepoint(event.pos):
+                    fullscreen = not fullscreen
+                    screen = set_scaled_fullscreen(pygame, WINDOW_SIZE) if fullscreen else set_windowed(pygame, WINDOW_SIZE)
                 elif event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
-                    if player_rects[0].collidepoint(event.pos):
+                    if back_rect.collidepoint(event.pos):
+                        running = False
+                    elif player_rects[0].collidepoint(event.pos):
                         player = 0
                     elif player_rects[1].collidepoint(event.pos):
                         player = 1
@@ -1469,6 +1529,28 @@ def launch_interface_viewer(
                                         status = (
                                             f"Inventory slot {slot + 1} selected; object pickup/drop handling is not yet overlaid."
                                         )
+                                elif selected_hitbox.group == "spellbook":
+                                    if action == INTERFACE_ACTION_SPELLBOOK_CLOSE:
+                                        right_mode_key = "main"
+                                        selected_hitbox = None
+                                        status = "Spell book closed; normal name and walking controls restored."
+                                    elif action == INTERFACE_ACTION_SPELLBOOK_PAGE_BACKWARD:
+                                        spellbook_spread = (spellbook_spread - 1) % 4
+                                        status = f"{handler}: spell-book spread {spellbook_spread + 1} selected."
+                                    elif action == INTERFACE_ACTION_SPELLBOOK_PAGE_FORWARD:
+                                        spellbook_spread = (spellbook_spread + 1) % 4
+                                        status = f"{handler}: spell-book spread {spellbook_spread + 1} selected."
+                                    elif (
+                                        INTERFACE_ACTION_SPELLBOOK_RUNE_FIRST
+                                        <= action
+                                        <= INTERFACE_ACTION_SPELLBOOK_RUNE_LAST
+                                    ):
+                                        entry = action - INTERFACE_ACTION_SPELLBOOK_RUNE_FIRST
+                                        spell = spellbook_spread * 8 + entry
+                                        status = (
+                                            f"Spell-book entry {entry + 1} selected (spell index {spell}); "
+                                            "availability highlighting and casting remain to be decoded."
+                                        )
                                 elif action == INTERFACE_ACTION_STATS_SCROLL_RETURN:
                                     right_mode_key = "main"
                                     selected_hitbox = None
@@ -1566,6 +1648,7 @@ def launch_interface_viewer(
                                 elif action == INTERFACE_ACTION_SPELL_BOOK:
                                     right_mode_key = "spellbook"
                                     display_state = None
+                                    spellbook_spread = 0
                                     status = f"{handler}: spell-book display opened."
                                 elif action == INTERFACE_ACTION_PAUSE:
                                     display_state = None if display_state == "pause" else "pause"
