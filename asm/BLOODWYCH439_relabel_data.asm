@@ -4846,7 +4846,7 @@ adrCd0032F4:		; Memory Address ($32F4) and binary offset [$2F70]
 	beq.s	adrCd003312															;6716
 	tst.w	$0042(a5)															;4A6D0042
 	bne.s	adrCd00332A															;6628
-	move.w	#$FFFF,$0042(a5)													;3B7CFFFF0042
+	move.w	#$FFFF,$0042(a5)													;Enters the negative team-avatar state consumed by Draw_PartyCommandInterface; the dirty slot renderer then uses each selected-slot bit to choose full-length drawing.
 	move.w	#$FFFF,$0040(a5)													;3B7CFFFF0040
 	bra		Draw_PartyCommandInterface											;60004840
 
@@ -6398,31 +6398,31 @@ Comms_GetState:		; Memory Address ($41FA) and binary offset [$3E76]
 adrCd00420A:		; Memory Address ($420A) and binary offset [$3E86]
 	rts																			;4E75
 
-Click_CommsAndOptions:		; Memory Address ($420C) and binary offset [$3E88]
-	move.w	$0004(a5),d1														;322D0004
-	sub.w	$0008(a5),d1														;926D0008
-	cmpi.w	#$0037,d1															;0C410037
-	bcs.s	adrCd004234															;651A
+Click_ChampionPresentationOrPartyCommand:		; Memory Address ($420C) and binary offset [$3E88]
+	move.w	$0004(a5),d1														;Reads the pointer Y coordinate before converting it to player-local panel coordinates.
+	sub.w	$0008(a5),d1														;Subtracts the player screen Y offset so the following hit tests use native interface coordinates.
+	cmpi.w	#$0037,d1															;Separates the three lower party-shield rows (Y >= $37) from the main-avatar/party-command region above.
+	bcs.s	Enter_PartyCommandInterface											;651A
 	move.w	$0002(a5),d1														;322D0002
-	lsr.w	#$05,d1																;EA49
-	and.w	#$0003,d1															;02410003
+	lsr.w	#$05,d1																;Converts the lower-row pointer X coordinate into its 32-pixel party-shield column index.
+	and.w	#$0003,d1															;Keeps the three lower shield columns after the X-coordinate conversion.
 	addq.w	#$01,d1																;5241
-adrCd004226:		; Memory Address ($4226) and binary offset [$3EA2]
-	bchg	d1,$003E(a5)														;036D003E
+Toggle_ChampionPresentation:		; Memory Address ($4226) and binary offset [$3EA2]
+	bchg	d1,$003E(a5)														;Toggles the presentation bit for the selected main or lower champion slot; the renderer uses this state to choose portrait or standing artwork.
 	move.w	d1,d7																;3E01
 	bsr		Refresh_PartyShieldSlotIfDirty										;61003CC2
 	bra		Draw_PartyShieldChainStrip											;60003CA0
 
-adrCd004234:		; Memory Address ($4234) and binary offset [$3EB0]
+Enter_PartyCommandInterface:		; Memory Address ($4234) and binary offset [$3EB0]
 	moveq	#$00,d1																;7200
 	cmp.w	#$0030,$0002(a5)													;0C6D00300002
-	bcs.s	adrCd004226															;65E8
+	bcs.s	Toggle_ChampionPresentation											;65E8
 	move.b	$003E(a5),d0														;102D003E
 	and.b	#$0E,d0																;0200000E
 	bne.s	ExitPause															;6670
-	clr.w	$0042(a5)															;426D0042
+	clr.w	$0042(a5)															;Clears the party-command page/depth state before rebuilding the top-level command interface.
 	clr.w	$0044(a5)															;426D0044
-	move.w	#$FFFF,$0040(a5)													;3B7CFFFF0040
+	move.w	#$FFFF,$0040(a5)													;Marks the party-command selection as unset before the command panel is drawn.
 	clr.b	$003E(a5)															;422D003E
 	bra		Draw_PartyCommandInterface											;600038F4
 
@@ -8601,7 +8601,7 @@ DungeonInterfaceActionTable:		; Memory Address ($5B52) and binary offset [$57CE]
 	dc.l	Click_TurnSpellBookPage	;0000C2EA
 	dc.l	Click_CloseCurrentPage	;000057A4
 	dc.l	Click_TurnSpellBookPage	;0000C2EA
-	dc.l	Click_CommsAndOptions	;0000420C
+	dc.l	Click_ChampionPresentationOrPartyCommand	;0000420C
 	dc.l	adrJA005862	;00005862
 	dc.l	Click_PauseGame	;0000425E
 	dc.l	Click_LoadSaveGame	;0000432A
@@ -9630,7 +9630,7 @@ Armour_SelectInnateOrSpellValue:		; Memory Address ($6338) and binary offset [$5
 Armour_ApplyBodyArmour:		; Memory Address ($6342) and binary offset [$5FBE]
 	; Replaces the base armour value when the worn body armour provides greater
 	; protection.
-	move.b	$0002(a1),d2														;14290002
+	move.b	$0002(a1),d2														;Reads the selected champion's body-armour pocket before converting body armour object IDs into armour protection.
 	beq.s	Armour_ApplyWornHandArmour											;670E
 	sub.b	#$1B,d2																;0402001B
 	add.b	d2,d2																;D402
@@ -9640,14 +9640,14 @@ Armour_ApplyBodyArmour:		; Memory Address ($6342) and binary offset [$5FBE]
 	move.b	d2,d3																;1602
 Armour_ApplyWornHandArmour:		; Memory Address ($6356) and binary offset [$5FD2]
 	; Adds the contribution of the champion's worn hand-armour object.
-	move.b	$0012(a4),d2														;142C0012
+	move.b	$0012(a4),d2														;Reads the worn-hand-armour object and adds its source-defined protection after body and spell protection have been resolved.
 	beq.s	Armour_ApplyShield													;6706
 	sub.b	#$2B,d2																;0402002B
 	add.b	d2,d3																;D602
 Armour_ApplyShield:		; Memory Address ($6362) and binary offset [$5FDE]
 	; Adds the equipped shield's armour contribution.
 	moveq	#$00,d2																;7400
-	move.b	$0003(a1),d2														;14290003
+	move.b	$0003(a1),d2														;Reads the shield pocket and adds the matching protection byte only for object IDs $24 through $2A.
 	sub.b	#$24,d2																;04020024
 	bcs.s	Armour_Return														;650A
 	cmpi.w	#$0007,d2															;0C420007
@@ -9874,39 +9874,39 @@ Notice_DoorLocked:
 	dc.b	$00	;00
 
 Click_PartyMember:		; Memory Address ($65B2) and binary offset [$622E]
-	lsr.w	#$02,d0																;E448
-	subq.w	#$06,d0																;5D40
-	tst.w	$0016(a5)															;4A6D0016
+	lsr.w	#$02,d0																;Converts the dispatch-table byte offset into action number $06-$09 before calculating the party-slot index.
+	subq.w	#$06,d0																;Converts party-member action $06-$09 to PlayerX_Data party slot $00-$03.
+	tst.w	$0016(a5)															;Tests the pending party-slot selection. A negative value means this is the first click.
 	bpl.s	adrCd0065CC															;6A10
-	tst.b	$26(a5,d0.w)														;4A350026
+	tst.b	$26(a5,d0.w)														;Tests for an empty destination only when no party slot is pending. Once a living slot is pending, the later byte-exchange path permits moving it into an empty profession-icon slot.
 	bpl.s	adrCd0065C4															;6A02
 	rts																			;4E75
 
 adrCd0065C4:		; Memory Address ($65C4) and binary offset [$6240]
-	move.w	d0,$0016(a5)														;3B400016
+	move.w	d0,$0016(a5)														;Stores the first-click party-slot index as the pending selection, then redraws the party command interface.
 	bra		adrCd008396															;60001DCC
 
 adrCd0065CC:		; Memory Address ($65CC) and binary offset [$6248]
-	cmp.w	$0016(a5),d0														;B06D0016
+	cmp.w	$0016(a5),d0														;A second click on the same pending slot commits that champion as current; a different slot instead enters the reorder path.
 	beq.s	adrCd0065E8															;6716
-	move.b	$26(a5,d0.w),d1														;12350026
+	move.b	$26(a5,d0.w),d1														;Loads the clicked party-position entry before exchanging it with the entry from the initially selected slot.
 	move.w	$0016(a5),d2														;342D0016
-	move.b	$26(a5,d2.w),$26(a5,d0.w)											;1BB520260026
+	move.b	$26(a5,d2.w),$26(a5,d0.w)											;Moves the initially selected party-position entry into the different clicked slot; the next instruction writes the saved entry back, completing the swap.
 	move.b	d1,$26(a5,d2.w)														;1B812026
-	moveq	#-$01,d0															;70FF
+	moveq	#-$01,d0															;Marks the pending selection invalid after a party-position swap; it does not change the current champion.
 	bra.s	adrCd0065C4															;60DC
 
 adrCd0065E8:		; Memory Address ($65E8) and binary offset [$6264]
-	move.b	$26(a5,d0.w),d0														;10350026
+	move.b	$26(a5,d0.w),d0														;Loads the champion ID from the committed party slot before making it the current champion.
 	bmi.s	adrCd006608															;6B1A
 	move.w	$0006(a5),d2														;342D0006
-	move.w	d0,$0006(a5)														;3B400006
-	bsr		adrCd004078															;6100DA80
-	move.b	d2,$18(a5,d1.w)														;1B821018
-	move.b	d0,$0018(a5)														;1B400018
-	bset	#$04,$0018(a5)														;08ED00040018
+	move.w	d0,$0006(a5)														;Stores the selected champion ID as PlayerX_Data current champion, driving the name panel and large avatar.
+	bsr		adrCd004078															;Finds the selected champion's current left avatar slot in PlayerX_Data+$18 before replacing the current leader.
+	move.b	d2,$18(a5,d1.w)														;Writes the former leader into the selected champion's previous left avatar slot, refreshing the lower avatar arrangement after a confirmed lead change.
+	move.b	d0,$0018(a5)														;Writes the confirmed new leader into the large-avatar slot at PlayerX_Data+$18; this is separate from the right-side profession-order bytes at $26.
+	bset	#$04,$0018(a5)														;Marks the new large-avatar slot active after its champion ID has been written.
 adrCd006608:		; Memory Address ($6608) and binary offset [$6284]
-	move.w	#$FFFF,$0016(a5)													;3B7CFFFF0016
+	move.w	#$FFFF,$0016(a5)													;Clears the pending party-slot selection after committing the current champion.
 	bsr		Draw_ChampionNamePanelFrame											;61001C68
 	bra		Draw_PartyCommandInterface											;6000153C
 
@@ -9915,22 +9915,22 @@ Click_ShowStats:		; Memory Address ($6616) and binary offset [$6292]
 	; ChampionStatsScroll_FoodTextTemplate and draws the champion food bar from
 	; record byte $10.
 	move.w	#$0001,$0014(a5)													;3B7C00010014
-	moveq	#$38,d5																;7A38
+	moveq	#$38,d5																;Supplies Draw_ChampionStats with the scroll's DBRA height $38; Draw_ScrollFrame uses this to fill the 57-row centre between its 15-row caps.
 	bsr		Draw_ChampionStats													;6100650A
-	lea		ChampionStatsScroll_FoodTextTemplate.l,a6							;4DF90000E9E8
+	lea		ChampionStatsScroll_FoodTextTemplate.l,a6							;Selects the FOOD Print_fflim_text stream: heading row $08 followed by end-cap glyph row $09, each printer row eight pixels apart.
 	bsr		Print_fflim_text													;61006A9C
 	asl.w	#$05,d7																;EB47
 	lea		Character_Stats_DataTable.l,a6										;4DF90000EB2A
 	moveq	#$00,d0																;7000
 	move.b	$10(a6,d7.w),d0														;10367010
 	beq.s	adrCd00666E															;6732
-	move.w	#$00C7,d1															;323C00C7
-	moveq	#$30,d2																;7430
-	move.l	#$002F00F9,d4														;283C002F00F9
+	move.w	#$00C7,d1															;Sets $C7 as the champion food-byte value that represents a completely filled food bar.
+	moveq	#$30,d2																;Sets the food bar's maximum scaled length to $30, yielding 48 rendered pixels.
+	move.l	#$002F00F9,d4														;Supplies BW_draw_bar with X=$F9 and DBRA width $2F, drawing the food fill across 48 pixels through X=$128.
 	bsr		Scale_ValueToBarLength												;61001AFA
 	move.l	#$0004004A,d5														;2A3C0004004A	;Long Addr replaced with Symbol
 	add.w	$0008(a5),d5														;DA6D0008
-	moveq	#$09,d3																;7609
+	moveq	#$09,d3																;Selects palette index $09 for the scaled champion food-bar fill.
 	bra		BW_draw_bar															;6000740E
 
 Load_CurrentChampionStatRecord:		; Memory Address ($665C) and binary offset [$62D8]
@@ -10619,22 +10619,22 @@ Normalize_HeldNonCountedObjectQuantity:		; Memory Address ($6BE8) and binary off
 	bra.s	Redraw_Inventory													;601A
 
 Click_OpenInventory:		; Memory Address ($6BF0) and binary offset [$686C]
-	clr.w	$000E(a5)															;426D000E
-	move.l	#$005E00E1,d4														;283C005E00E1
-	move.l	#$00070040,d5														;2A3C00070040
+	clr.w	$000E(a5)															;Resets the inspected party-slot index to the first slot when inventory is opened.
+	move.l	#$005E00E1,d4														;Sets the lower inventory background rectangle X=$E1 with DBRA width $5E, producing 95 pixels.
+	move.l	#$00070040,d5														;Sets the lower inventory background rectangle at player-local Y=$40 with DBRA height $07, producing eight rows.
 	add.w	$0008(a5),d5														;DA6D0008
 	moveq	#$03,d3																;7603
 	bsr		BW_draw_bar															;61006E60
 Redraw_Inventory:		; Memory Address ($6C0A) and binary offset [$6886]
 	move.w	$000E(a5),d7														;3E2D000E
-	move.b	$18(a5,d7.w),d7														;1E357018
-	and.w	#$000F,d7															;0247000F
-	bsr		Draw_InventoryPocketSlots											;61005DA4
+	move.b	$18(a5,d7.w),d7														;Resolves the inspected party slot to its champion-state byte before selecting the champion record.
+	and.w	#$000F,d7															;Extracts the champion ID from the low nibble of the occupied party-slot state.
+	bsr		Draw_InventoryPocketSlots											;Draws the selected champion's hand, armour, shield, and eight pocket positions before title and armour text are overlaid.
 	move.l	#$000D0003,adrW_00D92A.l											;23FC000D00030000D92A
-	bsr		adrCd00C984															;61005D5E
+	bsr		Draw_InventoryArmourRating											;61005D5E
 	move.w	d7,d0																;3007
 	bsr		adrCd00CF08															;610062DC
-	move.w	#$0003,$0014(a5)													;3B7C00030014
+	move.w	#$0003,$0014(a5)													;Sets interface mode $03 so subsequent redraw paths remain in the inventory view.
 Refresh_HeldItemDisplay:		; Memory Address ($6C34) and binary offset [$68B0]
 	; Updates the held-item description, graphic, quantity and optional food bar.
 	bsr		Draw_HeldObjectDescription											;6100009C
@@ -10645,9 +10645,9 @@ Draw_HeldItemPanel:		; Memory Address ($6C42) and binary offset [$68BE]
 	; and quantity.
 	or.b	#$04,$0054(a5)														;002D00040054
 	move.l	screen_ptr.l,a0														;207900008D36
-	add.w	#$0B5C,a0															;D0FC0B5C
+	add.w	#$0B5C,a0															;Starts the lower inventory panel at player-local X=$E0/Y=$48, after the page has supplied the shared lower chain strip.
 	add.w	$000A(a5),a0														;D0ED000A
-	moveq	#$00,d7																;7E00
+	moveq	#$00,d7																;Initialises the four-position inventory profession-icon loop.
 Draw_HeldItemPanelPieces_Loop:		; Memory Address ($6C58) and binary offset [$68D4]
 	; Draws the four fixed decorative pieces surrounding the held-item graphic.
 	bsr		adrCd008416															;610017BC
@@ -10658,9 +10658,9 @@ Draw_HeldItemPanelPieces_Loop:		; Memory Address ($6C58) and binary offset [$68D
 	move.w	HeldItem_QuantityOffset(a5),d1										;Offset of the held-object quantity word.
 	bsr		ObjectGraphic														;61005DF8
 	move.w	$0012(a5),d3														;362D0012
-	moveq	#$74,d0																;7074
+	moveq	#$74,d0																;Selects the fixed empty held-item pocket graphic placed after the four profession positions.
 	bsr		Draw_PocketGraphic													;61005E72
-	bsr		Draw_SelectedInventorySlotFrame										;610000A2
+	bsr		Draw_SelectedInventorySlotFrame										;Draws the yellow 16 by 15 selection frame around the party position stored at PlayerX_Data+$000F.
 	move.w	HeldItem_ObjectCodeOffset(a5),d0									;Offset of the currently held object code in the interface state.
 	beq.s	Return_FromHeldItemDisplay											;670C
 	cmpi.w	#Object_Food_First,d0												;First food object and exclusive end of counted objects.
@@ -10727,13 +10727,13 @@ Resolve_HeldObjectDescription:		; Memory Address ($6D08) and binary offset [$698
 Draw_SelectedInventorySlotFrame:		; Memory Address ($6D1E) and binary offset [$699A]
 	; Draws the highlight frame around the selected character inventory slot.
 	moveq	#$0D,d3																;760D
-	move.l	#$000E0049,d5														;2A3C000E0049
+	move.l	#$000E0049,d5														;Sets the inventory profession-selection frame's DBRA height $0E and Y=$49, one pixel below the lower strip's Y=$48 anchor.
 	add.w	$0008(a5),d5														;DA6D0008
 	moveq	#$0F,d4																;780F
 	swap	d4																	;4844
 	move.b	$000F(a5),d4														;182D000F
 	asl.w	#$04,d4																;E944
-	add.w	#$00E1,d4															;064400E1
+	add.w	#$00E1,d4															;Places the selection frame at X=$E1 plus sixteen pixels per selected party position.
 	bra		BW_draw_frame														;60006D9A
 
 adrCd006D3C:		; Memory Address ($6D3C) and binary offset [$69B8]
@@ -11787,48 +11787,48 @@ adrCd007B44:		; Memory Address ($7B44) and binary offset [$77C0]
 
 Draw_PartyCommandInterface:		; Memory Address ($7B50) and binary offset [$77CC]
 	; Clears and composes the party-command panel for the current command state.
-	tst.w	$0042(a5)															;4A6D0042
-	bmi		Refresh_DirtyPartyShieldSlots										;6B00036A
+	tst.w	$0042(a5)															;Tests PlayerX_Data party-command state: a non-negative value takes the ordinary compact portrait/shield redraw path, while $FFFF enters the dirty selected-character redraw path.
+	bmi		Refresh_DirtyPartyShieldSlots										;Branches only for the negative team-avatar state, allowing individually selected living slots to use Draw_Character rather than their compact avatar graphics.
 	or.b	#$03,$0054(a5)														;002D00030054
-	move.l	#$005F0000,d4														;283C005F0000
+	move.l	#$005F0000,d4														;Clears the 96 by 89 player-local party-command panel before drawing the avatar, command pockets, menu rows, and chain strip.
 	move.l	#$00580007,d5														;2A3C00580007
-	add.w	$0008(a5),d5														;DA6D0008
+	add.w	$0008(a5),d5														;Applies the active player's screen-buffer Y offset to this player-local drawing coordinate.
 	moveq	#$00,d3																;7600
 	bsr		BW_draw_bar															;61005EF6
 	move.l	#$FFFFFFFF,$005A(a5)												;2B7CFFFFFFFF005A
-	bsr		Draw_MainChampionAvatarPanel										;61005140
-	moveq	#$0A,d5																;7A0A
-	add.w	$0008(a5),d5														;DA6D0008
-	moveq	#$32,d4																;7832
-	move.l	#$002B0002,d3														;263C002B0002
-	bsr		BW_blit_vertical_line												;61005F74
-	moveq	#$5D,d4																;785D
-	bsr		BW_blit_vertical_line												;61005F6E
-	addq.w	#$02,d5																;5445
+	bsr		Draw_MainChampionAvatarPanel										;Draws the default large 32 by 30 avatar panel before any full-length party-character rendering is requested.
+	moveq	#$0A,d5																;Sets player-local Y=$0A for the outer pair of command-pocket decoration lines.
+	add.w	$0008(a5),d5														;Applies the active player's screen-buffer Y offset to this player-local drawing coordinate.
+	moveq	#$32,d4																;Sets the outer-left command-pocket decoration line at player-local X=$32.
+	move.l	#$002B0002,d3														;Sets the outer-line DBRA count to $2B (44 rendered pixels) and the shared grey palette index to $02.
+	bsr		BW_blit_vertical_line												;Draws one of the four command-pocket decoration lines using D4 X, D5 Y, the high-word DBRA count in D3, and the low-word palette index in D3.
+	moveq	#$5D,d4																;Sets the outer-right command-pocket decoration line at player-local X=$5D.
+	bsr		BW_blit_vertical_line												;Draws one of the four command-pocket decoration lines using D4 X, D5 Y, the high-word DBRA count in D3, and the low-word palette index in D3.
+	addq.w	#$02,d5																;Moves the inner decoration pair two pixels down to player-local Y=$0C.
 	sub.l	#$00040000,d3														;048300040000	;Long Addr replaced with Symbol
-	moveq	#$5B,d4																;785B
-	bsr		BW_blit_vertical_line												;61005F60
-	moveq	#$34,d4																;7834
-	bsr		BW_blit_vertical_line												;61005F5A
-	move.l	screen_ptr.l,a0														;207900008D36
-	add.w	#$0147,a0															;D0FC0147
-	add.w	$000A(a5),a0														;D0ED000A
-	moveq	#$71,d7																;7E71
+	moveq	#$5B,d4																;Sets the inner-right command-pocket decoration line at player-local X=$5B.
+	bsr		BW_blit_vertical_line												;Draws one of the four command-pocket decoration lines using D4 X, D5 Y, the high-word DBRA count in D3, and the low-word palette index in D3.
+	moveq	#$34,d4																;Sets the inner-left command-pocket decoration line at player-local X=$34.
+	bsr		BW_blit_vertical_line												;Draws one of the four command-pocket decoration lines using D4 X, D5 Y, the high-word DBRA count in D3, and the low-word palette index in D3.
+	move.l	screen_ptr.l,a0														;Loads the screen base before positioning the first pair of Pockets command icons.
+	add.w	#$0147,a0															;Positions A0 at the player-local destination for the first two command-pocket icons.
+	add.w	$000A(a5),a0														;Applies the active player's screen-buffer byte offset to the command-pocket icon destination.
+	moveq	#$71,d7																;Seeds D7 with Pockets icon $71. The loop draws icon IDs $71-$74 in two-icon rows, and only draws $75-$76 when the interface is in active Communication state $08.
 	move.w	$0012(a5),d3														;Loads the active player's secondary UI colour before drawing the six command/toggle pocket graphics.
-adrCd007BC0:		; Memory Address ($7BC0) and binary offset [$783C]
-	move.w	d7,d0																;3007
-	bsr		Draw_PocketGraphic													;61004F26
-	addq.w	#$01,d7																;5247
-	move.w	d7,d0																;3007
-	bsr		Draw_PocketGraphic													;61004F1E
-	addq.w	#$01,d7																;5247
-	add.w	#$027C,a0															;D0FC027C
-	cmpi.w	#$0075,d7															;0C470075
-	bcs.s	adrCd007BC0															;65E6
-	cmp.w	#$0008,$0042(a5)													;0C6D00080042
+Draw_PartyCommandIconStrip:		; Memory Address ($7BC0) and binary offset [$783C]
+	move.w	d7,d0																;Passes the current Pockets icon ID from D7 to Draw_PocketGraphic; each loop pass draws two consecutive IDs.
+	bsr		Draw_PocketGraphic													;Draws the current player-coloured Pockets icon selected by D7/D0 at the destination in A0.
+	addq.w	#$01,d7																;Advances D7 to the next Pockets icon ID; the loop covers $71 through $74 unconditionally, then $75 and $76 only in communication state.
+	move.w	d7,d0																;Passes the current Pockets icon ID from D7 to Draw_PocketGraphic; each loop pass draws two consecutive IDs.
+	bsr		Draw_PocketGraphic													;Draws the current player-coloured Pockets icon selected by D7/D0 at the destination in A0.
+	addq.w	#$01,d7																;Advances D7 to the next Pockets icon ID; the loop covers $71 through $74 unconditionally, then $75 and $76 only in communication state.
+	add.w	#$027C,a0															;Advances the drawing destination from one two-icon row to the next command-pocket row.
+	cmpi.w	#$0075,d7															;Repeats the two-icon drawing loop until the always-visible Pockets icons $71 through $74 have been drawn.
+	bcs.s	Draw_PartyCommandIconStrip											;65E6
+	cmp.w	#$0008,$0042(a5)													;Tests for active communication state $08; other party-command states skip the final wide-toggle icon pair.
 	bne.s	adrCd007BE8															;6606
-	cmpi.w	#$0077,d7															;0C470077
-	bcs.s	adrCd007BC0															;65D8
+	cmpi.w	#$0077,d7															;Continues the loop only until the active-communication-only Pockets icons $75 and $76 have also been drawn.
+	bcs.s	Draw_PartyCommandIconStrip											;65D8
 adrCd007BE8:		; Memory Address ($7BE8) and binary offset [$7864]
 	bsr		Draw_PartyCommandMenu												;61000182
 	lea		GFX_Pockets+$3C60.l,a1												;43F900050362
@@ -12107,18 +12107,18 @@ adrJT007D44:		; Memory Address ($7D44) and binary offset [$79C0]
 Draw_PartyCommandMenu:		; Memory Address ($7D6C) and binary offset [$79E8]
 	; Selects a command descriptor stream and draws its selectable rows and text.
 	or.b	#$01,$0054(a5)														;002D00010054
-	move.w	$0044(a5),d0														;302D0044
+	move.w	$0044(a5),d0														;Loads the active party-command menu descriptor-stream index before selecting its stream through the ten-entry jump table.
 	asl.w	#$02,d0																;E540
 	move.l	adrJT007D44(pc,d0.w),a0												;207B00CA
 	jsr		(a0)																;4E90
 	move.l	a6,$0046(a5)														;2B4E0046
-	move.l	#$00060039,d5														;2A3C00060039
+	move.l	#$00060039,d5														;Initialises a seven-pixel-tall menu bar at player-local Y=$39; each of the four rows advances by eight pixels, leaving a one-pixel black separator.
 	add.w	$0008(a5),d5														;DA6D0008
 	moveq	#$00,d7																;7E00
 adrCd007D8E:		; Memory Address ($7D8E) and binary offset [$7A0A]
 	moveq	#$02,d3																;7602
 	moveq	#$00,d4																;7800
-	move.b	$00(a6,d7.w),d4														;18367000
+	move.b	$00(a6,d7.w),d4														;Loads the descriptor byte that sets the current row's left bar extent; the remaining width is drawn as the right bar with the separating vertical line retained.
 	bpl.s	adrCd007D9C															;6A04
 	moveq	#$5F,d4																;785F
 	bra.s	adrCd007DAC															;6010
@@ -12158,18 +12158,18 @@ adrCd007DEE:		; Memory Address ($7DEE) and binary offset [$7A6A]
 	bsr		BW_draw_bar															;61005C78
 adrCd007DF2:		; Memory Address ($7DF2) and binary offset [$7A6E]
 	movem.l	(sp)+,d4/d5/d7														;4CDF00B0
-	addq.w	#$08,d5																;5045
+	addq.w	#$08,d5																;Moves to the next of four menu rows: seven bar pixels plus one black separator pixel.
 	addq.w	#$01,d7																;5247
 	cmpi.w	#$0004,d7															;0C470004
 	bcs.s	adrCd007D8E															;658E
 	move.l	screen_ptr.l,a0														;207900008D36
 	add.w	$000A(a5),a0														;D0ED000A
 	add.w	#$0910,a0															;D0FC0910
-	addq.w	#$04,a6																;584E
+	addq.w	#$04,a6																;Skips the four row-layout descriptor bytes before consuming the packed text entries for the same four visible rows.
 	moveq	#$00,d7																;7E00
 adrCd007E12:		; Memory Address ($7E12) and binary offset [$7A8E]
 	move.l	a0,-(sp)															;2F08
-	bsr		Print_com_menu_entry												;61005936
+	bsr		Print_com_menu_entry												;Prints one packed party-command text row; four passes consume the descriptor stream entries in display order.
 	clr.b	InputStateFlag_AI_TBC.l												;42390000EE2D
 	move.l	(sp)+,a0															;205F
 	add.w	#$0140,a0															;D0FC0140
@@ -12200,9 +12200,9 @@ adrCd007E62:		; Memory Address ($7E62) and binary offset [$7ADE]
 Draw_ActivePartyChampionInShield:		; Memory Address ($7E6A) and binary offset [$7AE6]
 	; Validate an active living party slot and draw its character inside the
 	; selected shield surround.
-	btst	d7,$003E(a5)														;0F2D003E
+	btst	d7,$003E(a5)														;Continues only for a party slot marked as the active selected member.
 	beq.s	adrCd007E80															;6710
-	move.b	$18(a5,d7.w),d1														;12357018
+	move.b	$18(a5,d7.w),d1														;Loads the party-slot state byte: low nibble is champion ID; bits $20/$40 suppress the living full-character rendering.
 	move.b	d1,d0																;1001
 	and.w	#$000F,d0															;0240000F
 	and.w	#$00E0,d1															;024100E0
@@ -12216,12 +12216,12 @@ adrCd007E82:		; Memory Address ($7E82) and binary offset [$7AFE]
 	add.w	d7,d7																;DE47
 	add.w	d0,d7																;DE40
 	add.w	d7,d7																;DE47
-	move.w	ActivePartyChampionShieldDrawParameters(pc,d7.w),d4					;383B7018
-	move.w	adrW_007EAA(pc,d7.w),d5												;3A3B7016
-	move.w	adrW_007EAC(pc,d7.w),d1												;323B7014
+	move.w	ActivePartyChampionShieldDrawParameters(pc,d7.w),d4					;Loads the selected champion X anchor: $11 for upper slot, then $08, $28 and $48 for the three shield slots.
+	move.w	adrW_007EAA(pc,d7.w),d5												;Loads the selected champion Y anchor: $1C for upper slot or $48 for a lower shield slot.
+	move.w	adrW_007EAC(pc,d7.w),d1												;Loads Draw_Character distance: $00 for the upper full-size champion and $01 for the lower one-step-away champion.
 	moveq	#$00,d0																;7000
 	move.w	#$FFFF,MonsterStrip_BottomY.l										;33FCFFFF0000AD64
-	bra		Draw_Character														;6000289E
+	bra		Draw_Character														;Tail-calls the multipart character renderer after passing front-facing direction, selected slot anchor, and distance.
 
 ActivePartyChampionShieldDrawParameters:		; Memory Address ($7EA8) and binary offset [$7B24]
 	; Four six-byte records supplying character-render X, Y, and display parameters
@@ -12337,7 +12337,7 @@ Draw_SelectedPartyChampionInShield:		; Memory Address ($7FB2) and binary offset 
 	move.l	screen_ptr.l,a0														;207900008D36
 	add.w	$000A(a5),a0														;D0ED000A
 	move.l	a0,-$0008(a3)														;2748FFF8
-	bsr		Draw_ActivePartyChampionInShield									;6100FE9A
+	bsr		Draw_ActivePartyChampionInShield									;Draws the active champion as a full multipart character inside the already drawn selected shield surround.
 	unlk	a3																	;4E5B
 Return_PartyShieldDrawing:		; Memory Address ($7FD4) and binary offset [$7C50]
 	; Shared return for party-shield rendering paths.
@@ -12346,7 +12346,7 @@ Return_PartyShieldDrawing:		; Memory Address ($7FD4) and binary offset [$7C50]
 Select_PartyShieldClassColours:		; Memory Address ($7FD6) and binary offset [$7C52]
 	; Select normal class colours or the fixed dead-state class mask.
 	moveq	#$04,d3																;7604
-	btst	#$06,d7																;08070006
+	btst	#$06,d7																;Tests the avatar-state dead flag. A dead member uses the fixed dead shield colours and is not eligible for selected living-character drawing.
 	beq.s	Prepare_ComposedPartyShieldAvatar									;6702
 Use_DeadPartyShieldClassColours:		; Memory Address ($7FDE) and binary offset [$7C5A]
 	; Set D3 to zero, selecting black surround ink and the fixed dead
@@ -12438,7 +12438,7 @@ Draw_MainPlayerInterface:		; Memory Address ($80CA) and binary offset [$7D46]
 	move.l	#$00240036,d4														;283C00240036
 	move.l	#$00160017,d5														;2A3C00160017
 	add.w	$0008(a5),d5														;DA6D0008
-	moveq	#$03,d3																;The stats-bar background uses palette index $03.
+	moveq	#$03,d3																;The $80E8 stats-bar background call uses palette index $03, the lighter panel fill.
 	bsr		BW_draw_bar															;Draws the stats-bar background rectangle using D4 dimensions and D3.
 	btst	#$00,$003E(a5)														;082D0000003E
 	bne		adrCd00815C															;66000066
@@ -12448,11 +12448,11 @@ Draw_MainPlayerInterface:		; Memory Address ($80CA) and binary offset [$7D46]
 	lea		$05(a6,d7.w),a6														;4DF67005
 	move.l	#$00040019,d5														;2A3C00040019	;Long Addr replaced with Symbol
 	add.w	$0008(a5),d5														;DA6D0008
-	moveq	#CompactStatsBar_LastIndex,d6										;Initialises the three-bar DBRA loop with terminal index 2.
-	moveq	#Player1_CompactStatsColourIndex,d3									;Selects Player 1's hard-coded colour for each compact statistics bar.
+	moveq	#CompactStatsBar_LastIndex,d6										;Sets a DBRA terminal index of two, so the compact player panel draws exactly three statistics bars.
+	moveq	#Player1_CompactStatsColourIndex,d3									;Selects hard-coded palette index $07 for Player 1's three compact statistics bars.
 	btst	#$00,(a5)															;08150000
 	beq.s	Draw_CompactStatsBarsLoop											;6702
-	moveq	#Player2_CompactStatsColourIndex,d3									;Selects Player 2's hard-coded colour for each compact statistics bar.
+	moveq	#Player2_CompactStatsColourIndex,d3									;Selects hard-coded palette index $0C for Player 2's three compact statistics bars.
 Draw_CompactStatsBarsLoop:		; Memory Address ($811E) and binary offset [$7D9A]
 	; Draws the three compact player statistics bars using the player-specific
 	; hard-coded colour.
@@ -12598,38 +12598,38 @@ Draw_ChampionNamePanelBackground:		; Memory Address ($8258) and binary offset [$
 	; frame is drawn.
 	or.b	#$0C,$0054(a5)														;002D000C0054
 	bsr		adrCd00CF96															;61004D36
-	move.l	#$005E00E1,d4														;283C005E00E1
-	move.l	#$00560009,d5														;2A3C00560009
+	move.l	#$005E00E1,d4														;Supplies BW_draw_bar with X=$E1 and DBRA width $5E, clearing a 95-pixel-wide right-hand panel from X=$E1 through $13F.
+	move.l	#$00560009,d5														;Supplies BW_draw_bar with Y=$09 and DBRA height $56, clearing 87 rows through player-local Y=$5F.
 	add.w	$0008(a5),d5														;DA6D0008
-	moveq	#$00,d3																;7600
-	bra		BW_draw_bar															;600057F2
+	moveq	#$00,d3																;Uses palette index $00 to clear the champion-name panel background before the decorative frame is drawn.
+	bra		BW_draw_bar															;Fills the source-sized name/display panel rectangle using the packed dimensions in D4 and D5.
 
 Draw_ChampionNamePanelFrame:		; Memory Address ($8278) and binary offset [$7EF4]
 	; Draws the champion name-panel bevel, primary-colour name strip, and lower
 	; frame lines.
 	bsr.s	Draw_ChampionNamePanelBackground									;61DE
-	move.w	#$00E2,d4															;383C00E2
-	moveq	#$0A,d5																;7A0A
+	move.w	#$00E2,d4															;Sets the bevel-line X coordinate to $E2, one pixel inside the cleared panel's left edge.
+	moveq	#$0A,d5																;Starts the five-scanline upper grey bevel at player-local Y=$0A.
 	add.w	$0008(a5),d5														;DA6D0008
-	move.l	#$005D0001,d3														;263C005D0001
-adrCd00828A:		; Memory Address ($828A) and binary offset [$7F06]
+	move.l	#$005D0001,d3														;Sets DBRA width $5D (94 pixels) and the first upper-bevel colour index $01.
+Draw_ChampionNamePanelUpperBevelLoop:		; Memory Address ($828A) and binary offset [$7F06]
 	bsr		BW_blit_horiz_line													;610058F8
 	addq.w	#$01,d5																;5245
-	addq.w	#$01,d3																;5243
-	cmpi.w	#$0005,d3															;0C430005
-	bcs.s	adrCd00828A															;65F2
-	subq.w	#$04,d3																;5943
+	addq.w	#$01,d3																;Advances the packed bevel palette index on each successive horizontal line, creating the four-shade grey fade.
+	cmpi.w	#$0005,d3															;Stops the upper bevel ramp after palette indices $01 through $04 have been drawn.
+	bcs.s	Draw_ChampionNamePanelUpperBevelLoop								;65F2
+	subq.w	#$04,d3																;Restores palette index $01 for the closing lower edge of the upper bevel.
 	bsr		BW_blit_horiz_line													;610058E8
-	move.l	#$00070010,d5														;2A3C00070010
+	move.l	#$00070010,d5														;Supplies BW_draw_bar with the primary-colour name strip's Y=$10 and DBRA height $07, producing eight rows Y=$10-$17.
 	add.w	$0008(a5),d5														;DA6D0008
-	move.l	#$005D00E2,d4														;283C005D00E2
+	move.l	#$005D00E2,d4														;Supplies the primary-colour name strip's X=$E2 and DBRA width $5D, producing 94 pixels through X=$13F.
 	move.w	$0010(a5),d3														;Loads the active player's primary UI colour for the champion-name background block.
-	bsr		BW_draw_bar															;610057B4
+	bsr		BW_draw_bar															;Fills the complete primary-colour champion-name strip before the lower grey bevel starts.
 	move.w	#$0001,d3															;363C0001
 Draw_ChampionNamePanelLowerEdge:		; Memory Address ($82BA) and binary offset [$7F36]
 	; Draws the lower decorative edge and adjacent packed status graphics for the
 	; champion name panel.
-	addq.w	#$01,d5																;5245
+	addq.w	#$01,d5																;Advances from the name bar's final Y=$17 to the lower bevel's first scanline at Y=$19, leaving Y=$18 as background.
 	bsr		BW_blit_horiz_line													;610058C6
 	addq.w	#$01,d3																;5243
 	cmpi.w	#$0005,d3															;0C430005
@@ -12654,14 +12654,14 @@ adrCd008308:		; Memory Address ($8308) and binary offset [$7F84]
 	bsr		Load_MapPosition_AI_TBC												;6100FEBA
 	move.w	#$0062,d0															;303C0062
 	bsr		Draw_PocketGraphic													;610047CE
-	moveq	#$20,d5																;7A20
+	moveq	#$20,d5																;Sets the mini status-icon bevel's first horizontal line to player-local Y=$20.
 	add.w	$0008(a5),d5														;DA6D0008
-	move.w	#$0120,d4															;383C0120
-	move.l	#$001F0001,d3														;263C001F0001
+	move.w	#$0120,d4															;Sets the mini status-icon bevel's X coordinate to $120, immediately right of the 64-pixel status graphic.
+	move.l	#$001F0001,d3														;Sets the mini bevel's DBRA width $1F (32 pixels) and initial grey colour index $01.
 	bsr		BW_blit_horiz_line													;61005854
-	add.w	#$0011,d5															;06450011
+	add.w	#$0011,d5															;Moves from the top mini-bevel line to Y=$31, immediately below the 16-pixel status-icon row.
 	bsr		BW_blit_horiz_line													;6100584C
-	addq.w	#$02,d5																;5445
+	addq.w	#$02,d5																;Moves from the divider to player-local Y=$33 for the stepped lower part of the mini bevel.
 Draw_DungeonDisplayLowerEdge:		; Memory Address ($833C) and binary offset [$7FB8]
 	; Completes the lower dungeon-display edge with procedural lines before drawing
 	; the continuous chain strip.
@@ -12705,24 +12705,24 @@ adrCd008396:		; Memory Address ($8396) and binary offset [$8012]
 	or.b	#$04,$0054(a5)														;002D00040054
 	move.l	screen_ptr.l,a0														;207900008D36
 	add.w	$000A(a5),a0														;D0ED000A
-	moveq	#$00,d7																;7E00
+	moveq	#$00,d7																;Starts the four party-position profession-control loop at slot zero.
 adrCd0083B0:		; Memory Address ($83B0) and binary offset [$802C]
 	move.w	d7,d2																;3407
 	add.w	d2,d2																;D442
 	add.w	adrW_00838E(pc,d2.w),a0												;D0FB20D8
-	move.b	$26(a5,d7.w),d0														;10357026
+	move.b	$26(a5,d7.w),d0														;Loads the champion assigned to this party position; a negative entry selects the empty profession-control icon.
 	bpl.s	adrCd0083C4															;6A06
 	bsr		adrCd008462															;610000A2
 	bra.s	adrCd0083D4															;6010
 
 adrCd0083C4:		; Memory Address ($83C4) and binary offset [$8040]
-	cmp.w	$0016(a5),d7														;BE6D0016
+	cmp.w	$0016(a5),d7														;Tests whether this party position is the pending first click; that path draws its profession icon with the neutral grey mask.
 	beq.s	adrCd0083D0															;6706
-	bsr		adrCd008430															;61000064
+	bsr		adrCd008430															;Draws an occupied party position's $4B-$4E profession icon using the assigned champion's class colour mask.
 	bra.s	adrCd0083D4															;6004
 
 adrCd0083D0:		; Memory Address ($83D0) and binary offset [$804C]
-	bsr		adrCd00842C															;6100005A
+	bsr		adrCd00842C															;Draws the pending selected position's profession icon using the neutral mask at adrEA00846A, making it grey.
 adrCd0083D4:		; Memory Address ($83D4) and binary offset [$8050]
 	addq.w	#$01,d7																;5247
 	cmpi.w	#$0004,d7															;0C470004
@@ -12730,8 +12730,8 @@ adrCd0083D4:		; Memory Address ($83D4) and binary offset [$8050]
 	move.w	$0006(a5),d0														;302D0006
 	bsr		adrCd004092															;6100BCB0
 	move.w	$0010(a5),d3														;Loads the active player's primary UI colour for the selected team-member frame.
-	move.l	#$000F0121,d4														;283C000F0121
-	move.l	#$000D0039,d5														;2A3C000D0039
+	move.l	#$000F0121,d4														;Supplies the lead-profession frame's DBRA width $0F and base X=$121; the slot lookup shifts right-hand frames to X=$131.
+	move.l	#$000D0039,d5														;Supplies the lead-profession frame's DBRA height $0D and upper-row Y=$39; lower slots are shifted to Y=$48.
 	add.w	$0008(a5),d5														;DA6D0008
 	btst	#$01,d2																;08020001
 	beq.s	adrCd008402															;6704
@@ -12741,7 +12741,7 @@ adrCd008402:		; Memory Address ($8402) and binary offset [$807E]
 	beq.s	adrCd00840E															;6706
 	sub.l	#$0000FFF0,d4														;04840000FFF0	;Long Addr replaced with Symbol
 adrCd00840E:		; Memory Address ($840E) and binary offset [$808A]
-	bra		BW_draw_frame														;600056C4
+	bra		BW_draw_frame														;Draws the 16 by 14 primary-colour frame identifying the current lead champion's profession control.
 
 adrB_008412:		; Memory Address ($8412) and binary offset [$808E]
 	dc.b	$00	;00
@@ -12779,7 +12779,7 @@ adrCd00843E:		; Memory Address ($843E) and binary offset [$80BA]
 	rts																			;4E75
 
 adrCd008462:		; Memory Address ($8462) and binary offset [$80DE]
-	move.w	#$003B,d0															;303C003B
+	move.w	#$003B,d0															;Selects Pockets icon $3B for an empty party position.
 	bra		Draw_PocketGraphic													;60004682
 
 adrEA00846A:		; Memory Address ($846A) and binary offset [$80E6]
@@ -18378,7 +18378,7 @@ adrCd00C482:		; Memory Address ($C482) and binary offset [$C0FE]
 	rts																			;4E75
 
 adrJT00C484:		; Memory Address ($C484) and binary offset [$C100]
-	dc.l	adrJA00C938	;0000C938
+	dc.l	Draw_InventoryPanel	;0000C938
 	dc.l	adrJA00C852	;0000C852
 	dc.l	Draw_ChampionStats_DefaultPosition	;0000CB28
 
@@ -18809,40 +18809,40 @@ adrB_00C934:		; Memory Address ($C934) and binary offset [$C5B0]
 	dc.b	$0C	;0C
 	dc.b	$07	;07
 
-adrJA00C938:		; Memory Address ($C938) and binary offset [$C5B4]
+Draw_InventoryPanel:		; Memory Address ($C938) and binary offset [$C5B4]
 	move.w	d7,-(sp)															;3F07
-	bsr		Clear_SpellBookPanel												;6100FEC0
-	move.l	#$005D00E2,d4														;283C005D00E2
-	move.l	#$00070018,d5														;2A3C00070018
+	bsr		Clear_SpellBookPanel												;Clears the mutually exclusive spell-book panel before composing the inventory panel.
+	move.l	#$005D00E2,d4														;Supplies BW_draw_bar with the inventory title bar X=$E2 and DBRA width $5D, producing 94 pixels through X=$13F.
+	move.l	#$00070018,d5														;Supplies the inventory title bar Y=$18 and DBRA height $07, producing eight rows through Y=$1F.
 	add.w	$0008(a5),d5														;DA6D0008
 	moveq	#$03,d3																;7603
 	bsr		BW_draw_bar															;61001116
-	move.w	#$0040,d5															;3A3C0040
+	move.w	#$0040,d5															;Selects the armour bar Y=$40 after the title bar has been drawn.
 	add.w	$0008(a5),d5														;DA6D0008
 	bsr		BW_draw_bar															;6100110A
 	move.w	(sp)+,d7															;3E1F
-	move.l	#$0000029C,a0														;207C0000029C
+	move.l	#$0000029C,a0														;Uses screen offset $029C for the upper GFX_Pockets inventory-chain strip; this resolves to player-local X=$E0/Y=$10.
 	bsr		adrCd008358															;6100B9EE
 	move.l	#$00000B5C,a0														;207C00000B5C	;Long Addr replaced with Symbol
 	bsr		adrCd008358															;6100B9E4
-	bsr		Draw_InventoryPocketSlots											;61000044
-	lea		adrEA00EA14.l,a6													;4DF90000EA14
+	bsr		Draw_InventoryPocketSlots											;Draws all twelve inventory positions after the title, armour bar, and two chain decorations are established.
+	lea		adrEA00EA14.l,a6													;Selects the inventory title Print_fflim_text template. Its text cell is later overwritten with the inspected champion name by the inventory redraw path.
 	bsr		Print_fflim_text													;61000744
-adrCd00C984:		; Memory Address ($C984) and binary offset [$C600]
+Draw_InventoryArmourRating:		; Memory Address ($C984) and binary offset [$C600]
 	move.w	d7,d0																;3007
 	bsr		Load_ChampionStatRecord												;61009CD8
 	move.w	d7,d0																;3007
-	bsr		Calculate_CharacterArmourLevel										;61009990
-	move.b	#$2B,d1																;123C002B
-	moveq	#$0A,d0																;700A
+	bsr		Calculate_CharacterArmourLevel										;Calculates the selected champion's effective armour level before the inventory modifier is formatted.
+	move.b	#$2B,d1																;Initialises the armour modifier sign character to '+'.
+	moveq	#$0A,d0																;Starts the displayed armour modifier from baseline 10; the calculated armour level is subtracted to produce the signed three-character result.
 	sub.b	d3,d0																;9003
 	bpl.s	adrCd00C9A0															;6A06
-	move.b	#$2D,d1																;123C002D
+	move.b	#$2D,d1																;Uses '-' instead when the calculated armour modifier is negative.
 	neg.b	d0																	;4400
 adrCd00C9A0:		; Memory Address ($C9A0) and binary offset [$C61C]
-	lea		adrEA00EA25.l,a6													;4DF90000EA25
+	lea		adrEA00EA25.l,a6													;Selects the writable ARMOUR text template whose last three characters receive the sign and decimal digits.
 	move.b	d1,$000C(a6)														;1D41000C
-	bsr		Convert_ByteToDecimalText											;61000518
+	bsr		Convert_ByteToDecimalText											;Converts the absolute armour difference into the two decimal characters stored in the inventory ARMOUR template.
 	move.b	d1,$000E(a6)														;1D41000E
 	ror.w	#$08,d1																;E059
 	move.b	d1,$000D(a6)														;1D41000D
@@ -18852,15 +18852,15 @@ Draw_InventoryPocketSlots:		; Memory Address ($C9BC) and binary offset [$C638]
 	; Draws the selected champion's twelve inventory pocket slots.
 	move.l	a4,-(sp)															;2F0C
 	move.l	screen_ptr.l,a0														;207900008D36
-	add.w	#$051C,a0															;D0FC051C
+	add.w	#$051C,a0															;Starts the first six inventory slots at screen offset $051C, player-local X=$E0/Y=$20.
 	add.w	$000A(a5),a0														;D0ED000A
 	move.w	d7,d0																;3007
-	asl.w	#$04,d0																;E940
+	asl.w	#$04,d0																;Converts the champion ID to its 16-byte PocketContents record offset.
 	lea		Character_Pockets_DataTable.l,a4									;49F90000ED2A
 	add.w	d0,a4																;D8C0
 	swap	d7																	;4847
 	clr.w	d7																	;4247
-adrCd00C9DC:		; Memory Address ($C9DC) and binary offset [$C658]
+Draw_InventoryPocketSlotLoop:		; Memory Address ($C9DC) and binary offset [$C658]
 	moveq	#$00,d0																;7000
 	move.b	$00(a4,d7.w),d0														;10347000
 	bne.s	adrCd00CA38															;6654
@@ -18906,18 +18906,18 @@ adrCd00CA38:		; Memory Address ($CA38) and binary offset [$C6B4]
 	move.b	$0B(a4,d0.w),d1														;1234000B
 	bne.s	adrCd00CA4A															;6606
 	clr.b	$00(a4,d7.w)														;42347000
-	bra.s	adrCd00C9DC															;6092
+	bra.s	Draw_InventoryPocketSlotLoop										;6092
 
 adrCd00CA4A:		; Memory Address ($CA4A) and binary offset [$C6C6]
 	bsr.s	ObjectGraphic														;611A
 adrCd00CA4C:		; Memory Address ($CA4C) and binary offset [$C6C8]
 	addq.w	#$01,d7																;5247
-	cmpi.w	#$0006,d7															;0C470006
+	cmpi.w	#$0006,d7															;After six slots, advances the destination to the second inventory row.
 	bne.s	adrCd00CA58															;6604
-	add.w	#$0274,a0															;D0FC0274
+	add.w	#$0274,a0															;After the sixth 16-pixel pocket, advances to the second six-slot row at player-local Y=$30.
 adrCd00CA58:		; Memory Address ($CA58) and binary offset [$C6D4]
-	cmpi.w	#$000C,d7															;0C47000C
-	bcs		adrCd00C9DC															;6500FF7E
+	cmpi.w	#$000C,d7															;Ends the loop after rendering the twelve hand, armour, shield, and ordinary pocket slots.
+	bcs		Draw_InventoryPocketSlotLoop										;6500FF7E
 	swap	d7																	;4847
 	move.l	(sp)+,a4															;285F
 	rts																			;4E75
@@ -18979,12 +18979,12 @@ Draw_PocketGraphic:		; Memory Address ($CAEA) and binary offset [$C766]
 	move.l	#$00000098,a3														;267C00000098
 	lea		GFX_Pockets.l,a1													;43F90004C702
 	and.w	#$00FF,d0															;024000FF
-adrCd00CAFA:		; Memory Address ($CAFA) and binary offset [$C776]
+Select_PocketGraphicBank:		; Memory Address ($CAFA) and binary offset [$C776]
 	cmpi.b	#$14,d0																;0C000014
 	bcs.s	adrCd00CB0A															;650A
 	add.w	#$0A00,a1															;D2FC0A00
 	sub.w	#$0014,d0															;04400014
-	bra.s	adrCd00CAFA															;60F0
+	bra.s	Select_PocketGraphicBank											;60F0
 
 adrCd00CB0A:		; Memory Address ($CB0A) and binary offset [$C786]
 	asl.w	#$03,d0																;E740
@@ -19009,7 +19009,7 @@ Draw_ChampionStats:		; Memory Address ($CB2A) and binary offset [$C7A6]
 	move.w	$0006(a5),-(sp)														;3F2D0006
 	bsr		Draw_ScrollFrame													;6100010A
 	move.w	(sp),d0																;3017
-	lea		ChampionStatsScroll_TextTemplate.l,a6								;4DF90000CBD2
+	lea		ChampionStatsScroll_TextTemplate.l,a6								;Selects the stats Print_fflim_text stream. Its $FC commands place LEVEL and the ST, IN, HP, and VI rows at consecutive eight-pixel text rows $03-$07.
 	asl.w	#$05,d0																;EB40
 	lea		Character_Stats_DataTable.l,a0										;41F90000EB2A
 	add.w	d0,a0																;D0C0

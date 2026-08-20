@@ -6681,25 +6681,25 @@ Comms_GetState:		; Memory Address ($41FA) and binary offset [$3E76]
 adrCd00420A:		; Memory Address ($420A) and binary offset [$3E86]
 	rts	;4E75
 
-Click_CommsAndOptions:		; Memory Address ($420C) and binary offset [$3E88]
+Click_ChampionPresentationOrPartyCommand:		; Memory Address ($420C) and binary offset [$3E88]
 	move.w	$0004(a5),d1	;322D0004
 	sub.w	$0008(a5),d1	;926D0008
 	cmpi.w	#$0037,d1	;0C410037
-	bcs.s	adrCd004234	;651A
+	bcs.s	Enter_PartyCommandInterface	;651A
 	move.w	$0002(a5),d1	;322D0002
 	lsr.w	#$05,d1	;EA49
 	and.w	#$0003,d1	;02410003
 	addq.w	#$01,d1	;5241
-adrCd004226:		; Memory Address ($4226) and binary offset [$3EA2]
+Toggle_ChampionPresentation:		; Memory Address ($4226) and binary offset [$3EA2]
 	bchg	d1,$003E(a5)	;036D003E
 	move.w	d1,d7	;3E01
 	bsr	Refresh_PartyShieldSlotIfDirty	;61003CC2
 	bra	Draw_PartyShieldChainStrip	;60003CA0
 
-adrCd004234:		; Memory Address ($4234) and binary offset [$3EB0]
+Enter_PartyCommandInterface:		; Memory Address ($4234) and binary offset [$3EB0]
 	moveq	#$00,d1	;7200
 	cmp.w	#$0030,$0002(a5)	;0C6D00300002
-	bcs.s	adrCd004226	;65E8
+	bcs.s	Toggle_ChampionPresentation	;65E8
 	move.b	$003E(a5),d0	;102D003E
 	and.b	#$0E,d0	;0200000E
 	bne.s	ExitPause	;6670
@@ -8825,7 +8825,7 @@ DungeonInterfaceActionTable:		; Memory Address ($5B52) and binary offset [$57CE]
 	dc.l	Click_TurnSpellBookPage	;0000C2EA
 	dc.l	Click_CloseCurrentPage	;000057A4
 	dc.l	Click_TurnSpellBookPage	;0000C2EA
-	dc.l	Click_CommsAndOptions	;0000420C
+	dc.l	Click_ChampionPresentationOrPartyCommand	;0000420C
 	dc.l	adrJA005862	;00005862
 	dc.l	Click_PauseGame	;0000425E
 	dc.l	Click_LoadSaveGame	;0000432A
@@ -11078,7 +11078,7 @@ Redraw_Inventory:		; Memory Address ($6C0A) and binary offset [$6886]
 	and.w	#$000F,d7	;0247000F
 	bsr	Draw_InventoryPocketSlots	;61005DA4
 	move.l	#$000D0003,adrW_00D92A.l	;23FC000D00030000D92A
-	bsr	adrCd00C984	;61005D5E
+	bsr	Draw_InventoryArmourRating	;61005D5E
 	move.w	d7,d0	;3007
 	bsr	adrCd00CF08	;610062DC
 	move.w	#$0003,$0014(a5)	;3B7C00030014
@@ -12656,7 +12656,7 @@ Draw_PartyCommandInterface:		; Memory Address ($7B50) and binary offset [$77CC]
 	add.w	$000A(a5),a0	;D0ED000A
 	moveq	#$71,d7	;7E71
 	move.w	$0012(a5),d3	;362D0012
-adrCd007BC0:		; Memory Address ($7BC0) and binary offset [$783C]
+Draw_PartyCommandIconStrip:		; Memory Address ($7BC0) and binary offset [$783C]
 	move.w	d7,d0	;3007
 	bsr	Draw_PocketGraphic	;61004F26
 	addq.w	#$01,d7	;5247
@@ -12665,11 +12665,11 @@ adrCd007BC0:		; Memory Address ($7BC0) and binary offset [$783C]
 	addq.w	#$01,d7	;5247
 	add.w	#$027C,a0	;D0FC027C
 	cmpi.w	#$0075,d7	;0C470075
-	bcs.s	adrCd007BC0	;65E6
+	bcs.s	Draw_PartyCommandIconStrip	;65E6
 	cmp.w	#$0008,$0042(a5)	;0C6D00080042
 	bne.s	adrCd007BE8	;6606
 	cmpi.w	#$0077,d7	;0C470077
-	bcs.s	adrCd007BC0	;65D8
+	bcs.s	Draw_PartyCommandIconStrip	;65D8
 adrCd007BE8:		; Memory Address ($7BE8) and binary offset [$7864]
 	bsr	Draw_PartyCommandMenu	;61000182
 	lea	GFX_Pockets+$3C60.l,a1	;43F900050362
@@ -13431,12 +13431,12 @@ Draw_ChampionNamePanelFrame:		; Memory Address ($8278) and binary offset [$7EF4]
 	moveq	#$0A,d5	;7A0A
 	add.w	$0008(a5),d5	;DA6D0008
 	move.l	#$005D0001,d3	;263C005D0001
-adrCd00828A:		; Memory Address ($828A) and binary offset [$7F06]
+Draw_ChampionNamePanelUpperBevelLoop:		; Memory Address ($828A) and binary offset [$7F06]
 	bsr	BW_blit_horiz_line	;610058F8
 	addq.w	#$01,d5	;5245
 	addq.w	#$01,d3	;5243
 	cmpi.w	#$0005,d3	;0C430005
-	bcs.s	adrCd00828A	;65F2
+	bcs.s	Draw_ChampionNamePanelUpperBevelLoop	;65F2
 	subq.w	#$04,d3	;5943
 	bsr	BW_blit_horiz_line	;610058E8
 	move.l	#$00070010,d5	;2A3C00070010
@@ -21244,7 +21244,7 @@ adrCd00C482:		; Memory Address ($C482) and binary offset [$C0FE]
 	rts	;4E75
 
 adrJT00C484:		; Memory Address ($C484) and binary offset [$C100]
-	dc.l	adrJA00C938	;0000C938
+	dc.l	Draw_InventoryPanel	;0000C938
 	dc.l	adrJA00C852	;0000C852
 	dc.l	Draw_ChampionStats_DefaultPosition	;0000CB28
 
@@ -21675,7 +21675,7 @@ adrB_00C934:		; Memory Address ($C934) and binary offset [$C5B0]
 	dc.b	$0C	;0C
 	dc.b	$07	;07
 
-adrJA00C938:		; Memory Address ($C938) and binary offset [$C5B4]
+Draw_InventoryPanel:		; Memory Address ($C938) and binary offset [$C5B4]
 	move.w	d7,-(sp)	;3F07
 	bsr	Clear_SpellBookPanel	;6100FEC0
 	move.l	#$005D00E2,d4	;283C005D00E2
@@ -21694,7 +21694,7 @@ adrJA00C938:		; Memory Address ($C938) and binary offset [$C5B4]
 	bsr	Draw_InventoryPocketSlots	;61000044
 	lea	adrEA00EA14.l,a6	;4DF90000EA14
 	bsr	Print_fflim_text	;61000744
-adrCd00C984:		; Memory Address ($C984) and binary offset [$C600]
+Draw_InventoryArmourRating:		; Memory Address ($C984) and binary offset [$C600]
 	move.w	d7,d0	;3007
 	bsr	Load_ChampionStatRecord	;61009CD8
 	move.w	d7,d0	;3007
@@ -21726,7 +21726,7 @@ Draw_InventoryPocketSlots:		; Memory Address ($C9BC) and binary offset [$C638]
 	add.w	d0,a4	;D8C0
 	swap	d7	;4847
 	clr.w	d7	;4247
-adrCd00C9DC:		; Memory Address ($C9DC) and binary offset [$C658]
+Draw_InventoryPocketSlotLoop:		; Memory Address ($C9DC) and binary offset [$C658]
 	moveq	#$00,d0	;7000
 	move.b	$00(a4,d7.w),d0	;10347000
 	bne.s	adrCd00CA38	;6654
@@ -21771,7 +21771,7 @@ adrCd00CA38:		; Memory Address ($CA38) and binary offset [$C6B4]
 	move.b	$0B(a4,d0.w),d1	;1234000B
 	bne.s	adrCd00CA4A	;6606
 	clr.b	$00(a4,d7.w)	;42347000
-	bra.s	adrCd00C9DC	;6092
+	bra.s	Draw_InventoryPocketSlotLoop	;6092
 
 adrCd00CA4A:		; Memory Address ($CA4A) and binary offset [$C6C6]
 	bsr.s	ObjectGraphic	;611A
@@ -21782,7 +21782,7 @@ adrCd00CA4C:		; Memory Address ($CA4C) and binary offset [$C6C8]
 	add.w	#$0274,a0	;D0FC0274
 adrCd00CA58:		; Memory Address ($CA58) and binary offset [$C6D4]
 	cmpi.w	#$000C,d7	;0C47000C
-	bcs	adrCd00C9DC	;6500FF7E
+	bcs	Draw_InventoryPocketSlotLoop	;6500FF7E
 	swap	d7	;4847
 	move.l	(sp)+,a4	;285F
 	rts	;4E75
@@ -21843,12 +21843,12 @@ Draw_PocketGraphic:		; Memory Address ($CAEA) and binary offset [$C766]
 	move.l	#$00000098,a3	;267C00000098
 	lea	GFX_Pockets.l,a1	;43F90004C702
 	and.w	#$00FF,d0	;024000FF
-adrCd00CAFA:		; Memory Address ($CAFA) and binary offset [$C776]
+Select_PocketGraphicBank:		; Memory Address ($CAFA) and binary offset [$C776]
 	cmpi.b	#$14,d0	;0C000014
 	bcs.s	adrCd00CB0A	;650A
 	add.w	#$0A00,a1	;D2FC0A00
 	sub.w	#$0014,d0	;04400014
-	bra.s	adrCd00CAFA	;60F0
+	bra.s	Select_PocketGraphicBank	;60F0
 
 adrCd00CB0A:		; Memory Address ($CB0A) and binary offset [$C786]
 	asl.w	#$03,d0	;E740
