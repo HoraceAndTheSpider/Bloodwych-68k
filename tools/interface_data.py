@@ -80,6 +80,10 @@ INTERFACE_ACTION_STATS_SCROLL_RETURN = 0xFF
 # in Interface_Hitboxes_Main. Keep viewer controls outside the dispatcher.
 INTERFACE_ACTION_SPELLBOOK_RUNE_FIRST = 0x200
 INTERFACE_ACTION_SPELLBOOK_RUNE_LAST = INTERFACE_ACTION_SPELLBOOK_RUNE_FIRST + 7
+# The spell-cost arrows are handled outside InterfaceButtons; retain distinct
+# viewer IDs until that state-specific input path is relabelled.
+INTERFACE_ACTION_SPELLBOOK_COST_UP = 0x208
+INTERFACE_ACTION_SPELLBOOK_COST_DOWN = 0x209
 COMPACT_STATS_BAR_COUNT = 3
 PARTY_AVATAR_CHAMPION_ID_MASK = 0x0F
 PARTY_AVATAR_ACTIVE_FLAG = 0x10
@@ -1001,26 +1005,33 @@ INVENTORY_HELD_AND_EXIT_HITBOXES = (
     ),
 )
 
-# adrCd00C650/C69C resolve these controls while PlayerX_Data+$14 is spell-book
-# mode. The two centre-facing arrows share Click_CloseCurrentPage, so they
-# intentionally form one hitbox. Rune entries are four lowercase GameFont
-# glyphs; each source page contains four entries and a spread contains two.
+# C69C accepts the three top controls only for Y=$07..$0F. Their X comparisons
+# form $E8..$F7, $100..$11F and $128..$137, leaving the visible 8-pixel gaps
+# between page and close arrows. C650 accepts rune rows at Y=$18..$1F.
 SPELLBOOK_CONTROL_HITBOXES = (
-    (INTERFACE_ACTION_SPELLBOOK_PAGE_BACKWARD, 232, 247, 9, 24, "Previous spell-book spread"),
-    (INTERFACE_ACTION_SPELLBOOK_CLOSE, 256, 287, 9, 24, "Close spell book"),
-    (INTERFACE_ACTION_SPELLBOOK_PAGE_FORWARD, 296, 311, 9, 24, "Next spell-book spread"),
+    (INTERFACE_ACTION_SPELLBOOK_PAGE_BACKWARD, 232, 247, 7, 15, "Previous spell-book spread"),
+    (INTERFACE_ACTION_SPELLBOOK_CLOSE, 256, 287, 7, 15, "Close spell book"),
+    (INTERFACE_ACTION_SPELLBOOK_PAGE_FORWARD, 296, 311, 7, 15, "Next spell-book spread"),
 )
 SPELLBOOK_RUNE_HITBOXES = tuple(
     (
         INTERFACE_ACTION_SPELLBOOK_RUNE_FIRST + row * 2 + column,
         232 + column * 48,
         263 + column * 48,
-        25 + row * 8,
-        30 + row * 8,
+        24 + row * 8,
+        31 + row * 8,
         f"Select spell-book rune entry {row * 2 + column + 1}",
     )
     for row in range(4)
     for column in range(2)
+)
+SPELLBOOK_LOWER_HITBOXES = (
+    # The two end-stars resolve through the normal dispatch table.
+    (INTERFACE_ACTION_LAUNCH_SPELL, 224, 239, 72, 87, "Cast selected spell"),
+    (INTERFACE_ACTION_VIEW_SPELL, 304, 319, 72, 87, "View selected spell"),
+    # EA00EA36 prints glyph $04, two cost digits, then glyph $05 at x=272..303.
+    (INTERFACE_ACTION_SPELLBOOK_COST_UP, 272, 279, 80, 85, "Increase spell cost"),
+    (INTERFACE_ACTION_SPELLBOOK_COST_DOWN, 296, 303, 80, 85, "Decrease spell cost"),
 )
 
 
@@ -1392,11 +1403,13 @@ class InterfaceProject:
                     x_max,
                     y_min,
                     y_max,
-                    "Click_TurnSpellBookPage",
+                    ACTION_ROUTINES.get(action, "SpellBook_CastPowerControl"),
                     display_name=display_name,
                 )
                 for action, x_min, x_max, y_min, y_max, display_name in (
-                    SPELLBOOK_CONTROL_HITBOXES + SPELLBOOK_RUNE_HITBOXES
+                    SPELLBOOK_CONTROL_HITBOXES
+                    + SPELLBOOK_RUNE_HITBOXES
+                    + SPELLBOOK_LOWER_HITBOXES
                 )
             )
         except (OSError, ValueError) as error:

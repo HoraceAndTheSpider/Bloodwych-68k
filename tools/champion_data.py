@@ -149,14 +149,28 @@ class ChampionRecord:
     def byte(self, offset: int) -> int:
         return self.raw[offset]
 
+    def spellbook_page_flags(self, page: int) -> int:
+        """Return the four availability bits for spell-book page ``0..7``.
+
+        Champion bytes $0C-$0F hold two pages each: an even page is the high
+        nibble and the following odd page is the low nibble. Within a nibble,
+        the top bit is the first four-rune spell on that page.
+        """
+        if not 0 <= page < 8:
+            raise ValueError("spell-book page must be 0..7")
+        flags = self.raw[0x0C + page // 2]
+        return flags >> 4 if page % 2 == 0 else flags & 0x0F
+
+    def has_spellbook_spell(self, spell_index: int) -> bool:
+        """Return whether one of the 32 spell-book entries is available."""
+        if not 0 <= spell_index < 32:
+            raise ValueError("spell index must be 0..31")
+        page, entry = divmod(spell_index, 4)
+        return bool(self.spellbook_page_flags(page) & (1 << (3 - entry)))
+
     @property
     def learned_spells(self) -> tuple[int, ...]:
-        spells: list[int] = []
-        for page, flags in enumerate(self.raw[0x0C:0x10]):
-            for spell in range(8):
-                if flags & (1 << (7 - spell)):
-                    spells.append(page * 8 + spell)
-        return tuple(spells)
+        return tuple(spell for spell in range(32) if self.has_spellbook_spell(spell))
 
     @property
     def spell_points_current(self) -> int:

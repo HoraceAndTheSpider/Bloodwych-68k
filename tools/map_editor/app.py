@@ -846,7 +846,11 @@ def launch_map_editor(
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
                     running = False
-                elif selected_tab == 0 and joystick is not None:
+                elif (
+                    selected_tab == 0
+                    and joystick is not None
+                    and event.type in (pygame.JOYHATMOTION, pygame.JOYBUTTONDOWN)
+                ):
                     joystick_action = joystick_navigation_action(
                         event,
                         hat_motion_type=pygame.JOYHATMOTION,

@@ -31,6 +31,12 @@ class ChampionDataTests(unittest.TestCase):
             bytes((1, 35, 17, 13, 13, 35, 35, 31, 31, 6, 9, 5)),
         )
         self.assertEqual(blodwyn.learned_spells, (0,))
+        self.assertEqual(
+            tuple(blodwyn.spellbook_page_flags(page) for page in range(8)),
+            (0x8, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0),
+        )
+        self.assertTrue(blodwyn.has_spellbook_spell(0))
+        self.assertFalse(blodwyn.has_spellbook_spell(1))
         self.assertEqual(blodwyn.byte(0x10), 0xC7)
         self.assertEqual(blodwyn.byte(0x11), 0xFF)
         self.assertEqual(

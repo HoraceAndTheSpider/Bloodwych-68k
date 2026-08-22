@@ -20,6 +20,11 @@ from tools.champion_stats_scroll import render_champion_stats_scroll
 from tools.gamefont_converter import glyph_pixels
 from tools.graphics_preview import mirror_pixels, remap_template_colours
 from tools.pygame_window import is_fullscreen, set_display_mode, set_scaled_fullscreen, set_windowed
+from tools.spellbook import (
+    format_spell_points,
+    spellbook_magic_class_index,
+    spellbook_selection,
+)
 from tools.interface_data import (
     DIALOGUE_TEXT_PALETTE_INDEX,
     COMMUNICATION_BACKGROUND_COLOUR_INDEX,
@@ -43,7 +48,11 @@ from tools.interface_data import (
     INTERFACE_ACTION_PARTY_MEMBER_LAST,
     INTERFACE_ACTION_PARTY_COMMAND_MODE,
     INTERFACE_ACTION_PAUSE,
+    INTERFACE_ACTION_LAUNCH_SPELL,
+    INTERFACE_ACTION_VIEW_SPELL,
     INTERFACE_ACTION_SPELLBOOK_CLOSE,
+    INTERFACE_ACTION_SPELLBOOK_COST_DOWN,
+    INTERFACE_ACTION_SPELLBOOK_COST_UP,
     INTERFACE_ACTION_SPELLBOOK_PAGE_BACKWARD,
     INTERFACE_ACTION_SPELLBOOK_PAGE_FORWARD,
     INTERFACE_ACTION_SPELLBOOK_RUNE_FIRST,
@@ -98,6 +107,20 @@ from tools.st_planar_assets import GAME_PALETTE_RGB8
 
 
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
+
+# adrB_00C934, selected by Draw_SpellBookRunePage/C906 after its C6900 magic
+# class calculation: Serpent green, Chaos yellow, Dragon red, Moon blue.
+SPELLBOOK_MAGIC_CLASS_PALETTE_INDICES = (0x06, 0x0D, 0x0C, 0x07)
+
+
+def spellbook_entry_spell_index(spread: int, entry: int) -> int:
+    """Map a visible left/right spell-book entry to its absolute index."""
+    if not 0 <= spread < 4:
+        raise ValueError("spell-book spread must be 0..3")
+    if not 0 <= entry < 8:
+        raise ValueError("spell-book entry must be 0..7")
+    row, side = divmod(entry, 2)
+    return (spread * 2 + side) * 4 + row
 DEFAULT_DATA_ROOT = PROJECT_ROOT / "data/BLOODWYCH439-clean"
 WINDOW_SIZE = (1280, 760)
 PREVIEW_SCALE = 3
@@ -393,6 +416,8 @@ def _draw_fixed_dungeon_and_controls(
     palette: Sequence[tuple[int, int, int]],
     primary_colour: tuple[int, int, int],
     player: int,
+    selected_spell: int | None = None,
+    cast_power: int = 0,
 ) -> None:
     panel.fill((0, 0, 0))
     dungeon_x, dungeon_y, _, _ = DUNGEON_VIEW_RECT
@@ -482,6 +507,23 @@ def _draw_fixed_dungeon_and_controls(
     )
     chain = _pockets_crop(project, GFX_POCKETS_CHAIN_CONTINUOUS_OFFSET, 96, 7)
     _draw_indexed(pygame, panel, chain.pixels, 224, 89, palette)
+    if selected_spell is not None:
+        # LowerText's $EA4C stream starts with ``CAST % `` in colour $0D,
+        # then writes GameFont glyphs $02/$03 around the bar. A fresh
+        # selection begins at zero boost.
+        _draw_gamefont(
+            pygame, panel, project.game_font, "CAST % ", 96, 90, palette[0x0D]
+        )
+        _draw_gamefont(
+            pygame, panel, project.game_font, "\x02", 152, 90, palette[0x0C],
+            uppercase=False,
+        )
+        pygame.draw.rect(panel, palette[0x01], (160, 91, 48, 5))
+        pygame.draw.rect(panel, palette[0x0C], (161, 92, min(46, cast_power * 4 + 1), 3))
+        _draw_gamefont(
+            pygame, panel, project.game_font, "\x03", 208, 90, palette[0x0C],
+            uppercase=False,
+        )
 
 
 def _draw_compact_stats_left(
@@ -594,9 +636,11 @@ def _draw_main(
     secondary_colour: tuple[int, int, int],
     stats_colour: tuple[int, int, int],
     player: int,
+    selected_spell: int | None = None,
+    cast_power: int = 0,
 ) -> None:
     _draw_fixed_dungeon_and_controls(
-        pygame, panel, project, palette, primary_colour, player
+        pygame, panel, project, palette, primary_colour, player, selected_spell, cast_power
     )
     _draw_compact_stats_left(pygame, panel, project, palette, stats_colour, player)
 
@@ -684,10 +728,14 @@ def _draw_spellbook(
     player: int,
     *,
     spread: int,
+    page_turn_frame: int | None = None,
+    selected_spell: int | None = None,
+    cast_power: int = 0,
 ) -> None:
     pygame.draw.rect(panel, (0, 0, 0), (224, 7, 96, 89))
     book = _pockets_crop(project, 0x4100, 96, 62)
     _draw_indexed(pygame, panel, book.pixels, 224, 9, palette)
+    champion = project.champions.record(project.active_preview_champion)
     runes = (
         "maryhadalittlela"
         "aneeitwerraguddu"
@@ -698,10 +746,37 @@ def _draw_spellbook(
         "ithoughtidfinish"
         "acoupleoflinesqx"
     )
-    page_offset = (spread % 4) * 32
+    # C322 first redraws the book and then calls C86A for its current left
+    # page. During phases 0--2 it puts page+3 on the right; at phase 3 it puts
+    # page+1 there and follows it with C380's four rightmost-column rune
+    # stamps from SpellBookRunes+$03 of page+3. This is the source's
+    # deliberate visual shortcut, rather than a proportional text wipe.
+    left_page = (spread % 4) * 2
+    right_page = (left_page + 1) % 8
+    rightmost_rune_page: int | None = None
+    if page_turn_frame is not None:
+        if page_turn_frame == 3:
+            rightmost_rune_page = (left_page + 3) % 8
+        else:
+            right_page = (left_page + 3) % 8
+
+    def rune_colour_index(spell_index: int) -> int:
+        if not champion.has_spellbook_spell(spell_index):
+            return 0x01
+        return (
+            SPELLBOOK_MAGIC_CLASS_PALETTE_INDICES[
+                spellbook_magic_class_index(spell_index)
+            ]
+        )
+
+    def rune_colour(spell_index: int) -> tuple[int, int, int]:
+        return palette[rune_colour_index(spell_index)]
+
     for row in range(4):
-        left_start = page_offset + row * 4
-        right_start = page_offset + 16 + row * 4
+        left_start = left_page * 16 + row * 4
+        right_start = right_page * 16 + row * 4
+        left_colour = rune_colour(left_page * 4 + row)
+        right_colour = rune_colour(right_page * 4 + row)
         # Draw_SpellBookRunePage's a0 arithmetic is deliberately asymmetric:
         # the fourth left rune is one scanline higher, while the first right
         # rune is one scanline higher.  Each subsequent entry advances eight
@@ -718,7 +793,7 @@ def _draw_spellbook(
                 character,
                 x,
                 y,
-                (221, 221, 221),
+                left_colour,
                 uppercase=False,
             )
         for character, x, y in zip(
@@ -733,13 +808,75 @@ def _draw_spellbook(
                 character,
                 x,
                 y,
-                (221, 221, 221),
+                right_colour,
                 uppercase=False,
             )
+    if rightmost_rune_page is not None:
+        # D8C0 returns with a0 one byte later. Its caller's $013F increment
+        # therefore totals $0140: the same X position, eight scanlines down.
+        for row, y in enumerate((26, 34, 42, 50)):
+            # D8C0 writes all four bitplanes, including zero pixels. Restore
+            # the bare page beneath the previous glyph before our foreground-
+            # only GameFont helper paints its replacement.
+            bare_cell = [
+                book_row[80:88]
+                for book_row in book.pixels[y - 9 : y - 9 + 5]
+            ]
+            _draw_indexed(pygame, panel, bare_cell, 304, y, palette)
+            _draw_gamefont(
+                pygame,
+                panel,
+                project.game_font,
+                runes[rightmost_rune_page * 16 + row * 4 + 3],
+                304,
+                y,
+                rune_colour(rightmost_rune_page * 4 + row),
+                uppercase=False,
+            )
+    if page_turn_frame is not None:
+        # Four 32×56 page-turn overlays begin at GFX_Pockets+$4130. C3DE first
+        # doubles the phase for the screen address, then shifts that result by
+        # three for the source address: the screen advances 16 pixels while
+        # the source advances 16 bytes (32 pixels) per frame. The resulting
+        # 16-pixel screen overlap makes the page curl continuous. C3A6 builds
+        # Buffer_Colour_Mask from page+2's four spell classes, which supplies
+        # old/new rune colours for the two directions. Palette index $0F
+        # remains transparent.
+        turn_frame = _pockets_crop(
+            project, 0x4130 + page_turn_frame * 16, 32, 56
+        )
+        turn_colour_page = (left_page + 2) % 8
+        turn_pixels = remap_template_colours(
+            turn_frame.pixels,
+            tuple(
+                rune_colour_index(turn_colour_page * 4 + row)
+                for row in range(4)
+            ),
+        )
+        _draw_indexed(
+            pygame,
+            panel,
+            turn_pixels,
+            240 + page_turn_frame * 16,
+            9,
+            palette,
+            transparent_index=0x0F,
+        )
     # The lower row starts at $0B5C (X=$E0/Y=$48). The four central 16-pixel
     # components are Pockets.gfx $68-$6B; grey star $4F occupies each end
     # until a selected spell supplies its coloured replacement.
-    for index, picture in enumerate((0x4F, 0x68, 0x69, 0x6A, 0x6B, 0x4F)):
+    selection = (
+        spellbook_selection(selected_spell, cast_power)
+        if selected_spell is not None
+        else None
+    )
+    end_star = 0x4F if selection is None else 0x64 + selection.magic_class
+    pictures = (end_star, 0x68, 0x69, 0x6A, 0x6B, end_star)
+    if selection is not None:
+        pictures = (end_star, None, None, None, None, end_star)
+    for index, picture in enumerate(pictures):
+        if picture is None:
+            continue
         _draw_indexed(
             pygame,
             panel,
@@ -748,25 +885,35 @@ def _draw_spellbook(
             72,
             palette,
         )
-    champion = project.champions.record(project.active_preview_champion)
     _draw_gamefont(
-        pygame,
-        panel,
-        project.game_font,
-        "SP.PTS ",
-        224,
-        90,
-        GAME_PALETTE_RGB8[0x0B],
+        pygame, panel, project.game_font, "SP.PTS ", 224, 90, GAME_PALETTE_RGB8[0x0B]
     )
     _draw_gamefont(
-        pygame,
-        panel,
-        project.game_font,
-        f"{champion.spell_points_current:>2}/{champion.spell_points_maximum:>2}",
-        280,
-        90,
-        GAME_PALETTE_RGB8[0x06],
+        pygame, panel, project.game_font,
+        format_spell_points(champion.spell_points_current, champion.spell_points_maximum),
+        280, 90, GAME_PALETTE_RGB8[0x06],
     )
+    if selection is not None:
+        # C66BE stamps the two class stars; C2D4/CFBC prints SpellNames and
+        # C688C fills EA36's COST +00+ template.
+        _draw_gamefont(
+            pygame, panel, project.game_font, selection.name, 240, 72, palette[0x0B]
+        )
+        _draw_gamefont(
+            pygame, panel, project.game_font, "COST", 240, 80, palette[0x0D],
+        )
+        _draw_gamefont(
+            pygame, panel, project.game_font, "\x04", 272, 80, palette[0x0C],
+            uppercase=False,
+        )
+        _draw_gamefont(
+            pygame, panel, project.game_font, f"{selection.cost:02d}", 280, 80,
+            palette[0x0D],
+        )
+        _draw_gamefont(
+            pygame, panel, project.game_font, "\x05", 296, 80, palette[0x0C],
+            uppercase=False,
+        )
 
 
 def _draw_comms(
@@ -905,10 +1052,22 @@ def _active_mode_hitboxes(
     *,
     comms_menu_page: int,
     right_mode_key: str = "main",
+    spellbook_spread: int = 0,
+    selected_spell: int | None = None,
 ) -> tuple[InterfaceHitbox, ...]:
     """Apply the communication and right-panel visibility rules to hitboxes."""
     if right_mode_key == "spellbook":
-        return project.hitboxes["spellbook"]
+        # Click_ViewSpell receives every rune rectangle.  C2AC clears $13
+        # when its learned-bit test fails, which restores the unselected row.
+        return tuple(
+            hitbox
+            for hitbox in project.hitboxes["spellbook"]
+            if selected_spell is not None
+            or hitbox.action not in (
+                INTERFACE_ACTION_SPELLBOOK_COST_UP,
+                INTERFACE_ACTION_SPELLBOOK_COST_DOWN,
+            )
+        )
     hitboxes = tuple(
         hitbox
         for hitbox in project.mode_hitboxes(mode)
@@ -953,6 +1112,9 @@ def render_interface_panel(
     right_mode_key: str | None = None,
     inventory_party_slot: int = 0,
     spellbook_spread: int = 0,
+    spellbook_turn_frame: int | None = None,
+    selected_spell: int | None = None,
+    cast_power: int = 0,
 ) -> tuple[object, tuple[int, int, int]]:
     colour_word = project.colour_word(player, alternate_ramp, ramp_step)
     dialogue_colour = amiga_colour_to_rgb(colour_word)
@@ -991,6 +1153,8 @@ def render_interface_panel(
             secondary_colour,
             stats_colour,
             player,
+            selected_spell,
+            cast_power,
         )
     if resolved_right_mode_key == "inventory":
         _draw_inventory(
@@ -1015,6 +1179,9 @@ def render_interface_panel(
             stats_colour,
             player,
             spread=spellbook_spread,
+            page_turn_frame=spellbook_turn_frame,
+            selected_spell=selected_spell,
+            cast_power=cast_power,
         )
     elif resolved_right_mode_key in RIGHT_MODE_DRAWERS:
         RIGHT_MODE_DRAWERS[resolved_right_mode_key](
@@ -1135,6 +1302,11 @@ def launch_interface_viewer(
         comms_menu_page = 0
         inventory_party_slot = 0
         spellbook_spread = 0
+        selected_spell: int | None = None
+        cast_power = 0
+        # Direction, animation start tick and the spread to reveal once the
+        # page-curl overlay has finished.
+        spellbook_turn: tuple[int, int, int] | None = None
         status = "Read-only layout; dialogue-text ramps can be saved to modified data."
 
         player_rects = (pygame.Rect(20, 55, 150, 34), pygame.Rect(180, 55, 150, 34))
@@ -1165,6 +1337,24 @@ def launch_interface_viewer(
         while running:
             mouse = pygame.mouse.get_pos()
             mode = INTERFACE_MODES[selected_mode]
+            spellbook_turn_frame = None
+            if spellbook_turn is not None:
+                direction, started_at, target_spread = spellbook_turn
+                elapsed = pygame.time.get_ticks() - started_at
+                frame = elapsed // 180
+                if frame >= 4:
+                    # The positive-direction path defers PlayerX_Data+$2A
+                    # until its phase counter expires. The negative path has
+                    # already installed this same target at click time.
+                    spellbook_spread = target_spread
+                    spellbook_turn = None
+                else:
+                    # The original page-back action stores a negative phase.
+                    # C3DE XORs that phase with $0003 before deriving both the
+                    # GFX_Pockets source ($4130 + phase * 16) and destination
+                    # (X=240 + phase * 16): back therefore travels phase 0→3
+                    # (left to right), while forward is phase 3→0.
+                    spellbook_turn_frame = frame if direction < 0 else 3 - frame
             comms_hovered_button = None
             if mode.key == "comms" and preview_rect.collidepoint(mouse):
                 native_x = (mouse[0] - preview_rect.x) // PREVIEW_SCALE
@@ -1187,6 +1377,9 @@ def launch_interface_viewer(
                 right_mode_key=right_mode_key,
                 inventory_party_slot=inventory_party_slot,
                 spellbook_spread=spellbook_spread,
+                spellbook_turn_frame=spellbook_turn_frame,
+                selected_spell=selected_spell,
+                cast_power=cast_power,
             )
             framed_panel = frame_interface_panel(pygame, panel)
             chrome_colour, secondary_ui_colour, stats_colour = _player_ui_colours(player)
@@ -1263,6 +1456,8 @@ def launch_interface_viewer(
                             mode,
                             comms_menu_page=comms_menu_page,
                             right_mode_key=right_mode_key,
+                            spellbook_spread=spellbook_spread,
+                            selected_spell=selected_spell,
                         )
                         if hitbox.contains(native_x, native_y)
                     ),
@@ -1278,6 +1473,8 @@ def launch_interface_viewer(
                     mode,
                     comms_menu_page=comms_menu_page,
                     right_mode_key=right_mode_key,
+                    spellbook_spread=spellbook_spread,
+                    selected_spell=selected_spell,
                 ):
                     rect = pygame.Rect(
                         hitbox.x_min * PREVIEW_SCALE,
@@ -1522,6 +1719,8 @@ def launch_interface_viewer(
                                     mode,
                                     comms_menu_page=comms_menu_page,
                                     right_mode_key=right_mode_key,
+                                    spellbook_spread=spellbook_spread,
+                                    selected_spell=selected_spell,
                                 )
                                     if hitbox.contains(native_x, native_y)
                                 ),
@@ -1575,27 +1774,90 @@ def launch_interface_viewer(
                                             f"Inventory slot {slot + 1} selected; object pickup/drop handling is not yet overlaid."
                                         )
                                 elif selected_hitbox.group == "spellbook":
-                                    if action == INTERFACE_ACTION_SPELLBOOK_CLOSE:
+                                    if action == INTERFACE_ACTION_LAUNCH_SPELL:
+                                        if selected_spell is None:
+                                            status = "No spell is loaded to cast."
+                                        else:
+                                            status = (
+                                                f"{spellbook_selection(selected_spell, cast_power).name} "
+                                                "cast requested."
+                                            )
+                                    elif action == INTERFACE_ACTION_VIEW_SPELL:
+                                        if selected_spell is None:
+                                            status = "No spell is loaded to view."
+                                        else:
+                                            status = (
+                                                f"Viewing {spellbook_selection(selected_spell, cast_power).name}; "
+                                                "description panel remains to be added."
+                                            )
+                                    elif action == INTERFACE_ACTION_SPELLBOOK_COST_UP:
+                                        cast_power = min(cast_power + 1, 13)
+                                        status = f"Cast power increased to {cast_power}."
+                                    elif action == INTERFACE_ACTION_SPELLBOOK_COST_DOWN:
+                                        cast_power = max(cast_power - 1, 0)
+                                        status = f"Cast power decreased to {cast_power}."
+                                    elif action == INTERFACE_ACTION_SPELLBOOK_CLOSE:
                                         right_mode_key = "main"
                                         selected_hitbox = None
                                         status = "Spell book closed; normal name and walking controls restored."
                                     elif action == INTERFACE_ACTION_SPELLBOOK_PAGE_BACKWARD:
-                                        spellbook_spread = (spellbook_spread - 1) % 4
-                                        status = f"{handler}: spell-book spread {spellbook_spread + 1} selected."
+                                        if spellbook_turn is None:
+                                            target_spread = (spellbook_spread - 1) % 4
+                                            # C6D8 handles this direction by
+                                            # decrementing PlayerX_Data+$2A
+                                            # before it seeds $E with $8003.
+                                            # C322 therefore renders the new
+                                            # left-page index during the curl.
+                                            spellbook_spread = target_spread
+                                            spellbook_turn = (
+                                                -1,
+                                                pygame.time.get_ticks(),
+                                                target_spread,
+                                            )
+                                            status = (
+                                                f"{handler}: turning to spell-book spread "
+                                                f"{target_spread + 1}."
+                                            )
                                     elif action == INTERFACE_ACTION_SPELLBOOK_PAGE_FORWARD:
-                                        spellbook_spread = (spellbook_spread + 1) % 4
-                                        status = f"{handler}: spell-book spread {spellbook_spread + 1} selected."
+                                        if spellbook_turn is None:
+                                            target_spread = (spellbook_spread + 1) % 4
+                                            spellbook_turn = (
+                                                1,
+                                                pygame.time.get_ticks(),
+                                                target_spread,
+                                            )
+                                            status = (
+                                                f"{handler}: turning to spell-book spread "
+                                                f"{target_spread + 1}."
+                                            )
                                     elif (
                                         INTERFACE_ACTION_SPELLBOOK_RUNE_FIRST
                                         <= action
                                         <= INTERFACE_ACTION_SPELLBOOK_RUNE_LAST
                                     ):
                                         entry = action - INTERFACE_ACTION_SPELLBOOK_RUNE_FIRST
-                                        spell = spellbook_spread * 8 + entry
-                                        status = (
-                                            f"Spell-book entry {entry + 1} selected (spell index {spell}); "
-                                            "availability highlighting and casting remain to be decoded."
+                                        spell = spellbook_entry_spell_index(
+                                            spellbook_spread, entry
                                         )
+                                        champion = project.champions.record(
+                                            project.active_preview_champion
+                                        )
+                                        if champion.has_spellbook_spell(spell):
+                                            selected_spell = spell
+                                            cast_power = 0
+                                            selection = spellbook_selection(spell, cast_power)
+                                            status = (
+                                                f"{selection.name} selected; "
+                                                f"cost {selection.cost:02d} spell points."
+                                            )
+                                        else:
+                                            # Click_ViewSpell calls C2AC for every
+                                            # rune hitbox. Its failed btst path
+                                            # writes $FF to champion byte $13,
+                                            # removing the loaded spell.
+                                            selected_spell = None
+                                            cast_power = 0
+                                            status = "Unavailable spell selected; spell slot cleared."
                                 elif action == INTERFACE_ACTION_STATS_SCROLL_RETURN:
                                     right_mode_key = "main"
                                     selected_hitbox = None
@@ -1694,6 +1956,7 @@ def launch_interface_viewer(
                                     right_mode_key = "spellbook"
                                     display_state = None
                                     spellbook_spread = 0
+                                    spellbook_turn = None
                                     status = f"{handler}: spell-book display opened."
                                 elif action == INTERFACE_ACTION_PAUSE:
                                     display_state = None if display_state == "pause" else "pause"

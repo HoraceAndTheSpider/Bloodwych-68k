@@ -117,7 +117,7 @@ class InterfaceDataTests(unittest.TestCase):
                 "avatars": 5,
                 "inventory": 18,
                 "stats_scroll": 1,
-                "spellbook": 11,
+                "spellbook": 15,
             },
         )
         spellbook = self.project.hitboxes["main"][0]
@@ -300,14 +300,14 @@ class InterfaceDataTests(unittest.TestCase):
         self.assertEqual(
             SPELLBOOK_RUNE_HITBOXES,
             (
-                (0x200, 232, 263, 25, 30, "Select spell-book rune entry 1"),
-                (0x201, 280, 311, 25, 30, "Select spell-book rune entry 2"),
-                (0x202, 232, 263, 33, 38, "Select spell-book rune entry 3"),
-                (0x203, 280, 311, 33, 38, "Select spell-book rune entry 4"),
-                (0x204, 232, 263, 41, 46, "Select spell-book rune entry 5"),
-                (0x205, 280, 311, 41, 46, "Select spell-book rune entry 6"),
-                (0x206, 232, 263, 49, 54, "Select spell-book rune entry 7"),
-                (0x207, 280, 311, 49, 54, "Select spell-book rune entry 8"),
+                (0x200, 232, 263, 24, 31, "Select spell-book rune entry 1"),
+                (0x201, 280, 311, 24, 31, "Select spell-book rune entry 2"),
+                (0x202, 232, 263, 32, 39, "Select spell-book rune entry 3"),
+                (0x203, 280, 311, 32, 39, "Select spell-book rune entry 4"),
+                (0x204, 232, 263, 40, 47, "Select spell-book rune entry 5"),
+                (0x205, 280, 311, 40, 47, "Select spell-book rune entry 6"),
+                (0x206, 232, 263, 48, 55, "Select spell-book rune entry 7"),
+                (0x207, 280, 311, 48, 55, "Select spell-book rune entry 8"),
             ),
         )
         self.assertEqual(
@@ -475,6 +475,47 @@ class InterfaceDataTests(unittest.TestCase):
         self.assertEqual(COMMUNICATION_MENU_PAGE_BUTTONS[5][3].display_text, "    NO")
         self.assertEqual(COMMUNICATION_MENU_PAGE_BUTTONS[5][3].text_x, 46)
         self.assertEqual(COMMUNICATION_MENU_PAGE_BUTTONS[5][5].text_x, 46)
+
+    def test_spellbook_magic_class_order_matches_c906_and_c6900(self) -> None:
+        from tools.interface_viewer import (
+            SPELLBOOK_MAGIC_CLASS_PALETTE_INDICES,
+            spellbook_magic_class_index,
+        )
+
+        self.assertEqual(SPELLBOOK_MAGIC_CLASS_PALETTE_INDICES, (6, 13, 12, 7))
+        self.assertEqual(
+            tuple(
+                [spellbook_magic_class_index(page * 4 + spell) for spell in range(4)]
+                for page in range(8)
+            ),
+            (
+                [0, 1, 2, 3],
+                [1, 2, 3, 0],
+                [2, 3, 0, 1],
+                [3, 0, 1, 2],
+                [3, 0, 1, 2],
+                [2, 3, 0, 1],
+                [1, 2, 3, 0],
+                [0, 1, 2, 3],
+            ),
+        )
+
+    def test_spellbook_rune_controls_keep_unavailable_entries_clickable_for_deselect(self) -> None:
+        from tools.interface_viewer import _active_mode_hitboxes, spellbook_entry_spell_index
+
+        spellbook_mode = next(mode for mode in INTERFACE_MODES if mode.key == "spellbook")
+        hitboxes = _active_mode_hitboxes(
+            self.project,
+            spellbook_mode,
+            comms_menu_page=0,
+            right_mode_key="spellbook",
+        )
+        available_actions = {
+            hitbox.action
+            for hitbox in hitboxes
+            if 0x200 <= hitbox.action <= 0x207
+        }
+        self.assertEqual(available_actions, {0x200 + entry for entry in range(8)})
 
     def test_toggle_hitbox_is_exposed_only_during_an_active_conversation(self) -> None:
         from tools.interface_viewer import _active_mode_hitboxes
