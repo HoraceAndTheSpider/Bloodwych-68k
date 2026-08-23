@@ -355,6 +355,13 @@ PartyShieldFrameSourceRowSkip:					equ	$90			; Source-row skip after reading a t
 PlayerData_PartyCommandStateOffset:				equ	$42			; Offset of the signed party-command/interface state word in each PlayerData record; $FFFF means inactive and states $0000-$0008 select dispatcher states.
 MainChampionAvatar_ScreenByteOffset:			equ	$02A9		; Player-local screen byte offset for the 32 by 30 large champion portrait at coordinate ($08,$11).
 ChampionLargeAvatar_DrawDimensions:				equ	$0001001D	; Packed DBRA terminal counts for a large champion portrait: two 16-pixel words across and 30 rows.
+SpellBook_PageSpreadIncrement:					equ	$02			; Advances the spell book by one two-page spread.
+SpellCasting_PracticeFirstThreshold:			equ	$05			; First spell-practice threshold for matching spells.
+SpellCasting_MatchingWandBonus:					equ	$03			; Cast-quality bonus for a held wand matching a non-matching spell.
+SpellCasting_CooldownBaseIncrement:				equ	$05			; Base spell-cooldown increment added to the selected spell cost value after quality is calculated.
+SpellCasting_ManaCostMinimum:					equ	$01			; Minimum calculated spell-point cost.
+SpellCasting_ManaCostMaximum:					equ	$64			; Exclusive spell-point cost ceiling used while normalising byte $14.
+SpellCasting_CastBarMaximumWidth:				equ	$34			; Maximum CAST bar width in pixels.
 
 ****************************************************************************
 
@@ -3825,7 +3832,7 @@ adrCd002904:		; Memory Address ($2904) and binary offset [$2580]
 	bsr		Load_CurrentChampionStatRecord										;61003D4E
 	tst.b	$0013(a4)															;4A2C0013
 	bmi.s	adrCd00291A															;6B04
-	bsr		adrCd006720															;61003E08
+	bsr		Draw_SpellCastingBar												;61003E08
 adrCd00291A:		; Memory Address ($291A) and binary offset [$2596]
 	bsr		adrCd0084D6															;61005BBA
 	bsr		adrCd002BCE															;610002AE
@@ -6888,7 +6895,7 @@ adrCd004852:		; Memory Address ($4852) and binary offset [$44CE]
 	bmi.s	adrCd00486E															;6B18
 	and.w	#$00FF,d0															;024000FF
 	move.l	a0,-(sp)															;2F08
-	bsr		adrCd00C2D4															;61007A76
+	bsr		Get_SelectedSpellName												;61007A76
 	moveq	#$07,d6																;7C07
 	jsr		adrLp00CFDA.l														;4EB90000CFDA
 	move.l	(sp)+,a0															;205F
@@ -7391,7 +7398,7 @@ Resolve_PlayerContextAction:		; Memory Address ($516E) and binary offset [$4DEA]
 	move.b	$0014(a5),d0														;102D0014
 	bne.s	adrCd004E0C															;661A
 	moveq	#-$01,d2															;74FF
-	bsr		adrCd00C650															;6100785A
+	bsr		HitTest_SpellBookControls											;6100785A
 	bmi.s	adrCd004E12															;6B18
 	move.w	#$0002,$0014(a5)													;3B7C00020014
 	move.w	$000C(a5),d0														;302D000C
@@ -7445,7 +7452,7 @@ adrCd004E72:		; Memory Address ($4E72) and binary offset [$4AEE]
 Click_LaunchSpellFromBook:		; Memory Address ($4E7A) and binary offset [$4AF6]
 	bsr.s	Cast_SelectedChampionSpell											;6112
 	bne.s	adrCd004E86															;6608
-	bsr		adrCd006698															;61001818
+	bsr		Draw_SelectedSpellDetails											;61001818
 	bsr		adrCd00C85E															;610079DA
 adrCd004E86:		; Memory Address ($4E86) and binary offset [$4B02]
 	move.w	#$0002,$0014(a5)													;3B7C00020014
@@ -7481,7 +7488,7 @@ CastSpell_ApplySpellPointCost:		; Memory Address ($524C) and binary offset [$4EC
 	; casts, and rejects insufficient spell points.
 	move.b	#SpellCasting_ActionCooldown,$001B(a4)								;Applies the champion action cooldown as soon as the cast attempt is committed.
 	clr.b	$0011(a4)															;Removes the champion's currently worn spell before resolving the new cast.
-	bsr		adrCd00688C															;Calculates the spell-point cost, including ring-based free casting and the champion's power setting.
+	bsr		Calculate_SpellPointCost											;Calculates the spell-point cost, including ring-based free casting and the champion's power setting.
 	move.b	$0009(a4),d1														;122C0009
 	sub.b	d0,d1																;Subtracts the calculated cost from current spell points; borrow rejects the cast.
 	bcs		CastSpell_RejectInsufficientSpellPoints								;650000F8
@@ -7501,7 +7508,7 @@ CastSpell_CalculateQualityAndCooldown:		; Memory Address ($527E) and binary offs
 	move.b	$0013(a4),d0														;102C0013
 	lea		SpellCost_DataTable.l,a6											;4DF90000685E
 	move.b	$00(a6,d0.w),d1														;12360000
-	addq.b	#$05,d1																;5A01
+	addq.b	#SpellCasting_CooldownBaseIncrement,d1								;Adds the fixed cooldown increment after loading the selected spell cost value.
 	add.b	$0015(a4),d1														;Accumulates the selected spell's base delay onto the champion's current spell cooldown.
 	cmpi.b	#SpellCasting_CooldownMaximum,d1									;Clamps accumulated spell cooldown to 100.
 	bcs.s	CastSpell_SelectHandler												;6502
@@ -8361,9 +8368,9 @@ adrB_0055DE:		; Memory Address ($55DE) and binary offset [$525A]
 
 Click_ViewSpell:		; Memory Address ($55E0) and binary offset [$525C]
 	move.w	#$0002,$0014(a5)													;3B7C00020014
-	bsr		adrCd00C2AC															;61006CC4
+	bsr		Select_SpellBookRune												;61006CC4
 	bpl.s	adrCd0055F6															;6A0A
-	bsr		adrCd006698															;610010AA
+	bsr		Draw_SelectedSpellDetails											;610010AA
 	bsr		adrCd00CF96															;610079A4
 	bra.s	adrCd005624															;602E
 
@@ -8383,7 +8390,7 @@ adrCd005614:		; Memory Address ($5614) and binary offset [$5290]
 	neg.b	d0																	;4400
 	move.b	d0,$0014(a4)														;19400014
 adrCd00561A:		; Memory Address ($561A) and binary offset [$5296]
-	bsr		adrCd006698															;6100107C
+	bsr		Draw_SelectedSpellDetails											;6100107C
 	move.l	(sp)+,a6															;2C5F
 	bsr		adrCd00CFBC															;6100799A
 adrCd005624:		; Memory Address ($5624) and binary offset [$52A0]
@@ -9964,9 +9971,10 @@ Click_OpenSpellBook:		; Memory Address ($6684) and binary offset [$6300]
 	bsr.s	adrCd006670															;61E2
 	bsr		adrCd00C85E															;610061CE
 	move.w	#$0002,$0014(a5)													;3B7C00020014
-adrCd006698:		; Memory Address ($6698) and binary offset [$6314]
+Draw_SelectedSpellDetails:		; Memory Address ($6698) and binary offset [$6314]
+	; Draws selected spell stars, name, COST text, and the CAST display.
 	bsr		Draw_SpellPointValues												;61006178
-	sub.w	#$02DC,a0															;90FC02DC
+	sub.w	#$02DC,a0															;Rebases the completed SP.PTS text cursor from $0E38 to $0B5C, the first lower spell-book decoration slot.
 	move.b	$0013(a4),d0														;102C0013
 	bpl.s	adrCd0066BE															;6A18
 	bsr.s	adrCd0066B8															;6110
@@ -9996,12 +10004,12 @@ adrLp0066CC:		; Memory Address ($66CC) and binary offset [$6348]
 	bsr		Draw_PocketGraphic													;61006404
 	moveq	#$00,d0																;7000
 	move.b	$0013(a4),d0														;102C0013
-	bsr		adrCd00C2D4															;61005BE4
-	bsr		adrCd00CFBC															;610068C8
+	bsr		Get_SelectedSpellName												;61005BE4
+	bsr		adrCd00CFBC															;Prints the selected spell name from its fixed eight-character SpellNames record using the spell-book name origin.
 adrCd0066F6:		; Memory Address ($66F6) and binary offset [$6372]
 	or.b	#$04,$0054(a5)														;002D00040054
-	bsr		adrCd00688C															;6100018E
-	lea		adrEA00EA36.l,a6													;4DF90000EA36
+	bsr		Calculate_SpellPointCost											;6100018E
+	lea		adrEA00EA36.l,a6													;Selects the COST text stream. Its FC ($1E,$0A) position plus the text renderer base $0050 places visible glyphs at X=$F0, Y=$52.
 	bsr		Convert_ByteToDecimalText											;610067BC
 	move.w	d1,$0010(a6)														;3D410010
 	bsr		Print_fflim_text													;610069B6
@@ -10009,7 +10017,8 @@ adrCd006712:		; Memory Address ($6712) and binary offset [$638E]
 	lea		adrEA00EA4C.l,a6													;4DF90000EA4C
 	bsr		LowerText															;6100689E
 	clr.b	$0057(a5)															;422D0057
-adrCd006720:		; Memory Address ($6720) and binary offset [$639C]
+Draw_SpellCastingBar:		; Memory Address ($6720) and binary offset [$639C]
+	; Converts signed casting quality into the five-pixel-high CAST bar.
 	tst.b	$0057(a5)															;4A2D0057
 	bmi.s	adrCd00675E															;6B38
 	or.b	#$10,$0054(a5)														;002D00100054
@@ -10020,9 +10029,9 @@ adrCd006720:		; Memory Address ($6720) and binary offset [$639C]
 adrCd006736:		; Memory Address ($6736) and binary offset [$63B2]
 	cmpi.b	#$13,d7																;0C070013
 	bcc.s	adrCd00675E															;6422
-	move.b	adrB_006760(pc,d7.w),d0												;103B7022
+	move.b	SpellCasting_CastBarPercentages(pc,d7.w),d0							;Converts the clamped negated cast score to one of 20 percentage values used to scale the 52-pixel CAST bar.
 	moveq	#$64,d1																;7264
-	moveq	#$34,d2																;7434
+	moveq	#SpellCasting_CastBarMaximumWidth,d2								;Supplies C8144 with the 52-pixel maximum CAST bar width before percentage scaling.
 	move.l	#$0004005A,d5														;2A3C0004005A	;Long Addr replaced with Symbol
 	add.w	$0008(a5),d5														;DA6D0008
 	move.l	#$0033009F,d4														;283C0033009F
@@ -10033,7 +10042,9 @@ adrCd006736:		; Memory Address ($6736) and binary offset [$63B2]
 adrCd00675E:		; Memory Address ($675E) and binary offset [$63DA]
 	rts																			;4E75
 
-adrB_006760:		; Memory Address ($6760) and binary offset [$63DC]
+SpellCasting_CastBarPercentages:		; Memory Address ($6760) and binary offset [$63DC]
+	; Twenty percentages indexed by the clamped negated casting-quality score to
+	; scale the 52-pixel CAST bar.
 	dc.b	$64	;64
 	dc.b	$64	;64
 	dc.b	$64	;64
@@ -10057,6 +10068,8 @@ adrB_006760:		; Memory Address ($6760) and binary offset [$63DC]
 
 	bsr		Load_ChampionStatRecord												;6100FEEA
 Calculate_SpellCastingQuality:		; Memory Address ($6778) and binary offset [$63F4]
+	; Existing mapping; calculates signed spell quality from class, practice,
+	; level, power, equipment, cooldown, and difficulty.
 	move.b	$0013(a4),d0														;102C0013
 	bsr		Character_GetClassIndex												;61000182
 	move.w	d0,-(sp)															;3F00
@@ -10079,8 +10092,8 @@ adrCd0067AC:		; Memory Address ($67AC) and binary offset [$6428]
 	add.l	a4,a1																;D3CC
 	moveq	#$00,d6																;7C00
 	move.b	$0013(a4),d6														;1C2C0013
-	move.b	$00(a1,d6.w),d0														;10316000
-	moveq	#$05,d2																;7405
+	move.b	$00(a1,d6.w),d0														;Loads the selected spell's per-champion success-practice count from the runtime 16 by 32 practice area.
+	moveq	#SpellCasting_PracticeFirstThreshold,d2								;Starts the matching spell-practice curve at five successes; the non-matching path doubles this to ten.
 	moveq	#$00,d3																;7600
 	tst.w	d7																	;4A47
 	bne.s	adrCd0067D8															;6612
@@ -10091,14 +10104,14 @@ adrCd0067AC:		; Memory Address ($67AC) and binary offset [$6428]
 	cmp.b	$0001(a0),d4														;B8280001
 	bne.s	adrCd0067E0															;660A
 adrCd0067D6:		; Memory Address ($67D6) and binary offset [$6452]
-	addq.b	#$03,d7																;5607
+	addq.b	#SpellCasting_MatchingWandBonus,d7									;Awards the matching-wand quality bonus when the champion class itself does not match.
 adrCd0067D8:		; Memory Address ($67D8) and binary offset [$6454]
 	cmp.w	d2,d0																;B042
 	bcs.s	adrCd0067EA															;650E
 	addq.w	#$05,d7																;5A47
 	sub.w	d2,d0																;9042
 adrCd0067E0:		; Memory Address ($67E0) and binary offset [$645C]
-	add.w	d2,d2																;D442
+	add.w	d2,d2																;Doubles the practice threshold after each band and increments the companion right-shift count.
 	addq.w	#$01,d3																;5243
 	bra.s	adrCd0067D8															;60F2
 
@@ -10130,8 +10143,8 @@ adrCd0067EA:		; Memory Address ($67EA) and binary offset [$6466]
 adrCd00681A:		; Memory Address ($681A) and binary offset [$6496]
 	moveq	#$00,d1																;7200
 Apply_PowerStaffSpellCastingBonus:		; Memory Address ($681C) and binary offset [$6498]
-	move.b	$0015(a4),d0														;102C0015
-	lsr.b	d1,d0																;E228
+	move.b	$0015(a4),d0														;Loads champion byte $15, the spell cooldown penalty; matching champion and spell classes halve it.
+	lsr.b	d1,d0																;Halves cooldown only when the repeated champion/spell class comparison set D1 to one.
 	sub.b	d0,d7																;9E00
 	moveq	#PowerStaff_SpellCastingBonus,d0									;Spell-casting quality bonus supplied by a held Power Staff.
 	cmp.b	#Object_PowerStaff,(a0)												;Power Staff object code.
@@ -10145,9 +10158,23 @@ adrCd006836:		; Memory Address ($6836) and binary offset [$64B2]
 	rts																			;4E75
 
 SpellCasting_SpellDifficultyPenalties:		; Memory Address ($683E) and binary offset [$64BA]
-	; Sixteen spell-indexed values subtracted from the calculated spell-casting
-	; quality.
-	INCBIN "/data/BLOODWYCH439-clean/data/SpellCasting_SpellDifficultyPenalties.lookup"
+	; Existing mapping correction: 32 spell-indexed penalty bytes, not 16.
+	dc.b	$0E	;0E
+	dc.b	$0F	;0F
+	dc.b	$0E	;0E
+	dc.b	$0E	;0E
+	dc.b	$0D	;0D
+	dc.b	$0E	;0E
+	dc.b	$0E	;0E
+	dc.b	$0F	;0F
+	dc.b	$0E	;0E
+	dc.b	$0F	;0F
+	dc.b	$0E	;0E
+	dc.b	$12	;12
+	dc.b	$0F	;0F
+	dc.b	$0F	;0F
+	dc.b	$11	;11
+	dc.b	$10	;10
 	dc.b	$0F	;0F
 	dc.b	$10	;10
 	dc.b	$24	;24
@@ -10165,6 +10192,7 @@ SpellCasting_SpellDifficultyPenalties:		; Memory Address ($683E) and binary offs
 	dc.b	$12	;12
 	dc.b	$10	;10
 SpellCost_DataTable:		; Memory Address ($685E) and binary offset [$64DA]
+	; Existing mapping; one base spell-cost value for each SPS 439 spell.
 	dc.b	$01	;01
 	dc.b	$02	;02
 	dc.b	$02	;02
@@ -10197,7 +10225,8 @@ SpellCost_DataTable:		; Memory Address ($685E) and binary offset [$64DA]
 	dc.b	$06	;06
 	dc.b	$06	;06
 	dc.b	$04	;04
-adrB_00687E:		; Memory Address ($687E) and binary offset [$64FA]
+SpellCasting_CastPowerCostAdjustments:		; Memory Address ($687E) and binary offset [$64FA]
+	; Additional mana costs for non-negative prepared cast-power values $00–$0D.
 	dc.b	$00	;00
 	dc.b	$03	;03
 	dc.b	$06	;06
@@ -10213,7 +10242,9 @@ adrB_00687E:		; Memory Address ($687E) and binary offset [$64FA]
 	dc.b	$5B	;5B
 	dc.b	$69	;69
 
-adrCd00688C:		; Memory Address ($688C) and binary offset [$6508]
+Calculate_SpellPointCost:		; Memory Address ($688C) and binary offset [$6508]
+	; Calculates COST, handles charged matching rings, and normalises byte $14 to
+	; costs $01–$63.
 	move.l	a4,d0																;200C
 	sub.l	#Character_Stats_DataTable,d0										;04800000EB2A
 	lsr.w	#$01,d0																;E248
@@ -10241,21 +10272,21 @@ adrCd0068CC:		; Memory Address ($68CC) and binary offset [$6548]
 adrCd0068D0:		; Memory Address ($68D0) and binary offset [$654C]
 	move.b	$0014(a4),d1														;122C0014
 	ext.w	d1																	;4881
-	bmi.s	adrCd0068DC															;6B04
-	move.b	adrB_00687E(pc,d1.w),d1												;123B10A4
+	bmi.s	adrCd0068DC															;Uses negative byte $14 values directly as low-cost penalties instead of indexing the non-negative extra-mana curve.
+	move.b	SpellCasting_CastPowerCostAdjustments(pc,d1.w),d1					;123B10A4
 adrCd0068DC:		; Memory Address ($68DC) and binary offset [$6558]
 	moveq	#$00,d0																;7000
 	move.b	$0013(a4),d0														;102C0013
 	lea		SpellCost_DataTable.w,a0											;41F8685E	;Short Absolute converted to symbol!
 	move.b	$00(a0,d0.w),d0														;10300000
 	addq.w	#$01,d0																;5240
-	add.w	d0,d0																;D040
-	add.w	d1,d0																;D041
+	add.w	d0,d0																;Doubles the adjusted base spell cost before the cast-power adjustment is added.
+	add.w	d1,d0																;Adds the source cast-power curve adjustment to form the COST +nn+ value.
 	bne.s	adrCd0068F8															;6606
-	addq.b	#$01,$0014(a4)														;522C0014
-	moveq	#$01,d0																;7001
+	addq.b	#$01,$0014(a4)														;Reverses the final decrement when cost normalisation reaches zero, preserving the one-point minimum.
+	moveq	#SpellCasting_ManaCostMinimum,d0									;7001
 adrCd0068F8:		; Memory Address ($68F8) and binary offset [$6574]
-	cmpi.w	#$0064,d0															;0C400064
+	cmpi.w	#SpellCasting_ManaCostMaximum,d0									;0C400064
 	bcc.s	adrCd0068CC															;64CE
 	rts																			;4E75
 
@@ -10264,7 +10295,7 @@ Character_GetClassIndex:		; Memory Address ($6900) and binary offset [$657C]
 	move.w	d0,d6																;3C00
 	cmpi.b	#$10,d0																;0C000010
 	bcs.s	Character_GetClassIndex_CombineBits									;6502
-	not.w	d0																	;4640
+	not.w	d0																	;Folds spell indices $10-$1F before deriving their mirrored magic-class order.
 Character_GetClassIndex_CombineBits:		; Memory Address ($690A) and binary offset [$6586]
 	; Combines the character-number bit groups before applying the four-profession
 	; mask.
@@ -12371,81 +12402,81 @@ Draw_CompactStatsFrame:		; Memory Address ($7FF8) and binary offset [$7C74]
 	; rectangle, and the packed STATS title graphic.
 	tst.w	$0042(a5)															;4A6D0042
 	bpl.s	Return_PartyShieldDrawing											;6AD6
-	moveq	#$36,d4																;7836
-	moveq	#$0A,d5																;7A0A
+	moveq	#$36,d4																;Sets the compact STATS frame's upper bevel left edge to player-local X=$36.
+	moveq	#$0A,d5																;Sets the compact STATS frame's upper bevel to player-local Y=$0A before the player screen Y offset is added.
 	add.w	$0008(a5),d5														;DA6D0008
 	move.l	#$00240001,d3														;Top stats-frame line: DBRA terminal count $24 draws $25 pixels using palette index $01.
-	bsr		BW_blit_horiz_line													;61005B76
+	bsr		BW_blit_horiz_line													;Calls the horizontal-line drawing routine for one bevel edge segment.
 	addq.w	#$01,d5																;5245
 	subq.w	#$02,d4																;5544
 	add.l	#$00040001,d3														;068300040001	;Long Addr replaced with Symbol
-	bsr		BW_blit_horiz_line													;61005B68
+	bsr		BW_blit_horiz_line													;Calls the horizontal-line drawing routine for one bevel edge segment.
 	addq.w	#$01,d5																;5245
 	subq.w	#$01,d4																;5344
 	add.l	#$00020001,d3														;068300020001	;Long Addr replaced with Symbol
-	bsr		BW_blit_horiz_line													;61005B5A
+	bsr		BW_blit_horiz_line													;Calls the horizontal-line drawing routine for one bevel edge segment.
 	addq.w	#$01,d5																;5245
 	addq.w	#$01,d3																;Fourth top frame line keeps the width and advances to palette index $04.
-	bsr		BW_blit_horiz_line													;61005B52
+	bsr		BW_blit_horiz_line													;Calls the horizontal-line drawing routine for one bevel edge segment.
 	addq.w	#$01,d5																;5245
 	subq.w	#$03,d3																;Fifth top frame line returns the packed colour to palette index $01.
-	bsr		BW_blit_horiz_line													;61005B4A
-	moveq	#$31,d5																;7A31
+	bsr		BW_blit_horiz_line													;Calls the horizontal-line drawing routine for one bevel edge segment.
+	moveq	#$31,d5																;Sets the first lower STATS-frame bevel line to player-local Y=$31.
 	add.w	$0008(a5),d5														;DA6D0008
-	moveq	#$33,d4																;7833
+	moveq	#$33,d4																;Sets the first lower STATS-frame bevel line to player-local X=$33.
 	move.l	#$002A0001,d3														;First lower stats-frame line: DBRA terminal count $2A draws $2B pixels using palette index $01.
-	bsr		BW_blit_horiz_line													;61005B38
+	bsr		BW_blit_horiz_line													;Calls the horizontal-line drawing routine for one bevel edge segment.
 	addq.w	#$01,d5																;5245
 	addq.w	#$03,d3																;Second lower frame line advances to palette index $04.
-	bsr		BW_blit_horiz_line													;61005B30
+	bsr		BW_blit_horiz_line													;Calls the horizontal-line drawing routine for one bevel edge segment.
 	addq.w	#$01,d5																;5245
 	subq.w	#$01,d3																;Third lower frame line advances back to palette index $03.
-	bsr		BW_blit_horiz_line													;61005B28
+	bsr		BW_blit_horiz_line													;Calls the horizontal-line drawing routine for one bevel edge segment.
 	addq.w	#$01,d4																;5244
 	addq.w	#$01,d5																;5245
 	sub.l	#$00020001,d3														;048300020001	;Long Addr replaced with Symbol
-	bsr		BW_blit_horiz_line													;61005B1A
+	bsr		BW_blit_horiz_line													;Calls the horizontal-line drawing routine for one bevel edge segment.
 	addq.w	#$02,d4																;5444
 	addq.w	#$01,d5																;5245
 	sub.l	#$00040001,d3														;048300040001	;Long Addr replaced with Symbol
-	bsr		BW_blit_horiz_line													;61005B0C
-	moveq	#$10,d5																;7A10
+	bsr		BW_blit_horiz_line													;Calls the horizontal-line drawing routine for one bevel edge segment.
+	moveq	#$10,d5																;Sets the two vertical STATS-frame side lines to start at player-local Y=$10.
 	add.w	$0008(a5),d5														;DA6D0008
-	moveq	#$34,d4																;7834
+	moveq	#$34,d4																;Sets the left vertical STATS-frame side line to player-local X=$34.
 	move.l	#$001F0001,d3														;Side frame lines use terminal count $1F, drawing $20 pixels in palette index $01.
-	bsr		BW_blit_vertical_line												;61005A7A
-	moveq	#$5C,d4																;785C
-	bsr		BW_blit_vertical_line												;61005A74
+	bsr		BW_blit_vertical_line												;Calls the vertical-line drawing routine for a STATS-frame side edge.
+	moveq	#$5C,d4																;Sets the right vertical STATS-frame side line to player-local X=$5C.
+	bsr		BW_blit_vertical_line												;Calls the vertical-line drawing routine for a STATS-frame side edge.
 	swap	d5																	;4845
-	move.w	#$001F,d5															;3A3C001F
+	move.w	#$001F,d5															;Sets the STATS background rectangle to player-local Y=$1F after packing its height into D5.
 	swap	d5																	;4845
 	move.l	#$00260035,d4														;Stats background packs X=$35 with horizontal terminal count $26, drawing $27 pixels wide.
 	moveq	#$02,d3																;Stats background uses palette index $02, the light-grey panel fill.
 	bsr		BW_draw_bar															;Draws the stats background rectangle using the dimensions in D4 and the current palette index in D3.
 	lea		GFX_Pockets+$7580.l,a1												;Selects the pre-drawn `<STATS>` title graphic from GFX_Pockets.
 	move.l	#$00000088,a3														;267C00000088
-	move.l	screen_ptr.l,a0														;207900008D36
+	move.l	screen_ptr.l,a0														;Starts from the player framebuffer before positioning the packed STATS title graphic.
 	add.w	$000A(a5),a0														;D0ED000A
-	add.w	#$0286,a0															;D0FC0286
+	add.w	#$0286,a0															;Places the packed STATS title graphic at its native compact-panel framebuffer offset.
 	move.l	#$00020005,d5														;2A3C00020005	;Long Addr replaced with Symbol
-	bsr		Draw_PlanarGraphic													;61004BF0
+	bsr		Draw_PlanarGraphic													;Calls the common four-plane graphic renderer for the pre-drawn STATS title.
 Draw_MainPlayerInterface:		; Memory Address ($80CA) and binary offset [$7D46]
 	; Draws the ordinary player interface, including exactly three compact
 	; statistics bars.
 	tst.w	$0042(a5)															;4A6D0042
 	bpl		adrCd008256															;6A000186
 	or.b	#$01,$0054(a5)														;002D00010054
-	move.l	#$00240036,d4														;283C00240036
-	move.l	#$00160017,d5														;2A3C00160017
+	move.l	#$00240036,d4														;Packs compact-bar background X=$36 and horizontal terminal count $24, producing a 37-pixel-wide rectangle.
+	move.l	#$00160017,d5														;Packs compact-bar background Y=$17 and vertical terminal count $16, producing 23 rows.
 	add.w	$0008(a5),d5														;DA6D0008
 	moveq	#$03,d3																;The $80E8 stats-bar background call uses palette index $03, the lighter panel fill.
 	bsr		BW_draw_bar															;Draws the stats-bar background rectangle using D4 dimensions and D3.
-	btst	#$00,$003E(a5)														;082D0000003E
-	bne		adrCd00815C															;66000066
-	move.w	$0006(a5),d7														;3E2D0006
-	asl.w	#$05,d7																;EB47
+	btst	#$00,$003E(a5)														;Chooses individual compact stats when no champion presentation is expanded; otherwise enters the party-shield status-bar path.
+	bne		Draw_PartyShieldStatusBars											;66000066
+	move.w	$0006(a5),d7														;Loads the current leader champion ID for the ordinary three-bar compact-stat display.
+	asl.w	#$05,d7																;Converts the champion ID to its 32-byte Character_Stats_DataTable record offset.
 	lea		Character_Stats_DataTable.l,a6										;4DF90000EB2A
-	lea		$05(a6,d7.w),a6														;4DF67005
+	lea		$05(a6,d7.w),a6														;Points A6 at the first current/maximum statistic pair used by the three compact bars.
 	move.l	#$00040019,d5														;2A3C00040019	;Long Addr replaced with Symbol
 	add.w	$0008(a5),d5														;DA6D0008
 	moveq	#CompactStatsBar_LastIndex,d6										;Sets a DBRA terminal index of two, so the compact player panel draws exactly three statistics bars.
@@ -12456,52 +12487,52 @@ Draw_MainPlayerInterface:		; Memory Address ($80CA) and binary offset [$7D46]
 Draw_CompactStatsBarsLoop:		; Memory Address ($811E) and binary offset [$7D9A]
 	; Draws the three compact player statistics bars using the player-specific
 	; hard-coded colour.
-	move.b	(a6)+,d0															;101E
-	beq.s	adrCd008132															;6710
-	move.b	(a6),d1																;1216
-	bsr.s	adrCd00813C															;6116
+	move.b	(a6)+,d0															;Loads the current statistic value and advances A6 to its maximum-value byte.
+	beq.s	Advance_CompactStatsBarRow											;6710
+	move.b	(a6),d1																;Loads the maximum statistic value used to scale the current bar length.
+	bsr.s	Prepare_CompactStatBarLength										;6116
 	movem.l	d3-d6,-(sp)															;48E71E00
-	bsr		BW_draw_bar															;6100593C
+	bsr		BW_draw_bar															;Calls the filled-rectangle drawing routine for one of the three compact statistic bars.
 	movem.l	(sp)+,d3-d6															;4CDF0078
-adrCd008132:		; Memory Address ($8132) and binary offset [$7DAE]
-	addq.w	#$07,d5																;5E45
-	addq.w	#$01,a6																;524E
+Advance_CompactStatsBarRow:		; Memory Address ($8132) and binary offset [$7DAE]
+	addq.w	#$07,d5																;Moves the next compact-stat bar down seven pixels, leaving its one-pixel inter-bar gap.
+	addq.w	#$01,a6																;Advances from the current/maximum pair just consumed to the next pair.
 	dbra	d6,Draw_CompactStatsBarsLoop										;51CEFFE6
 	rts																			;4E75
 
-adrCd00813C:		; Memory Address ($813C) and binary offset [$7DB8]
-	move.l	#$00220037,d4														;283C00220037
-	moveq	#$23,d2																;7423
+Prepare_CompactStatBarLength:		; Memory Address ($813C) and binary offset [$7DB8]
+	move.l	#$00220037,d4														;Sets compact-stat bar X=$37 and its maximum terminal width $22 before scaling.
+	moveq	#$23,d2																;Sets the compact-stat bar maximum drawable length to $23 pixels.
 Scale_ValueToBarLength:		; Memory Address ($8144) and binary offset [$7DC0]
 	; Scales D0 against maximum D1 to a D2-pixel bar length. Used here to scale
 	; food $00-$C7 across 48 pixels.
 	swap	d4																	;4844
-	cmp.b	d1,d0																;B001
-	bcc.s	adrCd008158															;640E
+	cmp.b	d1,d0																;Avoids division when the current value is already at or above its maximum; the bar remains full width.
+	bcc.s	Return_ScaledBarLength												;640E
 	and.w	#$00FF,d0															;024000FF
 	and.w	#$00FF,d1															;024100FF
-	mulu	d2,d0																;C0C2
-	divu	d1,d0																;80C1
+	mulu	d2,d0																;Multiplies the current value by the target pixel length before integer division by the maximum.
+	divu	d1,d0																;Divides the scaled current value by the maximum to obtain the bar length in pixels.
 	move.w	d0,d4																;3800
-adrCd008158:		; Memory Address ($8158) and binary offset [$7DD4]
+Return_ScaledBarLength:		; Memory Address ($8158) and binary offset [$7DD4]
 	swap	d4																	;4844
 	rts																			;4E75
 
-adrCd00815C:		; Memory Address ($815C) and binary offset [$7DD8]
-	moveq	#$0E,d3																;760E
-	lea		Character_Stats_DataTable+$05.l,a6									;4DF90000EB2F
-	moveq	#$03,d6																;7C03
+Draw_PartyShieldStatusBars:		; Memory Address ($815C) and binary offset [$7DD8]
+	moveq	#$0E,d3																;Initialises the party-shield status-bar fallback colour before each living champion's class colour is selected.
+	lea		Character_Stats_DataTable+$05.l,a6									;Uses offset $05 within each character record as the first current/maximum value pair for shield status bars.
+	moveq	#$03,d6																;Uses DBRA terminal index three to visit all four party shield slots.
 	move.l	#$00060052,d5														;2A3C00060052
-adrLp00816C:		; Memory Address ($816C) and binary offset [$7DE8]
+Draw_PartyShieldStatusBarsLoop:		; Memory Address ($816C) and binary offset [$7DE8]
 	move.b	$18(a5,d6.w),d0														;10356018
 	move.w	d0,d1																;3200
-	and.w	#$00E0,d1															;024100E0
-	bne.s	adrCd0081C0															;6648
+	and.w	#$00E0,d1															;Tests the party-slot vacant/dead suppression bits before drawing a status bar.
+	bne.s	Advance_PartyShieldStatusBarRow										;6648
 	and.w	#$000F,d0															;0240000F
-	asl.w	#$05,d0																;EB40
+	asl.w	#$05,d0																;Converts the occupied slot's champion ID to its 32-byte character-stat record offset.
 	move.b	$01(a6,d0.w),d1														;12360001
 	move.b	$00(a6,d0.w),d0														;10360000
-	beq.s	adrCd0081C0															;6738
+	beq.s	Advance_PartyShieldStatusBarRow										;6738
 	and.w	#$00FF,d0															;024000FF
 	moveq	#$14,d4																;7814
 	swap	d4																	;4844
@@ -12519,12 +12550,12 @@ adrLp00816C:		; Memory Address ($816C) and binary offset [$7DE8]
 	and.w	#$000F,d0															;0240000F
 	bsr		Character_GetClassIndex												;6100E74E
 	move.b	ChampionClassBarColours(pc,d0.w),d3									;163B0014
-	bsr		BW_draw_bar															;610058AE
+	bsr		BW_draw_bar															;Calls the filled-rectangle drawing routine for one occupied party-shield status bar.
 	movem.l	(sp)+,d3-d6															;4CDF0078
-adrCd0081C0:		; Memory Address ($81C0) and binary offset [$7E3C]
-	sub.w	#$0009,d5															;04450009
-	dbra	d6,adrLp00816C														;51CEFFA6
-adrCd0081C8:		; Memory Address ($81C8) and binary offset [$7E44]
+Advance_PartyShieldStatusBarRow:		; Memory Address ($81C0) and binary offset [$7E3C]
+	sub.w	#$0009,d5															;Moves to the next party-shield status-bar Y position, nine pixels above the current bar.
+	dbra	d6,Draw_PartyShieldStatusBarsLoop									;51CEFFA6
+Return_FromMainPlayerInterface:		; Memory Address ($81C8) and binary offset [$7E44]
 	rts																			;4E75
 
 ChampionClassBarColours:		; Memory Address ($81CA) and binary offset [$7E46]
@@ -12537,7 +12568,7 @@ ChampionClassBarColours:		; Memory Address ($81CA) and binary offset [$7E46]
 
 Load_MapPosition_AI_TBC:		; Memory Address ($81CE) and binary offset [$7E4A]
 	tst.w	$0014(a5)															;4A6D0014
-	bne.s	adrCd0081C8															;66F4
+	bne.s	Return_FromMainPlayerInterface										;66F4
 	or.b	#$04,$0054(a5)														;002D00040054
 	move.l	screen_ptr.l,a0														;207900008D36
 	add.w	#$054C,a0															;D0FC054C
@@ -18165,7 +18196,7 @@ adrCd00C1F6:		; Memory Address ($C1F6) and binary offset [$BE72]
 	bpl.s	ExitOrLoop															;6ACC
 	bsr		adrCd00C70C															;610004E2
 	bpl.s	ExitOrLoop															;6AC6
-	bra		adrCd00C650															;60000420
+	bra		HitTest_SpellBookControls											;60000420
 
 Process_ChampionSelectionAction:		; Memory Address ($C5B6) and binary offset [$C232]
 	; Processes the champion-selection screen's separate action state.
@@ -18204,7 +18235,7 @@ ChampionPreviews_LookupTable:		; Memory Address ($C266) and binary offset [$BEE2
 	dc.l	Click_TurnSpellBookPage	;0000C2EA
 
 Click_PreviewSpell:		; Memory Address ($C286) and binary offset [$BF02]
-	bsr		adrCd00C2AC															;61000024
+	bsr		Select_SpellBookRune												;61000024
 	bpl.s	adrCd00C298															;6A0C
 	move.w	$0006(a5),d7														;3E2D0006
 	bsr		adrCd00CFF0															;61000D5E
@@ -18218,7 +18249,9 @@ adrCd00C298:		; Memory Address ($C298) and binary offset [$BF14]
 	bsr		TerminateText														;61000D62
 	bra		adrCd00C85E															;600005B4
 
-adrCd00C2AC:		; Memory Address ($C2AC) and binary offset [$BF28]
+Select_SpellBookRune:		; Memory Address ($C2AC) and binary offset [$BF28]
+	; Tests the clicked ownership bit, loads an owned spell, or clears the queued
+	; spell.
 	bsr		Load_CurrentChampionStatRecord										;6100A3AE
 	move.w	$002A(a5),d0														;302D002A
 	move.w	d0,d2																;3400
@@ -18226,13 +18259,14 @@ adrCd00C2AC:		; Memory Address ($C2AC) and binary offset [$BF28]
 	lsr.w	#$01,d0																;E248
 	move.w	d0,d3																;3600
 	move.w	$000E(a5),d0														;302D000E
-	btst	d0,$0C(a4,d3.w)														;0134300C
+	btst	d0,$0C(a4,d3.w)														;Tests the clicked rune entry against its page nibble; a clear bit deselects the currently loaded spell instead of selecting that rune.
 	beq.s	adrCd00C2E0															;671A
 	eor.w	#$0007,d0															;0A400007
 	add.w	d2,d0																;D042
 	move.b	d0,$0013(a4)														;19400013
 	clr.b	$0014(a4)															;422C0014
-adrCd00C2D4:		; Memory Address ($C2D4) and binary offset [$BF50]
+Get_SelectedSpellName:		; Memory Address ($C2D4) and binary offset [$BF50]
+	; Resolves the selected spell’s fixed eight-character SpellNames record.
 	asl.w	#$03,d0																;E740
 	lea		SpellNames.l,a6														;4DF900019E8E
 	add.w	d0,a6																;DCC0
@@ -18248,10 +18282,10 @@ Click_TurnSpellBookPage:		; Memory Address ($C2EA) and binary offset [$BF66]
 	tst.w	$0024(a5)															;4A6D0024
 	bne.s	adrCd00C2E8															;66F8
 	tst.b	$000F(a5)															;4A2D000F
-	bpl.s	adrCd00C322															;6A2C
+	bpl.s	Draw_SpellBookPageTurn												;6A2C
 	tst.b	$000E(a5)															;4A2D000E
 	bmi.s	adrCd00C30C															;6B10
-	addq.w	#$02,$002A(a5)														;546D002A
+	addq.w	#SpellBook_PageSpreadIncrement,$002A(a5)							;546D002A
 	and.w	#$0007,$002A(a5)													;026D0007002A
 	move.w	#$FFFF,$000E(a5)													;3B7CFFFF000E
 adrCd00C30C:		; Memory Address ($C30C) and binary offset [$BF88]
@@ -18262,7 +18296,8 @@ adrCd00C31A:		; Memory Address ($C31A) and binary offset [$BF96]
 	bsr		Prepare_AndDrawSpellBookSurface										;610004AC
 	bra		adrCd00C85E															;6000053E
 
-adrCd00C322:		; Memory Address ($C322) and binary offset [$BF9E]
+Draw_SpellBookPageTurn:		; Memory Address ($C322) and binary offset [$BF9E]
+	; Redraws page content through the four-frame page-turn sequence.
 	bsr		Prepare_AndDrawSpellBookSurface										;610004A4
 	move.w	$002A(a5),d0														;302D002A
 	bsr		Draw_SpellBookRunePage												;6100053E
@@ -18272,7 +18307,7 @@ adrCd00C322:		; Memory Address ($C322) and binary offset [$BF9E]
 adrCd00C338:		; Memory Address ($C338) and binary offset [$BFB4]
 	and.w	#$0003,d1															;02410003
 	move.w	$002A(a5),d0														;302D002A
-	cmpi.w	#$0003,d1															;0C410003
+	cmpi.w	#$0003,d1															;At the final page-turn phase, redraws the adjacent page before the rightmost rune-column overlay is added.
 	bne.s	adrCd00C39C															;6656
 	addq.w	#$01,d0																;5240
 	bsr		Draw_SpellBookRunePage												;61000520
@@ -18281,7 +18316,7 @@ adrCd00C338:		; Memory Address ($C338) and binary offset [$BFB4]
 	and.w	#$0007,d0															;02400007
 	move.w	d0,d7																;3E00
 	asl.w	#$04,d0																;E940
-	lea		SpellBookRunes+$03.l,a6												;4DF900018787
+	lea		SpellBookRunes+$03.l,a6												;Selects the offset-three rune stream for four rightmost-column glyph stamps during the final page-turn phase.
 	add.w	d0,a6																;DCC0
 	move.l	screen_ptr.l,a0														;207900008D36
 	add.w	#$0436,a0															;D0FC0436
@@ -18301,13 +18336,14 @@ adrLp00C380:		; Memory Address ($C380) and binary offset [$BFFC]
 	addq.w	#$04,a6																;584E
 	add.w	#$013F,a0															;D0FC013F
 	dbra	d7,adrLp00C380														;51CFFFE8
-	bra.s	adrCd00C3A6															;600A
+	bra.s	Build_SpellBookPageTurnColourMask									;600A
 
 adrCd00C39C:		; Memory Address ($C39C) and binary offset [$C018]
 	addq.w	#$03,d0																;5640
 	and.w	#$0007,d0															;02400007
 	bsr		Draw_SpellBookRunePage												;610004C6
-adrCd00C3A6:		; Memory Address ($C3A6) and binary offset [$C022]
+Build_SpellBookPageTurnColourMask:		; Memory Address ($C3A6) and binary offset [$C022]
+	; Builds the four rune-class inks used by the page-turn overlay.
 	move.w	$002A(a5),d7														;3E2D002A
 	addq.w	#$02,d7																;5447
 	and.w	#$0007,d7															;02470007
@@ -18322,7 +18358,7 @@ adrCd00C3A6:		; Memory Address ($C3A6) and binary offset [$C022]
 	moveq	#$03,d5																;7A03
 adrLp00C3C8:		; Memory Address ($C3C8) and binary offset [$C044]
 	bsr		adrCd00C906															;6100053C
-	move.b	d6,(a6)+															;1CC6
+	move.b	d6,(a6)+															;Builds the four-entry colour mask used when the spell-book overlay is drawn.
 	subq.w	#$01,d7																;5347
 	dbra	d5,adrLp00C3C8														;51CDFFF6
 	move.w	$000E(a5),d0														;302D000E
@@ -18337,7 +18373,7 @@ Draw_SelectedSpellMarker:		; Memory Address ($C3DE) and binary offset [$C05A]
 	lea		GFX_Pockets+$4130.l,a1												;43F900050832
 	add.w	d0,d0																;D040
 	add.w	d0,a0																;D0C0
-	asl.w	#$03,d0																;E740
+	asl.w	#$03,d0																;After screen-address doubling, converts the frame index to its 16-byte GFX_Pockets+$4130 source offset (32 pixels per frame).
 	add.w	d0,a1																;D2C0
 	move.l	#$00010037,d5														;2A3C00010037	;Long Addr replaced with Symbol
 	move.w	#$0004,d3															;363C0004
@@ -18526,7 +18562,8 @@ adrCd00C64C:		; Memory Address ($C64C) and binary offset [$C2C8]
 	tst.w	d2																	;4A42
 	rts																			;4E75
 
-adrCd00C650:		; Memory Address ($C650) and binary offset [$C2CC]
+HitTest_SpellBookControls:		; Memory Address ($C650) and binary offset [$C2CC]
+	; Resolves the spell-book top controls and eight rune hit targets.
 	cmp.w	#$0002,$0014(a5)													;0C6D00020014
 	bne.s	adrCd00C64C															;66F4
 	move.l	$0002(a5),d1														;222D0002
@@ -18706,9 +18743,9 @@ Draw_SpellPointValues:		; Memory Address ($C812) and binary offset [$C48E]
 adrCd00C820:		; Memory Address ($C820) and binary offset [$C49C]
 	bsr		Load_CurrentChampionStatRecord										;61009E3A
 	or.b	#$0C,$0054(a5)														;002D000C0054
-	move.b	$0009(a4),d0														;102C0009
+	move.b	$0009(a4),d0														;Loads the champion's current spell points for the SP.PTS value.
 	bsr		Convert_ByteToDecimalText											;61000694
-	move.b	$000A(a4),d0														;102C000A
+	move.b	$000A(a4),d0														;Loads the champion's maximum spell points for the SP.PTS value.
 	lea		adrEA00EA00.l,a6													;4DF90000EA00
 	move.b	d1,$000E(a6)														;1D41000E
 	ror.w	#$08,d1																;E059
@@ -18759,7 +18796,7 @@ adrLp00C8B4:		; Memory Address ($C8B4) and binary offset [$C530]
 	sub.w	#$0028,a0															;90FC0028
 	move.b	(a6)+,d0															;101E
 	bsr		adrCd00D8C0															;61000FFA
-	add.w	#$0164,a0															;D0FC0164
+	add.w	#$0164,a0															;Moves from one left-page rune entry to the next: eight screen rows down and back to the left text column.
 	subq.w	#$01,d7																;5347
 	cmpi.w	#$0004,d7															;0C470004
 	bcc.s	adrCd00C8AA															;64D6
@@ -18779,13 +18816,13 @@ adrLp00C8F2:		; Memory Address ($C8F2) and binary offset [$C56E]
 	move.b	(a6)+,d0															;101E
 	bsr		adrCd00D8C0															;61000FCA
 	dbra	d6,adrLp00C8F2														;51CEFFF8
-	add.w	#$0114,a0															;D0FC0114
+	add.w	#$0114,a0															;Moves from one right-page rune entry to the next after the separately placed first rune glyph.
 	dbra	d7,adrLp00C8DE														;51CFFFDC
 	rts																			;4E75
 
 adrCd00C906:		; Memory Address ($C906) and binary offset [$C582]
 	moveq	#$01,d6																;7C01
-	btst	d7,$000C(a3)														;0F2B000C
+	btst	d7,$000C(a3)														;Tests this page entry's ownership bit in the champion's four spell-book bytes at $0C-$0F; clear entries use grey ink.
 	beq.s	adrCd00C932															;6724
 	swap	d7																	;4847
 	move.w	d7,d6																;3C07
@@ -18799,7 +18836,7 @@ adrCd00C906:		; Memory Address ($C906) and binary offset [$C582]
 	cmp.b	$0013(a4),d0														;B02C0013
 	beq.s	adrCd00C932															;6708
 	bsr		Character_GetClassIndex												;61009FD4
-	move.b	adrB_00C934(pc,d0.w),d6												;1C3B0004
+	move.b	adrB_00C934(pc,d0.w),d6												;Maps Serpent, Chaos, Dragon and Moon class indices to palette inks $06, $0D, $0C and $07 for available runes.
 adrCd00C932:		; Memory Address ($C932) and binary offset [$C5AE]
 	rts																			;4E75
 
@@ -19006,11 +19043,11 @@ Draw_ChampionStats:		; Memory Address ($CB2A) and binary offset [$C7A6]
 	; Draws the scroll frame, inserts fields from the selected 32-byte champion
 	; record into ChampionStatsScroll_TextTemplate, then calls Print_fflim_text. D5
 	; supplies the scroll Y position.
-	move.w	$0006(a5),-(sp)														;3F2D0006
-	bsr		Draw_ScrollFrame													;6100010A
+	move.w	$0006(a5),-(sp)														;Saves the current leader champion ID while the generic scroll frame is drawn.
+	bsr		Draw_ScrollFrame													;Calls the shared scroll-frame drawing routine before printing champion statistics.
 	move.w	(sp),d0																;3017
 	lea		ChampionStatsScroll_TextTemplate.l,a6								;Selects the stats Print_fflim_text stream. Its $FC commands place LEVEL and the ST, IN, HP, and VI rows at consecutive eight-pixel text rows $03-$07.
-	asl.w	#$05,d0																;EB40
+	asl.w	#$05,d0																;Converts the champion ID to its 32-byte Character_Stats_DataTable record offset.
 	lea		Character_Stats_DataTable.l,a0										;41F90000EB2A
 	add.w	d0,a0																;D0C0
 	lea		ChampionStatsScroll_FieldAndTextOffsets.l,a2						;45F90000CBC4
@@ -19019,14 +19056,14 @@ Draw_ChampionStats:		; Memory Address ($CB2A) and binary offset [$C7A6]
 ChampionStats_InsertFieldsLoop:		; Memory Address ($CB4E) and binary offset [$C7CA]
 	; Copies seven champion fields into their corresponding positions within the
 	; writable formatted-text template.
-	move.b	$00(a2,d7.w),d0														;10327000
-	move.b	$00(a0,d0.w),d0														;10300000
-	bsr		Convert_ByteToDecimalText											;6100036C
+	move.b	$00(a2,d7.w),d0														;Loads one source-field offset from the seven-entry champion-statistics scroll lookup table.
+	move.b	$00(a0,d0.w),d0														;Reads the selected champion statistic identified by the lookup entry.
+	bsr		Convert_ByteToDecimalText											;Converts the binary champion statistic to its printable decimal digits.
 	move.b	$07(a2,d7.w),d0														;10327007
 	move.b	d1,$01(a6,d0.w)														;1D810001
 	ror.w	#$08,d1																;E059
 	move.b	d1,$00(a6,d0.w)														;1D810000
-	dbra	d7,ChampionStats_InsertFieldsLoop									;51CFFFE4
+	dbra	d7,ChampionStats_InsertFieldsLoop									;Repeats for all seven lookup-defined champion-statistic fields.
 	move.w	(sp)+,d7															;3E1F
 	move.b	$0005(a0),d0														;10280005
 	divu	#$0064,d0															;80FC0064
@@ -19055,7 +19092,7 @@ adrCd00CBB0:		; Memory Address ($CBB0) and binary offset [$C82C]
 	move.b	d1,$01(a6,d2.w)														;1D812001
 	ror.w	#$08,d1																;E059
 	move.b	d1,$00(a6,d2.w)														;1D812000
-	bra		Print_fflim_text													;60000504
+	bra		Print_fflim_text													;Prints the completed champion-statistics scroll text template after all values have been inserted.
 
 ChampionStatsScroll_FieldAndTextOffsets:		; Memory Address ($CBC4) and binary offset [$C840]
 	; Two parallel seven-byte tables: champion-record field offsets followed by
@@ -19073,31 +19110,31 @@ Draw_ScrollFrame:		; Memory Address ($CC3A) and binary offset [$C8B6]
 	; applies player-specific screen offsets.
 	or.b	#$0C,$0054(a5)														;002D000C0054
 	swap	d5																	;4845
-	move.w	#$0018,d5															;3A3C0018
+	move.w	#$0018,d5															;Sets the scroll-frame background rectangle to player-local Y=$18 while preserving the caller-provided scroll Y in the other word of D5.
 	add.w	$0008(a5),d5														;DA6D0008
-	move.l	#$003F00F0,d4														;283C003F00F0
+	move.l	#$003F00F0,d4														;Packs the scroll-frame background X=$F0 and horizontal terminal count $3F, producing a 64-pixel-wide fill.
 	moveq	#$03,d3																;7603
-	bsr		BW_draw_bar															;61000E14
+	bsr		BW_draw_bar															;Calls the filled-rectangle drawing routine for the scroll-frame background.
 	sub.l	a3,a3																;97CB
-	lea		GFX_Scroll_Edge_Left.l,a1											;43F90001975E
+	lea		GFX_Scroll_Edge_Left.l,a1											;Selects the pre-drawn left scroll edge graphic.
 	move.l	screen_ptr.l,a0														;207900008D36
-	add.w	#$03DC,a0															;D0FC03DC
+	add.w	#$03DC,a0															;Positions the left scroll edge at its player-local framebuffer offset.
 	add.w	$000A(a5),a0														;D0ED000A
 	clr.w	d5																	;4245
 	swap	d5																	;4845
 	move.l	d5,-(sp)															;2F05
 	bsr.s	Draw_PlanarGraphic													;6144
 	move.l	(sp)+,d5															;2A1F
-	lea		GFX_Scroll_Edge_Right.l,a1											;43F90001992E
+	lea		GFX_Scroll_Edge_Right.l,a1											;Selects the pre-drawn right scroll edge graphic.
 	move.l	screen_ptr.l,a0														;207900008D36
-	add.w	#$03E6,a0															;D0FC03E6
+	add.w	#$03E6,a0															;Positions the right scroll edge at its player-local framebuffer offset.
 	add.w	$000A(a5),a0														;D0ED000A
 	bsr.s	Draw_PlanarGraphic													;612C
 	sub.w	#$000A,a0															;90FC000A
-	lea		GFX_Scroll_Edge_Bottom.l,a1											;43F90001948E
+	lea		GFX_Scroll_Edge_Bottom.l,a1											;Selects the pre-drawn bottom scroll cap graphic.
 	move.l	#$0005000E,d5														;2A3C0005000E	;Long Addr replaced with Symbol
 	bsr.s	Draw_PlanarGraphic													;611A
-	lea		GFX_Scroll_Edge_Top.l,a1											;43F9000191BE
+	lea		GFX_Scroll_Edge_Top.l,a1											;Selects the pre-drawn top scroll cap graphic.
 	move.l	screen_ptr.l,a0														;207900008D36
 	add.w	#$0184,a0															;D0FC0184
 	add.w	$000A(a5),a0														;D0ED000A
@@ -19113,15 +19150,15 @@ Draw_MainChampionAvatarPanel:		; Memory Address ($CCBE) and binary offset [$C93A
 	; optional inner frame.
 	move.l	#$002F0000,d4														;Sets outer avatar-panel X=$00 and horizontal terminal count $2F, producing a $30-pixel width.
 	moveq	#$0A,d5																;Sets the outer avatar-panel top edge to player-local Y=$0A.
-	bsr		Draw_BevelledPanelFrame												;6100F3F2
-	move.w	$0006(a5),d7														;3E2D0006
-	moveq	#-$01,d4															;78FF
+	bsr		Draw_BevelledPanelFrame												;Calls the shared bevelled-panel renderer for the large avatar background and three inset grey outlines.
+	move.w	$0006(a5),d7														;Loads the current leader champion ID for the large-avatar graphic selection.
+	moveq	#-$01,d4															;Passes the large-avatar rendering sentinel to the avatar compositor.
 	move.l	#MainChampionAvatar_ScreenByteOffset,a0								;Selects screen byte offset $02A9, which resolves to player-local portrait coordinate ($08,$11).
 	bsr.s	Draw_ChampionLargeAvatar											;Draws only the 32 by 30 champion portrait; the surrounding frames are separate procedural stages.
 Draw_MainChampionAvatarInnerFrame:		; Memory Address ($CCD8) and binary offset [$C954]
 	; Draws the inner large-avatar outline unless the current player state
 	; suppresses it.
-	btst	#$00,$003E(a5)														;082D0000003E
+	btst	#$00,$003E(a5)														;Suppresses the large-avatar inner frame while the main champion presentation bit is active.
 	bne.s	adrCd00CD12															;6632
 	or.b	#$01,$0054(a5)														;002D00010054
 	move.l	#$0021000F,d5														;Sets inner-frame Y=$0F and vertical terminal count $21, producing a $22-pixel height.
@@ -19157,11 +19194,11 @@ ChampionShieldInkColourLookup:		; Memory Address ($CD14) and binary offset [$C99
 
 Draw_ChampionLargeAvatar:		; Memory Address ($CD1C) and binary offset [$C998]
 	; Selects and draws one 32×30 large champion avatar.
-	add.l	screen_ptr.l,a0														;D1F900008D36
+	add.l	screen_ptr.l,a0														;Converts the avatar-local framebuffer offset to an address in the active player screen buffer.
 	add.w	$000A(a5),a0														;D0ED000A
 	lea		GFX_Avatars_Large.l,a1												;43F900041D30
 	move.w	d7,d0																;3007
-	asl.w	#$05,d0																;EB40
+	asl.w	#$05,d0																;Begins converting the champion ID to its portrait-record source offset.
 	sub.w	d7,d0																;9047
 	sub.w	d7,d0																;9047
 	asl.w	#$04,d0																;E940
@@ -19170,7 +19207,7 @@ Draw_ChampionLargeAvatar:		; Memory Address ($CD1C) and binary offset [$C998]
 	sub.l	a3,a3																;97CB
 	tst.w	d4																	;4A44
 	bne		Draw_PlanarGraphicCore												;660000E4
-	bra		Draw_PlanarGraphicCore												;600000E0
+	bra		Draw_PlanarGraphicCore												;Enters the common four-plane renderer with the resolved avatar source and destination.
 
 Get_ChampionShieldScreenPosition:		; Memory Address ($CD4A) and binary offset [$C9C6]
 	; Calculates the screen destination for a champion shield/avatar slot.
@@ -19423,7 +19460,7 @@ LowerText:
 
 adrCd00CFBC:		; Memory Address ($CFBC) and binary offset [$CC38]
 	move.l	screen_ptr.l,a0														;207900008D36
-	add.w	#$0BAE,a0															;D0FC0BAE
+	add.w	#$0BAE,a0															;Sets the selected-spell name raster origin to X=$F0, Y=$4A: $0BAE is 74 rows of $28 bytes plus 30 bytes.
 	add.w	$000A(a5),a0														;D0ED000A
 	moveq	#$07,d6																;7C07
 	move.l	#$000B0000,adrW_00D92A.l											;23FC000B00000000D92A

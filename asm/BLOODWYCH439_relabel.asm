@@ -672,6 +672,20 @@ MainChampionAvatar_ScreenByteOffset:		equ	$02A9
 	; Player-local screen byte offset for the 32 by 30 large champion portrait at coordinate ($08,$11).
 ChampionLargeAvatar_DrawDimensions:		equ	$0001001D
 	; Packed DBRA terminal counts for a large champion portrait: two 16-pixel words across and 30 rows.
+SpellBook_PageSpreadIncrement:		equ	$02
+	; Advances the spell book by one two-page spread.
+SpellCasting_PracticeFirstThreshold:		equ	$05
+	; First spell-practice threshold for matching spells.
+SpellCasting_MatchingWandBonus:		equ	$03
+	; Cast-quality bonus for a held wand matching a non-matching spell.
+SpellCasting_CooldownBaseIncrement:		equ	$05
+	; Base spell-cooldown increment added to the selected spell cost value after quality is calculated.
+SpellCasting_ManaCostMinimum:		equ	$01
+	; Minimum calculated spell-point cost.
+SpellCasting_ManaCostMaximum:		equ	$64
+	; Exclusive spell-point cost ceiling used while normalising byte $14.
+SpellCasting_CastBarMaximumWidth:		equ	$34
+	; Maximum CAST bar width in pixels.
 
 ****************************************************************************
 
@@ -4155,7 +4169,7 @@ adrCd002904:		; Memory Address ($2904) and binary offset [$2580]
 	bsr	Load_CurrentChampionStatRecord	;61003D4E
 	tst.b	$0013(a4)	;4A2C0013
 	bmi.s	adrCd00291A	;6B04
-	bsr	adrCd006720	;61003E08
+	bsr	Draw_SpellCastingBar	;61003E08
 adrCd00291A:		; Memory Address ($291A) and binary offset [$2596]
 	bsr	adrCd0084D6	;61005BBA
 	bsr	adrCd002BCE	;610002AE
@@ -7171,7 +7185,7 @@ adrCd004852:		; Memory Address ($4852) and binary offset [$44CE]
 	bmi.s	adrCd00486E	;6B18
 	and.w	#$00FF,d0	;024000FF
 	move.l	a0,-(sp)	;2F08
-	bsr	adrCd00C2D4	;61007A76
+	bsr	Get_SelectedSpellName	;61007A76
 	moveq	#$07,d6	;7C07
 	jsr	adrLp00CFDA.l	;4EB90000CFDA
 	move.l	(sp)+,a0	;205F
@@ -7671,7 +7685,7 @@ Resolve_PlayerContextAction:		; Memory Address ($516E) and binary offset [$4DEA]
 	move.b	$0014(a5),d0	;102D0014
 	bne.s	adrCd004E0C	;661A
 	moveq	#-$01,d2	;74FF
-	bsr	adrCd00C650	;6100785A
+	bsr	HitTest_SpellBookControls	;6100785A
 	bmi.s	adrCd004E12	;6B18
 	move.w	#$0002,$0014(a5)	;3B7C00020014
 	move.w	$000C(a5),d0	;302D000C
@@ -7725,7 +7739,7 @@ adrCd004E72:		; Memory Address ($4E72) and binary offset [$4AEE]
 Click_LaunchSpellFromBook:		; Memory Address ($4E7A) and binary offset [$4AF6]
 	bsr.s	Cast_SelectedChampionSpell	;6112
 	bne.s	adrCd004E86	;6608
-	bsr	adrCd006698	;61001818
+	bsr	Draw_SelectedSpellDetails	;61001818
 	bsr	adrCd00C85E	;610079DA
 adrCd004E86:		; Memory Address ($4E86) and binary offset [$4B02]
 	move.w	#$0002,$0014(a5)	;3B7C00020014
@@ -7757,7 +7771,7 @@ CastSpell_ApplySpellPointCost:		; Memory Address ($524C) and binary offset [$4EC
 	; Applies action state, calculates spell-point cost, consumes ring-assisted casts, and rejects insufficient spell points.
 	move.b	#SpellCasting_ActionCooldown,$001B(a4)	;197C000F001B
 	clr.b	$0011(a4)	;422C0011
-	bsr	adrCd00688C	;610019B8
+	bsr	Calculate_SpellPointCost	;610019B8
 	move.b	$0009(a4),d1	;122C0009
 	sub.b	d0,d1	;9200
 	bcs	CastSpell_RejectInsufficientSpellPoints	;650000F8
@@ -7776,7 +7790,7 @@ CastSpell_CalculateQualityAndCooldown:		; Memory Address ($527E) and binary offs
 	move.b	$0013(a4),d0	;102C0013
 	lea	SpellCost_DataTable.l,a6	;4DF90000685E
 	move.b	$00(a6,d0.w),d1	;12360000
-	addq.b	#$05,d1	;5A01
+	addq.b	#SpellCasting_CooldownBaseIncrement,d1	;5A01
 	add.b	$0015(a4),d1	;D22C0015
 	cmpi.b	#SpellCasting_CooldownMaximum,d1	;0C010064
 	bcs.s	CastSpell_SelectHandler	;6502
@@ -8585,9 +8599,9 @@ adrB_0055DE:		; Memory Address ($55DE) and binary offset [$525A]
 
 Click_ViewSpell:		; Memory Address ($55E0) and binary offset [$525C]
 	move.w	#$0002,$0014(a5)	;3B7C00020014
-	bsr	adrCd00C2AC	;61006CC4
+	bsr	Select_SpellBookRune	;61006CC4
 	bpl.s	adrCd0055F6	;6A0A
-	bsr	adrCd006698	;610010AA
+	bsr	Draw_SelectedSpellDetails	;610010AA
 	bsr	adrCd00CF96	;610079A4
 	bra.s	adrCd005624	;602E
 
@@ -8607,7 +8621,7 @@ adrCd005614:		; Memory Address ($5614) and binary offset [$5290]
 	neg.b	d0	;4400
 	move.b	d0,$0014(a4)	;19400014
 adrCd00561A:		; Memory Address ($561A) and binary offset [$5296]
-	bsr	adrCd006698	;6100107C
+	bsr	Draw_SelectedSpellDetails	;6100107C
 	move.l	(sp)+,a6	;2C5F
 	bsr	adrCd00CFBC	;6100799A
 adrCd005624:		; Memory Address ($5624) and binary offset [$52A0]
@@ -10420,7 +10434,8 @@ Click_OpenSpellBook:		; Memory Address ($6684) and binary offset [$6300]
 	bsr.s	adrCd006670	;61E2
 	bsr	adrCd00C85E	;610061CE
 	move.w	#$0002,$0014(a5)	;3B7C00020014
-adrCd006698:		; Memory Address ($6698) and binary offset [$6314]
+Draw_SelectedSpellDetails:		; Memory Address ($6698) and binary offset [$6314]
+	; Draws selected spell stars, name, COST text, and the CAST display.
 	bsr	Draw_SpellPointValues	;61006178
 	sub.w	#$02DC,a0	;90FC02DC
 	move.b	$0013(a4),d0	;102C0013
@@ -10452,11 +10467,11 @@ adrLp0066CC:		; Memory Address ($66CC) and binary offset [$6348]
 	bsr	Draw_PocketGraphic	;61006404
 	moveq	#$00,d0	;7000
 	move.b	$0013(a4),d0	;102C0013
-	bsr	adrCd00C2D4	;61005BE4
+	bsr	Get_SelectedSpellName	;61005BE4
 	bsr	adrCd00CFBC	;610068C8
 adrCd0066F6:		; Memory Address ($66F6) and binary offset [$6372]
 	or.b	#$04,$0054(a5)	;002D00040054
-	bsr	adrCd00688C	;6100018E
+	bsr	Calculate_SpellPointCost	;6100018E
 	lea	adrEA00EA36.l,a6	;4DF90000EA36
 	bsr	Convert_ByteToDecimalText	;610067BC
 	move.w	d1,$0010(a6)	;3D410010
@@ -10465,7 +10480,8 @@ adrCd006712:		; Memory Address ($6712) and binary offset [$638E]
 	lea	adrEA00EA4C.l,a6	;4DF90000EA4C
 	bsr	LowerText	;6100689E
 	clr.b	$0057(a5)	;422D0057
-adrCd006720:		; Memory Address ($6720) and binary offset [$639C]
+Draw_SpellCastingBar:		; Memory Address ($6720) and binary offset [$639C]
+	; Converts signed casting quality into the five-pixel-high CAST bar.
 	tst.b	$0057(a5)	;4A2D0057
 	bmi.s	adrCd00675E	;6B38
 	or.b	#$10,$0054(a5)	;002D00100054
@@ -10476,9 +10492,9 @@ adrCd006720:		; Memory Address ($6720) and binary offset [$639C]
 adrCd006736:		; Memory Address ($6736) and binary offset [$63B2]
 	cmpi.b	#$13,d7	;0C070013
 	bcc.s	adrCd00675E	;6422
-	move.b	adrB_006760(pc,d7.w),d0	;103B7022
+	move.b	SpellCasting_CastBarPercentages(pc,d7.w),d0	;103B7022
 	moveq	#$64,d1	;7264
-	moveq	#$34,d2	;7434
+	moveq	#SpellCasting_CastBarMaximumWidth,d2	;7434
 	move.l	#$0004005A,d5	;2A3C0004005A	;Long Addr replaced with Symbol
 	add.w	$0008(a5),d5	;DA6D0008
 	move.l	#$0033009F,d4	;283C0033009F
@@ -10489,7 +10505,8 @@ adrCd006736:		; Memory Address ($6736) and binary offset [$63B2]
 adrCd00675E:		; Memory Address ($675E) and binary offset [$63DA]
 	rts	;4E75
 
-adrB_006760:		; Memory Address ($6760) and binary offset [$63DC]
+SpellCasting_CastBarPercentages:		; Memory Address ($6760) and binary offset [$63DC]
+	; Twenty percentages indexed by the clamped negated casting-quality score to scale the 52-pixel CAST bar.
 	dc.b	$64	;64
 	dc.b	$64	;64
 	dc.b	$64	;64
@@ -10513,6 +10530,7 @@ adrB_006760:		; Memory Address ($6760) and binary offset [$63DC]
 
 	bsr	Load_ChampionStatRecord	;6100FEEA
 Calculate_SpellCastingQuality:		; Memory Address ($6778) and binary offset [$63F4]
+	; Existing mapping; calculates signed spell quality from class, practice, level, power, equipment, cooldown, and difficulty.
 	move.b	$0013(a4),d0	;102C0013
 	bsr	Character_GetClassIndex	;61000182
 	move.w	d0,-(sp)	;3F00
@@ -10536,7 +10554,7 @@ adrCd0067AC:		; Memory Address ($67AC) and binary offset [$6428]
 	moveq	#$00,d6	;7C00
 	move.b	$0013(a4),d6	;1C2C0013
 	move.b	$00(a1,d6.w),d0	;10316000
-	moveq	#$05,d2	;7405
+	moveq	#SpellCasting_PracticeFirstThreshold,d2	;7405
 	moveq	#$00,d3	;7600
 	tst.w	d7	;4A47
 	bne.s	adrCd0067D8	;6612
@@ -10547,7 +10565,7 @@ adrCd0067AC:		; Memory Address ($67AC) and binary offset [$6428]
 	cmp.b	$0001(a0),d4	;B8280001
 	bne.s	adrCd0067E0	;660A
 adrCd0067D6:		; Memory Address ($67D6) and binary offset [$6452]
-	addq.b	#$03,d7	;5607
+	addq.b	#SpellCasting_MatchingWandBonus,d7	;5607
 adrCd0067D8:		; Memory Address ($67D8) and binary offset [$6454]
 	cmp.w	d2,d0	;B042
 	bcs.s	adrCd0067EA	;650E
@@ -10603,7 +10621,7 @@ adrCd006836:		; Memory Address ($6836) and binary offset [$64B2]
 	rts	;4E75
 
 SpellCasting_SpellDifficultyPenalties:		; Memory Address ($683E) and binary offset [$64BA]
-	; Sixteen spell-indexed values subtracted from the calculated spell-casting quality.
+	; Existing mapping correction: 32 spell-indexed penalty bytes, not 16.
 	dc.b	$0E	;0E
 	dc.b	$0F	;0F
 	dc.b	$0E	;0E
@@ -10637,6 +10655,7 @@ SpellCasting_SpellDifficultyPenalties:		; Memory Address ($683E) and binary offs
 	dc.b	$12	;12
 	dc.b	$10	;10
 SpellCost_DataTable:		; Memory Address ($685E) and binary offset [$64DA]
+	; Existing mapping; one base spell-cost value for each SPS 439 spell.
 	dc.b	$01	;01
 	dc.b	$02	;02
 	dc.b	$02	;02
@@ -10669,7 +10688,8 @@ SpellCost_DataTable:		; Memory Address ($685E) and binary offset [$64DA]
 	dc.b	$06	;06
 	dc.b	$06	;06
 	dc.b	$04	;04
-adrB_00687E:		; Memory Address ($687E) and binary offset [$64FA]
+SpellCasting_CastPowerCostAdjustments:		; Memory Address ($687E) and binary offset [$64FA]
+	; Additional mana costs for non-negative prepared cast-power values $00–$0D.
 	dc.b	$00	;00
 	dc.b	$03	;03
 	dc.b	$06	;06
@@ -10685,7 +10705,8 @@ adrB_00687E:		; Memory Address ($687E) and binary offset [$64FA]
 	dc.b	$5B	;5B
 	dc.b	$69	;69
 
-adrCd00688C:		; Memory Address ($688C) and binary offset [$6508]
+Calculate_SpellPointCost:		; Memory Address ($688C) and binary offset [$6508]
+	; Calculates COST, handles charged matching rings, and normalises byte $14 to costs $01–$63.
 	move.l	a4,d0	;200C
 	sub.l	#Character_Stats_DataTable,d0	;04800000EB2A
 	lsr.w	#$01,d0	;E248
@@ -10714,7 +10735,7 @@ adrCd0068D0:		; Memory Address ($68D0) and binary offset [$654C]
 	move.b	$0014(a4),d1	;122C0014
 	ext.w	d1	;4881
 	bmi.s	adrCd0068DC	;6B04
-	move.b	adrB_00687E(pc,d1.w),d1	;123B10A4
+	move.b	SpellCasting_CastPowerCostAdjustments(pc,d1.w),d1	;123B10A4
 adrCd0068DC:		; Memory Address ($68DC) and binary offset [$6558]
 	moveq	#$00,d0	;7000
 	move.b	$0013(a4),d0	;102C0013
@@ -10725,9 +10746,9 @@ adrCd0068DC:		; Memory Address ($68DC) and binary offset [$6558]
 	add.w	d1,d0	;D041
 	bne.s	adrCd0068F8	;6606
 	addq.b	#$01,$0014(a4)	;522C0014
-	moveq	#$01,d0	;7001
+	moveq	#SpellCasting_ManaCostMinimum,d0	;7001
 adrCd0068F8:		; Memory Address ($68F8) and binary offset [$6574]
-	cmpi.w	#$0064,d0	;0C400064
+	cmpi.w	#SpellCasting_ManaCostMaximum,d0	;0C400064
 	bcc.s	adrCd0068CC	;64CE
 	rts	;4E75
 
@@ -13265,7 +13286,7 @@ Draw_MainPlayerInterface:		; Memory Address ($80CA) and binary offset [$7D46]
 	moveq	#$03,d3	;7603
 	bsr	BW_draw_bar	;6100597C
 	btst	#$00,$003E(a5)	;082D0000003E
-	bne	adrCd00815C	;66000066
+	bne	Draw_PartyShieldStatusBars	;66000066
 	move.w	$0006(a5),d7	;3E2D0006
 	asl.w	#$05,d7	;EB47
 	lea	Character_Stats_DataTable.l,a6	;4DF90000EB2A
@@ -13280,50 +13301,50 @@ Draw_MainPlayerInterface:		; Memory Address ($80CA) and binary offset [$7D46]
 Draw_CompactStatsBarsLoop:		; Memory Address ($811E) and binary offset [$7D9A]
 	; Draws the three compact player statistics bars using the player-specific hard-coded colour.
 	move.b	(a6)+,d0	;101E
-	beq.s	adrCd008132	;6710
+	beq.s	Advance_CompactStatsBarRow	;6710
 	move.b	(a6),d1	;1216
-	bsr.s	adrCd00813C	;6116
+	bsr.s	Prepare_CompactStatBarLength	;6116
 	movem.l	d3-d6,-(sp)	;48E71E00
 	bsr	BW_draw_bar	;6100593C
 	movem.l	(sp)+,d3-d6	;4CDF0078
-adrCd008132:		; Memory Address ($8132) and binary offset [$7DAE]
+Advance_CompactStatsBarRow:		; Memory Address ($8132) and binary offset [$7DAE]
 	addq.w	#$07,d5	;5E45
 	addq.w	#$01,a6	;524E
 	dbra	d6,Draw_CompactStatsBarsLoop	;51CEFFE6
 	rts	;4E75
 
-adrCd00813C:		; Memory Address ($813C) and binary offset [$7DB8]
+Prepare_CompactStatBarLength:		; Memory Address ($813C) and binary offset [$7DB8]
 	move.l	#$00220037,d4	;283C00220037
 	moveq	#$23,d2	;7423
 Scale_ValueToBarLength:		; Memory Address ($8144) and binary offset [$7DC0]
 	; Scales D0 against maximum D1 to a D2-pixel bar length. Used here to scale food $00-$C7 across 48 pixels.
 	swap	d4	;4844
 	cmp.b	d1,d0	;B001
-	bcc.s	adrCd008158	;640E
+	bcc.s	Return_ScaledBarLength	;640E
 	and.w	#$00FF,d0	;024000FF
 	and.w	#$00FF,d1	;024100FF
 	mulu	d2,d0	;C0C2
 	divu	d1,d0	;80C1
 	move.w	d0,d4	;3800
-adrCd008158:		; Memory Address ($8158) and binary offset [$7DD4]
+Return_ScaledBarLength:		; Memory Address ($8158) and binary offset [$7DD4]
 	swap	d4	;4844
 	rts	;4E75
 
-adrCd00815C:		; Memory Address ($815C) and binary offset [$7DD8]
+Draw_PartyShieldStatusBars:		; Memory Address ($815C) and binary offset [$7DD8]
 	moveq	#$0E,d3	;760E
 	lea	Character_Stats_DataTable+$05.l,a6	;4DF90000EB2F
 	moveq	#$03,d6	;7C03
 	move.l	#$00060052,d5	;2A3C00060052
-adrLp00816C:		; Memory Address ($816C) and binary offset [$7DE8]
+Draw_PartyShieldStatusBarsLoop:		; Memory Address ($816C) and binary offset [$7DE8]
 	move.b	$18(a5,d6.w),d0	;10356018
 	move.w	d0,d1	;3200
 	and.w	#$00E0,d1	;024100E0
-	bne.s	adrCd0081C0	;6648
+	bne.s	Advance_PartyShieldStatusBarRow	;6648
 	and.w	#$000F,d0	;0240000F
 	asl.w	#$05,d0	;EB40
 	move.b	$01(a6,d0.w),d1	;12360001
 	move.b	$00(a6,d0.w),d0	;10360000
-	beq.s	adrCd0081C0	;6738
+	beq.s	Advance_PartyShieldStatusBarRow	;6738
 	and.w	#$00FF,d0	;024000FF
 	moveq	#$14,d4	;7814
 	swap	d4	;4844
@@ -13343,10 +13364,10 @@ adrLp00816C:		; Memory Address ($816C) and binary offset [$7DE8]
 	move.b	ChampionClassBarColours(pc,d0.w),d3	;163B0014
 	bsr	BW_draw_bar	;610058AE
 	movem.l	(sp)+,d3-d6	;4CDF0078
-adrCd0081C0:		; Memory Address ($81C0) and binary offset [$7E3C]
+Advance_PartyShieldStatusBarRow:		; Memory Address ($81C0) and binary offset [$7E3C]
 	sub.w	#$0009,d5	;04450009
-	dbra	d6,adrLp00816C	;51CEFFA6
-adrCd0081C8:		; Memory Address ($81C8) and binary offset [$7E44]
+	dbra	d6,Draw_PartyShieldStatusBarsLoop	;51CEFFA6
+Return_FromMainPlayerInterface:		; Memory Address ($81C8) and binary offset [$7E44]
 	rts	;4E75
 
 ChampionClassBarColours:		; Memory Address ($81CA) and binary offset [$7E46]
@@ -13358,7 +13379,7 @@ ChampionClassBarColours:		; Memory Address ($81CA) and binary offset [$7E46]
 
 Load_MapPosition_AI_TBC:		; Memory Address ($81CE) and binary offset [$7E4A]
 	tst.w	$0014(a5)	;4A6D0014
-	bne.s	adrCd0081C8	;66F4
+	bne.s	Return_FromMainPlayerInterface	;66F4
 	or.b	#$04,$0054(a5)	;002D00040054
 	move.l	screen_ptr.l,a0	;207900008D36
 	add.w	#$054C,a0	;D0FC054C
@@ -21032,7 +21053,7 @@ adrCd00C1F6:		; Memory Address ($C1F6) and binary offset [$BE72]
 	bpl.s	ExitOrLoop			;6ACC
 	bsr	adrCd00C70C			;610004E2
 	bpl.s	ExitOrLoop			;6AC6
-	bra	adrCd00C650			;60000420
+	bra	HitTest_SpellBookControls			;60000420
 
 Process_ChampionSelectionAction:		; Memory Address ($C5B6) and binary offset [$C232]
 	; Processes the champion-selection screen's separate action state.
@@ -21070,7 +21091,7 @@ ChampionPreviews_LookupTable:		; Memory Address ($C266) and binary offset [$BEE2
 	dc.l	Click_TurnSpellBookPage	;0000C2EA
 
 Click_PreviewSpell:		; Memory Address ($C286) and binary offset [$BF02]
-	bsr	adrCd00C2AC	;61000024
+	bsr	Select_SpellBookRune	;61000024
 	bpl.s	adrCd00C298	;6A0C
 	move.w	$0006(a5),d7	;3E2D0006
 	bsr	adrCd00CFF0	;61000D5E
@@ -21084,7 +21105,8 @@ adrCd00C298:		; Memory Address ($C298) and binary offset [$BF14]
 	bsr	TerminateText	;61000D62
 	bra	adrCd00C85E	;600005B4
 
-adrCd00C2AC:		; Memory Address ($C2AC) and binary offset [$BF28]
+Select_SpellBookRune:		; Memory Address ($C2AC) and binary offset [$BF28]
+	; Tests the clicked ownership bit, loads an owned spell, or clears the queued spell.
 	bsr	Load_CurrentChampionStatRecord	;6100A3AE
 	move.w	$002A(a5),d0	;302D002A
 	move.w	d0,d2	;3400
@@ -21098,7 +21120,8 @@ adrCd00C2AC:		; Memory Address ($C2AC) and binary offset [$BF28]
 	add.w	d2,d0	;D042
 	move.b	d0,$0013(a4)	;19400013
 	clr.b	$0014(a4)	;422C0014
-adrCd00C2D4:		; Memory Address ($C2D4) and binary offset [$BF50]
+Get_SelectedSpellName:		; Memory Address ($C2D4) and binary offset [$BF50]
+	; Resolves the selected spell’s fixed eight-character SpellNames record.
 	asl.w	#$03,d0	;E740
 	lea	SpellNames.l,a6	;4DF900019E8E
 	add.w	d0,a6	;DCC0
@@ -21114,10 +21137,10 @@ Click_TurnSpellBookPage:		; Memory Address ($C2EA) and binary offset [$BF66]
 	tst.w	$0024(a5)	;4A6D0024
 	bne.s	adrCd00C2E8	;66F8
 	tst.b	$000F(a5)	;4A2D000F
-	bpl.s	adrCd00C322	;6A2C
+	bpl.s	Draw_SpellBookPageTurn	;6A2C
 	tst.b	$000E(a5)	;4A2D000E
 	bmi.s	adrCd00C30C	;6B10
-	addq.w	#$02,$002A(a5)	;546D002A
+	addq.w	#SpellBook_PageSpreadIncrement,$002A(a5)	;546D002A
 	and.w	#$0007,$002A(a5)	;026D0007002A
 	move.w	#$FFFF,$000E(a5)	;3B7CFFFF000E
 adrCd00C30C:		; Memory Address ($C30C) and binary offset [$BF88]
@@ -21128,7 +21151,8 @@ adrCd00C31A:		; Memory Address ($C31A) and binary offset [$BF96]
 	bsr	Prepare_AndDrawSpellBookSurface	;610004AC
 	bra	adrCd00C85E	;6000053E
 
-adrCd00C322:		; Memory Address ($C322) and binary offset [$BF9E]
+Draw_SpellBookPageTurn:		; Memory Address ($C322) and binary offset [$BF9E]
+	; Redraws page content through the four-frame page-turn sequence.
 	bsr	Prepare_AndDrawSpellBookSurface	;610004A4
 	move.w	$002A(a5),d0	;302D002A
 	bsr	Draw_SpellBookRunePage	;6100053E
@@ -21167,13 +21191,14 @@ adrLp00C380:		; Memory Address ($C380) and binary offset [$BFFC]
 	addq.w	#$04,a6	;584E
 	add.w	#$013F,a0	;D0FC013F
 	dbra	d7,adrLp00C380	;51CFFFE8
-	bra.s	adrCd00C3A6	;600A
+	bra.s	Build_SpellBookPageTurnColourMask	;600A
 
 adrCd00C39C:		; Memory Address ($C39C) and binary offset [$C018]
 	addq.w	#$03,d0	;5640
 	and.w	#$0007,d0	;02400007
 	bsr	Draw_SpellBookRunePage	;610004C6
-adrCd00C3A6:		; Memory Address ($C3A6) and binary offset [$C022]
+Build_SpellBookPageTurnColourMask:		; Memory Address ($C3A6) and binary offset [$C022]
+	; Builds the four rune-class inks used by the page-turn overlay.
 	move.w	$002A(a5),d7	;3E2D002A
 	addq.w	#$02,d7	;5447
 	and.w	#$0007,d7	;02470007
@@ -21392,7 +21417,8 @@ adrCd00C64C:		; Memory Address ($C64C) and binary offset [$C2C8]
 	tst.w	d2	;4A42
 	rts	;4E75
 
-adrCd00C650:		; Memory Address ($C650) and binary offset [$C2CC]
+HitTest_SpellBookControls:		; Memory Address ($C650) and binary offset [$C2CC]
+	; Resolves the spell-book top controls and eight rune hit targets.
 	cmp.w	#$0002,$0014(a5)	;0C6D00020014
 	bne.s	adrCd00C64C	;66F4
 	move.l	$0002(a5),d1	;222D0002
