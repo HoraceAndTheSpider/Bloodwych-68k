@@ -17,6 +17,17 @@ INVENTORY_SELECTION_TITLE_Y = 19
 INVENTORY_SLOT_ORIGIN = (0, 25)
 INVENTORY_SLOT_COLUMNS = 6
 INVENTORY_SLOT_SIZE = 16
+INVENTORY_SLOT_COUNT = 12
+# `NumberedObject` restores the original pocket address before drawing the
+# digits.  The glyph routine starts at that address, so quantities are aligned
+# with the cell's left edge rather than being horizontally inset.
+INVENTORY_QUANTITY_X_OFFSET = 0
+# `adrCd00C9DC` uses the object ID as an index from byte $0B of the same
+# 16-byte pocket record.  IDs $01-$04 therefore share their counters in
+# $0C-$0F, rather than storing a quantity per visible slot.
+INVENTORY_COUNTED_OBJECT_FIRST = 0x01
+INVENTORY_COUNTED_OBJECT_LAST = 0x04
+INVENTORY_COUNT_OFFSET = 0x0B
 INVENTORY_ARMOUR_BAR_RECT = (1, 57, 95, 8)
 INVENTORY_ARMOUR_TEXT_Y = 59
 INVENTORY_PARTY_ORIGIN = (0, 65)
@@ -115,33 +126,84 @@ def _template_colour_pixels(
     ]
 
 
-def _draw_empty_inventory_slots(
+def inventory_object_quantity(pocket_record: bytes, object_code: int) -> int | None:
+    """Return the shared quantity for a counted object, if it has one.
+
+    Coinage, common keys, regular arrows and elf arrows are object IDs
+    `$01` through `$04`.  The game prevents normal play from placing one in
+    more than one pocket, but every forced duplicate reads the same counter.
+    """
+    if not INVENTORY_COUNTED_OBJECT_FIRST <= object_code <= INVENTORY_COUNTED_OBJECT_LAST:
+        return None
+    count_index = INVENTORY_COUNT_OFFSET + object_code
+    if len(pocket_record) <= count_index:
+        raise ValueError("pocket_record must contain the four shared quantity bytes")
+    return pocket_record[count_index]
+
+
+def visible_inventory_object_code(pocket_record: bytes, slot: int) -> int:
+    """Return a slot's object ID after the game's zero-count validation."""
+    if not 0 <= slot < INVENTORY_SLOT_COUNT:
+        raise ValueError("slot must be 0..11")
+    if len(pocket_record) <= slot:
+        raise ValueError("pocket_record must contain the twelve inventory slots")
+    object_code = pocket_record[slot]
+    quantity = inventory_object_quantity(pocket_record, object_code)
+    # `adrCd00CA38` clears a counted object's slot when its shared counter is
+    # zero before falling through to the empty-pocket rendering path.
+    return 0 if quantity == 0 else object_code
+
+
+def _draw_inventory_slots(
     pygame: object,
     surface: object,
     *,
     pockets: object,
+    font_data: bytes,
     champion: int,
+    pocket_record: bytes,
     secondary_colour_index: int,
     palette: Sequence[tuple[int, int, int]],
+    slot_pixels: Callable[[int, int], Sequence[Sequence[int]] | None] | None = None,
 ) -> None:
-    """Draw the four worn-slot outlines and eight identical empty pockets."""
-    for slot in range(12):
+    """Draw source-sized inventory slots, their objects and shared quantities."""
+    for slot in range(INVENTORY_SLOT_COUNT):
         # `adrCd00C9BC` uses the $6C-$6F equipment outlines for the first
         # four cells.  Its `bcc adrCd00CA32` path deliberately leaves d0 at
         # its per-iteration zero value for all eight ordinary empty pockets.
-        picture = 0x6C + slot if slot < 4 else INVENTORY_EMPTY_POCKET_PICTURE
-        if slot == 3 and champion & 1:
-            picture += 1
         x = INVENTORY_SLOT_ORIGIN[0] + (slot % INVENTORY_SLOT_COLUMNS) * INVENTORY_SLOT_SIZE
         y = INVENTORY_SLOT_ORIGIN[1] + (slot // INVENTORY_SLOT_COLUMNS) * INVENTORY_SLOT_SIZE
+        object_code = visible_inventory_object_code(pocket_record, slot)
+        pixels = slot_pixels(slot, object_code) if slot_pixels is not None else None
+        if pixels is None:
+            picture = 0x6C + slot if slot < 4 else INVENTORY_EMPTY_POCKET_PICTURE
+            if slot == 3 and champion & 1:
+                picture += 1
+            pixels = _template_colour_pixels(pockets, picture, secondary_colour_index)
         _draw_indexed(
             pygame,
             surface,
-            _template_colour_pixels(pockets, picture, secondary_colour_index),
+            pixels,
             (x, y),
             palette,
             transparent_index=0,
         )
+        quantity = inventory_object_quantity(pocket_record, object_code)
+        if quantity is not None:
+            # `adrCd00CAA6` converts the shared byte to two decimal glyphs,
+            # then offsets its destination by $50 (Y+2) or $168 (Y+9).  Its
+            # restored source address has no horizontal offset.  This is
+            # deliberately repeated for every
+            # forced duplicate of a counted object.
+            quantity_y = y + (2 if object_code < 3 else 9)
+            _draw_text(
+                surface,
+                font_data,
+                f"{quantity:02d}",
+                x + INVENTORY_QUANTITY_X_OFFSET,
+                quantity_y,
+                palette[6],
+            )
 
 
 def _draw_inventory_party_and_held_row(
@@ -250,12 +312,14 @@ def render_empty_champion_inventory(
     secondary_colour_index: int,
     palette: Sequence[tuple[int, int, int]],
     is_dead: Callable[[int | None], bool] | None = None,
+    slot_pixels: Callable[[int, int], Sequence[Sequence[int]] | None] | None = None,
 ) -> object:
-    """Render the two-chain empty page used by the selection/Data Viewer.
+    """Render the two-chain inventory page used by the selection/Data Viewer.
 
     This is `adrJA00C938` / Draw_InventoryPanel, rather than the in-game
-    `Click_OpenInventory` view.  It intentionally does not draw stored
-    objects; an object-overlay pass can later reuse this source-sized layout.
+    `Click_OpenInventory` view.  Its optional slot resolver supplies the
+    source-derived object sprites without coupling this shared renderer to a
+    particular viewer's asset loader.
     """
     if not 0 <= selected_party_slot < 4:
         raise ValueError("selected_party_slot must be 0..3")
@@ -283,13 +347,16 @@ def render_empty_champion_inventory(
         INVENTORY_SELECTION_TITLE_Y,
         palette[13],
     )
-    _draw_empty_inventory_slots(
+    _draw_inventory_slots(
         pygame,
         surface,
         pockets=pockets,
+        font_data=font_data,
         champion=champion,
+        pocket_record=pocket_record,
         secondary_colour_index=secondary_colour_index,
         palette=palette,
+        slot_pixels=slot_pixels,
     )
 
     pygame.draw.rect(surface, palette[3], INVENTORY_ARMOUR_BAR_RECT)
@@ -321,8 +388,9 @@ def render_empty_ingame_champion_inventory(
     secondary_colour_index: int,
     palette: Sequence[tuple[int, int, int]],
     is_dead: Callable[[int | None], bool] | None = None,
+    slot_pixels: Callable[[int, int], Sequence[Sequence[int]] | None] | None = None,
 ) -> object:
-    """Render the in-game inventory content without replacing its name frame.
+    """Render in-game inventory content without replacing its name frame.
 
     `Click_OpenInventory` ($6BF0) runs on top of the normal movement panel.
     Consequently it must leave the upper name-frame bevel and the bottom
@@ -340,13 +408,16 @@ def render_empty_ingame_champion_inventory(
     # and the continuous chain below without a full-panel alpha composite.
     surface = pygame.Surface(CHAMPION_INVENTORY_SIZE)
     surface.fill(palette[0])
-    _draw_empty_inventory_slots(
+    _draw_inventory_slots(
         pygame,
         surface,
         pockets=pockets,
+        font_data=font_data,
         champion=champion,
+        pocket_record=pocket_record,
         secondary_colour_index=secondary_colour_index,
         palette=palette,
+        slot_pixels=slot_pixels,
     )
     pygame.draw.rect(surface, palette[3], INVENTORY_ARMOUR_BAR_RECT)
     _draw_text(surface, font_data, "ARMOUR:", 8, INVENTORY_ARMOUR_TEXT_Y, palette[13])

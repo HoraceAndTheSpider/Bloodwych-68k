@@ -147,6 +147,12 @@ def build_parser() -> argparse.ArgumentParser:
             f"expected at {DEFAULT_CLEANUP_FILE})"
         ),
     )
+    parser.add_argument(
+        "--savegame",
+        type=Path,
+        default=None,
+        help="overlay a WHDLoad save across the viewers (for example whdload/bloodsave0)",
+    )
     subparsers = parser.add_subparsers(dest="command")
 
     extract = subparsers.add_parser("extract", help="Extract configured segments")
@@ -173,11 +179,13 @@ def build_parser() -> argparse.ArgumentParser:
         help="start with the sparse modified-data overlay enabled",
     )
     maps = subparsers.add_parser("maps", help="Open the map viewer/editor")
-    maps.add_argument(
-        "--savegame",
-        type=Path,
-        help="overlay a WHDLoad save instead of the extracted game maps",
-    )
+    for viewer in (graphics, maps):
+        viewer.add_argument(
+            "--savegame",
+            type=Path,
+            default=argparse.SUPPRESS,
+            help="overlay a WHDLoad save over extracted resources",
+        )
     interface = subparsers.add_parser(
         "interface", help="Open the source-led interface viewer/editor"
     )
@@ -185,6 +193,12 @@ def build_parser() -> argparse.ArgumentParser:
         "--modified",
         action="store_true",
         help="start with the sparse modified-data overlay enabled",
+    )
+    interface.add_argument(
+        "--savegame",
+        type=Path,
+        default=argparse.SUPPRESS,
+        help="overlay a WHDLoad save over extracted resources",
     )
     subparsers.add_parser("profiles", help="List configured game binaries")
     subparsers.add_parser("paths", help="Show the canonical project paths")
@@ -231,6 +245,11 @@ def run(args: argparse.Namespace, parser: argparse.ArgumentParser) -> int:
             launch_graphics_viewer(
                 get_profile(args.master).clean_dir,
                 prefer_modified=getattr(args, "modified", False),
+                **(
+                    {"savegame_path": args.savegame}
+                    if getattr(args, "savegame", None) is not None
+                    else {}
+                ),
             )
         except GraphicsViewerError as error:
             raise ToolError(str(error)) from error
@@ -251,6 +270,11 @@ def run(args: argparse.Namespace, parser: argparse.ArgumentParser) -> int:
             launch_interface_viewer(
                 get_profile(args.master).clean_dir,
                 prefer_modified=getattr(args, "modified", False),
+                **(
+                    {"savegame_path": args.savegame}
+                    if getattr(args, "savegame", None) is not None
+                    else {}
+                ),
             )
         except InterfaceViewerError as error:
             raise ToolError(str(error)) from error
@@ -291,7 +315,12 @@ def main() -> int:
                     from tools.map_editor.app import MapEditorError, launch_map_editor
 
                     try:
-                        launch_map_editor()
+                        kwargs = (
+                            {"savegame_path": args.savegame}
+                            if getattr(args, "savegame", None) is not None
+                            else {}
+                        )
+                        launch_map_editor(**kwargs)
                     except MapEditorError as error:
                         raise ToolError(str(error)) from error
                     continue
@@ -302,14 +331,24 @@ def main() -> int:
                     )
 
                     try:
-                        launch_interface_viewer()
+                        kwargs = (
+                            {"savegame_path": args.savegame}
+                            if getattr(args, "savegame", None) is not None
+                            else {}
+                        )
+                        launch_interface_viewer(**kwargs)
                     except InterfaceViewerError as error:
                         raise ToolError(str(error)) from error
                     continue
                 from tools.graphics_viewer import GraphicsViewerError, launch_graphics_viewer
 
                 try:
-                    launch_graphics_viewer()
+                    kwargs = (
+                        {"savegame_path": args.savegame}
+                        if getattr(args, "savegame", None) is not None
+                        else {}
+                    )
+                    launch_graphics_viewer(**kwargs)
                 except GraphicsViewerError as error:
                     raise ToolError(str(error)) from error
                 continue

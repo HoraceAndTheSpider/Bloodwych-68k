@@ -137,11 +137,16 @@ class GameFontRenderer:
 
 
 def default_floor(project: MapProject, tower: int) -> int:
-    areas = [
-        width * height
-        for width, height in zip(project.maps[tower].widths, project.maps[tower].heights)
+    tower_map = project.maps[tower]
+    available_floors = [
+        floor for floor in range(len(tower_map.widths)) if tower_map.floor_exists(floor)
     ]
-    return max(range(len(areas)), key=areas.__getitem__)
+    if not available_floors:
+        return 0
+    return max(
+        available_floors,
+        key=lambda floor: tower_map.widths[floor] * tower_map.heights[floor],
+    )
 
 
 def joystick_navigation_action(
@@ -149,6 +154,7 @@ def joystick_navigation_action(
     *,
     hat_motion_type: int,
     button_down_type: int,
+    axis_motion_type: int | None = None,
 ) -> str | None:
     """Translate the first joystick's D-pad/buttons into viewer actions.
 
@@ -171,6 +177,15 @@ def joystick_navigation_action(
             return "TURN-LEFT"
         if getattr(event, "button", None) == 1:
             return "TURN-RIGHT"
+    elif axis_motion_type is not None and getattr(event, "type", None) == axis_motion_type:
+        axis = getattr(event, "axis", None)
+        value = getattr(event, "value", 0.0)
+        if abs(value) < 0.5:
+            return None
+        if axis == 0:
+            return "MOVE-LEFT" if value < 0 else "MOVE-RIGHT"
+        if axis == 1:
+            return "MOVE-FORWARD" if value < 0 else "MOVE-BACK"
     return None
 
 
@@ -849,12 +864,18 @@ def launch_map_editor(
                 elif (
                     selected_tab == 0
                     and joystick is not None
-                    and event.type in (pygame.JOYHATMOTION, pygame.JOYBUTTONDOWN)
+                    and event.type
+                    in (
+                        pygame.JOYHATMOTION,
+                        pygame.JOYBUTTONDOWN,
+                        pygame.JOYAXISMOTION,
+                    )
                 ):
                     joystick_action = joystick_navigation_action(
                         event,
                         hat_motion_type=pygame.JOYHATMOTION,
                         button_down_type=pygame.JOYBUTTONDOWN,
+                        axis_motion_type=pygame.JOYAXISMOTION,
                     )
                     if joystick_action == "TURN-LEFT":
                         facing = (facing - 1) & 3

@@ -7,7 +7,8 @@ from pathlib import Path
 from typing import Iterable
 
 from tools.data_overlay import related_data_roots
-from tools.tool_common import DEFAULT_SEGMENTS_FILE, load_segments, parse_int
+from tools.savegame_overlay import load_savegame_overlay
+from tools.tool_common import DEFAULT_SEGMENTS_FILE
 
 
 MAP_RESOURCE_SIZE = 0x1000
@@ -140,7 +141,11 @@ class TowerMap:
 
     def floor_exists(self, floor: int) -> bool:
         self._validate_floor(floor)
-        return self.widths[floor] > 0 and self.heights[floor] > 0
+        width, height = self.widths[floor], self.heights[floor]
+        if not width or not height:
+            return False
+        end = MAP_HEADER_SIZE + self.data_offsets[floor] + width * height * 2
+        return end <= MAP_RESOURCE_SIZE
 
     def cell_offset(self, floor: int, x: int, y: int) -> int:
         self._validate_floor(floor)
@@ -269,21 +274,9 @@ class MapProject:
         master: str = "BLOODWYCH439",
         sheet: Path = DEFAULT_SEGMENTS_FILE,
     ) -> MapProject:
-        clean_root, modified_root, _ = related_data_roots(Path(data_root))
-        frame = load_segments(sheet, master)
-        segment_offsets: dict[str, tuple[int, int]] = {}
-        for _, row in frame.iterrows():
-            name = str(row.get("name", "")).strip()
-            offset = parse_int(row.get("offset"))
-            size = parse_int(row.get("size"))
-            if name and name != "nan" and offset is not None and size is not None:
-                segment_offsets.setdefault(name, (offset, size))
-
-        stats = segment_offsets.get("data/champions.stats")
-        if stats is None:
-            raise ValueError("segments.xlsx has no data/champions.stats resource")
-        save_base = stats[0]
-        save_bytes = Path(save_path).read_bytes()
+        clean_root, modified_root, save_bytes, segment_offsets, save_base = load_savegame_overlay(
+            data_root, save_path, master=master, sheet=sheet
+        )
         maps = []
         for tower in TOWERS:
             segment = segment_offsets.get(tower.map_name)

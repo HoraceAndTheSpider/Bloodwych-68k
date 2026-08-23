@@ -58,6 +58,21 @@ class MapEditorTests(unittest.TestCase):
             "TURN-RIGHT",
         )
 
+    def test_joystick_axis_dpad_maps_with_a_dead_zone(self) -> None:
+        axis = type("Event", (), {"type": 12, "axis": 0, "value": -1.0})()
+        self.assertEqual(
+            joystick_navigation_action(
+                axis, hat_motion_type=10, button_down_type=11, axis_motion_type=12
+            ),
+            "MOVE-LEFT",
+        )
+        axis.value = 0.2
+        self.assertIsNone(
+            joystick_navigation_action(
+                axis, hat_motion_type=10, button_down_type=11, axis_motion_type=12
+            )
+        )
+
     def test_unverified_object_and_monster_overlays_remain_disabled(self) -> None:
         enabled = dict(zip(OVERLAY_NAMES, OVERLAY_ENABLED))
         self.assertFalse(enabled["OBJECTS"])
@@ -83,6 +98,14 @@ class MapEditorTests(unittest.TestCase):
         self.assertEqual(changed[:offset], source[:offset])
         self.assertEqual(changed[offset : offset + 2], bytes((replacement.first, replacement.second)))
         self.assertEqual(changed[offset + 2 :], source[offset + 2 :])
+
+    def test_floor_with_cells_outside_the_resource_is_unavailable(self) -> None:
+        data = bytearray(MAP_RESOURCE_SIZE)
+        data[0] = data[8] = 1
+        data[16:18] = (MAP_RESOURCE_SIZE).to_bytes(2, "big")
+        tower = TowerMap(data)
+
+        self.assertFalse(tower.floor_exists(0))
 
     def test_cell_nibbles_and_map_type_are_independent(self) -> None:
         cell = MapCell(0xAB, 0xCD)

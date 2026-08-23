@@ -156,6 +156,17 @@ class ProjectStructureTests(unittest.TestCase):
             savegame_path=main.Path("whdload/bloodsave0"),
         )
 
+    def test_global_savegame_is_available_to_all_viewers(self) -> None:
+        parser = main.build_parser()
+        args = parser.parse_args(["--savegame", "whdload/bloodsave0", "graphics"])
+        with patch("tools.graphics_viewer.launch_graphics_viewer") as viewer:
+            self.assertEqual(main.run(args, parser), 0)
+        viewer.assert_called_once_with(
+            get_profile("BLOODWYCH439").clean_dir,
+            prefer_modified=False,
+            savegame_path=main.Path("whdload/bloodsave0"),
+        )
+
     def test_interface_cli_can_start_with_modified_overlay(self) -> None:
         parser = main.build_parser()
         args = parser.parse_args(["interface", "--modified"])

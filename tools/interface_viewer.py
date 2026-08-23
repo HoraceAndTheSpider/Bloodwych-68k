@@ -21,7 +21,11 @@ from tools.gamefont_converter import glyph_pixels
 from tools.graphics_preview import mirror_pixels, remap_template_colours
 from tools.pygame_window import is_fullscreen, set_display_mode, set_scaled_fullscreen, set_windowed
 from tools.spellbook import (
+    can_decrease_cast_power,
+    can_increase_cast_power,
     format_spell_points,
+    spell_cast_bar_width,
+    spell_cast_score,
     spellbook_magic_class_index,
     spellbook_selection,
 )
@@ -418,6 +422,7 @@ def _draw_fixed_dungeon_and_controls(
     player: int,
     selected_spell: int | None = None,
     cast_power: int = 0,
+    show_cast_status: bool = False,
 ) -> None:
     panel.fill((0, 0, 0))
     dungeon_x, dungeon_y, _, _ = DUNGEON_VIEW_RECT
@@ -453,7 +458,13 @@ def _draw_fixed_dungeon_and_controls(
     _draw_indexed(pygame, panel, status.pixels, 224, 33, palette)
     for x, y, width, colour in RIGHT_STATUS_ICON_BEVEL_LINES:
         pygame.draw.line(panel, palette[colour], (x, y), (x + width - 1, y))
-    for icon, x in ((0x63, 288), (0x62, 304)):
+    control_icons = ((0x63, 288), (0x62, 304))
+    if selected_spell is not None:
+        # Action $02 (Click_MultiFunctionButton) is the 14×14 target at
+        # X=$121..$12E/Y=$22..$2F.  While a spell is loaded its normal door
+        # icon at X=$120 is replaced by the selected class's coloured star.
+        control_icons = ((0x64 + spellbook_selection(selected_spell).magic_class, 288), (0x62, 304))
+    for icon, x in control_icons:
         _draw_indexed(
             pygame,
             panel,
@@ -507,21 +518,34 @@ def _draw_fixed_dungeon_and_controls(
     )
     chain = _pockets_crop(project, GFX_POCKETS_CHAIN_CONTINUOUS_OFFSET, 96, 7)
     _draw_indexed(pygame, panel, chain.pixels, 224, 89, palette)
-    if selected_spell is not None:
+    if selected_spell is not None and show_cast_status:
         # LowerText's $EA4C stream starts with ``CAST % `` in colour $0D,
-        # then writes GameFont glyphs $02/$03 around the bar. A fresh
-        # selection begins at zero boost.
+        # then writes GameFont glyphs $02/$03 around the bar. The local
+        # cast_power mirrors champion byte $14 while the spell is prepared.
         _draw_gamefont(
             pygame, panel, project.game_font, "CAST % ", 96, 90, palette[0x0D]
         )
         _draw_gamefont(
-            pygame, panel, project.game_font, "\x02", 152, 90, palette[0x0C],
+            pygame, panel, project.game_font, "\x02", 152, 90, palette[0x04],
             uppercase=False,
         )
-        pygame.draw.rect(panel, palette[0x01], (160, 91, 48, 5))
-        pygame.draw.rect(panel, palette[0x0C], (161, 92, min(46, cast_power * 4 + 1), 3))
+        champion = project.champions.record(project.active_preview_champion)
+        score = spell_cast_score(
+            selected_spell,
+            champion_index=project.active_preview_champion,
+            level=champion.byte(0x00),
+            cooldown=champion.byte(0x15),
+            pocket_items=project.champion_pockets[project.active_preview_champion],
+            cast_adjustment=cast_power,
+        )
+        # C6736 passes x=$9F, y=$5A and five scanlines ($0004) to
+        # BW_draw_bar. C8144 scales its maximum width to $34 (52 pixels),
+        # deliberately running beneath the two adjacent GameFont arrows.
+        bar_width = spell_cast_bar_width(score)
+        if bar_width:
+            pygame.draw.rect(panel, palette[0x0C], (159, 90, bar_width, 5))
         _draw_gamefont(
-            pygame, panel, project.game_font, "\x03", 208, 90, palette[0x0C],
+            pygame, panel, project.game_font, "\x03", 208, 90, palette[0x04],
             uppercase=False,
         )
 
@@ -638,9 +662,11 @@ def _draw_main(
     player: int,
     selected_spell: int | None = None,
     cast_power: int = 0,
+    show_cast_status: bool = False,
 ) -> None:
     _draw_fixed_dungeon_and_controls(
-        pygame, panel, project, palette, primary_colour, player, selected_spell, cast_power
+        pygame, panel, project, palette, primary_colour, player, selected_spell,
+        cast_power, show_cast_status,
     )
     _draw_compact_stats_left(pygame, panel, project, palette, stats_colour, player)
 
@@ -685,6 +711,15 @@ def _draw_inventory(
         secondary_colour_index=PLAYER_UI_SECONDARY_COLOUR_INDICES[player],
         palette=palette,
         is_dead=project.preview_champion_is_dead,
+        slot_pixels=lambda slot, object_code: (
+            project.object_pocket_pixels(object_code)
+            if object_code
+            else project.empty_inventory_slot_pixels(
+                inspected_champion,
+                slot,
+                ui_colour_index=PLAYER_UI_SECONDARY_COLOUR_INDICES[player],
+            )
+        ),
     )
     content_x, content_y, _, _ = INVENTORY_INGAME_CONTENT_RECT
     panel.blit(
@@ -761,6 +796,8 @@ def _draw_spellbook(
             right_page = (left_page + 3) % 8
 
     def rune_colour_index(spell_index: int) -> int:
+        if spell_index == selected_spell:
+            return 0x0E
         if not champion.has_spellbook_spell(spell_index):
             return 0x01
         return (
@@ -895,23 +932,26 @@ def _draw_spellbook(
     )
     if selection is not None:
         # C66BE stamps the two class stars; C2D4/CFBC prints SpellNames and
-        # C688C fills EA36's COST +00+ template.
+        # C2D4/CFBC's $0BAE screen pointer resolves to X=240/Y=74 for the
+        # selected name. EA36's FC (30, 10) COST anchor enters the text
+        # renderer's $0050 base, resolving to X=240/Y=82. The source hitboxes
+        # are independent and remain at their original positions.
         _draw_gamefont(
-            pygame, panel, project.game_font, selection.name, 240, 72, palette[0x0B]
+            pygame, panel, project.game_font, selection.name, 240, 74, palette[0x0B]
         )
         _draw_gamefont(
-            pygame, panel, project.game_font, "COST", 240, 80, palette[0x0D],
+            pygame, panel, project.game_font, "COST", 240, 82, palette[0x0D],
         )
         _draw_gamefont(
-            pygame, panel, project.game_font, "\x04", 272, 80, palette[0x0C],
+            pygame, panel, project.game_font, "\x04", 272, 82, palette[0x0C],
             uppercase=False,
         )
         _draw_gamefont(
-            pygame, panel, project.game_font, f"{selection.cost:02d}", 280, 80,
+            pygame, panel, project.game_font, f"{selection.cost:02d}", 280, 82,
             palette[0x0D],
         )
         _draw_gamefont(
-            pygame, panel, project.game_font, "\x05", 296, 80, palette[0x0C],
+            pygame, panel, project.game_font, "\x05", 296, 82, palette[0x0C],
             uppercase=False,
         )
 
@@ -928,9 +968,13 @@ def _draw_comms(
     *,
     menu_page: int,
     hovered_button: object | None,
+    selected_spell: int | None = None,
+    cast_power: int = 0,
+    show_cast_status: bool = False,
 ) -> None:
     _draw_fixed_dungeon_and_controls(
-        pygame, panel, project, palette, primary_colour, player
+        pygame, panel, project, palette, primary_colour, player, selected_spell,
+        cast_power, show_cast_status,
     )
     pygame.draw.rect(panel, (0, 0, 0), (0, 7, 96, 89))
     _draw_avatar_panel(pygame, panel, project, palette)
@@ -1059,7 +1103,7 @@ def _active_mode_hitboxes(
     if right_mode_key == "spellbook":
         # Click_ViewSpell receives every rune rectangle.  C2AC clears $13
         # when its learned-bit test fails, which restores the unselected row.
-        return tuple(
+        spellbook_hitboxes = tuple(
             hitbox
             for hitbox in project.hitboxes["spellbook"]
             if selected_spell is not None
@@ -1068,6 +1112,13 @@ def _active_mode_hitboxes(
                 INTERFACE_ACTION_SPELLBOOK_COST_DOWN,
             )
         )
+        # Spell-book mode occupies only the right panel; retain left-panel
+        # interaction independently, just as the fixed dungeon/control bank
+        # remains visible when the left UI switches to communications.
+        left_hitboxes = tuple(
+            hitbox for hitbox in project.mode_hitboxes(mode) if hitbox.x_max < 96
+        )
+        return left_hitboxes + spellbook_hitboxes
     hitboxes = tuple(
         hitbox
         for hitbox in project.mode_hitboxes(mode)
@@ -1142,6 +1193,9 @@ def render_interface_panel(
             player,
             menu_page=comms_menu_page,
             hovered_button=comms_hovered_button,
+            selected_spell=selected_spell,
+            cast_power=cast_power,
+            show_cast_status=resolved_right_mode_key == "spellbook",
         )
     else:
         _draw_main(
@@ -1155,6 +1209,7 @@ def render_interface_panel(
             player,
             selected_spell,
             cast_power,
+            resolved_right_mode_key == "spellbook",
         )
     if resolved_right_mode_key == "inventory":
         _draw_inventory(
@@ -1245,6 +1300,7 @@ def launch_interface_viewer(
     data_root: Path | None = None,
     *,
     prefer_modified: bool = False,
+    savegame_path: Path | None = None,
     screenshot_path: Path | None = None,
     initial_mode: str = "main",
     initial_player: int = 0,
@@ -1258,7 +1314,9 @@ def launch_interface_viewer(
 
     try:
         project = InterfaceProject(
-            data_root or DEFAULT_DATA_ROOT, prefer_modified=prefer_modified
+            data_root or DEFAULT_DATA_ROOT,
+            prefer_modified=prefer_modified,
+            savegame_path=savegame_path,
         )
     except InterfaceDataError as error:
         raise InterfaceViewerError(str(error)) from error
@@ -1791,11 +1849,21 @@ def launch_interface_viewer(
                                                 "description panel remains to be added."
                                             )
                                     elif action == INTERFACE_ACTION_SPELLBOOK_COST_UP:
-                                        cast_power = min(cast_power + 1, 13)
-                                        status = f"Cast power increased to {cast_power}."
+                                        if selected_spell is not None and can_increase_cast_power(
+                                            selected_spell, cast_power
+                                        ):
+                                            cast_power += 1
+                                            status = f"Cast power increased to {cast_power}."
+                                        else:
+                                            status = "Cast power cannot raise the spell cost above 99."
                                     elif action == INTERFACE_ACTION_SPELLBOOK_COST_DOWN:
-                                        cast_power = max(cast_power - 1, 0)
-                                        status = f"Cast power decreased to {cast_power}."
+                                        if selected_spell is not None and can_decrease_cast_power(
+                                            selected_spell, cast_power
+                                        ):
+                                            cast_power -= 1
+                                            status = f"Cast power decreased to {cast_power}."
+                                        else:
+                                            status = "Cast power cannot lower the spell cost below 1."
                                     elif action == INTERFACE_ACTION_SPELLBOOK_CLOSE:
                                         right_mode_key = "main"
                                         selected_hitbox = None
@@ -2032,6 +2100,11 @@ def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("data_root", nargs="?", type=Path, default=DEFAULT_DATA_ROOT)
     parser.add_argument("--modified", action="store_true")
+    parser.add_argument(
+        "--savegame",
+        type=Path,
+        help="overlay a WHDLoad save over extracted resources",
+    )
     parser.add_argument("--screenshot", type=Path)
     parser.add_argument("--mode", choices=tuple(mode.key for mode in INTERFACE_MODES), default="main")
     parser.add_argument("--player", type=int, choices=(1, 2), default=1)
@@ -2039,6 +2112,7 @@ def main() -> None:
     launch_interface_viewer(
         args.data_root,
         prefer_modified=args.modified,
+        savegame_path=args.savegame,
         screenshot_path=args.screenshot,
         initial_mode=args.mode,
         initial_player=args.player - 1,

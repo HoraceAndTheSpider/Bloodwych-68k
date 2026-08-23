@@ -7,19 +7,35 @@ import argparse
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Mapping, Sequence
+from types import SimpleNamespace
 
 from tools.champion_data import (
+    CLASS_COLOUR_MASKS,
     MAGIC_CLASS_NAMES,
     PROFESSION_NAMES,
     ChampionAssets,
 )
 from tools.champion_inventory import render_empty_champion_inventory
 from tools.champion_stats_scroll import render_champion_stats_scroll
+from tools.interface_data import (
+    CHAMPION_NAME_PANEL_LOWER_BEVEL_LINES,
+    CHAMPION_NAME_PANEL_UPPER_BEVEL_LINES,
+    INTERFACE_ACTION_SPELLBOOK_PAGE_BACKWARD,
+    INTERFACE_ACTION_SPELLBOOK_PAGE_FORWARD,
+    LARGE_AVATAR_INNER_FRAME,
+    LARGE_AVATAR_PANEL_FILL,
+    LARGE_AVATAR_PANEL_FRAMES,
+    LARGE_AVATAR_RECT,
+    SPELLBOOK_CONTROL_HITBOXES,
+)
+from tools.interface_viewer import _draw_spellbook
+from tools.object_data import OBJECT_GROUP_BY_KEY, OBJECT_COUNT, ObjectAssets
 from tools.data_overlay import (
     DataOverlayPath,
     data_overlay_root,
     related_data_roots,
 )
+from tools.savegame_overlay import savegame_overlay_root
 from tools.gamefont_converter import glyph_pixels
 from tools.dungeon_view import (
     DIRECTION_NAMES,
@@ -49,6 +65,7 @@ from tools.graphics_preview import (
     render_beholder,
     render_character_preview,
     render_monster_operations,
+    remap_template_colours,
 )
 from tools.monster_view import (
     CENTRED_SUBPOSITIONS,
@@ -57,7 +74,6 @@ from tools.monster_view import (
     resolve_monster_screen_position,
     visible_subpositions,
 )
-from tools.object_data import OBJECT_COUNT, ObjectAssets
 from tools.pygame_window import is_fullscreen, set_display_mode, set_scaled_fullscreen, set_windowed
 from tools.st_planar_assets import GAME_PALETTE_RGB8
 
@@ -85,7 +101,7 @@ CATEGORY_GRAPHIC_TYPES = ("character", "dungeon", "champion", "object", None, No
 CATEGORY_TAB_VISIBLE_COUNT = 4
 CATEGORY_TAB_WIDTH = 190
 CATEGORY_TAB_GAP = 8
-CHAMPION_DATA_PAGE_NAMES = ("Stats", "Hidden", "Pockets", "Spells")
+CHAMPION_DATA_PAGE_NAMES = ("Stats", "Hidden", "Hidden 2", "Pockets", "Spells")
 # The unmirrored Beholder side eye points screen-left; facing 3 mirrors it.
 FACING_ARROW_DIRECTIONS = ((0, 1), (-1, 0), (0, -1), (1, 0))
 # A dungeon overlay attached to a south-facing wall looks back north into the
@@ -564,6 +580,114 @@ def draw_gamefont_codes(
         x += 8 * scale
 
 
+def render_large_champion_avatar_panel(
+    pygame: object,
+    champion_assets: ChampionAssets,
+    champion: int,
+) -> object:
+    """Render the source's complete 48×54 large-avatar panel."""
+
+    # The panel itself begins at local Y=$0A.  Its 44-pixel fill consequently
+    # ends at Y=$35; a 44-pixel canvas silently clipped its bottom ten rows.
+    surface = pygame.Surface((48, 54))
+    fill_x, fill_y, fill_width, fill_height, fill_colour = LARGE_AVATAR_PANEL_FILL
+    surface.fill(GAME_PALETTE_RGB8[0])
+    pygame.draw.rect(
+        surface,
+        GAME_PALETTE_RGB8[fill_colour],
+        (fill_x, fill_y, fill_width, fill_height),
+    )
+    for x, y, width, height, colour in LARGE_AVATAR_PANEL_FRAMES:
+        pygame.draw.rect(surface, GAME_PALETTE_RGB8[colour], (x, y, width, height), 1)
+    avatar_x, avatar_y, _, _ = LARGE_AVATAR_RECT
+    surface.blit(
+        indexed_to_surface(
+            pygame, champion_assets.large_avatar_pixels(champion)
+        ),
+        (avatar_x, avatar_y),
+    )
+    frame_x, frame_y, frame_width, frame_height, frame_colour = LARGE_AVATAR_INNER_FRAME
+    pygame.draw.rect(
+        surface,
+        GAME_PALETTE_RGB8[frame_colour],
+        (frame_x, frame_y, frame_width, frame_height),
+        1,
+    )
+    return surface
+
+
+def render_champion_spellbook_preview(
+    pygame: object,
+    record: object,
+    champion_assets: ChampionAssets,
+    spread: int,
+) -> object:
+    """Reuse the interface viewer's exact spell-book drawing routine."""
+
+    # `_draw_spellbook` works at the native right-panel origin ($E0,$07).
+    # This compact adapter deliberately supplies only the assets it reads, so
+    # the Data Viewer cannot diverge in rune case, placement or page logic.
+    panel = pygame.Surface((320, 96))
+    project = SimpleNamespace(
+        pockets=champion_assets.pockets,
+        game_font=champion_assets.game_font,
+        active_preview_champion=0,
+        champions=SimpleNamespace(record=lambda _champion: record),
+    )
+    _draw_spellbook(
+        pygame,
+        panel,
+        project,
+        GAME_PALETTE_RGB8,
+        GAME_PALETTE_RGB8[6],
+        GAME_PALETTE_RGB8[8],
+        GAME_PALETTE_RGB8[7],
+        0,
+        spread=spread,
+    )
+    return panel.subsurface((224, 7, 96, 89)).copy()
+
+
+def render_champion_name_bar(
+    pygame: object, champion_assets: ChampionAssets, record: object, width: int
+) -> object:
+    """Draw the champion-select lower name strip beneath the paired panels."""
+
+    surface = pygame.Surface((width, 17))
+    upper_colours = tuple(line[3] for line in CHAMPION_NAME_PANEL_UPPER_BEVEL_LINES)
+    lower_colours = tuple(line[3] for line in CHAMPION_NAME_PANEL_LOWER_BEVEL_LINES)
+    for y, colour in enumerate(upper_colours):
+        pygame.draw.line(
+            surface, GAME_PALETTE_RGB8[colour], (0, y), (width - 1, y)
+        )
+    surface.fill(GAME_PALETTE_RGB8[7], (0, len(upper_colours), width, 8))
+    for offset, colour in enumerate(lower_colours):
+        y = len(upper_colours) + 8 + offset
+        pygame.draw.line(
+            surface, GAME_PALETTE_RGB8[colour], (0, y), (width - 1, y)
+        )
+    draw_gamefont_text(
+        pygame, surface, champion_assets.game_font, record.full_name, 0, 7,
+        GAME_PALETTE_RGB8[13], scale=1,
+    )
+    return surface
+
+
+def render_champion_select_icon_button(
+    pygame: object, pixels: Sequence[Sequence[int]]
+) -> object:
+    """Render the compact native icon surround, then let the viewer scale it."""
+
+    surface = pygame.Surface((18, 18))
+    surface.fill(GAME_PALETTE_RGB8[1])
+    # The original 16×16 graphic occupies the whole inner area.  Its small
+    # surround is a single exterior grey line; nested lines here would paint
+    # over the icon's edge pixels.
+    pygame.draw.rect(surface, GAME_PALETTE_RGB8[4], (0, 0, 18, 18), 1)
+    surface.blit(indexed_to_surface(pygame, pixels), (1, 1))
+    return surface
+
+
 def wrap_text(font: object, text: str, width: int) -> list[str]:
     lines: list[str] = []
     for paragraph in text.splitlines() or ("",):
@@ -613,6 +737,12 @@ def champion_data_page_lines(
                 ("Map position", f"X ${record.byte(0x16):02X}, Y ${record.byte(0x17):02X}"),
                 ("Sub-position", str(record.floor_position)),
                 ("Facing", str(record.direction)),
+            ),
+        )
+    if page == 2:
+        return (
+            "Hidden Game State (continued)",
+            (
                 ("Speed", f"${record.byte(0x19):02X}"),
                 ("Floor", f"${record.byte(0x1A):02X}"),
                 ("Attack cooldown", f"${record.byte(0x1B):02X}"),
@@ -622,7 +752,7 @@ def champion_data_page_lines(
                 ("Unknown byte $1F", f"${record.byte(0x1F):02X}"),
             ),
         )
-    if page == 2:
+    if page == 3:
         return (
             "Pocket Data",
             tuple(
@@ -792,6 +922,7 @@ def launch_graphics_viewer(
     *,
     screenshot_path: Path | None = None,
     prefer_modified: bool = False,
+    savegame_path: Path | None = None,
     initial_category: str = "character",
     initial_dungeon_feature: str = "stone",
     initial_dungeon_scene: Mapping[int, DungeonPlacement] | None = None,
@@ -830,7 +961,11 @@ def launch_graphics_viewer(
         str | None,
         DungeonAssets,
     ]:
-        root = data_overlay_root(clean_root, modified_root, enabled=enabled)
+        root = (
+            savegame_overlay_root(clean_root, savegame_path)
+            if savegame_path is not None
+            else data_overlay_root(clean_root, modified_root, enabled=enabled)
+        )
         current_gfx_dir = root / "gfx"
         current_monsters_dir = root / "monsters"
         current_background = load_floor_ceiling_background(current_gfx_dir)
@@ -903,6 +1038,7 @@ def launch_graphics_viewer(
         selected_character = 0
         selected_object = 1
         champion_data_page = 0
+        champion_spellbook_spread = 0
         selected_spell_index = 0
         selected_dungeon_index = next(
             (
@@ -1026,9 +1162,24 @@ def launch_graphics_viewer(
             for code in range(OBJECT_COUNT)
         ]
         champion_page_rects = [
-            pygame.Rect(286 + index * 105, 382, 96, 30)
+            pygame.Rect(286 + index * 105, 334, 96, 30)
             for index in range(len(CHAMPION_DATA_PAGE_NAMES))
         ]
+        champion_preview_rect = pygame.Rect(900, 378, 288, 267)
+        spellbook_navigation_rects = {
+            action: pygame.Rect(
+                champion_preview_rect.x + (x_min - 224) * 3,
+                champion_preview_rect.y + (y_min - 7) * 3,
+                (x_max - x_min + 1) * 3,
+                (y_max - y_min + 1) * 3,
+            )
+            for action, x_min, x_max, y_min, y_max, _description
+            in SPELLBOOK_CONTROL_HITBOXES
+            if action in {
+                INTERFACE_ACTION_SPELLBOOK_PAGE_BACKWARD,
+                INTERFACE_ACTION_SPELLBOOK_PAGE_FORWARD,
+            }
+        }
         reserved_character_rects = [
             (
                 code,
@@ -1912,112 +2063,40 @@ def launch_graphics_viewer(
                         (55, 100, 240),
                     )
 
-                    # Top row: large portrait, composed body, stats scroll and
-                    # blank inventory slots.  Object population comes later.
-                    portrait_frame = pygame.Rect(270, 148, 136, 128)
-                    pygame.draw.rect(screen, (112, 116, 122), portrait_frame)
-                    pygame.draw.rect(screen, (42, 44, 49), portrait_frame, 4)
-                    draw_scaled_indexed(
-                        pygame,
-                        screen,
-                        champion_assets.large_avatars[selected_character].pixels,
-                        pygame.Rect(274, 152, 128, 120),
-                    )
-
-                    body_rect = pygame.Rect(420, 144, 130, 150)
-                    pygame.draw.rect(screen, (0, 0, 0), body_rect)
-                    if character_assets is not None:
-                        body_pixels, _ = render_character_preview(
-                            [
-                                [TRANSPARENT_INDEX] * VIEW_WIDTH
-                                for _ in range(VIEW_HEIGHT)
-                            ],
-                            character_assets,
-                            selected_character,
-                            distance=0,
-                            facing=0,
-                            render_flags=0,
-                            anchor_x=56,
-                            anchor_y=39,
-                        )
-                        body_crop = crop_visible_pixels(body_pixels)
-                        body_crop = [
-                            [0 if colour == TRANSPARENT_INDEX else colour for colour in row]
-                            for row in body_crop
-                        ]
-                        draw_scaled_indexed(
-                            pygame,
-                            screen,
-                            body_crop,
-                            pygame.Rect(body_rect.x + 28, body_rect.y + 8, 74, 134),
-                        )
-
-                    # The shared renderer follows Draw_ChampionStats and
-                    # Click_ShowStats at native resolution before scaling it
-                    # for this data-viewer inspection panel.
-                    scroll_rect = pygame.Rect(592, 132, 192, 174)
-                    stats_scroll = render_champion_stats_scroll(
-                        pygame,
-                        record,
-                        champion_assets.scroll_edges,
-                        champion_assets.game_font,
-                        GAME_PALETTE_RGB8,
-                    )
-                    screen.blit(pygame.transform.scale(stats_scroll, scroll_rect.size), scroll_rect)
-
-                    # The selection/Data Viewer layout uses only its source
-                    # surface; do not centre it inside a separate black panel.
-                    # Stored-object overlays remain intentionally deferred.
-                    inventory_position = (853, 152)
-                    inventory = render_empty_champion_inventory(
-                        pygame,
-                        pockets=champion_assets.pockets,
-                        font_data=champion_assets.game_font,
-                        record=record,
-                        champion=selected_character,
-                        pocket_record=champion_assets.pocket_record(selected_character),
-                        party_members=(selected_character, None, None, None),
-                        selected_party_slot=0,
-                        secondary_colour_index=0x08,
-                        palette=GAME_PALETTE_RGB8,
-                    )
-                    scaled_inventory = pygame.transform.scale(inventory, (144, 134))
-                    screen.blit(scaled_inventory, inventory_position)
-
                     profession = PROFESSION_NAMES[profession_index]
                     magic_class = MAGIC_CLASS_NAMES[magic_index]
                     pygame.draw.rect(
-                        screen, (20, 22, 27), pygame.Rect(270, 306, 870, 58)
+                        screen, (20, 22, 27), pygame.Rect(602, 148, 538, 116)
                     )
                     screen.blit(
                         font.render("Profession", True, (170, 174, 184)),
-                        (284, 316),
+                        (622, 168),
                     )
                     screen.blit(
                         font.render(profession.title(), True, (240, 240, 245)),
-                        (378, 316),
+                        (716, 168),
                     )
                     screen.blit(
                         font.render("Magic alignment", True, (170, 174, 184)),
-                        (554, 316),
+                        (622, 204),
                     )
                     pygame.draw.rect(
-                        screen, magic_colours[magic_index], (690, 315, 18, 18)
+                        screen, magic_colours[magic_index], (784, 203, 18, 18)
                     )
                     screen.blit(
                         font.render(magic_class.title(), True, (240, 240, 245)),
-                        (716, 316),
+                        (812, 204),
                     )
                     screen.blit(
                         small_font.render(
-                            "Shared source-sized empty inventory; stored-object overlays come later.",
+                            "Select a tab below to inspect this champion's native game panel.",
                             True,
                             (170, 174, 184),
                         ),
-                        (284, 341),
+                        (622, 236),
                     )
 
-                    data_rect = pygame.Rect(270, 378, 930, 326)
+                    data_rect = pygame.Rect(270, 324, 930, 380)
                     pygame.draw.rect(screen, (10, 12, 14), data_rect)
                     pygame.draw.rect(screen, (83, 88, 96), data_rect, 2)
                     for index, rect in enumerate(champion_page_rects):
@@ -2043,14 +2122,14 @@ def launch_graphics_viewer(
                     )
                     screen.blit(
                         font.render(page_title, True, (240, 214, 92)),
-                        (286, 428),
+                        (286, 388),
                     )
-                    rows_per_column = 9
+                    rows_per_column = 10
                     for index, (name, value) in enumerate(page_lines):
                         column = index // rows_per_column
                         row = index % rows_per_column
                         x = 286 + column * 300
-                        y = 462 + row * 24
+                        y = 422 + row * 22
                         screen.blit(
                             small_font.render(name, True, (160, 165, 176)),
                             (x, y),
@@ -2059,15 +2138,80 @@ def launch_graphics_viewer(
                             small_font.render(value, True, (226, 228, 234)),
                             (x + 132, y),
                         )
-                    screen.blit(
-                        small_font.render(
-                            "Read-only SPS 439 champion record. The lower panel is split ready for future editing.",
-                            True,
-                            (178, 181, 189),
-                        ),
-                        (270, 716),
+                    # Recompose the champion-select arrangement: the framed
+                    # main avatar sits directly beside the currently selected
+                    # source panel, with its blue name strip below both.
+                    portrait_rect = pygame.Rect(716, 400, 144, 162)
+                    portrait = render_large_champion_avatar_panel(
+                        pygame, champion_assets, selected_character
                     )
-
+                    screen.blit(
+                        pygame.transform.scale(portrait, portrait_rect.size), portrait_rect
+                    )
+                    pygame.draw.rect(screen, (0, 0, 0), champion_preview_rect)
+                    if champion_data_page in (0, 1, 2):
+                        preview = render_champion_stats_scroll(
+                            pygame, record, champion_assets.scroll_edges,
+                            champion_assets.game_font, GAME_PALETTE_RGB8,
+                        )
+                    elif champion_data_page == 3:
+                        preview = render_empty_champion_inventory(
+                            pygame,
+                            pockets=champion_assets.pockets,
+                            font_data=champion_assets.game_font,
+                            record=record,
+                            champion=selected_character,
+                            pocket_record=champion_assets.pocket_record(selected_character),
+                            party_members=(selected_character, None, None, None),
+                            selected_party_slot=0,
+                            secondary_colour_index=0x08,
+                            palette=GAME_PALETTE_RGB8,
+                            slot_pixels=(
+                                lambda _slot, object_code: (
+                                    object_assets.pocket_sprite(object_code).pixels
+                                    if object_assets is not None and object_code
+                                    else None
+                                )
+                            ),
+                        )
+                    else:
+                        preview = render_champion_spellbook_preview(
+                            pygame, record, champion_assets, champion_spellbook_spread
+                        )
+                    screen.blit(
+                        pygame.transform.scale(preview, champion_preview_rect.size),
+                        champion_preview_rect,
+                    )
+                    name_bar_rect = pygame.Rect(708, 646, 480, 51)
+                    name_bar = render_champion_name_bar(
+                        pygame, champion_assets, record, width=160
+                    )
+                    screen.blit(pygame.transform.scale(name_bar, name_bar_rect.size), name_bar_rect)
+                    icon_rect = pygame.Rect(716, 578, 54, 54)
+                    profession_rect = pygame.Rect(776, 578, 54, 54)
+                    if champion_data_page == 4 and object_assets is not None:
+                        icon_pixels = object_assets.pocket_sprite(
+                            OBJECT_GROUP_BY_KEY["book_of_skulls"].first
+                        ).pixels
+                    else:
+                        # GFX_Pockets $61 is the stats scroll and $62 the bag.
+                        icon_index = 0x62 if champion_data_page == 3 else 0x61
+                        icon_pixels = champion_assets.pockets.icon(icon_index).pixels
+                    icon_button = render_champion_select_icon_button(
+                        pygame, icon_pixels
+                    )
+                    profession_pixels = remap_template_colours(
+                        champion_assets.pockets.icon(0x4B + profession_index).pixels,
+                        CLASS_COLOUR_MASKS[magic_index],
+                    )
+                    profession_button = render_champion_select_icon_button(
+                        pygame, profession_pixels
+                    )
+                    screen.blit(pygame.transform.scale(icon_button, icon_rect.size), icon_rect)
+                    screen.blit(
+                        pygame.transform.scale(profession_button, profession_rect.size),
+                        profession_rect,
+                    )
                 pygame.display.flip()
                 if screenshot_path is not None:
                     screenshot_path.parent.mkdir(parents=True, exist_ok=True)
@@ -2120,6 +2264,15 @@ def launch_graphics_viewer(
                             if rectangle.collidepoint(event.pos):
                                 champion_data_page = page_index
                                 break
+                        if champion_data_page == 4:
+                            if spellbook_navigation_rects[
+                                INTERFACE_ACTION_SPELLBOOK_PAGE_BACKWARD
+                            ].collidepoint(event.pos):
+                                champion_spellbook_spread = (champion_spellbook_spread - 1) % 4
+                            elif spellbook_navigation_rects[
+                                INTERFACE_ACTION_SPELLBOOK_PAGE_FORWARD
+                            ].collidepoint(event.pos):
+                                champion_spellbook_spread = (champion_spellbook_spread + 1) % 4
                         if back_rect.collidepoint(event.pos):
                             running = False
                 clock.tick(60)
@@ -3135,6 +3288,11 @@ def main() -> None:
         help="start with the sparse modified-data overlay enabled",
     )
     parser.add_argument(
+        "--savegame",
+        type=Path,
+        help="overlay a WHDLoad save over extracted resources",
+    )
+    parser.add_argument(
         "--screenshot",
         type=Path,
         help="save the initial viewer frame and exit (useful for visual testing)",
@@ -3174,6 +3332,7 @@ def main() -> None:
         args.data_root,
         screenshot_path=args.screenshot,
         prefer_modified=args.modified,
+        savegame_path=args.savegame,
         initial_category=initial_category,
         initial_dungeon_feature=args.dungeon_feature,
     )

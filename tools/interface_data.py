@@ -10,6 +10,7 @@ import struct
 
 from tools.champion_data import ChampionAssets, PocketsAssets, ScrollEdgeAssets
 from tools.data_overlay import data_overlay_root, related_data_roots
+from tools.savegame_overlay import savegame_overlay_root
 from tools.dungeon_view import (
     DungeonAssets,
     DungeonPlacement,
@@ -1196,9 +1197,16 @@ class InterfaceDataError(RuntimeError):
 class InterfaceProject:
     """Load interface resources through the clean/modified overlay."""
 
-    def __init__(self, data_root: Path, *, prefer_modified: bool = False):
+    def __init__(
+        self,
+        data_root: Path,
+        *,
+        prefer_modified: bool = False,
+        savegame_path: Path | None = None,
+    ):
         self.clean_root, self.modified_root, supplied_modified = related_data_roots(data_root)
         self.use_modified = prefer_modified or supplied_modified
+        self.savegame_path = savegame_path
         self.preview_character_ids = tuple(random.sample(range(16), 4))
         self.preview_party_members = (
             self.preview_character_ids[0],
@@ -1253,8 +1261,10 @@ class InterfaceProject:
 
     def reload(self, use_modified: bool) -> None:
         self.use_modified = use_modified
-        self.root = data_overlay_root(
-            self.clean_root, self.modified_root, enabled=self.use_modified
+        self.root = (
+            savegame_overlay_root(self.clean_root, self.savegame_path)
+            if self.savegame_path is not None
+            else data_overlay_root(self.clean_root, self.modified_root, enabled=self.use_modified)
         )
         try:
             self.pockets = PocketsAssets(self.root / "gfx/Pockets.gfx")
