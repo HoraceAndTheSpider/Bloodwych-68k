@@ -323,9 +323,13 @@ def launch_map_editor(
 
         def replace_cell(cell: MapCell) -> None:
             nonlocal status_message, preview_revision
-            project.set_cell(
-                selected_tower, selected_floor, selected_x, selected_y, cell
-            )
+            try:
+                project.set_cell(
+                    selected_tower, selected_floor, selected_x, selected_y, cell
+                )
+            except (IndexError, ValueError) as error:
+                status_message = str(error).upper()
+                return
             preview_revision += 1
             status_message = "UNSAVED MAP CHANGE"
 

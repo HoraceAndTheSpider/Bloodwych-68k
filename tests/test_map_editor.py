@@ -163,6 +163,15 @@ class MapEditorTests(unittest.TestCase):
             ]
             self.assertEqual(len(differences), 1)
 
+    def test_invalid_saved_chaos_map_falls_back_to_the_clean_map(self) -> None:
+        project = MapProject.from_savegame(CLEAN_ROOT, PROJECT_ROOT / "whdload" / "bloodsave6")
+
+        self.assertEqual(project.maps[4].to_bytes(), (CLEAN_ROOT / "maps" / "chaos.map").read_bytes())
+        self.assertEqual(project.save_map_fallbacks, frozenset((4,)))
+        self.assertIn("CLEAN CHAOS TOWER", project.source_description)
+        with self.assertRaisesRegex(ValueError, "cannot be edited"):
+            project.set_cell(4, 0, 0, 0, MapCell(0, 0))
+
     def test_real_overlay_records_are_decoded(self) -> None:
         project = MapProject.from_extracted(CLEAN_ROOT)
         self.assertEqual(len(project.switches(0)), 16)

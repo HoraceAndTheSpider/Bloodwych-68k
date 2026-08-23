@@ -147,6 +147,14 @@ class TowerMap:
         end = MAP_HEADER_SIZE + self.data_offsets[floor] + width * height * 2
         return end <= MAP_RESOURCE_SIZE
 
+    def has_valid_layout(self) -> bool:
+        """Return whether every populated floor fits within this map resource."""
+
+        return all(
+            not self.widths[floor] or not self.heights[floor] or self.floor_exists(floor)
+            for floor in range(FLOOR_COUNT)
+        )
+
     def cell_offset(self, floor: int, x: int, y: int) -> int:
         self._validate_floor(floor)
         width, height = self.widths[floor], self.heights[floor]
@@ -238,6 +246,7 @@ class MapProject:
         save_data: bytes | None = None,
         save_base_offset: int | None = None,
         save_name: str | None = None,
+        save_map_fallbacks: Iterable[int] = (),
     ) -> None:
         self.clean_root = clean_root
         self.modified_root = modified_root
@@ -248,6 +257,7 @@ class MapProject:
         self.save_data = bytearray(save_data) if save_data is not None else None
         self.save_base_offset = save_base_offset
         self.save_name = save_name
+        self.save_map_fallbacks = frozenset(save_map_fallbacks)
         self.dirty_towers: set[int] = set()
         self.resource_data: dict[str, bytearray] = {}
         self.dirty_resources: set[str] = set()
@@ -278,7 +288,8 @@ class MapProject:
             data_root, save_path, master=master, sheet=sheet
         )
         maps = []
-        for tower in TOWERS:
+        save_map_fallbacks = []
+        for tower_index, tower in enumerate(TOWERS):
             segment = segment_offsets.get(tower.map_name)
             if segment is None:
                 raise ValueError(f"segments.xlsx has no {tower.map_name} resource")
@@ -288,7 +299,13 @@ class MapProject:
                 raise ValueError(
                     f"save file does not contain the complete {tower.map_name} resource"
                 )
-            maps.append(TowerMap(save_bytes[start:end], name=tower.name))
+            saved_map = TowerMap(save_bytes[start:end], name=tower.name)
+            if saved_map.has_valid_layout():
+                maps.append(saved_map)
+                continue
+            clean_path = clean_root / tower.map_name
+            maps.append(TowerMap(clean_path.read_bytes(), name=tower.name))
+            save_map_fallbacks.append(tower_index)
         return cls(
             clean_root,
             modified_root,
@@ -297,13 +314,23 @@ class MapProject:
             save_data=save_bytes,
             save_base_offset=save_base,
             save_name=Path(save_path).name,
+            save_map_fallbacks=save_map_fallbacks,
         )
 
     @property
     def source_description(self) -> str:
-        return self.save_name.upper() if self.save_name else "GAME MAPS"
+        if self.save_name is None:
+            return "GAME MAPS"
+        if not self.save_map_fallbacks:
+            return self.save_name.upper()
+        names = ", ".join(TOWERS[index].name for index in self.save_map_fallbacks)
+        return f"{self.save_name.upper()} + CLEAN {names}"
 
     def set_cell(self, tower: int, floor: int, x: int, y: int, cell: MapCell) -> None:
+        if tower in self.save_map_fallbacks:
+            raise ValueError(
+                f"{TOWERS[tower].name} is not stored as a valid map in this save and cannot be edited"
+            )
         self.maps[tower].set_cell(floor, x, y, cell)
         self.dirty_towers.add(tower)
 
