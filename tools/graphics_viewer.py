@@ -863,6 +863,7 @@ def render_monster_preview(
     animation_frame: int,
     anchor_x: int,
     anchor_y: int,
+    illusion: bool = False,
 ) -> tuple[list[list[int]], dict[str, object]]:
     """Dispatch one selected monster through its source-derived renderer."""
     render_flags = 3 if animation_frame else 0
@@ -881,9 +882,11 @@ def render_monster_preview(
     if renderer == "summon":
         summon = assets["summon"]
         operations = summon.draw_operations(distance, facing, render_flags=render_flags)
-        palette = summon.replacement_palette(
-            grade_step, illusion=definition.code == 0x65
-        )
+        # $64 and $65 select the same renderer.  Draw_Summon selects its
+        # illusion palette from the live actor's negative grade byte, not the
+        # form value; standalone previews therefore default to the normal
+        # palette unless their caller supplies that runtime state.
+        palette = summon.replacement_palette(grade_step, illusion=illusion)
     elif renderer in {"behemoth", "entropy"}:
         large = assets[renderer]
         operations = large.draw_operations(distance, facing, render_flags=render_flags)

@@ -3,8 +3,8 @@
 from __future__ import annotations
 
 from tools.dungeon_view import DungeonPlacement
-from tools.map_editor.model import MapCell, TowerMap
-from tools.monster_view import VIEW_CELL_COORDINATES
+from tools.map_editor.model import MapCell, MonsterRecord, TowerMap
+from tools.monster_view import VIEW_CELL_COORDINATES, view_cell_at, visible_subpositions
 
 
 FACING_NAMES = ("NORTH", "EAST", "SOUTH", "WEST")
@@ -46,6 +46,66 @@ def move_in_view_direction(
     """Apply WASD-style forward/strafe movement in the current view frame."""
 
     return relative_map_coordinate(x, y, facing, lateral, forward)
+
+
+def occupant_view_position(
+    occupant: MonsterRecord,
+    *,
+    player_x: int,
+    player_y: int,
+    player_facing: int,
+    formation_index: int | None,
+) -> tuple[int, int] | None:
+    """Return the source view cell and mini-space for one map occupant.
+
+    Bits 4-5 of a raw champion or monster render-state byte select a stable
+    floor mini-space. The source subtracts two and the viewer direction before
+    passing that value to ``Prepare_Monster_ScreenPosition``. Large forms and
+    spells occupy the centre mini-space.
+    """
+
+    if not occupant.has_position:
+        return None
+    dx, dy = occupant.x - player_x, occupant.y - player_y
+    right_x, right_y = RIGHT_VECTORS[player_facing & 3]
+    forward_x, forward_y = FORWARD_VECTORS[player_facing & 3]
+    lateral = dx * right_x + dy * right_y
+    forward = dx * forward_x + dy * forward_y
+    view_cell = view_cell_at(lateral, forward)
+    if view_cell is None:
+        return None
+    if occupant.form in (0x15, 0x16, 0x40) or occupant.form >= 0x67 or occupant.is_spell:
+        subposition = 4
+    elif formation_index is not None and occupant.formation_slot is not None:
+        # Draw_DungeonCellOccupants rotates a team's table lookup by two,
+        # then by viewer facing, then against the team's own rotation. Invert
+        # that lookup to attach the authored member slot to a stable world
+        # position instead of a fixed screen corner.
+        subposition = (
+            formation_index - 2 - (player_facing & 0x03) + occupant.formation_facing
+        ) & 0x03
+    else:
+        subposition = ((occupant.facing >> 4) - 2 - player_facing) & 0x03
+    if subposition not in visible_subpositions(
+        view_cell,
+        (4,) if subposition == 4 else (0, 1, 2, 3),
+    ):
+        return None
+    return view_cell, subposition
+
+
+def occupant_relative_facing(occupant: MonsterRecord, player_facing: int) -> int:
+    """Return the source character/monster artwork-facing table index.
+
+    At ``adrCd00A6F6`` the renderer starts with the viewer direction, adds two
+    for the North/South cases, then adds the render-state byte's low direction
+    bits. This shared conversion is deliberately kept as table-index arithmetic
+    rather than relabelled as a compass subtraction.
+    """
+
+    viewer_direction = player_facing & 0x03
+    source_adjustment = 2 if not (viewer_direction & 1) else 0
+    return (viewer_direction + source_adjustment + (occupant.facing & 0x03)) & 0x03
 
 
 def map_cell_placement(
@@ -171,8 +231,17 @@ def map_view_placements(
         if not (0 <= x < width and 0 <= y < height):
             placements[view_cell] = DungeonPlacement("stone")
             continue
+        cell = tower_map.cell(floor, x, y)
+        # A party cannot normally occupy a type-1 main-wall cell.  The source
+        # has dedicated player-cell paths for wood, doors, stairs and pads,
+        # but not for a shelf/sign/switch/socket on a wall's inner face.  The
+        # permissive editor therefore seals this invalid cursor state as plain
+        # stone rather than inventing an inside-facing wall-feature overlay.
+        if view_cell == 18 and cell.map_type == 1:
+            placements[view_cell] = DungeonPlacement("stone")
+            continue
         placement = map_cell_placement(
-            tower_map.cell(floor, x, y),
+            cell,
             facing,
             map_x=x,
             map_y=y,

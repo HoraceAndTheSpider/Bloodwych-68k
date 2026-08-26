@@ -20,8 +20,23 @@ from tools.map_editor.first_person import (
     dungeon_pattern_parity,
     map_view_placements,
     move_in_view_direction,
+    occupant_relative_facing,
+    occupant_view_position,
+    relative_map_coordinate,
 )
-from tools.map_editor.model import MapCell, MapProject, TOWERS
+from tools.map_editor.floor_objects import (
+    named_key_colour_index,
+    object_marker_offset,
+    object_stack_location,
+    project_floor_object,
+)
+from tools.map_editor.model import (
+    ChampionMapRecord,
+    MapCell,
+    MapProject,
+    MonsterRecord,
+    TOWERS,
+)
 from tools.map_editor.render import MAP_TYPE_NAMES, cell_glyph, describe_cell, draw_map_cell
 from tools.map_editor.semantics import (
     SWITCH_ACTIONS,
@@ -35,6 +50,16 @@ from tools.map_editor.semantics import (
 from tools.pygame_window import is_fullscreen, set_display_mode, set_scaled_fullscreen, set_windowed
 from tools.tool_common import DATA_DIR
 from tools.st_planar_assets import GAME_PALETTE_RGB8
+from tools.graphics_preview import (
+    AirbourneSpellAssets,
+    CharacterAssets,
+    blit,
+    render_airbourne_spell,
+    render_character_preview,
+)
+from tools.graphics_viewer import MONSTERS, load_renderer_assets, render_monster_preview
+from tools.monster_view import VIEW_CELL_COORDINATES, resolve_monster_screen_position
+from tools.object_data import ObjectAssets
 
 
 WINDOW_SIZE = (1220, 760)
@@ -54,14 +79,55 @@ CURSOR_COLOURS = (
 )
 EDITOR_TABS = ("VIEWER", "MAPS", "OBJECTS", "CHARACTERS / MONSTERS", "LAYOUT")
 EDITOR_TAB_ENABLED = (True, True, False, False, False)
-OVERLAY_NAMES = ("SWITCHES", "TRIGGERS", "MONSTERS", "OBJECTS")
-OVERLAY_ENABLED = (True, True, False, False)
+OVERLAY_NAMES = (
+    "SWITCHES",
+    "TRIGGERS",
+    "CHAMPIONS",
+    "MONSTERS",
+    "SPELLS",
+    "PLAYERS",
+    "QS TEAMS",
+    "OBJECTS",
+    "LINKS",
+)
+OVERLAY_ENABLED = (True, True, True, True, True, True, True, True, True)
+# Keep the map uncluttered until the user explicitly asks for a class of
+# information. The controls remain available even though their editors are
+# not yet enabled.
+OVERLAY_DEFAULTS = (False,) * len(OVERLAY_NAMES)
 FIRST_PERSON_SCALE = 3
 FIRST_PERSON_RECT = (810, 432, 128 * FIRST_PERSON_SCALE, 76 * FIRST_PERSON_SCALE)
 
 
 class MapEditorError(RuntimeError):
     """Raised when the map editor cannot load its required data."""
+
+
+def monster_renderer_key(renderer: str | None) -> str:
+    """Return the loaded-asset key for a monster definition renderer."""
+
+    return {
+        "dragon_large": "dragon",
+        "dragon_small": "dragon",
+    }.get(renderer, renderer or "")
+
+
+def champion_occupant_record(champion: ChampionMapRecord) -> MonsterRecord:
+    """Convert one map champion without losing either half of byte $18."""
+
+    return MonsterRecord(
+        index=champion.index,
+        category=0,
+        floor=champion.floor,
+        x=champion.x,
+        y=champion.y,
+        level=0,
+        form=champion.index,
+        team=0xFF,
+        source="champion",
+        facing=champion.facing,
+        formation_slot=champion.formation_slot,
+    )
 
 
 def reveal_interval_delta(
@@ -77,6 +143,40 @@ def reveal_interval_delta(
     if item_end > viewport_end:
         return viewport_end - item_end
     return 0
+
+
+def nearest_rectangle_edges(
+    source: tuple[int, int, int, int],
+    target: tuple[int, int, int, int],
+) -> tuple[tuple[int, int], tuple[int, int]]:
+    """Return the shortest edge-to-edge segment between two rectangles."""
+
+    source_left, source_top, source_width, source_height = source
+    target_left, target_top, target_width, target_height = target
+    source_right = source_left + source_width - 1
+    source_bottom = source_top + source_height - 1
+    target_right = target_left + target_width - 1
+    target_bottom = target_top + target_height - 1
+
+    if source_right < target_left:
+        source_x, target_x = source_right, target_left
+    elif target_right < source_left:
+        source_x, target_x = source_left, target_right
+    else:
+        overlap_left = max(source_left, target_left)
+        overlap_right = min(source_right, target_right)
+        source_x = target_x = (overlap_left + overlap_right) // 2
+
+    if source_bottom < target_top:
+        source_y, target_y = source_bottom, target_top
+    elif target_bottom < source_top:
+        source_y, target_y = source_top, target_bottom
+    else:
+        overlap_top = max(source_top, target_top)
+        overlap_bottom = min(source_bottom, target_bottom)
+        source_y = target_y = (overlap_top + overlap_bottom) // 2
+
+    return (source_x, source_y), (target_x, target_y)
 
 
 def indexed_to_surface(pygame: object, pixels: Sequence[Sequence[int]]) -> object:
@@ -126,14 +226,19 @@ class GameFontRenderer:
         colour: tuple[int, int, int],
         *,
         x: int = 3,
-        y: int = 2,
+        y: int = 4,
+        scale: int = 1,
     ) -> None:
         """Draw one glyph using the map editor's tall 1x2 pixel geometry."""
 
         for gy, row in enumerate(glyph_pixels(self.data, ord(character) & 0x7F)):
             for gx, value in enumerate(row):
                 if value:
-                    self.pygame.draw.rect(surface, colour, (x + gx, y + gy * 2, 1, 2))
+                    self.pygame.draw.rect(
+                        surface,
+                        colour,
+                        (x + gx * scale, y + gy * scale * 2, scale, scale * 2),
+                    )
 
 
 def default_floor(project: MapProject, tower: int) -> int:
@@ -210,19 +315,74 @@ def launch_map_editor(
     except (OSError, ValueError) as error:
         raise MapEditorError(str(error)) from error
 
-    gfx_dir = DataOverlayPath(
-        project.clean_root / "gfx",
-        project.modified_root / "gfx",
-        True,
-    )
-    try:
-        dungeon_backgrounds = tuple(
-            load_dungeon_background(gfx_dir, pattern_parity=parity)
-            for parity in range(2)
+    def load_visual_assets(use_modified: bool):
+        """Load an explicit clean/modified graphics set for all actor art."""
+
+        current_gfx_dir = DataOverlayPath(
+            project.clean_root / "gfx",
+            project.modified_root / "gfx",
+            use_modified,
         )
-        dungeon_assets = DungeonAssets(gfx_dir)
-    except (OSError, ValueError) as error:
-        raise MapEditorError(f"could not load dungeon preview assets: {error}") from error
+        current_data_dir = DataOverlayPath(
+            project.clean_root / "data",
+            project.modified_root / "data",
+            use_modified,
+        )
+        current_monsters_dir = DataOverlayPath(
+            project.clean_root / "monsters",
+            project.modified_root / "monsters",
+            use_modified,
+        )
+        current_data_root = DataOverlayPath(
+            project.clean_root,
+            project.modified_root,
+            use_modified,
+        )
+        try:
+            backgrounds = tuple(
+                load_dungeon_background(current_gfx_dir, pattern_parity=parity)
+                for parity in range(2)
+            )
+            assets = DungeonAssets(current_gfx_dir)
+        except (OSError, ValueError) as error:
+            raise MapEditorError(f"could not load dungeon preview assets: {error}") from error
+        try:
+            characters = CharacterAssets(current_data_dir, current_gfx_dir)
+        except (OSError, ValueError, RuntimeError):
+            characters = None
+        try:
+            spells = AirbourneSpellAssets(current_gfx_dir)
+        except (OSError, ValueError, RuntimeError):
+            spells = None
+        try:
+            objects = ObjectAssets(current_data_root)
+        except (OSError, ValueError, RuntimeError):
+            objects = None
+        monsters, _ = load_renderer_assets(current_monsters_dir)
+        return (
+            current_gfx_dir,
+            current_data_dir,
+            current_monsters_dir,
+            backgrounds,
+            assets,
+            characters,
+            spells,
+            objects,
+            monsters,
+        )
+
+    use_modified_art = False
+    (
+        gfx_dir,
+        data_dir,
+        monsters_dir,
+        dungeon_backgrounds,
+        dungeon_assets,
+        character_assets,
+        spell_assets,
+        object_assets,
+        monster_assets,
+    ) = load_visual_assets(use_modified_art)
 
     pygame.init()
     pygame.joystick.init()
@@ -249,7 +409,7 @@ def launch_map_editor(
         copied_cell: MapCell | None = None
         overlays = {
             name: enabled
-            for name, enabled in zip(OVERLAY_NAMES, OVERLAY_ENABLED)
+            for name, enabled in zip(OVERLAY_NAMES, OVERLAY_DEFAULTS)
         }
         status_message = "READY"
         facing = 0
@@ -266,12 +426,13 @@ def launch_map_editor(
         switch_records = [list(project.switches(index)) for index in range(len(TOWERS))]
         trigger_records = [list(project.triggers(index)) for index in range(len(TOWERS))]
 
-        tab_width, tab_gap = 170, 8
+        tab_width, tab_gap = 160, 7
         tab_rects = tuple(
             pygame.Rect(20 + index * (tab_width + tab_gap), 52, tab_width, 34)
             for index in range(len(EDITOR_TABS))
         )
-        source_rect = pygame.Rect(935, 52, 255, 34)
+        art_rect = pygame.Rect(856, 52, 135, 34)
+        source_rect = pygame.Rect(999, 52, 191, 34)
         display_mode_rect = pygame.Rect(WINDOW_SIZE[0] - 60, 12, 50, 28)
         tower_rects = tuple(
             pygame.Rect(20, 112 + index * 42, 220, 36)
@@ -281,10 +442,17 @@ def launch_map_editor(
             pygame.Rect(20 + (index % 4) * 54, 385 + (index // 4) * 40, 50, 34)
             for index in range(8)
         )
-        overlay_rects = tuple(
-            pygame.Rect(270 + index * 126, 632, 118, 32)
-            for index in range(len(OVERLAY_NAMES))
+        overlay_gap = 4
+        main_overlay_names = tuple(name for name in OVERLAY_NAMES if name != "LINKS")
+        overlay_width = (MAP_SIZE - overlay_gap * (len(main_overlay_names) - 1)) // len(main_overlay_names)
+        main_overlay_rects = tuple(
+            pygame.Rect(MAP_ORIGIN[0] + index * (overlay_width + overlay_gap), 630, overlay_width, 28)
+            for index in range(len(main_overlay_names))
         )
+        # Links is a secondary display aid for switches and triggers, so it
+        # sits directly below them and spans their combined width.
+        links_rect = pygame.Rect(MAP_ORIGIN[0], 662, overlay_width * 2 + overlay_gap, 20)
+        overlay_rects = main_overlay_rects + (links_rect,)
         save_rect = pygame.Rect(810, 682, 180, 38)
         back_rect = pygame.Rect(20, 712, 100, 32)
         map_rect = pygame.Rect(*MAP_ORIGIN, MAP_SIZE, MAP_SIZE)
@@ -506,6 +674,8 @@ def launch_map_editor(
                 selected_y,
                 facing,
                 preview_revision,
+                int(use_modified_art),
+                *(int(overlays[name]) for name in OVERLAY_NAMES),
             )
             if key == preview_cache_key:
                 return preview_surface
@@ -522,11 +692,253 @@ def launch_map_editor(
                     selected_y,
                     facing,
                 )
-                pixels, _ = render_dungeon_scene(
+                # The real movement code never leaves a party inside a type-1
+                # main wall.  When the editor cursor is there, its sealed
+                # player-cell fallback must also suppress the object pass so
+                # distant shelf objects cannot leak through.
+                viewer_cell = current_cell()
+                viewer_in_main_wall = (
+                    viewer_cell is not None and viewer_cell.map_type == 1
+                )
+                # Map markers retain AMOS's lead-only $FF convention, while
+                # the dungeon renderer expands the lead's second through
+                # fourth packed/live team members at that shared location.
+                actor_records = [
+                    occupant
+                    for occupant in project.render_occupants(selected_tower)
+                    if (
+                        overlays["SPELLS"]
+                        if occupant.is_spell
+                        else overlays["MONSTERS"]
+                    )
+                ]
+                displayed_champions = project.viewer_champions(
+                    selected_tower,
+                    quickstart_teams=overlays["QS TEAMS"],
+                ) if overlays["CHAMPIONS"] else ()
+                quickstart_members = {
+                    champion
+                    for party in project.player_parties(selected_tower)
+                    if party.source == "quickstart"
+                    for champion in party.champions
+                }
+                # In a raw Quickstart view the parties below supply the
+                # team-slot mini-spaces. Keep their original-location
+                # counterparts off the 3D compositor to avoid drawing them
+                # twice at the party lead position.
+                character_records = (
+                    tuple(
+                        champion
+                        for champion in displayed_champions
+                        if champion.index not in quickstart_members
+                    )
+                    if quickstart_members and overlays["QS TEAMS"]
+                    else displayed_champions
+                )
+                actor_records.extend(
+                    champion_occupant_record(champion)
+                    for champion in character_records
+                )
+                actor_records.extend(
+                    MonsterRecord(
+                        index=champion,
+                        category=0,
+                        floor=party.floor,
+                        x=party.x,
+                        y=party.y,
+                        level=0,
+                        form=champion,
+                        team=0xFF,
+                        source=party.source,
+                        # Draw_PlayerOccupant applies the active player's one
+                        # shared direction to every member of that party.
+                        facing=party.facing,
+                        # The original party renderer chooses the four
+                        # mini-spaces from the member's team slot. Reusing
+                        # the explicit slot keeps the composition stable as
+                        # the editor cursor/view direction changes.
+                        formation_slot=slot,
+                    )
+                    for party in project.player_parties(selected_tower)
+                    if (
+                        overlays["QS TEAMS"]
+                        if party.source == "quickstart"
+                        else overlays["PLAYERS"]
+                    )
+                    for slot, champion in enumerate(party.champions)
+                )
+                actor_draws = []
+                for occupant in actor_records:
+                    if occupant.floor != selected_floor or not occupant.has_position:
+                        continue
+                    view_position = occupant_view_position(
+                        occupant,
+                        player_x=selected_x,
+                        player_y=selected_y,
+                        player_facing=facing,
+                        formation_index=occupant.formation_slot,
+                    )
+                    if view_position is None:
+                        continue
+                    screen_position = resolve_monster_screen_position(*view_position)
+                    if screen_position is not None:
+                        actor_draws.append((screen_position, occupant))
+
+                monster_definitions = {definition.code: definition for definition in MONSTERS}
+                actors_by_view_cell: dict[int, list[tuple[object, MonsterRecord]]] = {}
+                for screen_position, occupant in actor_draws:
+                    actors_by_view_cell.setdefault(screen_position.view_cell, []).append(
+                        (screen_position, occupant)
+                    )
+
+                object_draws_by_view_cell: dict[int, list[object]] = {}
+                if (
+                    overlays["OBJECTS"]
+                    and object_assets is not None
+                    and not viewer_in_main_wall
+                ):
+                    visible_map_cells = {
+                        relative_map_coordinate(
+                            selected_x,
+                            selected_y,
+                            facing,
+                            lateral,
+                            -relative_y,
+                        ): view_cell
+                        for view_cell, (lateral, relative_y) in enumerate(
+                            VIEW_CELL_COORDINATES
+                        )
+                    }
+                    for stack in project.object_stacks(selected_tower):
+                        location = object_stack_location(current_map(), stack)
+                        if location is None:
+                            continue
+                        floor, object_x, object_y = location
+                        view_cell = visible_map_cells.get((object_x, object_y))
+                        if floor != selected_floor or view_cell is None:
+                            continue
+                        map_cell = current_map().cell(floor, object_x, object_y)
+                        shelf = map_cell.map_type == 1 and map_cell.b & 3 == 0
+                        shelf_facing = map_cell.c & 3 if shelf else None
+                        for code, _quantity in stack.items:
+                            projection = project_floor_object(
+                                object_assets,
+                                stack,
+                                code,
+                                view_cell=view_cell,
+                                facing=facing,
+                                shelf=shelf,
+                                shelf_facing=shelf_facing,
+                            )
+                            if projection is not None:
+                                object_draws_by_view_cell.setdefault(view_cell, []).append(
+                                    projection
+                                )
+
+                def draw_cell_occupants(canvas, view_cell: int):
+                    """Draw actors at the point their dungeon cell is painted.
+
+                    ``Draw_DungeonCellOccupants`` uses render-state bits 4-5
+                    for mini-space and the low bits for the character/monster
+                    artwork-facing table. Packed records are unpacked with
+                    that state byte clear.
+                    """
+
+                    for screen_position, occupant in sorted(
+                        actors_by_view_cell.get(view_cell, ()),
+                        key=lambda item: item[0].depth_slot,
+                        reverse=True,
+                    ):
+                        relative_facing = occupant_relative_facing(occupant, facing)
+                        if occupant.form <= 0x55 and character_assets is not None:
+                            canvas, _ = render_character_preview(
+                                canvas,
+                                character_assets,
+                                occupant.form,
+                                distance=screen_position.gfx_slot,
+                                facing=relative_facing,
+                                anchor_x=screen_position.screen_x,
+                                anchor_y=screen_position.screen_y,
+                            )
+                        elif occupant.form in monster_definitions:
+                            definition = monster_definitions[occupant.form]
+                            # The existing renderer validates grade indices.  A
+                            # live/packed level can exceed the current extracted
+                            # grade table, in which case the final available grade
+                            # is the source-equivalent bounded display fallback.
+                            grade_count = 1
+                            renderer = monster_assets.get(
+                                monster_renderer_key(definition.renderer)
+                            )
+                            if renderer is not None:
+                                if hasattr(renderer, "grade_lookup"):
+                                    grade_count = len(renderer.grade_lookup)
+                                elif definition.renderer != "entropy":
+                                    colour_file = {
+                                        "summon": "summon.colours",
+                                        "behemoth": "behemoth.colours",
+                                        "crab": "crab.colours",
+                                        "dragon_large": "dragon.colours",
+                                        "dragon_small": "dragon.colours",
+                                    }.get(definition.renderer)
+                                    if colour_file is not None:
+                                        grade_count = max(1, len((monsters_dir / colour_file).read_bytes()))
+                            canvas, _ = render_monster_preview(
+                                canvas,
+                                definition,
+                                monster_assets,
+                                distance=screen_position.gfx_slot,
+                                facing=relative_facing,
+                                grade_step=min(occupant.colour_grade_step, grade_count - 1),
+                                animation_frame=0,
+                                anchor_x=screen_position.screen_x,
+                                anchor_y=screen_position.screen_y,
+                                illusion=occupant.is_illusion,
+                            )
+                        elif 0x80 <= occupant.form <= 0x8F and spell_assets is not None:
+                            canvas, _ = render_airbourne_spell(
+                                canvas,
+                                spell_assets,
+                                occupant.form,
+                                distance=screen_position.gfx_slot,
+                                anchor_x=screen_position.screen_x,
+                                anchor_y=screen_position.screen_y,
+                            )
+                    return canvas
+
+                def draw_object_kind(canvas, view_cell: int, *, shelf: bool):
+                    """Draw one source placement class at its scene phase.
+
+                    ``adrCd00960A`` reaches ``Draw_ObjectOnFloor`` before
+                    the map-cell feature dispatch. Shelf placements use the
+                    separate shelf tables, so they are drawn after their
+                    selected shelf face but before later, nearer view cells.
+                    """
+
+                    for projection in object_draws_by_view_cell.get(view_cell, ()):
+                        if projection.shelf != shelf:
+                            continue
+                        sprite = object_assets.floor_sprite(
+                            projection.code, projection.projection
+                        )
+                        if sprite is not None:
+                            blit(canvas, sprite.pixels, projection.x, projection.y)
+                    return canvas
+
+                def draw_floor_objects(canvas, view_cell: int):
+                    return draw_object_kind(canvas, view_cell, shelf=False)
+
+                def draw_shelf_objects(canvas, view_cell: int):
+                    return draw_object_kind(canvas, view_cell, shelf=True)
+
+                pixels, _scene_metadata = render_dungeon_scene(
                     dungeon_backgrounds[pattern_parity],
                     dungeon_assets,
                     placements,
                     pattern_parity=pattern_parity,
+                    draw_floor_objects=draw_floor_objects,
+                    draw_shelf_objects=draw_shelf_objects,
+                    draw_occupants=draw_cell_occupants,
                 )
                 native = indexed_to_surface(pygame, pixels)
                 preview_surface = pygame.transform.scale(
@@ -569,7 +981,15 @@ def launch_map_editor(
             )
             pygame.draw.rect(screen, colour, rectangle, border_radius=4)
             text_colour = (245, 245, 245) if enabled else (110, 112, 118)
-            label_surface = small_font.render(label, True, text_colour)
+            label_font = small_font
+            label_size = 17
+            while (
+                label_font.size(label)[0] > rectangle.width - 8
+                and label_size > 10
+            ):
+                label_size -= 1
+                label_font = pygame.font.SysFont(None, label_size)
+            label_surface = label_font.render(label, True, text_colour)
             screen.blit(label_surface, label_surface.get_rect(center=rectangle.center))
 
         def draw_info(text: str, y: int, colour=(205, 208, 215), *, x: int = 810) -> None:
@@ -577,21 +997,91 @@ def launch_map_editor(
 
         def draw_overlay_markers() -> None:
             tower_map = current_map()
-            marker_font = pygame.font.SysFont(None, max(12, min(22, cell_size() // 2)))
 
-            def marker(x: int, y: int, text: str, colour, quadrant: int) -> None:
+            def marker(x: int, y: int, text: str, background_index: int, foreground_index: int) -> None:
                 if not (0 <= x < tower_map.widths[selected_floor] and 0 <= y < tower_map.heights[selected_floor]):
                     return
                 rectangle = cell_screen_rect(x, y)
-                half = rectangle.width // 2
-                positions = (
-                    (rectangle.left + 2, rectangle.top + 1),
-                    (rectangle.left + half, rectangle.top + 1),
-                    (rectangle.left + 2, rectangle.top + half),
-                    (rectangle.left + half, rectangle.top + half),
+                # AMOS fills its inclusive low-resolution rectangle from
+                # (cell + 1, cell + 1) through (cell + 15, cell + 7): 15x7
+                # logical pixels.  Map Y pixels are doubled in this view.
+                marker_rect = pygame.Rect(
+                    rectangle.left + zoom,
+                    rectangle.top + zoom * 2,
+                    zoom * 15,
+                    zoom * 14,
                 )
-                label = marker_font.render(text, True, colour)
-                screen.blit(label, positions[quadrant])
+                pygame.draw.rect(screen, GAME_PALETTE_RGB8[background_index], marker_rect)
+                # AMOS uses the original five-row GameFont in the inset map
+                # area.  Retaining its 1x2 geometry keeps letters legible at
+                # all map zoom levels without obscuring the cell's icon.
+                glyph_scale = max(1, zoom)
+                game_font.draw_map_glyph(
+                    screen,
+                    text,
+                    GAME_PALETTE_RGB8[foreground_index],
+                    x=marker_rect.left + max(1, zoom * 2),
+                    # Letter overlays are one native pixel lower than the
+                    # filled marker inset.  This matches the AMOS map's
+                    # baseline without moving the marker itself.
+                    y=marker_rect.top + zoom * 2,
+                    scale=glyph_scale,
+                )
+
+            def marker_number(
+                x: int, y: int, value: int, *, colour_index: int = 2
+            ) -> None:
+                """AMOS map overlays use transparent, two-digit reference BOBs."""
+
+                if not (0 <= x < tower_map.widths[selected_floor] and 0 <= y < tower_map.heights[selected_floor]):
+                    return
+                rectangle = cell_screen_rect(x, y)
+                glyph_scale = max(1, zoom)
+                label = f"{value:02d}"
+                for digit, character in enumerate(label):
+                    game_font.draw_map_glyph(
+                        screen,
+                        character,
+                        # The transparent reference BOB has a different
+                        # origin from the filled letter markers: it begins
+                        # one pixel left and two pixels lower. Source labels
+                        # are dark grey; target labels match their outline.
+                        GAME_PALETTE_RGB8[colour_index],
+                        x=rectangle.left + digit * 7 * glyph_scale,
+                        y=rectangle.top + zoom * 3,
+                        scale=glyph_scale,
+                    )
+
+            def target_marker(
+                source_x: int,
+                source_y: int,
+                target_x: int,
+                target_y: int,
+                reference: int,
+                colour_index: int,
+            ) -> None:
+                """Draw a referenced target and, on request, its link."""
+
+                source_rect = cell_screen_rect(source_x, source_y)
+                target_rect = cell_screen_rect(target_x, target_y)
+                if overlays["LINKS"]:
+                    start, end = nearest_rectangle_edges(
+                        tuple(source_rect), tuple(target_rect)
+                    )
+                    pygame.draw.line(
+                        screen,
+                        GAME_PALETTE_RGB8[colour_index],
+                        start,
+                        end,
+                        max(2, zoom + 1),
+                    )
+                pygame.draw.rect(
+                    screen,
+                    GAME_PALETTE_RGB8[colour_index],
+                    target_rect,
+                    max(2, zoom),
+                )
+                marker_number(target_x, target_y, reference, colour_index=colour_index)
 
             if overlays["SWITCHES"] or overlays["TRIGGERS"]:
                 switches = switch_records[selected_tower]
@@ -601,18 +1091,20 @@ def launch_map_editor(
                         cell = tower_map.cell(selected_floor, x, y)
                         if overlays["SWITCHES"] and cell.map_type == 1 and cell.b % 4 == 2 and cell.first >= 8:
                             reference = cell.first // 8
-                            marker(x, y, f"S{reference:X}", (255, 230, 90), 0)
+                            marker_number(x, y, reference)
                             if reference < len(switches) and switches[reference].action:
                                 target = switches[reference]
                                 if 0 <= target.x < tower_map.widths[selected_floor] and 0 <= target.y < tower_map.heights[selected_floor]:
-                                    pygame.draw.rect(screen, (220, 180, 70), cell_screen_rect(target.x, target.y), 1)
+                                    target_marker(
+                                        x, y, target.x, target.y, reference, 12
+                                    )
                         if overlays["TRIGGERS"] and cell.map_type == 6 and cell.b % 8 in (2, 3, 6, 7):
                             reference = cell.first // 8
                             # Reference zero is the source's null/no-event
                             # trigger and is intentionally not marked.
                             if reference == 0:
                                 continue
-                            marker(x, y, f"T{reference:X}", (100, 255, 130), 1)
+                            marker_number(x, y, reference)
                             if reference < len(triggers):
                                 target = triggers[reference]
                                 target_floor_matches = (
@@ -622,16 +1114,88 @@ def launch_map_editor(
                                 )
                                 if target.action in TRIGGER_XY_ACTIONS and target_floor_matches:
                                     if 0 <= target.x < tower_map.widths[selected_floor] and 0 <= target.y < tower_map.heights[selected_floor]:
-                                        target_rect = cell_screen_rect(target.x, target.y)
-                                        pygame.draw.line(
-                                            screen,
-                                            (55, 145, 85),
-                                            cell_screen_rect(x, y).center,
-                                            target_rect.center,
-                                            max(1, zoom),
+                                        target_marker(
+                                            x, y, target.x, target.y, reference, 6
                                         )
-                                        pygame.draw.rect(screen, (70, 210, 100), target_rect, max(1, zoom))
-                                        marker(target.x, target.y, f"T{reference:X}", (100, 255, 130), 3)
+
+            if overlays["CHAMPIONS"]:
+                for champion in project.viewer_champions(
+                    selected_tower,
+                    quickstart_teams=overlays["QS TEAMS"],
+                ):
+                    if champion.floor == selected_floor:
+                        marker(champion.x, champion.y, "C", 13, 0)
+
+            for occupant in project.occupants(selected_tower):
+                if occupant.floor != selected_floor or not occupant.has_position:
+                    continue
+                if occupant.is_spell:
+                    if overlays["SPELLS"]:
+                        marker(occupant.x, occupant.y, "S", 7, 14)
+                elif overlays["MONSTERS"]:
+                    # AMOS uses bright red through form $64, then its darker
+                    # red ink for the large-monster forms above it.
+                    marker(occupant.x, occupant.y, "M", 10 if occupant.form > 0x64 else 12, 0)
+
+            if overlays["OBJECTS"] and object_assets is not None:
+                for stack in project.object_stacks(selected_tower):
+                    location = object_stack_location(tower_map, stack)
+                    if location is None:
+                        continue
+                    floor, object_x, object_y = location
+                    if floor != selected_floor:
+                        continue
+                    offset = object_marker_offset(stack.position)
+                    if offset is None:
+                        continue
+                    rectangle = cell_screen_rect(object_x, object_y)
+                    centre = (
+                        rectangle.left + offset[0] * zoom,
+                        rectangle.top + offset[1] * zoom,
+                    )
+                    arm = max(1, zoom)
+                    pygame.draw.line(
+                        screen,
+                        GAME_PALETTE_RGB8[14],
+                        (centre[0] - arm, centre[1] - arm),
+                        (centre[0] + arm, centre[1] + arm),
+                        arm,
+                    )
+                    pygame.draw.line(
+                        screen,
+                        GAME_PALETTE_RGB8[14],
+                        (centre[0] - arm, centre[1] + arm),
+                        (centre[0] + arm, centre[1] - arm),
+                        arm,
+                    )
+                    key_colour = named_key_colour_index(object_assets, stack)
+                    if key_colour is not None:
+                        dot_size = max(4, zoom * 4)
+                        pygame.draw.rect(
+                            screen,
+                            GAME_PALETTE_RGB8[key_colour],
+                            pygame.Rect(
+                                rectangle.centerx - dot_size // 2,
+                                rectangle.centery - dot_size // 2,
+                                dot_size,
+                                dot_size,
+                            ),
+                        )
+
+            if overlays["PLAYERS"] or overlays["QS TEAMS"]:
+                for party in project.player_parties(selected_tower):
+                    if party.source == "quickstart" and not overlays["QS TEAMS"]:
+                        continue
+                    if party.source == "save" and not overlays["PLAYERS"]:
+                        continue
+                    if party.floor == selected_floor:
+                        marker(
+                            party.x,
+                            party.y,
+                            "P" if party.source == "save" else "Q",
+                            8 if party.index == 0 else 10,
+                            14,
+                        )
 
         control_rects: tuple[tuple[str, str, object], ...] = ()
         running = True
@@ -651,6 +1215,12 @@ def launch_map_editor(
                     active=index == selected_tab,
                     enabled=EDITOR_TAB_ENABLED[index],
                 )
+            draw_button(
+                art_rect,
+                "ART: MODIFIED" if use_modified_art else "ART: CLEAN",
+                active=use_modified_art,
+                enabled=project.modified_root.is_dir(),
+            )
             draw_button(source_rect, project.source_description, active=project.save_name is not None)
 
             for index, (tower, rectangle) in enumerate(zip(TOWERS, tower_rects)):
@@ -723,13 +1293,13 @@ def launch_map_editor(
             pygame.draw.rect(screen, (86, 91, 104), map_border_rect, 1)
 
             for name, enabled, rectangle in zip(
-                OVERLAY_NAMES, OVERLAY_ENABLED, overlay_rects
+                main_overlay_names + ("LINKS",), OVERLAY_ENABLED, overlay_rects
             ):
                 draw_button(
                     rectangle,
                     name,
                     active=overlays[name],
-                    enabled=enabled,
+                    enabled=enabled and (name != "QS TEAMS" or project.save_data is None),
                 )
 
             cell = current_cell()
@@ -838,7 +1408,7 @@ def launch_map_editor(
                         draw_info(line.upper(), preview_rect.top + 12 + line_index * 18, (245, 135, 120))
                 pygame.draw.rect(screen, (86, 110, 142), preview_rect.inflate(2, 2), 1)
                 draw_info(
-                    "SCENERY: EXTRACTED GAME GFX. OBJECTS/MONSTERS: LATER.",
+                    "SCENERY + VERIFIED CHARACTER, MONSTER AND SPELL GFX.",
                     preview_rect.bottom + 12,
                     (145, 150, 160),
                 )
@@ -959,6 +1529,29 @@ def launch_map_editor(
                     if back_rect.collidepoint(event.pos):
                         running = False
                         continue
+                    if art_rect.collidepoint(event.pos) and project.modified_root.is_dir():
+                        use_modified_art = not use_modified_art
+                        try:
+                            (
+                                gfx_dir,
+                                data_dir,
+                                monsters_dir,
+                                dungeon_backgrounds,
+                                dungeon_assets,
+                                character_assets,
+                                spell_assets,
+                                object_assets,
+                                monster_assets,
+                            ) = load_visual_assets(use_modified_art)
+                            preview_revision += 1
+                            preview_cache_key = None
+                            status_message = (
+                                "USING MODIFIED ART" if use_modified_art else "USING CLEAN ART"
+                            )
+                        except MapEditorError as error:
+                            use_modified_art = not use_modified_art
+                            status_message = str(error).upper()
+                        continue
                     for index, rectangle in enumerate(tab_rects):
                         if rectangle.collidepoint(event.pos) and EDITOR_TAB_ENABLED[index]:
                             selected_tab = index
@@ -1000,10 +1593,10 @@ def launch_map_editor(
                                 pan_by(-step, 0)
                             break
                     for name, enabled, rectangle in zip(
-                        OVERLAY_NAMES, OVERLAY_ENABLED, overlay_rects
+                        main_overlay_names + ("LINKS",), OVERLAY_ENABLED, overlay_rects
                     ):
                         if rectangle.collidepoint(event.pos):
-                            if enabled:
+                            if enabled and (name != "QS TEAMS" or project.save_data is None):
                                 overlays[name] = not overlays[name]
                             break
                     if map_rect.collidepoint(event.pos) and current_map().floor_exists(selected_floor):

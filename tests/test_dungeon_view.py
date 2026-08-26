@@ -206,6 +206,52 @@ class DungeonAssetTests(unittest.TestCase):
             [(3, "pillar"), (17, "wood")],
         )
 
+    def test_scene_uses_source_occupant_call_sites_and_wood_ordering(self) -> None:
+        calls: list[int] = []
+        render_dungeon_scene(
+            self.background,
+            self.assets,
+            {
+                1: DungeonPlacement("stone"),
+                # View cell 0 has a real third source-table face, so the
+                # original d5==1 wooden callback is reached.  Cell 2 does
+                # not: its corresponding source entry is null.
+                0: DungeonPlacement("wood"),
+                3: DungeonPlacement("pillar"),
+                4: DungeonPlacement("firepath"),
+                5: DungeonPlacement("door_open"),
+                6: DungeonPlacement("pit"),
+            },
+            draw_occupants=lambda canvas, view_cell: (calls.append(view_cell) or canvas),
+        )
+        self.assertNotIn(1, calls)
+        self.assertIn(0, calls)  # interleaved inside its wooden face loop
+        self.assertNotIn(3, calls)
+        self.assertNotIn(4, calls)
+        self.assertIn(5, calls)
+        self.assertIn(6, calls)
+
+    def test_scene_draws_shelf_objects_before_nearer_occupants(self) -> None:
+        calls: list[tuple[str, int]] = []
+        render_dungeon_scene(
+            self.background,
+            self.assets,
+            {
+                # A shelf one cell beyond the directly-forward cell. Its
+                # object must be painted before cell 17's nearer actor.
+                16: DungeonPlacement("shelf", direction=2),
+                17: DungeonPlacement("space"),
+            },
+            draw_shelf_objects=lambda canvas, view_cell: (
+                calls.append(("shelf", view_cell)) or canvas
+            ),
+            draw_occupants=lambda canvas, view_cell: (
+                calls.append(("occupant", view_cell)) or canvas
+            ),
+        )
+        self.assertIn(("shelf", 16), calls)
+        self.assertLess(calls.index(("shelf", 16)), calls.index(("occupant", 17)))
+
     def test_trigger_pad_and_ceiling_hole_use_the_correct_resources(self) -> None:
         pad = next(item for item in DUNGEON_FEATURES if item.key == "pad")
         ceiling = next(

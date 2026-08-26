@@ -77,6 +77,7 @@ def apply_source_comments(lines: list[str], frame: pd.DataFrame) -> list[str]:
     """
     comments: dict[str, tuple[str, ...]] = {}
     comment_priorities: dict[str, int] = {}
+    conflicting_comment_labels: set[str] = set()
     addresses: dict[str, str] = {}
     address_priorities: dict[str, int] = {}
     for _, row in frame.iterrows():
@@ -99,6 +100,8 @@ def apply_source_comments(lines: list[str], frame: pd.DataFrame) -> list[str]:
                 part.strip() for part in text.splitlines() if part.strip()
             )
             key = label.casefold()
+            if key in conflicting_comment_labels:
+                continue
             priority = 1 if data_action(row) in {DATA_START, DATA_APPEND} else 0
             if key not in comments:
                 comments[key] = comment_lines
@@ -116,7 +119,19 @@ def apply_source_comments(lines: list[str], frame: pd.DataFrame) -> list[str]:
             elif priority < comment_priorities[key]:
                 continue
             else:
-                raise ValueError(f"Conflicting source comments for label '{label}'")
+                # Comments are presentation metadata.  Do not abort a relabel
+                # after all source transformations have succeeded just because
+                # two rows nominate different descriptions for one output
+                # label.  Suppress the ambiguous generated comment instead of
+                # choosing one based on worksheet order.
+                conflicting_comment_labels.add(key)
+                comments.pop(key)
+                comment_priorities.pop(key)
+                print(
+                    "WARNING: Conflicting source comments for label "
+                    f"'{label}'; generated comment skipped. Resolve the "
+                    "duplicate relabel rows in the segments workbook."
+                )
 
     result = list(lines)
     for label_key, address_text in addresses.items():

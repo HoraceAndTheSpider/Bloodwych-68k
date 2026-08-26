@@ -11,7 +11,7 @@ from __future__ import annotations
 import struct
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Mapping, Sequence
+from typing import Callable, Mapping, Sequence
 
 from tools.graphics_preview import (
     DrawOperation,
@@ -515,11 +515,34 @@ def render_dungeon_feature(
     nudge_y: int = 0,
     ceiling_hole: bool = False,
     pattern_parity: int = 1,
+    draw_occupants_before_wood_face: Callable[[list[list[int]]], list[list[int]]] | None = None,
 ) -> tuple[list[list[int]], dict[str, object]]:
     """Render one map feature into the shared 128×76 game viewport."""
     canvas = [list(row) for row in background]
     operations: list[DrawOperation] = []
+    records: list[dict[str, object]] = []
     visible_slots = wall_slots_in_draw_order(view_cell, wall_visibility_mask)
+
+    def draw_pending_operations() -> None:
+        """Commit queued scenery so an original-source callback can interleave."""
+
+        for operation in operations:
+            pixels = mirror_pixels(operation.sprite.pixels) if operation.mirrored else operation.sprite.pixels
+            x = operation.x + nudge_x
+            y = operation.y + nudge_y
+            blit(canvas, pixels, x, y, transparent_index=TRANSPARENT_INDEX)
+            records.append(
+                {
+                    "source": operation.sprite.source_file,
+                    "source_index": int(operation.sprite.name.rsplit("_", 1)[-1]),
+                    "x": x,
+                    "y": y,
+                    "width": operation.sprite.width,
+                    "height": operation.sprite.height,
+                    "mirrored": operation.mirrored,
+                }
+            )
+        operations.clear()
 
     def wall_group(stem: str) -> PackedPictureGroup:
         return assets.group(f"{stem}.gfx", f"{stem}.offsets", f"{stem}.positions")
@@ -640,6 +663,19 @@ def render_dungeon_feature(
         for column, slot in enumerate(VIEW_CELL_WALL_FACE_SLOTS[view_cell]):
             if slot is None or slot not in visible:
                 continue
+            # Resolve_WoodenWallFace starts with d5=3 and decrements it for
+            # each of these four source-table columns.  Its occupant call is
+            # deliberately *inside* that loop: before column 2 on far/centre
+            # cells, or column 3 on the near cells.  The remaining faces are
+            # consequently foreground occluders.  It is not a generic
+            # "actors then wood" pass.
+            source_d5 = 3 - column
+            if draw_occupants_before_wood_face is not None and (
+                (view_cell < 14 and source_d5 == 1)
+                or (view_cell >= 14 and source_d5 == 0)
+            ):
+                draw_pending_operations()
+                canvas = draw_occupants_before_wood_face(canvas)
             state = states[wall_face_direction(view_cell, column)]
             if state == 1:
                 operations.extend(_mapped_wall_operations(wall, slot))
@@ -759,23 +795,7 @@ def render_dungeon_feature(
         add_stone_wall(palette_substitutions=FORMWALL_PALETTE_SUBSTITUTIONS)
     # Space deliberately adds no static picture.
 
-    records = []
-    for operation in operations:
-        pixels = mirror_pixels(operation.sprite.pixels) if operation.mirrored else operation.sprite.pixels
-        x = operation.x + nudge_x
-        y = operation.y + nudge_y
-        blit(canvas, pixels, x, y, transparent_index=TRANSPARENT_INDEX)
-        records.append(
-            {
-                "source": operation.sprite.source_file,
-                "source_index": int(operation.sprite.name.rsplit("_", 1)[-1]),
-                "x": x,
-                "y": y,
-                "width": operation.sprite.width,
-                "height": operation.sprite.height,
-                "mirrored": operation.mirrored,
-            }
-        )
+    draw_pending_operations()
     return canvas, {
         "feature": feature.key,
         "map_type": feature.map_type,
@@ -823,35 +843,74 @@ def render_dungeon_scene(
     placements: Mapping[int, DungeonPlacement],
     *,
     pattern_parity: int = 1,
+    draw_floor_objects: Callable[[list[list[int]], int], list[list[int]]] | None = None,
+    draw_shelf_objects: Callable[[list[list[int]], int], list[list[int]]] | None = None,
+    draw_occupants: Callable[[list[list[int]], int], list[list[int]]] | None = None,
 ) -> tuple[list[list[int]], dict[str, object]]:
-    """Render independently configured map cells in source traversal order."""
+    """Render independently configured map cells in source traversal order.
+
+    ``draw_floor_objects`` follows ``adrCd00960A``: its
+    ``Draw_ObjectOnFloor`` calls happen for each view cell before that cell's
+    map feature is dispatched. Shelf contents use the shelf's separate
+    position table, so ``draw_shelf_objects`` is called immediately after its
+    selected shelf face. Later cells (including nearer occupants) may then
+    obscure them, without putting the items underneath their own shelf frame.
+
+    ``draw_occupants`` follows the proved call sites of
+    ``Draw_DungeonCellOccupants``. Empty cells, stairs, main doors and
+    pits/pads call it after their feature artwork. Wooden cells pass it to
+    ``Resolve_WoodenWallFace``, which calls it between its rear and foreground
+    face operations. Stone, beds/pillars and magic cells do not have an
+    occupant call site.
+    """
     canvas = [list(row) for row in background]
     definitions = {feature.key: feature for feature in DUNGEON_FEATURES}
     wall_visibility_mask = scene_wall_visibility_mask(placements)
     rendered: list[dict[str, object]] = []
-    for view_cell in sorted(placements):
-        placement = placements[view_cell]
-        feature = definitions.get(placement.feature_key)
-        if feature is None or not 0 <= view_cell < 19:
-            continue
-        canvas, metadata = render_dungeon_feature(
-            canvas,
-            assets,
-            feature,
-            view_cell=view_cell,
-            direction=placement.direction,
-            variant=placement.variant,
-            colour_variant=placement.colour_variant,
-            overlay_variant=placement.overlay_variant,
-            active=placement.active,
-            wood_states=placement.wood_states,
-            wall_visibility_mask=wall_visibility_mask,
-            nudge_x=placement.nudge_x,
-            nudge_y=placement.nudge_y,
-            ceiling_hole=placement.ceiling_hole,
-            pattern_parity=pattern_parity,
-        )
-        rendered.append(metadata)
+    for view_cell in range(19):
+        if draw_floor_objects is not None:
+            canvas = draw_floor_objects(canvas, view_cell)
+        placement = placements.get(view_cell)
+        feature = definitions.get(placement.feature_key) if placement is not None else None
+        if placement is not None and feature is not None:
+            canvas, metadata = render_dungeon_feature(
+                canvas,
+                assets,
+                feature,
+                view_cell=view_cell,
+                direction=placement.direction,
+                variant=placement.variant,
+                colour_variant=placement.colour_variant,
+                overlay_variant=placement.overlay_variant,
+                active=placement.active,
+                wood_states=placement.wood_states,
+                wall_visibility_mask=wall_visibility_mask,
+                nudge_x=placement.nudge_x,
+                nudge_y=placement.nudge_y,
+                ceiling_hole=placement.ceiling_hole,
+                pattern_parity=pattern_parity,
+                draw_occupants_before_wood_face=(
+                    (lambda current_canvas: draw_occupants(current_canvas, view_cell))
+                    if draw_occupants is not None and feature.map_type == 2
+                    else None
+                ),
+            )
+            rendered.append(metadata)
+            if (
+                draw_shelf_objects is not None
+                and placement.feature_key == "shelf"
+                and placement.active
+                and wall_slots_for_direction(
+                    view_cell,
+                    placement.direction,
+                    wall_visibility_mask,
+                )
+            ):
+                canvas = draw_shelf_objects(canvas, view_cell)
+        if draw_occupants is not None and (
+            feature is None or feature.map_type in (0, 4, 5, 6)
+        ):
+            canvas = draw_occupants(canvas, view_cell)
     return canvas, {
         "wall_visibility_mask": wall_visibility_mask,
         "pattern_parity": pattern_parity & 1,

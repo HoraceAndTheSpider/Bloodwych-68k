@@ -13,12 +13,14 @@ from tools.data_overlay import data_overlay_root, related_data_roots
 from tools.savegame_overlay import savegame_overlay_root
 from tools.dungeon_view import (
     DungeonAssets,
-    DungeonPlacement,
     load_dungeon_background,
     render_dungeon_scene,
 )
 from tools.gamefont_converter import read_font
 from tools.graphics_preview import CharacterAssets, blit
+from tools.map_editor.first_person import map_view_placements, move_in_view_direction
+from tools.map_editor.model import MAP_HEADER_SIZE, MAP_RESOURCE_SIZE, MapCell, TowerMap
+from tools.st_planar_assets import decode_planar
 
 
 INTERFACE_WIDTH = 320
@@ -52,6 +54,12 @@ INTERFACE_ACTION_MULTI_FUNCTION = 0x02
 INTERFACE_ACTION_INVENTORY = 0x03
 INTERFACE_ACTION_PARTY_MEMBER_FIRST = 0x06
 INTERFACE_ACTION_PARTY_MEMBER_LAST = 0x09
+INTERFACE_ACTION_MOVE_FORWARDS = 0x0A
+INTERFACE_ACTION_MOVE_BACKWARDS = 0x0B
+INTERFACE_ACTION_MOVE_LEFT = 0x0C
+INTERFACE_ACTION_MOVE_RIGHT = 0x0D
+INTERFACE_ACTION_ROTATE_LEFT = 0x0E
+INTERFACE_ACTION_ROTATE_RIGHT = 0x0F
 INTERFACE_ACTION_DISPLAY = 0x10
 INTERFACE_ACTION_COMMS_AND_OPTIONS = 0x1A
 INTERFACE_ACTION_PAUSE = 0x1C
@@ -60,6 +68,8 @@ INTERFACE_ACTION_SLEEP_PARTY = 0x1E
 INTERFACE_ACTION_SHOW_TEAM_AVATARS = 0x1F
 INTERFACE_ACTION_PARTY_COMMAND_MODE = 0x20
 INTERFACE_ACTION_PARTY_COMMAND_SELECTION = 0x21
+INTERFACE_ACTION_WALL_FEATURE_CLICK = 0x23
+INTERFACE_ACTION_WALL_FEATURE_CONTEXT = 0x24
 INTERFACE_ACTION_LAUNCH_SPELL = 0x15
 INTERFACE_ACTION_VIEW_SPELL = 0x16
 INTERFACE_ACTION_SPELLBOOK_PAGE_FORWARD = 0x17
@@ -116,6 +126,19 @@ CHARACTER_WORN_ARMOUR_RENDER_OVERRIDES = (
     0xC3,
 )
 PLAYER_COMPACT_STATS_COLOUR_INDICES = (0x07, 0x0C)
+PARTY_SHIELD_STATUS_BAR_COLOUR_INDICES = (0x06, 0x0D, 0x0C, 0x07)
+PARTY_SHIELD_STATUS_BAR_SUPPRESSION_MASK = 0xE0
+PARTY_SHIELD_STATUS_BAR_LAST_SLOT = 0x03
+PARTY_PRESENTATION_LOWER_SLOT_MASK = 0x0E
+PARTY_SHIELD_STATUS_BAR_X_FIRST = 0x37
+PARTY_SHIELD_STATUS_BAR_X_STEP = 0x09
+PARTY_SHIELD_STATUS_BAR_WIDTH = 0x07
+PARTY_SHIELD_STATUS_BAR_BASE_Y = 0x2C
+# Draw_PartyShieldStatusBars seeds D4 with $14.  Scale_ValueToBarLength
+# preserves that terminal height for full HP; its $15 target is used only
+# while scaling a non-full value.
+PARTY_SHIELD_STATUS_BAR_FULL_TERMINAL_HEIGHT = 0x14
+PARTY_SHIELD_STATUS_BAR_SCALE_HEIGHT = 0x15
 STATS_FRAME_HORIZONTAL_LINES = (
     (0x36, 0x0A, 0x25, 0x01),
     (0x34, 0x0B, 0x29, 0x02),
@@ -225,6 +248,86 @@ COPPER_FRAME_WRAP_Y = 0xFF
 # compact-stats top decoration at y=$0A. The dungeon and fixed control bank do
 # not move when the left panel toggles.
 DUNGEON_VIEW_RECT = (96, 12, 128, 76)
+
+# Draw_Arrow_Highlights ($6DA2) indexes these source records by its D0 value.
+# Each entry is ``(ButtonHighlights.gfx byte offset, 16-pixel words, rows,
+# player-local X, player-local Y)``.  The source compositor treats four-plane
+# colour $F as transparent (unlike many Pockets assets, which use $0).
+ARROW_HIGHLIGHT_SPECS = (
+    (0x050, 2, 9, 224, 60),   # forward
+    (0x268, 1, 11, 256, 72),  # move right
+    (0x1D8, 2, 9, 224, 74),   # backward
+    (0x180, 1, 11, 224, 72),  # move left
+    (0x000, 1, 10, 224, 60),  # rotate left
+    (0x0E0, 2, 10, 240, 60),  # rotate right
+)
+ARROW_ACTION_TO_HIGHLIGHT_INDEX = {
+    INTERFACE_ACTION_MOVE_FORWARDS: 0,
+    INTERFACE_ACTION_MOVE_BACKWARDS: 2,
+    INTERFACE_ACTION_MOVE_LEFT: 3,
+    INTERFACE_ACTION_MOVE_RIGHT: 1,
+    INTERFACE_ACTION_ROTATE_LEFT: 4,
+    INTERFACE_ACTION_ROTATE_RIGHT: 5,
+}
+
+# Floor 0 from the user-supplied 5×9 Serpent Tower map.  It is intentionally
+# embedded as a UI-only test scene: it is neither extracted game data nor part
+# of the editable clean/modified map overlays.
+INTERFACE_PREVIEW_FLOOR = 0
+INTERFACE_PREVIEW_START = (2, 5, 0)  # X, Y, north
+INTERFACE_PREVIEW_WIDTH = 5
+INTERFACE_PREVIEW_HEIGHT = 9
+INTERFACE_PREVIEW_FLOOR_BYTES = bytes.fromhex(
+    "000100010001000100a1"
+    "41020000000000000000"
+    "40020001030500010000"
+    "5c0200000000000000b1"
+    "00000001000000010000"
+    "07060001000000000000"
+    "00810001090500010081"
+    "0001d206da06e2060001"
+    "00010001090500010001"
+)
+# Manual movement policy supplied by the user.  It deliberately remains
+# separate from the source-derived map renderer until Check_Collision and
+# Compute_NewMapIndex have been fully named and verified.
+INTERFACE_PREVIEW_MOVEMENT_POLICY = "manual"
+
+
+def interface_preview_map() -> TowerMap:
+    """Build the viewer-only map containing the supplied 5×9 floor 0."""
+    expected_size = INTERFACE_PREVIEW_WIDTH * INTERFACE_PREVIEW_HEIGHT * 2
+    if len(INTERFACE_PREVIEW_FLOOR_BYTES) != expected_size:
+        raise RuntimeError("interface preview floor has an invalid byte count")
+    data = bytearray(MAP_RESOURCE_SIZE)
+    data[0] = INTERFACE_PREVIEW_WIDTH
+    data[8] = INTERFACE_PREVIEW_HEIGHT
+    data[MAP_HEADER_SIZE : MAP_HEADER_SIZE + expected_size] = INTERFACE_PREVIEW_FLOOR_BYTES
+    return TowerMap(bytes(data), name="INTERFACE UI TEST MAP")
+
+
+def interface_preview_cell_allows_entry(cell: MapCell, direction: int) -> bool:
+    """Apply the UI preview's *manual* movement policy to one destination.
+
+    ``direction`` is the absolute direction of travel (north/east/south/west
+    = 0..3).  Wood uses the destination cell's opposite edge because that is
+    the edge crossed while entering it.  This mirrors the source routine's
+    direction reversal, but the complete policy is intentionally not claimed
+    as source-verified yet.
+    """
+    map_type = cell.map_type
+    if map_type == 0:
+        return True
+    if map_type in (1, 3):
+        return False
+    if map_type == 2:
+        entered_edge = ((direction + 2) & 3) * 2
+        return ((cell.first >> entered_edge) & 3) not in (1, 3)
+    if map_type == 5:
+        return not bool(cell.b & 1)
+    if map_type == 7:
+        return (cell.b & 3) != 3
+    return True
 LEFT_PANEL_RECT = (0, 7, 96, 89)
 RIGHT_PANEL_X = 224
 # Click_CommsAndOptions ($420C) is one source action, not four actions.  It
@@ -325,6 +428,12 @@ ACTION_ROUTINES = {
             INTERFACE_ACTION_PARTY_MEMBER_LAST + 1,
         )
     },
+    INTERFACE_ACTION_MOVE_FORWARDS: "Click_MoveForwards",
+    INTERFACE_ACTION_MOVE_BACKWARDS: "Click_MoveBackwards",
+    INTERFACE_ACTION_MOVE_LEFT: "Click_MoveLeft",
+    INTERFACE_ACTION_MOVE_RIGHT: "Click_MoveRight",
+    INTERFACE_ACTION_ROTATE_LEFT: "Click_RotateLeft",
+    INTERFACE_ACTION_ROTATE_RIGHT: "Click_RotateRight",
     INTERFACE_ACTION_DISPLAY: "Click_Display",
     INTERFACE_ACTION_COMMS_AND_OPTIONS: "Click_CommsAndOptions",
     INTERFACE_ACTION_PAUSE: "Click_PauseGame",
@@ -333,6 +442,11 @@ ACTION_ROUTINES = {
     INTERFACE_ACTION_SHOW_TEAM_AVATARS: "Click_ShowTeamAvatars",
     INTERFACE_ACTION_PARTY_COMMAND_MODE: "Click_TogglePartyCommandRow",
     INTERFACE_ACTION_PARTY_COMMAND_SELECTION: "PartyCommand_DispatchSelection",
+    INTERFACE_ACTION_WALL_FEATURE_CLICK: "Handle_WallFeatureClick",
+    # The display-area action $24 jumps directly to the original adrJA0064D0
+    # wall-feature/door continuation; unlike $02 it does not first inspect
+    # the selected-spell state.
+    INTERFACE_ACTION_WALL_FEATURE_CONTEXT: "adrJA0064D0",
     INTERFACE_ACTION_LAUNCH_SPELL: "Click_LaunchSpellFromBook",
     INTERFACE_ACTION_VIEW_SPELL: "Click_ViewSpell",
     INTERFACE_ACTION_SPELLBOOK_PAGE_FORWARD: "Click_TurnSpellBookPage",
@@ -1243,6 +1357,20 @@ class InterfaceProject:
         state = self.preview_avatar_state_bytes[slot]
         return state is not None and bool(state & PARTY_AVATAR_DEAD_FLAG)
 
+    @property
+    def leader_avatar_is_expanded(self) -> bool:
+        """Whether PlayerX_Data+$003E bit 0 selects party HP bars in source."""
+        return 0 in self.expanded_preview_party_slots
+
+    @property
+    def lower_party_avatars_are_compact(self) -> bool:
+        """Whether bits 1--3 permit Click_CommsAndOptions to open commands."""
+        return not any(slot in self.expanded_preview_party_slots for slot in (1, 2, 3))
+
+    def restore_compact_party_avatars(self) -> None:
+        """Model a source ``clr.b PlayerX_Data+$003E`` presentation reset."""
+        self.expanded_preview_party_slots.clear()
+
     def preview_champion_is_dead(self, champion: int | None) -> bool:
         return champion is not None and any(
             state is not None
@@ -1251,6 +1379,44 @@ class InterfaceProject:
             for state in self.preview_avatar_state_bytes
         )
 
+    def party_shield_status_bars(self) -> tuple[tuple[int, int, int, int, int], ...]:
+        """Return the full-length-avatar HP bars from Draw_PartyShieldStatusBars.
+
+        Each tuple is ``(x, y, width, height, palette_index)``.  The original
+        visits slots 3 down to 0, but its decrementing X coordinate places the
+        resulting bars left-to-right in ordinary party-slot order.
+        """
+        bars = []
+        for slot, state in enumerate(self.preview_avatar_state_bytes):
+            if state is None or state & PARTY_SHIELD_STATUS_BAR_SUPPRESSION_MASK:
+                continue
+            champion = state & PARTY_AVATAR_CHAMPION_ID_MASK
+            record = self.champions.record(champion)
+            current_hit_points = record.byte(0x05)
+            if not current_hit_points:
+                continue
+            maximum_hit_points = record.byte(0x06)
+            terminal_height = PARTY_SHIELD_STATUS_BAR_FULL_TERMINAL_HEIGHT
+            if current_hit_points < maximum_hit_points:
+                terminal_height = (
+                    current_hit_points
+                    * PARTY_SHIELD_STATUS_BAR_SCALE_HEIGHT
+                    // maximum_hit_points
+                )
+            bars.append(
+                (
+                    PARTY_SHIELD_STATUS_BAR_X_FIRST
+                    + slot * PARTY_SHIELD_STATUS_BAR_X_STEP,
+                    PARTY_SHIELD_STATUS_BAR_BASE_Y - terminal_height,
+                    PARTY_SHIELD_STATUS_BAR_WIDTH,
+                    terminal_height + 1,
+                    PARTY_SHIELD_STATUS_BAR_COLOUR_INDICES[
+                        self.champions.magic_class_index(champion)
+                    ],
+                )
+            )
+        return tuple(bars)
+
     @property
     def preview_dead_champion_ids(self) -> tuple[int, ...]:
         return tuple(
@@ -1258,6 +1424,137 @@ class InterfaceProject:
             for slot, champion in enumerate(self.preview_avatar_members)
             if champion is not None and self.preview_avatar_slot_is_dead(slot)
         )
+
+    def _render_preview_dungeon(self) -> None:
+        """Render the supplied Serpent Tower floor from the preview party."""
+        placements = map_view_placements(
+            self.preview_map,
+            INTERFACE_PREVIEW_FLOOR,
+            self.preview_x,
+            self.preview_y,
+            self.preview_facing,
+        )
+        self.dungeon_preview, _ = render_dungeon_scene(
+            self.dungeon_background,
+            self.dungeon_assets,
+            placements,
+            pattern_parity=(self.preview_x + self.preview_y + self.preview_facing) & 1,
+        )
+
+    def toggle_preview_door(self) -> str:
+        """Apply Click_MultiFunctionButton's verified door-toggle subset.
+
+        Source path: ``Click_MultiFunctionButton`` → ``adrJA0064D0`` →
+        ``Toggle_WallFeatureOrReportLocked``.  This UI-test implementation
+        covers its wooden-door edge and large-door branches.  It deliberately
+        reports keyed/magelocked/void-locked doors as locked because the
+        preview has no held-item or spell state yet.
+        """
+        current = self.preview_map.cell(
+            INTERFACE_PREVIEW_FLOOR, self.preview_x, self.preview_y
+        )
+        current_edge = self.preview_facing
+        if current.map_type == 2:
+            result = self._toggle_preview_wood_door(
+                self.preview_x, self.preview_y, current_edge
+            )
+            if result is not None:
+                return result
+
+        front = move_in_view_direction(
+            self.preview_x, self.preview_y, self.preview_facing, forward=1
+        )
+        width = self.preview_map.widths[INTERFACE_PREVIEW_FLOOR]
+        height = self.preview_map.heights[INTERFACE_PREVIEW_FLOOR]
+        if not (0 <= front[0] < width and 0 <= front[1] < height):
+            return "no door"
+        cell = self.preview_map.cell(INTERFACE_PREVIEW_FLOOR, *front)
+        if cell.map_type == 2:
+            result = self._toggle_preview_wood_door(
+                front[0], front[1], (self.preview_facing + 2) & 3
+            )
+            if result is not None:
+                return result
+        if cell.map_type != 5:
+            return "no door"
+        # C650 rejects C's top bit, B bit 3 (void lock), A-nibble keyed doors,
+        # and the second-byte Magelock bit before it reaches the state toggle.
+        if cell.c & 8 or cell.b & 8 or cell.a or cell.second & 0x10:
+            return "locked"
+        was_closed = bool(cell.b & 1)
+        self.preview_map.set_cell(
+            INTERFACE_PREVIEW_FLOOR,
+            front[0],
+            front[1],
+            MapCell(cell.first ^ 1, cell.second),
+        )
+        self._render_preview_dungeon()
+        return "opened" if was_closed else "closed"
+
+    def _toggle_preview_wood_door(self, x: int, y: int, edge: int) -> str | None:
+        """Toggle one open/closed wooden-door edge, or return ``None``."""
+        cell = self.preview_map.cell(INTERFACE_PREVIEW_FLOOR, x, y)
+        shift = (edge & 3) * 2
+        state = (cell.first >> shift) & 3
+        if state not in (2, 3):
+            return None
+        self.preview_map.set_cell(
+            INTERFACE_PREVIEW_FLOOR,
+            x,
+            y,
+            MapCell(cell.first ^ (1 << shift), cell.second),
+        )
+        self._render_preview_dungeon()
+        return "opened" if state == 3 else "closed"
+
+    def move_preview_party(self, action: int) -> bool:
+        """Apply one source movement/rotation action to the local preview map.
+
+        Returns whether the position or facing changed.  The temporary
+        collision policy is explicitly manual; see
+        ``interface_preview_cell_allows_entry``.
+        """
+        if action == INTERFACE_ACTION_ROTATE_LEFT:
+            self.preview_facing = (self.preview_facing - 1) & 3
+        elif action == INTERFACE_ACTION_ROTATE_RIGHT:
+            self.preview_facing = (self.preview_facing + 1) & 3
+        else:
+            relative = {
+                INTERFACE_ACTION_MOVE_FORWARDS: (0, 1),
+                INTERFACE_ACTION_MOVE_BACKWARDS: (0, -1),
+                INTERFACE_ACTION_MOVE_LEFT: (-1, 0),
+                INTERFACE_ACTION_MOVE_RIGHT: (1, 0),
+            }.get(action)
+            if relative is None:
+                return False
+            lateral, forward = relative
+            candidate = move_in_view_direction(
+                self.preview_x,
+                self.preview_y,
+                self.preview_facing,
+                lateral=lateral,
+                forward=forward,
+            )
+            width = self.preview_map.widths[INTERFACE_PREVIEW_FLOOR]
+            height = self.preview_map.heights[INTERFACE_PREVIEW_FLOOR]
+            if not (0 <= candidate[0] < width and 0 <= candidate[1] < height):
+                return False
+            direction = {
+                (0, -1): 0,
+                (1, 0): 1,
+                (0, 1): 2,
+                (-1, 0): 3,
+            }[(candidate[0] - self.preview_x, candidate[1] - self.preview_y)]
+            if not interface_preview_cell_allows_entry(
+                self.preview_map.cell(
+                    INTERFACE_PREVIEW_FLOOR, candidate[0], candidate[1]
+                ),
+                direction,
+            ):
+                return False
+            self.preview_x, self.preview_y = candidate
+        self._render_preview_dungeon()
+        return True
 
     def reload(self, use_modified: bool) -> None:
         self.use_modified = use_modified
@@ -1272,17 +1569,28 @@ class InterfaceProject:
             self.game_font = read_font(self.root / "gfx/GameFont")
             self.champions = ChampionAssets(self.root)
             self.character_assets = CharacterAssets(self.root / "data", self.root / "gfx")
-            dungeon_assets = DungeonAssets(self.root / "gfx")
-            dungeon_background = load_dungeon_background(self.root / "gfx")
-            corridor = {
-                index: DungeonPlacement("stone")
-                for index in (0, 2, 3, 5, 6, 7, 9, 10, 12, 13)
-            }
-            corridor[15] = DungeonPlacement("door_portcullis")
-            self.dungeon_preview, _ = render_dungeon_scene(
-                dungeon_background,
-                dungeon_assets,
-                corridor,
+            self.dungeon_assets = DungeonAssets(self.root / "gfx")
+            self.dungeon_background = load_dungeon_background(self.root / "gfx")
+            self.preview_map = interface_preview_map()
+            if (
+                self.preview_map.widths[INTERFACE_PREVIEW_FLOOR],
+                self.preview_map.heights[INTERFACE_PREVIEW_FLOOR],
+            ) != (INTERFACE_PREVIEW_WIDTH, INTERFACE_PREVIEW_HEIGHT):
+                raise ValueError("interface preview floor 0 must be 5 by 9 tiles")
+            self.preview_x, self.preview_y, self.preview_facing = INTERFACE_PREVIEW_START
+            self._render_preview_dungeon()
+            highlight_raw = (self.root / "gfx/ButtonHighlights.gfx").read_bytes()
+            self.arrow_highlights = tuple(
+                (
+                    x,
+                    y,
+                    decode_planar(
+                        highlight_raw[offset : offset + width_words * height * 8],
+                        width_words,
+                        height,
+                    ),
+                )
+                for offset, width_words, height, x, y in ARROW_HIGHLIGHT_SPECS
             )
             pocket_records = (self.root / "data/champions.pockets").read_bytes()
             if len(pocket_records) != 0x100:

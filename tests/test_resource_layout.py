@@ -214,6 +214,36 @@ class ResourceLayoutTests(unittest.TestCase):
             self.assertIn("NewSecond:\n\tdc.w\t$0304", generated)
             self.assertNotIn("OldInternal", generated)
 
+    def test_relabel_skips_colliding_output_labels(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary_directory:
+            root = Path(temporary_directory)
+            source = root / "GAME.asm"
+            destination = root / "GAME_relabel.asm"
+            source.write_text(
+                "First:\n\trts\nSecond:\n\trts\n",
+                encoding="utf-8",
+            )
+            frame = pd.DataFrame(
+                (
+                    {"label": "First", "relabel": "Shared"},
+                    {"label": "Second", "relabel": "Shared"},
+                )
+            )
+
+            def fake_asm_path(_master: str, stage: str) -> Path:
+                return source if stage == "source" else destination
+
+            with (
+                patch("tools.tool_relabel.asm_path", side_effect=fake_asm_path),
+                patch("tools.tool_relabel.load_segments", return_value=frame),
+            ):
+                output = relabel_segments("GAME", root / "segments.xlsx")
+
+            generated = output.read_text(encoding="utf-8")
+            self.assertIn("First:\n\trts", generated)
+            self.assertIn("Second:\n\trts", generated)
+            self.assertNotIn("Shared:", generated)
+
     def test_relabel_separates_fix_label_from_ordinary_anchor_relabel(self) -> None:
         with tempfile.TemporaryDirectory() as temporary_directory:
             root = Path(temporary_directory)

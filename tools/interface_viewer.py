@@ -41,6 +41,7 @@ from tools.interface_data import (
     GFX_POCKETS_CHAIN_CONTINUOUS_OFFSET,
     GFX_POCKETS_CHAIN_WITH_AVATARS_OFFSET,
     INTERFACE_ACTION_INVENTORY,
+    INTERFACE_ACTION_DISPLAY,
     INTERFACE_ACTION_INVENTORY_EXIT,
     INTERFACE_ACTION_INVENTORY_HELD_SLOT,
     INTERFACE_ACTION_INVENTORY_PARTY_MEMBER_FIRST,
@@ -48,12 +49,21 @@ from tools.interface_data import (
     INTERFACE_ACTION_INVENTORY_SLOT_FIRST,
     INTERFACE_ACTION_INVENTORY_SLOT_LAST,
     INTERFACE_ACTION_LOAD_SAVE,
+    INTERFACE_ACTION_MULTI_FUNCTION,
     INTERFACE_ACTION_PARTY_MEMBER_FIRST,
     INTERFACE_ACTION_PARTY_MEMBER_LAST,
     INTERFACE_ACTION_PARTY_COMMAND_MODE,
+    INTERFACE_ACTION_MOVE_FORWARDS,
+    INTERFACE_ACTION_MOVE_BACKWARDS,
+    INTERFACE_ACTION_MOVE_LEFT,
+    INTERFACE_ACTION_MOVE_RIGHT,
+    INTERFACE_ACTION_ROTATE_LEFT,
+    INTERFACE_ACTION_ROTATE_RIGHT,
     INTERFACE_ACTION_PAUSE,
     INTERFACE_ACTION_LAUNCH_SPELL,
     INTERFACE_ACTION_VIEW_SPELL,
+    INTERFACE_ACTION_WALL_FEATURE_CLICK,
+    INTERFACE_ACTION_WALL_FEATURE_CONTEXT,
     INTERFACE_ACTION_SPELLBOOK_CLOSE,
     INTERFACE_ACTION_SPELLBOOK_COST_DOWN,
     INTERFACE_ACTION_SPELLBOOK_COST_UP,
@@ -103,9 +113,11 @@ from tools.interface_data import (
     InterfaceHitbox,
     InterfaceMode,
     InterfaceProject,
+    ARROW_ACTION_TO_HIGHLIGHT_INDEX,
     amiga_colour_to_rgb,
     replace_colour_nibble,
     remap_ui_template_colour,
+    screen_byte_offset_to_xy,
 )
 from tools.st_planar_assets import GAME_PALETTE_RGB8
 
@@ -115,6 +127,38 @@ PROJECT_ROOT = Path(__file__).resolve().parents[1]
 # adrB_00C934, selected by Draw_SpellBookRunePage/C906 after its C6900 magic
 # class calculation: Serpent green, Chaos yellow, Dragon red, Moon blue.
 SPELLBOOK_MAGIC_CLASS_PALETTE_INDICES = (0x06, 0x0D, 0x0C, 0x07)
+DOOR_LOCKED_NOTICE = "THE DOOR IS LOCKED"
+# WriteText and Return_WallFeatureLocked's WriteTimedText both add this source
+# offset to the active player's interface origin (PlayerX_Data+$0A).  Keep all
+# preview communication text on that same game-defined text line.
+COMMUNICATION_TEXT_SCREEN_OFFSET = 0x0050
+COMMUNICATION_TEXT_POSITION = screen_byte_offset_to_xy(COMMUNICATION_TEXT_SCREEN_OFFSET)
+DOOR_LOCKED_NOTICE_POSITION = COMMUNICATION_TEXT_POSITION
+# WriteTimedText marks PlayerX_Data+$52 with $81.  Once the frame loop clears
+# its high bit, Update_PlayerDialogueTextColour ($8B72) holds the first colour
+# for $90 VBLs, then advances the PlayerColourRampTable every three VBLs via
+# PlayerX_Data+$4A.  The table contains six colour words per speech state.
+TIMED_TEXT_HOLD_VBLANKS = 0x90
+TIMED_TEXT_STEP_VBLANKS = 3
+TIMED_TEXT_RAMP_STEPS = 6
+TIMED_TEXT_VBLANKS_PER_SECOND = 60
+DOOR_LOCKED_NOTICE_DURATION_MS = (
+    (TIMED_TEXT_HOLD_VBLANKS + TIMED_TEXT_STEP_VBLANKS * TIMED_TEXT_RAMP_STEPS)
+    * 1_000
+    // TIMED_TEXT_VBLANKS_PER_SECOND
+)
+
+
+def timed_text_fade_step(elapsed_ms: int, *, start_step: int = 0) -> int:
+    """Return the source-timed PlayerColourRampTable entry for active text."""
+    if not 0 <= start_step < TIMED_TEXT_RAMP_STEPS:
+        raise ValueError("timed-text start step must be 0..5")
+    elapsed_vblanks = elapsed_ms * TIMED_TEXT_VBLANKS_PER_SECOND // 1_000
+    fade_vblanks = max(0, elapsed_vblanks - TIMED_TEXT_HOLD_VBLANKS)
+    return min(
+        start_step + fade_vblanks // TIMED_TEXT_STEP_VBLANKS,
+        TIMED_TEXT_RAMP_STEPS - 1,
+    )
 
 
 def spellbook_entry_spell_index(spread: int, entry: int) -> int:
@@ -125,6 +169,18 @@ def spellbook_entry_spell_index(spread: int, entry: int) -> int:
         raise ValueError("spell-book entry must be 0..7")
     row, side = divmod(entry, 2)
     return (spread * 2 + side) * 4 + row
+
+
+def multi_function_displays_door_icon(selected_spell: int | None) -> bool:
+    """Whether action $02 is presently the normal door control.
+
+    A loaded/prepared spell replaces the door graphic in the original
+    multi-function slot.  The preview retains that same state after a cast
+    request, so ``selected_spell`` also represents its active spell icon.
+    """
+    return selected_spell is None
+
+
 DEFAULT_DATA_ROOT = PROJECT_ROOT / "data/BLOODWYCH439-clean"
 WINDOW_SIZE = (1280, 760)
 PREVIEW_SCALE = 3
@@ -423,6 +479,7 @@ def _draw_fixed_dungeon_and_controls(
     selected_spell: int | None = None,
     cast_power: int = 0,
     show_cast_status: bool = False,
+    arrow_highlight_action: int | None = None,
 ) -> None:
     panel.fill((0, 0, 0))
     dungeon_x, dungeon_y, _, _ = DUNGEON_VIEW_RECT
@@ -459,7 +516,7 @@ def _draw_fixed_dungeon_and_controls(
     for x, y, width, colour in RIGHT_STATUS_ICON_BEVEL_LINES:
         pygame.draw.line(panel, palette[colour], (x, y), (x + width - 1, y))
     control_icons = ((0x63, 288), (0x62, 304))
-    if selected_spell is not None:
+    if not multi_function_displays_door_icon(selected_spell):
         # Action $02 (Click_MultiFunctionButton) is the 14×14 target at
         # X=$121..$12E/Y=$22..$2F.  While a spell is loaded its normal door
         # icon at X=$120 is replaced by the selected class's coloured star.
@@ -506,6 +563,7 @@ def _draw_fixed_dungeon_and_controls(
             palette,
             transparent_index=0,
         )
+
     active_slot = project.preview_party_members.index(project.active_preview_champion)
     frame_x, frame_y, frame_width, frame_height = PARTY_SELECTED_PROFESSION_FRAMES[
         active_slot
@@ -547,6 +605,40 @@ def _draw_fixed_dungeon_and_controls(
         _draw_gamefont(
             pygame, panel, project.game_font, "\x03", 208, 90, palette[0x04],
             uppercase=False,
+        )
+
+
+def _draw_arrow_highlight(
+    pygame: object,
+    panel: object,
+    project: InterfaceProject,
+    palette: Sequence[tuple[int, int, int]],
+    action: int | None,
+) -> None:
+    """Draw Draw_Arrow_Highlights above any active right-side page."""
+    if action not in ARROW_ACTION_TO_HIGHLIGHT_INDEX:
+        return
+    highlight_index = ARROW_ACTION_TO_HIGHLIGHT_INDEX[action]
+    x, y, pixels = project.arrow_highlights[highlight_index]
+    _draw_indexed(pygame, panel, pixels, x, y, palette, transparent_index=15)
+
+
+def _draw_timed_door_locked_notice(
+    pygame: object,
+    panel: object,
+    project: InterfaceProject,
+    palette: Sequence[tuple[int, int, int]],
+    notice: str | None,
+) -> None:
+    """Draw Return_WallFeatureLocked's WriteTimedText feedback, when active."""
+    if notice is not None:
+        _draw_gamefont(
+            pygame,
+            panel,
+            project.game_font,
+            notice,
+            *DOOR_LOCKED_NOTICE_POSITION,
+            palette[DIALOGUE_TEXT_PALETTE_INDEX],
         )
 
 
@@ -598,12 +690,20 @@ def _draw_compact_stats_left(
         palette[background_colour],
         (background_x, background_y, background_width, background_height),
     )
-    for index, (x, y, width, height) in enumerate(STATS_BAR_RECTS):
-        pygame.draw.rect(
-            panel,
-            stats_colour,
-            (x, y + index * STATS_BAR_Y_STEP, width, height),
-        )
+    if project.leader_avatar_is_expanded:
+        # Draw_PartyShieldStatusBars replaces the leader's three compact
+        # statistics with one vertical, hit-point-only bar per living member.
+        # Its colours come from Character_GetClassIndex, not the player's UI
+        # colour or the compact-stat hard-coded player colour.
+        for x, y, width, height, colour_index in project.party_shield_status_bars():
+            pygame.draw.rect(panel, palette[colour_index], (x, y, width, height))
+    else:
+        for index, (x, y, width, height) in enumerate(STATS_BAR_RECTS):
+            pygame.draw.rect(
+                panel,
+                stats_colour,
+                (x, y + index * STATS_BAR_Y_STEP, width, height),
+            )
 
     chain = _pockets_crop(project, GFX_POCKETS_CHAIN_WITH_AVATARS_OFFSET, 96, 7)
     _draw_indexed(pygame, panel, chain.pixels, 0, 89, palette)
@@ -663,10 +763,11 @@ def _draw_main(
     selected_spell: int | None = None,
     cast_power: int = 0,
     show_cast_status: bool = False,
+    arrow_highlight_action: int | None = None,
 ) -> None:
     _draw_fixed_dungeon_and_controls(
         pygame, panel, project, palette, primary_colour, player, selected_spell,
-        cast_power, show_cast_status,
+        cast_power, show_cast_status, arrow_highlight_action,
     )
     _draw_compact_stats_left(pygame, panel, project, palette, stats_colour, player)
 
@@ -1100,6 +1201,22 @@ def _active_mode_hitboxes(
     selected_spell: int | None = None,
 ) -> tuple[InterfaceHitbox, ...]:
     """Apply the communication and right-panel visibility rules to hitboxes."""
+    display_dispatch = next(
+        hitbox
+        for hitbox in project.hitboxes["main"]
+        if hitbox.action == INTERFACE_ACTION_DISPLAY
+    )
+    dungeon_display_hitboxes = (display_dispatch, *project.hitboxes["display"])
+
+    def retain_dungeon_display(
+        hitboxes: tuple[InterfaceHitbox, ...]
+    ) -> tuple[InterfaceHitbox, ...]:
+        """Keep Click_Display and its context targets live in every UI state."""
+        existing = {hitbox.action for hitbox in hitboxes}
+        return hitboxes + tuple(
+            hitbox for hitbox in dungeon_display_hitboxes if hitbox.action not in existing
+        )
+
     if right_mode_key == "spellbook":
         # Click_ViewSpell receives every rune rectangle.  C2AC clears $13
         # when its learned-bit test fails, which restores the unselected row.
@@ -1118,7 +1235,7 @@ def _active_mode_hitboxes(
         left_hitboxes = tuple(
             hitbox for hitbox in project.mode_hitboxes(mode) if hitbox.x_max < 96
         )
-        return left_hitboxes + spellbook_hitboxes
+        return retain_dungeon_display(left_hitboxes + spellbook_hitboxes)
     hitboxes = tuple(
         hitbox
         for hitbox in project.mode_hitboxes(mode)
@@ -1129,7 +1246,7 @@ def _active_mode_hitboxes(
         )
     )
     if right_mode_key == "stats":
-        return hitboxes + project.hitboxes["stats_scroll"]
+        return retain_dungeon_display(hitboxes + project.hitboxes["stats_scroll"])
     if right_mode_key == "inventory":
         inventory_hitboxes = tuple(
             hitbox
@@ -1145,8 +1262,43 @@ def _active_mode_hitboxes(
                 )
             )
         )
-        return hitboxes + inventory_hitboxes
-    return hitboxes
+        return retain_dungeon_display(hitboxes + inventory_hitboxes)
+    return retain_dungeon_display(hitboxes)
+
+
+def _display_context_hitbox_at(
+    project: InterfaceProject, x: int, y: int
+) -> InterfaceHitbox | None:
+    """Apply Click_Display's second-stage $22--$24 hit test.
+
+    The broad main-table action $10 covers the dungeon viewport.  In the
+    original it calls ``HitTest_DisplayAction`` before dispatch, so its three
+    context rectangles must be selected only after that outer hit succeeds.
+    """
+    return next(
+        (hitbox for hitbox in project.hitboxes["display"] if hitbox.contains(x, y)),
+        None,
+    )
+
+
+def _visible_hitbox_overlays(
+    project: InterfaceProject,
+    mode: InterfaceMode,
+    *,
+    comms_menu_page: int,
+    right_mode_key: str,
+    spellbook_spread: int,
+    selected_spell: int | None,
+) -> tuple[InterfaceHitbox, ...]:
+    """Return source hitboxes, retaining the outer display dispatcher."""
+    return _active_mode_hitboxes(
+        project,
+        mode,
+        comms_menu_page=comms_menu_page,
+        right_mode_key=right_mode_key,
+        spellbook_spread=spellbook_spread,
+        selected_spell=selected_spell,
+    )
 
 
 def render_interface_panel(
@@ -1166,8 +1318,16 @@ def render_interface_panel(
     spellbook_turn_frame: int | None = None,
     selected_spell: int | None = None,
     cast_power: int = 0,
+    arrow_highlight_action: int | None = None,
+    timed_notice: str | None = None,
+    timed_notice_step: int | None = None,
+    timed_notice_alternate: bool | None = None,
 ) -> tuple[object, tuple[int, int, int]]:
-    colour_word = project.colour_word(player, alternate_ramp, ramp_step)
+    active_ramp_step = ramp_step if timed_notice_step is None else timed_notice_step
+    active_alternate_ramp = (
+        alternate_ramp if timed_notice_alternate is None else timed_notice_alternate
+    )
+    colour_word = project.colour_word(player, active_alternate_ramp, active_ramp_step)
     dialogue_colour = amiga_colour_to_rgb(colour_word)
     primary_colour, secondary_colour, stats_colour = _player_ui_colours(player)
     palette = _palette(dialogue_colour)
@@ -1210,6 +1370,7 @@ def render_interface_panel(
             selected_spell,
             cast_power,
             resolved_right_mode_key == "spellbook",
+            arrow_highlight_action,
         )
     if resolved_right_mode_key == "inventory":
         _draw_inventory(
@@ -1249,25 +1410,19 @@ def render_interface_panel(
             stats_colour,
             player,
         )
+    # Spellbook/inventory drawers paint over the normal controls.  The game
+    # still schedules Draw_Arrow_Highlights independently, so it must be the
+    # last right-panel layer in the viewer as well.
+    _draw_arrow_highlight(
+        pygame, panel, project, palette, arrow_highlight_action
+    )
     if display_state == "load_save":
         _draw_load_save_prompt(pygame, panel, project, palette)
     elif display_state == "sleep":
         _draw_sleep_display(pygame, panel, project, palette)
-    dialogue_sample = (
-        "I THINK SO, MY FRIEND"
-        if alternate_ramp
-        else ("THERE IS NOBODY HERE" if player == 0 else "COME INTO MY MERRY BAND")
-    )
-    if display_state is None:
-        _draw_gamefont(
-            pygame,
-            panel,
-            project.game_font,
-            dialogue_sample,
-            1,
-            0,
-            dialogue_colour,
-        )
+    # The source leaves this text line blank until WriteText/WriteTimedText
+    # supplies a message.  The editor opens a timed sample through Speech.
+    _draw_timed_door_locked_notice(pygame, panel, project, palette, timed_notice)
     if display_state == "pause":
         _replace_colour(pygame, panel, (0, 0, 0), palette[0])
     return panel, dialogue_colour
@@ -1365,7 +1520,9 @@ def launch_interface_viewer(
         # Direction, animation start tick and the spread to reveal once the
         # page-curl overlay has finished.
         spellbook_turn: tuple[int, int, int] | None = None
-        status = "Read-only layout; dialogue-text ramps can be saved to modified data."
+        arrow_highlight: tuple[int, int] | None = None
+        timed_text: tuple[str, bool, int, int] | None = None
+        status = "Speech opens a source-timed text-colour preview; ramps save to modified data."
 
         player_rects = (pygame.Rect(20, 55, 150, 34), pygame.Rect(180, 55, 150, 34))
         hitbox_toggle = pygame.Rect(1010, 55, 230, 34)
@@ -1413,6 +1570,28 @@ def launch_interface_viewer(
                     # (X=240 + phase * 16): back therefore travels phase 0→3
                     # (left to right), while forward is phase 3→0.
                     spellbook_turn_frame = frame if direction < 0 else 3 - frame
+            arrow_highlight_action = (
+                arrow_highlight[0]
+                if arrow_highlight is not None
+                and pygame.time.get_ticks() < arrow_highlight[1]
+                else None
+            )
+            if arrow_highlight_action is None:
+                arrow_highlight = None
+            timed_notice = None
+            timed_notice_step = None
+            timed_notice_alternate = None
+            if timed_text is not None:
+                text, alternate, started_at, start_step = timed_text
+                elapsed_ms = pygame.time.get_ticks() - started_at
+                if elapsed_ms < DOOR_LOCKED_NOTICE_DURATION_MS:
+                    timed_notice = text
+                    timed_notice_step = timed_text_fade_step(
+                        elapsed_ms, start_step=start_step
+                    )
+                    timed_notice_alternate = alternate
+                else:
+                    timed_text = None
             comms_hovered_button = None
             if mode.key == "comms" and preview_rect.collidepoint(mouse):
                 native_x = (mouse[0] - preview_rect.x) // PREVIEW_SCALE
@@ -1438,6 +1617,10 @@ def launch_interface_viewer(
                 spellbook_turn_frame=spellbook_turn_frame,
                 selected_spell=selected_spell,
                 cast_power=cast_power,
+                arrow_highlight_action=arrow_highlight_action,
+                timed_notice=timed_notice,
+                timed_notice_step=timed_notice_step,
+                timed_notice_alternate=timed_notice_alternate,
             )
             framed_panel = frame_interface_panel(pygame, panel)
             chrome_colour, secondary_ui_colour, stats_colour = _player_ui_colours(player)
@@ -1521,12 +1704,19 @@ def launch_interface_viewer(
                     ),
                     None,
                 )
+                if (
+                    hovered_hitbox is not None
+                    and hovered_hitbox.action == INTERFACE_ACTION_DISPLAY
+                ):
+                    hovered_hitbox = _display_context_hitbox_at(
+                        project, native_x, native_y
+                    )
                 if mode.key == "comms":
                     hovered_communication = communication_button_at(
                         native_x, native_y, menu_page=comms_menu_page
                     )
             if show_hitboxes:
-                for hitbox in _active_mode_hitboxes(
+                for hitbox in _visible_hitbox_overlays(
                     project,
                     mode,
                     comms_menu_page=comms_menu_page,
@@ -1542,15 +1732,16 @@ def launch_interface_viewer(
                     )
                     rect.move_ip(preview_rect.x, preview_rect.y)
                     active = hitbox in (hovered_hitbox, selected_hitbox)
+                    is_display_dispatch = hitbox.action == INTERFACE_ACTION_DISPLAY
                     # Draw directly onto the scaled preview.  In particular,
                     # do not blit an otherwise transparent full-preview
                     # surface here: some display backends replace the
                     # inventory pixels beneath that surface.
                     pygame.draw.rect(
                         screen,
-                        (255, 224, 92),
+                        (104, 176, 255) if is_display_dispatch else (255, 224, 92),
                         rect,
-                        2 if active else 1,
+                        1 if is_display_dispatch else (2 if active else 1),
                     )
                     _draw_hitbox_id(
                         pygame,
@@ -1558,7 +1749,7 @@ def launch_interface_viewer(
                         project.game_font,
                         hitbox.action,
                         rect.x + 2,
-                        rect.y + 1,
+                        rect.bottom - 10 if is_display_dispatch else rect.y + 1,
                     )
                 if mode.key == "comms":
                     overlay = pygame.Surface(PREVIEW_SIZE, pygame.SRCALPHA)
@@ -1700,8 +1891,16 @@ def launch_interface_viewer(
                         running = False
                     elif player_rects[0].collidepoint(event.pos):
                         player = 0
+                        timed_text = (
+                            "THERE IS NOBODY HERE", alternate_ramp,
+                            pygame.time.get_ticks(), ramp_step,
+                        )
                     elif player_rects[1].collidepoint(event.pos):
                         player = 1
+                        timed_text = (
+                            "COME INTO MY MERRY BAND", alternate_ramp,
+                            pygame.time.get_ticks(), ramp_step,
+                        )
                     elif hitbox_toggle.collidepoint(event.pos):
                         show_hitboxes = not show_hitboxes
                         selected_hitbox = None
@@ -1713,10 +1912,32 @@ def launch_interface_viewer(
                             status = str(error)
                     elif variant_rect.collidepoint(event.pos):
                         alternate_ramp = not alternate_ramp
+                        timed_text = (
+                            "I THINK SO, MY FRIEND" if alternate_ramp else
+                            ("THERE IS NOBODY HERE" if player == 0 else "COME INTO MY MERRY BAND"),
+                            alternate_ramp,
+                            pygame.time.get_ticks(),
+                            ramp_step,
+                        )
+                        status = "Speech preview started with the selected source fade step."
                     elif step_down.collidepoint(event.pos):
                         ramp_step = (ramp_step - 1) % 6
+                        timed_text = (
+                            "I THINK SO, MY FRIEND" if alternate_ramp else
+                            ("THERE IS NOBODY HERE" if player == 0 else "COME INTO MY MERRY BAND"),
+                            alternate_ramp,
+                            pygame.time.get_ticks(),
+                            ramp_step,
+                        )
                     elif step_up.collidepoint(event.pos):
                         ramp_step = (ramp_step + 1) % 6
+                        timed_text = (
+                            "I THINK SO, MY FRIEND" if alternate_ramp else
+                            ("THERE IS NOBODY HERE" if player == 0 else "COME INTO MY MERRY BAND"),
+                            alternate_ramp,
+                            pygame.time.get_ticks(),
+                            ramp_step,
+                        )
                     elif save_rect.collidepoint(event.pos):
                         destination = project.save_colour_ramps()
                         project.use_modified = True
@@ -1733,14 +1954,27 @@ def launch_interface_viewer(
                             (event.pos[1] - preview_rect.y) // PREVIEW_SCALE
                             - PANEL_FRAME_Y
                         )
-                        if mode.key == "main" and pygame.Rect(51, 10, 44, 42).collidepoint(
+                        if mode.key == "main" and pygame.Rect(48, 10, 48, 44).collidepoint(
                             native_x, native_y
                         ):
-                            selected_mode = command_mode_index
-                            selected_hitbox = None
-                            display_state = None
-                            comms_menu_page = 0
-                            status = "Compact stats panel toggled to party commands."
+                            if project.lower_party_avatars_are_compact:
+                                # Click_ChampionPresentationOrPartyCommand only
+                                # permits the command surface when $003E bits
+                                # 1--3 are all clear. On success it clears the
+                                # complete presentation byte, including any
+                                # invisible dead/vacant-slot toggle bits.
+                                selected_mode = command_mode_index
+                                project.restore_compact_party_avatars()
+                                selected_hitbox = None
+                                display_state = None
+                                comms_menu_page = 0
+                                status = "Compact stats panel opened party commands."
+                            else:
+                                selected_hitbox = None
+                                status = (
+                                    "Party commands remain hidden until all three lower "
+                                    "avatar presentation toggles are restored."
+                                )
                         elif mode.key == "comms" and (
                             command := communication_button_at(
                                 native_x, native_y, menu_page=comms_menu_page
@@ -1784,10 +2018,47 @@ def launch_interface_viewer(
                                 ),
                                 None,
                             )
+                            if (
+                                selected_hitbox is not None
+                                and selected_hitbox.action == INTERFACE_ACTION_DISPLAY
+                            ):
+                                selected_hitbox = _display_context_hitbox_at(
+                                    project, native_x, native_y
+                                )
                             if selected_hitbox is not None:
                                 action = selected_hitbox.action
                                 handler = selected_hitbox.handler_name
-                                if selected_hitbox.group == "inventory":
+                                if action in ARROW_ACTION_TO_HIGHLIGHT_INDEX:
+                                    moved = project.move_preview_party(action)
+                                    if (
+                                        moved
+                                        and action
+                                        in (
+                                            INTERFACE_ACTION_MOVE_FORWARDS,
+                                            INTERFACE_ACTION_MOVE_BACKWARDS,
+                                            INTERFACE_ACTION_MOVE_LEFT,
+                                            INTERFACE_ACTION_MOVE_RIGHT,
+                                        )
+                                    ):
+                                        # Store_PlayerXY clears the complete
+                                        # presentation byte after a movement,
+                                        # including invisible dead/vacant-slot
+                                        # toggles. Preserve the viewer's
+                                        # current surface; the redraw does not
+                                        # imply a user-visible mode change.
+                                        project.restore_compact_party_avatars()
+                                    arrow_highlight = (
+                                        action,
+                                        pygame.time.get_ticks() + 180,
+                                    )
+                                    selected_hitbox = None
+                                    status = (
+                                        f"{handler}: preview party "
+                                        f"{'moved' if moved else 'is blocked'} at "
+                                        f"({project.preview_x}, {project.preview_y}), "
+                                        f"facing {('north', 'east', 'south', 'west')[project.preview_facing]}."
+                                    )
+                                elif selected_hitbox.group == "inventory":
                                     if (
                                         INTERFACE_ACTION_INVENTORY_PARTY_MEMBER_FIRST
                                         <= action
@@ -1959,6 +2230,40 @@ def launch_interface_viewer(
                                     display_state = None
                                     inventory_party_slot = 0
                                     status = f"{handler}: inventory display opened."
+                                elif action in (
+                                    INTERFACE_ACTION_WALL_FEATURE_CLICK,
+                                    INTERFACE_ACTION_WALL_FEATURE_CONTEXT,
+                                ):
+                                    # Display hitbox $24 jumps directly to
+                                    # adrJA0064D0.  $23 first checks wall features,
+                                    # then takes the same branch for every non-type-1
+                                    # cell, including wooden and large doors.
+                                    outcome = project.toggle_preview_door()
+                                    selected_hitbox = None
+                                    if outcome == "locked":
+                                        timed_text = (
+                                            DOOR_LOCKED_NOTICE, False,
+                                            pygame.time.get_ticks(), 0,
+                                        )
+                                    status = f"{handler}: {outcome} the UI-test map door."
+                                elif action == INTERFACE_ACTION_MULTI_FUNCTION:
+                                    selected_hitbox = None
+                                    if multi_function_displays_door_icon(selected_spell):
+                                        outcome = project.toggle_preview_door()
+                                        if outcome == "locked":
+                                            timed_text = (
+                                                DOOR_LOCKED_NOTICE, False,
+                                                pygame.time.get_ticks(), 0,
+                                            )
+                                        status = (
+                                            f"{handler}: {outcome} "
+                                            "the UI-test map door."
+                                        )
+                                    else:
+                                        status = (
+                                            f"{handler}: spell icon is present; "
+                                            "door operation is unavailable."
+                                        )
                                 elif (
                                     INTERFACE_ACTION_PARTY_MEMBER_FIRST
                                     <= action
@@ -2088,6 +2393,13 @@ def launch_interface_viewer(
                                     alternate_ramp,
                                     ramp_step,
                                     replace_colour_nibble(current, channel, value),
+                                )
+                                timed_text = (
+                                    "I THINK SO, MY FRIEND" if alternate_ramp else
+                                    ("THERE IS NOBODY HERE" if player == 0 else "COME INTO MY MERRY BAND"),
+                                    alternate_ramp,
+                                    pygame.time.get_ticks(),
+                                    ramp_step,
                                 )
                                 status = "Dialogue colour changed in memory; save to create the modified resource."
                                 break

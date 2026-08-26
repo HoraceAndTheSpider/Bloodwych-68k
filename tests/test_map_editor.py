@@ -5,10 +5,15 @@ from pathlib import Path
 from tempfile import TemporaryDirectory
 
 from tools.map_editor.app import (
+    OVERLAY_DEFAULTS,
+    EDITOR_TAB_ENABLED,
     OVERLAY_ENABLED,
     OVERLAY_NAMES,
+    champion_occupant_record,
     default_floor,
     joystick_navigation_action,
+    monster_renderer_key,
+    nearest_rectangle_edges,
     reveal_interval_delta,
 )
 from tools.map_editor.first_person import (
@@ -16,13 +21,16 @@ from tools.map_editor.first_person import (
     map_cell_placement,
     map_view_placements,
     move_in_view_direction,
+    occupant_relative_facing,
     relative_map_coordinate,
+    occupant_view_position,
 )
 from tools.map_editor.model import (
     MAP_HEADER_SIZE,
     MAP_RESOURCE_SIZE,
     MapCell,
     MapProject,
+    MonsterRecord,
     TowerMap,
 )
 from tools.map_editor.render import cell_glyph, describe_cell, draw_map_cell
@@ -34,6 +42,19 @@ CLEAN_ROOT = DATA_DIR / "BLOODWYCH439-clean"
 
 
 class MapEditorTests(unittest.TestCase):
+    def test_parties_use_their_shared_player_facing(self) -> None:
+        quickstart = MapProject.from_extracted(CLEAN_ROOT)
+        saved = MapProject.from_savegame(
+            CLEAN_ROOT, PROJECT_ROOT / "whdload" / "bloodsave0"
+        )
+
+        self.assertEqual(
+            tuple(party.facing for party in quickstart.player_parties(0)), (0, 0)
+        )
+        self.assertEqual(
+            tuple(party.facing for party in saved.player_parties(0)), (1, 0)
+        )
+
     def test_joystick_dpad_maps_to_first_person_movement(self) -> None:
         hat = type("Event", (), {"type": 10, "value": (0, 1)})()
         self.assertEqual(
@@ -73,12 +94,20 @@ class MapEditorTests(unittest.TestCase):
             )
         )
 
-    def test_unverified_object_and_monster_overlays_remain_disabled(self) -> None:
+    def test_actor_overlays_are_enabled_without_enabling_the_editor_tab(self) -> None:
         enabled = dict(zip(OVERLAY_NAMES, OVERLAY_ENABLED))
-        self.assertFalse(enabled["OBJECTS"])
-        self.assertFalse(enabled["MONSTERS"])
+        self.assertTrue(enabled["OBJECTS"])
+        self.assertTrue(enabled["CHAMPIONS"])
+        self.assertTrue(enabled["MONSTERS"])
+        self.assertTrue(enabled["SPELLS"])
+        self.assertTrue(enabled["PLAYERS"])
+        self.assertTrue(enabled["QS TEAMS"])
         self.assertTrue(enabled["SWITCHES"])
         self.assertTrue(enabled["TRIGGERS"])
+        self.assertTrue(enabled["LINKS"])
+        self.assertTrue(all(not default for default in OVERLAY_DEFAULTS))
+        self.assertFalse(EDITOR_TAB_ENABLED[2])
+        self.assertFalse(EDITOR_TAB_ENABLED[3])
 
     def test_sps439_tower_header_and_cell_round_trip(self) -> None:
         source = (CLEAN_ROOT / "maps" / "mod0.map").read_bytes()
@@ -117,7 +146,7 @@ class MapEditorTests(unittest.TestCase):
     def test_map_index_resolves_across_floor_offsets(self) -> None:
         tower = TowerMap((CLEAN_ROOT / "maps" / "mod0.map").read_bytes())
         floor = 4
-        map_index = tower.data_offsets[floor] // 2 + 3 * tower.widths[floor] + 2
+        map_index = tower.data_offsets[floor] + 2 * (3 * tower.widths[floor] + 2)
         self.assertEqual(tower.floor_from_map_index(map_index), (floor, 2, 3))
 
     def test_extracted_save_writes_only_to_modified_folder(self) -> None:
@@ -176,9 +205,245 @@ class MapEditorTests(unittest.TestCase):
         project = MapProject.from_extracted(CLEAN_ROOT)
         self.assertEqual(len(project.switches(0)), 16)
         self.assertEqual(len(project.triggers(0)), 32)
-        self.assertEqual(len(project.monsters(0)), 72)
+        self.assertEqual(len(project.monsters(0)), 73)
         self.assertGreater(len(project.object_stacks(0)), 100)
         self.assertIn("WOOD", describe_cell(MapCell(0x33, 0x02)))
+
+    def test_save_uses_live_actors_only_for_the_current_tower(self) -> None:
+        project = MapProject.from_savegame(CLEAN_ROOT, PROJECT_ROOT / "whdload" / "bloodsave0")
+
+        self.assertEqual(project.current_tower, 0)
+        self.assertEqual(len(project.live_monsters()), 73)
+        self.assertEqual(len(project.occupants(0)), 73)
+        self.assertTrue(all(record.source == "live" for record in project.occupants(0)))
+        self.assertTrue(all(record.source == "packed" for record in project.occupants(1)))
+        first = project.occupants(0)[0]
+        self.assertEqual((first.x, first.y, first.floor, first.form), (0x0B, 0x0F, 3, 0x15))
+        self.assertEqual(
+            tuple((record.index, record.x, record.y, record.floor) for record in project.players(0)),
+            ((0, 1, 29, 3), (1, 7, 19, 3)),
+        )
+        self.assertEqual(
+            tuple(
+                (party.index, party.champions, party.facing)
+                for party in project.player_parties(0)
+            ),
+            ((0, (13,), 1), (1, (14,), 0)),
+        )
+        self.assertEqual(len(project.champions(0)), 14)
+        self.assertTrue(all(record.floor == 3 for record in project.champions(0)))
+        self.assertEqual(project.champions(1), ())
+        self.assertEqual(project.champion_direction(0), 2)
+
+    def test_team_followers_share_the_lead_location_for_the_3d_renderer(self) -> None:
+        project = MapProject.from_extracted(CLEAN_ROOT)
+
+        packed = project.occupants(0)
+        rendered = project.render_occupants(0)
+        # Packed team $00/$01: the second member retains the $FF map-marker
+        # sentinel but Draw_DungeonCellOccupants renders it with member $00.
+        self.assertFalse(packed[12].has_position)
+        self.assertTrue(rendered[12].has_position)
+        self.assertEqual(
+            (rendered[12].x, rendered[12].y, rendered[12].floor),
+            (packed[11].x, packed[11].y, packed[11].floor),
+        )
+        self.assertEqual((rendered[11].formation_slot, rendered[12].formation_slot), (0, 1))
+
+        saved = MapProject.from_savegame(CLEAN_ROOT, PROJECT_ROOT / "whdload" / "bloodsave0")
+        live = saved.occupants(0)
+        live_rendered = saved.render_occupants(0)
+        self.assertFalse(live[12].has_position)
+        self.assertTrue(live_rendered[12].has_position)
+        self.assertEqual(
+            (live_rendered[12].x, live_rendered[12].y, live_rendered[12].floor),
+            (live[11].x, live[11].y, live[11].floor),
+        )
+
+    def test_one_player_save_omits_the_second_player_marker(self) -> None:
+        project = MapProject.from_savegame(CLEAN_ROOT, PROJECT_ROOT / "whdload" / "bloodsave6")
+
+        self.assertEqual(project.current_tower, 3)
+        self.assertEqual(len(project.live_monsters()), 31)
+        self.assertEqual(tuple(record.index for record in project.players(3)), (0,))
+        self.assertEqual(project.player_parties(3)[0].champions, (2, 8, 1, 11))
+
+    def test_no_save_overlay_exposes_both_quickstart_teams_as_q_markers(self) -> None:
+        project = MapProject.from_extracted(CLEAN_ROOT)
+
+        self.assertEqual(
+            tuple(
+                (party.index, party.x, party.y, party.floor, party.champions)
+                for party in project.player_parties(0)
+            ),
+            (
+                (0, 12, 23, 3, (0, 14, 5, 3)),
+                (1, 14, 23, 3, (4, 6, 13, 15)),
+            ),
+        )
+        self.assertEqual(project.player_parties(1), ())
+
+    def test_raw_champion_view_switches_between_quickstart_and_original_positions(self) -> None:
+        project = MapProject.from_extracted(CLEAN_ROOT)
+
+        originals = project.viewer_champions(0, quickstart_teams=False)
+        quickstart = project.viewer_champions(0, quickstart_teams=True)
+        self.assertEqual(len(originals), 16)
+        self.assertEqual(len(quickstart), 16)
+        original_by_id = {record.index: record for record in originals}
+        quickstart_by_id = {record.index: record for record in quickstart}
+        self.assertEqual(
+            tuple((quickstart_by_id[index].x, quickstart_by_id[index].y) for index in (0, 14, 5, 3)),
+            ((12, 23),) * 4,
+        )
+        self.assertEqual(
+            tuple((quickstart_by_id[index].x, quickstart_by_id[index].y) for index in (4, 6, 13, 15)),
+            ((14, 23),) * 4,
+        )
+        self.assertEqual(
+            (original_by_id[0].x, original_by_id[0].y),
+            (7, 9),
+        )
+        self.assertEqual(
+            tuple(
+                (original_by_id[index].facing, original_by_id[index].formation_slot)
+                for index in range(3)
+            ),
+            # Champion byte $18 is $02, $01, $00: low bits are direction;
+            # bits 4-5 place all three in the same authored floor mini-space.
+            ((2, 0), (1, 0), (0, 0)),
+        )
+        blodwyn = champion_occupant_record(original_by_id[0])
+        self.assertEqual((blodwyn.facing, blodwyn.formation_slot), (2, 0))
+        self.assertEqual(
+            occupant_view_position(
+                blodwyn,
+                player_x=blodwyn.x,
+                player_y=blodwyn.y + 1,
+                player_facing=0,
+                formation_index=blodwyn.formation_slot,
+            ),
+            (17, 2),
+        )
+        self.assertEqual(project.viewer_champions(1), ())
+        self.assertEqual(project.champion_direction(0), 2)
+
+    def test_large_monster_grade_uses_renderer_base_and_illusion_uses_level_flag(self) -> None:
+        crab = MonsterRecord(0, 0, 3, 0, 0, 2, 0x68, 0)
+        summon = MonsterRecord(1, 0, 3, 0, 0, 2, 0x65, 0)
+        illusion = MonsterRecord(2, 0, 3, 0, 0, 0x82, 0x64, 0)
+
+        self.assertEqual(crab.colour_grade_step, 0)
+        self.assertEqual(summon.colour_grade_step, 0)
+        self.assertFalse(summon.is_illusion)
+        self.assertTrue(illusion.is_illusion)
+
+    def test_end_game_dragon_uses_the_final_available_colour_grade(self) -> None:
+        """The shared DragonAssets key must not force large dragons to grade 0."""
+
+        project = MapProject.from_extracted(CLEAN_ROOT)
+        dragon = project.monsters(5)[64]
+
+        self.assertEqual((dragon.form, dragon.level, dragon.colour_grade_step), (0x69, 20, 11))
+        self.assertEqual(monster_renderer_key("dragon_large"), "dragon")
+        self.assertEqual(monster_renderer_key("dragon_small"), "dragon")
+
+    def test_first_person_occupant_position_uses_source_view_cells(self) -> None:
+        project = MapProject.from_extracted(CLEAN_ROOT)
+        occupant = project.monsters(0)[0]
+        self.assertEqual(
+            occupant_view_position(
+                occupant,
+                player_x=occupant.x,
+                player_y=occupant.y + 1,
+                player_facing=0,
+                formation_index=0,
+            ),
+            # Form $15 is one of the source's forced-centre forms.
+            (17, 4),
+        )
+
+    def test_live_actor_state_controls_mini_space_and_relative_facing(self) -> None:
+        actor = MonsterRecord(0, 0, 3, 6, 6, 0, 0x12, 0xFF, source="live", facing=0x23)
+        self.assertEqual(
+            occupant_view_position(
+                actor,
+                player_x=6,
+                player_y=7,
+                player_facing=0,
+                formation_index=0,
+            ),
+            (17, 0),
+        )
+        self.assertEqual(occupant_relative_facing(actor, 0), 1)
+        self.assertEqual(occupant_relative_facing(actor, 1), 0)
+
+    def test_champion_direction_is_not_interpreted_as_monster_runtime_state(self) -> None:
+        champion = MonsterRecord(
+            0, 0, 3, 6, 6, 0, 0, 0xFF,
+            source="champion",
+            facing=3,
+        )
+        self.assertEqual(occupant_relative_facing(champion, 0), 1)
+        self.assertEqual(occupant_relative_facing(champion, 1), 0)
+
+    def test_champion_directions_use_the_source_character_artwork_indices(self) -> None:
+        """adrCd00A6F6 converts direction bits to character table indices."""
+
+        self.assertEqual(
+            [
+                occupant_relative_facing(
+                    MonsterRecord(0, 0, 3, 0, 0, 0, 0, 0xFF, source="champion", facing=facing),
+                    0,
+                )
+                for facing in range(4)
+            ],
+            [2, 3, 0, 1],
+        )
+
+    def test_quickstart_team_heading_uses_the_north_facing_preview_art(self) -> None:
+        member = MonsterRecord(
+            0, 0, 3, 0, 0, 0, 0, 0xFF, source="quickstart", facing=0
+        )
+        self.assertEqual(occupant_relative_facing(member, 0), 2)
+        self.assertEqual(occupant_relative_facing(member, 1), 1)
+
+    def test_link_segment_meets_the_nearest_cell_edges(self) -> None:
+        self.assertEqual(
+            nearest_rectangle_edges((10, 10, 16, 16), (42, 18, 16, 16)),
+            ((25, 21), (42, 21)),
+        )
+        self.assertEqual(
+            nearest_rectangle_edges((10, 10, 16, 16), (42, 42, 16, 16)),
+            ((25, 25), (42, 42)),
+        )
+
+    def test_team_formation_slots_rotate_with_the_viewer_not_render_order(self) -> None:
+        member = MonsterRecord(
+            0, 0, 3, 6, 6, 0, 0x12, 0x00,
+            formation_slot=2,
+            formation_facing=0,
+        )
+        self.assertEqual(
+            occupant_view_position(
+                member,
+                player_x=6,
+                player_y=7,
+                player_facing=0,
+                formation_index=member.formation_slot,
+            ),
+            (17, 0),
+        )
+        self.assertEqual(
+            occupant_view_position(
+                member,
+                player_x=5,
+                player_y=6,
+                player_facing=1,
+                formation_index=member.formation_slot,
+            ),
+            (17, 3),
+        )
 
     def test_shared_switch_edit_writes_a_named_modified_resource(self) -> None:
         with TemporaryDirectory() as temp_dir:
@@ -212,6 +477,13 @@ class MapEditorTests(unittest.TestCase):
         self.assertEqual(cell_glyph(MapCell(0x00, 0x03)), ("B", 0))
         self.assertEqual(cell_glyph(MapCell(0x00, 0x06)), ("F", 8))
         self.assertEqual(cell_glyph(MapCell(0x01, 0x03)), None)
+
+    def test_map_font_default_baseline_matches_bed_and_fizzle_icons(self) -> None:
+        """Cell-letter glyphs start two native pixels below the cell top."""
+
+        from tools.map_editor.app import GameFontRenderer
+
+        self.assertEqual(GameFontRenderer.draw_map_glyph.__kwdefaults__["y"], 4)
 
     def test_semantic_type_change_uses_valid_visible_defaults(self) -> None:
         for map_type in range(8):
@@ -328,6 +600,21 @@ class MapEditorTests(unittest.TestCase):
         self.assertIn(18, placements)
         self.assertEqual(placements[18].feature_key, "wood")
         self.assertEqual(placements[18].wood_states, (1, 0, 0, 0))
+
+    def test_current_main_wall_is_sealed_without_an_inner_feature_overlay(self) -> None:
+        tower = TowerMap((CLEAN_ROOT / "maps" / "mod0.map").read_bytes())
+        # Type-1 shelf and switch cells are valid map data but invalid player
+        # locations. The editor preview deliberately treats both as stone.
+        tower.set_cell(3, 10, 10, MapCell(0x00, 0x81))
+        self.assertEqual(
+            map_view_placements(tower, 3, 10, 10, 0)[18].feature_key,
+            "stone",
+        )
+        tower.set_cell(3, 10, 10, MapCell(0x02, 0x81))
+        self.assertEqual(
+            map_view_placements(tower, 3, 10, 10, 0)[18].feature_key,
+            "stone",
+        )
 
 
 if __name__ == "__main__":

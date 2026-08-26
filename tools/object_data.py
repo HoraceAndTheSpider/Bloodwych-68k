@@ -370,6 +370,7 @@ class ObjectAssets:
             76,
             required=False,
         )
+        self.floor_x_positions = floor_x_positions
         if floor_x_positions:
             self.floor_left_x = tuple(
                 floor_x_positions[index] for index in OBJECT_FLOOR_LEFT_X_INDEXES
@@ -380,6 +381,36 @@ class ObjectAssets:
             gfx_data_dir / "ObjectsOnFloor_YAdjustments.positions",
             OBJECT_FLOOR_Y_ADJUSTMENTS_FALLBACK,
             OBJECT_FLOOR_SHAPE_COUNT * OBJECT_FLOOR_VIEWS_PER_SHAPE,
+        )
+        self.floor_subposition_rotation = self._optional_source_table(
+            gfx_data_dir / "ObjectsOnFloor_SubpositionRotation.lookup",
+            b"",
+            16,
+        )
+        self.floor_subposition_depth_bias = self._optional_source_table(
+            gfx_data_dir / "ObjectsOnFloor_SubpositionDepthBias.lookup",
+            b"",
+            4,
+        )
+        self.floor_view_cell_depth_base = self._optional_source_table(
+            gfx_data_dir / "ObjectsOnFloor_ViewCellDepthBase.lookup",
+            b"",
+            19,
+        )
+        self.floor_projection_groups = self._optional_source_table(
+            gfx_data_dir / "ObjectsOnFloor_ProjectionGroups.lookup",
+            b"",
+            8,
+        )
+        self.floor_special_x_positions = self._optional_source_table(
+            gfx_data_dir / "ObjectsOnFloor_SpecialXPositions.positions",
+            b"",
+            20,
+        )
+        self.floor_special_y_adjustments = self._optional_source_table(
+            gfx_data_dir / "ObjectsOnFloor_SpecialYAdjustments.positions",
+            b"",
+            8,
         )
 
     @staticmethod

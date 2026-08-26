@@ -11,7 +11,7 @@ original label is `adrB_0081CA`.
 
 | Original label | Human label | Memory | Meaning |
 | --- | --- | ---: | --- |
-| `adrB_0081CA` | `ChampionClassBarColours` | `$81CA` | Four profession-to-status-bar palette indices. |
+| `adrB_0081CA` | `ChampionClassBarColours` | `$81CA` | Four magic-alignment/class-to-status-bar palette indices. |
 | `adrCd0058EA` | `Return_WallFeatureClick` | `$58EA` | Return when a wall-feature click has no supported action. |
 | `adrJA004DAA` | `Begin_HitTestMainInterfaceActions` | `$4DAA` | Select the main hitbox table and enter the shared hit tester. |
 | `adrCd0080CA` | `Draw_MainPlayerInterface` | `$80CA` | Draw the ordinary player interface. |
@@ -41,6 +41,14 @@ original label is `adrB_0081CA`.
 | `adrCd007FDE` | `Use_DeadPartyShieldClassColours` | `$7FDE` | Set `D3` to zero so `Draw_ShieldAvatar` retains its fixed `$00020103` dead-class mask. |
 | `adrCd007FE0` | `Prepare_ComposedPartyShieldAvatar` | `$7FE0` | Resolve the champion ID and optional live class colour before entering the common shield compositor. |
 | `adrCd007FF4` | `Draw_ComposedPartyShieldAvatar` | `$7FF4` | Tail-call `Draw_ShieldAvatar` with the selected normal or dead class-colour state. |
+| `adrCd00420A` | `Return_CommsState` | `$420A` | Return after selecting the active player's communication-state record. |
+| `adrJA00420C` | `Click_ChampionPresentationOrPartyCommand` | `$420C` | Route a left-panel click to a main/lower avatar-presentation toggle or party-command entry. |
+| `adrCd004226` | `Toggle_ChampionPresentation` | `$4226` | Toggle one of the four PlayerX avatar-presentation bits and refresh its shield slot. |
+| `adrCd004234` | `Enter_PartyCommandInterface` | `$4234` | Open party commands only when lower presentation bits 1--3 are clear, then clear all four bits. |
+| `adrCd0042B8` | `Return_PartyCommandEntry` | `$42B8` | Return when a command entry is blocked or after Pause exits. |
+| `adrCd006F38` | `Store_PlayerXY` | `$6F38` | Store a successful movement result; clear all avatar-presentation bits when any are set. |
+| `adrCd006F4A` | `Check_TeamPadAfterMove` | `$6F4A` | Continue after movement into the team-pad/party-avatar check. |
+| `adrCd006F58` | `Return_AfterMovementInterfaceUpdate` | `$6F58` | Return after completing the movement-triggered interface update. |
 | `adrCd00C9BC` | `Draw_InventoryPocketSlots` | `$C9BC` | Draw twelve inventory pocket slots. |
 | `adrCd00CAEA` | `Draw_PocketGraphic` | `$CAEA` | Resolve and draw a picture from `GFX_Pockets`. |
 | `adrCd00CCFE` | `Select_WornSpellShieldInkColour` | `$CCFE` | Map `ChampionStat_WornSpell` to the ink used for palette-index `$F` shield surround pixels. |

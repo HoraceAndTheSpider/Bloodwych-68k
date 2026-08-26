@@ -91,6 +91,8 @@ For label/relabel proposals on a profile sheet, include every column from column
 label | relabel | Type | DATA BLOCK FILE | name | BW439 Position | offset | size | Length (Hexidecimal) | data_action | source_comment
 ```
 
+This schema is mandatory with no prose/table substitute. Before sending any protected-sheet handoff, the agent must check that its output is a literal TSV or Markdown table containing all eleven headings in this exact order and a value or explicit blank cell for every column of every row. If it cannot produce that table, it must report the investigation as incomplete instead of emitting a summary, a two/three-column mapping table, or an informal proposal. This applies equally to corrections of an earlier handoff.
+
 Do not shorten label proposals to only the populated columns, and do not include the trailing blank, separator, or `Unnamed` spreadsheet columns after `source_comment`.
 
 For each extractable resource, propose:

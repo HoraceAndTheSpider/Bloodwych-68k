@@ -4,6 +4,8 @@ import unittest
 from tools.interface_data import (
     ACTION_ROUTINES,
     ACTION_NAMES,
+    ARROW_ACTION_TO_HIGHLIGHT_INDEX,
+    ARROW_HIGHLIGHT_SPECS,
     COMMUNICATION_BUTTONS,
     COMMUNICATION_BACKGROUND_COLOUR_INDEX,
     COMMUNICATION_DEEP_MENU_PAGES,
@@ -17,6 +19,7 @@ from tools.interface_data import (
     PARTY_AVATAR_PRESENTATION_HITBOXES,
     PARTY_AVATAR_ACTIVE_FLAG,
     PARTY_AVATAR_DEAD_FLAG,
+    PARTY_PRESENTATION_LOWER_SLOT_MASK,
     PARTY_PENDING_PROFESSION_COLOUR_MASK,
     PARTY_PROFESSION_ICON_BASE,
     PARTY_PROFESSION_ICON_POSITIONS,
@@ -25,6 +28,10 @@ from tools.interface_data import (
     SPELLBOOK_RUNE_HITBOXES,
     RIGHT_STATUS_ICON_BEVEL_LINES,
     COMPACT_STATS_BAR_COUNT,
+    PARTY_SHIELD_STATUS_BAR_BASE_Y,
+    PARTY_SHIELD_STATUS_BAR_COLOUR_INDICES,
+    PARTY_SHIELD_STATUS_BAR_FULL_TERMINAL_HEIGHT,
+    PARTY_SHIELD_STATUS_BAR_WIDTH,
     COPPER_FRAME_WRAP_Y,
     COPPER_PLAYER_RASTER_SPLIT_Y,
     DIALOGUE_TEXT_PALETTE_INDEX,
@@ -41,6 +48,16 @@ from tools.interface_data import (
     INTERFACE_ACTION_PARTY_MEMBER_FIRST,
     INTERFACE_ACTION_PARTY_MEMBER_LAST,
     INTERFACE_ACTION_PARTY_COMMAND_MODE,
+    INTERFACE_ACTION_MOVE_FORWARDS,
+    INTERFACE_ACTION_MOVE_BACKWARDS,
+    INTERFACE_ACTION_MOVE_LEFT,
+    INTERFACE_ACTION_ROTATE_LEFT,
+    INTERFACE_ACTION_ROTATE_RIGHT,
+    INTERFACE_ACTION_MULTI_FUNCTION,
+    INTERFACE_ACTION_WALL_FEATURE_CONTEXT,
+    INTERFACE_ACTION_WALL_FEATURE_CLICK,
+    INTERFACE_PREVIEW_FLOOR,
+    INTERFACE_PREVIEW_MOVEMENT_POLICY,
     INTERFACE_ACTION_PAUSE,
     INTERFACE_ACTION_SLEEP_PARTY,
     INTERFACE_ACTION_SHOW_TEAM_AVATARS,
@@ -69,6 +86,7 @@ from tools.interface_data import (
     SOURCE_REFS,
     FULL_LENGTH_AVATAR_PREVIEW_Y_OFFSET,
     InterfaceProject,
+    interface_preview_cell_allows_entry,
     active_party_champion_draw_parameters,
     amiga_colour_to_rgb,
     body_design_with_worn_armour,
@@ -100,6 +118,290 @@ class InterfaceDataTests(unittest.TestCase):
         self.assertEqual(PLAYER_SCREEN_BYTE_OFFSETS, (0, 0x0F00))
         self.assertEqual(screen_byte_offset_to_xy(0x0F00), (0, 96))
         self.assertEqual(screen_byte_offset_to_xy(0x051C), (224, 32))
+
+    def test_navigation_highlights_use_the_original_six_overlay_records(self) -> None:
+        self.assertEqual(
+            ARROW_HIGHLIGHT_SPECS,
+            (
+                (0x050, 2, 9, 224, 60),
+                (0x268, 1, 11, 256, 72),
+                (0x1D8, 2, 9, 224, 74),
+                (0x180, 1, 11, 224, 72),
+                (0x000, 1, 10, 224, 60),
+                (0x0E0, 2, 10, 240, 60),
+            ),
+        )
+        self.assertEqual(ARROW_ACTION_TO_HIGHLIGHT_INDEX[INTERFACE_ACTION_MOVE_FORWARDS], 0)
+        self.assertEqual(ARROW_ACTION_TO_HIGHLIGHT_INDEX[INTERFACE_ACTION_MOVE_BACKWARDS], 2)
+        self.assertEqual(ARROW_ACTION_TO_HIGHLIGHT_INDEX[INTERFACE_ACTION_MOVE_LEFT], 3)
+        self.assertEqual(ARROW_ACTION_TO_HIGHLIGHT_INDEX[INTERFACE_ACTION_ROTATE_LEFT], 4)
+        self.assertEqual(ARROW_ACTION_TO_HIGHLIGHT_INDEX[INTERFACE_ACTION_ROTATE_RIGHT], 5)
+        self.assertEqual(len(self.project.arrow_highlights), 6)
+        self.assertTrue(
+            all(15 in {colour for row in pixels for colour in row}
+                for _, _, pixels in self.project.arrow_highlights)
+        )
+
+    def test_interface_preview_uses_the_supplied_five_by_nine_serpent_floor(self) -> None:
+        project = InterfaceProject(DATA_ROOT)
+        self.assertEqual(
+            (project.preview_map.widths[INTERFACE_PREVIEW_FLOOR], project.preview_map.heights[INTERFACE_PREVIEW_FLOOR]),
+            (5, 9),
+        )
+        self.assertEqual(
+            (project.preview_map.cell(INTERFACE_PREVIEW_FLOOR, 2, 2).first,
+             project.preview_map.cell(INTERFACE_PREVIEW_FLOOR, 2, 2).second),
+            (0x03, 0x05),
+        )
+        self.assertEqual(
+            (project.preview_map.cell(INTERFACE_PREVIEW_FLOOR, 0, 3).first,
+             project.preview_map.cell(INTERFACE_PREVIEW_FLOOR, 0, 3).second),
+            (0x5C, 0x02),
+        )
+        self.assertEqual((project.preview_x, project.preview_y, project.preview_facing), (2, 5, 0))
+        original = project.dungeon_preview
+        self.assertTrue(project.move_preview_party(INTERFACE_ACTION_MOVE_FORWARDS))
+        self.assertEqual((project.preview_x, project.preview_y), (2, 4))
+        self.assertNotEqual(project.dungeon_preview, original)
+        self.assertFalse(project.move_preview_party(INTERFACE_ACTION_MOVE_LEFT))
+        self.assertEqual((project.preview_x, project.preview_y), (2, 4))
+        self.assertTrue(project.move_preview_party(INTERFACE_ACTION_ROTATE_RIGHT))
+        self.assertEqual(project.preview_facing, 1)
+
+    def test_interface_preview_uses_the_explicit_manual_movement_policy(self) -> None:
+        from tools.map_editor.model import MapCell
+
+        self.assertEqual(INTERFACE_PREVIEW_MOVEMENT_POLICY, "manual")
+        # Entering (0, 3) from the east crosses its east edge.  $50 $02 is
+        # wood with no wall/closed-door state on that edge.
+        self.assertTrue(interface_preview_cell_allows_entry(MapCell(0x50, 0x02), 3))
+        self.assertFalse(interface_preview_cell_allows_entry(MapCell(0x10, 0x02), 0))
+        self.assertFalse(interface_preview_cell_allows_entry(MapCell(0x00, 0x01), 0))
+        self.assertFalse(interface_preview_cell_allows_entry(MapCell(0x00, 0x03), 0))
+        self.assertTrue(interface_preview_cell_allows_entry(MapCell(0x00, 0x05), 0))
+        self.assertFalse(interface_preview_cell_allows_entry(MapCell(0x01, 0x05), 0))
+        self.assertTrue(interface_preview_cell_allows_entry(MapCell(0x02, 0x07), 0))
+        self.assertFalse(interface_preview_cell_allows_entry(MapCell(0x03, 0x07), 0))
+
+    def test_multifunction_hitbox_toggles_ui_test_doors_from_the_source_paths(self) -> None:
+        project = InterfaceProject(DATA_ROOT)
+        # $0305 is the unkeyed closed portcullis directly north of this spot.
+        project.preview_x, project.preview_y, project.preview_facing = (2, 3, 0)
+        self.assertEqual(project.toggle_preview_door(), "opened")
+        self.assertEqual(project.preview_map.cell(0, 2, 2).first, 0x02)
+        self.assertTrue(project.move_preview_party(INTERFACE_ACTION_MOVE_FORWARDS))
+
+        # $5C02's east side is a closed wooden door.  Its two-bit state moves
+        # from 3 (closed) to 2 (open) when entered from the east.
+        project.preview_x, project.preview_y, project.preview_facing = (1, 3, 3)
+        self.assertEqual(project.toggle_preview_door(), "opened")
+        self.assertEqual(project.preview_map.cell(0, 0, 3).first, 0x58)
+
+        # $0905 carries B bit 3 (void lock), which C650 rejects before toggle.
+        project.preview_x, project.preview_y, project.preview_facing = (2, 7, 0)
+        self.assertEqual(project.toggle_preview_door(), "locked")
+        self.assertEqual(project.preview_map.cell(0, 2, 6).first, 0x09)
+
+    def test_multi_function_door_operation_requires_its_door_icon(self) -> None:
+        from tools.interface_viewer import _active_mode_hitboxes, multi_function_displays_door_icon
+
+        self.assertTrue(multi_function_displays_door_icon(None))
+        # A selected spell replaces the door icon, including after a cast
+        # request while the spell remains active in the preview.
+        self.assertFalse(multi_function_displays_door_icon(0))
+        main_mode = next(mode for mode in INTERFACE_MODES if mode.key == "main")
+        door_hitbox = next(
+            hitbox
+            for hitbox in _active_mode_hitboxes(
+                self.project, main_mode, comms_menu_page=0
+            )
+            if hitbox.action == INTERFACE_ACTION_MULTI_FUNCTION
+        )
+        self.assertEqual(
+            (door_hitbox.x_min, door_hitbox.x_max, door_hitbox.y_min, door_hitbox.y_max),
+            (289, 302, 34, 47),
+        )
+
+    def test_display_context_24_is_the_direct_door_hitbox(self) -> None:
+        from tools.interface_viewer import (
+            _active_mode_hitboxes,
+            _display_context_hitbox_at,
+            _visible_hitbox_overlays,
+        )
+
+        main_mode = next(mode for mode in INTERFACE_MODES if mode.key == "main")
+        door_hitbox = next(
+            hitbox
+            for hitbox in _active_mode_hitboxes(
+                self.project, main_mode, comms_menu_page=0
+            )
+            if hitbox.action == INTERFACE_ACTION_WALL_FEATURE_CONTEXT
+        )
+        self.assertEqual(
+            (door_hitbox.x_min, door_hitbox.x_max, door_hitbox.y_min, door_hitbox.y_max),
+            (114, 205, 28, 72),
+        )
+        self.assertEqual(
+            ACTION_ROUTINES[INTERFACE_ACTION_WALL_FEATURE_CONTEXT], "adrJA0064D0"
+        )
+        self.assertEqual(
+            ACTION_ROUTINES[INTERFACE_ACTION_WALL_FEATURE_CLICK], "Handle_WallFeatureClick"
+        )
+        # Click_Display ($10) owns the entire viewport, then invokes the
+        # display table as a second-stage hit test.  The generic hitbox must
+        # not mask the contextual door rectangle.
+        outer = next(
+            hitbox
+            for hitbox in _active_mode_hitboxes(
+                self.project, main_mode, comms_menu_page=0
+            )
+            if hitbox.contains(114, 50)
+        )
+        self.assertEqual(outer.action, 0x10)
+        self.assertEqual(
+            _display_context_hitbox_at(self.project, 114, 50), door_hitbox
+        )
+        self.assertEqual(
+            _display_context_hitbox_at(self.project, 160, 50).action,
+            INTERFACE_ACTION_WALL_FEATURE_CLICK,
+        )
+        self.assertIsNone(_display_context_hitbox_at(self.project, 96, 12))
+        self.assertIn(
+            0x10,
+            {
+                hitbox.action
+                for hitbox in _visible_hitbox_overlays(
+                    self.project,
+                    main_mode,
+                    comms_menu_page=0,
+                    right_mode_key="main",
+                    spellbook_spread=0,
+                    selected_spell=None,
+                )
+            },
+        )
+
+    def test_dungeon_display_hitboxes_remain_active_in_spellbook_and_stats(self) -> None:
+        from tools.interface_viewer import _active_mode_hitboxes
+
+        expected = {0x10, 0x22, 0x23, 0x24}
+        for mode_key, right_mode_key in (("spellbook", "spellbook"), ("stats", "stats")):
+            mode = next(mode for mode in INTERFACE_MODES if mode.key == mode_key)
+            actions = {
+                hitbox.action
+                for hitbox in _active_mode_hitboxes(
+                    self.project,
+                    mode,
+                    comms_menu_page=0,
+                    right_mode_key=right_mode_key,
+                )
+            }
+            self.assertTrue(expected <= actions)
+
+    def test_navigation_highlight_survives_spellbook_redraw(self) -> None:
+        import pygame
+
+        from tools.interface_viewer import render_interface_panel
+
+        pygame.init()
+        try:
+            mode = next(mode for mode in INTERFACE_MODES if mode.key == "main")
+            normal, _ = render_interface_panel(
+                pygame,
+                self.project,
+                mode,
+                player=0,
+                alternate_ramp=False,
+                ramp_step=0,
+                right_mode_key="spellbook",
+            )
+            highlighted, _ = render_interface_panel(
+                pygame,
+                self.project,
+                mode,
+                player=0,
+                alternate_ramp=False,
+                ramp_step=0,
+                right_mode_key="spellbook",
+                arrow_highlight_action=INTERFACE_ACTION_MOVE_FORWARDS,
+            )
+            self.assertNotEqual(normal.get_buffer().raw, highlighted.get_buffer().raw)
+        finally:
+            pygame.quit()
+
+    def test_locked_door_notice_uses_the_source_text_origin(self) -> None:
+        import pygame
+        from unittest.mock import patch
+
+        from tools.interface_viewer import (
+            COMMUNICATION_TEXT_POSITION,
+            COMMUNICATION_TEXT_SCREEN_OFFSET,
+            DOOR_LOCKED_NOTICE,
+            DOOR_LOCKED_NOTICE_POSITION,
+            TIMED_TEXT_HOLD_VBLANKS,
+            TIMED_TEXT_STEP_VBLANKS,
+            TIMED_TEXT_VBLANKS_PER_SECOND,
+            render_interface_panel,
+            timed_text_fade_step,
+        )
+
+        pygame.init()
+        try:
+            mode = next(mode for mode in INTERFACE_MODES if mode.key == "main")
+            normal, _ = render_interface_panel(
+                pygame, self.project, mode, player=0, alternate_ramp=False, ramp_step=0
+            )
+            noticed, _ = render_interface_panel(
+                pygame,
+                self.project,
+                mode,
+                player=0,
+                alternate_ramp=False,
+                ramp_step=0,
+                timed_notice=DOOR_LOCKED_NOTICE,
+            )
+            self.assertEqual(COMMUNICATION_TEXT_SCREEN_OFFSET, 0x0050)
+            self.assertEqual(COMMUNICATION_TEXT_POSITION, (0, 2))
+            self.assertEqual(DOOR_LOCKED_NOTICE_POSITION, COMMUNICATION_TEXT_POSITION)
+            self.assertEqual(timed_text_fade_step(0), 0)
+            self.assertEqual(
+                timed_text_fade_step(
+                    TIMED_TEXT_HOLD_VBLANKS * 1_000 // TIMED_TEXT_VBLANKS_PER_SECOND
+                ),
+                0,
+            )
+            self.assertEqual(
+                timed_text_fade_step(
+                    (TIMED_TEXT_HOLD_VBLANKS + TIMED_TEXT_STEP_VBLANKS)
+                    * 1_000
+                    // TIMED_TEXT_VBLANKS_PER_SECOND
+                ),
+                1,
+            )
+            self.assertEqual(timed_text_fade_step(0, start_step=5), 5)
+            self.assertNotEqual(normal.get_buffer().raw, noticed.get_buffer().raw)
+
+            text_calls = []
+
+            def record_gamefont(_pygame, _surface, _font, text, x, y, _colour, **_kwargs):
+                text_calls.append((text, x, y))
+
+            with patch("tools.interface_viewer._draw_gamefont", record_gamefont):
+                render_interface_panel(
+                    pygame,
+                    self.project,
+                    mode,
+                    player=0,
+                    alternate_ramp=False,
+                    ramp_step=0,
+                    timed_notice=DOOR_LOCKED_NOTICE,
+                )
+            self.assertIn(
+                (DOOR_LOCKED_NOTICE, *COMMUNICATION_TEXT_POSITION), text_calls
+            )
+            self.assertNotIn(("THERE IS NOBODY HERE", *COMMUNICATION_TEXT_POSITION), text_calls)
+        finally:
+            pygame.quit()
 
     def test_pocket_chain_strips_match_source_interface_paths(self) -> None:
         self.assertEqual(GFX_POCKETS_CHAIN_CONTINUOUS_OFFSET, 0x3C00)
@@ -188,6 +490,19 @@ class InterfaceDataTests(unittest.TestCase):
 
     def test_party_portraits_start_compact_until_their_left_hitbox_is_clicked(self) -> None:
         self.assertEqual(self.project.expanded_preview_party_slots, set())
+        self.assertFalse(self.project.leader_avatar_is_expanded)
+        self.assertTrue(self.project.lower_party_avatars_are_compact)
+        self.project.expanded_preview_party_slots.add(1)
+        self.assertFalse(self.project.leader_avatar_is_expanded)
+        self.assertFalse(self.project.lower_party_avatars_are_compact)
+        self.project.expanded_preview_party_slots.add(0)
+        self.assertTrue(self.project.leader_avatar_is_expanded)
+        self.project.expanded_preview_party_slots.remove(0)
+        self.assertFalse(self.project.leader_avatar_is_expanded)
+        self.project.restore_compact_party_avatars()
+        self.assertEqual(self.project.expanded_preview_party_slots, set())
+        self.assertTrue(self.project.lower_party_avatars_are_compact)
+        self.assertEqual(PARTY_PRESENTATION_LOWER_SLOT_MASK, 0x0E)
 
     def test_selected_party_character_geometry_and_worn_armour_match_source(self) -> None:
         self.assertEqual(
@@ -642,6 +957,19 @@ class InterfaceDataTests(unittest.TestCase):
         original = (ROOT / "binaries/BLOODWYCH439").read_bytes()
         self.assertEqual(original[0x7D64 : 0x7D6A], bytes.fromhex("76036100597C"))
         self.assertEqual(STATS_BARS_BACKGROUND[-1], original[0x7D65])
+
+    def test_full_length_avatar_replaces_compact_stats_with_party_hp_bars(self) -> None:
+        states = list(self.project.preview_avatar_state_bytes)
+        states[2] = self.project.preview_avatar_members[2]
+        self.project.preview_avatar_state_bytes = tuple(states)
+        bars = self.project.party_shield_status_bars()
+        self.assertEqual(len(bars), 3)
+        for x, y, width, height, colour in bars:
+            self.assertEqual(width, PARTY_SHIELD_STATUS_BAR_WIDTH)
+            self.assertLessEqual(height, PARTY_SHIELD_STATUS_BAR_FULL_TERMINAL_HEIGHT + 1)
+            self.assertEqual(y + height - 1, PARTY_SHIELD_STATUS_BAR_BASE_Y)
+            self.assertIn(colour, PARTY_SHIELD_STATUS_BAR_COLOUR_INDICES)
+        self.assertEqual([bar[0] for bar in bars], [0x37, 0x40, 0x49])
 
     def test_large_avatar_panel_matches_composite_source_routines(self) -> None:
         self.assertEqual(LARGE_AVATAR_PANEL_FILL, (0x00, 0x0A, 0x30, 0x2C, 0x01))

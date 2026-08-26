@@ -120,7 +120,7 @@ class SourceCommentTests(unittest.TestCase):
             ["Combined_Data:", "\tdc.b\t$00"],
         )
 
-    def test_conflicting_comments_for_one_label_are_rejected(self):
+    def test_conflicting_comments_for_one_label_are_skipped(self):
         frame = pd.DataFrame(
             [
                 {"label": "A", "relabel": "Shared", "source_comment": "First"},
@@ -128,8 +128,10 @@ class SourceCommentTests(unittest.TestCase):
             ]
         )
 
-        with self.assertRaisesRegex(ValueError, "Conflicting source comments"):
-            apply_source_comments(["Shared:", "\tdc.b\t$00"], frame)
+        self.assertEqual(
+            apply_source_comments(["Shared:", "\tdc.b\t$00"], frame),
+            ["Shared:", "\tdc.b\t$00"],
+        )
 
     def test_blank_duplicate_defers_to_resource_layout_comment(self):
         frame = pd.DataFrame(

@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import re
+from collections import defaultdict
 from pathlib import Path
 
 from .fix_labels import (
@@ -64,6 +65,36 @@ def _undefined_legacy_labels(lines: list[str]) -> list[str]:
     return sorted(references - definitions)
 
 
+def _conflicting_relabel_targets(
+    lines: list[str], rows: list[tuple[str, str]]
+) -> dict[str, tuple[str, ...]]:
+    """Find output labels claimed by multiple source definitions.
+
+    Only labels defined in the source being relabelled participate.  This
+    avoids treating aliases emitted later by the data-inspection pass as a
+    collision, while ensuring that a bad spreadsheet mapping cannot produce
+    two same-named assembler labels.
+    """
+    definitions = {
+        match.group(1).casefold()
+        for line in lines
+        if (match := re.match(r"^\s*([^\s:;]+)\s*:", line))
+    }
+    targets: dict[str, list[str]] = defaultdict(list)
+    names: dict[str, str] = {}
+    for source_label, output_label in rows:
+        if source_label.casefold() not in definitions:
+            continue
+        key = output_label.casefold()
+        targets[key].append(source_label)
+        names.setdefault(key, output_label)
+    return {
+        names[key]: tuple(source_labels)
+        for key, source_labels in targets.items()
+        if len(source_labels) > 1
+    }
+
+
 def relabel_segments(
     master: str,
     sheet: str | Path,
@@ -112,6 +143,20 @@ def relabel_segments(
     # Explicit pass 1: remove labels deliberately marked for deletion. Only the
     # definition line is removed; grouped layouts do not depend on this action.
     rows = list(relabel_rows())
+    conflicting_targets = _conflicting_relabel_targets(lines, rows)
+    if conflicting_targets:
+        skipped_targets = {target.casefold() for target in conflicting_targets}
+        for target, source_labels in conflicting_targets.items():
+            print(
+                "WARNING: Multiple source labels map to "
+                f"'{target}' ({', '.join(source_labels)}); skipping those "
+                "relabels to avoid duplicate ASM definitions."
+            )
+        rows = [
+            (label, new_label)
+            for label, new_label in rows
+            if new_label.casefold() not in skipped_targets
+        ]
     for label, new_label in rows:
         if not new_label.casefold().startswith("_delete"):
             continue

@@ -78,9 +78,9 @@ is view cell 18 and is composited after the eighteen cells ahead and beside it.
 This supplies the source's inside-cell wooden side walls, open large-door and
 stair structures, trigger pads, floor pits, and ceiling holes.
 
-Object and monster buttons remain visible but disabled. Their map locations
-and first-person composition will be enabled only after the Objects and
-Character/Monster editors share verified decoded models with the Data Viewer.
+The Object, Character/Monster, and Layout tabs remain disabled. Actor markers
+and the first-person composition pass belong to Viewer mode; editing individual
+records remains a later mode.
 
 ## Clean and modified data
 
@@ -95,6 +95,13 @@ data/BLOODWYCH439-modified/maps/<tower>.map
 The original file in `BLOODWYCH439-clean` is never altered. Existing Extract,
 Inspect and Patch tools can consequently validate and patch the replacement by
 the same spreadsheet-defined resource name.
+
+Viewer actor and dungeon artwork has a separate explicit `ART: CLEAN` /
+`ART: MODIFIED` selector. It starts clean, so a modified character, monster,
+spell, or dungeon graphic cannot be selected silently. The modified option is
+available only when the matching modified data directory exists; it reloads
+the complete visual set while leaving the map project's normal map overlay
+rules unchanged.
 
 ## WHDLoad save overlay
 
@@ -129,27 +136,105 @@ The supplied WHDLoad save is never overwritten.
 
 ## Viewer overlays
 
-The two verified overlays can be toggled independently:
+The map overlays can be toggled independently:
 
 - Switch references are recovered from type-1 map cells. Their action and
   target coordinates come from the tower's 16 four-byte switch definitions.
 - Trigger references are recovered from type-6 pad cells. Their action and
   optional floor/X/Y target come from the tower's 32 four-byte trigger
   definitions.
-The Monsters and Objects buttons remain visible but disabled. Their markers
-are not drawn until their respective packed/variable-length layouts,
-coordinate conversion, and graphical editors are reviewed together; the
-present decoders are retained only as backend groundwork for those tasks.
+- Champion, monster, spell, and player markers reproduce the AMOS viewer's
+  inset map legend: champions are yellow `C`; monster forms are red `M`
+  (darker above `$64`); airborne spell forms are blue `S`; player 1 and 2 are
+  blue and red `P` respectively. Without a save overlay, blue and red `Q`
+  markers identify the Player 1 and Player 2 Quickstart locations instead.
+- The Objects overlay adds a small white `X` at each variable-length object
+  stack's authored NW/NE/SW/SE corner. Named keys add a centred
+  four-pixel dot using their extracted floor-palette ink; common keys retain
+  the plain stack marker.
+- In a raw-game view, `QS TEAMS` chooses between the two Quickstart parties
+  plus the other eight champions at their original placements, and all sixteen
+  champions at their original placements. It starts off and is disabled for
+  saves, whose champion and party records are already live state.
+
+For extracted game data, monster markers use the per-tower packed six-byte
+records. With a WHDLoad save, the project reads the current-tower byte from
+the save and uses its live 16-byte workspace for that tower only; all other
+towers retain their packed records. This matches the AMOS editor and avoids
+presenting initial placements as live state. The current save also supplies
+player positions and the Keep's champion positions. Its four player-team
+slots are used to place each active champion at the corresponding `P` location
+in the first-person view. In no-save mode, `QkPly1_Start` and `QkPly2_Start`
+provide equivalent Quickstart teams and locations for `Q` markers and preview.
+When Quickstart teams are off, the raw `champions.stats` records provide all
+sixteen original Keep positions instead.
+
+For a raw champion placement, champion stat byte `$18` contains both values
+used by `Draw_DungeonCellOccupants`: low bits 0-1 supply the character artwork
+direction and bits 4-5 select one of four stable floor mini-spaces. The latter
+is rotated into the viewer frame before screen placement. Active player-party
+members instead share their player's direction from `PlayerData+$21`, while
+their party slots choose the formation positions. Both Quickstart players
+begin facing North.
+
+The AMOS map marker intentionally skips records with an X byte of `$FF`.
+That sentinel is used by the second through fourth members of a monster team:
+they share their team's lead location rather than owning another map marker.
+The first-person renderer expands those members at the lead position, matching
+the game's `Draw_DungeonCellOccupants` team-table traversal, so their character
+or monster graphics are all composited. For a raw packed group, the `KL` low
+two bits supply its stable authored member slots; Quickstart uses the same
+fixed four-byte team order. The packed monster-count word is a final record
+index, so the viewer includes that entry rather than treating it as a total.
+
+The cursor's first-person preview uses the existing Character, large-monster,
+and Airbourne-spell renderers wherever the form has a verified graphics
+definition. It places them through the source 19-cell and mini-space lookup
+tables at the original renderer's actor call sites: empty space, stairs, main
+doors and pits/pads render actors after their feature. Wooden walls are more
+specific: `Resolve_WoodenWallFace` calls the actor routine inside its four-face
+loop, after the rear faces and before the foreground face selected by the
+source's `d5` branch. Stone, beds/pillars and magic cells have no actor call.
+Packed records do
+not retain a heading: their
+cleared runtime state selects the source-default artwork. In live record byte
+`$02`, the low bits select artwork direction and bits 4-5 select the stable
+floor mini-space that is rotated into the viewer frame.
+
+Large-monster palette selection uses the actor's current grade byte and each
+renderer subtracts its own base grade before indexing its palette rows. A
+Summon's illusion palette is selected by the negative flag in that grade byte,
+not merely because it uses form `$65`.
+
+When Objects is enabled, the same preview reads every visible object stack and
+uses the original five `ObjectsOnFloor` projections, rotated mini-space table,
+and X/Y placement tables. Shelf stacks take the source routine's separate
+placement path, rather than being treated as floor-centre objects. A shelf has
+two levels: its absolute map facing selects the valid encoded pair (North 0/4,
+East 4/12, South 8/12, West 8/0) and their lower/upper meanings. The Object
+tab itself remains disabled until stack editing is implemented. In the current
+map cell, the source tables expose the two forward/reachable object spaces;
+the two nearer spaces in the cell ahead remain available through its normal
+object projection. Floor objects are drawn at the source's pre-feature call
+site. Shelf objects are placed immediately after their selected shelf face,
+then before later, nearer map cells draw. The shelf items remain visible, but
+an intervening wall face or nearer character or monster can naturally obscure
+them; side-on or occluded shelves do not leave their items embedded in a wall.
+
+The map cursor may be placed in a type-1 main wall even though normal game
+movement cannot do so. In that invalid preview state the current cell is sealed
+as opaque stone: it does not render an inner shelf, sign, switch, or socket,
+and object sprites are suppressed behind it.
 
 This separation is important: a map cell stores a switch or trigger reference,
 not the complete action. The target data is shared by every use of that
 reference and, for switches, can intentionally be reused across floors.
 
-Trigger reference 0 is the null/no-event record. The overlay deliberately
-does not number it. For non-zero triggers whose action uses X/Y coordinates,
-the overlay links the numbered source cell to a numbered target cell and boxes
-the affected location, recreating the relationship shown by the AMOS editor
-rather than presenting the pad reference in isolation.
+Switches and triggers use the AMOS editor's transparent two-digit reference
+numbers rather than invented letter icons. Trigger reference 0 is the
+null/no-event record and is deliberately not numbered. For non-zero triggers
+whose action uses X/Y coordinates, the overlay boxes the affected location;
+it does not draw a modern connecting line or add a second trigger icon there.
 
 ## Semantic map controls
 
