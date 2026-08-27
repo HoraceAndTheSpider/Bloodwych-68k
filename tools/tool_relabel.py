@@ -6,6 +6,7 @@ import re
 from collections import defaultdict
 from pathlib import Path
 
+from .asm_recovery import apply_asm_recoveries, load_asm_recovery_metadata
 from .fix_labels import (
     apply_fix_label_rules,
     load_fix_label_metadata,
@@ -99,16 +100,22 @@ def relabel_segments(
     master: str,
     sheet: str | Path,
     cleanup: str | Path | None = None,
+    *,
+    source: str | Path | None = None,
+    destination: str | Path | None = None,
 ) -> Path:
     frame = load_segments(sheet, master)
     require_columns(frame, ("label", "relabel"))
     equates, source_rules = load_source_metadata(sheet, master, cleanup)
     fix_label_rules = load_fix_label_metadata(sheet, master, cleanup)
-
-    original = asm_path(master, "source")
+    original = Path(source) if source is not None else asm_path(master, "asmfix")
     if not original.is_file():
-        raise ToolError(f"ASM source not found: {original}")
-    destination = asm_path(master, "relabel")
+        raise ToolError(
+            f"ASM Fix source not found: {original}. Run ASM Fix before Relabel."
+        )
+    destination = (
+        Path(destination) if destination is not None else asm_path(master, "relabel")
+    )
     print(f"Building relabel copy '{destination}'")
 
     # Work in memory and only replace the generated file after every relabel and
@@ -236,3 +243,23 @@ def relabel_segments(
     destination.write_text("\n".join(lines) + "\n", encoding="utf-8")
     print(f"Saved relabeled ASM to '{destination}'")
     return destination
+
+
+def build_asmfix(
+    master: str,
+    sheet: str | Path,
+    cleanup: str | Path | None = None,
+) -> Path:
+    """Recover verified instructions into the source used by Relabel."""
+    recovery_rules = load_asm_recovery_metadata(sheet, master, cleanup)
+    original = asm_path(master, "source")
+    if not original.is_file():
+        raise ToolError(f"ASM source not found: {original}")
+    recovered_source = asm_path(master, "asmfix")
+    lines = original.read_text(encoding="utf-8", errors="ignore").splitlines()
+    lines, applied = apply_asm_recoveries(lines, recovery_rules)
+    if not applied:
+        raise ToolError("ASM Fix found no verified recovery groups to apply")
+    recovered_source.write_text("\n".join(lines) + "\n", encoding="utf-8")
+    print(f"Saved pass-0 ASM recovery source to '{recovered_source}'")
+    return recovered_source

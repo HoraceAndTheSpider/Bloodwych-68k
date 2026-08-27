@@ -20,17 +20,18 @@ from tools.tool_common import (
 from tools.tool_extract import extract_segments
 from tools.tool_inspect import inspect_source
 from tools.tool_patch import patch_segments
-from tools.tool_relabel import relabel_segments
+from tools.tool_relabel import build_asmfix, relabel_segments
 from tools.source_formatter import format_relabel_data
 from tools.pygame_window import is_fullscreen, set_display_mode, set_scaled_fullscreen, set_windowed
 
 
-DATA_GUI_COMMANDS = ("extract", "relabel", "inspect", "format", "patch")
+DATA_GUI_COMMANDS = ("extract", "asmfix", "relabel", "inspect", "format", "patch")
 VIEWER_GUI_COMMANDS = ("graphics", "maps", "interface")
 GUI_COMMANDS = DATA_GUI_COMMANDS + VIEWER_GUI_COMMANDS
 GUI_LABELS = {
     "extract": "Extract",
     "relabel": "Relabel",
+    "asmfix": "ASM Fix",
     "inspect": "Inspect / Data",
     "format": "Format Source",
     "patch": "Patch",
@@ -52,7 +53,7 @@ def launch_gui(screenshot_path: Path | None = None) -> str | None:
 
     pygame.init()
     try:
-        window_size = (620, 390)
+        window_size = (620, 450)
         surface = set_display_mode(pygame, window_size)
         fullscreen = is_fullscreen()
         display_mode_rect = pygame.Rect(window_size[0] - 55, 8, 48, 24)
@@ -170,6 +171,10 @@ def build_parser() -> argparse.ArgumentParser:
 
     subparsers.add_parser("relabel", help="Generate asm/<binary>_relabel.asm")
     subparsers.add_parser(
+        "asmfix",
+        help="Generate asm/<source>_asmfix.asm for Relabel to consume",
+    )
+    subparsers.add_parser(
         "format", help="Format asm/<binary>_relabel_data.asm without changing code"
     )
     graphics = subparsers.add_parser("graphics", help="Open the extracted graphics viewer")
@@ -230,6 +235,8 @@ def run(args: argparse.Namespace, parser: argparse.ArgumentParser) -> int:
         )
     elif args.command == "relabel":
         relabel_segments(args.master, args.sheet, args.cleanup)
+    elif args.command == "asmfix":
+        build_asmfix(args.master, args.sheet, args.cleanup)
     elif args.command == "format":
         try:
             destination = format_relabel_data(

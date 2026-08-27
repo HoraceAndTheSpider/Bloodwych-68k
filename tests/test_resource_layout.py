@@ -155,7 +155,7 @@ class ResourceLayoutTests(unittest.TestCase):
             )
 
             def fake_asm_path(_master: str, stage: str) -> Path:
-                return source if stage == "source" else destination
+                return source if stage in ("source", "asmfix") else destination
 
             with (
                 patch("tools.tool_relabel.asm_path", side_effect=fake_asm_path),
@@ -201,7 +201,7 @@ class ResourceLayoutTests(unittest.TestCase):
             )
 
             def fake_asm_path(_master: str, stage: str) -> Path:
-                return source if stage == "source" else destination
+                return source if stage in ("source", "asmfix") else destination
 
             with (
                 patch("tools.tool_relabel.asm_path", side_effect=fake_asm_path),
@@ -231,7 +231,7 @@ class ResourceLayoutTests(unittest.TestCase):
             )
 
             def fake_asm_path(_master: str, stage: str) -> Path:
-                return source if stage == "source" else destination
+                return source if stage in ("source", "asmfix") else destination
 
             with (
                 patch("tools.tool_relabel.asm_path", side_effect=fake_asm_path),
@@ -282,7 +282,7 @@ class ResourceLayoutTests(unittest.TestCase):
             )
 
             def fake_asm_path(_master: str, stage: str) -> Path:
-                return source if stage == "source" else destination
+                return source if stage in ("source", "asmfix") else destination
 
             with (
                 patch("tools.tool_relabel.asm_path", side_effect=fake_asm_path),

@@ -370,6 +370,12 @@ PlayerData_AvatarPresentationState:				equ	$3E			; Offset of the four-bit main/l
 PartyPresentation_LowerFirstY:					equ	$37			; First player-local Y coordinate of the lower party-shield click rows.
 PartyPresentation_StatsXFirst:					equ	$30			; First X coordinate of the compact-statistics area that requests party commands.
 MonsterRecord_RotationFacingShift:				equ	$04			; Shifts the live monster rotation state down from its high nibble before viewer-relative facing is calculated.
+Dungeon_ViewCell_LastIndex:						equ	$12			; Highest zero-based index of the nineteen dungeon view cells.
+Dungeon_MapCell_MainWallType:					equ	$01			; Dungeon map-cell type for a main stone wall and its wall-mounted features.
+ObjectFloor_SubpositionCount:					equ	$04			; Number of rotated NW/NE/SW/SE object mini-spaces inspected in each dungeon cell.
+ObjectFloor_HiddenXPosition:					equ	$80			; Signed X-position sentinel that suppresses an unavailable projected floor-object mini-space.
+ObjectFloor_WideShapeFirst:						equ	$12			; First object floor-shape that uses the wide graphics bank and explicit projection-width selector.
+ObjectFloor_WideGraphicsOffset:					equ	$0CB8		; Byte offset from the ordinary ObjectsOnFloor graphics to the wide-shape graphics bank.
 
 ****************************************************************************
 
@@ -14081,7 +14087,7 @@ Build_DungeonVisibilityMasks_Loop:		; Memory Address ($9130) and binary offset [
 	beq.s	adrCd0091C4															;676E
 	and.b	#$07,d0																;02000007
 	beq.s	adrCd0091BC															;6760
-	cmpi.b	#$01,d0																;0C000001
+	cmpi.b	#Dungeon_MapCell_MainWallType,d0									;0C000001
 	beq.s	adrCd0091C0															;675E
 	cmpi.b	#$07,d0																;0C000007
 	bne.s	adrCd00917E															;6616
@@ -14098,7 +14104,7 @@ adrCd00917E:		; Memory Address ($917E) and binary offset [$8DFA]
 	cmpi.b	#$02,d0																;0C000002
 	bne.s	adrCd0091BC															;6638
 	move.w	-$000A(a3),d7														;3E2BFFF6
-	cmpi.w	#$0012,d6															;0C460012
+	cmpi.w	#Dungeon_ViewCell_LastIndex,d6										;0C460012
 	beq.s	adrCd009194															;6706
 	addq.w	#$02,d7																;5447
 	and.w	#$0003,d7															;02470003
@@ -14137,7 +14143,7 @@ adrCd0091C4:		; Memory Address ($91C4) and binary offset [$8E40]
 	lea		Dungeon_ViewCell_OcclusionMasks+$48.l,a4							;49F90000B98E
 	moveq	#$00,d7																;7E00
 	moveq	#-$01,d0															;70FF
-	moveq	#$12,d6																;7C12
+	moveq	#Dungeon_ViewCell_LastIndex,d6										;7C12
 Apply_DungeonOcclusionMasks_Loop:		; Memory Address ($91EA) and binary offset [$8E66]
 	; Combines the per-cell visible-face and occlusion masks from farthest view
 	; cell to nearest.
@@ -14619,14 +14625,14 @@ Draw_DungeonCellObjects_Loop:		; Memory Address ($9662) and binary offset [$92DE
 	movem.l	d0/d6/d7/a0/a3,-(sp)												;48E78390
 	moveq	#$00,d2																;7400
 	move.b	(a0),d2																;1410
-	bsr.s	Draw_ObjectOnFloor													;6152
+	bsr.s	Draw_ObjectOnFloor													;Draws every record attached to the selected rotated object mini-space before advancing to the next mini-space.
 	movem.l	(sp)+,d0/d6/d7/a0/a3												;4CDF09C1
 	addq.w	#$02,a0																;5448
 	dbra	d7,Draw_DungeonCellObjects_Loop										;51CFFFEE
 adrCd009676:		; Memory Address ($9676) and binary offset [$92F2]
 	move.w	(sp)+,d1															;321F
 	addq.w	#$01,d1																;5241
-	cmpi.w	#$0004,d1															;0C410004
+	cmpi.w	#ObjectFloor_SubpositionCount,d1									;0C410004
 	bcs.s	Draw_DungeonCellObjectSubpositions_Loop								;65CA
 adrCd009680:		; Memory Address ($9680) and binary offset [$92FC]
 	rts																			;4E75
@@ -14644,7 +14650,7 @@ Draw_ObjectOnFloor:		; Memory Address ($96BE) and binary offset [$933A]
 	add.w	d0,d0																;D040
 	add.w	d0,d0																;D040
 	add.w	d6,d0																;D046
-	move.b	GFX_ObjectsOnFloor_SubpositionRotation(pc,d0.w),d6					;1C3B00B8
+	move.b	GFX_ObjectsOnFloor_SubpositionRotation(pc,d0.w),d6					;Rotates the stored NW/NE/SW/SE object mini-space into the viewer-relative mini-space.
 	moveq	#$00,d1																;7200
 	move.b	-$0016(a3),d1														;122BFFEA
 	move.b	GFX_ObjectsOnFloor_SubpositionRotation+$14(pc,d1.w),d0				;103B10C2
@@ -14662,7 +14668,7 @@ Draw_ObjectOnFloor:		; Memory Address ($96BE) and binary offset [$933A]
 	move.b	$00(a0,d1.w),d4														;18301000
 	move.w	-$0012(a3),d3														;362BFFEE
 	and.w	#$0007,d3															;02430007
-	subq.w	#$01,d3																;5343
+	subq.w	#Dungeon_MapCell_MainWallType,d3									;A zero result selects the shelf-specific X-position and Y-adjustment path; other map-cell types use floor placement.
 	bne.s	Draw_ObjectOnFloor_ResolveGraphic									;661A
 	subq.w	#$04,d6																;5946
 	move.w	d0,d3																;3600
@@ -14675,7 +14681,7 @@ Draw_ObjectOnFloor:		; Memory Address ($96BE) and binary offset [$933A]
 Draw_ObjectOnFloor_ResolveGraphic:		; Memory Address ($9722) and binary offset [$939E]
 	; Loads the object's floor shape, recolour definition, graphics offset and
 	; selected projection.
-	cmpi.b	#$80,d4																;0C040080
+	cmpi.b	#ObjectFloor_HiddenXPosition,d4										;Skips this object mini-space when its source X-position entry is the hidden sentinel.
 	beq		adrCd009680															;6700FF58
 	lea		Object_Floor_Colours.l,a6											;4DF90000E770
 	moveq	#$00,d3																;7600
@@ -14693,13 +14699,13 @@ Draw_ObjectOnFloor_ResolveGraphic:		; Memory Address ($9722) and binary offset [
 	lea		GFX_ObjectsOnFloor_Offsets.l,a0										;41F90000E88A
 	lea		GFX_ObjectsOnFloor.l,a1												;43F900032F60
 	add.w	$00(a0,d6.w),a1														;D2F06000
-	cmpi.b	#$12,d3																;0C030012
+	cmpi.b	#ObjectFloor_WideShapeFirst,d3										;Selects the wide graphics bank and explicit width selector for the wide floor-object shapes.
 	bcs.s	Draw_ObjectOnFloor_ResolveWidth										;6504
-	add.w	#$0CB8,a1															;D2FC0CB8
+	add.w	#ObjectFloor_WideGraphicsOffset,a1									;Moves the sprite pointer from ordinary ObjectsOnFloor pictures to the wide-shape graphics bank.
 Draw_ObjectOnFloor_ResolveWidth:		; Memory Address ($9774) and binary offset [$93F0]
 	; Selects the normal or wide floor-object drawing width.
 	moveq	#$00,d7																;7E00
-	cmpi.b	#$12,d3																;0C030012
+	cmpi.b	#ObjectFloor_WideShapeFirst,d3										;Selects the wide graphics bank and explicit width selector for the wide floor-object shapes.
 	bcs.s	Draw_ObjectOnFloor_Blit												;6504
 	move.b	GFX_ObjectsOnFloor_Widths(pc,d0.w),d7								;1E3B0038
 Draw_ObjectOnFloor_Blit:		; Memory Address ($9780) and binary offset [$93FC]
@@ -14898,7 +14904,7 @@ Draw_DungeonCellOccupants:		; Memory Address ($99F0) and binary offset [$966C]
 	swap	d2																	;4842
 	move.b	-$001A(a3),d2														;142BFFE6
 	move.w	-$001E(a3),d1														;322BFFE2
-	bsr		Find_DungeonCellOccupant											;6100FE9E
+	bsr		Find_DungeonCellOccupant											;Finds the player, champion, or unpacked monster occupying the current visible map coordinates before selecting its renderer.
 	bcc.s	Return_FromDungeonCellOccupants										;64E0
 	tst.b	d0																	;4A00
 	bmi		Draw_PlayerOccupant													;6B0000E8
@@ -17371,7 +17377,7 @@ Draw_Main_Shelf_Overlay:		; Memory Address ($B1E0) and binary offset [$AE5C]
 	; projected shelf component.
 	tst.b	-$001F(a3)															;4A2BFFE1
 	bne.s	Draw_Main_Shelf_Visible												;6608
-	btst	#$03,-$0011(a3)														;082B0003FFEF
+	btst	#$03,-$0011(a3)														;In the normal player-view context, suppresses a shelf whose selected wall face is hidden by the current visibility mask.
 	bne.s	adrCd00B1C4															;66D6
 Draw_Main_Shelf_Visible:		; Memory Address ($B1EE) and binary offset [$AE6A]
 	; Loads the shelf graphics tables and draws the shelf when its wall-face
@@ -19578,7 +19584,7 @@ WriteMessage:
 	bra.s	adrCd00D042															;6002
 
 ;fiX Label expected
-	dc.w	$7400	;7400
+	moveq	#$00,d2																;ASM_RECOVERY: write_message_default | 7400
 
 adrCd00D042:		; Memory Address ($D042) and binary offset [$CCBE]
 	tst.b	$0005(a4)															;4A2C0005
@@ -20528,7 +20534,7 @@ Print_npc_message:		; Memory Address ($D81C) and binary offset [$D498]
 	bra.s	.continuedcode_009													;6002
 
 ;fiX Label expected
-	dc.w	$7400	;7400
+	moveq	#$00,d2																;ASM_RECOVERY: npc_message_default | 7400
 
 .continuedcode_009:		; Memory Address ($D824) and binary offset [$D4A0]
 	tst.b	$0005(a4)															;4A2C0005
@@ -20758,14 +20764,14 @@ BW_blitchar_data:
 	dc.w	$FFFF	;FFFF
 	dc.w	$FFFF	;FFFF
 	dc.w	$FFFF	;FFFF
-	dc.w	$4843	;4843
-	dc.w	$4844	;4844
-	dc.w	$4845	;4845
-	dc.w	$3803	;3803
-	dc.w	$3A03	;3A03
-	dc.w	$4843	;4843
-	dc.w	$4844	;4844
-	dc.w	$4845	;4845
+	swap	d3																	;ASM_RECOVERY: draw_square | 4843
+	swap	d4																	;ASM_RECOVERY: draw_square | 4844
+	swap	d5																	;ASM_RECOVERY: draw_square | 4845
+	move.w	d3,d4																;ASM_RECOVERY: draw_square | 3803
+	move.w	d3,d5																;ASM_RECOVERY: draw_square | 3A03
+	swap	d3																	;ASM_RECOVERY: draw_square | 4843
+	swap	d4																	;ASM_RECOVERY: draw_square | 4844
+	swap	d5																	;ASM_RECOVERY: draw_square | 4845
 
 BW_draw_bar:
 	swap	d4																	;4844	;

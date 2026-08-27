@@ -26,6 +26,7 @@ class ProjectStructureTests(unittest.TestCase):
             main.GUI_COMMANDS,
             (
                 "extract",
+                "asmfix",
                 "relabel",
                 "inspect",
                 "format",
@@ -37,7 +38,7 @@ class ProjectStructureTests(unittest.TestCase):
         )
         self.assertEqual(
             main.DATA_GUI_COMMANDS,
-            ("extract", "relabel", "inspect", "format", "patch"),
+            ("extract", "asmfix", "relabel", "inspect", "format", "patch"),
         )
         self.assertEqual(
             main.VIEWER_GUI_COMMANDS, ("graphics", "maps", "interface")
@@ -75,13 +76,24 @@ class ProjectStructureTests(unittest.TestCase):
             patch("sys.argv", ["main.py"]),
             patch(
                 "main.launch_gui",
-                side_effect=["extract", "relabel", "inspect", "format", "patch", None],
+                side_effect=[
+                    "extract",
+                    "asmfix",
+                    "relabel",
+                    "inspect",
+                    "format",
+                    "patch",
+                    None,
+                ],
             ) as launch_gui,
             patch("main.run", side_effect=record_command),
         ):
             self.assertEqual(main.main(), 0)
-        self.assertEqual(launch_gui.call_count, 6)
-        self.assertEqual(commands, ["extract", "relabel", "inspect", "format", "patch"])
+        self.assertEqual(launch_gui.call_count, 7)
+        self.assertEqual(
+            commands,
+            ["extract", "asmfix", "relabel", "inspect", "format", "patch"],
+        )
 
     def test_front_page_tool_error_is_reported_and_returns_to_launcher(self) -> None:
         error_output = StringIO()
@@ -177,6 +189,15 @@ class ProjectStructureTests(unittest.TestCase):
             prefer_modified=True,
         )
 
+    def test_asmfix_cli_builds_isolated_source(self) -> None:
+        parser = main.build_parser()
+        args = parser.parse_args(["asmfix"])
+        with patch("main.build_asmfix") as build:
+            self.assertEqual(main.run(args, parser), 0)
+        build.assert_called_once_with(
+            "BLOODWYCH439", str(DEFAULT_SEGMENTS_FILE), None
+        )
+
     def test_configured_binary_names(self) -> None:
         self.assertEqual(
             [profile.filename for profile in PROFILES],
@@ -203,6 +224,10 @@ class ProjectStructureTests(unittest.TestCase):
         self.assertEqual(
             asm_path("BLOODWYCH439", "data"),
             ASM_DIR / "BLOODWYCH439_relabel_data.asm",
+        )
+        self.assertEqual(
+            asm_path("BLOODWYCH439", "asmfix"),
+            ASM_DIR / "Bloodwych439_asmfix.asm",
         )
 
     def test_parse_int(self) -> None:

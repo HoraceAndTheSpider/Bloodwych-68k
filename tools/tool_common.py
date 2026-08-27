@@ -142,6 +142,12 @@ def asm_path(master: str, stage: str = "source") -> Path:
         filename = (
             f"{Path(profile.relabel_asm).stem}_data.asm" if profile.relabel_asm else None
         )
+    elif stage == "asmfix":
+        filename = (
+            f"{Path(profile.source_asm).stem}_asmfix.asm"
+            if profile.source_asm
+            else None
+        )
     else:
         raise ToolError(f"Unknown ASM stage '{stage}'")
     if not filename:
