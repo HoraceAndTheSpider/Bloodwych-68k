@@ -21289,6 +21289,7 @@ CopyProtection:
 
 
 ;fiX Label expected
+; COPY_PROTECTION_INTERNAL ($D140): Reserved workspace leading into the saved-register area.
 	dc.w	$0000	;0000
 	dc.w	$0000	;0000
 	dc.w	$0000	;0000
@@ -21399,6 +21400,7 @@ adrCd00D1FC:
 	move.l	(sp)+,$00000010.l	;23DF00000010
 	illegal	;4AFC
 ;fiX Label expected
+; COPY_PROTECTION_INTERNAL ($D21C): Opaque instruction/data stream entered through the deliberate exception path.
 	dc.w	$487A	;487A
 	dc.w	$001C	;001C
 	dc.w	$23DF	;23DF
@@ -21525,6 +21527,7 @@ adrCd00D332:
 	rte	;4E73
 
 ;fiX Label expected
+; COPY_PROTECTION_INTERNAL ($D338): Opaque word stream following the exception-handler return.
 	dc.w	$F076	;F076
 	dc.w	$FCE0	;FCE0
 	dc.w	$40E6	;40E6
@@ -21805,6 +21808,7 @@ adrCd00D56A:
 	bra.s	adrCd00D59A	;6016
 
 ;fiX Label expected
+; COPY_PROTECTION_INTERNAL ($D584): Encoded word block deliberately skipped by the visible execution paths.
 	dc.w	$8A91	;8A91
 	dc.w	$8A44	;8A44
 	dc.w	$8A45	;8A45
@@ -21821,6 +21825,7 @@ adrCd00D59A:
 	move.l	d1,d0	;2001
 	illegal	;4AFC
 ;fiX Label expected
+; COPY_PROTECTION_INTERNAL ($D59E): Opaque stream following the deliberate illegal instruction; retained as raw words.
 	dc.w	$FB76	;FB76
 	dc.w	$7676	;7676
 	dc.w	$8108	;8108

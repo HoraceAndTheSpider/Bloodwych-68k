@@ -18,6 +18,13 @@ OBJECT_MARKER_OFFSETS = {
     8: (4, 12),
     12: (12, 12),
 }
+FLOOR_POSITION_NAMES = {
+    0: "NORTH-WEST",
+    4: "NORTH-EAST",
+    8: "SOUTH-WEST",
+    12: "SOUTH-EAST",
+}
+WALL_DIRECTION_NAMES = ("NORTH", "EAST", "SOUTH", "WEST")
 # Each shelf face has exactly two usable encoded positions.  The first is the
 # lower shelf level and the second the upper level; their encoded values vary
 # with the shelf's absolute map direction.
@@ -65,6 +72,66 @@ def object_marker_offset(position: int) -> tuple[int, int] | None:
     """Return the source-authored subposition as a small map-marker centre."""
 
     return OBJECT_MARKER_OFFSETS.get(position)
+
+
+def object_stack_indices_at_cell(
+    tower_map: TowerMap,
+    stacks: tuple[ObjectStack, ...] | list[ObjectStack],
+    floor: int,
+    x: int,
+    y: int,
+) -> tuple[int, ...]:
+    """Return source-order stack indices occupying one map cell."""
+
+    return tuple(
+        index
+        for index, stack in enumerate(stacks)
+        if object_stack_location(tower_map, stack) == (floor, x, y)
+    )
+
+
+def cycle_object_stack_index(
+    indices: tuple[int, ...], current: int | None
+) -> int | None:
+    """Select the next co-located stack in source rotation order."""
+
+    if not indices:
+        return None
+    if current not in indices:
+        return indices[0]
+    return indices[(indices.index(current) + 1) % len(indices)]
+
+
+def object_stack_positions(tower_map: TowerMap, stack: ObjectStack) -> tuple[int, ...]:
+    """Return the valid source-authored positions for a floor or shelf stack."""
+
+    location = object_stack_location(tower_map, stack)
+    if location is None:
+        return tuple(OBJECT_MARKER_OFFSETS)
+    floor, x, y = location
+    cell = tower_map.cell(floor, x, y)
+    if cell.map_type == 1 and cell.c >= 8 and cell.b & 3 == 0:
+        return SHELF_POSITIONS_BY_FACING[cell.c & 3]
+    return tuple(OBJECT_MARKER_OFFSETS)
+
+
+def object_position_name(tower_map: TowerMap, stack: ObjectStack) -> str:
+    """Describe an object mini-position as a floor corner or shelf level."""
+
+    location = object_stack_location(tower_map, stack)
+    if location is not None:
+        floor, x, y = location
+        cell = tower_map.cell(floor, x, y)
+        if cell.map_type == 1 and cell.c >= 8 and cell.b & 3 == 0:
+            facing = cell.c & 3
+            level = shelf_level(stack.position, facing)
+            if level is not None:
+                return (
+                    f"{WALL_DIRECTION_NAMES[facing]} WALL · "
+                    f"{'BOTTOM' if level == 0 else 'TOP'} SHELF"
+                )
+            return f"{WALL_DIRECTION_NAMES[facing]} WALL · INVALID SHELF POSITION"
+    return FLOOR_POSITION_NAMES.get(stack.position, f"INVALID {stack.position}")
 
 
 def shelf_level(position: int, shelf_facing: int) -> int | None:

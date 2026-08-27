@@ -31,10 +31,19 @@ from tools.map_editor.model import (
     MapCell,
     MapProject,
     MonsterRecord,
+    ObjectStack,
     TowerMap,
+    resolve_contiguous_reference,
 )
 from tools.map_editor.render import cell_glyph, describe_cell, draw_map_cell
-from tools.map_editor.semantics import apply_cell_action, controls_for_cell, default_cell
+from tools.map_editor.semantics import (
+    adjust_trigger_parameter,
+    apply_cell_action,
+    controls_for_cell,
+    default_cell,
+    editor_rows_for_cell,
+    trigger_parameter_label,
+)
 from tools.tool_common import DATA_DIR, PROJECT_ROOT
 
 
@@ -94,7 +103,7 @@ class MapEditorTests(unittest.TestCase):
             )
         )
 
-    def test_actor_overlays_are_enabled_without_enabling_the_editor_tab(self) -> None:
+    def test_actor_overlays_and_object_editor_are_enabled(self) -> None:
         enabled = dict(zip(OVERLAY_NAMES, OVERLAY_ENABLED))
         self.assertTrue(enabled["OBJECTS"])
         self.assertTrue(enabled["CHAMPIONS"])
@@ -106,7 +115,7 @@ class MapEditorTests(unittest.TestCase):
         self.assertTrue(enabled["TRIGGERS"])
         self.assertTrue(enabled["LINKS"])
         self.assertTrue(all(not default for default in OVERLAY_DEFAULTS))
-        self.assertFalse(EDITOR_TAB_ENABLED[2])
+        self.assertTrue(EDITOR_TAB_ENABLED[2])
         self.assertFalse(EDITOR_TAB_ENABLED[3])
 
     def test_sps439_tower_header_and_cell_round_trip(self) -> None:
@@ -208,6 +217,13 @@ class MapEditorTests(unittest.TestCase):
         self.assertEqual(len(project.monsters(0)), 73)
         self.assertGreater(len(project.object_stacks(0)), 100)
         self.assertIn("WOOD", describe_cell(MapCell(0x33, 0x02)))
+
+    def test_overflowing_switch_reference_borrows_from_the_next_tower(self) -> None:
+        lengths = (16, 16, 16, 16, 16, 16)
+        self.assertEqual(resolve_contiguous_reference(0, 15, lengths), (0, 15))
+        self.assertEqual(resolve_contiguous_reference(0, 16, lengths), (1, 0))
+        self.assertEqual(resolve_contiguous_reference(4, 31, lengths), (5, 15))
+        self.assertIsNone(resolve_contiguous_reference(5, 16, lengths))
 
     def test_save_uses_live_actors_only_for_the_current_tower(self) -> None:
         project = MapProject.from_savegame(CLEAN_ROOT, PROJECT_ROOT / "whdload" / "bloodsave0")
@@ -465,6 +481,34 @@ class MapEditorTests(unittest.TestCase):
             self.assertEqual(switch_source.read_bytes(), switch_destination.read_bytes())
             self.assertEqual(written[0].read_bytes()[6], changed.x)
 
+    def test_object_stack_edit_round_trips_through_modified_resource(self) -> None:
+        with TemporaryDirectory() as temp_dir:
+            root = Path(temp_dir)
+            clean = root / "BLOODWYCH439-clean"
+            for stem in ("mod0", "serp", "moon", "drag", "chaos", "zendik"):
+                destination = clean / "maps" / f"{stem}.map"
+                destination.parent.mkdir(parents=True, exist_ok=True)
+                destination.write_bytes((CLEAN_ROOT / "maps" / f"{stem}.map").read_bytes())
+            source = CLEAN_ROOT / "maps" / "mod0.obj"
+            destination = clean / "maps" / "mod0.obj"
+            destination.write_bytes(source.read_bytes())
+            project = MapProject.from_extracted(clean)
+            stacks = list(project.object_stacks(0))
+            first = stacks[0]
+            stacks[0] = ObjectStack(
+                first.position,
+                first.map_index,
+                ((0x17, 2),) + first.items[1:],
+            )
+            project.set_object_stacks(0, stacks)
+            written = project.save()
+            self.assertEqual(
+                written,
+                (root / "BLOODWYCH439-modified" / "maps" / "mod0.obj",),
+            )
+            self.assertEqual(project.object_stacks(0)[0].items[0], (0x17, 2))
+            self.assertEqual(source.read_bytes(), destination.read_bytes())
+
     def test_save_overlay_rejects_edits_to_tables_not_contained_in_save(self) -> None:
         project = MapProject.from_savegame(CLEAN_ROOT, PROJECT_ROOT / "whdload" / "bloodsave0")
         with self.assertRaisesRegex(ValueError, "cannot be edited"):
@@ -500,6 +544,29 @@ class MapEditorTests(unittest.TestCase):
         labels = tuple(control.label for control in controls_for_cell(east))
         self.assertIn("N: WALL", labels)
         self.assertIn("E: WALL", labels)
+        self.assertEqual(apply_cell_action(north, "WOOD-N-").first, 0)
+
+    def test_editor_rows_separate_values_from_small_adjustment_actions(self) -> None:
+        rows = editor_rows_for_cell(MapCell(0x0A, 0x81))
+        self.assertEqual(
+            tuple((row.label, row.value) for row in rows),
+            (
+                ("TYPE", "1: STONE WALL"),
+                ("FACE", "NORTH"),
+                ("FEATURE", "SWITCH"),
+                ("REFERENCE", "1"),
+                ("STATE", "LIT"),
+            ),
+        )
+        self.assertEqual(rows[3].decrement_action, "REFERENCE-")
+        self.assertEqual(rows[3].increment_action, "REFERENCE+")
+
+    def test_trigger_parameters_follow_amos_destination_cycles(self) -> None:
+        self.assertEqual(adjust_trigger_parameter(0x12, 0x0B, 1), 0x02)
+        self.assertEqual(adjust_trigger_parameter(0x14, 0x04, -1), 0x14)
+        self.assertEqual(adjust_trigger_parameter(0x2A, 7, 1), 0)
+        self.assertEqual(trigger_parameter_label(0x12, 0x03), "SERPENT TOWER 2")
+        self.assertEqual(trigger_parameter_label(0x14, 0x10), "CHAOS TOWER")
 
     def test_semantic_pad_separates_floor_and_ceiling_hole(self) -> None:
         pad = MapCell(0x0A, 0x06)

@@ -2,9 +2,13 @@ from pathlib import Path
 import unittest
 
 from tools.map_editor.floor_objects import (
+    cycle_object_stack_index,
     named_key_colour_index,
     object_marker_offset,
+    object_position_name,
+    object_stack_indices_at_cell,
     object_stack_location,
+    object_stack_positions,
     project_floor_object,
     shelf_face_is_visible,
     shelf_level,
@@ -41,6 +45,29 @@ class FloorObjectTests(unittest.TestCase):
             self.project.maps[0].floor_from_map_index(0x80E),
             (3, 12, 11),
         )
+
+    def test_stack_position_uses_corner_and_shelf_names(self) -> None:
+        tower_map = self.project.maps[0]
+        shelf_stack = self.project.object_stacks(0)[0]
+        floor_stack = self.project.object_stacks(0)[11]
+        self.assertEqual(object_position_name(tower_map, shelf_stack), "SOUTH WALL · TOP SHELF")
+        self.assertEqual(object_stack_positions(tower_map, shelf_stack), (8, 12))
+        self.assertEqual(object_position_name(tower_map, floor_stack), "SOUTH-WEST")
+        self.assertEqual(object_stack_positions(tower_map, floor_stack), (0, 4, 8, 12))
+
+    def test_stack_lookup_retains_source_rotation_order(self) -> None:
+        tower_map = self.project.maps[0]
+        stacks = self.project.object_stacks(0)
+        stack = stacks[11]
+        location = object_stack_location(tower_map, stack)
+        assert location is not None
+        indexes = object_stack_indices_at_cell(tower_map, stacks, *location)
+        self.assertIn(11, indexes)
+        self.assertEqual(tuple(sorted(indexes)), indexes)
+        self.assertEqual(cycle_object_stack_index((4, 9, 12), None), 4)
+        self.assertEqual(cycle_object_stack_index((4, 9, 12), 4), 9)
+        self.assertEqual(cycle_object_stack_index((4, 9, 12), 12), 4)
+        self.assertIsNone(cycle_object_stack_index((), 4))
 
     def test_floor_object_uses_the_source_projection_and_position_tables(self) -> None:
         stack = self.project.object_stacks(0)[11]

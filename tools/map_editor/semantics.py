@@ -14,6 +14,16 @@ class CellControl:
     label: str
 
 
+@dataclass(frozen=True)
+class CellEditorRow:
+    """One AMOS-style selectable property with separate decrement/increment actions."""
+
+    label: str
+    value: str
+    decrement_action: str
+    increment_action: str
+
+
 WOOD_STATES = ("NONE", "WALL", "OPEN", "CLOSED")
 SIGN_KINDS = ("GENERATED", "SERPENT", "DRAGON", "MOON", "CHAOS")
 SOCKET_KINDS = ("SERPENT", "CHAOS", "DRAGON", "MOON", "GREY", "BLUISH", "BROWN", "TAN")
@@ -45,10 +55,56 @@ TRIGGER_ACTIONS = {
     0x40: "BEXT: SPECIAL UNKNOWN",
 }
 TRIGGER_XY_ACTIONS = frozenset({
-    0x06, 0x16, 0x18, 0x1A, 0x1C, 0x1E, 0x20, 0x24, 0x26,
+    0x06, 0x12, 0x16, 0x18, 0x1A, 0x1C, 0x1E, 0x20, 0x24, 0x26,
     0x2A, 0x2C, 0x2E, 0x32, 0x34, 0x36, 0x38, 0x3C,
 })
 TRIGGER_FLOOR_ACTIONS = frozenset({0x2A, 0x32})
+TRIGGER_DESTINATION_ACTIONS = frozenset({0x12, 0x14})
+
+
+def trigger_parameter_label(action: int, value: int) -> str:
+    """Describe byte 1 of a trigger record using its action-specific meaning."""
+
+    if action == 0x12:
+        destinations = {
+            0x02: "SERPENT TOWER 1",
+            0x03: "SERPENT TOWER 2",
+            0x04: "MOON TOWER 1",
+            0x05: "MOON TOWER 2",
+            0x06: "DRAGON TOWER 1",
+            0x07: "DRAGON TOWER 2",
+            0x08: "CHAOS TOWER 1",
+            0x09: "CHAOS TOWER 2",
+            0x0A: "ZENDIK'S TOWER 1",
+            0x0B: "ZENDIK'S TOWER 2",
+        }
+        return destinations.get(value, f"INVALID ${value:02X}")
+    if action == 0x14:
+        destinations = {
+            0x04: "SERPENT TOWER",
+            0x08: "MOON TOWER",
+            0x0C: "DRAGON TOWER",
+            0x10: "CHAOS TOWER",
+            0x14: "ZENDIK'S TOWER",
+        }
+        return destinations.get(value, f"INVALID ${value:02X}")
+    return f"FLOOR {value}"
+
+
+def adjust_trigger_parameter(action: int, value: int, delta: int) -> int:
+    """Cycle a trigger parameter through the values used by the AMOS editor."""
+
+    if action == 0x12:
+        values = tuple(range(0x02, 0x0C))
+    elif action == 0x14:
+        values = (0x04, 0x08, 0x0C, 0x10, 0x14)
+    else:
+        values = tuple(range(8))
+    try:
+        index = values.index(value)
+    except ValueError:
+        index = 0
+    return values[(index + delta) % len(values)]
 
 
 def _replace_first(cell: MapCell, value: int) -> MapCell:
@@ -145,6 +201,123 @@ def controls_for_cell(cell: MapCell) -> tuple[CellControl, ...]:
     return tuple(controls)
 
 
+def editor_rows_for_cell(cell: MapCell) -> tuple[CellEditorRow, ...]:
+    """Return compact property rows matching the original editor's text model."""
+
+    rows = [
+        CellEditorRow(
+            "TYPE",
+            f"{cell.map_type}: {MAP_TYPE_NAMES[cell.map_type]}",
+            "TYPE-",
+            "TYPE+",
+        )
+    ]
+    map_type = cell.map_type
+    if map_type == 1:
+        face = "PLAIN" if cell.c < 8 else DIRECTION_NAMES[cell.c & 3]
+        feature = ("SHELF", "SIGN", "SWITCH", "SOCKET")[cell.b & 3]
+        rows.extend((
+            CellEditorRow("FACE", face, "FACE-", "FACE+"),
+            CellEditorRow("FEATURE", feature, "FEATURE-", "FEATURE+"),
+        ))
+        if cell.b & 3 == 0:
+            state = "ON" if cell.d & 8 else "OFF"
+            rows.append(CellEditorRow("CONCEAL", state, "CONCEAL", "CONCEAL"))
+        elif cell.b & 3 == 1:
+            known = {0x01: 0, 0x05: 1, 0x09: 2, 0x0D: 3, 0x11: 4}
+            value = (
+                SIGN_KINDS[known[cell.first]]
+                if cell.first in known
+                else f"SCROLL {max(0, cell.first // 4 - 4):02d}"
+            )
+            rows.append(CellEditorRow("SIGN", value, "VARIANT-", "VARIANT+"))
+        elif cell.b & 3 == 2:
+            state = "LIT" if cell.b in (2, 10) else "DIM"
+            rows.extend((
+                CellEditorRow("REFERENCE", str(cell.first // 8), "REFERENCE-", "REFERENCE+"),
+                CellEditorRow("STATE", state, "STATE", "STATE"),
+            ))
+        else:
+            family = (
+                SOCKET_KINDS[min(cell.first // 8, 7)]
+                if cell.first < 0x40
+                else "INVALID"
+            )
+            state = "FULL" if cell.b in (3, 11) else "EMPTY"
+            rows.extend((
+                CellEditorRow("GEM", family, "VARIANT-", "VARIANT+"),
+                CellEditorRow("STATE", state, "STATE", "STATE"),
+            ))
+    elif map_type == 2:
+        for side, shift in zip("NESW", (0, 2, 4, 6)):
+            state = WOOD_STATES[(cell.first >> shift) & 3]
+            rows.append(
+                CellEditorRow(side, state, f"WOOD-{side}-", f"WOOD-{side}+")
+            )
+        rows.append(
+            CellEditorRow(
+                "LOCK",
+                "LOCKED" if cell.c & 1 else "NO LOCK",
+                "LOCK",
+                "LOCK",
+            )
+        )
+    elif map_type == 3:
+        kind = "BED" if cell.first == 0 else "PILLAR"
+        rows.append(CellEditorRow("KIND", kind, "MISC-", "MISC+"))
+    elif map_type == 4:
+        elevation = "UP" if cell.b & 1 == 0 else "DOWN"
+        direction = DIRECTION_NAMES[(cell.b // 2) & 3]
+        rows.extend((
+            CellEditorRow("ELEVATION", elevation, "ELEVATION", "ELEVATION"),
+            CellEditorRow("DIRECTION", direction, "DIRECTION-", "DIRECTION+"),
+        ))
+    elif map_type == 5:
+        rows.extend((
+            CellEditorRow(
+                "KIND",
+                "PORTCULLIS" if cell.b & 2 else "REGULAR",
+                "DOOR-KIND",
+                "DOOR-KIND",
+            ),
+            CellEditorRow(
+                "AXIS",
+                "EAST / WEST" if cell.b & 4 else "NORTH / SOUTH",
+                "DOOR-AXIS",
+                "DOOR-AXIS",
+            ),
+            CellEditorRow(
+                "STATE",
+                "CLOSED" if cell.b & 1 else "OPEN",
+                "STATE",
+                "STATE",
+            ),
+            CellEditorRow("LOCK", _door_lock_name(cell), "LOCK-", "LOCK+"),
+        ))
+    elif map_type == 6:
+        base = ("FIZZLE", "FLOOR HOLE", "GREEN PAD", "INVISIBLE PAD")[cell.b & 3]
+        rows.extend((
+            CellEditorRow("FLOOR", base, "FLOOR-", "FLOOR+"),
+            CellEditorRow(
+                "CEILING",
+                "HOLE" if cell.b & 4 else "NONE",
+                "CEILING",
+                "CEILING",
+            ),
+        ))
+        if cell.b & 3 in (2, 3):
+            rows.append(
+                CellEditorRow("REFERENCE", str(cell.first // 8), "REFERENCE-", "REFERENCE+")
+            )
+    elif map_type == 7:
+        kind = ("SPACE", "FIREPATH", "MINDROCK", "FORMWALL")[cell.b & 3]
+        rows.extend((
+            CellEditorRow("KIND", kind, "MAGIC-", "MAGIC+"),
+            CellEditorRow("POWER", str(cell.first // 4), "POWER-", "POWER+"),
+        ))
+    return tuple(rows)
+
+
 def apply_cell_action(cell: MapCell, action: str) -> MapCell:
     """Apply one cell-local semantic operation."""
 
@@ -190,9 +363,11 @@ def apply_cell_action(cell: MapCell, action: str) -> MapCell:
             return _replace_b(cell, cell.b ^ 4)
         return _replace_b(cell, cell.b ^ 1)
     if action.startswith("WOOD-"):
-        side = "NESW".index(action[-1])
+        side_name = action[5]
+        side = "NESW".index(side_name)
         shift = side * 2
-        state = ((cell.first >> shift) + 1) & 3
+        delta = -1 if action.endswith("-") else 1
+        state = (((cell.first >> shift) & 3) + delta) & 3
         return _replace_first(cell, (cell.first & ~(3 << shift)) | (state << shift))
     if action == "LOCK" and cell.map_type == 2:
         return _replace_c(cell, cell.c ^ 1)

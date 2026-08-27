@@ -25,9 +25,13 @@ from tools.map_editor.first_person import (
     relative_map_coordinate,
 )
 from tools.map_editor.floor_objects import (
+    cycle_object_stack_index,
     named_key_colour_index,
     object_marker_offset,
+    object_position_name,
+    object_stack_indices_at_cell,
     object_stack_location,
+    object_stack_positions,
     project_floor_object,
 )
 from tools.map_editor.model import (
@@ -35,17 +39,22 @@ from tools.map_editor.model import (
     MapCell,
     MapProject,
     MonsterRecord,
+    ObjectStack,
     TOWERS,
+    resolve_contiguous_reference,
 )
 from tools.map_editor.render import MAP_TYPE_NAMES, cell_glyph, describe_cell, draw_map_cell
 from tools.map_editor.semantics import (
     SWITCH_ACTIONS,
     TRIGGER_ACTIONS,
+    TRIGGER_DESTINATION_ACTIONS,
     TRIGGER_FLOOR_ACTIONS,
     TRIGGER_XY_ACTIONS,
-    CellControl,
+    CellEditorRow,
+    adjust_trigger_parameter,
     apply_cell_action,
-    controls_for_cell,
+    editor_rows_for_cell,
+    trigger_parameter_label,
 )
 from tools.pygame_window import is_fullscreen, set_display_mode, set_scaled_fullscreen, set_windowed
 from tools.tool_common import DATA_DIR
@@ -78,7 +87,7 @@ CURSOR_COLOURS = (
     (235, 90, 240),
 )
 EDITOR_TABS = ("VIEWER", "MAPS", "OBJECTS", "CHARACTERS / MONSTERS", "LAYOUT")
-EDITOR_TAB_ENABLED = (True, True, False, False, False)
+EDITOR_TAB_ENABLED = (True, True, True, False, False)
 OVERLAY_NAMES = (
     "SWITCHES",
     "TRIGGERS",
@@ -407,6 +416,9 @@ def launch_map_editor(
         selected_floor = default_floor(project, selected_tower)
         selected_x = selected_y = 0
         copied_cell: MapCell | None = None
+        selected_editor_row: int | None = None
+        selected_object_stack = 0
+        selected_object_item = 0
         overlays = {
             name: enabled
             for name, enabled in zip(OVERLAY_NAMES, OVERLAY_DEFAULTS)
@@ -423,8 +435,12 @@ def launch_map_editor(
         drag_origin = (0, 0)
         pan_origin = (0, 0)
         cell_cache: dict[tuple[int, int], object] = {}
+        object_icon_cache: dict[int, object] = {}
         switch_records = [list(project.switches(index)) for index in range(len(TOWERS))]
         trigger_records = [list(project.triggers(index)) for index in range(len(TOWERS))]
+        object_stack_records = [
+            list(project.object_stacks(index)) for index in range(len(TOWERS))
+        ]
 
         tab_width, tab_gap = 160, 7
         tab_rects = tuple(
@@ -455,6 +471,18 @@ def launch_map_editor(
         overlay_rects = main_overlay_rects + (links_rect,)
         save_rect = pygame.Rect(810, 682, 180, 38)
         back_rect = pygame.Rect(20, 712, 100, 32)
+        map_operation_rects = (
+            ("COPY", "COPY", pygame.Rect(1010, 108, 42, 24)),
+            ("CUT", "CUT", pygame.Rect(1056, 108, 42, 24)),
+            ("PASTE", "PASTE", pygame.Rect(1102, 108, 42, 24)),
+            ("CLEAR", "DEL", pygame.Rect(1148, 108, 42, 24)),
+        )
+        object_operation_rects = (
+            ("ADD-STACK", "+STK", pygame.Rect(1010, 108, 42, 24)),
+            ("DELETE-STACK", "-STK", pygame.Rect(1056, 108, 42, 24)),
+            ("ADD-ITEM", "+ITM", pygame.Rect(1102, 108, 42, 24)),
+            ("DELETE-ITEM", "-ITM", pygame.Rect(1148, 108, 42, 24)),
+        )
         map_rect = pygame.Rect(*MAP_ORIGIN, MAP_SIZE, MAP_SIZE)
         map_border_rect = map_rect.inflate(2, 2)
         zoom_rects = (
@@ -489,6 +517,186 @@ def launch_map_editor(
                 selected_floor, selected_x, selected_y
             )
 
+        def resolved_record_reference(
+            records: Sequence[Sequence[object]], reference: int
+        ) -> tuple[int, int] | None:
+            return resolve_contiguous_reference(
+                selected_tower,
+                reference,
+                (len(tower_records) for tower_records in records),
+            )
+
+        def current_object_stack() -> ObjectStack | None:
+            stacks = object_stack_records[selected_tower]
+            if not stacks:
+                return None
+            return stacks[min(selected_object_stack, len(stacks) - 1)]
+
+        def jump_to_object_stack() -> None:
+            nonlocal selected_floor, selected_x, selected_y, pan_x, pan_y
+            stack = current_object_stack()
+            if stack is None:
+                return
+            location = object_stack_location(current_map(), stack)
+            if location is None:
+                return
+            selected_floor, selected_x, selected_y = location
+            pan_x = pan_y = 0
+            clamp_selection()
+            clamp_pan()
+            ensure_selection_visible()
+
+        def write_object_stacks(stacks: Sequence[ObjectStack]) -> bool:
+            nonlocal status_message, preview_revision
+            try:
+                written = project.set_object_stacks(selected_tower, stacks)
+            except (IndexError, ValueError) as error:
+                status_message = str(error).upper()
+                return False
+            object_stack_records[selected_tower] = list(written)
+            preview_revision += 1
+            status_message = "UNSAVED OBJECT STACK CHANGE"
+            return True
+
+        def apply_object_action(action: str) -> None:
+            nonlocal selected_object_stack, selected_object_item, status_message
+            stacks = list(object_stack_records[selected_tower])
+            if action == "ADD-STACK":
+                if object_assets is None:
+                    status_message = "OBJECT DEFINITIONS ARE UNAVAILABLE"
+                    return
+                codes = tuple(
+                    definition.code
+                    for definition in object_assets.definitions
+                    if definition.code != 0
+                )
+                if not codes:
+                    status_message = "NO EXTRACTED OBJECT DEFINITIONS"
+                    return
+                cell = current_cell()
+                if cell is not None and cell.map_type == 1 and (
+                    cell.c < 8 or cell.b & 3 != 0
+                ):
+                    status_message = "OBJECTS ON STONE WALLS REQUIRE A FACING SHELF"
+                    return
+                map_index = current_map().map_index(
+                    selected_floor, selected_x, selected_y
+                )
+                stack = ObjectStack(0, map_index, ((codes[0], 1),))
+                positions = object_stack_positions(current_map(), stack)
+                stack = ObjectStack(positions[0], map_index, stack.items)
+                if write_object_stacks(stacks + [stack]):
+                    selected_object_stack = len(stacks)
+                    selected_object_item = 0
+                return
+            if not stacks:
+                status_message = "NO OBJECT STACKS IN THIS TOWER"
+                return
+            selected_object_stack = min(selected_object_stack, len(stacks) - 1)
+            stack = stacks[selected_object_stack]
+            selected_object_item = min(selected_object_item, len(stack.items) - 1)
+            if action in ("STACK-", "STACK+"):
+                delta = -1 if action.endswith("-") else 1
+                selected_object_stack = (selected_object_stack + delta) % len(stacks)
+                selected_object_item = 0
+                jump_to_object_stack()
+                status_message = f"OBJECT STACK {selected_object_stack + 1}"
+                return
+            if action == "DELETE-STACK":
+                del stacks[selected_object_stack]
+                if write_object_stacks(stacks):
+                    selected_object_stack = min(
+                        selected_object_stack, max(0, len(stacks) - 1)
+                    )
+                    selected_object_item = 0
+                    jump_to_object_stack()
+                return
+            if action in ("POSITION-", "POSITION+"):
+                positions = object_stack_positions(current_map(), stack)
+                try:
+                    index = positions.index(stack.position)
+                except ValueError:
+                    index = 0
+                delta = -1 if action.endswith("-") else 1
+                stacks[selected_object_stack] = ObjectStack(
+                    positions[(index + delta) % len(positions)],
+                    stack.map_index,
+                    stack.items,
+                )
+            elif action in ("ITEM-", "ITEM+"):
+                delta = -1 if action.endswith("-") else 1
+                selected_object_item = (
+                    selected_object_item + delta
+                ) % len(stack.items)
+                return
+            elif action == "ADD-ITEM":
+                if object_assets is None:
+                    status_message = "OBJECT DEFINITIONS ARE UNAVAILABLE"
+                    return
+                codes = tuple(
+                    definition.code
+                    for definition in object_assets.definitions
+                    if definition.code != 0
+                )
+                if not codes:
+                    status_message = "NO EXTRACTED OBJECT DEFINITIONS"
+                    return
+                stacks[selected_object_stack] = ObjectStack(
+                    stack.position,
+                    stack.map_index,
+                    stack.items + ((codes[0], 1),),
+                )
+                selected_object_item = len(stack.items)
+            elif action == "DELETE-ITEM":
+                if len(stack.items) == 1:
+                    status_message = "A STACK MUST CONTAIN AT LEAST ONE ITEM"
+                    return
+                items = list(stack.items)
+                del items[selected_object_item]
+                stacks[selected_object_stack] = ObjectStack(
+                    stack.position,
+                    stack.map_index,
+                    tuple(items),
+                )
+                selected_object_item = min(
+                    selected_object_item, len(items) - 1
+                )
+            elif action in ("OBJECT-", "OBJECT+"):
+                if object_assets is None:
+                    status_message = "OBJECT DEFINITIONS ARE UNAVAILABLE"
+                    return
+                codes = tuple(
+                    definition.code
+                    for definition in object_assets.definitions
+                    if definition.code != 0
+                )
+                code, quantity = stack.items[selected_object_item]
+                try:
+                    index = codes.index(code)
+                except ValueError:
+                    index = 0
+                delta = -1 if action.endswith("-") else 1
+                items = list(stack.items)
+                items[selected_object_item] = (
+                    codes[(index + delta) % len(codes)],
+                    quantity,
+                )
+                stacks[selected_object_stack] = ObjectStack(
+                    stack.position, stack.map_index, tuple(items)
+                )
+            elif action in ("QUANTITY-", "QUANTITY+"):
+                code, quantity = stack.items[selected_object_item]
+                delta = -1 if action.endswith("-") else 1
+                quantity = ((quantity - 1 + delta) % 0xFF) + 1
+                items = list(stack.items)
+                items[selected_object_item] = (code, quantity)
+                stacks[selected_object_stack] = ObjectStack(
+                    stack.position, stack.map_index, tuple(items)
+                )
+            else:
+                return
+            write_object_stacks(stacks)
+
         def replace_cell(cell: MapCell) -> None:
             nonlocal status_message, preview_revision
             try:
@@ -509,7 +717,11 @@ def launch_map_editor(
             try:
                 if action.startswith("SWITCH-") and cell.map_type == 1:
                     reference = cell.first // 8
-                    record = switch_records[selected_tower][reference]
+                    resolved = resolved_record_reference(switch_records, reference)
+                    if resolved is None:
+                        raise IndexError("switch reference is outside the contiguous tower tables")
+                    record_tower, record_reference = resolved
+                    record = switch_records[record_tower][record_reference]
                     action_values = tuple(SWITCH_ACTIONS)
                     if action in ("SWITCH-ACTION-", "SWITCH-ACTION+"):
                         try:
@@ -517,21 +729,25 @@ def launch_map_editor(
                         except ValueError:
                             index = 0
                         delta = -1 if action.endswith("-") else 1
-                        record = project.set_switch(selected_tower, reference, action=action_values[(index + delta) % len(action_values)])
+                        record = project.set_switch(record_tower, record_reference, action=action_values[(index + delta) % len(action_values)])
                     elif action == "SWITCH-X-":
-                        record = project.set_switch(selected_tower, reference, x=max(0, record.x - 1))
+                        record = project.set_switch(record_tower, record_reference, x=max(0, record.x - 1))
                     elif action == "SWITCH-X+":
-                        record = project.set_switch(selected_tower, reference, x=min(31, record.x + 1))
+                        record = project.set_switch(record_tower, record_reference, x=min(31, record.x + 1))
                     elif action == "SWITCH-Y-":
-                        record = project.set_switch(selected_tower, reference, y=max(0, record.y - 1))
+                        record = project.set_switch(record_tower, record_reference, y=max(0, record.y - 1))
                     elif action == "SWITCH-Y+":
-                        record = project.set_switch(selected_tower, reference, y=min(31, record.y + 1))
-                    switch_records[selected_tower][reference] = record
+                        record = project.set_switch(record_tower, record_reference, y=min(31, record.y + 1))
+                    switch_records[record_tower][record_reference] = record
                     status_message = "UNSAVED SHARED SWITCH CHANGE"
                     return
                 if action.startswith("TRIGGER-") and cell.map_type == 6:
                     reference = cell.first // 8
-                    record = trigger_records[selected_tower][reference]
+                    resolved = resolved_record_reference(trigger_records, reference)
+                    if resolved is None:
+                        raise IndexError("trigger reference is outside the contiguous tower tables")
+                    record_tower, record_reference = resolved
+                    record = trigger_records[record_tower][record_reference]
                     action_values = tuple(TRIGGER_ACTIONS)
                     if action in ("TRIGGER-ACTION-", "TRIGGER-ACTION+"):
                         try:
@@ -539,20 +755,28 @@ def launch_map_editor(
                         except ValueError:
                             index = 0
                         delta = -1 if action.endswith("-") else 1
-                        record = project.set_trigger(selected_tower, reference, action=action_values[(index + delta) % len(action_values)])
+                        record = project.set_trigger(record_tower, record_reference, action=action_values[(index + delta) % len(action_values)])
                     elif action == "TRIGGER-FLOOR-":
-                        record = project.set_trigger(selected_tower, reference, floor=max(0, record.floor - 1))
+                        record = project.set_trigger(
+                            record_tower,
+                            record_reference,
+                            floor=adjust_trigger_parameter(record.action, record.floor, -1),
+                        )
                     elif action == "TRIGGER-FLOOR+":
-                        record = project.set_trigger(selected_tower, reference, floor=min(7, record.floor + 1))
+                        record = project.set_trigger(
+                            record_tower,
+                            record_reference,
+                            floor=adjust_trigger_parameter(record.action, record.floor, 1),
+                        )
                     elif action == "TRIGGER-X-":
-                        record = project.set_trigger(selected_tower, reference, x=max(0, record.x - 1))
+                        record = project.set_trigger(record_tower, record_reference, x=max(0, record.x - 1))
                     elif action == "TRIGGER-X+":
-                        record = project.set_trigger(selected_tower, reference, x=min(31, record.x + 1))
+                        record = project.set_trigger(record_tower, record_reference, x=min(31, record.x + 1))
                     elif action == "TRIGGER-Y-":
-                        record = project.set_trigger(selected_tower, reference, y=max(0, record.y - 1))
+                        record = project.set_trigger(record_tower, record_reference, y=max(0, record.y - 1))
                     elif action == "TRIGGER-Y+":
-                        record = project.set_trigger(selected_tower, reference, y=min(31, record.y + 1))
-                    trigger_records[selected_tower][reference] = record
+                        record = project.set_trigger(record_tower, record_reference, y=min(31, record.y + 1))
+                    trigger_records[record_tower][record_reference] = record
                     status_message = "UNSAVED SHARED TRIGGER CHANGE"
                     return
             except (IndexError, ValueError) as error:
@@ -561,6 +785,11 @@ def launch_map_editor(
             if action == "COPY":
                 copied_cell = cell
                 status_message = f"COPIED ${cell.first:02X} ${cell.second:02X}"
+            elif action == "CUT":
+                copied_cell = cell
+                replace_cell(MapCell(0, 0))
+                if current_cell() == MapCell(0, 0):
+                    status_message = f"CUT ${cell.first:02X} ${cell.second:02X}"
             elif action == "PASTE" and copied_cell is not None:
                 replace_cell(copied_cell)
             else:
@@ -809,7 +1038,7 @@ def launch_map_editor(
                             VIEW_CELL_COORDINATES
                         )
                     }
-                    for stack in project.object_stacks(selected_tower):
+                    for stack in object_stack_records[selected_tower]:
                         location = object_stack_location(current_map(), stack)
                         if location is None:
                             continue
@@ -995,6 +1224,102 @@ def launch_map_editor(
         def draw_info(text: str, y: int, colour=(205, 208, 215), *, x: int = 810) -> None:
             screen.blit(small_font.render(text, True, colour), (x, y))
 
+        def draw_editor_row(
+            row: CellEditorRow,
+            rectangle,
+            minus_rectangle,
+            plus_rectangle,
+            *,
+            selected: bool,
+            enabled: bool,
+        ) -> None:
+            hovered = rectangle.collidepoint(pygame.mouse.get_pos())
+            background = (
+                (48, 75, 108)
+                if selected
+                else ((43, 48, 59) if hovered else (32, 35, 42))
+            )
+            pygame.draw.rect(screen, background, rectangle, border_radius=3)
+            pygame.draw.rect(
+                screen,
+                (76, 101, 132) if selected else (55, 59, 69),
+                rectangle,
+                1,
+                border_radius=3,
+            )
+            label_colour = (145, 173, 205) if enabled else (95, 103, 116)
+            value_colour = (235, 237, 241) if enabled else (120, 123, 132)
+            draw_info(row.label, rectangle.top + 7, label_colour, x=rectangle.left + 8)
+            value_font = small_font
+            value_size = 17
+            max_width = minus_rectangle.left - (rectangle.left + 104) - 8
+            while value_font.size(row.value)[0] > max_width and value_size > 11:
+                value_size -= 1
+                value_font = pygame.font.SysFont(None, value_size)
+            value_surface = value_font.render(row.value, True, value_colour)
+            screen.blit(
+                value_surface,
+                (rectangle.left + 104, rectangle.centery - value_surface.get_height() // 2),
+            )
+            draw_button(minus_rectangle, "-", enabled=enabled)
+            draw_button(plus_rectangle, "+", enabled=enabled)
+
+        def object_icon_surface(code: int):
+            surface = object_icon_cache.get(code)
+            if surface is None and object_assets is not None:
+                sprite = object_assets.pocket_sprite(code)
+                native = indexed_to_surface(pygame, sprite.pixels)
+                surface = pygame.transform.scale(native, (32, 32))
+                object_icon_cache[code] = surface
+            return surface
+
+        def draw_object_card(
+            rectangle,
+            code: int,
+            quantity: int,
+            *,
+            active: bool,
+        ) -> None:
+            background = (48, 75, 108) if active else (32, 35, 42)
+            border = (90, 145, 205) if active else (55, 59, 69)
+            pygame.draw.rect(screen, background, rectangle, border_radius=4)
+            pygame.draw.rect(screen, border, rectangle, 1, border_radius=4)
+            icon = object_icon_surface(code)
+            if icon is not None:
+                screen.blit(icon, icon.get_rect(midtop=(rectangle.centerx, rectangle.top + 5)))
+            if object_assets is None:
+                return
+            definition = object_assets.definition(code)
+            tiny_font = pygame.font.SysFont(None, 12)
+            words = definition.name.split()
+            lines: list[str] = []
+            current = ""
+            for word in words:
+                candidate = f"{current} {word}".strip()
+                if current and tiny_font.size(candidate)[0] > rectangle.width - 6:
+                    lines.append(current)
+                    current = word
+                else:
+                    current = candidate
+            if current:
+                lines.append(current)
+            for line_index, line in enumerate(lines[:2]):
+                label = tiny_font.render(line, True, (230, 232, 236))
+                screen.blit(
+                    label,
+                    label.get_rect(
+                        centerx=rectangle.centerx,
+                        top=rectangle.top + 40 + line_index * 11,
+                    ),
+                )
+            detail = tiny_font.render(
+                f"${code:02X}  x{quantity}", True, (150, 180, 215)
+            )
+            screen.blit(
+                detail,
+                detail.get_rect(centerx=rectangle.centerx, bottom=rectangle.bottom - 4),
+            )
+
         def draw_overlay_markers() -> None:
             tower_map = current_map()
 
@@ -1084,16 +1409,19 @@ def launch_map_editor(
                 marker_number(target_x, target_y, reference, colour_index=colour_index)
 
             if overlays["SWITCHES"] or overlays["TRIGGERS"]:
-                switches = switch_records[selected_tower]
-                triggers = trigger_records[selected_tower]
                 for y in range(tower_map.heights[selected_floor]):
                     for x in range(tower_map.widths[selected_floor]):
                         cell = tower_map.cell(selected_floor, x, y)
                         if overlays["SWITCHES"] and cell.map_type == 1 and cell.b % 4 == 2 and cell.first >= 8:
                             reference = cell.first // 8
                             marker_number(x, y, reference)
-                            if reference < len(switches) and switches[reference].action:
-                                target = switches[reference]
+                            resolved = resolved_record_reference(switch_records, reference)
+                            if resolved is not None:
+                                record_tower, record_reference = resolved
+                                target = switch_records[record_tower][record_reference]
+                            else:
+                                target = None
+                            if target is not None and target.action:
                                 if 0 <= target.x < tower_map.widths[selected_floor] and 0 <= target.y < tower_map.heights[selected_floor]:
                                     target_marker(
                                         x, y, target.x, target.y, reference, 12
@@ -1105,8 +1433,10 @@ def launch_map_editor(
                             if reference == 0:
                                 continue
                             marker_number(x, y, reference)
-                            if reference < len(triggers):
-                                target = triggers[reference]
+                            resolved = resolved_record_reference(trigger_records, reference)
+                            if resolved is not None:
+                                record_tower, record_reference = resolved
+                                target = trigger_records[record_tower][record_reference]
                                 target_floor_matches = (
                                     target.floor == selected_floor
                                     if target.action in TRIGGER_FLOOR_ACTIONS
@@ -1137,8 +1467,8 @@ def launch_map_editor(
                     # red ink for the large-monster forms above it.
                     marker(occupant.x, occupant.y, "M", 10 if occupant.form > 0x64 else 12, 0)
 
-            if overlays["OBJECTS"] and object_assets is not None:
-                for stack in project.object_stacks(selected_tower):
+            if (overlays["OBJECTS"] or selected_tab == 2) and object_assets is not None:
+                for stack_index, stack in enumerate(object_stack_records[selected_tower]):
                     location = object_stack_location(tower_map, stack)
                     if location is None:
                         continue
@@ -1161,6 +1491,28 @@ def launch_map_editor(
                         (centre[0] + arm, centre[1] + arm),
                         arm,
                     )
+                    if selected_tab == 2 and stack_index == selected_object_stack:
+                        flash_colour = CURSOR_COLOURS[
+                            (pygame.time.get_ticks() // 120) % len(CURSOR_COLOURS)
+                        ]
+                        highlight_size = max(8, zoom * 8)
+                        pygame.draw.rect(
+                            screen,
+                            flash_colour,
+                            pygame.Rect(
+                                centre[0] - highlight_size // 2,
+                                centre[1] - highlight_size // 2,
+                                highlight_size,
+                                highlight_size,
+                            ),
+                            max(2, zoom),
+                        )
+                        pygame.draw.rect(
+                            screen,
+                            flash_colour,
+                            rectangle.inflate(-2 * zoom, -2 * zoom),
+                            max(2, zoom),
+                        )
                     pygame.draw.line(
                         screen,
                         GAME_PALETTE_RGB8[14],
@@ -1197,7 +1549,9 @@ def launch_map_editor(
                             14,
                         )
 
-        control_rects: tuple[tuple[str, str, object], ...] = ()
+        editor_rows: tuple[CellEditorRow, ...] = ()
+        control_rects: tuple[tuple[int, str, str, object, object, object, bool], ...] = ()
+        object_item_rects: tuple[tuple[int, object], ...] = ()
         running = True
         while running:
             mouse = pygame.mouse.get_pos()
@@ -1304,6 +1658,21 @@ def launch_map_editor(
 
             cell = current_cell()
             screen.blit(title_font.render(TOWERS[selected_tower].name, True, (255, 220, 80)), (810, 108))
+            if selected_tab == 1:
+                for action, label, rectangle in map_operation_rects:
+                    draw_button(
+                        rectangle,
+                        label,
+                        enabled=(action != "PASTE" or copied_cell is not None),
+                    )
+            elif selected_tab == 2:
+                for action, label, rectangle in object_operation_rects:
+                    enabled = project.save_data is None
+                    if action in ("DELETE-STACK", "ADD-ITEM", "DELETE-ITEM"):
+                        enabled = enabled and current_object_stack() is not None
+                    if action == "DELETE-ITEM" and current_object_stack() is not None:
+                        enabled = enabled and len(current_object_stack().items) > 1
+                    draw_button(rectangle, label, enabled=enabled)
             draw_info(f"FLOOR {selected_floor}", 140, (150, 200, 255))
             draw_info(f"SIZE {tower_map.widths[selected_floor]:02d} x {tower_map.heights[selected_floor]:02d}", 160, (180, 185, 195))
             draw_info(f"ALIGN {tower_map.x_offsets[selected_floor]:02d}, {tower_map.y_offsets[selected_floor]:02d}", 180, (180, 185, 195))
@@ -1314,20 +1683,22 @@ def launch_map_editor(
                 draw_info(MAP_TYPE_NAMES[cell.map_type], 274, (150, 200, 255))
                 description = describe_cell(cell)
                 draw_info(description, 294)
-                if cell.map_type == 1 and cell.b & 3 == 2 and cell.first >= 8:
+                if selected_tab == 0 and cell.map_type == 1 and cell.b & 3 == 2 and cell.first >= 8:
                     reference = cell.first // 8
-                    records = switch_records[selected_tower]
-                    if reference < len(records):
-                        record = records[reference]
+                    resolved = resolved_record_reference(switch_records, reference)
+                    if resolved is not None:
+                        record_tower, record_reference = resolved
+                        record = switch_records[record_tower][record_reference]
                         action = SWITCH_ACTIONS.get(record.action, f"UNKNOWN ${record.action:02X}")
                         draw_info(f"SWITCH {reference}: {action} -> X ${record.x:02X}, Y ${record.y:02X}", 312, (235, 200, 105))
                         if project.save_data is not None:
                             draw_info("SHARED TABLE IS OUTSIDE THE SAVE (READ ONLY)", 330, (165, 170, 180))
-                elif cell.map_type == 6 and cell.b & 3 in (2, 3):
+                elif selected_tab == 0 and cell.map_type == 6 and cell.b & 3 in (2, 3):
                     reference = cell.first // 8
-                    records = trigger_records[selected_tower]
-                    if reference < len(records):
-                        record = records[reference]
+                    resolved = resolved_record_reference(trigger_records, reference)
+                    if resolved is not None:
+                        record_tower, record_reference = resolved
+                        record = trigger_records[record_tower][record_reference]
                         action = TRIGGER_ACTIONS.get(record.action, f"UNKNOWN ${record.action:02X}")
                         draw_info(f"TRIGGER {reference}: {action}", 312, (110, 230, 145))
                         if record.action in TRIGGER_XY_ACTIONS:
@@ -1337,59 +1708,116 @@ def launch_map_editor(
                             draw_info("SHARED TABLE IS OUTSIDE THE SAVE (READ ONLY)", 330, (165, 170, 180))
 
             if selected_tab == 1:
-                semantic_controls = list(controls_for_cell(cell)) if cell is not None else []
-                common_controls = semantic_controls[-3:] if semantic_controls else []
-                semantic_controls = semantic_controls[:-3] if semantic_controls else []
-                if cell is not None and project.save_data is None:
+                base_rows = list(editor_rows_for_cell(cell)) if cell is not None else []
+                shared_rows: list[CellEditorRow] = []
+                shared_heading = ""
+                if cell is not None:
                     if cell.map_type == 1 and cell.b & 3 == 2 and cell.first >= 8:
                         reference = cell.first // 8
-                        if reference < len(switch_records[selected_tower]):
-                            record = switch_records[selected_tower][reference]
-                            semantic_controls.extend((
-                                CellControl("SWITCH-ACTION-", "ACTION -"),
-                                CellControl("SWITCH-ACTION+", "ACTION +"),
-                                CellControl("SWITCH-X-", f"TARGET X -  ${record.x:02X}"),
-                                CellControl("SWITCH-X+", f"TARGET X +  ${record.x:02X}"),
-                                CellControl("SWITCH-Y-", f"TARGET Y -  ${record.y:02X}"),
-                                CellControl("SWITCH-Y+", f"TARGET Y +  ${record.y:02X}"),
+                        resolved = resolved_record_reference(switch_records, reference)
+                        if resolved is not None:
+                            record_tower, record_reference = resolved
+                            record = switch_records[record_tower][record_reference]
+                            shared_heading = f"SHARED SWITCH {reference}"
+                            if record_tower != selected_tower:
+                                shared_heading += (
+                                    f"  >  {TOWERS[record_tower].name} {record_reference}"
+                                )
+                            shared_rows.extend((
+                                CellEditorRow(
+                                    "ACTION",
+                                    SWITCH_ACTIONS.get(record.action, f"UNKNOWN ${record.action:02X}"),
+                                    "SWITCH-ACTION-",
+                                    "SWITCH-ACTION+",
+                                ),
+                                CellEditorRow("TARGET X", f"${record.x:02X}", "SWITCH-X-", "SWITCH-X+"),
+                                CellEditorRow("TARGET Y", f"${record.y:02X}", "SWITCH-Y-", "SWITCH-Y+"),
                             ))
                     elif cell.map_type == 6 and cell.b & 3 in (2, 3) and cell.first // 8:
                         reference = cell.first // 8
-                        if reference < len(trigger_records[selected_tower]):
-                            record = trigger_records[selected_tower][reference]
-                            semantic_controls.extend((
-                                CellControl("TRIGGER-ACTION-", "ACTION -"),
-                                CellControl("TRIGGER-ACTION+", "ACTION +"),
-                            ))
-                            if record.action in TRIGGER_FLOOR_ACTIONS:
-                                semantic_controls.extend((
-                                    CellControl("TRIGGER-FLOOR-", f"FLOOR -  {record.floor}"),
-                                    CellControl("TRIGGER-FLOOR+", f"FLOOR +  {record.floor}"),
-                                ))
+                        resolved = resolved_record_reference(trigger_records, reference)
+                        if resolved is not None:
+                            record_tower, record_reference = resolved
+                            record = trigger_records[record_tower][record_reference]
+                            shared_heading = f"SHARED TRIGGER {reference}"
+                            if record_tower != selected_tower:
+                                shared_heading += (
+                                    f"  >  {TOWERS[record_tower].name} {record_reference}"
+                                )
+                            shared_rows.append(
+                                CellEditorRow(
+                                    "ACTION",
+                                    TRIGGER_ACTIONS.get(record.action, f"UNKNOWN ${record.action:02X}"),
+                                    "TRIGGER-ACTION-",
+                                    "TRIGGER-ACTION+",
+                                )
+                            )
+                            if record.action in TRIGGER_FLOOR_ACTIONS | TRIGGER_DESTINATION_ACTIONS:
+                                label = (
+                                    "DESTINATION"
+                                    if record.action in TRIGGER_DESTINATION_ACTIONS
+                                    else "TARGET FLOOR"
+                                )
+                                shared_rows.append(
+                                    CellEditorRow(
+                                        label,
+                                        trigger_parameter_label(record.action, record.floor),
+                                        "TRIGGER-FLOOR-",
+                                        "TRIGGER-FLOOR+",
+                                    )
+                                )
                             if record.action in TRIGGER_XY_ACTIONS:
-                                semantic_controls.extend((
-                                    CellControl("TRIGGER-X-", f"TARGET X -  ${record.x:02X}"),
-                                    CellControl("TRIGGER-X+", f"TARGET X +  ${record.x:02X}"),
-                                    CellControl("TRIGGER-Y-", f"TARGET Y -  ${record.y:02X}"),
-                                    CellControl("TRIGGER-Y+", f"TARGET Y +  ${record.y:02X}"),
+                                shared_rows.extend((
+                                    CellEditorRow("TARGET X", f"${record.x:02X}", "TRIGGER-X-", "TRIGGER-X+"),
+                                    CellEditorRow("TARGET Y", f"${record.y:02X}", "TRIGGER-Y-", "TRIGGER-Y+"),
                                 ))
-                semantic_controls.extend(common_controls)
-                control_rects = tuple(
-                    (
-                        control.action,
-                        control.label,
-                        pygame.Rect(810 + (index % 2) * 194, 348 + (index // 2) * 35, 188, 31),
+                editor_rows = tuple(base_rows + shared_rows)
+                if selected_editor_row is not None and editor_rows:
+                    selected_editor_row = min(selected_editor_row, len(editor_rows) - 1)
+                draw_info("CELL PROPERTIES", 322, (150, 200, 255))
+                draw_info("CLICK ROW; LEFT / RIGHT TO CHANGE", 322, (135, 142, 154), x=956)
+                row_layout = []
+                for index, row in enumerate(editor_rows):
+                    shared_index = index - len(base_rows)
+                    row_top = 342 + index * 30
+                    if shared_index >= 0:
+                        row_top += 34
+                    rectangle = pygame.Rect(810, row_top, 380, 27)
+                    minus_rectangle = pygame.Rect(1130, row_top + 2, 26, 23)
+                    plus_rectangle = pygame.Rect(1160, row_top + 2, 26, 23)
+                    enabled = shared_index < 0 or project.save_data is None
+                    row_layout.append(
+                        (
+                            index,
+                            row.decrement_action,
+                            row.increment_action,
+                            rectangle,
+                            minus_rectangle,
+                            plus_rectangle,
+                            enabled,
+                        )
                     )
-                    for index, control in enumerate(semantic_controls)
-                )
-                for action, label, rectangle in control_rects:
-                    draw_button(
+                control_rects = tuple(row_layout)
+                if shared_rows:
+                    shared_y = 342 + len(base_rows) * 30 + 7
+                    draw_info(shared_heading, shared_y, (235, 200, 105))
+                    warning = (
+                        "READ ONLY IN SAVE VIEW"
+                        if project.save_data is not None
+                        else "EDITING CHANGES EVERY CELL USING THIS FUNCTION"
+                    )
+                    draw_info(warning, shared_y + 16, (165, 170, 180))
+                for index, _, _, rectangle, minus_rectangle, plus_rectangle, enabled in control_rects:
+                    draw_editor_row(
+                        editor_rows[index],
                         rectangle,
-                        label,
-                        enabled=(action != "PASTE" or copied_cell is not None),
+                        minus_rectangle,
+                        plus_rectangle,
+                        selected=index == selected_editor_row,
+                        enabled=enabled,
                     )
                 draw_button(save_rect, "SAVE TO -MODIFIED", active=project.has_changes)
-            else:
+            elif selected_tab == 0:
                 draw_info("LIVE DUNGEON VIEW FROM THE MAP CURSOR", 350, (150, 200, 255))
                 draw_info(
                     f"FACING {FACING_NAMES[facing]}   Q/E: TURN   W/A/S/D: MOVE",
@@ -1412,6 +1840,160 @@ def launch_map_editor(
                     preview_rect.bottom + 12,
                     (145, 150, 160),
                 )
+            elif selected_tab == 2:
+                stacks = object_stack_records[selected_tower]
+                object_item_rects = ()
+                draw_info("OBJECT STACK", 322, (150, 200, 255))
+                definition_count = (
+                    len(object_assets.definitions) if object_assets is not None else 0
+                )
+                draw_info(
+                    f"{definition_count} SOURCE-EXTRACTED OBJECT DEFINITIONS",
+                    322,
+                    (135, 142, 154),
+                    x=925,
+                )
+                if not stacks:
+                    editor_rows = ()
+                    control_rects = ()
+                    draw_info("NO OBJECT STACKS IN THIS TOWER", 350, (235, 200, 105))
+                    draw_info("USE +STK TO ADD ONE AT THE MAP CURSOR", 372, (165, 170, 180))
+                elif object_assets is None:
+                    editor_rows = ()
+                    control_rects = ()
+                    draw_info("OBJECT DEFINITION EXTRACTS ARE UNAVAILABLE", 350, (245, 135, 120))
+                else:
+                    selected_object_stack = min(selected_object_stack, len(stacks) - 1)
+                    stack = stacks[selected_object_stack]
+                    selected_object_item = min(
+                        selected_object_item, len(stack.items) - 1
+                    )
+                    location = object_stack_location(tower_map, stack)
+                    if location is None:
+                        location_text = f"INVALID MAP OFFSET ${stack.map_index:03X}"
+                        stacks_here = 0
+                    else:
+                        object_floor, object_x, object_y = location
+                        stacks_here = len(
+                            object_stack_indices_at_cell(
+                                tower_map,
+                                stacks,
+                                object_floor,
+                                object_x,
+                                object_y,
+                            )
+                        )
+                        location_text = (
+                            f"FLOOR {object_floor} · X ${object_x:02X} Y ${object_y:02X}"
+                            f" · {stacks_here} STACK{'S' if stacks_here != 1 else ''} HERE"
+                        )
+                    draw_info(location_text, 342, (205, 208, 215))
+                    visible_count = min(5, len(stack.items))
+                    first_item = max(
+                        0,
+                        min(
+                            selected_object_item - 2,
+                            len(stack.items) - visible_count,
+                        ),
+                    )
+                    item_rectangles = []
+                    for visible_index in range(visible_count):
+                        item_index = first_item + visible_index
+                        code, quantity = stack.items[item_index]
+                        rectangle = pygame.Rect(
+                            810 + visible_index * 76,
+                            362,
+                            72,
+                            88,
+                        )
+                        draw_object_card(
+                            rectangle,
+                            code,
+                            quantity,
+                            active=item_index == selected_object_item,
+                        )
+                        item_rectangles.append((item_index, rectangle))
+                    object_item_rects = tuple(item_rectangles)
+                    if len(stack.items) > visible_count:
+                        draw_info(
+                            f"SHOWING {first_item + 1}-{first_item + visible_count} OF {len(stack.items)}",
+                            452,
+                            (135, 142, 154),
+                        )
+                    code, quantity = stack.items[selected_object_item]
+                    definition = object_assets.definition(code)
+                    editor_rows = (
+                        CellEditorRow(
+                            "STACK",
+                            f"{selected_object_stack + 1} / {len(stacks)}",
+                            "STACK-",
+                            "STACK+",
+                        ),
+                        CellEditorRow(
+                            "POSITION",
+                            object_position_name(tower_map, stack),
+                            "POSITION-",
+                            "POSITION+",
+                        ),
+                        CellEditorRow(
+                            "ITEM",
+                            f"{selected_object_item + 1} / {len(stack.items)}",
+                            "ITEM-",
+                            "ITEM+",
+                        ),
+                        CellEditorRow(
+                            "OBJECT",
+                            f"${code:02X} {definition.name}",
+                            "OBJECT-",
+                            "OBJECT+",
+                        ),
+                        CellEditorRow(
+                            "QUANTITY",
+                            str(quantity),
+                            "QUANTITY-",
+                            "QUANTITY+",
+                        ),
+                    )
+                    if selected_editor_row is not None:
+                        selected_editor_row = min(
+                            selected_editor_row, len(editor_rows) - 1
+                        )
+                    row_layout = []
+                    for index, row in enumerate(editor_rows):
+                        row_top = 466 + index * 30
+                        rectangle = pygame.Rect(810, row_top, 380, 27)
+                        minus_rectangle = pygame.Rect(1130, row_top + 2, 26, 23)
+                        plus_rectangle = pygame.Rect(1160, row_top + 2, 26, 23)
+                        row_layout.append(
+                            (
+                                index,
+                                row.decrement_action,
+                                row.increment_action,
+                                rectangle,
+                                minus_rectangle,
+                                plus_rectangle,
+                                project.save_data is None,
+                            )
+                        )
+                    control_rects = tuple(row_layout)
+                    for (
+                        index,
+                        _,
+                        _,
+                        rectangle,
+                        minus_rectangle,
+                        plus_rectangle,
+                        enabled,
+                    ) in control_rects:
+                        draw_editor_row(
+                            editor_rows[index],
+                            rectangle,
+                            minus_rectangle,
+                            plus_rectangle,
+                            selected=index == selected_editor_row,
+                            enabled=enabled,
+                        )
+                draw_button(save_rect, "SAVE TO -MODIFIED", active=project.has_changes)
             draw_button(back_rect, "BACK")
             screen.blit(
                 small_font.render(status_message, True, (230, 184, 105)),
@@ -1419,7 +2001,11 @@ def launch_map_editor(
             )
             screen.blit(
                 small_font.render(
-                    "ARROWS: CELL   C/V: COPY/PASTE   BACKSPACE: CLEAR   CTRL+S: SAVE",
+                    (
+                        "CLICK OBJECT MARKER: SELECT / CYCLE STACK   CLICK ITEM: SELECT   ARROWS: CELL / PROPERTY"
+                        if selected_tab == 2
+                        else "ARROWS: CELL / SELECTED PROPERTY   C/X/V: COPY/CUT/PASTE   BACKSPACE: CLEAR"
+                    ),
                     True,
                     (145, 150, 160),
                 ),
@@ -1466,8 +2052,41 @@ def launch_map_editor(
                     if joystick_action is not None:
                         clamp_selection()
                 elif event.type == pygame.KEYDOWN:
-                    if event.key == pygame.K_ESCAPE:
+                    editing_property = (
+                        selected_tab == 1
+                        and selected_editor_row is not None
+                        and bool(editor_rows)
+                    )
+                    if event.key == pygame.K_ESCAPE and editing_property:
+                        selected_editor_row = None
+                    elif event.key == pygame.K_ESCAPE:
                         running = False
+                    elif editing_property and event.key in (pygame.K_UP, pygame.K_DOWN):
+                        delta = -1 if event.key == pygame.K_UP else 1
+                        selected_editor_row = (selected_editor_row + delta) % len(editor_rows)
+                    elif editing_property and event.key in (pygame.K_LEFT, pygame.K_RIGHT):
+                        for (
+                            index,
+                            decrement_action,
+                            increment_action,
+                            _,
+                            _,
+                            _,
+                            enabled,
+                        ) in control_rects:
+                            if index == selected_editor_row and enabled:
+                                action = (
+                                    decrement_action
+                                    if event.key == pygame.K_LEFT
+                                    else increment_action
+                                )
+                                if selected_tab == 2:
+                                    apply_object_action(action)
+                                else:
+                                    apply_action(action)
+                                break
+                    elif editing_property and event.key in (pygame.K_RETURN, pygame.K_SPACE):
+                        selected_editor_row = None
                     elif event.key == pygame.K_LEFT and event.mod & pygame.KMOD_SHIFT:
                         pan_by(cell_size(), 0)
                     elif event.key == pygame.K_RIGHT and event.mod & pygame.KMOD_SHIFT:
@@ -1484,8 +2103,10 @@ def launch_map_editor(
                         selected_y -= 1
                     elif event.key == pygame.K_DOWN:
                         selected_y += 1
-                    elif event.key == pygame.K_c:
+                    elif event.key == pygame.K_c and selected_tab == 1:
                         apply_action("COPY")
+                    elif event.key == pygame.K_x and selected_tab == 1:
+                        apply_action("CUT")
                     elif event.key == pygame.K_v and selected_tab == 1:
                         apply_action("PASTE")
                     elif event.key == pygame.K_BACKSPACE and selected_tab == 1:
@@ -1543,6 +2164,7 @@ def launch_map_editor(
                                 object_assets,
                                 monster_assets,
                             ) = load_visual_assets(use_modified_art)
+                            object_icon_cache.clear()
                             preview_revision += 1
                             preview_cache_key = None
                             status_message = (
@@ -1555,19 +2177,29 @@ def launch_map_editor(
                     for index, rectangle in enumerate(tab_rects):
                         if rectangle.collidepoint(event.pos) and EDITOR_TAB_ENABLED[index]:
                             selected_tab = index
+                            selected_editor_row = None
+                            if selected_tab == 2:
+                                overlays["OBJECTS"] = True
+                                jump_to_object_stack()
                             break
                     for index, rectangle in enumerate(tower_rects):
                         if rectangle.collidepoint(event.pos):
                             selected_tower = index
                             selected_floor = default_floor(project, selected_tower)
                             selected_x = selected_y = 0
+                            selected_object_stack = 0
+                            selected_object_item = 0
+                            selected_editor_row = None
                             pan_x = pan_y = 0
                             clamp_pan()
+                            if selected_tab == 2:
+                                jump_to_object_stack()
                             break
                     for floor, rectangle in enumerate(floor_rects):
                         if rectangle.collidepoint(event.pos) and current_map().floor_exists(floor):
                             selected_floor = floor
                             selected_x = selected_y = 0
+                            selected_editor_row = None
                             pan_x = pan_y = 0
                             clamp_pan()
                             break
@@ -1607,10 +2239,86 @@ def launch_map_editor(
                             event.pos[1] - MAP_ORIGIN[1] - pan_y
                         ) // cell_size() - current_map().y_offsets[selected_floor]
                         clamp_selection()
+                        selected_editor_row = None
+                        if selected_tab == 2:
+                            candidates = object_stack_indices_at_cell(
+                                current_map(),
+                                object_stack_records[selected_tower],
+                                selected_floor,
+                                selected_x,
+                                selected_y,
+                            )
+                            if candidates:
+                                next_stack = cycle_object_stack_index(
+                                    candidates, selected_object_stack
+                                )
+                                assert next_stack is not None
+                                selected_object_stack = next_stack
+                                selected_object_item = 0
+                                status_message = (
+                                    f"OBJECT STACK {selected_object_stack + 1}"
+                                )
                     if selected_tab == 1:
-                        for action, _, rectangle in control_rects:
+                        for action, _, rectangle in map_operation_rects:
                             if rectangle.collidepoint(event.pos):
-                                apply_action(action)
+                                if action != "PASTE" or copied_cell is not None:
+                                    apply_action(action)
+                                break
+                        for (
+                            index,
+                            decrement_action,
+                            increment_action,
+                            rectangle,
+                            minus_rectangle,
+                            plus_rectangle,
+                            enabled,
+                        ) in control_rects:
+                            if minus_rectangle.collidepoint(event.pos):
+                                selected_editor_row = index
+                                if enabled:
+                                    apply_action(decrement_action)
+                                break
+                            if plus_rectangle.collidepoint(event.pos):
+                                selected_editor_row = index
+                                if enabled:
+                                    apply_action(increment_action)
+                                break
+                            if rectangle.collidepoint(event.pos):
+                                selected_editor_row = index
+                                break
+                        if save_rect.collidepoint(event.pos):
+                            save_changes()
+                    elif selected_tab == 2:
+                        for action, _, rectangle in object_operation_rects:
+                            if rectangle.collidepoint(event.pos):
+                                apply_object_action(action)
+                                break
+                        for item_index, rectangle in object_item_rects:
+                            if rectangle.collidepoint(event.pos):
+                                selected_object_item = item_index
+                                selected_editor_row = None
+                                break
+                        for (
+                            index,
+                            decrement_action,
+                            increment_action,
+                            rectangle,
+                            minus_rectangle,
+                            plus_rectangle,
+                            enabled,
+                        ) in control_rects:
+                            if minus_rectangle.collidepoint(event.pos):
+                                selected_editor_row = index
+                                if enabled:
+                                    apply_object_action(decrement_action)
+                                break
+                            if plus_rectangle.collidepoint(event.pos):
+                                selected_editor_row = index
+                                if enabled:
+                                    apply_object_action(increment_action)
+                                break
+                            if rectangle.collidepoint(event.pos):
+                                selected_editor_row = index
                                 break
                         if save_rect.collidepoint(event.pos):
                             save_changes()

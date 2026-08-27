@@ -65,6 +65,33 @@ TOWERS = (
 )
 
 
+def resolve_contiguous_reference(
+    tower: int,
+    reference: int,
+    table_lengths: Iterable[int],
+) -> tuple[int, int] | None:
+    """Resolve an overflowing index into the following contiguous tower table.
+
+    Bloodwych's switch tables are adjacent in the executable.  A map cell in
+    towers 0--4 can therefore deliberately use switch references 16--31 to
+    address entries 0--15 of the following tower.  The last tower cannot
+    safely overflow because the following bytes are not another switch table.
+    """
+
+    lengths = tuple(table_lengths)
+    if not 0 <= tower < len(lengths) or reference < 0:
+        return None
+    resolved_tower = tower
+    resolved_reference = reference
+    while resolved_tower < len(lengths):
+        length = lengths[resolved_tower]
+        if resolved_reference < length:
+            return resolved_tower, resolved_reference
+        resolved_reference -= length
+        resolved_tower += 1
+    return None
+
+
 @dataclass(frozen=True)
 class MapCell:
     """One two-byte map location, exposed as the AMOS AA/BB/CC/DD nibbles."""
@@ -225,6 +252,12 @@ class TowerMap:
                 relative = relative_bytes // 2
                 return floor, relative % width, relative // width
         return None
+
+    def map_index(self, floor: int, x: int, y: int) -> int:
+        """Return the packed object-location byte offset for one map cell."""
+
+        self.cell_offset(floor, x, y)
+        return self.data_offsets[floor] + (y * self.widths[floor] + x) * 2
 
     def to_bytes(self) -> bytes:
         return bytes(self.data)
@@ -972,3 +1005,37 @@ class MapProject:
             stacks.append(ObjectStack(location >> 12, location & 0x0FFF, items))
             cursor = record_end
         return tuple(stacks)
+
+    def set_object_stacks(
+        self,
+        tower: int,
+        stacks: Iterable[ObjectStack],
+    ) -> tuple[ObjectStack, ...]:
+        """Replace one tower's packed object-stack records without resizing it."""
+
+        name = f"maps/{TOWERS[tower].stem}.obj"
+        data = self.editable_resource(name)
+        validated = tuple(stacks)
+        encoded = bytearray()
+        for stack in validated:
+            if stack.position not in (0, 4, 8, 12):
+                raise ValueError("object stack position must be 0, 4, 8, or 12")
+            if not 0 <= stack.map_index <= 0x0FFF:
+                raise ValueError("object stack map index must fit in twelve bits")
+            if not 1 <= len(stack.items) <= 0x100:
+                raise ValueError("object stack must contain between 1 and 256 items")
+            location = (stack.position << 12) | stack.map_index
+            encoded.extend(location.to_bytes(2, "big"))
+            encoded.append(len(stack.items) - 1)
+            for code, quantity in stack.items:
+                if not 0 <= code <= 0xFF or not 1 <= quantity <= 0xFF:
+                    raise ValueError("object code and quantity must be byte values; quantity cannot be zero")
+                encoded.extend((code, quantity))
+        if len(encoded) > len(data) - 2:
+            raise ValueError(
+                f"object stacks need {len(encoded)} bytes; tower resource has {len(data) - 2}"
+            )
+        data[:2] = len(encoded).to_bytes(2, "big")
+        data[2 : 2 + len(encoded)] = encoded
+        self.dirty_resources.add(name)
+        return validated
