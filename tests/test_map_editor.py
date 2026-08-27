@@ -16,6 +16,13 @@ from tools.map_editor.app import (
     nearest_rectangle_edges,
     reveal_interval_delta,
 )
+from tools.map_editor.actor_editor import (
+    champion_edit_allowed,
+    cycle_monster_index,
+    monster_form_name,
+    monster_indices_at_cell,
+    monster_teams,
+)
 from tools.map_editor.first_person import (
     dungeon_pattern_parity,
     map_cell_placement,
@@ -116,7 +123,93 @@ class MapEditorTests(unittest.TestCase):
         self.assertTrue(enabled["LINKS"])
         self.assertTrue(all(not default for default in OVERLAY_DEFAULTS))
         self.assertTrue(EDITOR_TAB_ENABLED[2])
-        self.assertFalse(EDITOR_TAB_ENABLED[3])
+        self.assertTrue(EDITOR_TAB_ENABLED[3])
+
+    def test_character_edit_boundary_matches_game_and_active_save_tower(self) -> None:
+        self.assertTrue(champion_edit_allowed(has_save=False, selected_tower=0, active_tower=None))
+        self.assertFalse(champion_edit_allowed(has_save=False, selected_tower=1, active_tower=None))
+        self.assertTrue(champion_edit_allowed(has_save=True, selected_tower=3, active_tower=3))
+        self.assertFalse(champion_edit_allowed(has_save=True, selected_tower=0, active_tower=3))
+
+    def test_monster_map_selection_cycles_resolved_team_members(self) -> None:
+        project = MapProject.from_extracted(CLEAN_ROOT)
+        records = project.render_occupants(0)
+        lead = records[11]
+        candidates = monster_indices_at_cell(records, lead.floor, lead.x, lead.y)
+        self.assertEqual(candidates[:2], (11, 12))
+        self.assertEqual(cycle_monster_index(candidates, 11), 12)
+        self.assertEqual(cycle_monster_index(candidates, 12), 11)
+
+    def test_monster_team_editor_populates_the_deeper_four_slot_list(self) -> None:
+        with TemporaryDirectory() as temp_dir:
+            root = Path(temp_dir)
+            clean = root / "BLOODWYCH439-clean"
+            for source in CLEAN_ROOT.rglob("*"):
+                if source.is_file() and (
+                    source.name.endswith((".map", ".monsters", ".monstercount"))
+                    or source.name in ("champions.stats", "champions.pockets")
+                ):
+                    destination = clean / source.relative_to(CLEAN_ROOT)
+                    destination.parent.mkdir(parents=True, exist_ok=True)
+                    destination.write_bytes(source.read_bytes())
+            project = MapProject.from_extracted(clean)
+            records = project.monsters(0)
+            solo_index = next(
+                index for index in range(1, len(records))
+                if records[index - 1].team == records[index].team == 0xFF
+                and records[index - 1].has_position
+            )
+            project.join_monster_to_previous_team(0, solo_index)
+            joined = project.monsters(0)
+            group = joined[solo_index - 1].team >> 2
+            team = next(team for team in monster_teams(joined) if team.group == group)
+            self.assertEqual(team.members[:2], (solo_index - 1, solo_index))
+            self.assertEqual(joined[solo_index].x, 0x7F)
+            self.assertFalse(joined[solo_index].has_position)
+
+    def test_source_form_labels_do_not_invent_humanoid_names(self) -> None:
+        self.assertEqual(monster_form_name(0x69), "LARGE DRAGON")
+        self.assertEqual(monster_form_name(0x20), "CHARACTER FORM $20")
+
+    def test_champion_and_shared_character_design_edits_use_extracted_resources(self) -> None:
+        project = MapProject.from_extracted(CLEAN_ROOT)
+        before = project.champion_record_bytes(0)
+        project.set_champion_byte(0, 0, 1, (before[1] + 1) % 100)
+        self.assertEqual(project.champion_record_bytes(0)[1], (before[1] + 1) % 100)
+        with self.assertRaisesRegex(ValueError, "mod0"):
+            project.set_champion_byte(1, 0, 1, 1)
+
+        head, body, palettes = project.character_design(0)
+        project.set_character_design(0, head=(head + 1) % 18)
+        project.set_character_design(0, colour_group=2, colour_slot=1, ink=7)
+        changed_head, changed_body, changed_palettes = project.character_design(0)
+        self.assertEqual(changed_head, (head + 1) % 18)
+        self.assertEqual(changed_body, body)
+        self.assertEqual(changed_palettes[2][1], 7)
+        self.assertNotEqual(palettes, changed_palettes)
+
+    def test_save_champion_editing_tracks_the_active_tower(self) -> None:
+        project = MapProject.from_savegame(
+            CLEAN_ROOT, PROJECT_ROOT / "whdload" / "bloodsave6"
+        )
+        self.assertEqual(project.current_tower, 3)
+        before = project.champion_record_bytes(0)[1]
+        project.set_champion_byte(3, 0, 1, (before + 1) & 0xFF)
+        self.assertTrue(project.has_changes)
+        self.assertEqual(project.champion_record_bytes(0)[1], (before + 1) & 0xFF)
+        with self.assertRaisesRegex(ValueError, "active save tower"):
+            project.set_champion_byte(0, 0, 1, 0)
+
+    def test_active_live_monsters_are_read_only_but_other_save_towers_are_packed(self) -> None:
+        project = MapProject.from_savegame(
+            CLEAN_ROOT, PROJECT_ROOT / "whdload" / "bloodsave0"
+        )
+        with self.assertRaisesRegex(ValueError, "live monster"):
+            project.set_packed_monster(0, 0, level=1)
+        before = project.monsters(1)[0]
+        changed = project.set_packed_monster(1, 0, level=(before.level + 1) & 0x7F)
+        self.assertEqual(changed.level, (before.level + 1) & 0x7F)
+        self.assertTrue(project.has_changes)
 
     def test_sps439_tower_header_and_cell_round_trip(self) -> None:
         source = (CLEAN_ROOT / "maps" / "mod0.map").read_bytes()

@@ -34,6 +34,14 @@ from tools.map_editor.floor_objects import (
     object_stack_positions,
     project_floor_object,
 )
+from tools.map_editor.actor_editor import (
+    MONSTER_TYPE_NAMES,
+    champion_edit_allowed,
+    cycle_monster_index,
+    monster_form_name,
+    monster_indices_at_cell,
+    monster_teams,
+)
 from tools.map_editor.model import (
     ChampionMapRecord,
     MapCell,
@@ -66,7 +74,17 @@ from tools.graphics_preview import (
     render_airbourne_spell,
     render_character_preview,
 )
-from tools.graphics_viewer import MONSTERS, load_renderer_assets, render_monster_preview
+from tools.graphics_viewer import (
+    MONSTERS,
+    load_renderer_assets,
+    render_champion_spellbook_preview,
+    render_large_champion_avatar_panel,
+    render_monster_preview,
+)
+from tools.champion_data import ChampionAssets, ChampionRecord
+from tools.champion_inventory import render_empty_champion_inventory
+from tools.champion_stats_scroll import render_champion_stats_scroll
+from tools.spellbook import SPELL_NAMES
 from tools.monster_view import VIEW_CELL_COORDINATES, resolve_monster_screen_position
 from tools.object_data import ObjectAssets
 
@@ -87,7 +105,7 @@ CURSOR_COLOURS = (
     (235, 90, 240),
 )
 EDITOR_TABS = ("VIEWER", "MAPS", "OBJECTS", "CHARACTERS / MONSTERS", "LAYOUT")
-EDITOR_TAB_ENABLED = (True, True, True, False, False)
+EDITOR_TAB_ENABLED = (True, True, True, True, False)
 OVERLAY_NAMES = (
     "SWITCHES",
     "TRIGGERS",
@@ -308,6 +326,8 @@ def launch_map_editor(
     *,
     savegame_path: Path | None = None,
     screenshot_path: Path | None = None,
+    initial_tab: int = 0,
+    initial_actor_mode: str = "CHAMPIONS",
 ) -> None:
     try:
         import pygame
@@ -367,6 +387,10 @@ def launch_map_editor(
             objects = ObjectAssets(current_data_root)
         except (OSError, ValueError, RuntimeError):
             objects = None
+        try:
+            champions = ChampionAssets(current_data_root)
+        except (OSError, ValueError, RuntimeError):
+            champions = None
         monsters, _ = load_renderer_assets(current_monsters_dir)
         return (
             current_gfx_dir,
@@ -377,6 +401,7 @@ def launch_map_editor(
             characters,
             spells,
             objects,
+            champions,
             monsters,
         )
 
@@ -390,8 +415,20 @@ def launch_map_editor(
         character_assets,
         spell_assets,
         object_assets,
+        champion_assets,
         monster_assets,
     ) = load_visual_assets(use_modified_art)
+
+    def sync_character_design_preview() -> None:
+        """Keep unsaved shared design edits visible across art reloads."""
+
+        if character_assets is None:
+            return
+        character_assets.head_selections = list(project.resource_bytes("data/characters.heads"))
+        character_assets.body_selections = list(project.resource_bytes("data/characters.bodies"))
+        character_assets.colours = project.resource_bytes("data/characters.colours")
+
+    sync_character_design_preview()
 
     pygame.init()
     pygame.joystick.init()
@@ -411,7 +448,7 @@ def launch_map_editor(
         )
         clock = pygame.time.Clock()
 
-        selected_tab = 0
+        selected_tab = initial_tab if 0 <= initial_tab < len(EDITOR_TABS) and EDITOR_TAB_ENABLED[initial_tab] else 0
         selected_tower = 0
         selected_floor = default_floor(project, selected_tower)
         selected_x = selected_y = 0
@@ -419,6 +456,16 @@ def launch_map_editor(
         selected_editor_row: int | None = None
         selected_object_stack = 0
         selected_object_item = 0
+        actor_mode = initial_actor_mode if initial_actor_mode in ("CHAMPIONS", "MONSTERS") else "CHAMPIONS"
+        selected_champion = 0
+        champion_page = 0
+        champion_stats_page = 0
+        champion_spell_page = 0
+        selected_pocket_slot = 0
+        selected_monster = 0
+        monster_design_mode = False
+        selected_colour_group = 0
+        selected_colour_slot = 0
         overlays = {
             name: enabled
             for name, enabled in zip(OVERLAY_NAMES, OVERLAY_DEFAULTS)
@@ -482,6 +529,16 @@ def launch_map_editor(
             ("DELETE-STACK", "-STK", pygame.Rect(1056, 108, 42, 24)),
             ("ADD-ITEM", "+ITM", pygame.Rect(1102, 108, 42, 24)),
             ("DELETE-ITEM", "-ITM", pygame.Rect(1148, 108, 42, 24)),
+        )
+        actor_mode_rects = (
+            ("CHAMPIONS", pygame.Rect(1010, 108, 86, 24)),
+            ("MONSTERS", pygame.Rect(1102, 108, 88, 24)),
+        )
+        monster_operation_rects = (
+            ("JOIN-TEAM", "TEAM", pygame.Rect(1010, 138, 42, 24)),
+            ("REMOVE-TEAM", "SOLO", pygame.Rect(1056, 138, 42, 24)),
+            ("MOVE-HERE", "MOVE", pygame.Rect(1102, 138, 42, 24)),
+            ("DESIGN", "DESIGN", pygame.Rect(1148, 138, 42, 24)),
         )
         map_rect = pygame.Rect(*MAP_ORIGIN, MAP_SIZE, MAP_SIZE)
         map_border_rect = map_rect.inflate(2, 2)
@@ -696,6 +753,182 @@ def launch_map_editor(
             else:
                 return
             write_object_stacks(stacks)
+
+        def actor_records() -> tuple[MonsterRecord, ...]:
+            return project.occupants(selected_tower)
+
+        def resolved_actor_records() -> tuple[MonsterRecord, ...]:
+            return project.render_occupants(selected_tower)
+
+        def selected_monster_record(*, resolved: bool = False) -> MonsterRecord | None:
+            records = resolved_actor_records() if resolved else actor_records()
+            if not records:
+                return None
+            return records[min(selected_monster, len(records) - 1)]
+
+        def apply_actor_action(action: str) -> None:
+            nonlocal selected_champion, selected_monster, champion_page
+            nonlocal champion_spell_page, selected_pocket_slot, status_message
+            nonlocal champion_stats_page
+            nonlocal monster_design_mode, selected_colour_group, selected_colour_slot
+            if actor_mode == "CHAMPIONS":
+                editable = champion_edit_allowed(
+                    has_save=project.save_data is not None,
+                    selected_tower=selected_tower,
+                    active_tower=project.current_tower,
+                )
+                if action in ("CHAMPION-", "CHAMPION+"):
+                    selected_champion = (selected_champion + (-1 if action.endswith("-") else 1)) & 0x0F
+                    return
+                if action in ("PAGE-", "PAGE+"):
+                    champion_page = (champion_page + (-1 if action.endswith("-") else 1)) % 3
+                    return
+                if action in ("SPELL-PAGE-", "SPELL-PAGE+"):
+                    champion_spell_page = (champion_spell_page + (-1 if action.endswith("-") else 1)) % 8
+                    return
+                if action in ("STAT-PAGE-", "STAT-PAGE+"):
+                    champion_stats_page = (champion_stats_page + (-1 if action.endswith("-") else 1)) % 3
+                    return
+                if action in ("POCKET-", "POCKET+"):
+                    selected_pocket_slot = (selected_pocket_slot + (-1 if action.endswith("-") else 1)) % 12
+                    return
+                if not editable:
+                    status_message = "CHAMPIONS ARE EDITABLE ONLY ON MOD0 OR THE ACTIVE SAVE TOWER"
+                    return
+                record = project.champion_record_bytes(selected_champion)
+                if action.startswith("STAT-"):
+                    offset = int(action.split("-")[1], 16)
+                    delta = -1 if action.endswith("-") else 1
+                    project.set_champion_byte(
+                        selected_tower, selected_champion, offset, (record[offset] + delta) % 100
+                    )
+                elif action.startswith("SPELL-") and action not in ("SPELL-PAGE-", "SPELL-PAGE+"):
+                    spell = int(action.split("-")[1])
+                    byte_offset = 0x0C + spell // 8
+                    bit = 7 - (spell & 7)
+                    project.set_champion_byte(
+                        selected_tower,
+                        selected_champion,
+                        byte_offset,
+                        record[byte_offset] ^ (1 << bit),
+                    )
+                elif action in ("OBJECT-", "OBJECT+") and object_assets is not None:
+                    pocket = project.champion_pocket_bytes(selected_champion)
+                    codes = tuple(definition.code for definition in object_assets.definitions)
+                    current = pocket[selected_pocket_slot]
+                    try:
+                        position = codes.index(current)
+                    except ValueError:
+                        position = 0
+                    delta = -1 if action.endswith("-") else 1
+                    project.set_champion_pocket_byte(
+                        selected_tower,
+                        selected_champion,
+                        selected_pocket_slot,
+                        codes[(position + delta) % len(codes)],
+                    )
+                elif action in ("COUNT-", "COUNT+"):
+                    pocket = project.champion_pocket_bytes(selected_champion)
+                    code = pocket[selected_pocket_slot]
+                    if not 1 <= code <= 4:
+                        status_message = "THE SELECTED OBJECT HAS NO SHARED QUANTITY BYTE"
+                        return
+                    offset = 0x0B + code
+                    delta = -1 if action.endswith("-") else 1
+                    project.set_champion_pocket_byte(
+                        selected_tower,
+                        selected_champion,
+                        offset,
+                        (pocket[offset] + delta) & 0xFF,
+                    )
+                status_message = "UNSAVED CHAMPION CHANGE"
+                return
+
+            records = actor_records()
+            if not records:
+                return
+            selected_monster = min(selected_monster, len(records) - 1)
+            record = records[selected_monster]
+            if action in ("MONSTER-", "MONSTER+"):
+                selected_monster = (selected_monster + (-1 if action.endswith("-") else 1)) % len(records)
+                monster_design_mode = False
+                return
+            if action == "DESIGN":
+                if record.form > 0x55:
+                    status_message = "ONLY SOURCE CHARACTER FORMS HAVE HEAD/BODY/COLOUR DESIGNS"
+                    return
+                monster_design_mode = not monster_design_mode
+                return
+            if monster_design_mode:
+                if project.save_data is not None:
+                    status_message = "SHARED CHARACTER DESIGNS ARE NOT STORED IN A SAVE"
+                    return
+                head, body, palettes = project.character_design(record.form)
+                if action in ("HEAD-", "HEAD+"):
+                    limit = len(character_assets.head_data) // 0x378
+                    project.set_character_design(record.form, head=(head + (-1 if action.endswith("-") else 1)) % limit)
+                elif action in ("BODY-", "BODY+"):
+                    limit = len(character_assets.body_definitions)
+                    project.set_character_design(record.form, body=(body + (-1 if action.endswith("-") else 1)) % limit)
+                elif action in ("PALETTE-", "PALETTE+"):
+                    selected_colour_group = (selected_colour_group + (-1 if action.endswith("-") else 1)) % 5
+                    return
+                elif action in ("SLOT-", "SLOT+"):
+                    selected_colour_slot = (selected_colour_slot + (-1 if action.endswith("-") else 1)) % 4
+                    return
+                elif action in ("INK-", "INK+"):
+                    ink = palettes[selected_colour_group][selected_colour_slot]
+                    project.set_character_design(
+                        record.form,
+                        colour_group=selected_colour_group,
+                        colour_slot=selected_colour_slot,
+                        ink=(ink + (-1 if action.endswith("-") else 1)) % 16,
+                    )
+                else:
+                    return
+                # Keep the source renderer's unsaved preview in lockstep.
+                head, body, palettes = project.character_design(record.form)
+                character_assets.head_selections[record.form] = head
+                character_assets.body_selections[record.form] = body
+                colours = bytearray(character_assets.colours)
+                start = record.form * 20
+                colours[start : start + 20] = bytes(value for palette in palettes for value in palette)
+                character_assets.colours = bytes(colours)
+                status_message = "UNSAVED SHARED CHARACTER DESIGN CHANGE"
+                return
+            if record.source == "live":
+                status_message = "ACTIVE-TOWER LIVE MONSTERS ARE VIEW ONLY"
+                return
+            try:
+                if action in ("FORM-", "FORM+"):
+                    forms = tuple(range(0x56)) + tuple(range(0x64, 0x6C))
+                    try:
+                        position = forms.index(record.form)
+                    except ValueError:
+                        position = 0
+                    delta = -1 if action.endswith("-") else 1
+                    project.set_packed_monster(selected_tower, selected_monster, form=forms[(position + delta) % len(forms)])
+                elif action in ("LEVEL-", "LEVEL+"):
+                    delta = -1 if action.endswith("-") else 1
+                    project.set_packed_monster(selected_tower, selected_monster, level=(record.level + delta) & 0x7F)
+                elif action in ("TYPE-", "TYPE+"):
+                    delta = -1 if action.endswith("-") else 1
+                    project.set_packed_monster(selected_tower, selected_monster, category=(record.category + delta) % 5)
+                elif action == "JOIN-TEAM":
+                    project.join_monster_to_previous_team(selected_tower, selected_monster)
+                elif action == "REMOVE-TEAM":
+                    project.remove_monster_from_team(selected_tower, selected_monster)
+                elif action == "MOVE-HERE":
+                    project.set_packed_monster(
+                        selected_tower, selected_monster,
+                        floor=selected_floor, x=selected_x, y=selected_y, team=0xFF,
+                    )
+                else:
+                    return
+            except (IndexError, ValueError) as error:
+                status_message = str(error).upper()
+                return
+            status_message = "UNSAVED PACKED MONSTER CHANGE"
 
         def replace_cell(cell: MapCell) -> None:
             nonlocal status_message, preview_revision
@@ -1323,7 +1556,15 @@ def launch_map_editor(
         def draw_overlay_markers() -> None:
             tower_map = current_map()
 
-            def marker(x: int, y: int, text: str, background_index: int, foreground_index: int) -> None:
+            def marker(
+                x: int,
+                y: int,
+                text: str,
+                background_index: int,
+                foreground_index: int,
+                *,
+                selected: bool = False,
+            ) -> None:
                 if not (0 <= x < tower_map.widths[selected_floor] and 0 <= y < tower_map.heights[selected_floor]):
                     return
                 rectangle = cell_screen_rect(x, y)
@@ -1336,7 +1577,12 @@ def launch_map_editor(
                     zoom * 15,
                     zoom * 14,
                 )
-                pygame.draw.rect(screen, GAME_PALETTE_RGB8[background_index], marker_rect)
+                background = (
+                    CURSOR_COLOURS[(pygame.time.get_ticks() // 120) % len(CURSOR_COLOURS)]
+                    if selected
+                    else GAME_PALETTE_RGB8[background_index]
+                )
+                pygame.draw.rect(screen, background, marker_rect)
                 # AMOS uses the original five-row GameFont in the inset map
                 # area.  Retaining its 1x2 geometry keeps letters legible at
                 # all map zoom levels without obscuring the cell's icon.
@@ -1448,7 +1694,7 @@ def launch_map_editor(
                                             x, y, target.x, target.y, reference, 6
                                         )
 
-            if overlays["CHAMPIONS"]:
+            if overlays["CHAMPIONS"] or (selected_tab == 3 and actor_mode == "CHAMPIONS"):
                 for champion in project.viewer_champions(
                     selected_tower,
                     quickstart_teams=overlays["QS TEAMS"],
@@ -1456,16 +1702,37 @@ def launch_map_editor(
                     if champion.floor == selected_floor:
                         marker(champion.x, champion.y, "C", 13, 0)
 
-            for occupant in project.occupants(selected_tower):
+            marker_occupants = project.occupants(selected_tower)
+            if selected_tab == 3 and actor_mode == "MONSTERS":
+                # Team members share a marker position. Draw the selection
+                # last so its flash cannot be covered by a later red member.
+                marker_occupants = tuple(
+                    sorted(
+                        project.render_occupants(selected_tower),
+                        key=lambda occupant: occupant.index == selected_monster,
+                    )
+                )
+            for occupant in marker_occupants:
                 if occupant.floor != selected_floor or not occupant.has_position:
                     continue
                 if occupant.is_spell:
                     if overlays["SPELLS"]:
                         marker(occupant.x, occupant.y, "S", 7, 14)
-                elif overlays["MONSTERS"]:
+                elif overlays["MONSTERS"] or (selected_tab == 3 and actor_mode == "MONSTERS"):
                     # AMOS uses bright red through form $64, then its darker
                     # red ink for the large-monster forms above it.
-                    marker(occupant.x, occupant.y, "M", 10 if occupant.form > 0x64 else 12, 0)
+                    marker(
+                        occupant.x,
+                        occupant.y,
+                        "M",
+                        10 if occupant.form > 0x64 else 12,
+                        0,
+                        selected=(
+                            selected_tab == 3
+                            and actor_mode == "MONSTERS"
+                            and occupant.index == selected_monster
+                        ),
+                    )
 
             if (overlays["OBJECTS"] or selected_tab == 2) and object_assets is not None:
                 for stack_index, stack in enumerate(object_stack_records[selected_tower]):
@@ -1994,6 +2261,223 @@ def launch_map_editor(
                             enabled=enabled,
                         )
                 draw_button(save_rect, "SAVE TO -MODIFIED", active=project.has_changes)
+            elif selected_tab == 3:
+                for mode, rectangle in actor_mode_rects:
+                    draw_button(rectangle, mode, active=actor_mode == mode)
+                draw_info("CHARACTERS / MONSTERS", 322, (150, 200, 255))
+                row_layout = []
+                preview_rect = pygame.Rect(810, 350, 190, 178)
+                pygame.draw.rect(screen, (4, 4, 6), preview_rect)
+                if actor_mode == "CHAMPIONS":
+                    record = ChampionRecord(selected_champion, project.champion_record_bytes(selected_champion))
+                    pocket_record = project.champion_pocket_bytes(selected_champion)
+                    editable = champion_edit_allowed(
+                        has_save=project.save_data is not None,
+                        selected_tower=selected_tower,
+                        active_tower=project.current_tower,
+                    )
+                    page_names = ("STATS", "SPELLS", "POCKETS")
+                    draw_info(
+                        f"{record.full_name} · {page_names[champion_page]}",
+                        337,
+                        (235, 200, 105),
+                    )
+                    champion_location = next(
+                        (
+                            (item.floor, item.x, item.y, "CHAMPION")
+                            for item in project.viewer_champions(
+                                selected_tower,
+                                quickstart_teams=overlays["QS TEAMS"],
+                            )
+                            if item.index == selected_champion
+                        ),
+                        None,
+                    )
+                    if champion_location is None:
+                        champion_location = next(
+                            (
+                                (party.floor, party.x, party.y, f"PLAYER {party.index + 1}")
+                                for party in project.player_parties(selected_tower)
+                                if selected_champion in party.champions
+                            ),
+                            None,
+                        )
+                    if champion_location is not None:
+                        floor, location_x, location_y, source = champion_location
+                        draw_info(
+                            f"{source} · F{floor} X${location_x:02X} Y${location_y:02X}",
+                            350,
+                            (165, 170, 180),
+                            x=1008,
+                        )
+                    try:
+                        if champion_assets is None:
+                            raise ValueError("champion assets unavailable")
+                        if champion_page == 0:
+                            preview = render_champion_stats_scroll(
+                                pygame, record, champion_assets.scroll_edges,
+                                champion_assets.game_font, GAME_PALETTE_RGB8,
+                            )
+                        elif champion_page == 1:
+                            preview = render_champion_spellbook_preview(
+                                pygame, record, champion_assets, champion_spell_page // 2
+                            )
+                        else:
+                            preview = render_empty_champion_inventory(
+                                pygame,
+                                pockets=champion_assets.pockets,
+                                font_data=champion_assets.game_font,
+                                record=record,
+                                champion=selected_champion,
+                                pocket_record=pocket_record,
+                                party_members=(selected_champion, None, None, None),
+                                selected_party_slot=0,
+                                secondary_colour_index=8,
+                                palette=GAME_PALETTE_RGB8,
+                                slot_pixels=(
+                                    lambda _slot, code: (
+                                        object_assets.pocket_sprite(code).pixels
+                                        if object_assets is not None and code else None
+                                    )
+                                ),
+                            )
+                        screen.blit(pygame.transform.scale(preview, preview_rect.size), preview_rect)
+                    except (AttributeError, IndexError, ValueError, RuntimeError):
+                        if champion_assets is not None:
+                            portrait = render_large_champion_avatar_panel(pygame, champion_assets, selected_champion)
+                            screen.blit(pygame.transform.scale(portrait, preview_rect.size), preview_rect)
+                    editor_list = [
+                        CellEditorRow("CHAMPION", f"{selected_champion + 1:02d} / 16", "CHAMPION-", "CHAMPION+"),
+                        CellEditorRow("VIEW", page_names[champion_page], "PAGE-", "PAGE+"),
+                    ]
+                    if champion_page == 0:
+                        stat_pages = (
+                            (("LEVEL", 0), ("STRENGTH", 1), ("AGILITY", 2), ("INTELLIGENCE", 3)),
+                            (("CHARISMA", 4), ("HP CURRENT", 5), ("HP MAXIMUM", 6), ("VITALITY CURRENT", 7)),
+                            (("VITALITY MAXIMUM", 8), ("SPELL POINTS", 9), ("SPELL POINTS MAX", 10), ("ARMOUR", 11)),
+                        )
+                        editor_list.append(CellEditorRow("STAT PAGE", f"{champion_stats_page + 1} / 3", "STAT-PAGE-", "STAT-PAGE+"))
+                        for label, offset in stat_pages[champion_stats_page]:
+                            editor_list.append(CellEditorRow(label, str(record.byte(offset)), f"STAT-{offset:02X}-", f"STAT-{offset:02X}+"))
+                    elif champion_page == 1:
+                        editor_list.append(CellEditorRow("SPELL PAGE", f"{champion_spell_page + 1} / 8", "SPELL-PAGE-", "SPELL-PAGE+"))
+                        for entry in range(4):
+                            spell = champion_spell_page * 4 + entry
+                            editor_list.append(CellEditorRow(SPELL_NAMES[spell], "LEARNED" if record.has_spellbook_spell(spell) else "UNKNOWN", f"SPELL-{spell}-", f"SPELL-{spell}+"))
+                    else:
+                        code = pocket_record[selected_pocket_slot]
+                        name = object_assets.definition(code).name if object_assets is not None else f"${code:02X}"
+                        editor_list.extend((
+                            CellEditorRow("POCKET", f"{selected_pocket_slot + 1} / 12", "POCKET-", "POCKET+"),
+                            CellEditorRow("OBJECT", f"${code:02X} {name}", "OBJECT-", "OBJECT+"),
+                        ))
+                        if 1 <= code <= 4:
+                            count_offset = 0x0B + code
+                            editor_list.append(
+                                CellEditorRow("SHARED QUANTITY", str(pocket_record[count_offset]), "COUNT-", "COUNT+")
+                            )
+                    editor_rows = tuple(editor_list)
+                    source_note = "EDITABLE" if editable else "VIEW ONLY — SELECT MOD0 / ACTIVE SAVE TOWER"
+                    draw_info(source_note, 515, (135, 205, 150) if editable else (235, 150, 120))
+                else:
+                    records = actor_records()
+                    editable = False
+                    if not records:
+                        editor_rows = ()
+                        draw_info("NO MONSTERS IN THIS TOWER", 350, (235, 200, 105))
+                    else:
+                        selected_monster = min(selected_monster, len(records) - 1)
+                        record = records[selected_monster]
+                        resolved = selected_monster_record(resolved=True) or record
+                        teams = {team.group: team for team in monster_teams(project.monsters(selected_tower))}
+                        team_text = "SOLO"
+                        if record.team != 0xFF:
+                            team = teams.get(record.team >> 2)
+                            count = sum(member is not None for member in team.members) if team else 1
+                            team_text = f"GROUP {record.team >> 2:02d} · SLOT {(record.team & 3) + 1} · {count} MEMBERS"
+                        draw_info(
+                            f"{record.source.upper()} · FLOOR {resolved.floor} · X ${resolved.x:02X} Y ${resolved.y:02X}",
+                            337,
+                            (235, 200, 105),
+                        )
+                        try:
+                            canvas = [[0] * 128 for _ in range(76)]
+                            if record.form <= 0x55 and character_assets is not None:
+                                pixels, _ = render_character_preview(
+                                    canvas, character_assets, record.form,
+                                    distance=0, facing=0, anchor_x=64, anchor_y=65,
+                                )
+                            else:
+                                definition = next(item for item in MONSTERS if item.code == record.form)
+                                pixels, _ = render_monster_preview(
+                                    canvas, definition, monster_assets,
+                                    distance=0, facing=0,
+                                    grade_step=record.colour_grade_step,
+                                    animation_frame=0, anchor_x=64, anchor_y=65,
+                                    illusion=record.is_illusion,
+                                )
+                            screen.blit(pygame.transform.scale(indexed_to_surface(pygame, pixels), preview_rect.size), preview_rect)
+                        except (KeyError, StopIteration, ValueError, RuntimeError):
+                            draw_info("GRAPHICAL PREVIEW UNAVAILABLE", 410, (235, 150, 120), x=820)
+                        editable = record.source == "packed"
+                        if monster_design_mode and record.form <= 0x55:
+                            head, body, palettes = project.character_design(record.form)
+                            palette_names = ("LEGS", "TORSO", "HEAD", "ARMS", "DISTANT")
+                            design_editable = project.save_data is None and character_assets is not None
+                            editor_rows = (
+                                CellEditorRow("MONSTER", f"{selected_monster + 1} / {len(records)}", "MONSTER-", "MONSTER+"),
+                                CellEditorRow("HEAD DESIGN", f"${head:02X}", "HEAD-", "HEAD+"),
+                                CellEditorRow("BODY DESIGN", f"${body:02X}", "BODY-", "BODY+"),
+                                CellEditorRow("PALETTE", palette_names[selected_colour_group], "PALETTE-", "PALETTE+"),
+                                CellEditorRow("COLOUR SLOT", str(selected_colour_slot + 1), "SLOT-", "SLOT+"),
+                                CellEditorRow("INK", f"${palettes[selected_colour_group][selected_colour_slot]:X}", "INK-", "INK+"),
+                            )
+                            editable = design_editable
+                        else:
+                            editor_rows = (
+                                CellEditorRow("MONSTER", f"{selected_monster + 1} / {len(records)}", "MONSTER-", "MONSTER+"),
+                                CellEditorRow("FORM", monster_form_name(record.form), "FORM-", "FORM+"),
+                                CellEditorRow("LEVEL", str(record.level & 0x7F), "LEVEL-", "LEVEL+"),
+                                CellEditorRow("TYPE", MONSTER_TYPE_NAMES.get(record.category, f"TYPE ${record.category:02X}"), "TYPE-", "TYPE+"),
+                                CellEditorRow("TEAM", team_text, "REMOVE-TEAM", "JOIN-TEAM"),
+                            )
+                        draw_info(
+                            "PACKED DATA — EDITABLE" if editable else "LIVE DATA — VIEW ONLY",
+                            515,
+                            (135, 205, 150) if editable else (235, 150, 120),
+                        )
+                        if record.form >= 0x64:
+                            draw_info("LOWEST LARGE-MONSTER GRADE REMAINS SOURCE-EQU CONTROLLED", 498, (150, 155, 168))
+                for index, row in enumerate(editor_rows):
+                    row_top = 535 + index * 21
+                    rectangle = pygame.Rect(810, row_top, 380, 20)
+                    minus_rectangle = pygame.Rect(1142, row_top + 1, 21, 18)
+                    plus_rectangle = pygame.Rect(1167, row_top + 1, 21, 18)
+                    navigation_actions = {
+                        "CHAMPION-", "PAGE-", "STAT-PAGE-", "SPELL-PAGE-",
+                        "POCKET-", "MONSTER-", "PALETTE-", "SLOT-",
+                    }
+                    enabled = editable or row.decrement_action in navigation_actions
+                    row_layout.append((index, row.decrement_action, row.increment_action, rectangle, minus_rectangle, plus_rectangle, enabled))
+                control_rects = tuple(row_layout)
+                for index, _, _, rectangle, minus_rectangle, plus_rectangle, enabled in control_rects:
+                    draw_editor_row(editor_rows[index], rectangle, minus_rectangle, plus_rectangle, selected=index == selected_editor_row, enabled=enabled)
+                if actor_mode == "MONSTERS":
+                    current_monster = selected_monster_record()
+                    for action, label, rectangle in monster_operation_rects:
+                        design_action = action == "DESIGN"
+                        design_available = current_monster is not None and current_monster.form <= 0x55
+                        draw_button(
+                            rectangle,
+                            label,
+                            active=design_action and monster_design_mode,
+                            enabled=(
+                                design_available
+                                if design_action
+                                else current_monster is not None and current_monster.source == "packed"
+                            ),
+                        )
+                draw_button(save_rect, "SAVE TO -MODIFIED", active=project.has_changes)
             draw_button(back_rect, "BACK")
             screen.blit(
                 small_font.render(status_message, True, (230, 184, 105)),
@@ -2004,7 +2488,11 @@ def launch_map_editor(
                     (
                         "CLICK OBJECT MARKER: SELECT / CYCLE STACK   CLICK ITEM: SELECT   ARROWS: CELL / PROPERTY"
                         if selected_tab == 2
-                        else "ARROWS: CELL / SELECTED PROPERTY   C/X/V: COPY/CUT/PASTE   BACKSPACE: CLEAR"
+                        else (
+                            "CLICK MONSTER MARKER: SELECT / CYCLE TEAM   LEFT / RIGHT: CHANGE SELECTED PROPERTY"
+                            if selected_tab == 3
+                            else "ARROWS: CELL / SELECTED PROPERTY   C/X/V: COPY/CUT/PASTE   BACKSPACE: CLEAR"
+                        )
                     ),
                     True,
                     (145, 150, 160),
@@ -2053,7 +2541,7 @@ def launch_map_editor(
                         clamp_selection()
                 elif event.type == pygame.KEYDOWN:
                     editing_property = (
-                        selected_tab == 1
+                        selected_tab in (1, 2, 3)
                         and selected_editor_row is not None
                         and bool(editor_rows)
                     )
@@ -2082,6 +2570,8 @@ def launch_map_editor(
                                 )
                                 if selected_tab == 2:
                                     apply_object_action(action)
+                                elif selected_tab == 3:
+                                    apply_actor_action(action)
                                 else:
                                     apply_action(action)
                                 break
@@ -2162,8 +2652,10 @@ def launch_map_editor(
                                 character_assets,
                                 spell_assets,
                                 object_assets,
+                                champion_assets,
                                 monster_assets,
                             ) = load_visual_assets(use_modified_art)
+                            sync_character_design_preview()
                             object_icon_cache.clear()
                             preview_revision += 1
                             preview_cache_key = None
@@ -2181,6 +2673,9 @@ def launch_map_editor(
                             if selected_tab == 2:
                                 overlays["OBJECTS"] = True
                                 jump_to_object_stack()
+                            elif selected_tab == 3:
+                                overlays["CHAMPIONS"] = True
+                                overlays["MONSTERS"] = True
                             break
                     for index, rectangle in enumerate(tower_rects):
                         if rectangle.collidepoint(event.pos):
@@ -2189,6 +2684,7 @@ def launch_map_editor(
                             selected_x = selected_y = 0
                             selected_object_stack = 0
                             selected_object_item = 0
+                            selected_monster = 0
                             selected_editor_row = None
                             pan_x = pan_y = 0
                             clamp_pan()
@@ -2258,6 +2754,17 @@ def launch_map_editor(
                                 status_message = (
                                     f"OBJECT STACK {selected_object_stack + 1}"
                                 )
+                        elif selected_tab == 3 and actor_mode == "MONSTERS":
+                            candidates = monster_indices_at_cell(
+                                resolved_actor_records(),
+                                selected_floor,
+                                selected_x,
+                                selected_y,
+                            )
+                            next_monster = cycle_monster_index(candidates, selected_monster)
+                            if next_monster is not None:
+                                selected_monster = next_monster
+                                status_message = f"MONSTER {selected_monster + 1}"
                     if selected_tab == 1:
                         for action, _, rectangle in map_operation_rects:
                             if rectangle.collidepoint(event.pos):
@@ -2282,6 +2789,41 @@ def launch_map_editor(
                                 selected_editor_row = index
                                 if enabled:
                                     apply_action(increment_action)
+                                break
+                            if rectangle.collidepoint(event.pos):
+                                selected_editor_row = index
+                                break
+                        if save_rect.collidepoint(event.pos):
+                            save_changes()
+                    elif selected_tab == 3:
+                        for mode, rectangle in actor_mode_rects:
+                            if rectangle.collidepoint(event.pos):
+                                actor_mode = mode
+                                selected_editor_row = None
+                                break
+                        if actor_mode == "MONSTERS":
+                            for action, _, rectangle in monster_operation_rects:
+                                if rectangle.collidepoint(event.pos):
+                                    apply_actor_action(action)
+                                    break
+                        for (
+                            index,
+                            decrement_action,
+                            increment_action,
+                            rectangle,
+                            minus_rectangle,
+                            plus_rectangle,
+                            enabled,
+                        ) in control_rects:
+                            if minus_rectangle.collidepoint(event.pos):
+                                selected_editor_row = index
+                                if enabled:
+                                    apply_actor_action(decrement_action)
+                                break
+                            if plus_rectangle.collidepoint(event.pos):
+                                selected_editor_row = index
+                                if enabled:
+                                    apply_actor_action(increment_action)
                                 break
                             if rectangle.collidepoint(event.pos):
                                 selected_editor_row = index
@@ -2347,11 +2889,15 @@ def main() -> None:
         help="overlay a WHDLoad save; edited output is copied into -modified/whdload",
     )
     parser.add_argument("--screenshot", type=Path)
+    parser.add_argument("--tab", type=int, default=0, choices=range(len(EDITOR_TABS)))
+    parser.add_argument("--actor-mode", choices=("champions", "monsters"), default="champions")
     args = parser.parse_args()
     launch_map_editor(
         args.data_root,
         savegame_path=args.savegame,
         screenshot_path=args.screenshot,
+        initial_tab=args.tab,
+        initial_actor_mode=args.actor_mode.upper(),
     )
 
 

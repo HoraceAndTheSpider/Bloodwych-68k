@@ -212,14 +212,26 @@ and X/Y placement tables. Shelf stacks take the source routine's separate
 placement path, rather than being treated as floor-centre objects. A shelf has
 two levels: its absolute map facing selects the valid encoded pair (North 0/4,
 East 4/12, South 8/12, West 8/0) and their lower/upper meanings. The Object
-tab itself remains disabled until stack editing is implemented. In the current
-map cell, the source tables expose the two forward/reachable object spaces;
+tab consolidates stack selection, named item graphics, quantity and semantic
+position editing; map clicks cycle multiple stacks at one location. In the
+current map cell, the source tables expose the two forward/reachable object spaces;
 the two nearer spaces in the cell ahead remain available through its normal
 object projection. Floor objects are drawn at the source's pre-feature call
 site. Shelf objects are placed immediately after their selected shelf face,
 then before later, nearer map cells draw. The shelf items remain visible, but
 an intervening wall face or nearer character or monster can naturally obscure
 them; side-on or occluded shelves do not leave their items embedded in a wall.
+
+The Characters / Monsters tab reuses the Data Viewer's champion scroll,
+spellbook, inventory, object definitions and actor renderers. Game projects
+edit champions only on mod0; save projects edit them only while the viewed
+tower matches the save's active tower. The active save tower exposes its live
+16-byte monster workspace read-only, while other towers use editable packed
+six-byte records. Clicking a monster marker cycles all resolved team members
+at that cell and replaces the selected marker's red fill with the normal
+flashing editor highlight. Humanoid design editing changes the shared extracted
+head, body and colour tables used by both viewers. Large-monster minimum grade
+constants remain source/EQU work and are not guessed in the UI.
 
 The map cursor may be placed in a type-1 main wall even though normal game
 movement cannot do so. In that invalid preview state the current cell is sealed

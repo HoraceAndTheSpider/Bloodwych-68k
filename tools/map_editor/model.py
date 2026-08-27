@@ -34,6 +34,8 @@ SAVE_UNPACKED_MONSTER_COUNT_OFFSET = 0x8052
 SAVE_UNPACKED_MONSTERS_OFFSET = 0x8054
 LIVE_MONSTER_RECORD_SIZE = 0x10
 LIVE_MONSTER_CAPACITY = 0x80
+CHAMPION_RECORD_SIZE = 0x20
+CHAMPION_POCKET_RECORD_SIZE = 0x10
 
 # QkPly1_Start and QkPly2_Start set these teams and their lead champion's
 # location. The standard character data supplies their unchanged floor 3.
@@ -405,6 +407,7 @@ class MapProject:
         self.dirty_towers: set[int] = set()
         self.resource_data: dict[str, bytearray] = {}
         self.dirty_resources: set[str] = set()
+        self.dirty_save = False
 
     @classmethod
     def from_extracted(cls, data_root: Path) -> MapProject:
@@ -495,7 +498,7 @@ class MapProject:
 
     @property
     def has_changes(self) -> bool:
-        return bool(self.dirty_towers or self.dirty_resources)
+        return bool(self.dirty_towers or self.dirty_resources or self.dirty_save)
 
     def editable_resource(self, relative_name: str) -> bytearray:
         if self.save_data is not None:
@@ -536,6 +539,8 @@ class MapProject:
         destination.parent.mkdir(parents=True, exist_ok=True)
         destination.write_bytes(self.save_data)
         self.dirty_towers.clear()
+        self.dirty_resources.clear()
+        self.dirty_save = False
         return destination
 
     def switches(self, tower: int) -> tuple[SwitchRecord, ...]:
@@ -629,6 +634,197 @@ class MapProject:
             for index in range(count)
         )
 
+    def packed_monster_editable(self, tower: int) -> bool:
+        """Packed actors are editable except where live save state supersedes them."""
+
+        return self.current_tower != tower
+
+    def set_packed_monster(
+        self,
+        tower: int,
+        index: int,
+        *,
+        category: int | None = None,
+        floor: int | None = None,
+        x: int | None = None,
+        y: int | None = None,
+        level: int | None = None,
+        form: int | None = None,
+        team: int | None = None,
+    ) -> MonsterRecord:
+        """Edit fields in one persistent six-byte monster record."""
+
+        if not self.packed_monster_editable(tower):
+            raise ValueError("the active save tower uses read-only live monster data")
+        if not 0 <= index < len(self.monsters(tower)):
+            raise IndexError("monster index is outside the authored tower records")
+        name = f"maps/{TOWERS[tower].stem}.monsters"
+        if self.save_data is None:
+            data = self.editable_resource(name)
+            save_start = None
+        else:
+            segment = self.segment_offsets.get(name)
+            if segment is None or self.save_base_offset is None:
+                raise ValueError(f"the save has no {name} segment")
+            save_start = segment[0] - self.save_base_offset
+            data = self.save_data
+        offset = (save_start or 0) + index * 6
+        if not 0 <= offset <= len(data) - 6:
+            raise IndexError("monster index is outside the tower block")
+        if category is not None or floor is not None:
+            old = data[offset]
+            packed_category = old >> 4 if category is None else category
+            packed_floor = (old & 0x0F) - 1 if floor is None else floor
+            if not 0 <= packed_category <= 0x0F or not 0 <= packed_floor <= 7:
+                raise ValueError("monster category/floor is outside its packed range")
+            data[offset] = (packed_category << 4) | (packed_floor + 1)
+        for relative, value in ((1, x), (2, y), (3, level), (4, form), (5, team)):
+            if value is not None:
+                if not 0 <= value <= 0xFF:
+                    raise ValueError("monster fields must be byte values")
+                data[offset + relative] = value
+        if self.save_data is None:
+            self.dirty_resources.add(name)
+        else:
+            self.dirty_save = True
+        return self.monsters(tower)[index]
+
+    def join_monster_to_previous_team(self, tower: int, index: int) -> tuple[MonsterRecord, ...]:
+        """Author both packed ``KL`` entries needed to rebuild the runtime team."""
+
+        from tools.map_editor.actor_editor import next_team_assignment
+
+        records = self.monsters(tower)
+        group, slot = next_team_assignment(records, index)
+        previous = records[index - 1]
+        if previous.team == 0xFF:
+            self.set_packed_monster(tower, index - 1, team=group << 2)
+        leader = self.monsters(tower)[index - 1]
+        self.set_packed_monster(
+            tower,
+            index,
+            floor=leader.floor,
+            x=0xFF,
+            y=leader.y,
+            team=(group << 2) | slot,
+        )
+        return self.monsters(tower)
+
+    def remove_monster_from_team(self, tower: int, index: int) -> tuple[MonsterRecord, ...]:
+        records = self.render_occupants(tower)
+        if not 0 <= index < len(records):
+            raise IndexError("monster index is outside the tower block")
+        record = records[index]
+        self.set_packed_monster(
+            tower, index, floor=record.floor, x=record.x, y=record.y, team=0xFF
+        )
+        return self.monsters(tower)
+
+    def champion_record_bytes(self, index: int) -> bytes:
+        if not 0 <= index < 16:
+            raise IndexError("champion index must be 0..15")
+        data = self.save_data if self.save_data is not None else self.resource_bytes("data/champions.stats")
+        start = index * CHAMPION_RECORD_SIZE
+        return bytes(data[start : start + CHAMPION_RECORD_SIZE])
+
+    def champion_pocket_bytes(self, index: int) -> bytes:
+        if not 0 <= index < 16:
+            raise IndexError("champion index must be 0..15")
+        if self.save_data is not None:
+            start = 0x200 + index * CHAMPION_POCKET_RECORD_SIZE
+            data = self.save_data
+        else:
+            start = index * CHAMPION_POCKET_RECORD_SIZE
+            data = self.resource_bytes("data/champions.pockets")
+        return bytes(data[start : start + CHAMPION_POCKET_RECORD_SIZE])
+
+    def set_champion_byte(self, tower: int, index: int, offset: int, value: int) -> None:
+        """Edit champion state only in mod0 or the active save tower."""
+
+        expected = self.current_tower if self.save_data is not None else 0
+        if tower != expected:
+            raise ValueError("champions are editable only on mod0 or the active save tower")
+        if not 0 <= index < 16 or not 0 <= offset < CHAMPION_RECORD_SIZE:
+            raise IndexError("champion record address is outside its table")
+        if not 0 <= value <= 0xFF:
+            raise ValueError("champion fields must be byte values")
+        if self.save_data is not None:
+            self.save_data[index * CHAMPION_RECORD_SIZE + offset] = value
+            self.dirty_save = True
+        else:
+            data = self.editable_resource("data/champions.stats")
+            data[index * CHAMPION_RECORD_SIZE + offset] = value
+            self.dirty_resources.add("data/champions.stats")
+
+    def set_champion_pocket_byte(self, tower: int, index: int, offset: int, value: int) -> None:
+        expected = self.current_tower if self.save_data is not None else 0
+        if tower != expected:
+            raise ValueError("champions are editable only on mod0 or the active save tower")
+        if not 0 <= index < 16 or not 0 <= offset < CHAMPION_POCKET_RECORD_SIZE:
+            raise IndexError("champion pocket address is outside its table")
+        if not 0 <= value <= 0xFF:
+            raise ValueError("pocket fields must be byte values")
+        if self.save_data is not None:
+            self.save_data[0x200 + index * CHAMPION_POCKET_RECORD_SIZE + offset] = value
+            self.dirty_save = True
+        else:
+            data = self.editable_resource("data/champions.pockets")
+            data[index * CHAMPION_POCKET_RECORD_SIZE + offset] = value
+            self.dirty_resources.add("data/champions.pockets")
+
+    def character_design(self, form: int) -> tuple[int, int, tuple[tuple[int, ...], ...]]:
+        """Return source-extracted head, body and five four-ink palettes."""
+
+        if not 0 <= form <= 0x55:
+            raise ValueError("character form must be $00..$55")
+        heads = self.resource_bytes("data/characters.heads")
+        bodies = self.resource_bytes("data/characters.bodies")
+        colours = self.resource_bytes("data/characters.colours")
+        start = form * 20
+        palettes = tuple(
+            tuple(colours[start + group * 4 : start + group * 4 + 4])
+            for group in range(5)
+        )
+        return heads[form], bodies[form], palettes
+
+    def set_character_design(
+        self,
+        form: int,
+        *,
+        head: int | None = None,
+        body: int | None = None,
+        colour_group: int | None = None,
+        colour_slot: int | None = None,
+        ink: int | None = None,
+    ) -> None:
+        """Edit the shared character-form tables used by map and Data Viewer."""
+
+        if self.save_data is not None:
+            raise ValueError("shared character designs are not stored in a portable save")
+        if not 0 <= form <= 0x55:
+            raise ValueError("character form must be $00..$55")
+        if head is not None:
+            head_count = len(self.resource_bytes("gfx/HeadParts.gfx")) // 0x378
+            if not 0 <= head < head_count:
+                raise ValueError("head design references an unknown source definition")
+            data = self.editable_resource("data/characters.heads")
+            data[form] = head
+            self.dirty_resources.add("data/characters.heads")
+        if body is not None:
+            body_count = len(self.resource_bytes("data/characters-body-definitions.layout")) // 10
+            if not 0 <= body < body_count:
+                raise ValueError("body design references an unknown source definition")
+            data = self.editable_resource("data/characters.bodies")
+            data[form] = body
+            self.dirty_resources.add("data/characters.bodies")
+        if ink is not None:
+            if colour_group is None or colour_slot is None:
+                raise ValueError("a colour edit requires a palette group and slot")
+            if not 0 <= colour_group < 5 or not 0 <= colour_slot < 4 or not 0 <= ink < 16:
+                raise ValueError("character colour address is outside its source table")
+            data = self.editable_resource("data/characters.colours")
+            data[form * 20 + colour_group * 4 + colour_slot] = ink
+            self.dirty_resources.add("data/characters.colours")
     @property
     def current_tower(self) -> int | None:
         """Return the savegame's current tower, when this is a valid SPS 439 save."""
