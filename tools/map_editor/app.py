@@ -56,6 +56,7 @@ from tools.map_editor.model import (
 from tools.map_editor.layout import (
     elevation_alignment_issues,
     is_layout_elevation_cell,
+    stair_alignment_links,
 )
 from tools.map_editor.render import MAP_TYPE_NAMES, cell_glyph, describe_cell, draw_map_cell
 from tools.map_editor.semantics import (
@@ -142,6 +143,10 @@ LARGE_MONSTER_GRADE_TABLES = {
     0x69: "dragon.colours",
     0x6A: "dragon.colours",
 }
+# Five representative grid-depth previews. Source gfx slot 3 is the rear
+# mini-position at the same two-grid-space range as slot 2, so the compact
+# design strip uses one representative there and retains both distant slots.
+MONSTER_DESIGN_PREVIEW_DISTANCES = (0, 1, 2, 4, 5)
 
 
 class MapEditorError(RuntimeError):
@@ -549,11 +554,12 @@ def launch_map_editor(
         selected_monster = 0
         monster_map_click_mode = "SELECT"
         monster_design_mode = False
-        monster_preview_distance = 0
         selected_colour_group = 0
         selected_colour_slot = 0
-        layout_preview_above = False
-        layout_preview_below = False
+        layout_preview_above = True
+        layout_preview_below = True
+        layout_link_lines = False
+        layout_clear_armed: tuple[int, int] | None = None
         overlays = {
             name: enabled
             for name, enabled in zip(OVERLAY_NAMES, OVERLAY_DEFAULTS)
@@ -634,7 +640,8 @@ def launch_map_editor(
             ("MONSTERS", pygame.Rect(1102, 108, 88, 24)),
         )
         champion_find_rect = pygame.Rect(1010, 138, 180, 24)
-        layout_set_start_rect = pygame.Rect(1010, 108, 180, 24)
+        layout_clear_rect = pygame.Rect(1010, 108, 88, 24)
+        layout_links_rect = pygame.Rect(1102, 108, 88, 24)
         monster_operation_rects = (
             ("REMOVE-TEAM", "MAKE SOLO", pygame.Rect(1010, 138, 88, 24)),
             ("MOVE-HERE", "PLACE HERE", pygame.Rect(1102, 138, 88, 24)),
@@ -978,7 +985,7 @@ def launch_map_editor(
             nonlocal selected_spell_entry
             nonlocal champion_stats_page
             nonlocal monster_design_mode, selected_colour_group, selected_colour_slot
-            nonlocal monster_preview_distance, monster_map_click_mode
+            nonlocal monster_map_click_mode
             if actor_mode == "CHAMPIONS":
                 editable = champion_edit_allowed(
                     has_save=project.save_data is not None,
@@ -1103,12 +1110,6 @@ def launch_map_editor(
                 )
                 return
             if monster_design_mode:
-                if action in ("DISTANCE-", "DISTANCE+"):
-                    monster_preview_distance = (
-                        monster_preview_distance
-                        + (-1 if action.endswith("-") else 1)
-                    ) % 6
-                    return
                 if record.form <= 0x55:
                     if character_assets is None:
                         status_message = "CHARACTER DESIGN ASSETS ARE UNAVAILABLE"
@@ -1327,12 +1328,24 @@ def launch_map_editor(
 
         def apply_layout_action(action: str) -> None:
             nonlocal status_message, selected_floor, selected_x, selected_y
-            nonlocal layout_preview_above, layout_preview_below, preview_revision
+            nonlocal layout_preview_above, layout_preview_below, layout_link_lines
+            nonlocal layout_clear_armed, preview_revision
             tower_map = current_map()
             try:
-                if action == "LAYOUT-SET-START":
-                    project.set_special_floor(selected_tower, selected_floor)
-                    status_message = f"AMOS SPECIAL FLOOR NOW USES FLOOR {selected_floor}"
+                if action != "LAYOUT-CLEAR":
+                    layout_clear_armed = None
+                if action == "LAYOUT-CLEAR":
+                    floor_key = (selected_tower, selected_floor)
+                    if layout_clear_armed != floor_key:
+                        layout_clear_armed = floor_key
+                        status_message = "CLICK CLEAR FLOOR AGAIN TO CONFIRM"
+                        return
+                    project.clear_floor(selected_tower, selected_floor)
+                    layout_clear_armed = None
+                    status_message = "UNSAVED FLOOR-CELL CLEAR"
+                elif action == "LAYOUT-LINKS":
+                    layout_link_lines = not layout_link_lines
+                    status_message = f"STAIR LINK LINES {'ON' if layout_link_lines else 'OFF'}"
                 elif action in ("LAYOUT-ABOVE-", "LAYOUT-ABOVE+"):
                     layout_preview_above = not layout_preview_above
                     status_message = f"ABOVE FLOOR PREVIEW {'ON' if layout_preview_above else 'OFF'}"
@@ -1878,6 +1891,57 @@ def launch_map_editor(
                         )
             screen.blit(layer, MAP_ORIGIN)
 
+        def draw_layout_stair_links() -> None:
+            """Join verified stairs on the selected and visible adjacent floor."""
+
+            tower_map = current_map()
+            size = cell_size()
+
+            def endpoint(floor: int, x: int, y: int) -> tuple[int, int] | None:
+                if floor == selected_floor:
+                    shift_x = shift_y = 0
+                elif floor == selected_floor - 1 and layout_preview_below:
+                    shift_x = shift_y = -2 * zoom
+                elif floor == selected_floor + 1 and layout_preview_above:
+                    shift_x = shift_y = 2 * zoom
+                else:
+                    return None
+                return (
+                    pan_x
+                    + (tower_map.x_offsets[floor] + x) * size
+                    + shift_x
+                    + size // 2,
+                    pan_y
+                    + (tower_map.y_offsets[floor] + y) * size
+                    + shift_y
+                    + size // 2,
+                )
+
+            layer = pygame.Surface((MAP_SIZE, MAP_SIZE), pygame.SRCALPHA)
+            for link in stair_alignment_links(tower_map):
+                start = endpoint(link.floor, link.x, link.y)
+                end = endpoint(
+                    link.target_floor,
+                    link.target_x,
+                    link.target_y,
+                )
+                if start is None or end is None:
+                    continue
+                pygame.draw.line(
+                    layer,
+                    (80, 225, 165, 210),
+                    start,
+                    end,
+                    max(2, zoom * 2),
+                )
+                pygame.draw.circle(
+                    layer, (180, 255, 220, 235), start, max(2, zoom * 2)
+                )
+                pygame.draw.circle(
+                    layer, (180, 255, 220, 235), end, max(2, zoom * 2)
+                )
+            screen.blit(layer, MAP_ORIGIN)
+
         def draw_button(rectangle, label: str, *, active=False, enabled=True) -> None:
             hovered = rectangle.collidepoint(pygame.mouse.get_pos())
             colour = (
@@ -2406,6 +2470,8 @@ def launch_map_editor(
                     alpha=175,
                     issue_cells=issue_cells,
                 )
+                if layout_link_lines:
+                    draw_layout_stair_links()
             elif tower_map.floor_exists(selected_floor):
                 old_clip = screen.get_clip()
                 screen.set_clip(map_rect)
@@ -2459,6 +2525,8 @@ def launch_map_editor(
                 draw_info("BLUE: CURRENT FLOOR", 632, (115, 190, 225), x=MAP_ORIGIN[0])
                 draw_info("TRANSLUCENT: ADJACENT FLOOR", 650, (145, 155, 175), x=MAP_ORIGIN[0])
                 draw_info("RED: ELEVATION LINK NEEDS REVIEW", 668, (245, 90, 80), x=MAP_ORIGIN[0])
+                if layout_link_lines:
+                    draw_info("GREEN: VERIFIED STAIR PAIR", 686, (80, 225, 165), x=MAP_ORIGIN[0])
             else:
                 for name, enabled, rectangle in zip(
                     main_overlay_names + ("LINKS",), OVERLAY_ENABLED, overlay_rects
@@ -2504,9 +2572,19 @@ def launch_map_editor(
                     )
             elif selected_tab == 4:
                 draw_button(
-                    layout_set_start_rect,
-                    "USE AS AMOS SPECIAL",
-                    active=tower_map.special_floor_index == selected_floor,
+                    layout_clear_rect,
+                    (
+                        "CONFIRM CLEAR"
+                        if layout_clear_armed == (selected_tower, selected_floor)
+                        else "CLEAR FLOOR"
+                    ),
+                    active=layout_clear_armed == (selected_tower, selected_floor),
+                    enabled=selected_tower not in project.save_map_fallbacks,
+                )
+                draw_button(
+                    layout_links_rect,
+                    f"LINKS: {'ON' if layout_link_lines else 'OFF'}",
+                    active=layout_link_lines,
                 )
             draw_info(f"FLOOR {selected_floor}", 140, (150, 200, 255))
             draw_info(f"SIZE {tower_map.widths[selected_floor]:02d} x {tower_map.heights[selected_floor]:02d}", 160, (180, 185, 195))
@@ -2653,12 +2731,6 @@ def launch_map_editor(
                     )
                 draw_button(save_rect, save_button_label, active=project.has_changes)
             elif selected_tab == 4:
-                special_floor = tower_map.special_floor_index
-                special_label = (
-                    f"FLOOR {special_floor}"
-                    if special_floor is not None
-                    else "CUSTOM HEADER"
-                )
                 editor_rows = (
                     CellEditorRow(
                         "HIGHEST FLOOR",
@@ -2704,7 +2776,7 @@ def launch_map_editor(
                     ),
                 )
                 draw_info("FLOOR LAYOUT", 322, (150, 200, 255))
-                draw_info(f"AMOS SPECIAL: {special_label}", 322, (135, 142, 154), x=965)
+                draw_info("WORLD-ALIGNED FLOOR GEOMETRY", 322, (135, 142, 154), x=950)
                 layout_editable = selected_tower not in project.save_map_fallbacks
                 row_layout = []
                 for index, row in enumerate(editor_rows):
@@ -2759,17 +2831,17 @@ def launch_map_editor(
                     )
                     draw_info(issue.reason, 622, (235, 150, 120))
                 draw_info(
-                    "AMOS SPECIAL STORES THIS FLOOR'S SIZE/OFFSET.",
+                    "CLEAR FLOOR ZEROS MAP CELLS; OBJECT STACKS REMAIN.",
                     650,
                     (145, 150, 160),
                 )
                 draw_info(
-                    "SPS 439 ONLY BOOTSTRAPS ITS WIDTH/HEIGHT;",
+                    "GREEN LINES JOIN VERIFIED STAIR PAIRS.",
                     668,
                     (145, 150, 160),
                 )
                 draw_info(
-                    "FLOOR SELECTION LOADS THE LIVE OFFSET.",
+                    "RED MARKS ARE GUIDANCE AND DO NOT BLOCK SAVING.",
                     686,
                     (145, 150, 160),
                 )
@@ -3127,30 +3199,30 @@ def launch_map_editor(
                                 else (record.index,)
                             )
                             records_by_index = {member.index: member for member in records}
-                            show_distant_composites = (
-                                monster_design_mode
-                                and record.form <= 0x55
-                                and character_assets is not None
+                            preview_entries = (
+                                tuple(
+                                    (record.index, distance)
+                                    for distance in MONSTER_DESIGN_PREVIEW_DISTANCES
+                                )
+                                if monster_design_mode
+                                else tuple((member, 0) for member in members)
                             )
-                            member_area_width = (
-                                194 if show_distant_composites else preview_rect.width
-                            )
-                            slot_width = member_area_width // len(members)
+                            slot_width = preview_rect.width // len(preview_entries)
                             preview_member_rectangles = []
-                            for slot, member_index in enumerate(members):
+                            for slot, (member_index, distance) in enumerate(preview_entries):
                                 member = records_by_index[member_index]
                                 canvas = [[0] * 128 for _ in range(128)]
                                 if member.form <= 0x55 and character_assets is not None:
                                     pixels, _ = render_character_preview(
                                         canvas, character_assets, member.form,
-                                        distance=monster_preview_distance if monster_design_mode else 0,
+                                        distance=distance,
                                         facing=0, anchor_x=64, anchor_y=65,
                                     )
                                 else:
                                     definition = next(item for item in MONSTERS if item.code == member.form)
                                     pixels, _ = render_monster_preview(
                                         canvas, definition, monster_assets,
-                                        distance=monster_preview_distance if monster_design_mode else 0,
+                                        distance=distance,
                                         facing=0,
                                         grade_step=member.colour_grade_step,
                                         animation_frame=0, anchor_x=64, anchor_y=65,
@@ -3167,8 +3239,18 @@ def launch_map_editor(
                                     slot_width,
                                     preview_rect.height,
                                 )
+                                old_preview_clip = screen.get_clip()
+                                screen.set_clip(member_rect)
                                 target = draw_actor_preview(member_surface, member_rect)
+                                screen.set_clip(old_preview_clip)
                                 preview_member_rectangles.append((member_index, target))
+                                if monster_design_mode:
+                                    draw_info(
+                                        f"VIEW {slot + 1}",
+                                        366,
+                                        (235, 200, 105),
+                                        x=member_rect.left + 7,
+                                    )
                                 if member_index == record.index and len(members) > 1:
                                     flash_colour = CURSOR_COLOURS[
                                         (pygame.time.get_ticks() // 120) % len(CURSOR_COLOURS)
@@ -3177,49 +3259,6 @@ def launch_map_editor(
                             monster_preview_member_rects = tuple(
                                 preview_member_rectangles
                             )
-                            if show_distant_composites:
-                                for distance, distant_rect, label in (
-                                    (
-                                        4,
-                                        pygame.Rect(1008, 382, 88, 150),
-                                        "2 SPACES",
-                                    ),
-                                    (
-                                        5,
-                                        pygame.Rect(1098, 382, 88, 150),
-                                        "3 SPACES",
-                                    ),
-                                ):
-                                    distant_canvas = [[0] * 128 for _ in range(128)]
-                                    distant_pixels, _ = render_character_preview(
-                                        distant_canvas,
-                                        character_assets,
-                                        record.form,
-                                        distance=distance,
-                                        facing=0,
-                                        anchor_x=64,
-                                        anchor_y=65,
-                                    )
-                                    draw_actor_preview(
-                                        indexed_to_surface(
-                                            pygame,
-                                            crop_indexed_pixels(distant_pixels),
-                                        ),
-                                        distant_rect,
-                                    )
-                                    draw_info(
-                                        label,
-                                        366,
-                                        (235, 200, 105),
-                                        x=distant_rect.left + 8,
-                                    )
-                            elif monster_design_mode and monster_preview_distance >= 4:
-                                draw_info(
-                                    f"DISTANT VIEW {monster_preview_distance}",
-                                    366,
-                                    (235, 200, 105),
-                                    x=820,
-                                )
                         except (KeyError, StopIteration, ValueError, RuntimeError):
                             draw_info("GRAPHICAL PREVIEW UNAVAILABLE", 410, (235, 150, 120), x=820)
                         editable = record.source == "packed"
@@ -3229,7 +3268,6 @@ def launch_map_editor(
                             design_editable = project.save_data is None and character_assets is not None
                             editor_rows = (
                                 CellEditorRow("MONSTER", f"{selected_monster + 1} / {len(records)}", "MONSTER-", "MONSTER+"),
-                                CellEditorRow("VIEW DISTANCE", f"{monster_preview_distance} / 5", "DISTANCE-", "DISTANCE+"),
                                 CellEditorRow("HEAD DESIGN", f"${head:02X}", "HEAD-", "HEAD+"),
                                 CellEditorRow("BODY DESIGN", f"${body:02X}", "BODY-", "BODY+"),
                                 CellEditorRow("PALETTE", palette_names[selected_colour_group], "PALETTE-", "PALETTE+"),
@@ -3245,7 +3283,6 @@ def launch_map_editor(
                             grade_table = LARGE_MONSTER_GRADE_TABLES.get(record.form)
                             design_rows = [
                                 CellEditorRow("MONSTER", f"{selected_monster + 1} / {len(records)}", "MONSTER-", "MONSTER+"),
-                                CellEditorRow("VIEW DISTANCE", f"{monster_preview_distance} / 5", "DISTANCE-", "DISTANCE+"),
                             ]
                             if grade_table is not None:
                                 filename = grade_table
@@ -3290,7 +3327,7 @@ def launch_map_editor(
                     plus_rectangle = pygame.Rect(1167, row_top + 1, 21, 15)
                     navigation_actions = {
                         "CHAMPION-", "PAGE-", "STAT-PAGE-", "SPELL-PAGE-",
-                        "POCKET-", "MONSTER-", "PALETTE-", "DISTANCE-",
+                        "POCKET-", "MONSTER-", "PALETTE-",
                     }
                     enabled = editable or row.decrement_action in navigation_actions
                     if row.decrement_action == "PRACTICE-":
@@ -3543,6 +3580,7 @@ def launch_map_editor(
                         if rectangle.collidepoint(event.pos) and EDITOR_TAB_ENABLED[index]:
                             selected_tab = index
                             selected_editor_row = None
+                            layout_clear_armed = None
                             if selected_tab == 2:
                                 overlays["OBJECTS"] = True
                                 jump_to_object_stack()
@@ -3559,6 +3597,7 @@ def launch_map_editor(
                             selected_object_item = 0
                             selected_monster = 0
                             selected_editor_row = None
+                            layout_clear_armed = None
                             pan_x = pan_y = 0
                             clamp_pan()
                             if selected_tab == 2:
@@ -3572,6 +3611,7 @@ def launch_map_editor(
                             selected_floor = floor
                             selected_x = selected_y = 0
                             selected_editor_row = None
+                            layout_clear_armed = None
                             pan_x = pan_y = 0
                             clamp_pan()
                             break
@@ -3818,8 +3858,13 @@ def launch_map_editor(
                         if save_rect.collidepoint(event.pos):
                             save_changes()
                     elif selected_tab == 4:
-                        if layout_set_start_rect.collidepoint(event.pos):
-                            apply_layout_action("LAYOUT-SET-START")
+                        if (
+                            layout_clear_rect.collidepoint(event.pos)
+                            and selected_tower not in project.save_map_fallbacks
+                        ):
+                            apply_layout_action("LAYOUT-CLEAR")
+                        elif layout_links_rect.collidepoint(event.pos):
+                            apply_layout_action("LAYOUT-LINKS")
                         for (
                             index,
                             decrement_action,

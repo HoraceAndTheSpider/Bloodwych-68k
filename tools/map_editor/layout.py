@@ -16,6 +16,16 @@ class ElevationIssue:
     reason: str
 
 
+@dataclass(frozen=True)
+class StairLink:
+    floor: int
+    x: int
+    y: int
+    target_floor: int
+    target_x: int
+    target_y: int
+
+
 def is_layout_elevation_cell(cell: MapCell) -> bool:
     """Match the AMOS Layout view's stairs/pit/ceiling-hole filter."""
 
@@ -46,6 +56,52 @@ def cell_at_world(
     return x, y, tower.cell(floor, x, y)
 
 
+def _matching_stair(
+    tower: TowerMap, floor: int, x: int, y: int, cell: MapCell
+) -> tuple[int, int, int] | None:
+    stair_up = cell.b % 2 == 0
+    target_floor = floor + (1 if stair_up else -1)
+    source_direction = (cell.b // 2) & 3
+    travel_direction = (source_direction + 2) & 3
+    dx, dy = FORWARD_VECTORS[travel_direction]
+    target = cell_at_world(
+        tower,
+        target_floor,
+        tower.x_offsets[floor] + x + dx * 2,
+        tower.y_offsets[floor] + y + dy * 2,
+    )
+    if target is None:
+        return None
+    target_x, target_y, target_cell = target
+    if (
+        target_cell.d != 4
+        or (target_cell.b % 2 == 0) == stair_up
+        or ((target_cell.b // 2) & 3) != travel_direction
+    ):
+        return None
+    return target_floor, target_x, target_y
+
+
+def stair_alignment_links(tower: TowerMap) -> tuple[StairLink, ...]:
+    """Return each correctly paired stair relationship exactly once."""
+
+    links: set[tuple[tuple[int, int, int], tuple[int, int, int]]] = set()
+    for floor in range(len(tower.widths)):
+        if not tower.floor_exists(floor):
+            continue
+        for y in range(tower.heights[floor]):
+            for x in range(tower.widths[floor]):
+                cell = tower.cell(floor, x, y)
+                if cell.d != 4:
+                    continue
+                target = _matching_stair(tower, floor, x, y, cell)
+                if target is not None:
+                    links.add(tuple(sorted(((floor, x, y), target))))
+    return tuple(
+        StairLink(*source, *target) for source, target in sorted(links)
+    )
+
+
 def elevation_alignment_issues(tower: TowerMap) -> tuple[ElevationIssue, ...]:
     """Find stairs and vertical openings without their expected counterpart.
 
@@ -67,26 +123,7 @@ def elevation_alignment_issues(tower: TowerMap) -> tuple[ElevationIssue, ...]:
                 world_y = tower.y_offsets[floor] + y
 
                 if cell.d == 4:
-                    stair_up = cell.b % 2 == 0
-                    target_floor = floor + (1 if stair_up else -1)
-                    source_direction = (cell.b // 2) & 3
-                    travel_direction = (source_direction + 2) & 3
-                    dx, dy = FORWARD_VECTORS[travel_direction]
-                    target = cell_at_world(
-                        tower,
-                        target_floor,
-                        world_x + dx * 2,
-                        world_y + dy * 2,
-                    )
-                    valid = False
-                    if target is not None:
-                        target_cell = target[2]
-                        valid = (
-                            target_cell.d == 4
-                            and (target_cell.b % 2 == 0) != stair_up
-                            and ((target_cell.b // 2) & 3) == travel_direction
-                        )
-                    if not valid:
+                    if _matching_stair(tower, floor, x, y, cell) is None:
                         issues.append(
                             ElevationIssue(
                                 floor,

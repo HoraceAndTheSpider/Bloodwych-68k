@@ -274,6 +274,21 @@ class TowerMap:
         offset = self.cell_offset(floor, x, y)
         self.data[offset : offset + 2] = bytes((cell.first, cell.second))
 
+    def clear_floor(self, floor: int) -> None:
+        """Clear every map cell on a floor without changing its geometry."""
+
+        self._validate_floor(floor)
+        width, height = self.widths[floor], self.heights[floor]
+        if not width or not height:
+            return
+        start = MAP_HEADER_SIZE + self.data_offsets[floor]
+        end = start + width * height * 2
+        if end > MAP_RESOURCE_SIZE:
+            raise ValueError(
+                f"floor {floor} cell data extends beyond the map resource"
+            )
+        self.data[start:end] = bytes(end - start)
+
     def set_floor_dimensions(self, floor: int, width: int, height: int) -> None:
         """Resize one floor and safely repack all eight sequential cell grids.
 
@@ -673,6 +688,14 @@ class MapProject:
                 f"{TOWERS[tower].name} is not stored as a valid map in this save and cannot be edited"
             )
         self.maps[tower].set_floor_alignment(floor, x_offset, y_offset)
+        self.dirty_towers.add(tower)
+
+    def clear_floor(self, tower: int, floor: int) -> None:
+        if tower in self.save_map_fallbacks:
+            raise ValueError(
+                f"{TOWERS[tower].name} is not stored as a valid map in this save and cannot be edited"
+            )
+        self.maps[tower].clear_floor(floor)
         self.dirty_towers.add(tower)
 
     def set_special_floor(self, tower: int, floor: int) -> None:

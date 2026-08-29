@@ -94,7 +94,9 @@ cleared, and every later floor offset is recalculated. Object-stack map indices
 are moved with their floors. A shrink is rejected when it would exclude an
 existing object stack, rather than silently moving that stack to another floor.
 The fixed-size editor continues to enforce the original `$FC8`-byte cell-data
-capacity inside each `$1000` map resource.
+capacity inside each `$1000` map resource. **Clear Floor** is a two-click
+operation which zeros every map cell on the selected floor without changing its
+size, alignment or the separate object-stack resource.
 
 Header words `$30`, `$32` and `$34` are the AMOS editor's **special floor**
 width, height and data offset. Every original SPS 439 tower duplicates one
@@ -106,17 +108,25 @@ word copied from `$34`; floor selection instead loads the live data offset from
 the ordinary eight-entry table and replaces the active width and height at the
 same time. The triplet is therefore best treated as a bootstrap/legacy floor
 descriptor maintained by the AMOS tool, not as a gameplay in/out point. Layout
-retains that behaviour and lets the user copy the selected floor into it.
+preserves these source bytes but does not expose them as a user control.
+
+There is only one shared live geometry area. Player and character operations
+load the floor number from the relevant record before using map coordinates;
+player floor is read from player-data offset `$58`. Two players on different
+floors are therefore handled serially by loading each player's floor geometry,
+not by assigning either player to the legacy header triplet.
 
 The map area follows the original Layout view by hiding ordinary walls and
 objects and retaining only stairs, floor pits and ceiling holes. Above and below
-previews are optional translucent grids with small opposing pixel shifts, so
-their X/Y alignment remains visible. Red outlines identify elevation links
+previews start enabled and can be toggled independently. Their translucent grids
+and elevation symbols use small opposing pixel shifts, so their X/Y alignment
+remains visible. Red outlines identify elevation links
 which need review. Pits require a ceiling hole at the same world X/Y on the
 floor below, and ceiling holes require the corresponding pit above. The stair
 check follows the movement source: a transition changes one floor and advances
 twice through the stair's permitted movement direction, so the matching
-opposite stair is two world cells forward and faces back toward the source.
+opposite stair is two world cells forward and faces back toward the source. The
+optional green link-line overlay joins only stair pairs which pass that check.
 Unusual intentional stair tricks remain editable; red is guidance, not a save
 blocker.
 
@@ -317,9 +327,11 @@ flashing highlight, and clicking a translucent member selects it. Joining
 rewrites the packed record order so all members of the resulting party are
 adjacent in `KL` slot order as well as represented in the reconstructed team
 table. The design preview temporarily hides the other party members, can be
-stepped through all six renderer distances, and always shows the two small
-source-distant humanoid composites alongside the main figure as `2 SPACES` and
-`3 SPACES`. It also exposes all four inks in the selected palette together.
+viewed as a compact strip of five representative grid depths, and no longer
+needs a distance selector. The strip uses source graphics slots 0, 1, 2, 4 and
+5: slot 3 is the rear mini-position at the same grid range as slot 2, while
+slots 4 and 5 retain both small source-distant composites. The editor also
+exposes all four inks in the selected palette together.
 The shared palette order is Head, Legs, Torso, Arms and Distant, matching the
 extracted `characters.colours` records. Save projects also
 expose each champion's 32 spell-practice bytes alongside the learned-spell

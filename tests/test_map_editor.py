@@ -18,6 +18,7 @@ from tools.map_editor.app import (
     joystick_navigation_action,
     monster_renderer_key,
     nearest_rectangle_edges,
+    MONSTER_DESIGN_PREVIEW_DISTANCES,
     reveal_interval_delta,
 )
 from tools.map_editor.actor_editor import (
@@ -54,6 +55,7 @@ from tools.map_editor.model import (
 from tools.map_editor.layout import (
     elevation_alignment_issues,
     is_layout_elevation_cell,
+    stair_alignment_links,
 )
 from tools.map_editor.render import cell_glyph, describe_cell, draw_map_cell
 from tools.map_editor.semantics import (
@@ -158,6 +160,10 @@ class MapEditorTests(unittest.TestCase):
     def test_actor_preview_uses_one_bounded_integer_scale(self) -> None:
         self.assertEqual(integer_preview_scale((25, 47), (210, 148)), 3)
         self.assertEqual(integer_preview_scale((80, 80), (210, 148)), 1)
+
+    def test_monster_designer_shows_five_representative_depths_together(self) -> None:
+        self.assertEqual(MONSTER_DESIGN_PREVIEW_DISTANCES, (0, 1, 2, 4, 5))
+        self.assertNotIn(3, MONSTER_DESIGN_PREVIEW_DISTANCES)
 
     def test_held_adjustments_wait_then_repeat_at_a_readable_rate(self) -> None:
         self.assertFalse(adjustment_repeat_due(449, 0, 0))
@@ -324,6 +330,39 @@ class MapEditorTests(unittest.TestCase):
         self.assertEqual(tower.cell(1, 1, 1), MapCell(0x22, 0x02))
         self.assertEqual(tower.special_floor_index, 0)
 
+    def test_clear_floor_keeps_geometry_and_other_floors(self) -> None:
+        tower = TowerMap(bytearray(MAP_RESOURCE_SIZE))
+        tower.set_floor_dimensions(0, 2, 2)
+        tower.set_floor_dimensions(1, 2, 2)
+        tower.set_floor_alignment(0, 3, 4)
+        tower.set_cell(0, 1, 1, MapCell(0x11, 0x01))
+        tower.set_cell(1, 1, 1, MapCell(0x22, 0x02))
+        geometry = (
+            tower.widths,
+            tower.heights,
+            tower.data_offsets,
+            tower.x_offsets,
+            tower.y_offsets,
+        )
+
+        tower.clear_floor(0)
+
+        self.assertEqual(
+            [tower.cell(0, x, y) for y in range(2) for x in range(2)],
+            [MapCell(0, 0)] * 4,
+        )
+        self.assertEqual(tower.cell(1, 1, 1), MapCell(0x22, 0x02))
+        self.assertEqual(
+            (
+                tower.widths,
+                tower.heights,
+                tower.data_offsets,
+                tower.x_offsets,
+                tower.y_offsets,
+            ),
+            geometry,
+        )
+
     def test_project_floor_resize_moves_object_indices_with_later_floors(self) -> None:
         with TemporaryDirectory() as temp_dir:
             root = Path(temp_dir)
@@ -378,6 +417,19 @@ class MapEditorTests(unittest.TestCase):
         self.assertTrue(is_layout_elevation_cell(tower.cell(0, 2, 1)))
         self.assertTrue(is_layout_elevation_cell(tower.cell(1, 4, 2)))
         self.assertEqual(elevation_alignment_issues(tower), ())
+        links = stair_alignment_links(tower)
+        self.assertEqual(len(links), 1)
+        self.assertEqual(
+            (
+                links[0].floor,
+                links[0].x,
+                links[0].y,
+                links[0].target_floor,
+                links[0].target_x,
+                links[0].target_y,
+            ),
+            (0, 2, 1, 1, 2, 3),
+        )
 
         tower.set_floor_alignment(1, 1, 0)
         issues = elevation_alignment_issues(tower)
@@ -385,6 +437,7 @@ class MapEditorTests(unittest.TestCase):
             {(issue.floor, issue.x, issue.y) for issue in issues},
             {(0, 2, 1), (1, 2, 3), (0, 4, 2), (1, 4, 2)},
         )
+        self.assertEqual(stair_alignment_links(tower), ())
 
     def test_floor_with_cells_outside_the_resource_is_unavailable(self) -> None:
         data = bytearray(MAP_RESOURCE_SIZE)
