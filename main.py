@@ -41,7 +41,11 @@ GUI_LABELS = {
 }
 
 
-def launch_gui(screenshot_path: Path | None = None) -> str | None:
+def launch_gui(
+    screenshot_path: Path | None = None,
+    *,
+    profile_name: str = "BLOODWYCH439",
+) -> str | None:
     """Show the legacy Pygame command chooser for a bare ``main.py`` launch."""
     try:
         import pygame
@@ -92,6 +96,10 @@ def launch_gui(screenshot_path: Path | None = None) -> str | None:
             surface.blit(quit_label, quit_label.get_rect(center=quit_rect.center))
             title = title_font.render("Bloodwych ReSource", True, (245, 245, 248))
             surface.blit(title, title.get_rect(center=(window_size[0] // 2, 25)))
+            profile_label = heading_font.render(
+                f"PROFILE: {profile_name}", True, (175, 180, 190)
+            )
+            surface.blit(profile_label, (10, window_size[1] - 29))
             for x, label in zip(column_x, ("SOURCE & DATA", "VIEWERS & EDITORS")):
                 heading = heading_font.render(label, True, (175, 180, 190))
                 surface.blit(heading, heading.get_rect(center=(x + button_width // 2, 58)))
@@ -312,7 +320,8 @@ def main() -> int:
             parser.exit(2, f"Error: {error}\n")
 
     while True:
-        selected = launch_gui()
+        profile = get_profile(args.master)
+        selected = launch_gui(profile_name=profile.filename)
         if selected is None:
             return 0
         args.command = selected
@@ -327,7 +336,7 @@ def main() -> int:
                             if getattr(args, "savegame", None) is not None
                             else {}
                         )
-                        launch_map_editor(**kwargs)
+                        launch_map_editor(profile.clean_dir, **kwargs)
                     except MapEditorError as error:
                         raise ToolError(str(error)) from error
                     continue
@@ -343,7 +352,7 @@ def main() -> int:
                             if getattr(args, "savegame", None) is not None
                             else {}
                         )
-                        launch_interface_viewer(**kwargs)
+                        launch_interface_viewer(profile.clean_dir, **kwargs)
                     except InterfaceViewerError as error:
                         raise ToolError(str(error)) from error
                     continue
@@ -355,7 +364,7 @@ def main() -> int:
                         if getattr(args, "savegame", None) is not None
                         else {}
                     )
-                    launch_graphics_viewer(**kwargs)
+                    launch_graphics_viewer(profile.clean_dir, **kwargs)
                 except GraphicsViewerError as error:
                     raise ToolError(str(error)) from error
                 continue

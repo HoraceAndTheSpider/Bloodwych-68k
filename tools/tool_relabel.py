@@ -20,6 +20,7 @@ from .resource_layout import (
 )
 from .resource_aliases import insert_temporary_aliases
 from .source_comments import apply_source_comments
+from .source_notes import apply_source_notes, load_source_note_metadata
 from .source_rules import (
     apply_source_rules,
     insert_generated_equates,
@@ -108,6 +109,7 @@ def relabel_segments(
     require_columns(frame, ("label", "relabel"))
     equates, source_rules = load_source_metadata(sheet, master, cleanup)
     fix_label_rules = load_fix_label_metadata(sheet, master, cleanup)
+    source_notes = load_source_note_metadata(sheet, master, cleanup)
     original = Path(source) if source is not None else asm_path(master, "asmfix")
     if not original.is_file():
         raise ToolError(
@@ -200,6 +202,11 @@ def relabel_segments(
     # the existing code label used to locate the source boundary. No rule is
     # inferred from address adjacency.
     lines, _ = apply_fix_label_rules(lines, fix_label_rules)
+
+    # Explicit pass 3a: add spreadsheet-owned standalone notes at marked raw
+    # source boundaries. These are annotations only; they neither add labels
+    # nor rewrite the preserved dc.* declarations.
+    lines = apply_source_notes(lines, source_notes, continue_on_error=True)
 
     # Explicit pass 4: ordinary labels and data_start anchors are renamed after
     # all definition deletions and fix-label insertions. data_append labels are

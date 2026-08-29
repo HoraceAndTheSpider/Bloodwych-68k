@@ -868,10 +868,22 @@ def render_monster_preview(
     """Dispatch one selected monster through its source-derived renderer."""
     render_flags = 3 if animation_frame else 0
     renderer = definition.renderer
+    renderer_key = (
+        "dragon" if renderer in {"dragon_large", "dragon_small"} else renderer
+    )
+    renderer_asset = assets[renderer_key]
+    requested_grade_step = grade_step
+    grade_step = max(
+        0,
+        min(
+            grade_step,
+            monster_grade_count(definition, renderer_asset.monsters_dir) - 1,
+        ),
+    )
     if renderer == "beholder":
-        return render_beholder(
+        pixels, metadata = render_beholder(
             background,
-            assets["beholder"],
+            renderer_asset,
             distance,
             facing,
             grade_step=grade_step,
@@ -879,6 +891,8 @@ def render_monster_preview(
             anchor_x=anchor_x,
             anchor_y=anchor_y,
         )
+        metadata["requested_grade_step"] = requested_grade_step
+        return pixels, metadata
     if renderer == "summon":
         summon = assets["summon"]
         operations = summon.draw_operations(distance, facing, render_flags=render_flags)
@@ -906,7 +920,7 @@ def render_monster_preview(
         palette = dragon.replacement_palette(grade_step)
     else:
         raise ValueError(f"No renderer is configured for {definition.display_name}")
-    return render_monster_operations(
+    pixels, metadata = render_monster_operations(
         background,
         operations,
         palette,
@@ -918,6 +932,8 @@ def render_monster_preview(
         anchor_x=anchor_x,
         anchor_y=anchor_y,
     )
+    metadata["requested_grade_step"] = requested_grade_step
+    return pixels, metadata
 
 
 def launch_graphics_viewer(
@@ -1039,6 +1055,7 @@ def launch_graphics_viewer(
         category_tab_offset = category_offset_for_selection(selected_category, 0)
         selected_index = 2
         selected_character = 0
+        selected_armour_style = 0
         selected_object = 1
         champion_data_page = 0
         champion_spellbook_spread = 0
@@ -1258,6 +1275,7 @@ def launch_graphics_viewer(
 
         def adjust(action: str) -> bool:
             nonlocal facing, grade_step, animation_frame, nudge_x, nudge_y
+            nonlocal selected_armour_style
             nonlocal dungeon_variant, dungeon_active, dungeon_ceiling_hole
             nonlocal wood_states
             if selected_graphic_type == "dungeon":
@@ -1317,6 +1335,26 @@ def launch_graphics_viewer(
                     return False
                 if selected_view_cell in dungeon_scene:
                     dungeon_scene[selected_view_cell] = current_dungeon_placement()
+                return True
+            if selected_graphic_type == "character" and action in {
+                "grade_down", "grade_up"
+            }:
+                choices = [0]
+                if character_assets is not None:
+                    choices.extend(
+                        code - 0x1A
+                        for code in character_assets.valid_worn_armour_objects(
+                            selected_character
+                        )
+                    )
+                try:
+                    position = choices.index(selected_armour_style)
+                except ValueError:
+                    position = 0
+                selected_armour_style = choices[
+                    (position + (-1 if action == "grade_down" else 1))
+                    % len(choices)
+                ]
                 return True
             if selected_graphic_type != "monster":
                 if action in {"grade_down", "grade_up"}:
@@ -1482,11 +1520,27 @@ def launch_graphics_viewer(
                     preview_error = str(error)
             elif (characters_active or champions_active) and character_assets is not None:
                 try:
+                    if (
+                        characters_active
+                        and selected_armour_style
+                        and 0x1A + selected_armour_style
+                        not in character_assets.valid_worn_armour_objects(selected_character)
+                    ):
+                        selected_armour_style = 0
                     character_background = (
                         [[0] * VIEW_WIDTH for _ in range(VIEW_HEIGHT)]
                         if champions_active
                         else background
                     )
+                    worn_armour_override = 0
+                    if champions_active and champion_assets is not None:
+                        worn_armour_override = character_assets.worn_armour_override(
+                            champion_assets.pocket_record(selected_character)[2]
+                        )
+                    elif characters_active and selected_armour_style:
+                        worn_armour_override = character_assets.worn_armour_override(
+                            0x1A + selected_armour_style
+                        )
                     preview_pixels, preview_metadata = render_character_preview(
                         character_background,
                         character_assets,
@@ -1494,6 +1548,7 @@ def launch_graphics_viewer(
                         distance=screen_position.gfx_slot,
                         facing=facing,
                         render_flags=3 if animation_frame else 0,
+                        worn_armour_override=worn_armour_override,
                         anchor_x=screen_position.screen_x + nudge_x,
                         anchor_y=screen_position.screen_y + nudge_y,
                     )
@@ -2549,6 +2604,7 @@ def launch_graphics_viewer(
                     f"${selected_character:02X} character  |  "
                     f"body ${preview_metadata['body_design']:02X}  |  "
                     f"head ${preview_metadata['head_design']:02X}  |  "
+                    f"armour {selected_armour_style if selected_armour_style else 'none'}  |  "
                     f"anchor ({screen_position.screen_x + nudge_x}, "
                     f"{screen_position.screen_y + nudge_y})"
                 )
@@ -2603,10 +2659,12 @@ def launch_graphics_viewer(
                         "back": "Back",
                     }
                     label_text = dungeon_labels[action]
+                elif characters_active and action == "grade_down":
+                    label_text = "Armour -"
+                elif characters_active and action == "grade_up":
+                    label_text = "Armour +"
                 hovered = rectangle.collidepoint(mouse)
                 disabled = (
-                    characters_active and action in {"grade_down", "grade_up"}
-                ) or (
                     spells_active
                     and action
                     in {
@@ -2662,7 +2720,7 @@ def launch_graphics_viewer(
             elif characters_active:
                 help_text = (
                     "All six source distances and four facings. Animate toggles "
-                    "the independent arm variants."
+                    "the independent arm variants; Armour cycles source body/material styles."
                 )
             elif monsters_active:
                 help_text = (
@@ -3050,6 +3108,14 @@ def launch_graphics_viewer(
                         (
                             f"Body design ${body_design:02X} ({body_layout})",
                             f"Head design ${int(preview_metadata['head_design']):02X}",
+                            (
+                                "Armour: none"
+                                if not selected_armour_style
+                                else (
+                                    f"Armour object ${0x1A + selected_armour_style:02X}; "
+                                    f"override ${int(preview_metadata['worn_armour_override']):02X}"
+                                )
+                            ),
                         ),
                         (155, 188, 239),
                     )

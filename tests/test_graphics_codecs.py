@@ -408,6 +408,31 @@ class GraphicsCodecTests(unittest.TestCase):
         self.assertEqual(metadata["body_design"], 4)
         self.assertEqual(metadata["body_layout"], "alternate")
 
+    def test_character_renderer_applies_source_worn_armour_geometry_and_masks(self) -> None:
+        assets = CharacterAssets(CHARACTER_DATA_DIR, GFX_DIR)
+        binary = (BINARIES_DIR / "BLOODWYCH439").read_bytes()
+        self.assertEqual(assets.worn_armour_render_overrides, binary[0xA40E:0xA417])
+        self.assertEqual(assets.armour_material_palette, binary[0xA81E:0xA822])
+        self.assertEqual(assets.ARMOUR_COMPONENT_MASKS, binary[0xA822:0xA88E])
+        self.assertEqual(assets.HEAD_COLOUR_MASKS, binary[0xA88E:0xA8E6])
+
+        override = assets.worn_armour_override(0x20)
+        character = next(
+            index for index, body in enumerate(assets.body_selections) if body != 0
+        )
+        plain = assets.draw_operations(character)
+        armoured = assets.draw_operations(character, worn_armour_override=override)
+        self.assertNotEqual(
+            [component.operation.sprite.byte_offset for component in plain],
+            [component.operation.sprite.byte_offset for component in armoured],
+        )
+        self.assertNotEqual(
+            [component.replacements for component in plain],
+            [component.replacements for component in armoured],
+        )
+        self.assertEqual(plain[2].replacements, armoured[2].replacements)
+        self.assertNotEqual(plain[1].replacements, armoured[1].replacements)
+
     def test_new_beholder_split_partitions_and_round_trips(self) -> None:
         assets = BeholderAssets(MONSTERS_DIR)
         self.assertEqual(
@@ -491,6 +516,29 @@ class GraphicsCodecTests(unittest.TestCase):
                         )
                         self.assertEqual((len(pixels[0]), len(pixels)), (128, 76))
                         self.assertTrue(metadata["operations"])
+
+    def test_monster_preview_caps_levels_above_the_last_colour_grade(self) -> None:
+        background = load_floor_ceiling_background(GFX_DIR)
+        assets, errors = load_renderer_assets(MONSTERS_DIR)
+        self.assertFalse(errors)
+        for monster in MONSTERS:
+            with self.subTest(monster=monster.display_name):
+                _pixels, metadata = render_monster_preview(
+                    background,
+                    monster,
+                    assets,
+                    distance=0,
+                    facing=0,
+                    grade_step=0x7F,
+                    animation_frame=0,
+                    anchor_x=56,
+                    anchor_y=36,
+                )
+                self.assertEqual(metadata["requested_grade_step"], 0x7F)
+                self.assertEqual(
+                    metadata["grade_step"],
+                    monster_grade_count(monster, MONSTERS_DIR) - 1,
+                )
 
     def test_summon_arms_include_the_post_body_x_adjustment(self) -> None:
         assets, errors = load_renderer_assets(MONSTERS_DIR)

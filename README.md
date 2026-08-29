@@ -61,15 +61,18 @@ The configured executable names currently present in the repository are:
 
 ```text
 BLOODWYCH439
+BookOfSkulls_P_Beta5
 BLOODWYCH102
 BLOODWYCH1927
 BEXT43
 AtariST_DEMO_CODE
 ```
 
-Only `BLOODWYCH439` currently has a segment worksheet and complete Python
-extraction profile. The other executables are recognised explicitly so their
-profiles can be added without changing the directory contract.
+`BLOODWYCH439` has the complete Python extraction profile.
+`BookOfSkulls_P_Beta5` uses that compatible segment layout while keeping its
+clean and modified data in separate directories. The other executables are
+recognised explicitly so their profiles can be added without changing the
+directory contract.
 
 ### Python commands
 

@@ -9,8 +9,12 @@ from tools.map_editor.app import (
     EDITOR_TAB_ENABLED,
     OVERLAY_ENABLED,
     OVERLAY_NAMES,
+    adjustment_repeat_due,
+    champion_preview_body_design,
     champion_occupant_record,
+    crop_indexed_pixels,
     default_floor,
+    integer_preview_scale,
     joystick_navigation_action,
     monster_renderer_key,
     nearest_rectangle_edges,
@@ -19,6 +23,7 @@ from tools.map_editor.app import (
 from tools.map_editor.actor_editor import (
     champion_edit_allowed,
     cycle_monster_index,
+    indexed_action_value,
     monster_form_name,
     monster_indices_at_cell,
     monster_teams,
@@ -32,6 +37,10 @@ from tools.map_editor.first_person import (
     relative_map_coordinate,
     occupant_view_position,
 )
+from tools.map_editor.floor_objects import (
+    object_stack_location,
+    relocate_object_stack,
+)
 from tools.map_editor.model import (
     MAP_HEADER_SIZE,
     MAP_RESOURCE_SIZE,
@@ -41,6 +50,10 @@ from tools.map_editor.model import (
     ObjectStack,
     TowerMap,
     resolve_contiguous_reference,
+)
+from tools.map_editor.layout import (
+    elevation_alignment_issues,
+    is_layout_elevation_cell,
 )
 from tools.map_editor.render import cell_glyph, describe_cell, draw_map_cell
 from tools.map_editor.semantics import (
@@ -124,12 +137,38 @@ class MapEditorTests(unittest.TestCase):
         self.assertTrue(all(not default for default in OVERLAY_DEFAULTS))
         self.assertTrue(EDITOR_TAB_ENABLED[2])
         self.assertTrue(EDITOR_TAB_ENABLED[3])
+        self.assertTrue(EDITOR_TAB_ENABLED[4])
 
     def test_character_edit_boundary_matches_game_and_active_save_tower(self) -> None:
         self.assertTrue(champion_edit_allowed(has_save=False, selected_tower=0, active_tower=None))
         self.assertFalse(champion_edit_allowed(has_save=False, selected_tower=1, active_tower=None))
         self.assertTrue(champion_edit_allowed(has_save=True, selected_tower=3, active_tower=3))
         self.assertFalse(champion_edit_allowed(has_save=True, selected_tower=0, active_tower=3))
+
+    def test_indexed_actor_actions_exclude_the_trailing_direction(self) -> None:
+        self.assertEqual(indexed_action_value("SPELL-1+", "SPELL-"), 1)
+        self.assertEqual(indexed_action_value("SPELL-31-", "SPELL-"), 31)
+        with self.assertRaises(ValueError):
+            indexed_action_value("SPELL-PAGE+", "SPELL-")
+
+    def test_actor_preview_crop_removes_only_the_empty_canvas(self) -> None:
+        pixels = ((0, 0, 0, 0), (0, 2, 3, 0), (0, 4, 0, 0))
+        self.assertEqual(crop_indexed_pixels(pixels), ((2, 3), (4, 0)))
+
+    def test_actor_preview_uses_one_bounded_integer_scale(self) -> None:
+        self.assertEqual(integer_preview_scale((25, 47), (210, 148)), 3)
+        self.assertEqual(integer_preview_scale((80, 80), (210, 148)), 1)
+
+    def test_held_adjustments_wait_then_repeat_at_a_readable_rate(self) -> None:
+        self.assertFalse(adjustment_repeat_due(449, 0, 0))
+        self.assertTrue(adjustment_repeat_due(450, 0, 0))
+        self.assertFalse(adjustment_repeat_due(559, 0, 450))
+        self.assertTrue(adjustment_repeat_due(560, 0, 450))
+
+    def test_champion_preview_applies_worn_body_armour(self) -> None:
+        assets = type("Assets", (), {"body_design": lambda _self, _champion: 2})()
+        pockets = bytes((0, 0, 0x1B))
+        self.assertEqual(champion_preview_body_design(assets, 0, pockets), 5)
 
     def test_monster_map_selection_cycles_resolved_team_members(self) -> None:
         project = MapProject.from_extracted(CLEAN_ROOT)
@@ -166,6 +205,32 @@ class MapEditorTests(unittest.TestCase):
             self.assertEqual(team.members[:2], (solo_index - 1, solo_index))
             self.assertEqual(joined[solo_index].x, 0x7F)
             self.assertFalse(joined[solo_index].has_position)
+
+            remaining = [
+                member.index
+                for member in joined
+                if member.team == 0xFF and member.has_position and member.form < 0x67
+            ]
+            selected, target = remaining[0], remaining[-1]
+            previous_groups = {team.group for team in monster_teams(joined)}
+            retargeted = project.join_monster_to_team(0, selected, target)
+            new_team = next(
+                team
+                for team in monster_teams(retargeted)
+                if team.group not in previous_groups
+            )
+            new_members = [member for member in new_team.members if member is not None]
+            self.assertEqual(len(new_members), 2)
+            self.assertEqual(new_members[1], new_members[0] + 1)
+
+            large = next(
+                member.index
+                for member in retargeted
+                if member.team == 0xFF and member.has_position
+            )
+            project.set_packed_monster(0, large, form=0x67)
+            with self.assertRaisesRegex(ValueError, "large monster"):
+                project.join_monster_to_team(0, large, new_members[0])
 
     def test_source_form_labels_do_not_invent_humanoid_names(self) -> None:
         self.assertEqual(monster_form_name(0x69), "LARGE DRAGON")
@@ -230,6 +295,97 @@ class MapEditorTests(unittest.TestCase):
         self.assertEqual(changed[offset : offset + 2], bytes((replacement.first, replacement.second)))
         self.assertEqual(changed[offset + 2 :], source[offset + 2 :])
 
+    def test_original_special_geometry_resolves_to_a_floor(self) -> None:
+        expected = {
+            "mod0": 1,
+            "serp": 3,
+            "moon": 3,
+            "drag": 7,
+            "chaos": 5,
+            "zendik": 4,
+        }
+        for stem, floor in expected.items():
+            tower = TowerMap((CLEAN_ROOT / "maps" / f"{stem}.map").read_bytes())
+            self.assertEqual(tower.special_floor_index, floor)
+
+    def test_floor_resize_repacks_later_floors_and_preserves_coordinates(self) -> None:
+        data = bytearray(MAP_RESOURCE_SIZE)
+        tower = TowerMap(data)
+        tower.set_floor_dimensions(0, 2, 2)
+        tower.set_floor_dimensions(1, 2, 2)
+        tower.set_cell(0, 1, 1, MapCell(0x11, 0x01))
+        tower.set_cell(1, 1, 1, MapCell(0x22, 0x02))
+
+        tower.set_floor_dimensions(0, 3, 2)
+
+        self.assertEqual(tower.data_offsets[:3], (0, 12, 20))
+        self.assertEqual(tower.cell(0, 1, 1), MapCell(0x11, 0x01))
+        self.assertEqual(tower.cell(0, 2, 1), MapCell(0, 0))
+        self.assertEqual(tower.cell(1, 1, 1), MapCell(0x22, 0x02))
+        self.assertEqual(tower.special_floor_index, 0)
+
+    def test_project_floor_resize_moves_object_indices_with_later_floors(self) -> None:
+        with TemporaryDirectory() as temp_dir:
+            root = Path(temp_dir)
+            clean = root / "BLOODWYCH439-clean"
+            maps = []
+            for index, stem in enumerate(("mod0", "serp", "moon", "drag", "chaos", "zendik")):
+                tower = TowerMap(bytearray(MAP_RESOURCE_SIZE))
+                tower.set_floor_dimensions(0, 2, 2)
+                tower.set_floor_dimensions(1, 2, 2)
+                maps.append(tower)
+                map_path = clean / "maps" / f"{stem}.map"
+                map_path.parent.mkdir(parents=True, exist_ok=True)
+                map_path.write_bytes(tower.to_bytes())
+                object_data = bytearray(0x402)
+                if index == 0:
+                    map_index = tower.map_index(1, 1, 1)
+                    object_data[:7] = (
+                        (5).to_bytes(2, "big")
+                        + map_index.to_bytes(2, "big")
+                        + bytes((0, 1, 1))
+                    )
+                (clean / "maps" / f"{stem}.obj").write_bytes(object_data)
+
+            project = MapProject.from_extracted(clean)
+            self.assertEqual(
+                object_stack_location(project.maps[0], project.object_stacks(0)[0]),
+                (1, 1, 1),
+            )
+            project.set_floor_dimensions(0, 0, 3, 2)
+            moved = project.object_stacks(0)[0]
+            self.assertEqual(object_stack_location(project.maps[0], moved), (1, 1, 1))
+            self.assertEqual(moved.map_index, 18)
+
+    def test_floor_resize_rejects_cell_data_beyond_fixed_map_capacity(self) -> None:
+        tower = TowerMap(bytearray(MAP_RESOURCE_SIZE))
+        for floor in range(6):
+            tower.set_floor_dimensions(floor, 18, 18)
+        with self.assertRaisesRegex(ValueError, "fixed resource"):
+            tower.set_floor_dimensions(6, 18, 18)
+
+    def test_layout_filter_and_elevation_alignment_follow_game_movement(self) -> None:
+        tower = TowerMap(bytearray(MAP_RESOURCE_SIZE))
+        tower.set_floor_dimensions(0, 6, 6)
+        tower.set_floor_dimensions(1, 6, 6)
+        # Up/North stairs are entered while moving South and arrive two cells
+        # South on matching Down/South stairs on the floor above.
+        tower.set_cell(0, 2, 1, MapCell(0x00, 0x04))
+        tower.set_cell(1, 2, 3, MapCell(0x05, 0x04))
+        tower.set_cell(1, 4, 2, MapCell(0x01, 0x06))
+        tower.set_cell(0, 4, 2, MapCell(0x04, 0x06))
+
+        self.assertTrue(is_layout_elevation_cell(tower.cell(0, 2, 1)))
+        self.assertTrue(is_layout_elevation_cell(tower.cell(1, 4, 2)))
+        self.assertEqual(elevation_alignment_issues(tower), ())
+
+        tower.set_floor_alignment(1, 1, 0)
+        issues = elevation_alignment_issues(tower)
+        self.assertEqual(
+            {(issue.floor, issue.x, issue.y) for issue in issues},
+            {(0, 2, 1), (1, 2, 3), (0, 4, 2), (1, 4, 2)},
+        )
+
     def test_floor_with_cells_outside_the_resource_is_unavailable(self) -> None:
         data = bytearray(MAP_RESOURCE_SIZE)
         data[0] = data[8] = 1
@@ -293,6 +449,48 @@ class MapEditorTests(unittest.TestCase):
                 if before != after
             ]
             self.assertEqual(len(differences), 1)
+
+    def test_save_object_resource_edit_is_written_into_the_save_copy(self) -> None:
+        with TemporaryDirectory() as temp_dir:
+            root = Path(temp_dir)
+            source_save = PROJECT_ROOT / "whdload" / "bloodsave0"
+            save_copy = root / "bloodsave0"
+            original_save = source_save.read_bytes()
+            save_copy.write_bytes(original_save)
+            project = MapProject.from_savegame(root / "BLOODWYCH439-clean", save_copy)
+
+            self.assertTrue(project.resource_is_editable("maps/mod0.obj"))
+            self.assertFalse(project.resource_is_editable("maps/mod0.switches"))
+            stacks = list(project.object_stacks(0))
+            first = stacks[0]
+            code, quantity = first.items[0]
+            replacement = 1 if quantity == 0xFF else quantity + 1
+            stacks[0] = ObjectStack(
+                first.position,
+                first.map_index,
+                ((code, replacement),) + first.items[1:],
+            )
+            project.set_object_stacks(0, stacks)
+
+            written = project.save()
+            self.assertEqual(
+                written,
+                (root / "BLOODWYCH439-modified" / "whdload" / "bloodsave0",),
+            )
+            self.assertEqual(save_copy.read_bytes(), original_save)
+            self.assertNotEqual(written[0].read_bytes(), original_save)
+
+    def test_save_spell_practice_round_trips_as_runtime_data(self) -> None:
+        project = MapProject.from_savegame(
+            CLEAN_ROOT, PROJECT_ROOT / "whdload" / "bloodsave0"
+        )
+        before = project.spell_practice(0, 1)
+        self.assertIsNotNone(before)
+        project.set_spell_practice(0, 0, 1, (before + 1) & 0xFF)
+        self.assertEqual(project.spell_practice(0, 1), (before + 1) & 0xFF)
+        self.assertTrue(project.has_changes)
+        with self.assertRaisesRegex(ValueError, "active save tower"):
+            project.set_spell_practice(1, 0, 1, 0)
 
     def test_invalid_saved_chaos_map_falls_back_to_the_clean_map(self) -> None:
         project = MapProject.from_savegame(CLEAN_ROOT, PROJECT_ROOT / "whdload" / "bloodsave6")
@@ -520,11 +718,11 @@ class MapEditorTests(unittest.TestCase):
     def test_link_segment_meets_the_nearest_cell_edges(self) -> None:
         self.assertEqual(
             nearest_rectangle_edges((10, 10, 16, 16), (42, 18, 16, 16)),
-            ((25, 21), (42, 21)),
+            ((25, 18), (42, 26)),
         )
         self.assertEqual(
             nearest_rectangle_edges((10, 10, 16, 16), (42, 42, 16, 16)),
-            ((25, 25), (42, 42)),
+            ((25, 18), (42, 50)),
         )
 
     def test_team_formation_slots_rotate_with_the_viewer_not_render_order(self) -> None:
@@ -601,6 +799,15 @@ class MapEditorTests(unittest.TestCase):
             )
             self.assertEqual(project.object_stacks(0)[0].items[0], (0x17, 2))
             self.assertEqual(source.read_bytes(), destination.read_bytes())
+
+    def test_object_stack_can_be_relocated_to_the_cursor_cell(self) -> None:
+        project = MapProject.from_extracted(CLEAN_ROOT)
+        tower = project.maps[0]
+        stack = project.object_stacks(0)[0]
+        moved = relocate_object_stack(tower, stack, 3, 0, 0)
+
+        self.assertEqual(object_stack_location(tower, moved), (3, 0, 0))
+        self.assertEqual(moved.items, stack.items)
 
     def test_save_overlay_rejects_edits_to_tables_not_contained_in_save(self) -> None:
         project = MapProject.from_savegame(CLEAN_ROOT, PROJECT_ROOT / "whdload" / "bloodsave0")

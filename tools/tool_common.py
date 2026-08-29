@@ -53,6 +53,13 @@ PROFILES = (
         "BLOODWYCH439_relabel.asm",
         ("Bloodwych439",),
     ),
+    BinaryProfile(
+        "BookOfSkulls_P_Beta5",
+        "BookOfSkulls_P_Beta5",
+        "Amiga",
+        "Bloodwych",
+        "BLOODWYCH439",
+    ),
     BinaryProfile("BLOODWYCH102", "BLOODWYCH102", "Amiga", "Bloodwych"),
     BinaryProfile("BLOODWYCH1927", "BLOODWYCH1927", "Amiga", "Bloodwych"),
     BinaryProfile("BEXT43", "BEXT43", "Amiga", "Extended Levels", aliases=("Bext43",)),

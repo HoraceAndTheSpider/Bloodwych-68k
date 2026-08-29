@@ -18,6 +18,7 @@ from tools.champion_inventory import (
     champion_armour_level,
     champion_armour_modifier_text,
     inventory_object_quantity,
+    inventory_quantity_text,
     visible_inventory_object_code,
 )
 
@@ -80,6 +81,11 @@ class ChampionInventoryTests(unittest.TestCase):
     def test_zero_shared_quantity_is_rendered_as_an_empty_slot(self) -> None:
         pockets = bytes((0x01,)) + bytes(11) + bytes((0, 1, 1, 1))
         self.assertEqual(visible_inventory_object_code(pockets, 0), 0)
+
+    def test_inventory_quantity_text_caps_display_at_99(self) -> None:
+        self.assertEqual(inventory_quantity_text(7), "07")
+        self.assertEqual(inventory_quantity_text(99), "99")
+        self.assertEqual(inventory_quantity_text(255), "99")
 
 
 if __name__ == "__main__":

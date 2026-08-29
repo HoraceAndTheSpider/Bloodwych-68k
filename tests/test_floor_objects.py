@@ -4,6 +4,7 @@ import unittest
 from tools.map_editor.floor_objects import (
     cycle_object_stack_index,
     named_key_colour_index,
+    named_key_colour_indices,
     object_marker_offset,
     object_position_name,
     object_stack_indices_at_cell,
@@ -168,6 +169,12 @@ class FloorObjectTests(unittest.TestCase):
         common_key = ObjectStack(0, 0, ((0x02, 1),))
         self.assertEqual(named_key_colour_index(self.assets, bronze_key), 10)
         self.assertIsNone(named_key_colour_index(self.assets, common_key))
+
+    def test_named_key_markers_keep_each_distinct_stack_colour(self) -> None:
+        stack = ObjectStack(0, 0, ((0x50, 1), (0x51, 1), (0x50, 1)))
+        colours = named_key_colour_indices(self.assets, stack)
+        self.assertEqual(colours, tuple(dict.fromkeys(colours)))
+        self.assertGreaterEqual(len(colours), 2)
 
 
 if __name__ == "__main__":

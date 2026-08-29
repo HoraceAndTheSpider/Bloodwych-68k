@@ -63,9 +63,11 @@ The relabel process now has explicit passes:
 
 1. `_delete` label definitions.
 2. `_offset_..._0x...` conversions.
-3. Verified `FIX_LABELS` rules, ordinary relabels, `data_start` anchors, and
-   `data_append` rows that name a distinct internal source label.
-4. Temporary EQU aliases for `data_append` output labels whose rows repeat the
+3. Verified `FIX_LABELS` rules.
+4. Verified `SOURCE_NOTES` annotations at scoped raw-source markers.
+5. Ordinary relabels, `data_start` anchors, and `data_append` rows that name a
+   distinct internal source label.
+6. Temporary EQU aliases for `data_append` output labels whose rows repeat the
    group anchor and therefore have no original source label.
 
 ### Inserting a label at a marked data boundary
@@ -97,6 +99,24 @@ and expected match count must also agree. The replacement expression is
 recorded explicitly; no displacement is inferred from spreadsheet addresses.
 Normal segment relabelling runs afterwards. Proposed and disabled rows do
 nothing.
+
+### Annotating a marked raw-source boundary
+
+Some marked boundaries intentionally remain as raw declarations, for example
+opaque copy-protection internals which must not be recovered as ordinary code.
+Standalone annotations for these boundaries are maintained in the
+`SOURCE_NOTES` cleanup worksheet:
+
+```text
+profile | scope_start | scope_end | source_match | source_comment | expected_matches | status | notes
+```
+
+A verified row finds an exact `source_match` between the two stable scope
+labels and inserts a generated `; SOURCE_NOTE:` line immediately afterwards.
+The original marker and every `dc.*` declaration remain unchanged. Relabel
+reports a mismatched scope or match count and leaves that annotation unapplied;
+proposed and disabled rows do nothing. This provides searchable explanations
+in generated source without modifying the canonical disassembly.
 
 For the player colour table, the normal segment row can rename
 `adrCd008BE8` to `PlayerColourRampLookupBase_Exit`, while the separate

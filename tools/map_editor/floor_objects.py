@@ -115,6 +115,25 @@ def object_stack_positions(tower_map: TowerMap, stack: ObjectStack) -> tuple[int
     return tuple(OBJECT_MARKER_OFFSETS)
 
 
+def relocate_object_stack(
+    tower_map: TowerMap,
+    stack: ObjectStack,
+    floor: int,
+    x: int,
+    y: int,
+) -> ObjectStack:
+    """Place a stack at a map cell while retaining a valid mini-position."""
+
+    map_index = tower_map.map_index(floor, x, y)
+    moved = ObjectStack(stack.position, map_index, stack.items)
+    positions = object_stack_positions(tower_map, moved)
+    return ObjectStack(
+        stack.position if stack.position in positions else positions[0],
+        map_index,
+        stack.items,
+    )
+
+
 def object_position_name(tower_map: TowerMap, stack: ObjectStack) -> str:
     """Describe an object mini-position as a floor corner or shelf level."""
 
@@ -171,14 +190,24 @@ def shelf_face_is_visible(
     )
 
 
-def named_key_colour_index(assets: ObjectAssets, stack: ObjectStack) -> int | None:
-    """Return a named key's floor-palette ink, if this stack contains one."""
+def named_key_colour_indices(assets: ObjectAssets, stack: ObjectStack) -> tuple[int, ...]:
+    """Return the distinct named-key marker inks in authored stack order."""
 
+    colours: list[int] = []
     for code, _quantity in stack.items:
         if 0x50 <= code <= 0x56:
             definition = assets.definition(code)
-            return assets.floor_palettes[definition.floor_colour_set][2]
-    return None
+            colour = assets.floor_palettes[definition.floor_colour_set][2]
+            if colour not in colours:
+                colours.append(colour)
+    return tuple(colours)
+
+
+def named_key_colour_index(assets: ObjectAssets, stack: ObjectStack) -> int | None:
+    """Return the first named-key floor ink (compatibility helper)."""
+
+    colours = named_key_colour_indices(assets, stack)
+    return colours[0] if colours else None
 
 
 def project_floor_object(

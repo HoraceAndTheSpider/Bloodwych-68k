@@ -120,7 +120,7 @@ class ProjectStructureTests(unittest.TestCase):
         ):
             self.assertEqual(main.main(), 0)
         self.assertEqual(launch_gui.call_count, 3)
-        viewer.assert_called_once_with()
+        viewer.assert_called_once_with(get_profile("BLOODWYCH439").clean_dir)
 
     def test_map_editor_returns_to_launcher(self) -> None:
         with (
@@ -133,7 +133,7 @@ class ProjectStructureTests(unittest.TestCase):
         ):
             self.assertEqual(main.main(), 0)
         self.assertEqual(launch_gui.call_count, 3)
-        viewer.assert_called_once_with()
+        viewer.assert_called_once_with(get_profile("BLOODWYCH439").clean_dir)
 
     def test_interface_editor_returns_to_launcher(self) -> None:
         with (
@@ -146,7 +146,21 @@ class ProjectStructureTests(unittest.TestCase):
         ):
             self.assertEqual(main.main(), 0)
         self.assertEqual(launch_gui.call_count, 3)
-        viewer.assert_called_once_with()
+        viewer.assert_called_once_with(get_profile("BLOODWYCH439").clean_dir)
+
+    def test_front_page_viewer_uses_selected_profile(self) -> None:
+        with (
+            patch(
+                "sys.argv", ["main.py", "--master", "BookOfSkulls_P_Beta5"]
+            ),
+            patch("main.launch_gui", side_effect=["maps", None]) as launch_gui,
+            patch("tools.map_editor.app.launch_map_editor") as viewer,
+        ):
+            self.assertEqual(main.main(), 0)
+        launch_gui.assert_any_call(profile_name="BookOfSkulls_P_Beta5")
+        viewer.assert_called_once_with(
+            get_profile("BookOfSkulls_P_Beta5").clean_dir
+        )
 
     def test_graphics_cli_can_start_with_modified_overlay(self) -> None:
         parser = main.build_parser()
@@ -203,6 +217,7 @@ class ProjectStructureTests(unittest.TestCase):
             [profile.filename for profile in PROFILES],
             [
                 "BLOODWYCH439",
+                "BookOfSkulls_P_Beta5",
                 "BLOODWYCH102",
                 "BLOODWYCH1927",
                 "BEXT43",
@@ -214,6 +229,18 @@ class ProjectStructureTests(unittest.TestCase):
         profile = get_profile("BLOODWYCH439")
         self.assertEqual(profile.filename, "BLOODWYCH439")
         self.assertEqual(profile.clean_dir, DATA_DIR / "BLOODWYCH439-clean")
+
+    def test_book_of_skulls_uses_439_layout_with_isolated_data_paths(self) -> None:
+        profile = get_profile("BookOfSkulls_P_Beta5")
+        self.assertEqual(profile.segment_sheet, "BLOODWYCH439")
+        self.assertEqual(
+            profile.clean_dir, DATA_DIR / "BookOfSkulls_P_Beta5-clean"
+        )
+        self.assertEqual(
+            profile.modified_dir, DATA_DIR / "BookOfSkulls_P_Beta5-modified"
+        )
+        frame = load_segments(DEFAULT_SEGMENTS_FILE, profile.filename)
+        self.assertGreater(len(frame), 2600)
 
     def test_439_asm_file_conventions(self) -> None:
         self.assertEqual(asm_path("BLOODWYCH439"), ASM_DIR / "Bloodwych439.asm")

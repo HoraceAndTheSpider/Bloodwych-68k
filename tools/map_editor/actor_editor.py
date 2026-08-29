@@ -94,6 +94,14 @@ def cycle_monster_index(candidates: Sequence[int], current: int) -> int | None:
     return candidates[(position + 1) % len(candidates)]
 
 
+def indexed_action_value(action: str, prefix: str) -> int:
+    """Decode actions such as ``SPELL-1+`` without including the direction."""
+
+    if not action.startswith(prefix) or not action.endswith(("-", "+")):
+        raise ValueError(f"invalid indexed action: {action}")
+    return int(action[len(prefix) : -1])
+
+
 def next_team_assignment(records: Sequence[MonsterRecord], index: int) -> tuple[int, int]:
     """Choose the group/slot used by an AMOS-style JOIN PREVIOUS action.
 

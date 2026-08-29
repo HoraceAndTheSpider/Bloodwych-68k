@@ -10,9 +10,8 @@ more space than a Data Viewer tab:
 4. Character and monster editor
 5. Floor-layout editor
 
-The current vertical slice implements the first two modes. The remaining mode
-tabs are deliberately visible but disabled so their eventual placement and
-shared state do not require another UI redesign.
+All five modes are implemented. Layout exposes the source map header while
+keeping the same tower/floor selection, zoom and pan state as the other tabs.
 
 ## Authoritative map resource
 
@@ -78,9 +77,70 @@ is view cell 18 and is composited after the eighteen cells ahead and beside it.
 This supplies the source's inside-cell wooden side walls, open large-door and
 stair structures, trigger pads, floor pits, and ceiling holes.
 
-The Object, Character/Monster, and Layout tabs remain disabled. Actor markers
-and the first-person composition pass belong to Viewer mode; editing individual
-records remains a later mode.
+Actor markers and the first-person composition pass are shared by Viewer,
+Objects, and Characters / Monsters rather than being maintained as separate
+map models.
+
+## Floor layout and elevation checks
+
+Layout edits each floor's width, height, X/Y placement and the tower's highest
+floor index. The original header calls the latter the top floor; its stored
+value is an index from 0 to 7, so the displayed floor count is that value plus
+one. Width, height and alignment follow the AMOS editor's 31-cell layout space.
+
+Changing a dimension safely repacks all eight sequential cell grids. Cells
+inside the old and new bounds retain their X/Y coordinates, new cells are
+cleared, and every later floor offset is recalculated. Object-stack map indices
+are moved with their floors. A shrink is rejected when it would exclude an
+existing object stack, rather than silently moving that stack to another floor.
+The fixed-size editor continues to enforce the original `$FC8`-byte cell-data
+capacity inside each `$1000` map resource.
+
+Header words `$30`, `$32` and `$34` are the AMOS editor's **special floor**
+width, height and data offset. Every original SPS 439 tower duplicates one
+ordinary floor record there, but it is not an entrance/exit coordinate. The
+game copies the complete `$38`-byte header into runtime state when loading a
+tower, which initially places the special width and height in the live geometry
+fields. Exact-text source tracing finds no SPS 439 instruction that reads the
+word copied from `$34`; floor selection instead loads the live data offset from
+the ordinary eight-entry table and replaces the active width and height at the
+same time. The triplet is therefore best treated as a bootstrap/legacy floor
+descriptor maintained by the AMOS tool, not as a gameplay in/out point. Layout
+retains that behaviour and lets the user copy the selected floor into it.
+
+The map area follows the original Layout view by hiding ordinary walls and
+objects and retaining only stairs, floor pits and ceiling holes. Above and below
+previews are optional translucent grids with small opposing pixel shifts, so
+their X/Y alignment remains visible. Red outlines identify elevation links
+which need review. Pits require a ceiling hole at the same world X/Y on the
+floor below, and ceiling holes require the corresponding pit above. The stair
+check follows the movement source: a transition changes one floor and advances
+twice through the stair's permitted movement direction, so the matching
+opposite stair is two world cells forward and faces back toward the source.
+Unusual intentional stair tricks remain editable; red is guidance, not a save
+blocker.
+
+The source does directly encode the map/object boundary. Runtime routines start
+object records at `$0FCA` bytes after the `$38`-byte map header, which is
+`$1002` from the map base: the fixed `$1000` map followed by the object's
+two-byte used-length word. A source build that increases map capacity must at
+least turn that displacement into a shared EQU and give every tower the same
+padded map allocation. Object locations retain a 14-bit map-data byte offset in
+the 68000 source (`and.w #$3FFF`), so `$1000` is not the encoding's fundamental
+ceiling. It is nevertheless not a one-EQU change: the six tower block addresses
+use a word-sized `LevelDataOffsets` table, and a substantial increase can push
+later tower displacements beyond its positive word range. The Python object
+codec also deliberately enforces the original 12-bit range until this relocated
+source format exists.
+
+The `$402` object files have a `$400` payload reserve in the original binary,
+but the game traverses their stored used length and tower addresses are
+assembled from labels; there is no equivalent game instruction whose value must
+equal the longest object block. Larger object blocks still change all following
+addresses, the word-sized tower offsets, and the save layout, so they require a
+source build and cannot use fixed-size binary patching. The object editor now
+reports that boundary explicitly as **source build required** instead of
+silently overfilling the resource.
 
 ## Clean and modified data
 
@@ -97,11 +157,11 @@ Inspect and Patch tools can consequently validate and patch the replacement by
 the same spreadsheet-defined resource name.
 
 Viewer actor and dungeon artwork has a separate explicit `ART: CLEAN` /
-`ART: MODIFIED` selector. It starts clean, so a modified character, monster,
-spell, or dungeon graphic cannot be selected silently. The modified option is
-available only when the matching modified data directory exists; it reloads
-the complete visual set while leaving the map project's normal map overlay
-rules unchanged.
+`ART: MODIFIED` selector. It initially matches the data root used to launch the
+editor, so launching a `-modified` project is labelled accurately. The modified
+option is available only when the matching modified data directory exists; it
+reloads the complete visual set while leaving the map project's normal map
+overlay rules unchanged.
 
 ## WHDLoad save overlay
 
@@ -126,13 +186,17 @@ python main.py maps --savegame whdload/bloodsave0
 ```
 
 reads map state from that save. Saving copies the complete save, patches only
-the dirty map slices and writes it to:
+dirty fixed-size resources and runtime fields that fall within the save, and
+writes it to:
 
 ```text
 data/BLOODWYCH439-modified/whdload/bloodsave0
 ```
 
 The supplied WHDLoad save is never overwritten.
+Object stacks and packed monsters can therefore be edited where their resource
+segments are present. Switches, triggers, and shared character-design tables
+remain read-only because they are outside the portable save block.
 
 ## Viewer overlays
 
@@ -213,7 +277,15 @@ placement path, rather than being treated as floor-centre objects. A shelf has
 two levels: its absolute map facing selects the valid encoded pair (North 0/4,
 East 4/12, South 8/12, West 8/0) and their lower/upper meanings. The Object
 tab consolidates stack selection, named item graphics, quantity and semantic
-position editing; map clicks cycle multiple stacks at one location. In the
+position editing, including adjacent-item swaps through `SEQUENCE`. Map clicks
+cycle multiple stacks at one location unless `AUTO SELECT` is disabled, which
+leaves the current stack selected while a new cursor position is chosen.
+`FIND STACK` moves the cursor, including its floor, to the selected stack, while
+`PLACE HERE` relocates it to the cursor and converts its mini-position to a
+valid floor corner or shelf level. Counted object previews draw their quantity
+over the source icon at the original above/below placement, capped visually at
+99 without changing a larger stored byte. Named-key dots slowly cycle the
+distinct extracted key colours when a location contains several named keys. In the
 current map cell, the source tables expose the two forward/reachable object spaces;
 the two nearer spaces in the cell ahead remain available through its normal
 object projection. Floor objects are drawn at the source's pre-feature call
@@ -230,8 +302,43 @@ tower matches the save's active tower. The active save tower exposes its live
 six-byte records. Clicking a monster marker cycles all resolved team members
 at that cell and replaces the selected marker's red fill with the normal
 flashing editor highlight. Humanoid design editing changes the shared extracted
-head, body and colour tables used by both viewers. Large-monster minimum grade
-constants remain source/EQU work and are not guessed in the UI.
+head, body and colour tables used by both viewers. The editor shows the full
+champion or monster figure beside the reused Data Viewer panel. Full figures
+retain whole source pixels, include their feet, and apply the same worn body
+armour override as the Data Viewer. `FIND` moves the cursor and floor to the
+selected actor's resolved location, while `PLACE HERE` is shared terminology
+for actor and object placement. Monster map clicks can be switched between
+`SELECT` and `JOIN`: join mode preserves the edited monster and joins it to the
+party at the clicked location only when both packed `KL` IDs and the reconstructed
+25-by-4 party table have room. Forms `$67` and above cannot join parties.
+When a selected monster belongs to a party, the preview shows the other members
+in authored `KL` slot order at half opacity; the selected member retains the
+flashing highlight, and clicking a translucent member selects it. Joining
+rewrites the packed record order so all members of the resulting party are
+adjacent in `KL` slot order as well as represented in the reconstructed team
+table. The design preview temporarily hides the other party members, can be
+stepped through all six renderer distances, and always shows the two small
+source-distant humanoid composites alongside the main figure as `2 SPACES` and
+`3 SPACES`. It also exposes all four inks in the selected palette together.
+The shared palette order is Head, Legs, Torso, Arms and Distant, matching the
+extracted `characters.colours` records. Save projects also
+expose each champion's 32 spell-practice bytes alongside the learned-spell
+flags. Large-monster design mode edits the packed record's available colour
+grade; its minimum grade constants remain source/EQU work and are not guessed
+or rewritten by the UI. Monster levels above an extracted renderer's final
+colour grade use that final grade in both the Data Viewer and dungeon preview,
+rather than making the graphical preview unavailable.
+
+Editable `-` / `+` controls repeat after a short press-and-hold delay, then
+advance at a deliberately limited rate. Champion stats, pockets and spellbook
+panels use a uniform whole-number scale so their source pixels are not warped.
+Selecting a counted pocket object whose shared count is zero initializes it to
+one, ensuring coin and arrow graphics become visible. Inventory quantities over
+99 are displayed as 99 without changing their shared byte. Worn body armour
+uses the original component-mask routing: the torso and body parts receive the
+material recolour while the head keeps its normal character palette. A normal
+click still changes exactly
+one step.
 
 The map cursor may be placed in a type-1 main wall even though normal game
 movement cannot do so. In that invalid preview state the current cell is sealed
@@ -267,16 +374,11 @@ cell using that reference is affected. These controls are read-only when a
 WHDLoad save is overlaid: the tables precede the saved block and are not
 present in the save, so Save continues to alter only the copied save file.
 
-## Follow-on modes
+## Build boundary
 
-The object mode will edit complete variable-length stacks and write the
-existing fixed `$402` resource only after validating its `$400`-byte payload
-capacity. Character/monster pop-ups will distinguish hero records and pockets
-from packed or live monster records; editing a graphic definition remains a
-separate shared-resource operation. The layout mode will rebuild all eight
-floor offsets after a width/height change, enforce the `$FC8` total map-data
-capacity, and preview aligned floors above and below.
-
-Once those structured editors are stable, the existing dungeon renderer can
-be attached to the selected cell and direction to provide a walkable pseudo
-game view without introducing a second map-data interpretation.
+The current editors intentionally write fixed-size resources suitable for the
+existing extraction, inspection and binary-patch route. An object payload over
+`$400` bytes or map cell data over `$FC8` bytes is a relocation/source-format
+change, not a larger fixed-size edit. Supporting either requires coordinated
+source EQU/table changes, revised resource layouts and a full compile; a
+modified resource must never be patched into the original fixed SPS 439 block.

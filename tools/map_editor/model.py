@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass, replace
 from pathlib import Path
-from typing import Iterable
+from typing import Iterable, Sequence
 
 from tools.data_overlay import related_data_roots
 from tools.savegame_overlay import load_savegame_overlay
@@ -36,6 +36,20 @@ LIVE_MONSTER_RECORD_SIZE = 0x10
 LIVE_MONSTER_CAPACITY = 0x80
 CHAMPION_RECORD_SIZE = 0x20
 CHAMPION_POCKET_RECORD_SIZE = 0x10
+# The portable save begins at Character_Stats_DataTable ($EB2A).  The source
+# reaches Spells_Practiced_DataTable ($1694C) with the same $7E22 displacement
+# used by Calculate_SpellCastingQuality.
+SAVE_SPELL_PRACTICE_OFFSET = 0x7E22
+SPELL_PRACTICE_CHAMPION_SIZE = 0x20
+LARGE_MONSTER_GRADE_BASES = {
+    0x64: 2,  # summon
+    0x65: 2,  # illusion summon
+    0x66: 4,  # beholder
+    0x67: 6,  # behemoth
+    0x68: 2,  # crab
+    0x69: 9,  # large dragon
+    0x6A: 3,  # little dragon
+}
 
 # QkPly1_Start and QkPly2_Start set these teams and their lead champion's
 # location. The standard character data supplies their unchanged floor 3.
@@ -183,6 +197,33 @@ class TowerMap:
         )  # type: ignore[return-value]
 
     @property
+    def special_floor_index(self) -> int | None:
+        """Return the floor duplicated by the AMOS special-floor triplet.
+
+        Header words $30/$32/$34 duplicate width, height and data offset.
+        Every original SPS 439 map matches one of its eight floor records.
+        The 68000 loader copies the whole header, but only the first two words
+        initially occupy live geometry fields; the $34 word has no exact
+        SPS 439 instruction reference and floor selection loads its active
+        offset separately.
+        """
+
+        special = self.special_floor
+        return next(
+            (
+                floor
+                for floor in range(FLOOR_COUNT)
+                if (
+                    self.widths[floor],
+                    self.heights[floor],
+                    self.data_offsets[floor],
+                )
+                == special
+            ),
+            None,
+        )
+
+    @property
     def top_floor(self) -> int:
         return int.from_bytes(self.data[0x36:0x38], "big")
 
@@ -232,6 +273,98 @@ class TowerMap:
     def set_cell(self, floor: int, x: int, y: int, cell: MapCell) -> None:
         offset = self.cell_offset(floor, x, y)
         self.data[offset : offset + 2] = bytes((cell.first, cell.second))
+
+    def set_floor_dimensions(self, floor: int, width: int, height: int) -> None:
+        """Resize one floor and safely repack all eight sequential cell grids.
+
+        Cells which remain inside a floor retain their X/Y coordinates.  New
+        cells are cleared, later floors move to their recalculated offsets,
+        and bytes outside the newly used map span remain untouched.
+        """
+
+        self._validate_floor(floor)
+        if not 0 <= width <= 31 or not 0 <= height <= 31:
+            raise ValueError("floor width and height must be between 0 and 31")
+        old_widths = self.widths
+        old_heights = self.heights
+        old_offsets = self.data_offsets
+        old_special_floor = self.special_floor_index
+        widths = list(old_widths)
+        heights = list(old_heights)
+        widths[floor] = width
+        heights[floor] = height
+        used = sum(w * h * 2 for w, h in zip(widths, heights))
+        if used > MAP_RESOURCE_SIZE - MAP_HEADER_SIZE:
+            raise ValueError(
+                f"map needs ${used:03X} cell bytes; fixed resource holds "
+                f"${MAP_RESOURCE_SIZE - MAP_HEADER_SIZE:03X}"
+            )
+
+        old_cells: list[list[list[bytes]]] = []
+        for old_floor, (old_width, old_height, old_offset) in enumerate(
+            zip(old_widths, old_heights, old_offsets)
+        ):
+            rows = []
+            for y in range(old_height):
+                row = []
+                for x in range(old_width):
+                    start = MAP_HEADER_SIZE + old_offset + (y * old_width + x) * 2
+                    row.append(bytes(self.data[start : start + 2]))
+                rows.append(row)
+            old_cells.append(rows)
+
+        offsets = []
+        cursor = 0
+        for floor_width, floor_height in zip(widths, heights):
+            offsets.append(cursor)
+            cursor += floor_width * floor_height * 2
+
+        replacement = bytearray(self.data)
+        replacement[0:8] = bytes(widths)
+        replacement[8:16] = bytes(heights)
+        replacement[0x20 + floor] = min(self.x_offsets[floor], 31 - width)
+        replacement[0x28 + floor] = min(self.y_offsets[floor], 31 - height)
+        for index, offset in enumerate(offsets):
+            replacement[16 + index * 2 : 18 + index * 2] = offset.to_bytes(2, "big")
+        for new_floor, (new_width, new_height, new_offset) in enumerate(
+            zip(widths, heights, offsets)
+        ):
+            for y in range(new_height):
+                for x in range(new_width):
+                    value = (
+                        old_cells[new_floor][y][x]
+                        if y < old_heights[new_floor] and x < old_widths[new_floor]
+                        else b"\0\0"
+                    )
+                    start = MAP_HEADER_SIZE + new_offset + (y * new_width + x) * 2
+                    replacement[start : start + 2] = value
+
+        self.data = replacement
+        if old_special_floor is not None:
+            self.set_special_floor(old_special_floor)
+
+    def set_floor_alignment(self, floor: int, x_offset: int, y_offset: int) -> None:
+        self._validate_floor(floor)
+        if not 0 <= x_offset <= 31 - self.widths[floor]:
+            raise ValueError("floor X offset places its width beyond cell 31")
+        if not 0 <= y_offset <= 31 - self.heights[floor]:
+            raise ValueError("floor Y offset places its height beyond cell 31")
+        self.data[0x20 + floor] = x_offset
+        self.data[0x28 + floor] = y_offset
+
+    def set_special_floor(self, floor: int) -> None:
+        self._validate_floor(floor)
+        values = (
+            self.widths[floor],
+            self.heights[floor],
+            self.data_offsets[floor],
+        )
+        for offset, value in zip((0x30, 0x32, 0x34), values):
+            self.data[offset : offset + 2] = value.to_bytes(2, "big")
+
+    def set_top_floor(self, floor: int) -> None:
+        self._validate_floor(floor)
+        self.data[0x36:0x38] = floor.to_bytes(2, "big")
 
     def floor_from_map_index(self, map_index: int) -> tuple[int, int, int] | None:
         """Convert an object stack's map-data byte offset into floor/X/Y.
@@ -325,16 +458,13 @@ class MonsterRecord:
         at offset $03 after unpacking.
         """
 
-        base = {
-            0x66: 4,  # beholder
-            0x67: 6,  # behemoth
-            0x68: 2,  # crab
-            0x69: 9,  # large dragon
-            0x6A: 3,  # little dragon
-            0x64: 2,  # summon / illusion
-            0x65: 2,
-        }.get(self.form, 0)
-        return max(0, (self.level & 0x7F) - base)
+        return max(0, (self.level & 0x7F) - self.colour_grade_base)
+
+    @property
+    def colour_grade_base(self) -> int:
+        """Return the renderer's source-derived minimum absolute grade."""
+
+        return LARGE_MONSTER_GRADE_BASES.get(self.form, 0)
 
 
 @dataclass(frozen=True)
@@ -481,6 +611,86 @@ class MapProject:
         self.maps[tower].set_cell(floor, x, y, cell)
         self.dirty_towers.add(tower)
 
+    def set_floor_dimensions(
+        self, tower: int, floor: int, width: int, height: int
+    ) -> None:
+        """Resize a floor while retaining cells and object-stack locations."""
+
+        if tower in self.save_map_fallbacks:
+            raise ValueError(
+                f"{TOWERS[tower].name} is not stored as a valid map in this save and cannot be edited"
+            )
+        tower_map = self.maps[tower]
+        if (width, height) == (tower_map.widths[floor], tower_map.heights[floor]):
+            return
+        stacks = self.object_stacks(tower)
+        locations = tuple(tower_map.floor_from_map_index(stack.map_index) for stack in stacks)
+        cropped = next(
+            (
+                location
+                for location in locations
+                if location is not None
+                and location[0] == floor
+                and (location[1] >= width or location[2] >= height)
+            ),
+            None,
+        )
+        if cropped is not None:
+            _, x, y = cropped
+            raise ValueError(
+                f"resize would exclude an object stack at floor {floor}, X {x}, Y {y}"
+            )
+
+        # A layout change moves the sequential byte offsets of later floors.
+        # Ensure the companion object resource can follow those moves before
+        # mutating either in-memory resource.
+        name = f"maps/{TOWERS[tower].stem}.obj"
+        if any(location is not None for location in locations):
+            if not self.resource_is_editable(name):
+                raise ValueError(
+                    "resizing this floor would move read-only object locations"
+                )
+
+        tower_map.set_floor_dimensions(floor, width, height)
+        moved = tuple(
+            replace(
+                stack,
+                map_index=tower_map.map_index(*location),
+            )
+            if location is not None
+            else stack
+            for stack, location in zip(stacks, locations)
+        )
+        if moved != stacks:
+            self.set_object_stacks(tower, moved)
+        self.dirty_towers.add(tower)
+
+    def set_floor_alignment(
+        self, tower: int, floor: int, x_offset: int, y_offset: int
+    ) -> None:
+        if tower in self.save_map_fallbacks:
+            raise ValueError(
+                f"{TOWERS[tower].name} is not stored as a valid map in this save and cannot be edited"
+            )
+        self.maps[tower].set_floor_alignment(floor, x_offset, y_offset)
+        self.dirty_towers.add(tower)
+
+    def set_special_floor(self, tower: int, floor: int) -> None:
+        if tower in self.save_map_fallbacks:
+            raise ValueError(
+                f"{TOWERS[tower].name} is not stored as a valid map in this save and cannot be edited"
+            )
+        self.maps[tower].set_special_floor(floor)
+        self.dirty_towers.add(tower)
+
+    def set_top_floor(self, tower: int, floor: int) -> None:
+        if tower in self.save_map_fallbacks:
+            raise ValueError(
+                f"{TOWERS[tower].name} is not stored as a valid map in this save and cannot be edited"
+            )
+        self.maps[tower].set_top_floor(floor)
+        self.dirty_towers.add(tower)
+
     def resource_bytes(self, relative_name: str) -> bytes:
         if relative_name in self.resource_data:
             return bytes(self.resource_data[relative_name])
@@ -502,8 +712,22 @@ class MapProject:
 
     def editable_resource(self, relative_name: str) -> bytearray:
         if self.save_data is not None:
-            raise ValueError("shared game tables cannot be edited in a save overlay")
+            if not self.resource_is_editable(relative_name):
+                raise ValueError(f"{relative_name} is outside the save overlay and cannot be edited")
         return self.resource_data.setdefault(relative_name, bytearray(self.resource_bytes(relative_name)))
+
+    def resource_is_editable(self, relative_name: str) -> bool:
+        """Return whether a resource can be written to this project target."""
+
+        if self.save_data is None:
+            return True
+        if self.save_base_offset is None:
+            return False
+        segment = self.segment_offsets.get(relative_name)
+        if segment is None:
+            return False
+        start = segment[0] - self.save_base_offset
+        return 0 <= start and start + segment[1] <= len(self.save_data)
 
     def save(self) -> tuple[Path, ...]:
         if not self.has_changes:
@@ -535,6 +759,15 @@ class MapProject:
             offset, size = self.segment_offsets[name]
             start = offset - self.save_base_offset
             self.save_data[start : start + size] = self.maps[tower_index].to_bytes()
+        for relative_name in self.dirty_resources:
+            offset, size = self.segment_offsets[relative_name]
+            start = offset - self.save_base_offset
+            data = self.resource_data[relative_name]
+            if len(data) != size:
+                raise ValueError(
+                    f"{relative_name} changed size inside a fixed-size save segment"
+                )
+            self.save_data[start : start + size] = data
         destination = self.modified_root / "whdload" / self.save_name
         destination.parent.mkdir(parents=True, exist_ok=True)
         destination.write_bytes(self.save_data)
@@ -689,26 +922,122 @@ class MapProject:
             self.dirty_save = True
         return self.monsters(tower)[index]
 
+    def _reorder_packed_monsters(
+        self, tower: int, ordered_indices: Sequence[int]
+    ) -> tuple[MonsterRecord, ...]:
+        """Rewrite the active packed records in a validated source-index order."""
+
+        records = self.monsters(tower)
+        if sorted(ordered_indices) != list(range(len(records))):
+            raise ValueError("monster reorder must include every packed record once")
+        name = f"maps/{TOWERS[tower].stem}.monsters"
+        if self.save_data is None:
+            data = self.editable_resource(name)
+            start = 0
+        else:
+            segment = self.segment_offsets.get(name)
+            if segment is None or self.save_base_offset is None:
+                raise ValueError(f"the save has no {name} segment")
+            start = segment[0] - self.save_base_offset
+            data = self.save_data
+        chunks = [bytes(data[start + index * 6 : start + index * 6 + 6]) for index in range(len(records))]
+        data[start : start + len(records) * 6] = b"".join(
+            chunks[index] for index in ordered_indices
+        )
+        if self.save_data is None:
+            self.dirty_resources.add(name)
+        else:
+            self.dirty_save = True
+        return self.monsters(tower)
+
     def join_monster_to_previous_team(self, tower: int, index: int) -> tuple[MonsterRecord, ...]:
         """Author both packed ``KL`` entries needed to rebuild the runtime team."""
 
-        from tools.map_editor.actor_editor import next_team_assignment
+        if index <= 0:
+            raise ValueError("a monster can only join a preceding record")
+        return self.join_monster_to_team(tower, index, index - 1)
+
+    def join_monster_to_team(
+        self, tower: int, index: int, target_index: int
+    ) -> tuple[MonsterRecord, ...]:
+        """Join one packed monster to the target's reconstructed four-slot team."""
+
+        from tools.map_editor.actor_editor import monster_teams
 
         records = self.monsters(tower)
-        group, slot = next_team_assignment(records, index)
-        previous = records[index - 1]
-        if previous.team == 0xFF:
-            self.set_packed_monster(tower, index - 1, team=group << 2)
-        leader = self.monsters(tower)[index - 1]
+        if not 0 <= index < len(records) or not 0 <= target_index < len(records):
+            raise IndexError("monster index is outside the authored tower records")
+        if index == target_index:
+            raise ValueError("a monster cannot join itself")
+        selected = records[index]
+        target = records[target_index]
+        if selected.form >= 0x67 or target.form >= 0x67:
+            raise ValueError("large monster forms $67 and above cannot join parties")
+        if selected.team != 0xFF:
+            raise ValueError("remove the selected monster from its current party first")
+
+        teams = {team.group: team for team in monster_teams(records)}
+        if target.team == 0xFF:
+            used_groups = set(teams)
+            group = next(
+                (candidate for candidate in range(25) if candidate not in used_groups),
+                None,
+            )
+            if group is None:
+                raise ValueError("the 25-group monster party table is full")
+            slot = 1
+            self.set_packed_monster(tower, target_index, team=group << 2)
+        else:
+            group = target.team >> 2
+            team = teams.get(group)
+            if team is None:
+                raise ValueError("the target's packed party ID has no party-table entry")
+            slot = next(
+                (position for position, member in enumerate(team.members) if member is None),
+                None,
+            )
+            if slot is None:
+                raise ValueError("the target monster's party already has four members")
+
+        resolved = self.render_occupants(tower)
+        target_position = next(
+            (record for record in resolved if record.index == target_index), None
+        )
+        if target_position is None or not target_position.has_position:
+            raise ValueError("the target monster has no resolved map location")
         self.set_packed_monster(
             tower,
             index,
-            floor=leader.floor,
+            floor=target_position.floor,
             x=0xFF,
-            y=leader.y,
+            y=target_position.y,
             team=(group << 2) | slot,
         )
-        return self.monsters(tower)
+        joined = self.monsters(tower)
+        joined_team = next(
+            team for team in monster_teams(joined) if team.group == group
+        )
+        member_indices = tuple(
+            member for member in joined_team.members if member is not None
+        )
+        # Runtime traversal reads the KL slots, but keeping the corresponding
+        # packed records contiguous also matches the original editor's list
+        # convention and prevents a newly joined member being stranded elsewhere.
+        insertion_index = min(member_indices)
+        remaining = [
+            record_index
+            for record_index in range(len(joined))
+            if record_index not in member_indices
+        ]
+        insertion_position = sum(
+            record_index < insertion_index for record_index in remaining
+        )
+        ordered_indices = (
+            remaining[:insertion_position]
+            + list(member_indices)
+            + remaining[insertion_position:]
+        )
+        return self._reorder_packed_monsters(tower, ordered_indices)
 
     def remove_monster_from_team(self, tower: int, index: int) -> tuple[MonsterRecord, ...]:
         records = self.render_occupants(tower)
@@ -771,6 +1100,35 @@ class MapProject:
             data = self.editable_resource("data/champions.pockets")
             data[index * CHAMPION_POCKET_RECORD_SIZE + offset] = value
             self.dirty_resources.add("data/champions.pockets")
+
+    def spell_practice(self, champion: int, spell: int) -> int | None:
+        """Return a save's runtime per-champion, per-spell practice byte."""
+
+        if self.save_data is None:
+            return None
+        if not 0 <= champion < 16 or not 0 <= spell < 32:
+            raise IndexError("spell practice requires champion 0..15 and spell 0..31")
+        offset = SAVE_SPELL_PRACTICE_OFFSET + champion * SPELL_PRACTICE_CHAMPION_SIZE + spell
+        if offset >= len(self.save_data):
+            return None
+        return self.save_data[offset]
+
+    def set_spell_practice(
+        self, tower: int, champion: int, spell: int, value: int
+    ) -> None:
+        """Edit runtime spell practice when viewing the save's active tower."""
+
+        if self.save_data is None or tower != self.current_tower:
+            raise ValueError("spell practice is editable only on the active save tower")
+        if not 0 <= champion < 16 or not 0 <= spell < 32:
+            raise IndexError("spell practice requires champion 0..15 and spell 0..31")
+        if not 0 <= value <= 0xFF:
+            raise ValueError("spell practice must be a byte value")
+        offset = SAVE_SPELL_PRACTICE_OFFSET + champion * SPELL_PRACTICE_CHAMPION_SIZE + spell
+        if offset >= len(self.save_data):
+            raise ValueError("the selected save does not contain spell-practice data")
+        self.save_data[offset] = value
+        self.dirty_save = True
 
     def character_design(self, form: int) -> tuple[int, int, tuple[tuple[int, ...], ...]]:
         """Return source-extracted head, body and five four-ink palettes."""
@@ -1229,7 +1587,8 @@ class MapProject:
                 encoded.extend((code, quantity))
         if len(encoded) > len(data) - 2:
             raise ValueError(
-                f"object stacks need {len(encoded)} bytes; tower resource has {len(data) - 2}"
+                f"source build required: object stacks need {len(encoded)} bytes; "
+                f"fixed tower resource has {len(data) - 2}"
             )
         data[:2] = len(encoded).to_bytes(2, "big")
         data[2 : 2 + len(encoded)] = encoded

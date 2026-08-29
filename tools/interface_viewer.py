@@ -106,7 +106,6 @@ from tools.interface_data import (
     STATS_FRAME_VERTICAL_LINES,
     RIGHT_STATUS_ICON_BEVEL_LINES,
     active_party_champion_draw_parameters,
-    body_design_with_worn_armour,
     click_party_member_preview,
     promote_preview_avatar_state,
     InterfaceDataError,
@@ -380,15 +379,15 @@ def _draw_active_party_champion(
     """Draw the selected champion with Draw_Character's slot parameters."""
     anchor_x, anchor_y, distance = active_party_champion_draw_parameters(slot)
     worn_body_armour = project.champion_pockets[champion][2]
-    body_design = body_design_with_worn_armour(
-        project.character_assets.body_design(champion), worn_body_armour
+    armour_override = project.character_assets.worn_armour_override(
+        worn_body_armour
     )
     for component in project.character_assets.draw_operations(
         champion,
         distance=distance,
         facing=0,
         render_flags=0,
-        body_design_override=body_design,
+        worn_armour_override=armour_override,
     ):
         pixels = remap_template_colours(
             component.operation.sprite.pixels, component.replacements

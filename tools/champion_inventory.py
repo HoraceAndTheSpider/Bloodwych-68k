@@ -141,6 +141,14 @@ def inventory_object_quantity(pocket_record: bytes, object_code: int) -> int | N
     return pocket_record[count_index]
 
 
+def inventory_quantity_text(quantity: int) -> str:
+    """Return the two-glyph inventory count without altering the stored byte."""
+
+    if not 0 <= quantity <= 0xFF:
+        raise ValueError("inventory quantity must be a byte value")
+    return f"{min(quantity, 99):02d}"
+
+
 def visible_inventory_object_code(pocket_record: bytes, slot: int) -> int:
     """Return a slot's object ID after the game's zero-count validation."""
     if not 0 <= slot < INVENTORY_SLOT_COUNT:
@@ -199,7 +207,7 @@ def _draw_inventory_slots(
             _draw_text(
                 surface,
                 font_data,
-                f"{quantity:02d}",
+                inventory_quantity_text(quantity),
                 x + INVENTORY_QUANTITY_X_OFFSET,
                 quantity_y,
                 palette[6],

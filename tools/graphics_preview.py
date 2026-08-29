@@ -570,6 +570,20 @@ class CharacterAssets:
 
     PARTS = ("legs", "torso", "head", "left_arm", "right_arm")
     COLOUR_GROUPS = (1, 2, 0, 3, 3)
+    # Source tables adrEA00ABA6..adrEA00AC11 and adrEA00AC12 onward.  These
+    # remain inline in the original renderer, so they are kept here as decoded
+    # source evidence rather than invented viewer palettes.
+    ARMOUR_COMPONENT_MASKS = bytes.fromhex(
+        "0B0A090B090A0B00828300000B0A090B090A0B81090A0B0081090A0B80090A0B"
+        "FFFFFFFF0E040203820402838204830C0E0402038104028003040E008102040E80"
+        "03040EFFFFFFFF0E040303820404830004080C0E0403038104048003040E008103"
+        "040E8002040E0B030304"
+    )
+    HEAD_COLOUR_MASKS = bytes.fromhex(
+        "0B0A070806050B0D0B0A090C060505060B0A090C0E000B0D0B0A05060B0A0708"
+        "0B0A0B0D0B0A05060B0A090C0B0A050600000708090007080900090C08040404"
+        "0B0A0B0D810A090981020482810304828209800A8204800E"
+    )
 
     def __init__(self, data_dir: Path, gfx_dir: Path):
         self.data_dir = data_dir
@@ -577,6 +591,12 @@ class CharacterAssets:
         self.body_selections = list((data_dir / "characters.bodies").read_bytes())
         self.head_selections = list((data_dir / "characters.heads").read_bytes())
         self.colours = (data_dir / "characters.colours").read_bytes()
+        self.worn_armour_render_overrides = (
+            data_dir / "Character_WornArmour_RenderOverrides.lookup"
+        ).read_bytes()
+        self.armour_material_palette = (
+            data_dir / "characters-armour-material.palette"
+        ).read_bytes()
         body_definitions = (
             data_dir / "characters-body-definitions.layout"
         ).read_bytes()
@@ -609,6 +629,10 @@ class CharacterAssets:
             raise ValueError("character head/body selections must contain $56 entries")
         if len(self.colours) != 0x56 * 20:
             raise ValueError("characters.colours must contain five palettes per character")
+        if len(self.worn_armour_render_overrides) != 9:
+            raise ValueError("worn-armour render overrides must contain nine entries")
+        if len(self.armour_material_palette) != 4:
+            raise ValueError("armour material palette must contain four entries")
         if len(self.body_data) < 0x8640 or len(self.body_data) % 8:
             raise ValueError("BodyParts.gfx is shorter than SPS 439 or not strip-aligned")
         if len(self.head_data) < 0x3E70 or len(self.head_data) % 0x378:
@@ -661,6 +685,66 @@ class CharacterAssets:
             for group in range(5)
         )
 
+    def worn_armour_override(self, object_code: int) -> int:
+        if not 0x1B <= object_code <= 0x23:
+            return 0
+        return self.worn_armour_render_overrides[object_code - 0x1B]
+
+    def resolved_body_design(
+        self,
+        character: int,
+        *,
+        body_design_override: int | None = None,
+        worn_armour_override: int = 0,
+    ) -> int:
+        body_index = (
+            self.body_design(character)
+            if body_design_override is None
+            else body_design_override
+        )
+        if worn_armour_override and body_design_override is None and body_index:
+            body_index = (max(body_index, 3) + 2 * worn_armour_override) & 0x0F
+        return body_index
+
+    def valid_worn_armour_objects(self, character: int) -> tuple[int, ...]:
+        """Return armour objects whose source body selection remains in-table."""
+
+        return tuple(
+            object_code
+            for object_code in range(0x1B, 0x24)
+            if self.resolved_body_design(
+                character,
+                worn_armour_override=self.worn_armour_override(object_code),
+            )
+            < len(self.body_definitions)
+        )
+
+    def armour_component_palette(
+        self, character: int, body_index: int, component: int, override: int
+    ) -> tuple[int, int, int, int] | None:
+        """Reproduce Prepare_CharacterComponentColourMask for near artwork."""
+
+        layout_selector, legs_offset, *_ = self.body_definitions[body_index]
+        table_offset = (((override - 1) * 36) & 0xFF) + 8
+        if not layout_selector:
+            table_offset -= 4
+            if legs_offset == 0x2BE0:
+                table_offset -= 4
+        table_offset += component * 6
+        raw = self.ARMOUR_COMPONENT_MASKS[table_offset : table_offset + 4]
+        if len(raw) != 4 or raw[0] == 0xFF:
+            return None
+        values = list(raw)
+        material = ((override << 2) | (override >> 6)) & 3
+        if material:
+            bright = self.armour_material_palette[material]
+            values = [bright if value == 4 else bright - 1 if value == 3 else value for value in values]
+        head_offset = self.head_design(character) * 4
+        for index, value in enumerate(values):
+            if value & 0x80:
+                values[index] = self.HEAD_COLOUR_MASKS[head_offset + (value & 3)]
+        return tuple(values)
+
     def draw_operations(
         self,
         character: int,
@@ -669,11 +753,12 @@ class CharacterAssets:
         facing: int = 0,
         render_flags: int = 0,
         body_design_override: int | None = None,
+        worn_armour_override: int = 0,
     ) -> list[CharacterDrawOperation]:
-        body_index = (
-            self.body_design(character)
-            if body_design_override is None
-            else body_design_override
+        body_index = self.resolved_body_design(
+            character,
+            body_design_override=body_design_override,
+            worn_armour_override=worn_armour_override,
         )
         if not 0 <= body_index < len(self.body_definitions):
             raise ValueError("body design override references an unknown definition")
@@ -798,6 +883,15 @@ class CharacterAssets:
                 )
                 if facing & 1:
                     mirrored = not mirrored
+            # Draw_CharacterComponent doubles the part index before selecting
+            # an armour mask: legs use 0, torso 2, head branches to the normal
+            # head palette, and both animated arms converge on mask 4.
+            armour_component = (0, 2, None, 4, 4)[index]
+            replacements = None
+            if worn_armour_override and armour_component is not None:
+                replacements = self.armour_component_palette(
+                    character, body_index, armour_component, worn_armour_override
+                )
             operations.append(
                 CharacterDrawOperation(
                     DrawOperation(
@@ -807,7 +901,7 @@ class CharacterAssets:
                         mirrored=mirrored,
                     ),
                     part,
-                    palettes[self.COLOUR_GROUPS[index]],
+                    replacements or palettes[self.COLOUR_GROUPS[index]],
                 )
             )
         return operations
@@ -827,6 +921,7 @@ def render_character_preview(
     facing: int = 0,
     render_flags: int = 0,
     body_design_override: int | None = None,
+    worn_armour_override: int = 0,
     anchor_x: int,
     anchor_y: int,
 ) -> tuple[list[list[int]], dict[str, object]]:
@@ -839,6 +934,7 @@ def render_character_preview(
         facing=facing,
         render_flags=render_flags,
         body_design_override=body_design_override,
+        worn_armour_override=worn_armour_override,
     ):
         operation = component.operation
         pixels = remap_template_colours(operation.sprite.pixels, component.replacements)
@@ -859,21 +955,24 @@ def render_character_preview(
         )
     return canvas, {
         "character": character,
-        "body_design": (
-            assets.body_design(character)
-            if body_design_override is None
-            else body_design_override
+        "body_design": assets.resolved_body_design(
+            character,
+            body_design_override=body_design_override,
+            worn_armour_override=worn_armour_override,
         ),
         "body_layout": (
             "alternate"
             if assets.body_definitions[
-                assets.body_design(character)
-                if body_design_override is None
-                else body_design_override
+                assets.resolved_body_design(
+                    character,
+                    body_design_override=body_design_override,
+                    worn_armour_override=worn_armour_override,
+                )
             ][0]
             else "standard"
         ),
         "head_design": assets.head_design(character),
+        "worn_armour_override": worn_armour_override,
         "palettes": [list(palette) for palette in assets.palettes(character)],
         "requested_game_anchor": [anchor_x, anchor_y],
         "positioning_mode": "game-anchor",
