@@ -43,6 +43,14 @@ COMMENT_COLUMNS = (
     "expected_matches",
 )
 
+# Legacy disassemblies append these machine notes to the opcode bytes. They
+# are not handwritten explanations; accept only these exact suffixes so real
+# source comments remain protected.
+GENERATED_INSTRUCTION_COMMENT = re.compile(
+    r"[0-9A-Fa-f]+(?:\s*;\s*(?:Short Absolute converted to symbol!|"
+    r"Long Addr replaced with Symbol))*\s*"
+)
+
 
 def _next_tab_stop(column: int) -> int:
     return ((column // TAB_WIDTH) + 1) * TAB_WIDTH
@@ -306,8 +314,9 @@ def apply_instruction_comments(
     Matching is performed against the final instruction text, after relabelling
     and EQU substitutions. Scope boundaries follow source rules: the labels
     themselves are excluded and the end label is not part of the scope. A rule
-    only edits a line whose existing comment is a hexadecimal byte block, so
-    data declarations and handwritten comments remain untouched.
+    only edits instruction comments containing opcode bytes and optional known
+    legacy conversion notes. Data declarations and handwritten comments remain
+    untouched.
 
     For compatibility with cleanup metadata anchored to original source labels,
     scope labels and label operands are retried through the unambiguous
@@ -398,9 +407,11 @@ def apply_instruction_comments(
             continue
 
         for index in candidates:
+            if _split_instruction(result[index]) is None:
+                continue
             code, _comment = _split_source_comment(result[index])
             existing = _comment.strip()
-            if existing and not re.fullmatch(r"[0-9A-Fa-f]+", existing):
+            if existing and not GENERATED_INSTRUCTION_COMMENT.fullmatch(existing):
                 continue
             result[index] = code.rstrip() + f"\t; {source_comment}"
     return result

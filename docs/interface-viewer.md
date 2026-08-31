@@ -26,6 +26,33 @@ establish the active buffer as three stable regions:
 - the 128×76 dungeon viewport at native `(96,10)`;
 - the fixed action/control bank beginning at `x=224`.
 
+Both full-width grey borders have seven rows, using palette indices
+`1, 2, 3, 4, 3, 2, 1`, as drawn by `adrCd007B2E`. The centre is `$AAA`
+grey. The dungeon preview uses the same scene renderer, background loader,
+and `(X + Y + facing) & 1` parity helper as the Map viewer. Moving one tile
+or turning a quarter-turn selects the alternate floor/ceiling and wall
+patterns together, following `adrCd0090D4`, `adrCd00B7F4` and `adrCd00B074`.
+
+The disposable 5×9 test floor is embedded in
+`tools/interface_data.py` as `INTERFACE_PREVIEW_FLOOR_BYTES`, with its switch
+definitions in `INTERFACE_PREVIEW_SWITCHES`. These are independent of the
+extracted maps and switch resources. Coordinates begin at `(0,0)` in the
+top-left; the party starts at `(2,5)` facing north.
+
+At `(1,5)`, cell `0A91` is an east-facing switch using reference 1. Its
+synthetic `SwitchData_1`-style record is `04 00 01 04`: action `$04`, unused
+byte zero, target X=1/Y=4 on the current floor. Turn left from the starting
+position and click the switch to remove the wall at `(1,4)`; click again to
+restore it. The switch also changes between its lit and dim graphics using
+the shared Map renderer.
+
+The click uses hitbox `$23` through `adrJA005894` and `adrJA005B2A`.
+Action `$04` selects `adrJA005CFC`, whose existing relabel is
+`Switch_02_s04_Trigger_23_t2E`. Hitbox `$24` remains the direct door action.
+This preview currently implements only the toggle-wall switch action; other
+switch actions and triggers remain outside its simulation. Reload restores
+the test map and switch state without saving them to a game resource.
+
 The compact statistics panel is not the full Statistics page. Clicking the
 compact panel switches the reconstructed left side to party commands, and
 clicking its triangle control switches back. Neither operation replaces the
@@ -49,7 +76,7 @@ party-command selection region and is intentionally not drawn as a grid
 hot-box. Every displayed rectangle retains its action number, verified handler
 name, and corresponding entry in the 37-entry `DungeonInterfaceActionTable`.
 Clicking an overlay rectangle invokes the viewer's source-led preview action:
-pause is simulated without blocking the viewer, load/save shows the original
+pause waits for a click anywhere, load/save shows the original
 function-key prompt at the top of the current interface, sleep clears the
 dungeon viewport and draws the framed `THOU ART ASLEEP` state, the team-avatar
 control returns to compact statistics, and the Statistics hit-box opens the
@@ -60,6 +87,15 @@ selection frame.
 The overlay starts disabled for an unobstructed layout review; use the
 `Hitboxes` button or press `H` to toggle it.
 
+Pause recolours black and dialogue ink to `$400` across the entire strip
+between the grey borders, including the spacing above and below the player
+buffer. Its next click only unpauses: it cannot also activate the underlying
+control. Load/save blocks other controls until **F10** is pressed; clicking
+the exact **F10 - EXIT** text is also supported as an app convenience. F1/F2
+disk operations are not simulated. Both states suppress ordinary hitboxes
+and prevent game/editor controls from acting; the window close action remains
+available. These input rules follow `adrCd00427C` and `adrCd00437E`.
+
 The sleep reconstruction follows the verified source flow: `Click_SleepParty`
 calls `adrCd002734`, the same shared clear-and-frame routine called before
 `ThouArtDead`, then prints the `ThouArtAsleep` control-coded text stream. Its
@@ -67,6 +103,10 @@ three frame rectangles and text positions are rendered from that routine and
 stream: its clear begins at `(96,12,128,76)`, two pixels below the compact
 stats top decoration; its frame has a two-scanline top and three nested
 side/bottom edges. `THOU ART` is at `(128,32)` and `ASLEEP` at `(136,48)`.
+Clicking the dungeon viewport wakes the party and consumes that click without
+also performing a wall/door action, following the sleep input path through
+`adrCd00465E` and `adrCd004AFE`. Existing page controls can still wake the
+party as before.
 
 The inventory preview draws the same twelve slots as the source. Slots 0-3
 are left hand, right hand, body armour, and shield. Empty equipment positions
@@ -125,15 +165,12 @@ same ink index can be orange, green, or red in different vertical regions of
 one displayed frame. The Copper schedules the scanline changes; the CPU
 interrupt routine performs the colour-register writes.
 
-Saving writes only:
-
-```text
-data/BLOODWYCH439-modified/gfx-data/PlayerColourRamps.colours
-```
-
-The clean resource remains immutable. The modified-data toggle reloads the
-sparse file overlay, falling back to clean files when no modified version is
-present.
+Text-colour ramp edits update the live shared session immediately.
+**EXPORT ALL** writes the entire session, including any map or champion changes
+made in other viewers, into the matching `-modified` folder. **DATA / FILES**
+provides the common reset, reload, import and patch actions; there is no separate
+modified-data toggle. Clean data remains immutable. See
+[shared editing sessions](edit-session.md).
 
 ## Source provenance and future editing
 
@@ -149,7 +186,9 @@ D3  colour index that replaces template ink $F
 ```
 
 and then calls the common planar renderer. The interface model records these
-relationships with human-readable source names. Layout editing will eventually
+relationships with human-readable source names. Python drawing comments also
+cite the original ASM address labels; editor-only overlays and presentation
+adapters are identified separately. Layout editing will eventually
 emit modified graphic/hitbox resources and source-build metadata; it must not
 rewrite generated ASM directly.
 

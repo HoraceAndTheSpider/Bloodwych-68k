@@ -255,6 +255,18 @@ Graphics generated for viewers are disposable derivatives. Wherever possible, de
 
 The GitHub Wiki documents verified mechanics, data formats, renderer behaviour, and source structure. It must not read like a development diary.
 
+Preserve the author's plain-language, "common understanding" approach, existing
+examples, byte-by-byte walkthroughs and page structure. Add technical findings
+as supporting detail, normally after the accessible explanation; do not replace
+that explanation with a more technical rewrite. Correct or remove existing
+material only where it is demonstrably incorrect, and keep the correction local.
+
+The Wiki explains the original game and its source, not how to use the SuperApp.
+Keep editor/viewer controls, warning colours, editing workflows and other app
+guidance in the repository's app documentation. The original game's renderer
+and interface, and historical source evidence such as AMOS, remain appropriate
+when they explain the game rather than teach an app workflow.
+
 Do include:
 
 - plain-English explanations of tables and algorithms;

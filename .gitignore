@@ -63,3 +63,12 @@ outputs/
 
 # Local backups of sparse modified-data overlays.
 data/*-modified-old/
+
+# Local device-specific joypad layouts.
+config/joypads/
+
+# Project-local Python runtime (including macOS SDL compatibility).
+.venv/
+tests/test-trader-brush.iff
+tests/test-trader-example.iff
+tests/test-trader-picture.iff

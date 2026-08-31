@@ -18,8 +18,14 @@ from tools.dungeon_view import (
 )
 from tools.gamefont_converter import read_font
 from tools.graphics_preview import CharacterAssets, blit
-from tools.map_editor.first_person import map_view_placements, move_in_view_direction
-from tools.map_editor.model import MAP_HEADER_SIZE, MAP_RESOURCE_SIZE, MapCell, TowerMap
+from tools.map_editor.first_person import (
+    dungeon_pattern_parity,
+    map_view_placements,
+    move_in_view_direction,
+)
+from tools.map_editor.model import (
+    MAP_HEADER_SIZE, MAP_RESOURCE_SIZE, MapCell, SwitchRecord, TowerMap,
+)
 from tools.st_planar_assets import decode_planar
 
 
@@ -283,10 +289,20 @@ INTERFACE_PREVIEW_FLOOR_BYTES = bytes.fromhex(
     "40020001030500010000"
     "5c0200000000000000b1"
     "00000001000000010000"
-    "07060001000000000000"
+    "07060a91000000000000"
     "00810001090500010081"
     "0001d206da06e2060001"
     "00010001090500010001"
+)
+# At (1,5), $0A91 means reference 1 in bits 7..3, switch subtype 2,
+# lit state (bit 2 clear), east face (C=9), and stone map type 1.
+# These synthetic records accompany this test floor only, not maps/mod0.switches.
+# SwitchData_1 records are [action, unused, X, Y]: reference 1 is 04 00 01 04.
+# adrJT005B68 uses action $04 to select adrJA005CFC, already relabelled
+# Switch_02_s04_Trigger_23_t2E. Keep the shared Map viewer record model.
+INTERFACE_PREVIEW_SWITCHES = (
+    SwitchRecord(reference=0, action=0, x=0, y=0),
+    SwitchRecord(reference=1, action=0x04, x=1, y=4),
 )
 # Manual movement policy supplied by the user.  It deliberately remains
 # separate from the source-derived map renderer until Check_Collision and
@@ -1317,7 +1333,9 @@ class InterfaceProject:
         *,
         prefer_modified: bool = False,
         savegame_path: Path | None = None,
+        session=None,
     ):
+        self.session = session
         self.clean_root, self.modified_root, supplied_modified = related_data_roots(data_root)
         self.use_modified = prefer_modified or supplied_modified
         self.savegame_path = savegame_path
@@ -1427,6 +1445,13 @@ class InterfaceProject:
 
     def _render_preview_dungeon(self) -> None:
         """Render the supplied Serpent Tower floor from the preview party."""
+        # adrCd0090D4 stores (X + Y + facing) & 1 before adrCd00B7F4
+        # draws the floor/ceiling and adrCd00B074 selects main-wall faces.
+        # Use the Map viewer's same parity helper AND background selection;
+        # passing parity only to render_dungeon_scene changes walls alone.
+        parity = dungeon_pattern_parity(
+            self.preview_x, self.preview_y, self.preview_facing
+        )
         placements = map_view_placements(
             self.preview_map,
             INTERFACE_PREVIEW_FLOOR,
@@ -1435,11 +1460,71 @@ class InterfaceProject:
             self.preview_facing,
         )
         self.dungeon_preview, _ = render_dungeon_scene(
-            self.dungeon_background,
+            self.dungeon_backgrounds[parity],
             self.dungeon_assets,
             placements,
-            pattern_parity=(self.preview_x + self.preview_y + self.preview_facing) & 1,
+            pattern_parity=parity,
         )
+
+    def click_preview_wall_feature(self) -> str:
+        """Model action $23's switch branch and its non-wall door fallback.
+
+        Only the test scene's switch action $04 is simulated. Other switch
+        actions and other type-1 features stay inert until implemented.
+        """
+        # adrJA005894 calls adrCd00847E for the cell immediately ahead. Its
+        # type-1 path requires a feature (second-byte bit 7), the visible
+        # face opposite the party's facing, and subtype 2 for adrJA005B2A.
+        front = move_in_view_direction(
+            self.preview_x, self.preview_y, self.preview_facing, forward=1
+        )
+        width = self.preview_map.widths[INTERFACE_PREVIEW_FLOOR]
+        height = self.preview_map.heights[INTERFACE_PREVIEW_FLOOR]
+        if not (0 <= front[0] < width and 0 <= front[1] < height):
+            return "no wall feature ahead"
+        cell = self.preview_map.cell(INTERFACE_PREVIEW_FLOOR, *front)
+        if cell.map_type != 1:
+            return f"door: {self.toggle_preview_door()}"
+        if not cell.second & 0x80 or ((cell.c & 3) ^ 2) != self.preview_facing:
+            return "no accessible wall feature"
+        if cell.b & 3 != 2:
+            return "this wall feature is not simulated"
+
+        # adrJA005B2A ignores reference zero; otherwise (first & $F8) >> 1
+        # is the four-byte SwitchData_1 record offset (reference * 4).
+        reference = cell.first >> 3
+        if reference == 0:
+            return "switch reference 0 has no effect"
+        if reference >= len(self.preview_switches):
+            return f"switch reference {reference} is not defined in the UI-test map"
+        switch = self.preview_switches[reference]
+        if switch.action != 0x04:
+            return f"switch action ${switch.action:02X} is not simulated"
+        # adrCd005D2E resolves X/Y on the current floor. Fail closed for an
+        # invalid synthetic record instead of writing outside the test floor.
+        if not (0 <= switch.x < width and 0 <= switch.y < height):
+            return f"switch reference {reference} has an invalid target"
+
+        # adrJA005B2A flips the switch graphic's state bit before dispatch.
+        self.preview_map.set_cell(
+            INTERFACE_PREVIEW_FLOOR, *front, MapCell(cell.first ^ 0x04, cell.second)
+        )
+        target = self.preview_map.cell(INTERFACE_PREVIEW_FLOOR, switch.x, switch.y)
+        if target.second & 0x80:
+            # adrJA005CFC skips a target with second-byte bit 7 set, but the
+            # switch's own state has already changed and must still redraw.
+            result = "unchanged (target bit 7 set)"
+        else:
+            # adrJA005CFC AND.W #$00F9 clears the ENTIRE first byte plus
+            # type bits 1/2, then EOR.B #$01 toggles space <-> stone. This
+            # is not a general type replacement preserving the first byte.
+            replacement = MapCell(0, (target.second & 0xF9) ^ 0x01)
+            self.preview_map.set_cell(
+                INTERFACE_PREVIEW_FLOOR, switch.x, switch.y, replacement
+            )
+            result = "wall restored" if replacement.map_type == 1 else "wall removed"
+        self._render_preview_dungeon()
+        return f"switch {reference}, target ({switch.x},{switch.y}): {result}"
 
     def toggle_preview_door(self) -> str:
         """Apply Click_MultiFunctionButton's verified door-toggle subset.
@@ -1558,7 +1643,7 @@ class InterfaceProject:
 
     def reload(self, use_modified: bool) -> None:
         self.use_modified = use_modified
-        self.root = (
+        self.root = self.session.root if self.session is not None else (
             savegame_overlay_root(self.clean_root, self.savegame_path)
             if self.savegame_path is not None
             else data_overlay_root(self.clean_root, self.modified_root, enabled=self.use_modified)
@@ -1570,8 +1655,12 @@ class InterfaceProject:
             self.champions = ChampionAssets(self.root)
             self.character_assets = CharacterAssets(self.root / "data", self.root / "gfx")
             self.dungeon_assets = DungeonAssets(self.root / "gfx")
-            self.dungeon_background = load_dungeon_background(self.root / "gfx")
+            self.dungeon_backgrounds = tuple(
+                load_dungeon_background(self.root / "gfx", pattern_parity=parity)
+                for parity in range(2)
+            )
             self.preview_map = interface_preview_map()
+            self.preview_switches = INTERFACE_PREVIEW_SWITCHES
             if (
                 self.preview_map.widths[INTERFACE_PREVIEW_FLOOR],
                 self.preview_map.heights[INTERFACE_PREVIEW_FLOOR],
@@ -1748,6 +1837,8 @@ class InterfaceProject:
         self, player: int, alternate: bool, step: int, word: int
     ) -> None:
         self.colour_words[colour_ramp_index(player, alternate, step)] = word & 0x0FFF
+        if self.session is not None:
+            self.session.write("gfx-data/PlayerColourRamps.colours", struct.pack(">24H", *self.colour_words))
 
     def object_pocket_pixels(self, object_code: int) -> list[list[int]]:
         if not 0 <= object_code < 0x6E:
@@ -1826,6 +1917,9 @@ class InterfaceProject:
         return pixels
 
     def save_colour_ramps(self) -> Path:
+        if self.session is not None:
+            self.session.export()
+            return self.session.modified_root / "gfx-data/PlayerColourRamps.colours"
         destination = self.modified_root / "gfx-data/PlayerColourRamps.colours"
         destination.parent.mkdir(parents=True, exist_ok=True)
         destination.write_bytes(struct.pack(">24H", *self.colour_words))

@@ -1,0 +1,79 @@
+label	relabel	Type	DATA BLOCK FILE	name	BW439 Position	offset	size	Length (Hexidecimal)	data_action	source_comment
+adrJA005B2A	MainWall_Action_03_Switches									A6/D0: clicked wall cell. Toggle its light, dispatch the current-tower record, then play sound 0; reference zero returns unchanged.
+adrJB005B66	Switch_00_s00_Null									No switch effect; return to caller. Also the base for Switches_LookupTable signed word displacements.
+adrJT005B68	Switches_LookupTable									Eight signed word displacements from Switch_00_s00_Null, indexed directly by the even action byte $00-$0E.
+adrJA005CF8	Trigger_15_t1E_CreateWall_XY									A1/D1: trigger record. Remove the target feature, then create a stone wall unless the retained flag blocks creation. Not switch action $00.
+adrJA005CFC	Switch_02_s04_Trigger_23_t2E_ToggleWall_XY									A1/D1: action record. Resolve CC/DD on the active floor; when second-byte bit 7 is clear, reset first-byte data and toggle space/stone wall.
+adrCd005D10	Return_WallToggle									Return after the target-wall toggle or its flag check.
+adrJA005D12	Switch_01_s02_Trigger_11_t16_RemoveXY									A1/D1: action record. Clear the target type, also clearing decoration/facing if it was stone. A6/D0 returns the target; other flags survive.
+adrCd005D26	Clear_TargetMapCellType									A6/D0: target cell. Clear second-byte type bits 0-2 and return; retain first-byte data and other flags.
+adrCd005D2E	Resolve_ActionTargetXY									A1: tower record block; D1: four-byte record offset. Read CC/DD; return D7=X:word/Y:word and A6/D0=target cell on the loaded floor. Clobbers A0.
+adrCd006E90	Process_PlayerMoveFloorFeature	code			$6B0C	27404				A6/D0: type-6 destination. Subtype 0 clears living champions worn spells; subtype 1 skips trigger dispatch; subtypes 2/3 execute the pad.
+adrCd006EA0	Dispatch_PlayerMoveTriggerPad	code			$6B1C	27420				D1: nonzero floor subtype. Skip pit subtype 1; dispatch visible/invisible pads 2/3 using the destination in A6/D0.
+adrCd006F80	Clear_PartyWornSpells									A5: party. Clear worn spells for living occupied slots and redraw the party panel. Preserve D0/D7/A6 for movement.
+adrLp006F86	Clear_PartyWornSpells_NextSlot									D7: party slot 3 down to 0. Skip dead/unavailable slots and clear the living champion worn-spell byte at stat record +$11.
+adrCd006F9A	Clear_PartyWornSpells_Continue									Continue the four-slot loop, redraw the party command panel, restore movement registers and return.
+adrEA006FA8	TriggerSound_ID									Signed word selecting post-trigger sound: negative suppresses playback, 0 is switch click, 1 door click, 5 alternative spell sound. Not a wait flag.
+adrCd006FAA	Execute_FloorTrigger									A5: party; A6/D0: pad cell; D7: movement X/Y. Choose default sound, dispatch the tower trigger record, then restore movement state, possibly rewritten by teleport.
+adrCd006FC0	Resolve_FloorTriggerRecord									A6/D0: pad cell. Return A1=current tower trigger block, D1=reference*4, D2=action byte. Select spell sound for actions $08/$0A/$2A.
+adrCd006FF2	Select_TriggerSpellSound									Set the pending trigger sound to the alternative spell effect before dispatch.
+adrCd006FF8	Dispatch_TriggerAndPlaySound									A1/D1: record; D2: even action byte. Call the signed-offset handler with D0/D7/A6 saved; play the returned nonnegative TriggerSound_ID.
+adrCd007012	Restore_TriggerMovementState									Pop dispatcher D0/D7/A6. Teleport and tower-entry handlers rewrite this saved frame so movement resumes at the destination.
+adrJB007016	Trigger_00_t00_Null									Return without an effect. Also the base for Triggers_LookupTable signed word displacements and a shared RTS for other routines.
+adrJT007018	Triggers_LookupTable									31 signed word displacements from Trigger_00_t00_Null; the action byte is the byte offset $00-$3C, not an ordinal to double again.
+adrJA007356	Trigger_20_t28_Keep_Entrance_CentrePad									Single-party return to the Keep: select the departing tower arrival floor/pair, store its midpoint, and replace saved dispatcher movement state.
+adrJA007386	Trigger_19_t26_Keep_Entrance_SidePad									Two-party return to the Keep: require a player party at record CC/DD, then place both parties on the corresponding Keep arrival pair.
+adrCd0073A2	Return_KeepEntrancePartnerMissing									Discard the saved trigger-record pointer and return after the opposite-pad player check fails.
+adrCd0073A6	Prepare_KeepEntranceArrivalPair									A1: partner party; stack: trigger pointer. Save outgoing tower state; select Keep arrival floor and pair using the current tower.
+adrJA0073E6	Trigger_10_t14_Tower_Entrance_CentrePad									Single-party tower entrance: BB selects a four-byte arrival pair, floor is zero, and the party appears at the pair midpoint.
+adrCd007408	Enter_TowerAtArrivalMidpoint									A0/D0: arrival pair; D1: floor; A5: party. Store midpoint, select tower/map/floor, rewrite dispatcher D0/D7/A6, mark occupancy, unpack monsters.
+adrJA007454	Trigger_09_t12_Tower_Entrance_SidePad									A1/D1: trigger record. Require a player party at CC/DD; BB selects an arrival side. Negative MultiPlayer values return immediately.
+adrCd00746E	Discard_TowerEntranceRecord									Discard the saved trigger-record pointer after the opposite-pad player check fails.
+adrCd007470	Return_TowerEntrance									Return when the current game mode or opposite-pad occupancy prevents tower travel.
+adrCd007472	Prepare_TowerEntranceArrivalPair									A1: partner party; stack: trigger pointer. Save outgoing state; use BB*2 as arrival-side offset and floor zero.
+adrCd00748C	Enter_TowerAtPairedArrivals									A1: partner; A5: active party; A0/D0: arrival side; D1: floor. Place both parties, replace saved dispatcher movement state and load tower monsters.
+adrJA007502	Trigger_30_t3C_RemoveXY_IfPuzzleBitsSet									Remove the record CC/DD target only when bit 0 is set in both first bytes at current tower map-cell offsets $14 and $1C.
+adrJA00751A	Trigger_29_t3A_GameCompletion									Run the ending display for the player interface or interfaces, present it through both screen buffers, then wait for the completion flag to clear.
+adrJA007630	Trigger_28_t38_ToggleFloorSubtype_XY									A1/D1: record. XOR target first byte with 3: subtype 0 swaps with 3 and 1 with 2; ceiling-hole/reference bits and cell type are unchanged.
+adrJA00763C	Trigger_25_t32_Teleport_FXY									BB: destination floor; CC/DD: X/Y. Try the target then one cell north, checking bit 7 only. On success update player and saved movement state; no flash.
+adrCd007660	Commit_TeleportWithoutFlash									D6: destination floor; D7: X/Y; A6/D0: destination cell. Call the shared commit helper and return without queueing a flash.
+adrCd007664	Commit_TriggerTeleport									D6: floor; D7: X/Y; A6/D0: destination. Move occupancy and player position; rewrite dispatcher D0/D7 at SP+8/+12. Requires two nested return addresses.
+adrJA007686	Trigger_21_t2A_Flash_Teleport_FXY									BB: destination floor; CC/DD: X/Y. Try target then one cell east, checking bit 7 only. Commit player/saved movement state and queue a flash.
+adrCd0076AC	Commit_TeleportAndQueueFlash									Commit destination D6/D7/A6/D0, then queue effect $10 at the arrival cell. Post-trigger sound remains selected by the dispatcher.
+adrJA0076B4	Switch_04_s08_Trigger_22_t2C_RotateWall_XY									A1/D1: record. Advance target second-byte facing bits 4-5 by one direction, preserving all other bits.
+adrJA0076D2	Trigger_06_t0C_WoodTrap1									On the loaded floor, set first-byte bit 2 at (13,12) and clear bit 6 at (14,12); record parameters are unused.
+adrJA0076EA	Trigger_07_t0E_WoodTrap2									On the loaded floor, clear first-byte bit 2 at (3,0) and set bit 6 at (4,0); record parameters are unused.
+adrJA007702	Trigger_08_t10_Trader_DoorCloser									A6/D0: trigger cell. Set the north-edge closed bit in the cell immediately west if its second-byte bit 7 is clear.
+adrCd007710	Return_TraderDoorCloser									Return after checking or closing the wooden door beside the trader pad.
+adrJA007712	Trigger_01_t02_Spinner180									A5: party. XOR facing at +$20 with 2 to reverse direction; do not change position or read record parameters.
+adrJA00771A	Trigger_02_t04_SpinnerRandom									A5: party. Mask a random value to 0-3 and store the new facing at +$20; position is unchanged.
+adrJA007728	Trigger_24_t30_SpinnerRight90									A5: party. Increment facing at +$20 modulo four, matching the normal right-turn control; record parameters are unused.
+adrJA007734	Trigger_12_t18_Close_VoidLock_Door_XY									A1/D1: record. Set target first-byte bit 0 and request sound 1; preserve lock data and do not test for a key.
+adrJA007746	Switch_03_s06_Trigger_03_t06_OpenLockedDoor_XY									A1/D1: record. Clear target first-byte bit 0 and request sound 1; preserve lock data. Switch dispatch subsequently plays sound 0.
+adrJA007758	Switch_07_s0E_Trigger_26_t34_RotateWood_XY									A1/D1: record. Rotate the target first byte right by two bits, moving each wooden edge one side counterclockwise.
+adrJA007768	Switch_06_s0C_Trigger_18_t24_CreatePillar_XY									A1/D1: record. Clear the target type, then fall through to set first byte 1 and type 3, preserving remaining flags.
+adrJA00776C	Switch_05_s0A_Trigger_13_t1A_TogglePillar_XY									A1/D1: record. Set first byte 1 and XOR second byte with 3; normally toggles space/pillar but performs no type check.
+adrJA00777E	Trigger_14_t1C_SetFloorTypeBits_XY									A1/D1: record. OR second byte with 6; retain first byte and other flags. Starting types with bit 0 set become type 7.
+adrJA00778A	Trigger_26_t34_ToggleFloorTypeBits_XY									A1/D1: record. XOR second byte with 6 on the loaded floor; BB is unused and no teleport occurs.
+adrJA007796	Trigger_16_t20_ToggleNeighbourFloorType									BB: movement-vector index from the triggering cell. Toggle neighbour type bits with 6; if out of bounds, remove the record CC/DD target instead.
+adrJA0077D6	Trigger_17_t22_MovePillar_NorthWestToNorth									A6/D0: triggering cell. Create a pillar one cell north and clear the cell northwest; ignore BB/CC/DD and retain upper second-byte flags.
+adrJA007800	Trigger_04_t08_Vivify_Machine_External									A6/D0: external pad; A5: party. Close the eastern doorway if unoccupied; queue Vivify and search ground remains two cells east, then place/rejoin a champion.
+adrCd007812	VivifyExternal_SearchRevivalCell									A6/D0: revival cell. Queue effect $86; require an unoccupied cell with objects, then scan its four stack corners for remains.
+adrLp00782A	VivifyExternal_FindCornerStack									D4: corner 3 down to 0. Find that corner object stack at A6/D0; matching stack returns A0/D7 for its record.
+adrCd007832	VivifyExternal_NextCorner									Continue the four-corner ground-stack search after a missing stack or no valid remains.
+adrCd007836	Return_VivifyExternalNoRemains									Return when the revival cell is occupied, has no objects, or contains no suitable champion remains.
+adrCd007838	VivifyExternal_PrepareRemainsScan									A0/D7: object stack. Set A1 to its object pairs and D3 to the last two-byte pair offset.
+adrCd007844	VivifyExternal_CheckRemainsCode									A1/D3: object pair. Accept codes $40-$4F and return their champion number 0-15 in D2.
+adrCd007854	VivifyExternal_PreviousObject									Step D3 back by two bytes; after the first pair, continue with the next ground-stack corner.
+adrCd00785A	VivifyExternal_ConsumeRemains									Reserve the revival cell, remove the selected remains, recover its floor/X/Y, and find the champion party membership.
+adrCd00787E	Place_VivifiedChampionAtCell									D0: champion; D2: packed X/Y; D3: floor. Write champion location/current tower and face west. Returns A4 stat record; swaps D2 words.
+adrCd0078A0	VivifyExternal_RestorePartyMember									A5: owning party; D1: slot; D0: champion. Clear the dead bit and choose whether the revived champion replaces a dead leader.
+adrCd0078B6	VivifyExternal_ReplaceDeadLeader									Move the old leader to the revived slot and select the revived champion before installing the new leader.
+adrCd0078C0	VivifyExternal_InstallRevivedLeader									D0: champion; D2: X/Y; D3: floor; A5: party. Install and select the new leader, relocate the party and face west.
+adrCd0078E4	VivifyExternal_RefreshParty									Refresh the revived party interface, restore the activating party A5 from the stack and return.
+adrJA0078F0	Trigger_05_t0A_Vivify_Machine_Internal									A6/D0: internal pad; A5: party. Close the western doorway, queue Vivify, play sound once and revive eligible dead party slots with five HP/vitality.
+adrCd0078FA	VivifyInternal_QueueEffectAndSound									Queue effect $86 at the pad, play sound 5 now, suppress dispatcher sound, and begin scanning four party slots.
+adrLp007910	VivifyInternal_ReviveNextSlot									D0: slot 3 down to 0. Skip empty/unavailable/living slots; clear dead flag and restore five vitality and hit points for eligible champions.
+adrLp007940	VivifyInternal_FindDisplaySlot									D1: display slot 3 down to 0. Find a negative/free champion-order entry; fall back to slot zero if all are used.
+adrCd00794C	VivifyInternal_InsertDisplayChampion									D0: revived party slot; D1: display slot. Keep champion-number bits only and copy the number into the display order.
+adrCd007958	VivifyInternal_FinishParty									Continue the party-slot loop, then reset party-command/presentation state and refresh the current interface.

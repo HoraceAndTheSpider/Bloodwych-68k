@@ -60,8 +60,12 @@ ceiling holes, Firepaths, Mindrocks and Formwalls. It does not substitute
 newly drawn editor artwork.
 
 `Q` and `E` turn left/right by 90 degrees. `W` and `S` move forward/backward;
-`A` and `D` strafe left/right relative to the current facing. Arrow keys remain
-absolute map-cursor movement. The small line inside the cycling cursor shows
+`A` and `D` strafe left/right relative to the current facing. These controls and
+mapped joypad movement work in **all five map modes**. Arrow keys remain
+absolute map-cursor movement, or edit the selected property; Escape deselects
+that property. Moving the cursor pans it into view without changing zoom.
+Use **JOYPAD (F8)** to [define device-specific movement, pointer and fire controls](joypad-controls.md).
+The small line inside the cycling cursor shows
 the current facing. Cursor movement is intentionally an editor navigation
 operation and is not blocked by game collision rules.
 
@@ -152,26 +156,17 @@ source build and cannot use fixed-size binary patching. The object editor now
 reports that boundary explicitly as **source build required** instead of
 silently overfilling the resource.
 
-## Clean and modified data
+## Shared session data
 
-Ordinary editing loads a tower from its matching modified map when one already
-exists, otherwise it falls back to the clean extraction. Saving writes only
-the dirty `$1000` map resource to:
+Maps, actors, objects and artwork read one live editing session. Modified files
+are imported explicitly through **DATA / FILES**. There is no independent art
+clean/modified toggle. Returning to the launcher and opening another viewer
+retains edits without saving. **EXPORT ALL** writes the whole session to
+`-modified`; **PATCH** validates fixed sizes and writes a separate binary/save
+copy. Clean resources and original inputs remain immutable.
 
-```text
-data/BLOODWYCH439-modified/maps/<tower>.map
-```
-
-The original file in `BLOODWYCH439-clean` is never altered. Existing Extract,
-Inspect and Patch tools can consequently validate and patch the replacement by
-the same spreadsheet-defined resource name.
-
-Viewer actor and dungeon artwork has a separate explicit `ART: CLEAN` /
-`ART: MODIFIED` selector. It initially matches the data root used to launch the
-editor, so launching a `-modified` project is labelled accurately. The modified
-option is available only when the matching modified data directory exists; it
-reloads the complete visual set while leaving the map project's normal map
-overlay rules unchanged.
+See [shared editing sessions](edit-session.md) for RESET, section RELOAD,
+snapshot imports, save compatibility and future play-test isolation.
 
 ## WHDLoad save overlay
 
@@ -195,15 +190,16 @@ Launching with:
 python main.py maps --savegame whdload/bloodsave0
 ```
 
-reads map state from that save. Saving copies the complete save, patches only
-dirty fixed-size resources and runtime fields that fall within the save, and
-writes it to:
+reads map state from that save. EXPORT preserves a resumable session snapshot.
+PATCH, after confirmation, copies the complete save and applies changes only
+within its fixed bounds. The output is:
 
 ```text
 data/BLOODWYCH439-modified/whdload/bloodsave0
 ```
 
-The supplied WHDLoad save is never overwritten.
+The supplied WHDLoad save is never overwritten; if the output exists, a numbered
+successor is written.
 Object stacks and packed monsters can therefore be edited where their resource
 segments are present. Switches, triggers, and shared character-design tables
 remain read-only because they are outside the portable save block.
@@ -340,6 +336,28 @@ grade; its minimum grade constants remain source/EQU work and are not guessed
 or rewritten by the UI. Monster levels above an extracted renderer's final
 colour grade use that final grade in both the Data Viewer and dungeon preview,
 rather than making the graphical preview unavailable.
+
+Large-monster design previews share one integer pixel scale across all five
+distances. Widths follow the source sprites, with wrapping onto a second row
+when needed; distant sprites are never independently enlarged to fill a slot.
+The preview area extends downwards only in large-monster design mode.
+
+`MINI-PALETTE` selects the predefined four-ink palette for the displayed
+family/grade. Its four `SHARED INK` controls edit that palette in
+`monsters/monsters.palette`, affecting **every monster using it**, even across
+families. Changing the selector affects every instance of that family/grade;
+large and small dragons share `dragon.colours`. Both edits are shared game
+resources, unavailable in save mode, and are included in the design section's
+session export/reset. Unsaved changes refresh the design and dungeon previews.
+Illusions use their separate fixed palette and Entropy bypasses grade selection.
+
+In SPS 439, original routine `adrCd009E94` subtracts the renderer's grade base,
+clamps to 0–7, reads one byte from the family's colour lookup, multiplies it
+by four and selects four ink indices from `adrEA009E60` (`monsters.palette`).
+The extracted bank contains 13 mini-palettes. The controls derive counts from
+the extracted resources, but adding palettes or 16-grade tables to an original
+game still requires a compatible layout/source rebuild, including changing that
+source clamp; the editor does not expand or relocate these resources.
 
 Editable `-` / `+` controls repeat after a short press-and-hold delay, then
 advance at a deliberately limited rate. Champion stats, pockets and spellbook

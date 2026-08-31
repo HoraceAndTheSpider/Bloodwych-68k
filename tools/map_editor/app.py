@@ -7,13 +7,13 @@ import argparse
 from pathlib import Path
 from typing import Sequence
 
-from tools.data_overlay import DataOverlayPath
 from tools.dungeon_view import (
     DungeonAssets,
     load_dungeon_background,
     render_dungeon_scene,
 )
 from tools.gamefont_converter import glyph_pixels, read_font
+from tools.joypad import movement_action_for_event
 from tools.map_editor.first_person import (
     FACING_NAMES,
     FORWARD_VECTORS,
@@ -45,6 +45,7 @@ from tools.map_editor.actor_editor import (
     monster_teams,
 )
 from tools.map_editor.model import (
+    LARGE_MONSTER_GRADE_TABLES,
     ChampionMapRecord,
     MapCell,
     MapProject,
@@ -58,7 +59,13 @@ from tools.map_editor.layout import (
     is_layout_elevation_cell,
     stair_alignment_links,
 )
-from tools.map_editor.render import MAP_TYPE_NAMES, cell_glyph, describe_cell, draw_map_cell
+from tools.map_editor.render import (
+    MAP_TYPE_NAMES,
+    cell_glyph,
+    describe_cell,
+    draw_map_cell,
+    layout_icon_surface,
+)
 from tools.map_editor.semantics import (
     SWITCH_ACTIONS,
     TRIGGER_ACTIONS,
@@ -134,15 +141,6 @@ OVERLAY_ENABLED = (True, True, True, True, True, True, True, True, True)
 OVERLAY_DEFAULTS = (False,) * len(OVERLAY_NAMES)
 FIRST_PERSON_SCALE = 3
 FIRST_PERSON_RECT = (810, 432, 128 * FIRST_PERSON_SCALE, 76 * FIRST_PERSON_SCALE)
-LARGE_MONSTER_GRADE_TABLES = {
-    0x64: "summon.colours",
-    0x65: "summon.colours",
-    0x66: "beholder.colours",
-    0x67: "behemoth.colours",
-    0x68: "crab.colours",
-    0x69: "dragon.colours",
-    0x6A: "dragon.colours",
-}
 # Five representative grid-depth previews. Source gfx slot 3 is the rear
 # mini-position at the same two-grid-space range as slot 2, so the compact
 # design strip uses one representative there and retains both distant slots.
@@ -288,6 +286,44 @@ def integer_preview_scale(
     )
 
 
+def monster_design_preview_layout(
+    sizes: Sequence[tuple[int, int]], target_size: tuple[int, int],
+) -> tuple[int, tuple[tuple[int, int, int, int], ...]]:
+    """Pack labelled previews in source order with ONE integer pixel scale.
+
+    Wrapping lets broad close monsters stay large without enlarging distant
+    sprites independently. Each returned box includes 18px for its label.
+    """
+
+    width, height = target_size
+    if not sizes or any(w <= 0 or h <= 0 for w, h in sizes):
+        raise ValueError("preview dimensions must be positive")
+    for scale in (3, 2, 1):
+        rows = [[]]
+        row_width = 0
+        for w, h in sizes:
+            box = (max(50, w * scale + 8), h * scale + 18)
+            if rows[-1] and row_width + box[0] > width:
+                rows.append([])
+                row_width = 0
+            rows[-1].append(box)
+            row_width += box[0]
+        row_heights = [max(h for _, h in row) for row in rows]
+        if (max(w for row in rows for w, _ in row) > width
+                or sum(row_heights) + 4 * (len(rows) - 1) > height):
+            continue
+        boxes = []
+        y = 0
+        for row, row_height in zip(rows, row_heights):
+            x = (width - sum(w for w, _ in row)) // 2
+            for w, _ in row:
+                boxes.append((x, y, w, row_height))
+                x += w
+            y += row_height + 4
+        return scale, tuple(boxes)
+    raise ValueError("monster previews do not fit at native pixel size")
+
+
 def champion_preview_body_design(
     character_assets: CharacterAssets,
     champion: int,
@@ -363,51 +399,12 @@ def default_floor(project: MapProject, tower: int) -> int:
     )
 
 
-def joystick_navigation_action(
-    event: object,
-    *,
-    hat_motion_type: int,
-    button_down_type: int,
-    axis_motion_type: int | None = None,
-) -> str | None:
-    """Translate the first joystick's D-pad/buttons into viewer actions.
-
-    D-pad directions mirror W/A/S/D (forward/back/lateral movement).  The
-    first two joystick buttons are intentionally a provisional Q/E mapping.
-    """
-
-    if getattr(event, "type", None) == hat_motion_type:
-        x, y = getattr(event, "value", (0, 0))
-        if y > 0:
-            return "MOVE-FORWARD"
-        if y < 0:
-            return "MOVE-BACK"
-        if x < 0:
-            return "MOVE-LEFT"
-        if x > 0:
-            return "MOVE-RIGHT"
-    elif getattr(event, "type", None) == button_down_type:
-        if getattr(event, "button", None) == 0:
-            return "TURN-LEFT"
-        if getattr(event, "button", None) == 1:
-            return "TURN-RIGHT"
-    elif axis_motion_type is not None and getattr(event, "type", None) == axis_motion_type:
-        axis = getattr(event, "axis", None)
-        value = getattr(event, "value", 0.0)
-        if abs(value) < 0.5:
-            return None
-        if axis == 0:
-            return "MOVE-LEFT" if value < 0 else "MOVE-RIGHT"
-        if axis == 1:
-            return "MOVE-FORWARD" if value < 0 else "MOVE-BACK"
-    return None
-
-
 def launch_map_editor(
     data_root: Path | None = None,
     *,
     savegame_path: Path | None = None,
     screenshot_path: Path | None = None,
+    session=None,
     initial_tab: int = 0,
     initial_actor_mode: str = "CHAMPIONS",
 ) -> None:
@@ -416,39 +413,23 @@ def launch_map_editor(
     except ImportError as error:
         raise MapEditorError("Pygame is required for the map editor") from error
 
+    from tools.edit_session import EditSession
+    from tools.session_panel import SessionPanel
+    from tools.joypad_panel import JoypadControls
     data_root = Path(data_root or (DATA_DIR / "BLOODWYCH439-clean"))
+    session = session or EditSession.for_data_root(data_root, savegame_path=savegame_path)
     try:
-        project = (
-            MapProject.from_savegame(data_root, Path(savegame_path))
-            if savegame_path is not None
-            else MapProject.from_extracted(data_root)
-        )
+        project = MapProject.from_session(session)
     except (OSError, ValueError) as error:
         raise MapEditorError(str(error)) from error
 
-    def load_visual_assets(use_modified: bool):
-        """Load an explicit clean/modified graphics set for all actor art."""
+    def load_visual_assets():
+        """Decode actor artwork from the same live bytes as the editors."""
 
-        current_gfx_dir = DataOverlayPath(
-            project.clean_root / "gfx",
-            project.modified_root / "gfx",
-            use_modified,
-        )
-        current_data_dir = DataOverlayPath(
-            project.clean_root / "data",
-            project.modified_root / "data",
-            use_modified,
-        )
-        current_monsters_dir = DataOverlayPath(
-            project.clean_root / "monsters",
-            project.modified_root / "monsters",
-            use_modified,
-        )
-        current_data_root = DataOverlayPath(
-            project.clean_root,
-            project.modified_root,
-            use_modified,
-        )
+        current_data_root = session.root
+        current_gfx_dir = current_data_root / "gfx"
+        current_data_dir = current_data_root / "data"
+        current_monsters_dir = current_data_root / "monsters"
         try:
             backgrounds = tuple(
                 load_dungeon_background(current_gfx_dir, pattern_parity=parity)
@@ -487,7 +468,6 @@ def launch_map_editor(
             monsters,
         )
 
-    use_modified_art = data_root.name.endswith("-modified")
     (
         gfx_dir,
         data_dir,
@@ -499,7 +479,7 @@ def launch_map_editor(
         object_assets,
         champion_assets,
         monster_assets,
-    ) = load_visual_assets(use_modified_art)
+    ) = load_visual_assets()
 
     def sync_character_design_preview() -> None:
         """Keep unsaved shared design edits visible across art reloads."""
@@ -518,14 +498,10 @@ def launch_map_editor(
     sync_character_design_preview()
 
     pygame.init()
-    pygame.joystick.init()
-    joystick = None
-    if pygame.joystick.get_count() > 0:
-        joystick = pygame.joystick.Joystick(0)
-        joystick.init()
     pygame.key.set_repeat(250, 45)
     try:
         screen = set_display_mode(pygame, WINDOW_SIZE)
+        joypad = JoypadControls(pygame)
         fullscreen = is_fullscreen()
         pygame.display.set_caption("Bloodwych ReSource - Map Editor")
         title_font = pygame.font.SysFont(None, 30)
@@ -591,7 +567,6 @@ def launch_map_editor(
             pygame.Rect(20 + index * (tab_width + tab_gap), 52, tab_width, 34)
             for index in range(len(EDITOR_TABS))
         )
-        art_rect = pygame.Rect(856, 52, 135, 34)
         source_rect = pygame.Rect(999, 52, 191, 34)
         display_mode_rect = pygame.Rect(WINDOW_SIZE[0] - 60, 12, 50, 28)
         tower_rects = tuple(
@@ -614,11 +589,7 @@ def launch_map_editor(
         links_rect = pygame.Rect(MAP_ORIGIN[0], 662, overlay_width * 2 + overlay_gap, 20)
         overlay_rects = main_overlay_rects + (links_rect,)
         save_rect = pygame.Rect(1010, 278, 180, 30)
-        save_button_label = (
-            "SAVE EDITED SAVE COPY"
-            if project.save_data is not None
-            else "SAVE TO -MODIFIED"
-        )
+        save_button_label = "EXPORT ALL"
         back_rect = pygame.Rect(20, 712, 100, 32)
         map_operation_rects = (
             ("COPY", "COPY", pygame.Rect(1010, 108, 42, 24)),
@@ -1148,7 +1119,30 @@ def launch_map_editor(
                     character_assets.colours = bytes(colours)
                     status_message = "UNSAVED SHARED CHARACTER DESIGN CHANGE"
                     return
-                grade_table = LARGE_MONSTER_GRADE_TABLES.get(record.form)
+                grade_table = None if record.is_illusion else LARGE_MONSTER_GRADE_TABLES.get(record.form)
+                if grade_table and (action.startswith("MINI-PALETTE") or action.startswith("MINI-INK")):
+                    try:
+                        lookup, palettes = project.monster_grade_design(record.form)
+                        step = max(0, min(len(lookup) - 1, record.colour_grade_step))
+                        palette = lookup[step]
+                        delta = -1 if action.endswith("-") else 1
+                        if action in ("MINI-PALETTE-", "MINI-PALETTE+"):
+                            project.set_monster_grade_palette(
+                                record.form, step, (palette + delta) % min(256, len(palettes))
+                            )
+                            status_message = "SHARED GRADE PALETTE CHANGED — ALL MONSTERS USING THIS FAMILY/GRADE"
+                        else:
+                            slot = indexed_action_value(action, "MINI-INK")
+                            project.set_monster_palette_ink(
+                                record.form, palette, slot, (palettes[palette][slot] + delta) % 16
+                            )
+                            status_message = "SHARED MINI-PALETTE CHANGED — AFFECTS EVERY MONSTER USING IT"
+                        # Session revision reloads all renderers, including the
+                        # Beholder's cached palette and the dungeon preview.
+                        project.sync_session()
+                    except (OSError, ValueError, IndexError) as error:
+                        status_message = str(error)
+                    return
                 if action in ("GRADE-", "GRADE+") and grade_table is not None:
                     if record.source == "live":
                         status_message = "ACTIVE-TOWER LIVE MONSTER GRADES ARE VIEW ONLY"
@@ -1427,16 +1421,12 @@ def launch_map_editor(
         def save_changes() -> None:
             nonlocal status_message
             try:
-                written = project.save()
-            except OSError as error:
-                status_message = f"SAVE FAILED: {error}"
+                project.sync_session()
+                panel.perform("EXPORT")
+            except (OSError, ValueError, RuntimeError) as error:
+                status_message = f"EXPORT FAILED: {error}"
                 return
-            if written:
-                status_message = "SAVED: " + written[0].relative_to(
-                    project.modified_root.parent
-                ).as_posix().upper()
-            else:
-                status_message = "NO CHANGES TO SAVE"
+            status_message = panel.message
 
         def cell_size() -> int:
             return CELL_SIZE * zoom
@@ -1521,6 +1511,21 @@ def launch_map_editor(
             clamp_selection()
             ensure_selection_visible()
 
+        def navigate_cursor(action: str) -> None:
+            nonlocal facing
+            if action == "TURN-LEFT":
+                facing = (facing - 1) & 3
+            elif action == "TURN-RIGHT":
+                facing = (facing + 1) & 3
+            elif action == "MOVE-FORWARD":
+                move_cursor_relative(forward=1)
+            elif action == "MOVE-BACK":
+                move_cursor_relative(forward=-1)
+            elif action == "MOVE-LEFT":
+                move_cursor_relative(lateral=-1)
+            elif action == "MOVE-RIGHT":
+                move_cursor_relative(lateral=1)
+
         def current_first_person_surface():
             nonlocal preview_cache_key, preview_surface, preview_error
             key = (
@@ -1530,7 +1535,7 @@ def launch_map_editor(
                 selected_y,
                 facing,
                 preview_revision,
-                int(use_modified_art),
+                session.revision,
                 *(int(overlays[name]) for name in OVERLAY_NAMES),
             )
             if key == preview_cache_key:
@@ -1872,9 +1877,11 @@ def launch_map_editor(
                     cell = tower_map.cell(floor, x, y)
                     if not is_layout_elevation_cell(cell):
                         continue
-                    icon = rendered_cell(cell).copy()
-                    icon.set_colorkey((0, 0, 0))
-                    icon.set_alpha(alpha if floor != selected_floor else 255)
+                    icon = layout_icon_surface(
+                        rendered_cell(cell),
+                        # Elevation symbols must stand out from the faint grid.
+                        alpha=180 if floor != selected_floor else 255,
+                    )
                     target = pygame.Rect(
                         left + x * size,
                         top + y * size,
@@ -1943,7 +1950,7 @@ def launch_map_editor(
             screen.blit(layer, MAP_ORIGIN)
 
         def draw_button(rectangle, label: str, *, active=False, enabled=True) -> None:
-            hovered = rectangle.collidepoint(pygame.mouse.get_pos())
+            hovered = rectangle.collidepoint(joypad.pointer_position())
             colour = (
                 (55, 108, 173)
                 if active
@@ -1987,17 +1994,20 @@ def launch_map_editor(
             pygame.draw.rect(screen, (76, 101, 132), target, 1)
             return target
 
-        def draw_actor_preview(surface, rectangle) -> object:
+        def draw_actor_preview(surface, rectangle, *, scale=None, bottom_align=False) -> object:
             """Draw source pixels at an integer scale without stretching them."""
 
             source_width, source_height = surface.get_size()
-            scale = integer_preview_scale(
-                (source_width, source_height), rectangle.size
-            )
+            if scale is None:
+                scale = integer_preview_scale(
+                    (source_width, source_height), rectangle.size
+                )
             target = pygame.Rect(
                 0, 0, source_width * scale, source_height * scale
             )
             target.center = rectangle.center
+            if bottom_align:
+                target.bottom = rectangle.bottom
             screen.blit(pygame.transform.scale(surface, target.size), target)
             pygame.draw.rect(screen, (76, 101, 132), target, 1)
             return target
@@ -2011,7 +2021,7 @@ def launch_map_editor(
             selected: bool,
             enabled: bool,
         ) -> None:
-            hovered = rectangle.collidepoint(pygame.mouse.get_pos())
+            hovered = rectangle.collidepoint(joypad.pointer_position())
             background = (
                 (48, 75, 108)
                 if selected
@@ -2392,13 +2402,60 @@ def launch_map_editor(
                             14,
                         )
 
+        def section_names():
+            if selected_tab == 3 and actor_mode == "MONSTERS" and monster_design_mode:
+                record = selected_monster_record()
+                if record is not None and record.form <= 0x55:
+                    return tuple(name for name in session.specs if name.startswith("data/characters."))
+                grade_table = LARGE_MONSTER_GRADE_TABLES.get(record.form) if record and not record.is_illusion else None
+                return (f"monsters/{grade_table}", "monsters/monsters.palette") if grade_table else ()
+            stem = TOWERS[selected_tower].stem
+            names = [name for name in session.specs if name.startswith(f"maps/{stem}.")]
+            if selected_tower == (project.current_tower if project.save_data is not None else 0):
+                names += ["data/champions.stats", "data/champions.pockets"]
+            return names
+
+        def section_label():
+            if selected_tab == 3 and actor_mode == "MONSTERS" and monster_design_mode:
+                record = selected_monster_record()
+                if record is not None and record.form <= 0x55:
+                    return "Character head/body choices and colours (shared by all characters)"
+                return "Shared monster grade selectors and mini-palettes (affects all users)"
+            label = f"Tower data ({TOWERS[selected_tower].name}): map, objects, monsters, counts, switches and triggers"
+            if "data/champions.stats" in section_names():
+                label += "; plus all champion stats and inventory"
+            return label
+
+        panel = SessionPanel(session, section_names, section_label=section_label)
+        session_revision = session.revision
         editor_rows: tuple[CellEditorRow, ...] = ()
         control_rects: tuple[tuple[int, str, str, object, object, object, bool], ...] = ()
         object_item_rects: tuple[tuple[int, object], ...] = ()
         monster_preview_member_rects: tuple[tuple[int, object], ...] = ()
         running = True
         while running:
-            mouse = pygame.mouse.get_pos()
+            project.sync_session()
+            if session.revision != session_revision:
+                try:
+                    new_project = MapProject.from_session(session)
+                    new_assets = load_visual_assets()
+                    project = new_project
+                    (gfx_dir, data_dir, monsters_dir, dungeon_backgrounds, dungeon_assets,
+                     character_assets, spell_assets, object_assets, champion_assets,
+                     monster_assets) = new_assets
+                    sync_character_design_preview()
+                    object_icon_cache.clear()
+                    preview_revision += 1
+                    preview_cache_key = None
+                    clamp_selection()
+                    clamp_pan()
+                    panel.load_error = None
+                except (OSError, ValueError, RuntimeError, IndexError) as error:
+                    panel.load_error = str(error)
+                    panel.message = f"Cannot display this session: {error}. Use RESET or IMPORT to recover."
+                    panel.open = True
+                session_revision = session.revision
+            mouse = joypad.pointer_position()
             monster_preview_member_rects = ()
             screen.fill((24, 26, 31))
             screen.blit(
@@ -2414,12 +2471,6 @@ def launch_map_editor(
                     active=index == selected_tab,
                     enabled=EDITOR_TAB_ENABLED[index],
                 )
-            draw_button(
-                art_rect,
-                "ART: MODIFIED" if use_modified_art else "ART: CLEAN",
-                active=use_modified_art,
-                enabled=project.modified_root.is_dir(),
-            )
             draw_button(source_rect, project.source_description, active=project.save_name is not None)
 
             for index, (tower, rectangle) in enumerate(zip(TOWERS, tower_rects)):
@@ -3176,6 +3227,9 @@ def launch_map_editor(
                     else:
                         selected_monster = min(selected_monster, len(records) - 1)
                         record = records[selected_monster]
+                        if monster_design_mode and record.form > 0x55:
+                            preview_rect.height = 208
+                            pygame.draw.rect(screen, (4, 4, 6), preview_rect)
                         resolved = selected_monster_record(resolved=True) or record
                         teams = {team.group: team for team in monster_teams(project.monsters(selected_tower))}
                         team = None
@@ -3207,16 +3261,20 @@ def launch_map_editor(
                                 if monster_design_mode
                                 else tuple((member, 0) for member in members)
                             )
-                            slot_width = preview_rect.width // len(preview_entries)
-                            preview_member_rectangles = []
-                            for slot, (member_index, distance) in enumerate(preview_entries):
+                            large_design = monster_design_mode and record.form > 0x55
+                            preview_surfaces = []
+                            for member_index, distance in preview_entries:
                                 member = records_by_index[member_index]
-                                canvas = [[0] * 128 for _ in range(128)]
+                                # A roomy source canvas avoids clipping broad
+                                # composite limbs before the preview is cropped.
+                                canvas_size = 256 if large_design else 128
+                                anchor_x, anchor_y = (128, 128) if large_design else (64, 65)
+                                canvas = [[0] * canvas_size for _ in range(canvas_size)]
                                 if member.form <= 0x55 and character_assets is not None:
                                     pixels, _ = render_character_preview(
                                         canvas, character_assets, member.form,
                                         distance=distance,
-                                        facing=0, anchor_x=64, anchor_y=65,
+                                        facing=0, anchor_x=anchor_x, anchor_y=anchor_y,
                                     )
                                 else:
                                     definition = next(item for item in MONSTERS if item.code == member.form)
@@ -3225,7 +3283,7 @@ def launch_map_editor(
                                         distance=distance,
                                         facing=0,
                                         grade_step=member.colour_grade_step,
-                                        animation_frame=0, anchor_x=64, anchor_y=65,
+                                        animation_frame=0, anchor_x=anchor_x, anchor_y=anchor_y,
                                         illusion=member.is_illusion,
                                     )
                                 member_surface = indexed_to_surface(
@@ -3233,21 +3291,36 @@ def launch_map_editor(
                                 )
                                 if member_index != record.index:
                                     member_surface.set_alpha(128)
-                                member_rect = pygame.Rect(
-                                    preview_rect.left + slot * slot_width,
-                                    preview_rect.top,
-                                    slot_width,
-                                    preview_rect.height,
+                                preview_surfaces.append(member_surface)
+                            shared_scale = None
+                            if large_design:
+                                shared_scale, preview_boxes = monster_design_preview_layout(
+                                    [surface.get_size() for surface in preview_surfaces],
+                                    preview_rect.size,
                                 )
+                            else:
+                                slot_width = preview_rect.width // len(preview_entries)
+                                preview_boxes = tuple(
+                                    (slot * slot_width, 0, slot_width, preview_rect.height)
+                                    for slot in range(len(preview_entries))
+                                )
+                            preview_member_rectangles = []
+                            for slot, ((member_index, _), member_surface, box) in enumerate(
+                                zip(preview_entries, preview_surfaces, preview_boxes)
+                            ):
+                                member_rect = pygame.Rect(box).move(preview_rect.topleft)
                                 old_preview_clip = screen.get_clip()
                                 screen.set_clip(member_rect)
-                                target = draw_actor_preview(member_surface, member_rect)
+                                target = draw_actor_preview(
+                                    member_surface, member_rect,
+                                    scale=shared_scale, bottom_align=large_design,
+                                )
                                 screen.set_clip(old_preview_clip)
                                 preview_member_rectangles.append((member_index, target))
                                 if monster_design_mode:
                                     draw_info(
                                         f"VIEW {slot + 1}",
-                                        366,
+                                        member_rect.top + 6,
                                         (235, 200, 105),
                                         x=member_rect.left + 7,
                                     )
@@ -3280,13 +3353,13 @@ def launch_map_editor(
                             )
                             editable = design_editable
                         elif monster_design_mode:
-                            grade_table = LARGE_MONSTER_GRADE_TABLES.get(record.form)
+                            grade_table = None if record.is_illusion else LARGE_MONSTER_GRADE_TABLES.get(record.form)
                             design_rows = [
                                 CellEditorRow("MONSTER", f"{selected_monster + 1} / {len(records)}", "MONSTER-", "MONSTER+"),
                             ]
                             if grade_table is not None:
-                                filename = grade_table
-                                grade_count = len((monsters_dir / filename).read_bytes())
+                                lookup, mini_palettes = project.monster_grade_design(record.form)
+                                grade_count = len(lookup)
                                 grade_step = max(
                                     0,
                                     min(grade_count - 1, record.colour_grade_step),
@@ -3299,6 +3372,15 @@ def launch_map_editor(
                                         "GRADE+",
                                     )
                                 )
+                                palette = lookup[grade_step]
+                                design_rows.append(CellEditorRow(
+                                    "MINI-PALETTE", f"{palette + 1} / {len(mini_palettes)}",
+                                    "MINI-PALETTE-", "MINI-PALETTE+",
+                                ))
+                                design_rows.extend(CellEditorRow(
+                                    f"SHARED INK {slot + 1}", f"${ink:X}",
+                                    f"MINI-INK{slot}-", f"MINI-INK{slot}+",
+                                ) for slot, ink in enumerate(mini_palettes[palette]))
                             editor_rows = tuple(design_rows)
                             editable = record.source == "packed"
                         else:
@@ -3309,19 +3391,28 @@ def launch_map_editor(
                                 CellEditorRow("TYPE", MONSTER_TYPE_NAMES.get(record.category, f"TYPE ${record.category:02X}"), "TYPE-", "TYPE+"),
                                 CellEditorRow("TEAM", team_text, "REMOVE-TEAM", "JOIN-TEAM"),
                             )
-                        draw_info(
-                            "PACKED DATA — EDITABLE" if editable else "LIVE DATA — VIEW ONLY",
-                            692,
-                            (135, 205, 150) if editable else (235, 150, 120),
-                        )
-                        if record.form >= 0x64:
+                        if monster_design_mode and record.form > 0x55:
+                            draw_info(
+                                "SHARED PALETTES — READ ONLY IN SAVES" if project.save_data is not None
+                                else "SHARED: AFFECTS ALL MINI-PALETTE USERS" if grade_table
+                                else "FIXED PALETTE — NO GRADE LOOKUP",
+                                710, (235, 200, 105),
+                            )
+                        else:
+                            draw_info(
+                                "PACKED DATA — EDITABLE" if editable else "LIVE DATA — VIEW ONLY",
+                                692,
+                                (135, 205, 150) if editable else (235, 150, 120),
+                            )
+                        if record.form >= 0x64 and not monster_design_mode:
                             draw_info(
                                 "GRADE MINIMUM: SOURCE/EQU CONTROLLED",
                                 710,
                                 (150, 155, 168),
                             )
                 for index, row in enumerate(editor_rows):
-                    row_top = 542 + index * 18
+                    large_design = actor_mode == "MONSTERS" and monster_design_mode and record.form > 0x55
+                    row_top = (570 if large_design else 542) + index * 18
                     rectangle = pygame.Rect(810, row_top, 380, 17)
                     minus_rectangle = pygame.Rect(1142, row_top + 1, 21, 15)
                     plus_rectangle = pygame.Rect(1167, row_top + 1, 21, 15)
@@ -3330,6 +3421,8 @@ def launch_map_editor(
                         "POCKET-", "MONSTER-", "PALETTE-",
                     }
                     enabled = editable or row.decrement_action in navigation_actions
+                    if row.decrement_action.startswith("MINI-"):
+                        enabled = project.save_data is None
                     if row.decrement_action == "PRACTICE-":
                         enabled = (
                             project.save_data is not None
@@ -3339,6 +3432,11 @@ def launch_map_editor(
                 control_rects = tuple(row_layout)
                 for index, _, _, rectangle, minus_rectangle, plus_rectangle, enabled in control_rects:
                     draw_editor_row(editor_rows[index], rectangle, minus_rectangle, plus_rectangle, selected=index == selected_editor_row, enabled=enabled)
+                    if editor_rows[index].decrement_action.startswith("MINI-INK"):
+                        ink = int(editor_rows[index].value.removeprefix("$"), 16)
+                        swatch = pygame.Rect(1109, rectangle.top + 2, 19, 13)
+                        pygame.draw.rect(screen, GAME_PALETTE_RGB8[ink], swatch)
+                        pygame.draw.rect(screen, (145, 173, 205), swatch, 1)
                 if actor_mode == "MONSTERS":
                     current_monster = selected_monster_record()
                     for action, label, rectangle in monster_operation_rects:
@@ -3415,45 +3513,24 @@ def launch_map_editor(
                 (270, 740),
             )
 
+            panel.draw(pygame, screen)
+            joypad.draw(screen)
             pygame.display.flip()
             if screenshot_path is not None:
                 screenshot_path.parent.mkdir(parents=True, exist_ok=True)
                 pygame.image.save(screen, str(screenshot_path))
                 running = False
 
-            for event in pygame.event.get():
+            for event in joypad.events(pygame.event.get(), screen):
+                project.sync_session()
+                if panel.handle(pygame, event):
+                    continue
                 if event.type == pygame.QUIT:
                     running = False
-                elif (
-                    selected_tab == 0
-                    and joystick is not None
-                    and event.type
-                    in (
-                        pygame.JOYHATMOTION,
-                        pygame.JOYBUTTONDOWN,
-                        pygame.JOYAXISMOTION,
-                    )
-                ):
-                    joystick_action = joystick_navigation_action(
-                        event,
-                        hat_motion_type=pygame.JOYHATMOTION,
-                        button_down_type=pygame.JOYBUTTONDOWN,
-                        axis_motion_type=pygame.JOYAXISMOTION,
-                    )
-                    if joystick_action == "TURN-LEFT":
-                        facing = (facing - 1) & 3
-                    elif joystick_action == "TURN-RIGHT":
-                        facing = (facing + 1) & 3
-                    elif joystick_action == "MOVE-FORWARD":
-                        move_cursor_relative(forward=1)
-                    elif joystick_action == "MOVE-BACK":
-                        move_cursor_relative(forward=-1)
-                    elif joystick_action == "MOVE-LEFT":
-                        move_cursor_relative(lateral=-1)
-                    elif joystick_action == "MOVE-RIGHT":
-                        move_cursor_relative(lateral=1)
-                    if joystick_action is not None:
-                        clamp_selection()
+                elif (movement_action := movement_action_for_event(
+                    pygame, event
+                )) is not None:
+                    navigate_cursor(movement_action)
                 elif event.type == pygame.KEYDOWN:
                     editing_property = (
                         selected_tab in (1, 2, 3, 4)
@@ -3513,18 +3590,6 @@ def launch_map_editor(
                         apply_action("CLEAR")
                     elif event.key == pygame.K_s and (event.mod & pygame.KMOD_CTRL):
                         save_changes()
-                    elif selected_tab == 0 and event.key == pygame.K_q:
-                        facing = (facing - 1) & 3
-                    elif selected_tab == 0 and event.key == pygame.K_e:
-                        facing = (facing + 1) & 3
-                    elif selected_tab == 0 and event.key == pygame.K_w:
-                        move_cursor_relative(forward=1)
-                    elif selected_tab == 0 and event.key == pygame.K_s:
-                        move_cursor_relative(forward=-1)
-                    elif selected_tab == 0 and event.key == pygame.K_a:
-                        move_cursor_relative(lateral=-1)
-                    elif selected_tab == 0 and event.key == pygame.K_d:
-                        move_cursor_relative(lateral=1)
                     elif event.key in (pygame.K_EQUALS, pygame.K_PLUS):
                         set_zoom(zoom + 1)
                     elif event.key == pygame.K_MINUS:
@@ -3549,32 +3614,6 @@ def launch_map_editor(
                 elif event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
                     if back_rect.collidepoint(event.pos):
                         running = False
-                        continue
-                    if art_rect.collidepoint(event.pos) and project.modified_root.is_dir():
-                        use_modified_art = not use_modified_art
-                        try:
-                            (
-                                gfx_dir,
-                                data_dir,
-                                monsters_dir,
-                                dungeon_backgrounds,
-                                dungeon_assets,
-                                character_assets,
-                                spell_assets,
-                                object_assets,
-                                champion_assets,
-                                monster_assets,
-                            ) = load_visual_assets(use_modified_art)
-                            sync_character_design_preview()
-                            object_icon_cache.clear()
-                            preview_revision += 1
-                            preview_cache_key = None
-                            status_message = (
-                                "USING MODIFIED ART" if use_modified_art else "USING CLEAN ART"
-                            )
-                        except MapEditorError as error:
-                            use_modified_art = not use_modified_art
-                            status_message = str(error).upper()
                         continue
                     for index, rectangle in enumerate(tab_rects):
                         if rectangle.collidepoint(event.pos) and EDITOR_TAB_ENABLED[index]:
@@ -3916,11 +3955,12 @@ def launch_map_editor(
                 now = pygame.time.get_ticks()
                 if (
                     selected_tab != held_tab
-                    or not pygame.mouse.get_pressed(3)[0]
+                    or panel.open or joypad.open
+                    or not joypad.left_pressed()
                 ):
                     held_adjustment = None
                 elif (
-                    held_rectangle.collidepoint(pygame.mouse.get_pos())
+                    held_rectangle.collidepoint(joypad.pointer_position())
                     and adjustment_repeat_due(
                         now,
                         held_adjustment_started,
@@ -3931,6 +3971,7 @@ def launch_map_editor(
                     held_adjustment_repeated = now
             clock.tick(60)
     finally:
+        project.sync_session()
         pygame.quit()
 
 

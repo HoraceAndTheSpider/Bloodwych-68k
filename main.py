@@ -26,15 +26,16 @@ from tools.pygame_window import is_fullscreen, set_display_mode, set_scaled_full
 
 
 DATA_GUI_COMMANDS = ("extract", "asmfix", "relabel", "inspect", "format", "patch")
-VIEWER_GUI_COMMANDS = ("graphics", "maps", "interface")
+VIEWER_GUI_COMMANDS = ("graphics", "maps", "interface", "files")
 GUI_COMMANDS = DATA_GUI_COMMANDS + VIEWER_GUI_COMMANDS
 GUI_LABELS = {
-    "extract": "Extract",
+    "extract": "Extract Binary Data",
     "relabel": "Relabel",
     "asmfix": "ASM Fix",
     "inspect": "Inspect / Data",
     "format": "Format Source",
     "patch": "Patch",
+    "files": "Binaries / Saves / Data",
     "graphics": "Data Viewer",
     "maps": "Map Viewer / Editor",
     "interface": "Interface Viewer / Editor",
@@ -56,9 +57,12 @@ def launch_gui(
         ) from error
 
     pygame.init()
+    from tools.session_panel import SessionPanel
+    from tools.joypad_panel import JoypadControls
     try:
         window_size = (620, 450)
         surface = set_display_mode(pygame, window_size)
+        joypad = JoypadControls(pygame)
         fullscreen = is_fullscreen()
         display_mode_rect = pygame.Rect(window_size[0] - 55, 8, 48, 24)
         quit_rect = pygame.Rect(window_size[0] - 78, window_size[1] - 34, 68, 26)
@@ -86,7 +90,7 @@ def launch_gui(
         clock = pygame.time.Clock()
 
         while True:
-            mouse_position = pygame.mouse.get_pos()
+            mouse_position = joypad.pointer_position()
             surface.fill((30, 30, 30))
             pygame.draw.rect(surface, (65, 70, 82), display_mode_rect, border_radius=4)
             mode_label = font.render("WIN" if fullscreen else "FULL", True, (245, 245, 245))
@@ -96,10 +100,13 @@ def launch_gui(
             surface.blit(quit_label, quit_label.get_rect(center=quit_rect.center))
             title = title_font.render("Bloodwych ReSource", True, (245, 245, 248))
             surface.blit(title, title.get_rect(center=(window_size[0] // 2, 25)))
-            profile_label = heading_font.render(
-                f"PROFILE: {profile_name}", True, (175, 180, 190)
-            )
-            surface.blit(profile_label, (10, window_size[1] - 29))
+            profile_lines = profile_name.split(" | ", 1)
+            for index, line in enumerate(profile_lines):
+                text = ("PROFILE: " if index == 0 else "INPUT: ") + line
+                profile_label = heading_font.render(
+                    SessionPanel._fit_path(heading_font, text, quit_rect.left - 20), True, (175, 180, 190)
+                )
+                surface.blit(profile_label, (10, window_size[1] - 42 + index * 21))
             for x, label in zip(column_x, ("SOURCE & DATA", "VIEWERS & EDITORS")):
                 heading = heading_font.render(label, True, (175, 180, 190))
                 surface.blit(heading, heading.get_rect(center=(x + button_width // 2, 58)))
@@ -108,13 +115,14 @@ def launch_gui(
                 pygame.draw.rect(surface, colour, rectangle)
                 label = font.render(GUI_LABELS[command], True, (255, 255, 255))
                 surface.blit(label, label.get_rect(center=rectangle.center))
+            joypad.draw(surface, button_rect=(325, 298, 240, 44))
             pygame.display.flip()
             if screenshot_path is not None:
                 screenshot_path.parent.mkdir(parents=True, exist_ok=True)
                 pygame.image.save(surface, str(screenshot_path))
                 return None
 
-            for event in pygame.event.get():
+            for event in joypad.events(pygame.event.get(), surface):
                 if event.type == pygame.QUIT:
                     return None
                 if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
@@ -140,7 +148,7 @@ def build_parser() -> argparse.ArgumentParser:
         "-m",
         "--master",
         default="BLOODWYCH439",
-        help="Configured binary filename (default: BLOODWYCH439)",
+        help="Binary filename or path; edited versions are identified by content",
     )
     parser.add_argument(
         "-s",
@@ -192,6 +200,7 @@ def build_parser() -> argparse.ArgumentParser:
         help="start with the sparse modified-data overlay enabled",
     )
     maps = subparsers.add_parser("maps", help="Open the map viewer/editor")
+    maps.add_argument("--modified", action="store_true", help="import the modified-data folder into the shared session")
     for viewer in (graphics, maps):
         viewer.add_argument(
             "--savegame",
@@ -213,9 +222,34 @@ def build_parser() -> argparse.ArgumentParser:
         default=argparse.SUPPRESS,
         help="overlay a WHDLoad save over extracted resources",
     )
-    subparsers.add_parser("profiles", help="List configured game binaries")
+    subparsers.add_parser("profiles", help="List supported binary families")
+    subparsers.add_parser("files", help="Open the shared binary/save catalogue")
+    identify = subparsers.add_parser("identify", help="Identify a binary by content without extracting it")
+    identify.add_argument("binary", type=Path)
     subparsers.add_parser("paths", help="Show the canonical project paths")
     return parser
+
+
+def viewer_session(args):
+    from tools.edit_session import EditSession
+    if getattr(args, "_session", None) is None:
+        try:
+            args._session = EditSession(args.master, sheet=Path(args.sheet),
+                                        savegame_path=getattr(args, "savegame", None),
+                                        prefer_modified=getattr(args, "modified", False))
+        except (OSError, ValueError) as error:
+            raise ToolError(str(error)) from error
+    return args._session
+
+
+def active_profile_name(args):
+    session = getattr(args, "_session", None)
+    if session is None:
+        return get_profile(args.master).filename
+    name = f"{session.family} | {session.binary_name}"
+    if session.save_path is not None:
+        name += f" | SAVE: {session.save_path.name}"
+    return name
 
 
 def run(args: argparse.Namespace, parser: argparse.ArgumentParser) -> int:
@@ -259,6 +293,7 @@ def run(args: argparse.Namespace, parser: argparse.ArgumentParser) -> int:
         try:
             launch_graphics_viewer(
                 get_profile(args.master).clean_dir,
+                session=viewer_session(args),
                 prefer_modified=getattr(args, "modified", False),
                 **(
                     {"savegame_path": args.savegame}
@@ -274,6 +309,7 @@ def run(args: argparse.Namespace, parser: argparse.ArgumentParser) -> int:
         try:
             launch_map_editor(
                 get_profile(args.master).clean_dir,
+                session=viewer_session(args),
                 savegame_path=getattr(args, "savegame", None),
             )
         except MapEditorError as error:
@@ -284,6 +320,7 @@ def run(args: argparse.Namespace, parser: argparse.ArgumentParser) -> int:
         try:
             launch_interface_viewer(
                 get_profile(args.master).clean_dir,
+                session=viewer_session(args),
                 prefer_modified=getattr(args, "modified", False),
                 **(
                     {"savegame_path": args.savegame}
@@ -293,6 +330,13 @@ def run(args: argparse.Namespace, parser: argparse.ArgumentParser) -> int:
             )
         except InterfaceViewerError as error:
             raise ToolError(str(error)) from error
+    elif args.command == "files":
+        from tools.session_panel import launch_session_browser
+        launch_session_browser(viewer_session(args))
+    elif args.command == "identify":
+        from tools.binary_identity import identify_binary
+        identity = identify_binary(args.binary, sheet=Path(args.sheet))
+        print(f"{args.binary.name}: {identity.family} — {identity.reason}")
     elif args.command == "profiles":
         for profile in PROFILES:
             sheet = profile.segment_sheet or "not yet mapped"
@@ -321,12 +365,16 @@ def main() -> int:
 
     while True:
         profile = get_profile(args.master)
-        selected = launch_gui(profile_name=profile.filename)
+        selected = launch_gui(profile_name=active_profile_name(args))
         if selected is None:
             return 0
         args.command = selected
         try:
-            if selected in {"graphics", "maps", "interface"}:
+            if selected in {"graphics", "maps", "interface", "files"}:
+                if selected == "files":
+                    from tools.session_panel import launch_session_browser
+                    launch_session_browser(viewer_session(args))
+                    continue
                 if selected == "maps":
                     from tools.map_editor.app import MapEditorError, launch_map_editor
 
@@ -336,7 +384,7 @@ def main() -> int:
                             if getattr(args, "savegame", None) is not None
                             else {}
                         )
-                        launch_map_editor(profile.clean_dir, **kwargs)
+                        launch_map_editor(profile.clean_dir, session=viewer_session(args), **kwargs)
                     except MapEditorError as error:
                         raise ToolError(str(error)) from error
                     continue
@@ -352,7 +400,7 @@ def main() -> int:
                             if getattr(args, "savegame", None) is not None
                             else {}
                         )
-                        launch_interface_viewer(profile.clean_dir, **kwargs)
+                        launch_interface_viewer(profile.clean_dir, session=viewer_session(args), **kwargs)
                     except InterfaceViewerError as error:
                         raise ToolError(str(error)) from error
                     continue
@@ -364,9 +412,13 @@ def main() -> int:
                         if getattr(args, "savegame", None) is not None
                         else {}
                     )
-                    launch_graphics_viewer(profile.clean_dir, **kwargs)
+                    launch_graphics_viewer(profile.clean_dir, session=viewer_session(args), **kwargs)
                 except GraphicsViewerError as error:
                     raise ToolError(str(error)) from error
+                continue
+            if selected == "patch":
+                from tools.session_panel import launch_session_browser
+                launch_session_browser(viewer_session(args))
                 continue
             run(args, parser)
         except ToolError as error:

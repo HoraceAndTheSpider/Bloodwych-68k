@@ -50,6 +50,15 @@ LARGE_MONSTER_GRADE_BASES = {
     0x69: 9,  # large dragon
     0x6A: 3,  # little dragon
 }
+LARGE_MONSTER_GRADE_TABLES = {
+    0x64: "summon.colours",
+    0x65: "summon.colours",
+    0x66: "beholder.colours",
+    0x67: "behemoth.colours",
+    0x68: "crab.colours",
+    0x69: "dragon.colours",
+    0x6A: "dragon.colours",
+}
 
 # QkPly1_Start and QkPly2_Start set these teams and their lead champion's
 # location. The standard character data supplies their unchanged floor 3.
@@ -555,6 +564,43 @@ class MapProject:
         self.dirty_save = False
 
     @classmethod
+    def from_session(cls, session) -> MapProject:
+        maps = []
+        fallbacks = []
+        for index, tower in enumerate(TOWERS):
+            tower_map = TowerMap(session.read(tower.map_name), name=tower.name)
+            if session.save_data is not None and not tower_map.has_valid_layout():
+                spec = session.specs[tower.map_name]
+                tower_map = TowerMap(session.original[spec.offset:spec.offset + spec.size], name=tower.name)
+                fallbacks.append(index)
+            maps.append(tower_map)
+        project = cls(session.clean_root, session.modified_root, maps,
+                      segment_offsets={name: (spec.offset, spec.size) for name, spec in session.specs.items()},
+                      save_data=session.save_data, save_base_offset=session.save_base,
+                      save_name=session.save_path.name if session.save_path else None,
+                      save_map_fallbacks=fallbacks)
+        project.session = session
+        return project
+
+    def sync_session(self) -> None:
+        """Publish edited bytes before another consumer reads the session."""
+        session = getattr(self, "session", None)
+        if session is None:
+            return
+        if self.dirty_save and self.save_data is not None:
+            session.save_data = bytearray(self.save_data)
+            session._changed()
+        for tower in self.dirty_towers:
+            session.write(TOWERS[tower].map_name, self.maps[tower].to_bytes())
+        for name in self.dirty_resources:
+            session.write(name, self.resource_data[name])
+        if session.save_data is not None:
+            self.save_data = bytearray(session.save_data)
+        self.dirty_save = False
+        self.dirty_towers.clear()
+        self.dirty_resources.clear()
+
+    @classmethod
     def from_extracted(cls, data_root: Path) -> MapProject:
         clean_root, modified_root, _ = related_data_roots(Path(data_root))
         maps = []
@@ -717,6 +763,8 @@ class MapProject:
     def resource_bytes(self, relative_name: str) -> bytes:
         if relative_name in self.resource_data:
             return bytes(self.resource_data[relative_name])
+        if getattr(self, "session", None) is not None:
+            return self.session.read(relative_name)
         if self.save_data is not None and self.save_base_offset is not None:
             segment = self.segment_offsets.get(relative_name)
             if segment is not None:
@@ -731,7 +779,9 @@ class MapProject:
 
     @property
     def has_changes(self) -> bool:
-        return bool(self.dirty_towers or self.dirty_resources or self.dirty_save)
+        return bool(self.dirty_towers or self.dirty_resources or self.dirty_save
+                    or (getattr(self, "session", None) is not None
+                        and (self.session.changed_resources or self.session.save_data != self.session.save_original)))
 
     def editable_resource(self, relative_name: str) -> bytearray:
         if self.save_data is not None:
@@ -753,6 +803,9 @@ class MapProject:
         return 0 <= start and start + segment[1] <= len(self.save_data)
 
     def save(self) -> tuple[Path, ...]:
+        if getattr(self, "session", None) is not None:
+            self.sync_session()
+            return self.session.export()
         if not self.has_changes:
             return ()
         if self.save_data is not None:
@@ -1152,6 +1205,48 @@ class MapProject:
             raise ValueError("the selected save does not contain spell-practice data")
         self.save_data[offset] = value
         self.dirty_save = True
+
+    def monster_grade_design(self, form: int) -> tuple[bytes, tuple[tuple[int, ...], ...]]:
+        """Decode grade selectors and shared four-ink palettes (adrCd009E94).
+
+        Counts come from the extracts, including expanded compatible profiles.
+        Illusion and Entropy rendering bypasses these graded palettes.
+        """
+
+        if form not in LARGE_MONSTER_GRADE_TABLES:
+            raise ValueError("this monster has no graded mini-palette lookup")
+        lookup = self.resource_bytes(f"monsters/{LARGE_MONSTER_GRADE_TABLES[form]}")
+        data = self.resource_bytes("monsters/monsters.palette")
+        if not lookup or not data or len(data) % 4:
+            raise ValueError("monster grades require a lookup and four-byte mini-palettes")
+        palettes = tuple(tuple(data[i:i + 4]) for i in range(0, len(data), 4))
+        if any(index >= len(palettes) for index in lookup) or any(ink > 15 for ink in data):
+            raise ValueError("monster grade references an invalid mini-palette or ink")
+        return lookup, palettes
+
+    def set_monster_grade_palette(self, form: int, grade: int, palette: int) -> None:
+        """Change a shared family/grade selector, not the monster's level."""
+
+        if self.save_data is not None:
+            raise ValueError("shared monster designs are not stored in a portable save")
+        lookup, palettes = self.monster_grade_design(form)
+        if not 0 <= grade < len(lookup) or not 0 <= palette < min(256, len(palettes)):
+            raise ValueError("monster grade or mini-palette is outside its extracted table")
+        name = f"monsters/{LARGE_MONSTER_GRADE_TABLES[form]}"
+        self.editable_resource(name)[grade] = palette
+        self.dirty_resources.add(name)
+
+    def set_monster_palette_ink(self, form: int, palette: int, slot: int, ink: int) -> None:
+        """Change one ink shared by every family/grade using this mini-palette."""
+
+        if self.save_data is not None:
+            raise ValueError("shared monster designs are not stored in a portable save")
+        _, palettes = self.monster_grade_design(form)
+        if not 0 <= palette < len(palettes) or not 0 <= slot < 4 or not 0 <= ink < 16:
+            raise ValueError("monster mini-palette ink is outside its extracted table")
+        name = "monsters/monsters.palette"
+        self.editable_resource(name)[palette * 4 + slot] = ink
+        self.dirty_resources.add(name)
 
     def character_design(self, form: int) -> tuple[int, int, tuple[tuple[int, ...], ...]]:
         """Return source-extracted head, body and five four-ink palettes."""

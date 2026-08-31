@@ -359,10 +359,22 @@ class ObjectAssets:
         self.game_font = read_font(gfx_dir / "GameFont")
 
         gfx_data_dir = data_root / "gfx-data"
-        self.floor_view_y = self._optional_source_table(
-            gfx_data_dir / "ObjectsOnFloor_ViewY.positions",
+        # The workbook owns one contiguous block, adrB_009682..0096BE.
+        # Interior tables are views of that block, not separately editable files.
+        projection_path = gfx_data_dir / "ObjectsOnFloor_Projection.layout"
+        projection = projection_path.read_bytes() if projection_path.exists() else None
+        if projection is not None and len(projection) != 60:
+            raise ValueError(f"{projection_path.name}: expected 60 bytes, got {len(projection)}")
+
+        def projection_table(filename: str, start: int, end: int, fallback: bytes = b"") -> bytes:
+            if projection is not None:
+                return projection[start:end]
+            # Compatibility with extractions made before the grouped resource.
+            return self._optional_source_table(gfx_data_dir / filename, fallback, end - start)
+
+        self.floor_view_y = projection_table(
+            "ObjectsOnFloor_ViewY.positions", 47, 52,
             bytes(OBJECT_FLOOR_VIEW_Y_FALLBACK),
-            5,
         )
         floor_x_positions = self._optional_source_table(
             gfx_data_dir / "ObjectsOnFloor_XPositions.positions",
@@ -382,35 +394,25 @@ class ObjectAssets:
             OBJECT_FLOOR_Y_ADJUSTMENTS_FALLBACK,
             OBJECT_FLOOR_SHAPE_COUNT * OBJECT_FLOOR_VIEWS_PER_SHAPE,
         )
-        self.floor_subposition_rotation = self._optional_source_table(
-            gfx_data_dir / "ObjectsOnFloor_SubpositionRotation.lookup",
-            b"",
-            16,
+        self.floor_subposition_rotation = projection_table(
+            "ObjectsOnFloor_SubpositionRotation.lookup", 0, 16,
         )
-        self.floor_subposition_depth_bias = self._optional_source_table(
-            gfx_data_dir / "ObjectsOnFloor_SubpositionDepthBias.lookup",
-            b"",
-            4,
+        self.floor_subposition_depth_bias = projection_table(
+            "ObjectsOnFloor_SubpositionDepthBias.lookup", 16, 20,
         )
-        self.floor_view_cell_depth_base = self._optional_source_table(
-            gfx_data_dir / "ObjectsOnFloor_ViewCellDepthBase.lookup",
-            b"",
-            19,
+        self.floor_view_cell_depth_base = projection_table(
+            "ObjectsOnFloor_ViewCellDepthBase.lookup", 20, 39,
         )
-        self.floor_projection_groups = self._optional_source_table(
-            gfx_data_dir / "ObjectsOnFloor_ProjectionGroups.lookup",
-            b"",
-            8,
+        self.floor_projection_groups = projection_table(
+            "ObjectsOnFloor_ProjectionGroups.lookup", 39, 47,
         )
         self.floor_special_x_positions = self._optional_source_table(
             gfx_data_dir / "ObjectsOnFloor_SpecialXPositions.positions",
             b"",
             20,
         )
-        self.floor_special_y_adjustments = self._optional_source_table(
-            gfx_data_dir / "ObjectsOnFloor_SpecialYAdjustments.positions",
-            b"",
-            8,
+        self.floor_special_y_adjustments = projection_table(
+            "ObjectsOnFloor_SpecialYAdjustments.positions", 52, 60,
         )
 
     @staticmethod

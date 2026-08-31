@@ -3,7 +3,7 @@ from __future__ import annotations
 import unittest
 from contextlib import redirect_stderr
 from io import StringIO
-from unittest.mock import patch
+from unittest.mock import ANY, patch
 
 import main
 
@@ -34,6 +34,7 @@ class ProjectStructureTests(unittest.TestCase):
                 "graphics",
                 "maps",
                 "interface",
+                "files",
             ),
         )
         self.assertEqual(
@@ -41,7 +42,7 @@ class ProjectStructureTests(unittest.TestCase):
             ("extract", "asmfix", "relabel", "inspect", "format", "patch"),
         )
         self.assertEqual(
-            main.VIEWER_GUI_COMMANDS, ("graphics", "maps", "interface")
+            main.VIEWER_GUI_COMMANDS, ("graphics", "maps", "interface", "files")
         )
         self.assertEqual(main.GUI_LABELS["inspect"], "Inspect / Data")
         self.assertEqual(main.GUI_LABELS["graphics"], "Data Viewer")
@@ -87,13 +88,53 @@ class ProjectStructureTests(unittest.TestCase):
                 ],
             ) as launch_gui,
             patch("main.run", side_effect=record_command),
+            patch("tools.session_panel.launch_session_browser") as browser,
         ):
             self.assertEqual(main.main(), 0)
         self.assertEqual(launch_gui.call_count, 7)
+        browser.assert_called_once()
         self.assertEqual(
             commands,
-            ["extract", "asmfix", "relabel", "inspect", "format", "patch"],
+            ["extract", "asmfix", "relabel", "inspect", "format"],
         )
+
+    def test_launcher_reuses_one_session_across_viewers(self):
+        sessions = []
+        name = "data/characters.heads"
+        def edit(_root, *, session):
+            sessions.append(session)
+            session.write(name, bytes([0]) + session.read(name)[1:])
+        def view(_root, *, session):
+            sessions.append(session)
+            self.assertEqual(session.read(name)[0], 0)
+        with (
+            patch("sys.argv", ["main.py"]),
+            patch("main.launch_gui", side_effect=["maps", "graphics", None]),
+            patch("tools.map_editor.app.launch_map_editor", side_effect=edit),
+            patch("tools.graphics_viewer.launch_graphics_viewer", side_effect=view),
+        ):
+            self.assertEqual(main.main(), 0)
+        self.assertIs(sessions[0], sessions[1])
+
+    def test_front_page_profile_follows_loaded_binary_and_save(self):
+        from tools.tool_common import BINARIES_DIR, WHDLOAD_DIR
+
+        def load_binary(session):
+            session.import_binary(BINARIES_DIR / "BookOfSkulls_P_Beta5")
+
+        def load_save(session):
+            session.select_save(WHDLOAD_DIR / "bloodsave0")
+
+        with (
+            patch("sys.argv", ["main.py"]),
+            patch("main.launch_gui", side_effect=["files", "files", None]) as launch_gui,
+            patch("tools.session_panel.launch_session_browser") as browser,
+        ):
+            actions = iter((load_binary, load_save))
+            browser.side_effect = lambda session: next(actions)(session)
+            self.assertEqual(main.main(), 0)
+        self.assertEqual(launch_gui.call_args_list[1].kwargs["profile_name"], "BLOODWYCH439 | BookOfSkulls_P_Beta5")
+        self.assertEqual(launch_gui.call_args_list[2].kwargs["profile_name"], "BLOODWYCH439 | BookOfSkulls_P_Beta5 | SAVE: bloodsave0")
 
     def test_front_page_tool_error_is_reported_and_returns_to_launcher(self) -> None:
         error_output = StringIO()
@@ -120,7 +161,7 @@ class ProjectStructureTests(unittest.TestCase):
         ):
             self.assertEqual(main.main(), 0)
         self.assertEqual(launch_gui.call_count, 3)
-        viewer.assert_called_once_with(get_profile("BLOODWYCH439").clean_dir)
+        viewer.assert_called_once_with(get_profile("BLOODWYCH439").clean_dir, session=ANY)
 
     def test_map_editor_returns_to_launcher(self) -> None:
         with (
@@ -133,7 +174,7 @@ class ProjectStructureTests(unittest.TestCase):
         ):
             self.assertEqual(main.main(), 0)
         self.assertEqual(launch_gui.call_count, 3)
-        viewer.assert_called_once_with(get_profile("BLOODWYCH439").clean_dir)
+        viewer.assert_called_once_with(get_profile("BLOODWYCH439").clean_dir, session=ANY)
 
     def test_interface_editor_returns_to_launcher(self) -> None:
         with (
@@ -146,7 +187,7 @@ class ProjectStructureTests(unittest.TestCase):
         ):
             self.assertEqual(main.main(), 0)
         self.assertEqual(launch_gui.call_count, 3)
-        viewer.assert_called_once_with(get_profile("BLOODWYCH439").clean_dir)
+        viewer.assert_called_once_with(get_profile("BLOODWYCH439").clean_dir, session=ANY)
 
     def test_front_page_viewer_uses_selected_profile(self) -> None:
         with (
@@ -159,7 +200,7 @@ class ProjectStructureTests(unittest.TestCase):
             self.assertEqual(main.main(), 0)
         launch_gui.assert_any_call(profile_name="BookOfSkulls_P_Beta5")
         viewer.assert_called_once_with(
-            get_profile("BookOfSkulls_P_Beta5").clean_dir
+            get_profile("BookOfSkulls_P_Beta5").clean_dir, session=ANY
         )
 
     def test_graphics_cli_can_start_with_modified_overlay(self) -> None:
@@ -169,6 +210,7 @@ class ProjectStructureTests(unittest.TestCase):
             self.assertEqual(main.run(args, parser), 0)
         viewer.assert_called_once_with(
             get_profile("BLOODWYCH439").clean_dir,
+            session=ANY,
             prefer_modified=True,
         )
 
@@ -179,6 +221,7 @@ class ProjectStructureTests(unittest.TestCase):
             self.assertEqual(main.run(args, parser), 0)
         viewer.assert_called_once_with(
             get_profile("BLOODWYCH439").clean_dir,
+            session=ANY,
             savegame_path=main.Path("whdload/bloodsave0"),
         )
 
@@ -189,6 +232,7 @@ class ProjectStructureTests(unittest.TestCase):
             self.assertEqual(main.run(args, parser), 0)
         viewer.assert_called_once_with(
             get_profile("BLOODWYCH439").clean_dir,
+            session=ANY,
             prefer_modified=False,
             savegame_path=main.Path("whdload/bloodsave0"),
         )
@@ -200,6 +244,7 @@ class ProjectStructureTests(unittest.TestCase):
             self.assertEqual(main.run(args, parser), 0)
         viewer.assert_called_once_with(
             get_profile("BLOODWYCH439").clean_dir,
+            session=ANY,
             prefer_modified=True,
         )
 
@@ -217,7 +262,6 @@ class ProjectStructureTests(unittest.TestCase):
             [profile.filename for profile in PROFILES],
             [
                 "BLOODWYCH439",
-                "BookOfSkulls_P_Beta5",
                 "BLOODWYCH102",
                 "BLOODWYCH1927",
                 "BEXT43",

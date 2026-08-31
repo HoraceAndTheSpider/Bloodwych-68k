@@ -77,6 +77,26 @@ def cell_glyph(cell: MapCell) -> tuple[str, int] | None:
     return None
 
 
+def layout_icon_surface(cell_surface, *, alpha: int):
+    """Make a transparent layout icon without fading its RGB values twice.
+
+    Blitting an RGB surface with both a colour key and surface alpha onto an
+    RGBA layer premultiplies the RGB as well as writing alpha in Pygame. The
+    layer's later screen blit then fades it again. Copy at full opacity first
+    and put the requested opacity only in the resulting per-pixel alpha.
+    """
+
+    import pygame
+
+    source = cell_surface.copy()
+    source.set_alpha(None)
+    source.set_colorkey((0, 0, 0))
+    icon = pygame.Surface(source.get_size(), pygame.SRCALPHA)
+    icon.blit(source, (0, 0))
+    icon.fill((255, 255, 255, alpha), special_flags=pygame.BLEND_RGBA_MULT)
+    return icon
+
+
 def draw_map_cell(surface, rectangle, cell: MapCell) -> None:
     """Draw a cell using the AMOS editor's 16x8 logical pixel geometry."""
 

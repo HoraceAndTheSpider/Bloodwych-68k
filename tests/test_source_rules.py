@@ -159,6 +159,46 @@ class SourceRuleTests(unittest.TestCase):
         self.assertIn("1 verified rule(s) failed safely", output.getvalue())
         self.assertIn("\tmove.l\t#DiskReadTimeoutCount,d1\t;223C000186A0", result)
 
+    def test_replacement_operand_retains_relabelled_map_destination(self) -> None:
+        source_rule = SourceRule(
+            "BLOODWYCH439", "map-height", "replace_operand",
+            "Map_FloorHeightsOffset", "adrCd0084DA", "adrCd0084FC",
+            "move.b", "$08(a0,d0.w),adrB_00EE73.l", "13F000080000EE73",
+            "Map_FloorHeightsOffset(a0,d0.w),adrB_00EE73.l", 1, "verified",
+        )
+        for destination in ("adrB_00EE73", "Current_FloorHeightByte"):
+            with self.subTest(destination=destination):
+                lines = [
+                    "Select_FloorGeometry:",
+                    f"\tmove.b\t$08(a0,d0.w),{destination}.l\t;13F000080000EE73",
+                    "MapOffsetToCurrentFloorCoordinates:",
+                ]
+                result = apply_source_rules(
+                    lines, (equate("Map_FloorHeightsOffset", 8),), (source_rule,),
+                    label_relabels={
+                        "adrCd0084DA": "Select_FloorGeometry",
+                        "adrCd0084FC": "MapOffsetToCurrentFloorCoordinates",
+                        "adrB_00EE73": destination,
+                    },
+                )
+                self.assertEqual(
+                    result[1],
+                    f"\tmove.b\tMap_FloorHeightsOffset(a0,d0.w),{destination}.l\t;13F000080000EE73",
+                )
+
+    def test_replacement_data_expression_relabels_only_whole_symbols(self) -> None:
+        source_rule = SourceRule(
+            "BLOODWYCH439", "map-base", "replace_operand", "Map_HeaderSize",
+            "Pointer", "End", "dc.l", "$0000EF78", "0000EF78",
+            "MapData1+Map_HeaderSize", 1, "verified",
+        )
+        result = apply_source_rules(
+            ["Pointer:", "\tdc.l\t$0000EF78\t;0000EF78", "End:"],
+            (equate("Map_HeaderSize", 0x38),), (source_rule,),
+            label_relabels={"MapData1": "KeepMap", "Map": "NotAWholeSymbol"},
+        )
+        self.assertEqual(result[1], "\tdc.l\tKeepMap+Map_HeaderSize\t;0000EF78")
+
     def test_verified_equates_are_inserted_after_header(self) -> None:
         result = insert_generated_equates(
             self.lines,

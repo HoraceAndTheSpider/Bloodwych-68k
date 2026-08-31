@@ -1,0 +1,20 @@
+{
+  "binary_state": true,
+  "binary_name": "BLOODWYCH439-modified",
+  "family": "BLOODWYCH439",
+  "original_sha256": "ebc4b3116cb850b4fa81886e4c1c668cd8992f299b40f994c9a40c84009c8f15",
+  "save_sha256": null,
+  "resources": [
+    "data/characters.bodies",
+    "data/characters.colours",
+    "data/characters.heads"
+  ],
+  "runtime_state": false,
+  "sha256": {
+    "data/characters.bodies": "fe97dd50ea7a0fb964a3d34ee0ae7b8e46551a0ee9d7d55d086c1de11950e3f0",
+    "data/characters.heads": "e0888657faba7a99488d04e155aca0a7ae184286b295cb4d3b69017f8b0db850",
+    "data/characters.colours": "d49a696d232e8a9572f0702537b4685e242c3cb8b3d08941f17ae4059736428b"
+  },
+  "binary_state_sha256": "c6528f3a2b70f6cd3f49217ee0a63ae565fd9078ab7c4c5c84886c2cba4f8dcc",
+  "save_state_sha256": null
+}

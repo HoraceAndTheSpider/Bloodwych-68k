@@ -1602,6 +1602,9 @@ def render_monster_operations(
 
 def load_floor_ceiling_background(gfx_dir: Path) -> list[list[int]]:
     """Reproduce the game's 23-row ceiling, gap, and 34-row floor layout."""
+    # adrCd00B7F4/adrLp00B80C copy $16+1 ceiling and $21+1 floor rows;
+    # adrCd00B82A clears $12+1 rows between them. Horizontal reversal is
+    # selected by the shared dungeon_view.load_dungeon_background wrapper.
     data = (gfx_dir / "FloorCeiling.gfx").read_bytes()
     pixels = decode_planar(data, 8, 57)
     canvas = [[0] * VIEW_WIDTH for _ in range(VIEW_HEIGHT)]

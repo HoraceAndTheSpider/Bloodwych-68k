@@ -292,7 +292,7 @@ def _opcode_matches(expected: str, actual: str) -> bool:
 
 
 def _relabel_rule_operands(value: str, label_relabels: Mapping[str, str]) -> str:
-    """Mirror ordinary relabelling inside an EQU rule's source operand."""
+    """Mirror ordinary relabelling inside an EQU rule's operand expression."""
 
     result = value
     identifier_character = r"A-Za-z0-9_$?"
@@ -323,6 +323,9 @@ def _apply_source_rule(
     candidates: list[int] = []
     parsed: dict[int, tuple[str, str, str]] = {}
     match_operands = _relabel_rule_operands(rule.match_operands, label_relabels)
+    replacement_operands = _relabel_rule_operands(
+        rule.replacement_operands, label_relabels
+    )
     for index in range(start + 1, end):
         source, separator, comment = result[index].partition(";")
         match = re.match(r"^(\s*\S+\s+)(.*?)(\s*)$", source)
@@ -357,7 +360,7 @@ def _apply_source_rule(
                 )
         prefix, trailing, comment = parsed[index]
         suffix = f";{comment}" if comment else ""
-        result[index] = f"{prefix}{rule.replacement_operands}{trailing}{suffix}"
+        result[index] = f"{prefix}{replacement_operands}{trailing}{suffix}"
     return result, len(candidates)
 
 

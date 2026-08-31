@@ -15,6 +15,8 @@ RIGHT_VECTORS = ((1, 0), (0, 1), (-1, 0), (0, -1))
 def dungeon_pattern_parity(x: int, y: int, facing: int) -> int:
     """Return the source renderer's alternating floor/main-wall state."""
 
+    # adrCd0090D4 adds X, Y and facing, masks bit 0, and stores -$000C(a3).
+    # adrCd00B7F4 and adrCd00B074 read that same word for floor and walls.
     return (x + y + (facing & 3)) & 1
 
 

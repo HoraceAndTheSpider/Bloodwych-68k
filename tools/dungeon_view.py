@@ -25,9 +25,10 @@ from tools.graphics_preview import (
 from tools.st_planar_assets import decode_planar
 
 
-# adrEA00B946 and adrEA00B992.  The first table removes faces hidden behind
-# the selected opaque cell; the second contributes that cell's candidate
-# wall-face bits.  Their current source labels are proposals for segments.xlsx.
+# adrEA00B98E-$48 and adrEA00B9DA-$48: adrLp0091EA starts at each
+# table's final entry and walks backwards through 19 longwords. The first
+# removes faces hidden behind opaque cells; the second adds candidate faces.
+# The original ASM labels the final entries, not the table start addresses.
 VIEW_CELL_OCCLUSION_MASKS = (
     0xFFFFFFFF, 0xFFFFFFFD, 0xFFFFFFFE, 0xFFFFFFE8, 0xFFFFFFAC,
     0xFFFFFEEC, 0xFFFFFBFF, 0xFFFFFFFF, 0xFFFFDFFF, 0xFFFFEFFF,
@@ -427,7 +428,7 @@ def _mapped_wall_operation(
         if main_wall and pattern_parity & 1
         else (slot if main_wall else WALL_COMPONENT_SPRITE_TABLE[slot])
     )
-    # The odd parity path selects the second source-picture set and reverses
+    # adrCd00B074: the odd parity path selects the second picture set and reverses
     # each row through BitReverse_LookupBuffer while writing right-to-left.
     # The even path uses the identity picture index and ordinary row writer.
     mirrored = bool(pattern_parity & 1) if main_wall else bool(mapped & 0x80)
@@ -849,6 +850,10 @@ def render_dungeon_scene(
 ) -> tuple[list[list[int]], dict[str, object]]:
     """Render independently configured map cells in source traversal order.
 
+    adrCd0090D4 prepares the view; adrLp0091EA combines occlusion masks,
+    adrCd009202 traverses cells and adrCd009388 dispatches their map types.
+    Callers provide adrCd00B7F4's background with the same pattern parity.
+
     ``draw_floor_objects`` follows ``adrCd00960A``: its
     ``Draw_ObjectOnFloor`` calls happen for each view cell before that cell's
     map feature is dispatched. Shelf contents use the shelf's separate
@@ -923,6 +928,10 @@ def load_dungeon_background(
     *,
     pattern_parity: int = 1,
 ) -> list[list[int]]:
+    # adrCd00B7F4 selects adrLp00B80C's direct rows for parity 1 or
+    # adrCd00B864/adrLp00B87E's bit-reversed rows for parity 0. Reversing
+    # decoded indexed rows reproduces that planar reversal without RGB loss.
+    # Both paths retain adrCd00B82A's 19-row gap between ceiling and floor.
     background = load_floor_ceiling_background(gfx_dir)
     if pattern_parity & 1:
         return background

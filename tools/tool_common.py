@@ -2,7 +2,8 @@
 
 from __future__ import annotations
 
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
+import hashlib
 from pathlib import Path
 from typing import Iterable
 
@@ -32,6 +33,12 @@ class BinaryProfile:
     source_asm: str | None = None
     relabel_asm: str | None = None
     aliases: tuple[str, ...] = ()
+    reference_name: str | None = None
+    layout_compatible: bool = True
+
+    @property
+    def family(self) -> str:
+        return self.reference_name or self.filename
 
     @property
     def clean_dir(self) -> Path:
@@ -52,13 +59,6 @@ PROFILES = (
         "Bloodwych439.asm",
         "BLOODWYCH439_relabel.asm",
         ("Bloodwych439",),
-    ),
-    BinaryProfile(
-        "BookOfSkulls_P_Beta5",
-        "BookOfSkulls_P_Beta5",
-        "Amiga",
-        "Bloodwych",
-        "BLOODWYCH439",
     ),
     BinaryProfile("BLOODWYCH102", "BLOODWYCH102", "Amiga", "Bloodwych"),
     BinaryProfile("BLOODWYCH1927", "BLOODWYCH1927", "Amiga", "Bloodwych"),
@@ -97,15 +97,32 @@ def parse_int(value: object) -> int | None:
 
 def get_profile(master: str) -> BinaryProfile:
     """Resolve a configured binary by filename, alias, or path basename."""
-    supplied = Path(master).name
-    supplied_stem = Path(supplied).stem
-    candidates = {supplied.casefold(), supplied_stem.casefold()}
-    for profile in PROFILES:
-        names = {profile.filename.casefold(), *(alias.casefold() for alias in profile.aliases)}
-        if candidates & names:
-            return profile
+    supplied_path = Path(master)
+    supplied = supplied_path.name
+    candidates = {supplied.casefold(), supplied_path.stem.casefold()}
+    matched = next((profile for profile in PROFILES
+                    if candidates & {profile.filename.casefold(), *(alias.casefold() for alias in profile.aliases)}), None)
+    path = supplied_path if supplied_path.is_file() else BINARIES_DIR / supplied_path
+    if not path.is_file() and matched is not None:
+        path = BINARIES_DIR / matched.filename
+    if path.is_file():
+        from .binary_identity import identify_binary
+        identity = identify_binary(path)
+        reference = next(profile for profile in PROFILES if profile.filename == identity.family)
+        if identity.exact and path.resolve() == (BINARIES_DIR / reference.filename).resolve():
+            return reference
+        data_name = path.name
+        if path.resolve() != (BINARIES_DIR / path.name).resolve():
+            data_name += "-" + hashlib.sha256(path.read_bytes()).hexdigest()[:10]
+        return replace(reference, filename=path.name, data_name=data_name,
+                       source_asm=None, relabel_asm=None, aliases=(),
+                       reference_name=reference.filename,
+                       layout_compatible=identity.layout_compatible)
+    if matched is not None:
+        return matched
     known = ", ".join(profile.filename for profile in PROFILES)
-    raise ToolError(f"Unknown binary '{master}'. Known binaries: {known}")
+    raise ToolError(f"Unknown binary '{master}'. Supply a binary path or one of: {known}")
+
 
 
 def resolve_project_path(path: str | Path) -> Path:
@@ -134,9 +151,10 @@ def resolve_cleanup_path(
 
 def binary_path(master: str) -> Path:
     supplied = Path(master)
-    if supplied.is_absolute():
-        return supplied
-    return BINARIES_DIR / get_profile(master).filename
+    if supplied.is_absolute() or supplied.is_file():
+        return supplied.resolve()
+    candidate = BINARIES_DIR / supplied
+    return candidate if candidate.is_file() else BINARIES_DIR / get_profile(master).filename
 
 
 def asm_path(master: str, stage: str = "source") -> Path:
@@ -172,6 +190,8 @@ def load_segments(sheet: str | Path, master: str) -> pd.DataFrame:
         frame = pd.read_csv(path)
     else:
         profile = get_profile(master)
+        if not profile.layout_compatible:
+            raise ToolError(f"{profile.filename} is based on {profile.family}, but its resource layout is not verified")
         if not profile.segment_sheet:
             raise ToolError(
                 f"No segments.xlsx sheet is configured yet for {profile.filename}"

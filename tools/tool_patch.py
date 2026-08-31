@@ -1,25 +1,10 @@
-"""Create a patched binary from same-sized files in a modified-data workspace."""
-
+"""Write a fixed-size output using the same preflight as the shared session."""
 from __future__ import annotations
 
-import shutil
 from pathlib import Path
 
-from .resource_layout import (
-    EXTRACT_ONLY,
-    data_action,
-    resource_layouts,
-    resource_name,
-)
-from .tool_common import (
-    BINARIES_DIR,
-    ToolError,
-    binary_path,
-    get_profile,
-    load_segments,
-    parse_int,
-    require_columns,
-)
+from .edit_session import EditSession
+from .tool_common import ToolError
 
 
 def patch_segments(
@@ -28,58 +13,20 @@ def patch_segments(
     name_filter: str | None = None,
     debug: bool = False,
 ) -> Path:
-    profile = get_profile(master)
-    original = binary_path(master)
-    if not original.is_file():
-        raise ToolError(f"Binary not found: {original}")
-
-    modified_dir = profile.modified_dir
-    patched = BINARIES_DIR / f"{profile.filename}-modified"
-    shutil.copy2(original, patched)
-    print(f"Patching into {patched}")
-
-    frame = load_segments(sheet, master)
-    require_columns(frame, ("offset", "size", "name"))
-    resource_layouts(frame)
-    patched_count = 0
-    with patched.open("r+b") as binary:
-        binary_size = patched.stat().st_size
-        for _, row in frame.iterrows():
-            if data_action(row) == EXTRACT_ONLY:
-                if debug:
-                    name = resource_name(row)
-                    if name:
-                        print(f"Skipping '{name}': extract_only")
-                continue
-            name = resource_name(row)
-            if not name:
-                continue
-            if name_filter and name.casefold() != name_filter.casefold():
-                continue
-
-            offset, size = parse_int(row["offset"]), parse_int(row["size"])
-            if offset is None or size is None or offset < 0 or size < 0:
-                if debug:
-                    print(f"Skipping '{name}': invalid offset/size")
-                continue
-            segment = modified_dir / Path(name)
-            if not segment.is_file():
-                if debug:
-                    print(f"Skipping '{name}': no modified file at {segment}")
-                continue
-            actual_size = segment.stat().st_size
-            if actual_size != size:
-                raise ToolError(
-                    f"Modified '{name}' is {actual_size} bytes; fixed patch requires {size}"
-                )
-            if offset + size > binary_size:
-                raise ToolError(f"Segment '{name}' would exceed {patched.name}")
-            binary.seek(offset)
-            binary.write(segment.read_bytes())
-            patched_count += 1
-            print(f"Patched '{name}'")
-
-    if name_filter and patched_count == 0:
-        raise ToolError(f"No modified segment named '{name_filter}' was patched")
-    print(f"Patched {patched_count} segment(s)")
-    return patched
+    session = EditSession(master, sheet=Path(sheet))
+    session.import_modified()
+    if name_filter:
+        selected = next((name for name in session.specs if name.casefold() == name_filter.casefold()), None)
+        if selected is None or selected not in session.changed_resources:
+            raise ToolError(f"No modified segment named '{name_filter}' was found")
+        # Filtering is explicit; all remaining output bytes come from the
+        # selected input binary, including its unmapped executable edits.
+        data = session.read(selected)
+        session.changes.clear()
+        session.write(selected, data)
+    if debug:
+        for name in session.changed_resources:
+            print(f"Validated '{name}'")
+    destination = session.patch()
+    print(f"Patched {len(session.changed_resources)} resource(s) into {destination}")
+    return destination

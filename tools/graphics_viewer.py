@@ -32,10 +32,7 @@ from tools.interface_viewer import _draw_spellbook
 from tools.object_data import OBJECT_GROUP_BY_KEY, OBJECT_COUNT, ObjectAssets
 from tools.data_overlay import (
     DataOverlayPath,
-    data_overlay_root,
-    related_data_roots,
 )
-from tools.savegame_overlay import savegame_overlay_root
 from tools.gamefont_converter import glyph_pixels
 from tools.dungeon_view import (
     DIRECTION_NAMES,
@@ -942,6 +939,7 @@ def launch_graphics_viewer(
     screenshot_path: Path | None = None,
     prefer_modified: bool = False,
     savegame_path: Path | None = None,
+    session=None,
     initial_category: str = "character",
     initial_dungeon_feature: str = "stone",
     initial_dungeon_scene: Mapping[int, DungeonPlacement] | None = None,
@@ -955,12 +953,14 @@ def launch_graphics_viewer(
             "Pygame is required for the graphics viewer. Install requirements.txt."
         ) from error
 
+    from tools.edit_session import EditSession
+    from tools.session_panel import SessionPanel
+    from tools.joypad_panel import JoypadControls
     requested_root = data_root or DATA_DIR / "BLOODWYCH439-clean"
-    clean_root, modified_root, supplied_modified = related_data_roots(requested_root)
-    if not (clean_root / "gfx").is_dir() or not (clean_root / "monsters").is_dir():
-        raise GraphicsViewerError(f"Clean graphics viewer data is missing below {clean_root}")
-    modified_available = modified_root.is_dir()
-    use_modified = modified_available and (prefer_modified or supplied_modified)
+    session = session or EditSession.for_data_root(
+        requested_root, savegame_path=savegame_path, prefer_modified=prefer_modified)
+    clean_root, modified_root = session.clean_root, session.modified_root
+    use_modified = bool(session.changed_resources)
     bext_loaded = is_bext_data_set(clean_root)
 
     def load_dataset(enabled: bool) -> tuple[
@@ -980,11 +980,7 @@ def launch_graphics_viewer(
         str | None,
         DungeonAssets,
     ]:
-        root = (
-            savegame_overlay_root(clean_root, savegame_path)
-            if savegame_path is not None
-            else data_overlay_root(clean_root, modified_root, enabled=enabled)
-        )
+        root = session.root
         current_gfx_dir = root / "gfx"
         current_monsters_dir = root / "monsters"
         current_background = load_floor_ceiling_background(current_gfx_dir)
@@ -1038,6 +1034,7 @@ def launch_graphics_viewer(
     pygame.key.set_repeat(250, 45)
     try:
         screen = set_display_mode(pygame, WINDOW_SIZE)
+        joypad = JoypadControls(pygame)
         pygame.display.set_caption("Bloodwych ReSource - Data Viewer")
         fullscreen = is_fullscreen()
         title_font = pygame.font.SysFont(None, 30)
@@ -1055,6 +1052,7 @@ def launch_graphics_viewer(
         category_tab_offset = category_offset_for_selection(selected_category, 0)
         selected_index = 2
         selected_character = 0
+        selected_champion = 0
         selected_armour_style = 0
         selected_object = 1
         champion_data_page = 0
@@ -1122,7 +1120,6 @@ def launch_graphics_viewer(
 
         category_left_rect = pygame.Rect(20, 52, 34, 34)
         category_right_rect = pygame.Rect(854, 52, 34, 34)
-        overlay_rect = pygame.Rect(935, 52, 255, 34)
 
         def visible_category_rects() -> tuple[tuple[int, object], ...]:
             return tuple(
@@ -1458,9 +1455,47 @@ def launch_graphics_viewer(
                     break
             nudge_x = nudge_y = 0
 
+        def section_names():
+            if selected_graphic_type == "character":
+                return CHARACTER_FILES
+            if selected_graphic_type == "champion":
+                return ("data/champions.stats", "data/champions.pockets")
+            if selected_graphic_type == "object":
+                return tuple(name for name in session.specs if name.startswith(("data/object", "gfx/ObjectsOnFloor", "gfx-data/ObjectsOnFloor")) or name == "gfx/Pockets.gfx")
+            if selected_graphic_type == "dungeon":
+                return tuple(sorted({f"gfx/{name}" for feature in DUNGEON_FEATURES for name in feature.files}
+                                    | {"gfx/FloorCeiling.gfx"}))
+            if selected_graphic_type == "spell":
+                return AIRBOURNE_SPELL_FILES
+            monster = MONSTERS[selected_index]
+            return tuple(f"monsters/{name}" for name in monster.gfx_files + monster.companion_files)
+
+        def section_label():
+            labels = {
+                "character": "Character graphic data: shared artwork, layouts and colours (all characters)",
+                "champion": "Champion stats and inventory (all 16 champions)",
+                "object": "Object definitions, inventory icons and floor-object graphics (all objects)",
+                "dungeon": "Dungeon scenery: shared artwork, floor/ceiling and placement tables",
+                "spell": "Flying spell graphics (all spells)",
+            }
+            if selected_graphic_type in labels:
+                return labels[selected_graphic_type]
+            return f"Monster graphic data: {MONSTERS[selected_index].name}, including all its grades"
+
+        data_panel = SessionPanel(session, section_names, section_label=section_label)
+        session_revision = session.revision
         running = True
         display_mode_rect = pygame.Rect(WINDOW_SIZE[0] - 60, 12, 50, 28)
         while running:
+            if session.revision != session_revision:
+                try:
+                    reload_dataset(bool(session.changed_resources))
+                    data_panel.load_error = None
+                except (OSError, ValueError, RuntimeError, IndexError) as error:
+                    data_panel.load_error = str(error)
+                    data_panel.message = f"Cannot display this session: {error}. Use RESET or IMPORT to recover."
+                    data_panel.open = True
+                session_revision = session.revision
             characters_active = selected_graphic_type == "character"
             champions_active = selected_graphic_type == "champion"
             objects_active = selected_graphic_type == "object"
@@ -1535,7 +1570,7 @@ def launch_graphics_viewer(
                     worn_armour_override = 0
                     if champions_active and champion_assets is not None:
                         worn_armour_override = character_assets.worn_armour_override(
-                            champion_assets.pocket_record(selected_character)[2]
+                            champion_assets.pocket_record(selected_champion)[2]
                         )
                     elif characters_active and selected_armour_style:
                         worn_armour_override = character_assets.worn_armour_override(
@@ -1544,7 +1579,7 @@ def launch_graphics_viewer(
                     preview_pixels, preview_metadata = render_character_preview(
                         character_background,
                         character_assets,
-                        selected_character,
+                        selected_champion if champions_active else selected_character,
                         distance=screen_position.gfx_slot,
                         facing=facing,
                         render_flags=3 if animation_frame else 0,
@@ -1601,7 +1636,7 @@ def launch_graphics_viewer(
                     "Extended Levels graphics data."
                 )
 
-            mouse = pygame.mouse.get_pos()
+            mouse = joypad.pointer_position()
             if objects_active:
                 screen.fill((24, 26, 31))
                 pygame.draw.rect(screen, (49, 52, 61), display_mode_rect, border_radius=4)
@@ -1650,38 +1685,6 @@ def launch_graphics_viewer(
                         CATEGORY_NAMES[index] + suffix, True, text_colour
                     )
                     screen.blit(label, label.get_rect(center=rectangle.center))
-
-                overlay_colour = (
-                    (45, 47, 54)
-                    if not modified_available
-                    else (
-                        (52, 126, 83)
-                        if use_modified
-                        else (
-                            (69, 112, 169)
-                            if overlay_rect.collidepoint(mouse)
-                            else (52, 76, 108)
-                        )
-                    )
-                )
-                overlay_text = (
-                    "Modified overlay unavailable"
-                    if not modified_available
-                    else (
-                        "Modified overlay: ON"
-                        if use_modified
-                        else "Modified overlay: OFF"
-                    )
-                )
-                pygame.draw.rect(screen, overlay_colour, overlay_rect, border_radius=4)
-                label = small_font.render(
-                    overlay_text,
-                    True,
-                    (128, 130, 137)
-                    if not modified_available
-                    else (250, 250, 250),
-                )
-                screen.blit(label, label.get_rect(center=overlay_rect.center))
 
                 screen.blit(
                     small_font.render(
@@ -1898,12 +1901,16 @@ def launch_graphics_viewer(
                             tiny_font.render(description, True, (125, 130, 141)),
                             (field_rect.x + 10, field_rect.bottom - 17),
                         )
+                data_panel.draw(pygame, screen)
+                joypad.draw(screen)
                 pygame.display.flip()
                 if screenshot_path is not None:
                     screenshot_path.parent.mkdir(parents=True, exist_ok=True)
                     pygame.image.save(screen, str(screenshot_path))
                     running = False
-                for event in pygame.event.get():
+                for event in joypad.events(pygame.event.get(), screen):
+                    if data_panel.handle(pygame, event):
+                        continue
                     if event.type == pygame.QUIT:
                         running = False
                     elif event.type == pygame.KEYDOWN:
@@ -1917,12 +1924,6 @@ def launch_graphics_viewer(
                         fullscreen = not fullscreen
                         screen = set_scaled_fullscreen(pygame, WINDOW_SIZE) if fullscreen else set_windowed(pygame, WINDOW_SIZE)
                     elif event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
-                        if overlay_rect.collidepoint(event.pos) and modified_available:
-                            try:
-                                reload_dataset(not use_modified)
-                            except (OSError, ValueError, RuntimeError, IndexError) as error:
-                                overlay_error = str(error)
-                            continue
                         if category_left_rect.collidepoint(event.pos):
                             select_category(cycle_enabled_category(selected_category, -1))
                             continue
@@ -1997,38 +1998,6 @@ def launch_graphics_viewer(
                     )
                     screen.blit(label, label.get_rect(center=rectangle.center))
 
-                overlay_colour = (
-                    (45, 47, 54)
-                    if not modified_available
-                    else (
-                        (52, 126, 83)
-                        if use_modified
-                        else (
-                            (69, 112, 169)
-                            if overlay_rect.collidepoint(mouse)
-                            else (52, 76, 108)
-                        )
-                    )
-                )
-                overlay_text = (
-                    "Modified overlay unavailable"
-                    if not modified_available
-                    else (
-                        "Modified overlay: ON"
-                        if use_modified
-                        else "Modified overlay: OFF"
-                    )
-                )
-                pygame.draw.rect(screen, overlay_colour, overlay_rect, border_radius=4)
-                label = small_font.render(
-                    overlay_text,
-                    True,
-                    (128, 130, 137)
-                    if not modified_available
-                    else (250, 250, 250),
-                )
-                screen.blit(label, label.get_rect(center=overlay_rect.center))
-
                 screen.blit(
                     small_font.render(
                         "Champions $00-$0F", True, (178, 181, 189)
@@ -2036,7 +2005,7 @@ def launch_graphics_viewer(
                     (20, 105),
                 )
                 for champion, rectangle in enumerate(champion_rects):
-                    selected = champion == selected_character
+                    selected = champion == selected_champion
                     colour = (
                         (61, 110, 174)
                         if selected
@@ -2097,12 +2066,12 @@ def launch_graphics_viewer(
                         font.render(message, True, (255, 190, 120)), (270, 140)
                     )
                 else:
-                    record = champion_assets.record(selected_character)
+                    record = champion_assets.record(selected_champion)
                     profession_index = champion_assets.profession_index(
-                        selected_character
+                        selected_champion
                     )
                     magic_index = champion_assets.magic_class_index(
-                        selected_character
+                        selected_champion
                     )
                     screen.blit(
                         title_font.render(
@@ -2175,7 +2144,7 @@ def launch_graphics_viewer(
                         screen.blit(label, label.get_rect(center=rect.center))
                     page_title, page_lines = champion_data_page_lines(
                         record,
-                        champion_assets.pocket_record(selected_character),
+                        champion_assets.pocket_record(selected_champion),
                         champion_data_page,
                     )
                     screen.blit(
@@ -2201,7 +2170,7 @@ def launch_graphics_viewer(
                     # source panel, with its blue name strip below both.
                     portrait_rect = pygame.Rect(716, 400, 144, 162)
                     portrait = render_large_champion_avatar_panel(
-                        pygame, champion_assets, selected_character
+                        pygame, champion_assets, selected_champion
                     )
                     screen.blit(
                         pygame.transform.scale(portrait, portrait_rect.size), portrait_rect
@@ -2218,9 +2187,9 @@ def launch_graphics_viewer(
                             pockets=champion_assets.pockets,
                             font_data=champion_assets.game_font,
                             record=record,
-                            champion=selected_character,
-                            pocket_record=champion_assets.pocket_record(selected_character),
-                            party_members=(selected_character, None, None, None),
+                            champion=selected_champion,
+                            pocket_record=champion_assets.pocket_record(selected_champion),
+                            party_members=(selected_champion, None, None, None),
                             selected_party_slot=0,
                             secondary_colour_index=0x08,
                             palette=GAME_PALETTE_RGB8,
@@ -2270,36 +2239,29 @@ def launch_graphics_viewer(
                         pygame.transform.scale(profession_button, profession_rect.size),
                         profession_rect,
                     )
+                data_panel.draw(pygame, screen)
+                joypad.draw(screen)
                 pygame.display.flip()
                 if screenshot_path is not None:
                     screenshot_path.parent.mkdir(parents=True, exist_ok=True)
                     pygame.image.save(screen, str(screenshot_path))
                     running = False
-                for event in pygame.event.get():
+                for event in joypad.events(pygame.event.get(), screen):
+                    if data_panel.handle(pygame, event):
+                        continue
                     if event.type == pygame.QUIT:
                         running = False
                     elif event.type == pygame.KEYDOWN:
                         if event.key == pygame.K_ESCAPE:
                             running = False
                         elif event.key in {pygame.K_LEFT, pygame.K_UP}:
-                            selected_character = (selected_character - 1) & 0x0F
+                            selected_champion = (selected_champion - 1) & 0x0F
                         elif event.key in {pygame.K_RIGHT, pygame.K_DOWN}:
-                            selected_character = (selected_character + 1) & 0x0F
+                            selected_champion = (selected_champion + 1) & 0x0F
                     elif event.type == pygame.MOUSEBUTTONDOWN and event.button == 1 and display_mode_rect.collidepoint(event.pos):
                         fullscreen = not fullscreen
                         screen = set_scaled_fullscreen(pygame, WINDOW_SIZE) if fullscreen else set_windowed(pygame, WINDOW_SIZE)
                     elif event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
-                        if overlay_rect.collidepoint(event.pos) and modified_available:
-                            try:
-                                reload_dataset(not use_modified)
-                            except (
-                                OSError,
-                                ValueError,
-                                RuntimeError,
-                                IndexError,
-                            ) as error:
-                                overlay_error = str(error)
-                            continue
                         if category_left_rect.collidepoint(event.pos):
                             select_category(
                                 cycle_enabled_category(selected_category, -1)
@@ -2316,7 +2278,7 @@ def launch_graphics_viewer(
                                 break
                         for champion, rectangle in enumerate(champion_rects):
                             if rectangle.collidepoint(event.pos):
-                                selected_character = champion
+                                selected_champion = champion
                                 break
                         for page_index, rectangle in enumerate(champion_page_rects):
                             if rectangle.collidepoint(event.pos):
@@ -2389,31 +2351,9 @@ def launch_graphics_viewer(
                 label = small_font.render(name + suffix, True, text_colour)
                 screen.blit(label, label.get_rect(center=rectangle.center))
 
-            overlay_hovered = overlay_rect.collidepoint(mouse)
-            if not modified_available:
-                overlay_colour = (45, 47, 54)
-                overlay_text = "Modified overlay unavailable"
-                overlay_text_colour = (128, 130, 137)
-            else:
-                overlay_colour = (
-                    (52, 126, 83)
-                    if use_modified
-                    else ((69, 112, 169) if overlay_hovered else (52, 76, 108))
-                )
-                overlay_text = (
-                    "Modified overlay: ON" if use_modified else "Modified overlay: OFF"
-                )
-                overlay_text_colour = (250, 250, 250)
-            pygame.draw.rect(screen, overlay_colour, overlay_rect, border_radius=4)
-            overlay_label = small_font.render(
-                overlay_text, True, overlay_text_colour
-            )
-            screen.blit(overlay_label, overlay_label.get_rect(center=overlay_rect.center))
-
             if use_modified:
                 overlay_notice = (
-                    "Sparse modified preview: missing files use clean data; patching still "
-                    "requires a matching layout."
+                    "Live shared session. DATA / FILES manages reset, reload, export, patch and import."
                 )
                 screen.blit(
                     small_font.render(overlay_notice, True, (230, 184, 105)),
@@ -3197,12 +3137,16 @@ def launch_graphics_viewer(
                 if preview_error:
                     detail_block("Renderer error", (preview_error,), (244, 184, 115))
 
+            data_panel.draw(pygame, screen)
+            joypad.draw(screen)
             pygame.display.flip()
             if screenshot_path is not None:
                 screenshot_path.parent.mkdir(parents=True, exist_ok=True)
                 pygame.image.save(screen, str(screenshot_path))
                 running = False
-            for event in pygame.event.get():
+            for event in joypad.events(pygame.event.get(), screen):
+                if data_panel.handle(pygame, event):
+                    continue
                 if event.type == pygame.QUIT:
                     running = False
                 elif event.type == pygame.KEYDOWN:
@@ -3219,12 +3163,6 @@ def launch_graphics_viewer(
                     fullscreen = not fullscreen
                     screen = set_scaled_fullscreen(pygame, WINDOW_SIZE) if fullscreen else set_windowed(pygame, WINDOW_SIZE)
                 elif event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
-                    if overlay_rect.collidepoint(event.pos) and modified_available:
-                        try:
-                            reload_dataset(not use_modified)
-                        except (OSError, ValueError, RuntimeError, IndexError) as error:
-                            overlay_error = str(error)
-                        continue
                     if category_left_rect.collidepoint(event.pos):
                         select_category(
                             cycle_enabled_category(selected_category, -1)

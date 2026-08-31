@@ -189,6 +189,33 @@ class SourceFormatterTests(unittest.TestCase):
         ]
         self.assertEqual(apply_instruction_comments(lines, frame), lines)
 
+    def test_legacy_conversion_notes_allow_human_instruction_comments(self):
+        instruction = "move.w #TriggerSound_None,TriggerSound.w"
+        frame = pd.DataFrame([{
+            "scope_start": "Start", "scope_end": "End",
+            "source_match": instruction, "source_comment": "Suppress trigger sound.",
+            "expected_matches": 1,
+        }])
+        for suffix in ("Short Absolute converted to symbol!", "Long Addr replaced with Symbol"):
+            with self.subTest(suffix=suffix):
+                lines = ["Start:", f"\t{instruction}\t;31FCFFFF6FA8\t;{suffix}", "End:"]
+                result = apply_instruction_comments(lines, frame)
+                self.assertEqual(result[1], f"\t{instruction}\t; Suppress trigger sound.")
+                self.assertEqual(lines[1], f"\t{instruction}\t;31FCFFFF6FA8\t;{suffix}")
+                handwritten = ["Start:", lines[1] + "; keep this explanation", "End:"]
+                self.assertEqual(apply_instruction_comments(handwritten, frame), handwritten)
+
+    def test_instruction_rules_cannot_replace_data_byte_comments(self):
+        for declaration in ("dc.w $FFFF", "ds.w 1", 'INCBIN "/data/example.lookup"'):
+            with self.subTest(declaration=declaration):
+                frame = pd.DataFrame([{
+                    "scope_start": "Start", "scope_end": "End",
+                    "source_match": declaration, "source_comment": "Must not replace data.",
+                    "expected_matches": 1,
+                }])
+                lines = ["Start:", f"\t{declaration}\t;FFFF", "End:"]
+                self.assertEqual(apply_instruction_comments(lines, frame), lines)
+
     def test_instruction_comments_resolve_segments_relabels(self):
         frame = pd.DataFrame(
             [

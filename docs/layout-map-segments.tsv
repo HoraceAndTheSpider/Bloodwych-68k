@@ -1,0 +1,70 @@
+label	relabel	Type	DATA BLOCK FILE	name	BW439 Position	offset	size	Length (Hexidecimal)	data_action	source_comment
+adrCd000960	Mark_CurrentTowerObjectCells	label			$5DC	1500		0		Walks the used object-stack payload and sets the object-present flag on each referenced map cell.
+adrCd00096E	Mark_CurrentTowerObjectCellsLoop	label			$5EA	1514		0		Tests the used-byte limit, decodes the 14-bit map byte offset, and advances by 5 + 2 * count-minus-one bytes.
+adrCd000994	Return_FromMarkCurrentTowerObjectCells	label			$610	1552		0		Returns after all used object-stack records have been marked.
+adrCd000B68	Select_CurrentTowerMapData	label			$7E4	2020		0		Selects a tower using signed word-relative offsets, copies its 56-byte header, and retains the cell-data base.
+adrLp000B88	Copy_CurrentTowerMapHeaderLoop	label			$804	2052		0		Copies fourteen longwords of header data, not fourteen pointers; A6 then addresses the first map cell.
+LevelDataOffsets	Current_TowerMapOffsets	label			$812	2066		0		Six assembled map-label differences from MapData1; keep symbolic in source so object-block size changes relocate later towers.
+adrCd000C48	Wait_ForPlayerFrameStart	label			$8C4	2244		0		Waits for the frame-sync flag before beginning the player action loop.
+adrCd000C50	Process_PlayerFrameActions	label			$8CC	2252		0		Loads each active player's floor into shared geometry before scanning and dispatching that player's actions.
+adrCd000C88	Finish_PlayerFrameActions	label			$904	2308		0		Completes the first player continuation and requests the next frame-sync wait after the optional second-player pass.
+adrCd000C96	Wait_ForPlayerFrameEnd	label			$912	2322		0		Waits for frame sync before shared redraw and game-update work; the enclosing loop returns to Player 1.
+adrCd000CB4	Update_GameAndRepeatPlayerFrame	label			$930	2352		0		Runs the shared game update and returns to the first-player action pass.
+adrCd004CB2	Check_PlayerPitFall	label			$492E	18734		0		Checks the party condition and current type-6 pit, then falls one floor using the floor-alignment difference without a horizontal step.
+adrCd005F5C	Find_CurrentTowerObjectStack	label			$5BD8	23512		0		Finds a variable-length object stack by map byte offset and two-bit mini-space; returns Z set on a match.
+adrCd005F72	Find_CurrentTowerObjectStackLoop	label			$5BEE	23534		0		Compares the packed location bytes while the scan offset remains below the used object-data byte count.
+adrCd005F84	Advance_CurrentTowerObjectStack	label			$5C00	23552		0		Advances past the current object stack using its count-minus-one field.
+adrCd005F90	ObjectStack_NotFound	label			$5C0C	23564		0		Sets D1 to one and clears Z when no matching object stack was found.
+adrCd005F92	Return_FromObjectStackLookup	label			$5C0E	23566		0		Shared return preserving the object-search result flags; also used by nearby action handlers.
+adrCd005E88	Store_ObjectAtMapMiniSpace	label			$5B04	23300		0		Finds a stack for the map byte offset and mini-space, then merges an item or inserts a new record.
+adrCd005EA2	Find_MatchingObjectInStack	label			$5B1E	23326		0		Scans object codes backwards through the stack to find an existing entry for the incoming item.
+adrCd005EAC	Insert_ObjectIntoExistingStack	label			$5B28	23336		0		Grows the used payload by two bytes and increments count-minus-one before shifting subsequent bytes; no allocation-capacity test is made.
+adrLp005ED0	Shift_ObjectPayloadForInsertionLoop	label			$5B4C	23372		0		Copies following object-data bytes backwards to open a two-byte insertion slot.
+adrCd005ED2	Store_InsertedObjectPair	label			$5B4E	23374		0		Completes the backwards shift, then writes the object code and quantity into the insertion slot.
+adrCd005EE2	Merge_ExistingObjectQuantity	label			$5B5E	23390		0		Adds the incoming quantity to a matching item; a sole entry is updated directly.
+adrCd005EF4	Move_MergedObjectToStackEnd	label			$5B70	23408		0		Removes a matching entry from a multi-item stack and reinserts its merged quantity at the end.
+adrCd005F04	Append_NewMapObjectStack	label			$5B80	23424		0		Marks the cell and appends a five-byte single-item stack; the used-byte count grows without an allocation-capacity test.
+adrCd005F2E	Rotate_ObjectDropMiniSpace	label			$5BAA	23466		0		Converts a player-relative drop corner to the stored map mini-space using facing and the four-by-four lookup.
+adrCd006ED0	Execute_StairTransition	label			$6B4C	27468		0		Clears the old occupied-cell flag and chooses the adjacent floor from the stair down bit.
+adrCd006EE8	Resolve_StairLanding	label			$6B64	27492		0		Rebases X/Y into the adjacent floor and applies the travel vector twice; an occupied landing restores the old floor and map flag.
+adrCd006F24	Commit_StairLanding	label			$6BA0	27552		0		Stores the destination floor, marks the new cell occupied, and derives facing from the landing cell first byte.
+adrCd006EA8	Refresh_AfterPlayerMove	label			$6B24	27428		0		Refreshes the moved player state, tests for stairs, and derives stair travel direction before the shared transition path.
+adrCd006DFC	_MoveParty	label			$6A78	27256		0		Computes travel direction from the relative movement command and player facing, then resolves destination entry or a usable stair transition.
+adrCd006E3C	Return_PlayerMoveRejected	label			$6AB8	27320		0		Shared return for rejected movement or a failed stair-direction check.
+adrCd006E3E	Process_PlayerMoveDestination	label			$6ABA	27322		0		Dispatches destination floor-feature and magic-cell effects before the shared stair and position-update path.
+adrCd006E90	Process_PlayerFloorFeature	label			$6B0C	27404		0		Decodes a type-6 floor feature; subtype zero clears worn spells, while pits and trigger pads follow their own paths.
+adrCd006EA0	Check_PlayerTriggerPad	label			$6B1C	27420		0		Skips immediate pad activation for a pit; visible and invisible trigger-pad subtypes call the trigger dispatcher.
+adrCd006F38	Store_PlayerMovePosition	label			$6BB4	27572		0		Stores accepted player X/Y and clears active party-presentation state before refreshing its panel when necessary.
+adrCd006F4A	Check_PlayerMoveCommandState	label			$6BC6	27590		0		Checks the signed party-command state; states eight and above enter the shared command/interface handler, while inactive or lower states return.
+adrCd006F58	Return_PlayerMoveProcessed	label			$6BD4	27604		0		Returns after accepted player movement and destination processing.
+adrCd006F80	Clear_PartyWornSpells	label			$6BFC	27644		0		Clears worn spells for living occupied party slots on a spell-fizzle tile, then refreshes the party panel.
+adrLp006F86	Clear_PartyWornSpellsLoop	label			$6C02	27650		0		Skips dead or vacant slots and clears the selected champion worn-spell byte.
+adrCd006F9A	Advance_PartyWornSpellClear	label			$6C16	27670		0		Repeats over the four party slots, refreshes the panel, and restores movement registers.
+adrEA006FA8	Current_TriggerSoundId	label			$6C24	27684		0		Runtime sound selector: negative suppresses sound, visible pads default to zero, and handlers may override it; not a wait flag.
+adrCd006FAA	Execute_PlayerFloorTrigger	label			$6C26	27686		0		Initialises trigger sound according to pad visibility and dispatches the current floor-trigger record.
+adrCd006FC0	Select_CurrentTowerTriggerRecord	label			$6C3C	27708		0		Uses first-byte bits 3-7 to index one of 32 four-byte trigger records in the selected tower table.
+adrCd006FF2	Select_TriggerEffectSound	label			$6C6E	27758		0		Selects sound five for trigger opcodes $08, $0A and $2A before dispatch.
+adrCd006FF8	Dispatch_FloorTriggerHandler	label			$6C74	27764		0		Calls the word-relative trigger jump-table entry and plays its selected sound unless negative.
+adrCd007012	Restore_FloorTriggerRegisters	label			$6C8E	27790		0		Restores the map offset, packed coordinates and map-base registers after trigger processing.
+adrCd00847E	PlayerForwardCoordToMap	label			$80FA	33018		0		Loads player X/Y and converts the cell one step in the player facing direction to a map byte offset.
+adrCd008482	FacingStepCoordToMap	label			$80FE	33022		0		Uses the player facing with the supplied packed D7 X/Y coordinate.
+adrCd008486	DirectionStepCoordToMap	label			$8102	33026		0		Adds the selected signed movement delta to D7 X/Y, then converts it using current floor geometry.
+adrCd008498	PlayerCoordToMap	label			$8114	33044		0		Loads the player X/Y before the shared coordinate-to-map conversion.
+CoordToMap	CoordToMap	label			$8118	33048		0		Returns A6 as the tower cell-data base and D0 as floor offset + 2 * (Y * width + X); D7 retains packed X/Y.
+adrCd0084A2	CoordToMap_UsingCurrentBase	label			$811E	33054		0		Computes the map byte offset using active floor width and data offset while retaining the supplied A6 base.
+adrCd0084BA	Rebase_CoordinatesBetweenFloors	label			$8136	33078		0		Converts packed D7 X/Y from old floor D2 to new floor D1 by adding old alignment and subtracting new alignment.
+adrCd0084D6	Select_PlayerFloorGeometry	label			$8152	33106		0		Reads the floor word at PlayerData + $58 and selects its shared map geometry.
+adrCd0084DA	Select_FloorGeometry	label			$8156	33110		0		Loads active width, height, and cell-data offset from the cached header for floor D0.
+adrCd0084FC	MapOffsetToCurrentFloorCoordinates	label			$8178	33144		0		Finds the active floor offset in the cached table and returns floor D1 plus packed X/Y in D2 from map byte offset D0.
+adrCd00850C	Find_CurrentFloorOffsetLoop	label			$8188	33160		0		Scans floor offsets until one equals the active data offset; valid cached floor geometry is required.
+adrEA00EE40	Current_TowerMapHeaderCache	label			$EABC	60092		0		Runtime 56-byte header cache: eight widths and heights, floor-data offsets, alignment, and transient active geometry.
+adrEA00EE50	Current_FloorDataOffsets	label			$EACC	60108		0		Eight big-endian word offsets into the tower cell-data payload; part of the runtime header cache.
+adrEA00EE60	Current_FloorAlignments	label			$EADC	60124		0		Eight X-alignment bytes followed by eight Y-alignment bytes in the runtime header cache.
+adrW_00EE70	Current_FloorWidth	label			$EAEC	60140		0		Active floor width word; initially copied from header +$30, then selected from the ordinary floor-width array.
+adrB_00EE71	Current_FloorWidthByte	label			$EAED	60141		0		Low byte written when selecting the active floor width.
+adrW_00EE72	Current_FloorHeight	label			$EAEE	60142		0		Active floor height word; initially copied from header +$32, then selected from the ordinary floor-height array.
+adrB_00EE73	Current_FloorHeightByte	label			$EAEF	60143		0		Low byte written when selecting the active floor height.
+adrW_00EE76	Current_FloorDataOffset	label			$EAF2	60146		0		Active floor cell-data byte offset; overwrites the cached header top-floor word during floor selection.
+adrL_00EE78	Current_TowerMapDataBase	label			$EAF4	60148		0		Runtime pointer to the current tower first map cell; initial value is MapData1 + Map_HeaderSize, not a fixed address.
+adrEA005794	MovementOffsetTable	data	Movement_Deltas.lookup	data/Movement_Deltas.lookup	$5410	21520	16	10	data_start	Eight signed X movement deltas followed by eight signed Y deltas; directions 0-3 are N/E/S/W and 4-7 are NE/SE/SW/NW.
+adrB_005F3E	ObjectDrop_MiniSpaceRotation	data	Object_DropMiniSpaces.lookup	data/Object_DropMiniSpaces.lookup	$5BBA	23482	16	10	data_start	Four rows indexed by player facing; each maps four player-relative drop corners to stored mini-space numbers.

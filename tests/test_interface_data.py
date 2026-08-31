@@ -222,6 +222,90 @@ class InterfaceDataTests(unittest.TestCase):
             (289, 302, 34, 47),
         )
 
+    def test_preview_switch_is_reference_one_on_the_east_face(self) -> None:
+        from tools.map_editor.first_person import map_cell_placement
+        from tools.map_editor.model import SwitchRecord
+
+        project = InterfaceProject(DATA_ROOT)
+        cell = project.preview_map.cell(0, 1, 5)
+        self.assertEqual((cell.first, cell.second), (0x0A, 0x91))
+        self.assertEqual(project.preview_switches[1], SwitchRecord(1, 0x04, 1, 4))
+        placement = map_cell_placement(cell, 0, map_x=1, map_y=5)
+        self.assertEqual(placement.feature_key, "switch")
+        self.assertEqual(placement.direction, 1)  # East relative to north.
+        self.assertTrue(placement.active)
+        self.assertEqual(placement.colour_variant, 6)  # (X + Y) & 7.
+
+    def test_preview_switch_toggles_target_wall_and_its_own_graphic_repeatedly(self) -> None:
+        from tools.map_editor.model import MapCell
+
+        project = InterfaceProject(DATA_ROOT)
+        project.move_preview_party(INTERFACE_ACTION_ROTATE_LEFT)
+        before_map = project.preview_map.to_bytes()
+        before_pixels = project.dungeon_preview
+        result = project.click_preview_wall_feature()
+        self.assertIn("wall removed", result)
+        self.assertEqual(project.preview_map.cell(0, 1, 5), MapCell(0x0E, 0x91))
+        self.assertEqual(project.preview_map.cell(0, 1, 4), MapCell(0, 0))
+        self.assertTrue(interface_preview_cell_allows_entry(project.preview_map.cell(0, 1, 4), 3))
+        self.assertNotEqual(project.dungeon_preview, before_pixels)
+        changed = {i for i, (a, b) in enumerate(zip(before_map, project.preview_map.to_bytes())) if a != b}
+        self.assertEqual(changed, {
+            project.preview_map.cell_offset(0, 1, 5),
+            project.preview_map.cell_offset(0, 1, 4) + 1,
+        })
+        self.assertIn("wall restored", project.click_preview_wall_feature())
+        self.assertEqual(project.preview_map.to_bytes(), before_map)
+        self.assertEqual(project.dungeon_preview, before_pixels)
+        self.assertIn("wall removed", project.click_preview_wall_feature())
+
+    def test_preview_switch_rejects_wrong_faces_and_missing_references(self) -> None:
+        from tools.map_editor.model import MapCell, SwitchRecord
+
+        project = InterfaceProject(DATA_ROOT)
+        project.move_preview_party(INTERFACE_ACTION_ROTATE_LEFT)
+        for cell in (MapCell(0x0A, 0x81), MapCell(0x0A, 0xA1), MapCell(0x0A, 0xB1),
+                     MapCell(0x02, 0x91), MapCell(0x12, 0x91)):
+            with self.subTest(cell=cell):
+                project.preview_map.set_cell(0, 1, 5, cell)
+                before = project.preview_map.to_bytes()
+                project.click_preview_wall_feature()
+                self.assertEqual(project.preview_map.to_bytes(), before)
+
+        project.preview_map.set_cell(0, 1, 5, MapCell(0x0A, 0x91))
+        for record in (SwitchRecord(1, 0xFF, 1, 4), SwitchRecord(1, 0x04, 5, 4)):
+            with self.subTest(record=record):
+                project.preview_switches = (project.preview_switches[0], record)
+                before = project.preview_map.to_bytes()
+                project.click_preview_wall_feature()
+                self.assertEqual(project.preview_map.to_bytes(), before)
+
+    def test_switch_toggle_wall_applies_the_word_mask_and_target_bit_seven_guard(self) -> None:
+        from tools.map_editor.model import MapCell
+
+        project = InterfaceProject(DATA_ROOT)
+        project.move_preview_party(INTERFACE_ACTION_ROTATE_LEFT)
+        # adrJA005CFC's AND.W #$00F9 clears the first byte, not just type
+        # bits in the second byte. Other second-byte flags must survive.
+        project.preview_map.set_cell(0, 1, 4, MapCell(0xAB, 0x79))
+        project.click_preview_wall_feature()
+        self.assertEqual(project.preview_map.cell(0, 1, 4), MapCell(0, 0x78))
+
+        protected = MapCell(0xAB, 0x91)
+        project.preview_map.set_cell(0, 1, 4, protected)
+        switch_before = project.preview_map.cell(0, 1, 5)
+        self.assertIn("unchanged", project.click_preview_wall_feature())
+        self.assertEqual(project.preview_map.cell(0, 1, 4), protected)
+        self.assertEqual(project.preview_map.cell(0, 1, 5).first, switch_before.first ^ 4)
+
+    def test_wall_feature_click_falls_through_to_doors_only_for_non_stone_cells(self) -> None:
+        project = InterfaceProject(DATA_ROOT)
+        project.preview_x, project.preview_y, project.preview_facing = (2, 3, 0)
+        self.assertEqual(project.click_preview_wall_feature(), "door: opened")
+        self.assertEqual(project.click_preview_wall_feature(), "door: closed")
+        project.preview_x, project.preview_y = (2, 7)
+        self.assertEqual(project.click_preview_wall_feature(), "door: locked")
+
     def test_display_context_24_is_the_direct_door_hitbox(self) -> None:
         from tools.interface_viewer import (
             _active_mode_hitboxes,

@@ -15,7 +15,6 @@ from tools.map_editor.app import (
     crop_indexed_pixels,
     default_floor,
     integer_preview_scale,
-    joystick_navigation_action,
     monster_renderer_key,
     nearest_rectangle_edges,
     MONSTER_DESIGN_PREVIEW_DISTANCES,
@@ -57,7 +56,12 @@ from tools.map_editor.layout import (
     is_layout_elevation_cell,
     stair_alignment_links,
 )
-from tools.map_editor.render import cell_glyph, describe_cell, draw_map_cell
+from tools.map_editor.render import (
+    cell_glyph,
+    describe_cell,
+    draw_map_cell,
+    layout_icon_surface,
+)
 from tools.map_editor.semantics import (
     adjust_trigger_parameter,
     apply_cell_action,
@@ -84,45 +88,6 @@ class MapEditorTests(unittest.TestCase):
         )
         self.assertEqual(
             tuple(party.facing for party in saved.player_parties(0)), (1, 0)
-        )
-
-    def test_joystick_dpad_maps_to_first_person_movement(self) -> None:
-        hat = type("Event", (), {"type": 10, "value": (0, 1)})()
-        self.assertEqual(
-            joystick_navigation_action(hat, hat_motion_type=10, button_down_type=11),
-            "MOVE-FORWARD",
-        )
-        hat.value = (-1, 0)
-        self.assertEqual(
-            joystick_navigation_action(hat, hat_motion_type=10, button_down_type=11),
-            "MOVE-LEFT",
-        )
-
-    def test_joystick_buttons_zero_and_one_turn(self) -> None:
-        button = type("Event", (), {"type": 11, "button": 0})()
-        self.assertEqual(
-            joystick_navigation_action(button, hat_motion_type=10, button_down_type=11),
-            "TURN-LEFT",
-        )
-        button.button = 1
-        self.assertEqual(
-            joystick_navigation_action(button, hat_motion_type=10, button_down_type=11),
-            "TURN-RIGHT",
-        )
-
-    def test_joystick_axis_dpad_maps_with_a_dead_zone(self) -> None:
-        axis = type("Event", (), {"type": 12, "axis": 0, "value": -1.0})()
-        self.assertEqual(
-            joystick_navigation_action(
-                axis, hat_motion_type=10, button_down_type=11, axis_motion_type=12
-            ),
-            "MOVE-LEFT",
-        )
-        axis.value = 0.2
-        self.assertIsNone(
-            joystick_navigation_action(
-                axis, hat_motion_type=10, button_down_type=11, axis_motion_type=12
-            )
         )
 
     def test_actor_overlays_and_object_editor_are_enabled(self) -> None:
@@ -1006,6 +971,47 @@ class MapEditorTests(unittest.TestCase):
             self.assertEqual(green_pixels, 11 * 10)
         finally:
             pygame.quit()
+
+    def test_layout_elevation_icons_survive_two_stage_alpha_compositing(self) -> None:
+        try:
+            import pygame
+        except ImportError:
+            self.skipTest("pygame is not installed")
+
+        cells = [MapCell(direction, 4) for direction in range(8)]
+        cells += [MapCell(kind, 6) for kind in (1, 4, 5)]
+        background = (5, 5, 7)
+        for cell in cells:
+            for zoom in (1, 2):
+                for alpha in (90, 180, 255):
+                    with self.subTest(cell=cell, zoom=zoom, alpha=alpha):
+                        source = pygame.Surface((16, 16))
+                        draw_map_cell(source, source.get_rect(), cell)
+                        source = pygame.transform.scale(source, (16 * zoom, 16 * zoom))
+                        before = pygame.image.tostring(source, "RGB")
+                        icon = layout_icon_surface(source, alpha=alpha)
+                        layer = pygame.Surface(source.get_size(), pygame.SRCALPHA)
+                        layer.blit(icon, (0, 0))
+                        screen = pygame.Surface(source.get_size())
+                        screen.fill(background)
+                        screen.blit(layer, (0, 0))
+
+                        for y in range(source.get_height()):
+                            for x in range(source.get_width()):
+                                rgb = source.get_at((x, y))[:3]
+                                if rgb == (0, 0, 0):
+                                    self.assertEqual(layer.get_at((x, y)).a, 0)
+                                    self.assertEqual(screen.get_at((x, y))[:3], background)
+                                else:
+                                    # RGB must remain unattenuated on the intermediate
+                                    # layer. Only its final composition applies alpha.
+                                    self.assertEqual(tuple(layer.get_at((x, y))), (*rgb, alpha))
+                                    for actual, value, bg in zip(screen.get_at((x, y)), rgb, background):
+                                        expected = round((value * alpha + bg * (255 - alpha)) / 255)
+                                        self.assertAlmostEqual(actual, expected, delta=1)
+                        self.assertEqual(pygame.image.tostring(source, "RGB"), before)
+                        self.assertIsNone(source.get_colorkey())
+                        self.assertIsNone(source.get_alpha())
 
     def test_outside_map_view_cells_are_sealed_with_stone(self) -> None:
         tower = TowerMap((CLEAN_ROOT / "maps" / "mod0.map").read_bytes())

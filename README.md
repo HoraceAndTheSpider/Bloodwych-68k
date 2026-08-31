@@ -57,22 +57,21 @@ tools/                        reusable Python and graphics conversion code
 whdload/                      save data and WHDLoad support
 ```
 
-The configured executable names currently present in the repository are:
+The supported reference binary families are:
 
 ```text
 BLOODWYCH439
-BookOfSkulls_P_Beta5
 BLOODWYCH102
 BLOODWYCH1927
 BEXT43
 AtariST_DEMO_CODE
 ```
 
-`BLOODWYCH439` has the complete Python extraction profile.
-`BookOfSkulls_P_Beta5` uses that compatible segment layout while keeping its
-clean and modified data in separate directories. The other executables are
-recognised explicitly so their profiles can be added without changing the
-directory contract.
+`BLOODWYCH439` has the complete Python extraction profile. Edited binaries,
+including BookOfSkulls, are identified by their contents rather than a special
+profile entry. Recognition does not imply a compatible resource layout: the
+larger NewBookOfSkulls is recognised as based on 439 but requires relocation and
+layout support before import or patching. See [shared editing sessions](docs/edit-session.md).
 
 ### Python commands
 
@@ -100,11 +99,21 @@ The `interface` subcommand opens the source-led Interface Viewer / Editor with
 dialogue-text colour-ramp editing and hitbox overlays. The graphical launcher groups
 source/data operations in its left column and viewers/editors in its right
 column.
-Map edits are never written to the clean extraction or supplied save. The Save
-button writes replacement maps and edited shared switch/trigger resources
-under `data/BLOODWYCH439-modified/maps/`, or a copied edited save under
-`data/BLOODWYCH439-modified/whdload/`. Shared game tables are read-only in a
-save-overlay session because they are not part of the save block.
+All viewers share a live session while the launcher is open. **DATA / FILES**
+provides RESET, section RELOAD, whole-session EXPORT, validated PATCH and IMPORT,
+plus a binary/save catalogue. Modified data is imported explicitly; there is no
+separate artwork overlay state. Exports go to `-modified`; patching writes a
+separate executable or save copy and never overwrites an input. Export before
+quitting: sessions are held in memory. See [the action semantics and limits](docs/edit-session.md).
+
+**Define Joypad Buttons** on the launcher, or **JOYPAD (F8)** in a viewer,
+opens device-specific controller setup. It opens automatically for a connected
+device without a matching layout. Define six movement controls and optional
+pointer/fire controls; movement works across all five map modes. See
+[joypad setup and layout files](docs/joypad-controls.md).
+On macOS, use the project environment (`.venv/bin/python main.py`) with the
+`pygame-ce` dependency from `requirements.txt`; an older global Pygame/SDL can
+miss Bluetooth gamepads that macOS itself can see.
 
 The graphics tools can losslessly convert the 128-glyph `GameFont` and Atari
 ST-style four-plane graphics with extracted `.offsets` and `.positions`
