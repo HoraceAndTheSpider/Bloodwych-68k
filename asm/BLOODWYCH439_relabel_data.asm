@@ -174,7 +174,7 @@ MonsterHitPoints_BaseBonus:						equ	$19			; Base value added to calculated mons
 MonsterHitPoints_DefaultMultiplierHigh:			equ	$0190		; Default high-level monster hit-point multiplier.
 MonsterHitPoints_DefaultMultiplierMid:			equ	$FA			; Default middle-level monster hit-point multiplier.
 MonsterLive_RecordCapacity:						equ	$80			; Maximum number of live monster records represented by the cleared workspace.
-MonsterLive_RecordCountOffset:					equ	-$02		; Reads the live monster count before removing a record.
+MonsterLive_RecordCountOffset:					equ	-$02		; Reads the last live-record index before removing a monster.
 MonsterLive_WorkspaceLongwordCount:				equ	$0200		; Clears the live-monster workspace.
 MonsterRecord_ActionCountdown:					equ	$03			; Assigns the special action countdown used for object-bearing monsters.
 MonsterRecord_ActionState:						equ	$05			; Clears the live monster action/status byte.
@@ -194,7 +194,7 @@ MonsterRecord_Type:								equ	$0A			; Reads the live monster type for repacking
 MonsterRecord_XPosition:						equ	$00			; Copies the X coordinate while compacting team records.
 MonsterRecord_YPosition:						equ	$01			; Copies the Y coordinate while compacting team records.
 MonsterTeamData_GroupShift:						equ	$02			; Converts packed member data to a team-group index.
-MonsterTeamIndexTable_CountOffset:				equ	-$02		; Reads the number of populated team groups.
+MonsterTeamIndexTable_CountOffset:				equ	-$02		; Reads the last team-row index: team count minus one.
 MonsterTeamIndexTable_LongwordCount:			equ	$19			; Clears all twenty-five team groups.
 MonsterTeamMember_Count:						equ	$04			; Loops over all four members of each team.
 MonsterTeamMember_SlotMask:						equ	$03			; Extracts the team-member slot.
@@ -376,6 +376,52 @@ ObjectFloor_SubpositionCount:					equ	$04			; Number of rotated NW/NE/SW/SE obje
 ObjectFloor_HiddenXPosition:					equ	$80			; Signed X-position sentinel that suppresses an unavailable projected floor-object mini-space.
 ObjectFloor_WideShapeFirst:						equ	$12			; First object floor-shape that uses the wide graphics bank and explicit projection-width selector.
 ObjectFloor_WideGraphicsOffset:					equ	$0CB8		; Byte offset from the ordinary ObjectsOnFloor graphics to the wide-shape graphics bank.
+ObjectData_LengthBytes:							equ	$02			; Bytes in the big-endian used-payload-length word preceding object-stack records.
+Map_HeaderSize:									equ	$38			; Copies the 56-byte header as fourteen longwords.
+Map_ResourceSize:								equ	$1000		; Fixed map allocation; object records begin after this map and the two-byte object-length word.
+ObjectStack_MapOffsetMask:						equ	$3FFF		; Retains the 14-bit map-payload byte offset; bits 15-14 encode the object mini-space.
+ObjectStack_MinimumBytes:						equ	$05			; Minimum record is location word, count-minus-one byte, and one object/quantity pair.
+ObjectStack_CountMinusOneOffset:				equ	$02			; Loads the number of additional two-byte object/quantity pairs.
+MapCell_ObjectPresentBit:						equ	$06			; Marks map cells that have a floor or shelf object stack.
+Map_FloorHeightsOffset:							equ	$08			; Offset of the eight height bytes in the map header.
+Map_FloorDataOffsetsOffset:						equ	$10			; Offset of the eight big-endian floor cell-data offsets in the header.
+Map_AlignmentYArrayOffset:						equ	$08			; Y-alignment bytes start eight bytes after the X-alignment bytes.
+Map_CellByteShift:								equ	$01			; Converts the floor-relative two-byte map offset to a cell number before division by width.
+MapCell_StairsType:								equ	$04			; Selects the stair transition path.
+MapCell_FloorFeatureType:						equ	$06			; Selects floor-feature cells before testing the pit subtype.
+FloorFeature_SubtypeMask:						equ	$03			; Extracts the floor feature independently of the ceiling-hole flag.
+Stair_DownBit:									equ	$00			; A clear bit ascends one floor; a set bit descends one floor.
+Direction_OppositeMask:							equ	$02			; Reverses the stored stair facing to obtain the permitted travel direction.
+MovementOffset_YTableOffset:					equ	$08			; Each addition advances one cell in Y; the consecutive pair advances two cells.
+MapCell_OccupiedBit:							equ	$07			; Map-cell occupied flag updated when a player changes floor.
+ObjectStack_ItemBytes:							equ	$02			; Grows the used object payload by one code/quantity pair without comparing against the allocation capacity.
+TriggerSound_None:								equ	$FFFF		; Negative trigger sound suppresses playback, rather than requesting a delay.
+FloorTrigger_IndexMask:							equ	$F8			; Keeps trigger index bits 3-7; shifting once right yields a four-byte record offset.
+FloorTrigger_TowerStrideShift:					equ	$07			; Multiplies tower number by 128 bytes for its 32 four-byte trigger records.
+WallSwitch_IndexMask:							equ	$F8			; Bits 3-7 encode the switch record reference.
+WallSwitch_DimBit:								equ	$02			; Switch light-state bit toggled for every nonzero reference.
+WallSwitch_TowerStrideShift:					equ	$06			; Each tower has sixteen four-byte switch records.
+FloorFeature_VisiblePadSubtype:					equ	$02			; Visible pads select sound zero before the handler runs.
+TriggerAction_VivifyExternal:					equ	$08			; Action byte is a byte offset into the trigger word-displacement table.
+TriggerAction_VivifyInternal:					equ	$0A			; Action byte is a byte offset into the trigger word-displacement table.
+TriggerAction_FlashTeleport:					equ	$2A			; Action byte is a byte offset into the trigger word-displacement table.
+MapCell_TypeMask:								equ	$07			; Low three bits of the second byte select the map-cell type.
+MapCell_ClearTypeMask:							equ	$F8			; Clear the cell type while preserving upper second-byte flags.
+StoneWall_RemoveFeatureMask:					equ	$4F			; Removing a stone wall clears its decoration flag and facing bits.
+MapCell_WallTogglePreserveMask:					equ	$F9			; Discard first-byte data and type bits 1-2 before toggling stone-wall bit zero.
+StoneWall_FacingPreserveMask:					equ	$CF			; Keep all second-byte fields except the wall-facing bits.
+StoneWall_FacingStep:							equ	$10			; Advance the two-bit wall-facing field by one direction.
+StoneWall_FacingMask:							equ	$30			; Facing occupies second-byte bits 4-5.
+Direction_Mask:									equ	$03			; Wrap a facing value to north, east, south or west.
+Direction_HalfTurn:								equ	$02			; Toggle the facing between opposite compass directions.
+WoodEdges_QuarterTurnBits:						equ	$02			; One wooden edge occupies two bits; rotate right to move each edge counterclockwise.
+MapCell_ClearFeatureWordMask:					equ	$F8			; Clear first-byte feature data and the three-bit type, retaining second-byte flags.
+MapCell_PillarWord:								equ	$0103		; First byte one and map-cell type three define the puzzle pillar.
+CellEffect_TeleportFlash:						equ	$10			; Effect code queued after the flashing teleport commits its destination.
+CellEffect_Vivify:								equ	$86			; Effect code queued at the Vivify revival cell.
+Object_ChampionRemainsFirst:					equ	$40			; Remains objects $40-$4F identify the sixteen champions.
+TriggerTeleportStack_CellOffset:				equ	$08			; Saved dispatcher D0 after the handler and commit-helper return addresses.
+TriggerTeleportStack_PackedXYOffset:			equ	$0C			; Replace saved dispatcher D7 after the two return addresses.
 
 ****************************************************************************
 
@@ -848,7 +894,7 @@ Mark_CurrentTowerTrapCells:		; Memory Address ($0960) and binary offset [$05DC]
 	moveq	#$00,d7																;7E00
 	moveq	#$00,d6																;7C00
 	move.l	Current_TowerMapDataBase.l,a6										;2C790000EE78
-	lea		$0FCA(a6),a0														;41EE0FCA
+	lea		Map_ResourceSize-Map_HeaderSize+ObjectData_LengthBytes(a6),a0		;Fixed map allocation; object records begin after this map and the two-byte object-length word.
 Mark_CurrentTowerTrapCellsLoop:		; Memory Address ($096E) and binary offset [$05EA]
 	; Iterates variable-length trap records and marks each referenced cell.
 	cmp.w	-$0002(a0),d7														;BE68FFFE
@@ -856,11 +902,11 @@ Mark_CurrentTowerTrapCellsLoop:		; Memory Address ($096E) and binary offset [$05
 	move.b	$00(a0,d7.w),d0														;10307000
 	rol.w	#$08,d0																;E158
 	move.b	$01(a0,d7.w),d0														;10307001
-	and.w	#$3FFF,d0															;02403FFF
-	bset	#$06,$01(a6,d0.w)													;08F600060001
-	move.b	$02(a0,d7.w),d6														;1C307002
+	and.w	#ObjectStack_MapOffsetMask,d0										;Retains the 14-bit map-payload byte offset; bits 15-14 encode the object mini-space.
+	bset	#MapCell_ObjectPresentBit,$01(a6,d0.w)								;Marks map cells that have a floor or shelf object stack.
+	move.b	ObjectStack_CountMinusOneOffset(a0,d7.w),d6							;Loads the number of additional two-byte object/quantity pairs.
 	add.w	d6,d6																;DC46
-	addq.w	#$05,d6																;5A46
+	addq.w	#ObjectStack_MinimumBytes,d6										;Minimum record is location word, count-minus-one byte, and one object/quantity pair.
 	add.w	d6,d7																;DE46
 	bra.s	Mark_CurrentTowerTrapCellsLoop										;60DA
 
@@ -871,7 +917,7 @@ Return_FromMarkCurrentTowerTrapCells:		; Memory Address ($0994) and binary offse
 PrepareCharacters:
 	; Initialises all sixteen champion-stat records for the current tower,
 	; recalculates derived values, and marks placed champions on the working map.
-	bsr		Select_CurrentTowerMapData											;Selects the current tower's map-pointer block before champion coordinates are converted to map cells.
+	bsr		Select_CurrentTowerMapData											;Selects the current tower header and cell-data base before champion coordinates are converted to map cells.
 	lea		Character_Stats_DataTable.l,a4										;Loads a4 with the base of the champion-stat table; all ChampionStat fields below are relative to this record.
 	moveq	#Champion_Count-1,d6												;Initialises the reverse champion loop for all sixteen champion records; d6 counts down from the last slot.
 PrepareCharacters_ChampionLoop:
@@ -902,10 +948,10 @@ PrepareCharacters_ChampionLoop:
 UnpackTowerMonsters:		; Memory Address ($09F6) and binary offset [$0672]
 	; Clears transient state and expands the current tower’s packed monster records
 	; into live records.
-	bsr		Mark_CurrentTowerTrapCells											;6100FF68
+	bsr		Mark_CurrentTowerTrapCells											;Initialises the trap-processing state before monster placement changes the current tower map.
 	lea		MonsterTeamIndexTable.l,a4											;Loads a4 with the monster team-index table, whose entries point from team slots to live monster records.
 	moveq	#-$01,d6															;Creates the $FF empty/sentinel value used to clear team data and mark missing entries.
-	move.w	d6,MonsterTeamIndexTable_CountOffset(a4)							;Initialises the team-table count word to $FFFF before any valid monster teams are found.
+	move.w	d6,MonsterTeamIndexTable_CountOffset(a4)							;Sets the last team-row index to $FFFF: no teams yet.
 	moveq	#MonsterTeamIndexTable_LongwordCount-1,d0							;Sets the team-table clearing loop to cover all twenty-five four-member team records.
 .ClearMonsterTeamIndexLoop:		; Memory Address ($0A08) and binary offset [$0684]
 	; Clears the twenty-five four-member team slots.
@@ -921,12 +967,12 @@ UnpackTowerMonsters:		; Memory Address ($09F6) and binary offset [$0672]
 	move.w	d0,d1																;Copies the tower number to d1 because d0 will be reused to form a table offset.
 	add.w	d0,d0																;Doubles the tower number to address the word-sized monster-count entry for that tower.
 	lea		MonsterTotalsCounts_mod0.l,a4										;Loads the table of per-tower monster totals.
-	move.w	$00(a4,d0.w),d6														;Reads this tower's packed-monster count into d6 for the unpacking loop.
+	move.w	$00(a4,d0.w),d6														;Reads this tower's last packed-record index for the DBRA loop.
 	lea		UnpackedMonsters.l,a4												;Restores a4 to the live-monster base so the count and records use the same workspace.
-	move.w	d6,MonsterLive_RecordCountOffset(a4)								;Stores the selected tower's live-record count in the workspace count word at offset -2.
+	move.w	d6,MonsterLive_RecordCountOffset(a4)								;Stores the last live-record index at offset -2; $FFFF means none.
 	bmi		Trigger_00_t00_Null													;Exits through the null-trigger path when this tower contains no monsters.
-	add.w	d1,d0																;Forms a three-times-tower index from the preserved tower number for the six-byte monster block table.
-	asl.w	#PackedMonster_TowerBlockShift,d0									;Multiplies the tower block index by $100, the packed monster block spacing.
+	add.w	d1,d0																;Forms three times the tower index before multiplying by $100.
+	asl.w	#PackedMonster_TowerBlockShift,d0									;Produces tower * $300, the byte offset of its packed block.
 	lea		MonsterBlock_mod0.l,a3												;Loads a3 with the base of the packed monster-block table.
 	add.w	d0,a3																;Moves a3 to the selected tower's packed six-byte monster records.
 	moveq	#$00,d4																;Initialises d4 as the zero-based packed/live monster ordinal used in team-table entries.
@@ -948,7 +994,7 @@ UnpackNextMonsterRecord:
 	swap	d7																	;Swaps d7 so the staged X coordinate occupies the high word while Y is appended below it.
 	move.b	(a3)+,d7															;Reads the packed X byte into the high-byte staging register d7 and advances to packed Y.
 	move.b	d7,MonsterRecord_YPosition(a4)										;Stores the decoded Y coordinate in the live monster record.
-	btst	#$17,d7																;Tests the packed-coordinate validity bit to detect the $FF/no-position monster sentinel.
+	btst	#$17,d7																;Tests X bit 7; set means no separate map-cell occupancy mark.
 	bne.s	.MonsterPositionHandled												;Skips map occupancy marking when this monster has no valid starting position.
 	bsr		CoordToMap															;Converts the decoded monster X/Y coordinate into a map-cell index.
 	bset	#$07,$01(a6,d0.w)													;Sets the occupied-by-monster bit in the corresponding current-map cell.
@@ -1002,11 +1048,11 @@ StoreTeamData:		; Memory Address ($0AEC) and binary offset [$0768]
 	move.b	d4,$00(a0,d0.w)														;Stores this monster's ordinal in the team slot selected by the packed team byte.
 	move.b	d0,d1																;Copies the packed team byte into d1 for slot and group extraction.
 	and.b	#MonsterTeamMember_SlotMask,d1										;Masks the low two bits to select one of the four member slots in the team.
-	tst.b	MonsterRecord_XPosition(a4)											;Tests the live X coordinate so an unpositioned monster is not counted as an active team member.
-	bmi.s	.AdvanceToNextMonster												;Skips team counting and group assignment when the monster has no valid position.
-	addq.w	#$01,MonsterTeamIndexTable_CountOffset(a0)							;Increments the active team-member count stored before the team-index table.
+	tst.b	MonsterRecord_XPosition(a4)											;Tests X bit 7 to distinguish a positioned leader from a follower.
+	bmi.s	.AdvanceToNextMonster												;Leaves a follower in its table slot, but skips live group assignment.
+	addq.w	#$01,MonsterTeamIndexTable_CountOffset(a0)							;Increments the last team-row index once for this positioned leader.
 	lsr.b	#MonsterTeamData_GroupShift,d0										;Shifts away the member-slot bits, leaving the packed team group number.
-	move.b	d0,MonsterRecord_TeamGroupIndex(a4)									;Stores the decoded team group index in the live monster record.
+	move.b	d0,MonsterRecord_TeamGroupIndex(a4)									;Stores the group on the positioned leader; followers keep $FF.
 .AdvanceToNextMonster:		; Memory Address ($0B16) and binary offset [$0792]
 	; Advances to the next packed and live monster record.
 	add.w	#MonsterRecord_Size,a4												;Advances a4 by the $10-byte live monster record size.
@@ -1047,26 +1093,26 @@ TransferChampionStartPosition:		; Memory Address ($0B32) and binary offset [$07A
 	move.b	ChampionStat_Direction(a4),d0										;Loads the champion's saved facing/direction byte.
 	move.w	d0,PlayerData_Direction(a5)											;Copies the direction into the active player record's orientation field at offset $20.
 	move.b	ChampionStat_Floor(a4),d0											;Loads the champion's saved floor byte.
-	move.w	d0,PlayerData_Floor(a5)												;Copies the floor into the active player record's map-index field at offset $58.
+	move.w	d0,PlayerData_Floor(a5)												;Copies the champion floor into the active player floor word at offset $58.
 .NoChampionStartPosition:		; Memory Address ($0B66) and binary offset [$07E2]
 	; Returns when the champion has no saved position.
 	rts																			;Returns to the player-initialisation loop after a valid or absent champion position has been handled.
 
 Select_CurrentTowerMapData:		; Memory Address ($0B68) and binary offset [$07E4]
 	; Copies the selected tower’s map-pointer block into working memory.
-	move.w	CurrentTower.l,d0													;Reads the selected tower number for map-pointer selection.
+	move.w	CurrentTower.l,d0													;Reads the selected tower index for the relative map-offset lookup.
 	add.w	d0,d0																;Converts the tower number into a word offset for the tower-offset table.
-	lea		Current_TowerMapOffsets.l,a0										;Loads the table of offsets from MapData1 to each tower's map-pointer block.
+	lea		Current_TowerMapOffsets.l,a0										;Loads assembled word differences from MapData1 to the six tower map blocks.
 	lea		MapData1.l,a6														;Loads a6 with the first tower map-data block, the base used by the relative offset.
-	add.w	$00(a0,d0.w),a6														;Adds the selected tower offset to a6, selecting that tower's fourteen map pointers.
-	lea		Current_TowerMapHeaderCache.l,a0									;Loads the working cache that stores the selected tower's map pointers.
-	moveq	#$0D,d0																;Sets the copy loop for fourteen longword map-pointer entries.
+	add.w	$00(a0,d0.w),a6														;Adds the signed word-relative tower offset to MapData1; larger tower layouts must remain representable by this addressing mode.
+	lea		Current_TowerMapHeaderCache.l,a0									;Loads the working cache for the selected tower 56-byte map header; this is not a table of pointers.
+	moveq	#(Map_HeaderSize/4)-1,d0											;Sets fourteen longword iterations to copy the complete 56-byte map header.
 .CopyCurrentTowerMapPointerLoop:		; Memory Address ($0B88) and binary offset [$0804]
 	; Copies the fourteen map pointers for the selected tower.
-	move.l	(a6)+,(a0)+															;Copies one map pointer from the selected tower block into the working cache and advances both pointers.
-	dbra	d0,.CopyCurrentTowerMapPointerLoop									;Repeats the pointer copy until all fourteen entries are cached.
-	move.l	a6,Current_TowerMapDataBase.l										;Stores the address immediately after the pointer block as the selected tower's map-data base.
-	rts																			;Returns with the current tower map pointers and base address ready for use.
+	move.l	(a6)+,(a0)+															;Copies four bytes of map header data and advances the source and runtime-cache pointers.
+	dbra	d0,.CopyCurrentTowerMapPointerLoop									;Repeats until all fourteen header longwords have been copied.
+	move.l	a6,Current_TowerMapDataBase.l										;Stores the first cell-data address after the header copy has advanced A6 by 56 bytes.
+	rts																			;Returns with the cached tower header and first map-cell address ready.
 
 Current_TowerMapOffsets:
 	; Six word offsets selecting the map resource for CurrentTower values 0 through
@@ -1127,13 +1173,13 @@ Wait_FrameSync_AI_TBC:		; Memory Address ($0C48) and binary offset [$08C4]
 	bne.s	Wait_FrameSync_AI_TBC												;66F8
 Menu_RenderLoop_AI_TBC:		; Memory Address ($0C50) and binary offset [$08CC]
 	lea		Player1_Data.l,a5													;4BF90000EE7C
-	bsr		adrCd0084D6															;6100787E
+	bsr		adrCd0084D6															;Loads geometry for the player currently addressed by A5; repeated separately for Player 1 and Player 2.
 	bsr		Scan_PlayerInterfaceActions											;61004034
 	bsr		Dispatch_PlayerInterfaceActionGuarded								;61004B4C
 	tst.w	MultiPlayer.l														;4A790000EE30
 	bne.s	Menu_IdlePoll_AI_TBC												;661E
 	lea		Player2_Data.l,a5													;4BF90000EEDE
-	bsr		adrCd0084D6															;61007864
+	bsr		adrCd0084D6															;Loads geometry for the player currently addressed by A5; repeated separately for Player 1 and Player 2.
 	bsr		Scan_PlayerInterfaceActions											;6100401A
 	bsr		Dispatch_PlayerInterfaceActionGuarded								;61004B32
 	jsr		adrCd008FB8.l														;4EB900008FB8
@@ -2381,7 +2427,7 @@ adrCd001A06:		; Memory Address ($1A06) and binary offset [$1682]
 	move.b	$000B(a4),d4														;Loads the monster form/graphic identifier for downstream movement or effect selection.
 	move.b	$0002(a4),d0														;Loads the live rotation/occupied-space byte into d0.
 	and.w	#$0003,d0															;Masks d0 to the four facing/space variants represented by the low two bits.
-	lea		MovementOffsetTable.l,a0											;Loads the four-direction movement offset table.
+	lea		MovementOffsetTable.l,a0											;Loads eight signed X deltas followed by eight signed Y deltas; entries zero through three are cardinal movement.
 	add.b	$08(a0,d0.w),d7														;Adds the direction-specific Y adjustment to the packed monster coordinate.
 	swap	d7																	;Swaps d7 to adjust the X half of the packed coordinate.
 	add.b	$00(a0,d0.w),d7														;Adds the direction-specific X adjustment from the movement table.
@@ -4984,7 +5030,7 @@ Interface_CheckSelectedCellInteraction:		; Memory Address ($33BE) and binary off
 	and.w	#$0007,d1															;02410007
 	subq.w	#$01,d1																;5341
 	beq.s	adrCd0033EC															;6708
-	move.w	$0058(a5),d1														;322D0058
+	move.w	PlayerData_Floor(a5),d1												;Player record word selecting the active floor, not a map-cell offset.
 	bra		Find_DungeonCellOccupant											;600064BE
 
 adrCd0033EC:		; Memory Address ($33EC) and binary offset [$3068]
@@ -6454,7 +6500,7 @@ Toggle_ChampionPresentation:		; Memory Address ($4226) and binary offset [$3EA2]
 	; redraws the interface.
 	bchg	d1,PlayerData_AvatarPresentationState(a5)							;Toggles the selected presentation bit regardless of whether that slot currently has visible living-character artwork.
 	move.w	d1,d7																;3E01
-	bsr		Refresh_PartyShieldSlotIfDirty										;61003CC2
+	bsr		Refresh_PartyShieldSlotIfDirty										;Refreshes the clicked party shield slot after changing its presentation bit; the selected living path draws the one-step-away full character.
 	bra		Draw_PartyShieldChainStrip											;60003CA0
 
 Enter_PartyCommandInterface:		; Memory Address ($4234) and binary offset [$3EB0]
@@ -7322,23 +7368,23 @@ adrCd004CB2:		; Memory Address ($4CB2) and binary offset [$492E]
 	bpl.s	adrCd004D08															;6A4C
 	bsr		adrCd008498															;610037DA
 	move.w	$00(a6,d0.w),d1														;32360000
-	and.w	#$0007,d1															;02410007
-	cmpi.w	#$0006,d1															;0C410006
+	and.w	#Dungeon_CellTypeMask,d1											;Retains the three-bit cell type while ignoring map-cell flags.
+	cmpi.w	#MapCell_FloorFeatureType,d1										;Selects floor-feature cells before testing the pit subtype.
 	bne.s	adrCd004D08															;663A
 	move.b	$00(a6,d0.w),d1														;12360000
-	and.w	#$0003,d1															;02410003
+	and.w	#FloorFeature_SubtypeMask,d1										;Extracts the floor feature independently of the ceiling-hole flag.
 	subq.w	#$01,d1																;5341
 	bne.s	adrCd004D08															;662E
-	bclr	#$07,$01(a6,d0.w)													;08B600070001
-	move.w	$0058(a5),d2														;342D0058
+	bclr	#MapCell_OccupiedBit,$01(a6,d0.w)									;Map-cell occupied flag updated when a player changes floor.
+	move.w	PlayerData_Floor(a5),d2												;Player record word selecting the active floor, not a map-cell offset.
 	move.w	d2,d1																;3202
 	subq.w	#$01,d1																;5341
-	move.w	d1,$0058(a5)														;3B410058
-	bsr		adrCd0084BA															;610037CC
+	move.w	d1,PlayerData_Floor(a5)												;Player record word selecting the active floor, not a map-cell offset.
+	bsr		adrCd0084BA															;Keeps world X/Y unchanged while falling one floor; the lower cell is not required to carry a ceiling-hole flag.
 	move.l	d7,$001C(a5)														;2B47001C
 	bsr		adrCd0084D6															;610037E0
 	bsr		adrCd008498															;6100379E
-	bset	#$07,$01(a6,d0.w)													;08F600070001
+	bset	#MapCell_OccupiedBit,$01(a6,d0.w)									;Map-cell occupied flag updated when a player changes floor.
 	move.b	#$02,$003D(a5)														;1B7C0002003D
 adrCd004D08:		; Memory Address ($4D08) and binary offset [$4984]
 	cmp.w	#$0008,$0042(a5)													;0C6D00080042
@@ -7974,7 +8020,7 @@ RestorePartyStat_NextChampion:		; Memory Address ($55FA) and binary offset [$527
 
 Spells_19_Vivify:		; Memory Address ($527E) and binary offset [$4EFA]
 	bsr		adrCd008498															;61003218
-	bsr		adrCd0078FA															;61002676
+	bsr		VivifyInternal_QueueEffectAndSound									;61002676
 	bsr		Interface_CheckSelectedCellInteraction								;6100E136
 	bcc.s	Vivify_ResolveTargetCell											;6414
 	tst.b	d0																	;4A00
@@ -7982,7 +8028,7 @@ Spells_19_Vivify:		; Memory Address ($527E) and binary offset [$4EFA]
 	move.l	a5,-(sp)															;2F0D
 	move.l	a1,a5																;2A49
 	bsr		adrCd008498															;61003202
-	bsr		adrCd0078FA															;61002660
+	bsr		VivifyInternal_QueueEffectAndSound									;61002660
 	move.l	(sp)+,a5															;2A5F
 Return_Vivify:		; Memory Address ($5622) and binary offset [$529E]
 	; Returns after Vivify has resolved its selected cell or linked player context.
@@ -7996,7 +8042,7 @@ Vivify_ResolveTargetCell:		; Memory Address ($5624) and binary offset [$52A0]
 	and.w	#$0007,d1															;02410007
 	subq.w	#$01,d1																;5341
 	beq.s	Return_Vivify														;67EE
-	bra		adrCd007812															;60002560
+	bra		VivifyExternal_SearchRevivalCell									;60002560
 
 Spells_20_Dispell:		; Memory Address ($52B4) and binary offset [$4F30]
 	bsr		adrCd00847E															;610031C8
@@ -8833,7 +8879,7 @@ Exit_SocketAction:
 SocketActions_ChaosCrystal:		; Memory Address ($59F2) and binary offset [$566E]
 	bclr	#$02,$00(a6,d0.w)													;08B600020000
 	bsr		adrCd008498															;61002A9E
-	bsr		adrCd0078FA															;61001EFC
+	bsr		VivifyInternal_QueueEffectAndSound									;61001EFC
 	cmp.w	#$0005,CurrentTower.l												;0C7900050000EE2E
 	bne.s	Exit_SocketAction													;66E6
 	lea		UnpackedMonsters.l,a0												;41F900016B7E
@@ -8922,33 +8968,31 @@ BlueGemLocs:		; Memory Address ($5B12) and binary offset [$578E]
 	INCBIN "/data/BLOODWYCH439-clean/maps/gem-blu.locations"
 
 MainWall_Action_03_Switches:		; Memory Address ($5B2A) and binary offset [$57A6]
-	; Toggles the switch display state and dispatches the tower-specific switch
-	; trigger.
-	moveq	#$00,d1																;7200
-	move.b	$00(a6,d0.w),d1														;12360000
-	and.w	#$00F8,d1															;024100F8
-	beq.s	Switch_00_s00_Null													;6730
-	bchg	#$02,$00(a6,d0.w)													;087600020000
-	lsr.b	#$01,d1																;E209
-	move.w	CurrentTower.l,d0													;30390000EE2E
-	asl.w	#$06,d0																;ED40
-	lea		SwitchData_1.l,a1													;43F900005B78
-	add.w	d0,a1																;D2C0
-	moveq	#$00,d0																;7000
-	move.b	$00(a1,d1.w),d0														;10311000
-	lea		Switch_00_s00_Null.l,a0												;41F900005B66
-	add.w	Switches_LookupTable(pc,d0.w),a0									;D0FB000C
-	jsr		(a0)																;4E90
-	moveq	#$00,d0																;7000
-	bra		PlaySound															;60002D5A
+	moveq	#$00,d1																;Clear the switch-reference accumulator.
+	move.b	$00(a6,d0.w),d1														;Read the clicked wall's first byte.
+	and.w	#WallSwitch_IndexMask,d1											;Keep the switch reference in bits 3-7.
+	beq.s	Switch_00_s00_Null													;Reference zero does nothing, including no click or light change.
+	bchg	#WallSwitch_DimBit,$00(a6,d0.w)										;Flip the switch's lit/dim state before running its action.
+	lsr.b	#$01,d1																;Convert the encoded reference to a four-byte record offset.
+	move.w	CurrentTower.l,d0													;Read the current tower number.
+	asl.w	#WallSwitch_TowerStrideShift,d0										;Select its 64-byte switch-record block.
+	lea		SwitchData_1.l,a1													;Start from the Keep's switch definitions.
+	add.w	d0,a1																;Advance to this tower's switch definitions.
+	moveq	#$00,d0																;Clear D0 for the next lookup: action dispatch or switch-click playback.
+	move.b	$00(a1,d1.w),d0														;Read the action byte, already a word-table byte offset.
+	lea		Switch_00_s00_Null.l,a0												;Load the base used by the signed handler displacements.
+	add.w	Switches_LookupTable(pc,d0.w),a0									;Add the selected handler's signed displacement.
+	jsr		(a0)																;Run the switch action with A1/D1 selecting its record.
+	moveq	#$00,d0																;Clear D0 for the next lookup: action dispatch or switch-click playback.
+	bra		PlaySound															;Play the switch click and return directly to the caller.
 
 Switch_00_s00_Null:		; Memory Address ($5B66) and binary offset [$57E2]
-	rts																			;4E75
+	rts																			;Return without performing a switch action.
 
 Switches_LookupTable:		; Memory Address ($5B68) and binary offset [$57E4]
 	dc.w	Switch_00_s00_Null-Switch_00_s00_Null	;0000
 	dc.w	Switch_01_s02_Trigger_11_t16_RemoveXY-Switch_00_s00_Null	;01AC
-	dc.w	Switch_02_s04_Trigger_23_t2E-Switch_00_s00_Null	;0196
+	dc.w	Switch_02_s04_Trigger_23_t2E_ToggleWall_XY-Switch_00_s00_Null	;0196
 	dc.w	Switch_03_s06_Trigger_03_t06_OpenLockedDoor_XY-Switch_00_s00_Null	;1BE0
 	dc.w	Switch_04_s08_Trigger_22_t2C_RotateWall_XY-Switch_00_s00_Null	;1B4E
 	dc.w	Switch_05_s0A_Trigger_13_t1A_TogglePillar_XY-Switch_00_s00_Null	;1C06
@@ -8967,34 +9011,34 @@ SwitchData_5:		; Memory Address ($5C78) and binary offset [$58F4]
 SwitchData_6:		; Memory Address ($5CB8) and binary offset [$5934]
 	INCBIN "/data/BLOODWYCH439-clean/maps/zendik.switches"
 
-Switch_00_s00_Trigger_15_t1E_ToggleWallXY:		; Memory Address ($5CF8) and binary offset [$5974]
-	bsr		Switch_01_s02_Trigger_11_t16_RemoveXY								;61000018
-Switch_02_s04_Trigger_23_t2E:		; Memory Address ($5CFC) and binary offset [$5978]
-	bsr.s	adrCd005D2E															;6130
-	tst.b	$01(a6,d0.w)														;4A360001
-	bmi.s	adrCd005D10															;6B0C
-	and.w	#$00F9,$00(a6,d0.w)													;027600F90000
-	eor.b	#$01,$01(a6,d0.w)													;0A3600010001
-adrCd005D10:		; Memory Address ($5D10) and binary offset [$598C]
-	rts																			;4E75
+Trigger_15_t1E_CreateWall_XY:		; Memory Address ($5CF8) and binary offset [$5974]
+	bsr		Switch_01_s02_Trigger_11_t16_RemoveXY								;Remove the target feature before falling through to create a wall.
+Switch_02_s04_Trigger_23_t2E_ToggleWall_XY:		; Memory Address ($5CFC) and binary offset [$5978]
+	bsr.s	Resolve_ActionTargetXY												;Resolve the record's X/Y to A6/D0 on the active floor.
+	tst.b	$01(a6,d0.w)														;Test the target's occupied or decorated-wall flag.
+	bmi.s	Return_WallToggle													;Leave a flagged target unchanged.
+	and.w	#MapCell_WallTogglePreserveMask,$00(a6,d0.w)						;Clear the first byte and type bits 1-2; retain other second-byte flags.
+	eor.b	#$01,$01(a6,d0.w)													;Toggle the remaining type bit between space and stone wall.
+Return_WallToggle:		; Memory Address ($5D10) and binary offset [$598C]
+	rts																			;Return after the wall-toggle attempt.
 
 Switch_01_s02_Trigger_11_t16_RemoveXY:		; Memory Address ($5D12) and binary offset [$598E]
-	bsr.s	adrCd005D2E															;611A
-	move.b	$01(a6,d0.w),d2														;14360001
-	and.w	#$0007,d2															;02420007
-	subq.w	#$01,d2																;5342
-	bne.s	adrCd005D26															;6606
-	and.b	#$4F,$01(a6,d0.w)													;0236004F0001
-adrCd005D26:		; Memory Address ($5D26) and binary offset [$59A2]
-	and.b	#$F8,$01(a6,d0.w)													;023600F80001
-	rts																			;4E75
+	bsr.s	Resolve_ActionTargetXY												;Resolve the record's X/Y to A6/D0 on the active floor.
+	move.b	$01(a6,d0.w),d2														;Read the target's type and flags.
+	and.w	#MapCell_TypeMask,d2												;Keep the three-bit map-cell type.
+	subq.w	#$01,d2																;Check whether the target is a stone wall.
+	bne.s	Clear_TargetMapCellType												;For other types, retain the existing second-byte flags.
+	and.b	#StoneWall_RemoveFeatureMask,$01(a6,d0.w)							;Remove the stone-wall decoration flag and facing bits.
+Clear_TargetMapCellType:		; Memory Address ($5D26) and binary offset [$59A2]
+	and.b	#MapCell_ClearTypeMask,$01(a6,d0.w)									;Change the target to space without clearing its remaining flags.
+	rts																			;Return with A6/D0 still addressing the target cell.
 
-adrCd005D2E:		; Memory Address ($5D2E) and binary offset [$59AA]
-	moveq	#$00,d7																;7E00
-	move.b	$02(a1,d1.w),d7														;1E311002
-	swap	d7																	;4847
-	move.b	$03(a1,d1.w),d7														;1E311003
-	bra		CoordToMap															;60002760
+Resolve_ActionTargetXY:		; Memory Address ($5D2E) and binary offset [$59AA]
+	moveq	#$00,d7																;Clear both coordinate words before loading byte-sized X/Y.
+	move.b	$02(a1,d1.w),d7														;Load the record's target X coordinate.
+	swap	d7																	;Place X in D7's high word.
+	move.b	$03(a1,d1.w),d7														;Load Y into D7's low word.
+	bra		CoordToMap															;Return A6/D0 for this X/Y using the currently loaded floor geometry.
 
 adrJA005D3E:		; Memory Address ($5D3E) and binary offset [$59BA]
 	bsr.s	adrCd005D52															;6112
@@ -9148,7 +9192,7 @@ adrCd005EA2:		; Memory Address ($5EA2) and binary offset [$5B1E]
 	bcc.s	adrCd005EA2															;64F6
 adrCd005EAC:		; Memory Address ($5EAC) and binary offset [$5B28]
 	move.w	-$0002(a0),d2														;3428FFFE
-	addq.w	#$02,-$0002(a0)														;5468FFFE
+	addq.w	#ObjectStack_ItemBytes,-$0002(a0)									;Grows the used object payload by one code/quantity pair without comparing against the allocation capacity.
 	addq.b	#$01,-$0001(a1)														;5229FFFF
 	moveq	#$00,d3																;7600
 	move.b	-$0001(a1),d3														;1629FFFF
@@ -9186,8 +9230,8 @@ adrCd005EF4:		; Memory Address ($5EF4) and binary offset [$5B70]
 	bra.s	adrCd005EAC															;60A8
 
 adrCd005F04:		; Memory Address ($5F04) and binary offset [$5B80]
-	bset	#$06,$01(a6,d0.w)													;08F600060001
-	addq.w	#$05,-$0002(a0)														;5A68FFFE
+	bset	#MapCell_ObjectPresentBit,$01(a6,d0.w)								;Marks the map cell when its first object stack is appended.
+	addq.w	#ObjectStack_MinimumBytes,-$0002(a0)								;Grows the used payload by one minimum stack record without an allocation-capacity comparison.
 	move.w	d0,d1																;3200
 	move.b	d1,$01(a0,d7.w)														;11817001
 	ror.w	#$08,d1																;E059
@@ -9204,7 +9248,7 @@ adrCd005F2E:		; Memory Address ($5F2E) and binary offset [$5BAA]
 	add.w	d1,d1																;D241
 	add.w	d1,d1																;D241
 	add.w	d6,d1																;D246
-	move.b	adrB_005F3E(pc,d1.w),d6												;1C3B1004
+	move.b	adrB_005F3E(pc,d1.w),d6												;Maps facing * 4 + relative drop corner to the stored map mini-space.
 	rts																			;4E75
 
 adrB_005F3E:		; Memory Address ($5F3E) and binary offset [$5BBA]
@@ -9235,7 +9279,7 @@ adrCd005F54:		; Memory Address ($5F54) and binary offset [$5BD0]
 
 adrCd005F5C:		; Memory Address ($5F5C) and binary offset [$5BD8]
 	move.l	Current_TowerMapDataBase.l,a0										;20790000EE78
-	add.w	#$0FCA,a0															;D0FC0FCA
+	add.w	#Map_ResourceSize-Map_HeaderSize+ObjectData_LengthBytes,a0			;Fixed map allocation; object records begin after this map and the two-byte object-length word.
 	move.w	d0,d1																;3200
 	ror.w	#$08,d1																;E059
 	ror.b	#$02,d6																;E41E
@@ -9250,10 +9294,10 @@ adrCd005F72:		; Memory Address ($5F72) and binary offset [$5BEE]
 	cmp.b	$00(a0,d7.w),d1														;B2307000
 	beq.s	adrCd005F92															;670E
 adrCd005F84:		; Memory Address ($5F84) and binary offset [$5C00]
-	move.b	$02(a0,d7.w),d2														;14307002
+	move.b	ObjectStack_CountMinusOneOffset(a0,d7.w),d2							;Loads the record count-minus-one byte for scanning.
 	add.w	d2,d2																;D442
 	add.w	d2,d7																;DE42
-	addq.w	#$05,d7																;5A47
+	addq.w	#ObjectStack_MinimumBytes,d7										;Adds the fixed part of each variable-length object stack.
 	bra.s	adrCd005F72															;60E2
 
 adrCd005F90:		; Memory Address ($5F90) and binary offset [$5C0C]
@@ -10000,7 +10044,7 @@ Click_ShowStats:		; Memory Address ($6616) and binary offset [$6292]
 	moveq	#$30,d2																;Sets the food bar's maximum scaled length to $30, yielding 48 rendered pixels.
 	move.l	#$002F00F9,d4														;Supplies BW_draw_bar with X=$F9 and DBRA width $2F, drawing the food fill across 48 pixels through X=$128.
 	bsr		Scale_ValueToBarLength												;61001AFA
-	move.l	#$0004004A,d5														;2A3C0004004A	;Long Addr replaced with Symbol
+	move.l	#$0004004A,d5														;Supplies BW_draw_bar with Y=$4A and DBRA height $04, drawing a five-row food bar through Y=$4E.
 	add.w	$0008(a5),d5														;DA6D0008
 	moveq	#$09,d3																;Selects palette index $09 for the scaled champion food-bar fill.
 	bra		BW_draw_bar															;6000740E
@@ -10201,7 +10245,7 @@ Apply_PowerStaffSpellCastingBonus:		; Memory Address ($681C) and binary offset [
 	moveq	#$00,d0																;7000
 adrCd006836:		; Memory Address ($6836) and binary offset [$64B2]
 	add.b	d0,d7																;DE00
-	sub.b	SpellCasting_SpellDifficultyPenalties(pc,d6.w),d7					;9E3B6004
+	sub.b	SpellCasting_SpellDifficultyPenalties(pc,d6.w),d7					;Subtracts the source difficulty-penalty byte for the selected spell before Draw_SpellCastingBar maps the negated score to the CAST bar.
 	rts																			;4E75
 
 SpellCasting_SpellDifficultyPenalties:		; Memory Address ($683E) and binary offset [$64BA]
@@ -10248,17 +10292,17 @@ adrCd0068D0:		; Memory Address ($68D0) and binary offset [$654C]
 	move.b	SpellCasting_CastPowerCostAdjustments(pc,d1.w),d1					;123B10A4
 adrCd0068DC:		; Memory Address ($68DC) and binary offset [$6558]
 	moveq	#$00,d0																;7000
-	move.b	$0013(a4),d0														;102C0013
+	move.b	$0013(a4),d0														;Loads the selected spell index from champion byte $13 before choosing its base SpellCost_DataTable entry.
 	lea		SpellCost_DataTable.w,a0											;41F8685E	;Short Absolute converted to symbol!
 	move.b	$00(a0,d0.w),d0														;10300000
-	addq.w	#$01,d0																;5240
+	addq.w	#$01,d0																;Increments the stored base spell cost before doubling it, so the base contribution is twice (the table value plus one).
 	add.w	d0,d0																;Doubles the adjusted base spell cost before the cast-power adjustment is added.
 	add.w	d1,d0																;Adds the source cast-power curve adjustment to form the COST +nn+ value.
 	bne.s	adrCd0068F8															;6606
 	addq.b	#$01,$0014(a4)														;Reverses the final decrement when cost normalisation reaches zero, preserving the one-point minimum.
 	moveq	#SpellCasting_ManaCostMinimum,d0									;7001
 adrCd0068F8:		; Memory Address ($68F8) and binary offset [$6574]
-	cmpi.w	#SpellCasting_ManaCostMaximum,d0									;0C400064
+	cmpi.w	#SpellCasting_ManaCostMaximum,d0									;Rejects a cast-power setting when the calculated spell-point cost reaches $64; displayed costs are therefore limited to $01-$63.
 	bcc.s	adrCd0068CC															;64CE
 	rts																			;4E75
 
@@ -10845,12 +10889,12 @@ _MoveParty:		; Memory Address ($6DFC) and binary offset [$6A78]
 	cmp.w	d0,d2																;B440
 	bne.s	Return_PlayerMoveRejected											;661E
 	move.w	$00(a6,d0.w),d1														;32360000
-	and.w	#$0007,d1															;02410007
-	cmpi.w	#$0004,d1															;0C410004
+	and.w	#Dungeon_CellTypeMask,d1											;Retains the three-bit cell type while ignoring map-cell flags.
+	cmpi.w	#MapCell_StairsType,d1												;Selects the stair transition path.
 	bne.s	Return_PlayerMoveRejected											;6610
 	move.b	$00(a6,d0.w),d1														;12360000
 	lsr.b	#$01,d1																;E209
-	eor.b	#$02,d1																;0A010002
+	eor.b	#Direction_OppositeMask,d1											;Reverses the stored stair facing to obtain the permitted travel direction.
 	cmp.b	d1,d6																;BC01
 	beq		Execute_StairTransition_AI_TBC										;67000096
 Return_PlayerMoveRejected:		; Memory Address ($71C0) and binary offset [$6E3C]
@@ -10866,7 +10910,7 @@ Process_PlayerMoveDestination:		; Memory Address ($71C2) and binary offset [$6E3
 	and.w	#$0007,d1															;02410007
 	subq.w	#$06,d1																;5D41
 	bcs.s	Refresh_AfterPlayerMove												;655E
-	beq.s	Process_PlayerMoveStairOrTeamPad									;6744
+	beq.s	Process_PlayerMoveFloorFeature										;6744
 	move.b	$00(a6,d0.w),d1														;12360000
 	move.w	d1,d2																;3401
 	and.w	#$0003,d2															;02420003
@@ -10891,20 +10935,21 @@ Process_PlayerMoveDestination:		; Memory Address ($71C2) and binary offset [$6E3
 	move.l	(sp)+,a5															;2A5F
 	rts																			;4E75
 
-Process_PlayerMoveStairOrTeamPad:		; Memory Address ($7214) and binary offset [$6E90]
-	; Selects type-7 team-pad handling or trigger reset before the common
-	; player-destination refresh path.
-	move.b	$00(a6,d0.w),d1														;12360000
-	and.w	#$0003,d1															;02410003
-	bne.s	Reset_PlayerMoveTriggerWait											;6606
-	bsr		TeamAvatar_LoopStart_AI_TBC											;610000E4
-	bra.s	Refresh_AfterPlayerMove												;6008
+Process_PlayerMoveFloorFeature:		; Memory Address ($6E90) and binary offset [$6B0C]
+	; A6/D0: type-6 destination. Subtype 0 clears living champions worn spells;
+	; subtype 1 skips trigger dispatch; subtypes 2/3 execute the pad.
+	move.b	$00(a6,d0.w),d1														;Read the destination floor feature's subtype byte.
+	and.w	#$0003,d1															;Keep the subtype, excluding ceiling-hole and trigger-reference bits.
+	bne.s	Dispatch_PlayerMoveTriggerPad										;Subtypes other than spell-fizzle continue to the pit/pad check.
+	bsr		Clear_PartyWornSpells												;Remove worn spells from the party's living champions.
+	bra.s	Refresh_AfterPlayerMove												;Continue the normal destination refresh.
 
-Reset_PlayerMoveTriggerWait:		; Memory Address ($7224) and binary offset [$6EA0]
-	; Resets the trigger-wait state for the applicable type-7 destination subtype.
-	subq.w	#$01,d1																;5341
-	beq.s	Refresh_AfterPlayerMove												;6704
-	bsr		Reset_TriggerWait_AI_TBC											;61000104
+Dispatch_PlayerMoveTriggerPad:		; Memory Address ($6EA0) and binary offset [$6B1C]
+	; D1: nonzero floor subtype. Skip pit subtype 1; dispatch visible/invisible
+	; pads 2/3 using the destination in A6/D0.
+	subq.w	#$01,d1																;Test for the pit subtype after excluding spell-fizzle.
+	beq.s	Refresh_AfterPlayerMove												;A pit does not dispatch a trigger here.
+	bsr		Execute_FloorTrigger												;Execute the visible or invisible trigger pad at A6/D0.
 Refresh_AfterPlayerMove:		; Memory Address ($722C) and binary offset [$6EA8]
 	; Reloads the destination map position, handles stair setup where required,
 	; then continues to player-position storage.
@@ -10912,19 +10957,19 @@ Refresh_AfterPlayerMove:		; Memory Address ($722C) and binary offset [$6EA8]
 	bsr		Refresh_CurrentChampionMapPositionIcon								;61001320
 	movem.l	(sp)+,d0/d7/a6														;4CDF4081
 	move.w	$00(a6,d0.w),d1														;32360000
-	and.w	#$0007,d1															;02410007
-	cmpi.w	#$0004,d1															;0C410004
+	and.w	#Dungeon_CellTypeMask,d1											;Retains the three-bit cell type while ignoring map-cell flags.
+	cmpi.w	#MapCell_StairsType,d1												;Selects the stair transition path.
 	bne		Store_PlayerMovePosition											;66000076
 	moveq	#$00,d6																;7C00
 	move.b	$00(a6,d0.w),d6														;1C360000
 	lsr.b	#$01,d6																;E20E
-	eor.b	#$02,d6																;0A060002
+	eor.b	#Direction_OppositeMask,d6											;Reverses the stored stair facing to obtain the permitted travel direction.
 Execute_StairTransition_AI_TBC:		; Memory Address ($6ED0) and binary offset [$6B4C]
-	bclr	#$07,$01(a6,d0.w)													;08B600070001
-	move.w	$0058(a5),d2														;342D0058
+	bclr	#MapCell_OccupiedBit,$01(a6,d0.w)									;Map-cell occupied flag updated when a player changes floor.
+	move.w	PlayerData_Floor(a5),d2												;Player record word selecting the active floor, not a map-cell offset.
 	move.w	d2,d1																;3202
 	addq.w	#$01,d1																;5241
-	btst	#$00,$00(a6,d0.w)													;083600000000
+	btst	#Stair_DownBit,$00(a6,d0.w)											;A clear bit ascends one floor; a set bit descends one floor.
 	beq.s	Continue_StairTransition_AI_TBC										;6702
 	subq.w	#$02,d1																;5541
 Continue_StairTransition_AI_TBC:		; Memory Address ($6EE8) and binary offset [$6B64]
@@ -10932,38 +10977,38 @@ Continue_StairTransition_AI_TBC:		; Memory Address ($6EE8) and binary offset [$6
 	move.w	d1,d0																;3001
 	bsr		adrCd0084DA															;610015EA
 	lea		MovementOffsetTable.w,a0											;41F85794	;Short Absolute converted to symbol!
-	add.b	$08(a0,d6.w),d7														;DE306008
-	add.b	$08(a0,d6.w),d7														;DE306008
+	add.b	MovementOffset_YTableOffset(a0,d6.w),d7								;Each addition advances one cell in Y; the consecutive pair advances two cells.
+	add.b	MovementOffset_YTableOffset(a0,d6.w),d7								;Each addition advances one cell in Y; the consecutive pair advances two cells.
 	swap	d7																	;4847
-	add.b	$00(a0,d6.w),d7														;DE306000
-	add.b	$00(a0,d6.w),d7														;DE306000
+	add.b	$00(a0,d6.w),d7														;Each addition advances one cell in X; the consecutive pair advances two cells.
+	add.b	$00(a0,d6.w),d7														;Each addition advances one cell in X; the consecutive pair advances two cells.
 	swap	d7																	;4847
 	bsr		CoordToMap															;61001590
-	tst.b	$01(a6,d0.w)														;4A360001
+	tst.b	$01(a6,d0.w)														;Tests only the occupied flag at the landing; no matching-stair type or direction is required by this check.
 	bpl.s	Update_StairCompletion_AI_TBC										;6A10
-	bsr		adrCd0084D6															;610015C0
+	bsr		adrCd0084D6															;Restores the old player floor geometry when the landing is occupied; the player floor has not yet been committed.
 	bsr		adrCd008498															;6100157E
-	bset	#$07,$01(a6,d0.w)													;08F600070001
+	bset	#MapCell_OccupiedBit,$01(a6,d0.w)									;Map-cell occupied flag updated when a player changes floor.
 	rts																			;4E75
 
 Update_StairCompletion_AI_TBC:		; Memory Address ($6F24) and binary offset [$6BA0]
-	move.w	d1,$0058(a5)														;3B410058
-	bset	#$07,$01(a6,d0.w)													;08F600070001
-	move.b	$00(a6,d0.w),d0														;10360000
+	move.w	d1,PlayerData_Floor(a5)												;Player record word selecting the active floor, not a map-cell offset.
+	bset	#MapCell_OccupiedBit,$01(a6,d0.w)									;Map-cell occupied flag updated when a player changes floor.
+	move.b	$00(a6,d0.w),d0														;Uses the landing cell first byte as the source of the new facing, even for intentionally nonstandard stair destinations.
 	lsr.b	#$01,d0																;E208
-	move.b	d0,$0021(a5)														;1B400021
+	move.b	d0,PlayerData_Direction+1(a5)										;Stores the landing-cell direction in the low byte of the player facing word.
 Store_PlayerMovePosition:		; Memory Address ($72BC) and binary offset [$6F38]
 	; Stores the accepted player X/Y position and clears active avatar-presentation
 	; state when necessary.
 	move.l	d7,$001C(a5)														;2B47001C
 	tst.b	$003E(a5)															;4A2D003E
 	beq.s	Check_PlayerMoveTeamPad												;6708
-	clr.b	$003E(a5)															;422D003E
+	clr.b	$003E(a5)															;After a successful movement, clears all four avatar presentation bits and redraws the party-command interface when presentation state was active.
 	bsr		Draw_PartyCommandInterface											;61000C08
 Check_PlayerMoveTeamPad:		; Memory Address ($72CE) and binary offset [$6F4A]
 	; Checks the resulting player destination against the team-pad/party-avatar
 	; state before returning.
-	move.w	$0042(a5),d0														;302D0042
+	move.w	PlayerData_PartyCommandStateOffset(a5),d0							;Checks party-command state after movement; negative and states below eight return, rather than testing a map pad.
 	bmi.s	Return_PlayerMoveProcessed											;6B08
 	cmpi.w	#$0008,d0															;0C400008
 	bcc		Click_ShowTeamAvatars												;6400C388
@@ -10986,62 +11031,62 @@ Execute_Rotation:		; Memory Address ($6F74) and binary offset [$6BF0]
 	bsr		adrCd008498															;6100151E
 	bra		Refresh_AfterPlayerMove												;6000FF2A
 
-TeamAvatar_LoopStart_AI_TBC:		; Memory Address ($6F80) and binary offset [$6BFC]
-	movem.l	d0/d7/a6,-(sp)														;48E78102
-	moveq	#$03,d7																;7E03
-TeamAvatar_LoopBody_AI_TBC:		; Memory Address ($6F86) and binary offset [$6C02]
-	move.b	$18(a5,d7.w),d1														;12357018
-	move.w	d1,d0																;3001
-	and.w	#$00E0,d1															;024100E0
-	bne.s	TeamAvatar_LoopEnd_AI_TBC											;6608
-	bsr		Load_ChampionStatRecord												;6100F6CC
-	clr.b	$0011(a4)															;422C0011
-TeamAvatar_LoopEnd_AI_TBC:		; Memory Address ($6F9A) and binary offset [$6C16]
-	dbra	d7,TeamAvatar_LoopBody_AI_TBC										;51CFFFEA
-	bsr		Draw_PartyCommandInterface											;61000BB0
-	movem.l	(sp)+,d0/d7/a6														;4CDF4081
-	rts																			;4E75
+Clear_PartyWornSpells:		; Memory Address ($6F80) and binary offset [$6BFC]
+	movem.l	d0/d7/a6,-(sp)														;Save the movement cell, coordinates and map base.
+	moveq	#$03,d7																;Start with the last of the four party slots.
+Clear_PartyWornSpells_NextSlot:		; Memory Address ($6F86) and binary offset [$6C02]
+	move.b	$18(a5,d7.w),d1														;Read this party slot's champion number and state flags.
+	move.w	d1,d0																;Pass the champion number to the stat-record lookup.
+	and.w	#PartyShieldStatusBar_SuppressionMask,d1							;Keep flags that identify dead or unavailable party slots.
+	bne.s	Clear_PartyWornSpells_Continue										;Skip a slot without a living champion.
+	bsr		Load_ChampionStatRecord												;Resolve the living champion's stat record in A4.
+	clr.b	ChampionStat_WornSpell(a4)											;Remove this champion's worn spell.
+Clear_PartyWornSpells_Continue:		; Memory Address ($6F9A) and binary offset [$6C16]
+	dbra	d7,Clear_PartyWornSpells_NextSlot									;Repeat for the remaining party slots.
+	bsr		Draw_PartyCommandInterface											;Redraw the party command panel after removing worn spells.
+	movem.l	(sp)+,d0/d7/a6														;Restore the movement cell, coordinates and map base.
+	rts																			;Return to destination processing.
 
-Trigger_WaitFlag_AI_TBC:		; Memory Address ($6FA8) and binary offset [$6C24]
+TriggerSound_ID:		; Memory Address ($6FA8) and binary offset [$6C24]
 	dc.w	$FFFF	;FFFF
 
-Reset_TriggerWait_AI_TBC:		; Memory Address ($6FAA) and binary offset [$6C26]
-	move.w	#$FFFF,Trigger_WaitFlag_AI_TBC.w									;31FCFFFF6FA8	;Short Absolute converted to symbol!
-	move.b	$00(a6,d0.w),d1														;12360000
-	and.w	#$0003,d1															;02410003
-	subq.w	#$02,d1																;5541
-	bne.s	TriggerWait_PostCheck_AI_TBC										;6604
-	clr.w	Trigger_WaitFlag_AI_TBC.w											;42786FA8	;Short Absolute converted to symbol!
-TriggerWait_PostCheck_AI_TBC:		; Memory Address ($6FC0) and binary offset [$6C3C]
-	move.b	$00(a6,d0.w),d1														;12360000
-	and.w	#$00F8,d1															;024100F8
-	lsr.b	#$01,d1																;E209
-	lea		TriggersData_1.l,a1													;43F900007056
-	move.w	CurrentTower.l,d2													;34390000EE2E
-	asl.w	#$07,d2																;EF42
-	add.w	d2,a1																;D2C2
-	moveq	#$00,d2																;7400
-	move.b	$00(a1,d1.w),d2														;14311000
-	cmpi.b	#$08,d2																;0C020008
-	beq.s	Setup_TriggerEffectDefault_AI_TBC									;670C
-	cmpi.b	#$0A,d2																;0C02000A
-	beq.s	Setup_TriggerEffectDefault_AI_TBC									;6706
-	cmpi.b	#$2A,d2																;0C02002A
-	bne.s	TriggerEffect_Actual_AI_TBC											;6606
-Setup_TriggerEffectDefault_AI_TBC:		; Memory Address ($6FF2) and binary offset [$6C6E]
-	move.w	#$0005,Trigger_WaitFlag_AI_TBC.w									;31FC00056FA8	;Short Absolute converted to symbol!
-TriggerEffect_Actual_AI_TBC:		; Memory Address ($6FF8) and binary offset [$6C74]
-	lea		Trigger_00_t00_Null.l,a0											;41F900007016
-	add.w	Triggers_LookupTable(pc,d2.w),a0									;D0FB2018
-	movem.l	d0/d7/a6,-(sp)														;48E78102
-	jsr		(a0)																;4E90
-	move.w	Trigger_WaitFlag_AI_TBC.w,d0										;30386FA8	;Short Absolute converted to symbol!
-	bmi.s	TriggerEffect_Post_AI_TBC											;6B04
-	bsr		PlaySound															;610018AE
-TriggerEffect_Post_AI_TBC:		; Memory Address ($7012) and binary offset [$6C8E]
-	movem.l	(sp)+,d0/d7/a6														;4CDF4081
+Execute_FloorTrigger:		; Memory Address ($6FAA) and binary offset [$6C26]
+	move.w	#TriggerSound_None,TriggerSound_ID.w								;Default to no sound after this trigger.
+	move.b	$00(a6,d0.w),d1														;Read the destination floor feature's first byte.
+	and.w	#FloorFeature_SubtypeMask,d1										;Keep the visible/invisible pad subtype.
+	subq.w	#FloorFeature_VisiblePadSubtype,d1									;Test for a visible green pad.
+	bne.s	Resolve_FloorTriggerRecord											;Invisible pads retain the no-sound default.
+	clr.w	TriggerSound_ID.w													;Visible pads default to the switch-click sound.
+Resolve_FloorTriggerRecord:		; Memory Address ($6FC0) and binary offset [$6C3C]
+	move.b	$00(a6,d0.w),d1														;Read the pad's encoded trigger reference.
+	and.w	#FloorTrigger_IndexMask,d1											;Keep trigger-reference bits 3-7.
+	lsr.b	#$01,d1																;Convert the reference to a four-byte record offset.
+	lea		TriggersData_1.l,a1													;Start from the Keep's trigger definitions.
+	move.w	CurrentTower.l,d2													;Read the current tower number.
+	asl.w	#FloorTrigger_TowerStrideShift,d2									;Select its 128-byte trigger-record block.
+	add.w	d2,a1																;Advance to this tower's trigger definitions.
+	moveq	#$00,d2																;Clear the action accumulator before loading one byte.
+	move.b	$00(a1,d1.w),d2														;Read the action byte, already a word-table byte offset.
+	cmpi.b	#TriggerAction_VivifyExternal,d2									;Check for the external Vivify pad action.
+	beq.s	Select_TriggerSpellSound											;Use the alternative spell sound for this Vivify action.
+	cmpi.b	#TriggerAction_VivifyInternal,d2									;Check for the internal Vivify pad action.
+	beq.s	Select_TriggerSpellSound											;Use the alternative spell sound for this Vivify action.
+	cmpi.b	#TriggerAction_FlashTeleport,d2										;Check for the flashing teleport action.
+	bne.s	Dispatch_TriggerAndPlaySound										;Other actions keep the pad's default sound.
+Select_TriggerSpellSound:		; Memory Address ($6FF2) and binary offset [$6C6E]
+	move.w	#Sound_AlternativeSpell,TriggerSound_ID.w							;Select the alternative spell sound for this effect.
+Dispatch_TriggerAndPlaySound:		; Memory Address ($6FF8) and binary offset [$6C74]
+	lea		Trigger_00_t00_Null.l,a0											;Load the base used by the signed handler displacements.
+	add.w	Triggers_LookupTable(pc,d2.w),a0									;Add the displacement selected by the action byte.
+	movem.l	d0/d7/a6,-(sp)														;Save the movement cell, packed X/Y and map base for the return path.
+	jsr		(a0)																;Run the selected trigger with A1/D1 selecting its record.
+	move.w	TriggerSound_ID.w,d0												;Read the sound selected by the pad or its handler.
+	bmi.s	Restore_TriggerMovementState										;A negative sound selector suppresses playback.
+	bsr		PlaySound															;Play the selected sound once the handler finishes.
+Restore_TriggerMovementState:		; Memory Address ($7012) and binary offset [$6C8E]
+	movem.l	(sp)+,d0/d7/a6														;Restore the saved movement state, including any teleport edits to it.
 Trigger_00_t00_Null:		; Memory Address ($7016) and binary offset [$6C92]
-	rts																			;4E75
+	rts																			;Return without another trigger action.
 
 Triggers_LookupTable:		; Memory Address ($7018) and binary offset [$6C94]
 	dc.w	Trigger_00_t00_Null-Trigger_00_t00_Null	;0000
@@ -11058,27 +11103,27 @@ Triggers_LookupTable:		; Memory Address ($7018) and binary offset [$6C94]
 	dc.w	Switch_01_s02_Trigger_11_t16_RemoveXY-Trigger_00_t00_Null	;ECFC
 	dc.w	Trigger_12_t18_Close_VoidLock_Door_XY-Trigger_00_t00_Null	;071E
 	dc.w	Switch_05_s0A_Trigger_13_t1A_TogglePillar_XY-Trigger_00_t00_Null	;0756
-	dc.w	Trigger_14_t1C_Create_Spinner_or_Other_XY-Trigger_00_t00_Null	;0768
+	dc.w	Trigger_14_t1C_SetFloorTypeBits_XY-Trigger_00_t00_Null	;0768
 
-	dc.w	Switch_00_s00_Trigger_15_t1E_ToggleWallXY-Trigger_00_t00_Null	;ECE2
-	dc.w	Trigger_16_t20_Create_Pad_FXY-Trigger_00_t00_Null	;0780
-	dc.w	Trigger_17_t22_Move_Diagonal_Pillar-Trigger_00_t00_Null	;07C0
+	dc.w	Trigger_15_t1E_CreateWall_XY-Trigger_00_t00_Null	;ECE2
+	dc.w	Trigger_16_t20_ToggleNeighbourFloorType-Trigger_00_t00_Null	;0780
+	dc.w	Trigger_17_t22_MovePillar_NorthWestToNorth-Trigger_00_t00_Null	;07C0
 	dc.w	Switch_06_s0C_Trigger_18_t24_CreatePillar_XY-Trigger_00_t00_Null	;0752
 
 	dc.w	Trigger_19_t26_Keep_Entrance_SidePad-Trigger_00_t00_Null	;0370
 	dc.w	Trigger_20_t28_Keep_Entrance_CentrePad-Trigger_00_t00_Null	;0340
-	dc.w	Trigger_21_t2A_Flash_Telepoprt_FXY-Trigger_00_t00_Null	;0670
+	dc.w	Trigger_21_t2A_Flash_Teleport_FXY-Trigger_00_t00_Null	;0670
 	dc.w	Switch_04_s08_Trigger_22_t2C_RotateWall_XY-Trigger_00_t00_Null	;069E
 
-	dc.w	Switch_02_s04_Trigger_23_t2E-Trigger_00_t00_Null	;ECE6
-	dc.w	adrJA007728-Trigger_00_t00_Null	;0712
-	dc.w	Trigger_24_t30_Spinner3-Trigger_00_t00_Null	;0626
-	dc.w	Trigger_25_t32_Clicker_Teleport_FXY-Trigger_00_t00_Null	;0774
+	dc.w	Switch_02_s04_Trigger_23_t2E_ToggleWall_XY-Trigger_00_t00_Null	;ECE6
+	dc.w	Trigger_24_t30_SpinnerRight90-Trigger_00_t00_Null	;0712
+	dc.w	Trigger_25_t32_Teleport_FXY-Trigger_00_t00_Null	;0626
+	dc.w	Trigger_26_t34_ToggleFloorTypeBits_XY-Trigger_00_t00_Null	;0774
 
 	dc.w	Switch_07_s0E_Trigger_26_t34_RotateWood_XY-Trigger_00_t00_Null	;0742
-	dc.w	Trigger_27_t36_Rotate_WoodWall_CounterClockwise-Trigger_00_t00_Null	;061A
-	dc.w	Trigger_28_t38_GameCompletion-Trigger_00_t00_Null	;0504
-	dc.w	adrJA007502-Trigger_00_t00_Null	;04EC
+	dc.w	Trigger_28_t38_ToggleFloorSubtype_XY-Trigger_00_t00_Null	;061A
+	dc.w	Trigger_29_t3A_GameCompletion-Trigger_00_t00_Null	;0504
+	dc.w	Trigger_30_t3C_RemoveXY_IfPuzzleBitsSet-Trigger_00_t00_Null	;04EC
 TriggersData_1:		; Memory Address ($7056) and binary offset [$6CD2]
 	INCBIN "/data/BLOODWYCH439-clean/maps/mod0.triggers"
 TriggersData_2:		; Memory Address ($70D6) and binary offset [$6D52]
@@ -11093,45 +11138,45 @@ TriggersData_6:		; Memory Address ($72D6) and binary offset [$6F52]
 	INCBIN "/data/BLOODWYCH439-clean/maps/zendik.triggers"
 
 Trigger_20_t28_Keep_Entrance_CentrePad:		; Memory Address ($7356) and binary offset [$6FD2]
-	tst.w	MultiPlayer.l														;4A790000EE30
-	beq		adrCd007470															;67000112
-	pea		$00(a1,d1.w)														;48711000
-	bsr		adrCd007974															;6100060E
-	move.l	(sp)+,a2															;245F
-	move.w	CurrentTower.l,d2													;34390000EE2E
-	moveq	#$00,d1																;7200
-	move.b	Keep_Start_Floors_DataTable(pc,d2.w),d1								;123B2058
-	asl.w	#$02,d2																;E542
-	lea		Keep_Start_XY_DataTable.l,a0										;41F9000073CE
-	add.w	d2,a0																;D0C2
-	moveq	#$00,d0																;7000
-	bra		adrCd007408															;60000084
+	tst.w	MultiPlayer.l														;Test the game mode before using the central return pad.
+	beq		Return_TowerEntrance												;Two-party mode uses the paired side pads instead.
+	pea		$00(a1,d1.w)														;Save the trigger-record address across tower-state packing.
+	bsr		adrCd007974															;Save outgoing tower state and finish its pending effects.
+	move.l	(sp)+,a2															;Recover the trigger-record address in A2.
+	move.w	CurrentTower.l,d2													;Use the tower being left to select the Keep arrival pair.
+	moveq	#$00,d1																;Clear the destination-floor accumulator.
+	move.b	Keep_Start_Floors_DataTable(pc,d2.w),d1								;Read the Keep arrival floor for this tower.
+	asl.w	#$02,d2																;Convert the tower number to a four-byte arrival-pair offset.
+	lea		Keep_Start_XY_DataTable.l,a0										;Load the Keep arrival coordinate table.
+	add.w	d2,a0																;Select this tower's two Keep arrival positions.
+	moveq	#$00,d0																;Select tower zero, the Keep.
+	bra		Enter_TowerAtArrivalMidpoint										;Move the party to the midpoint of the arrival pair.
 
 Trigger_19_t26_Keep_Entrance_SidePad:		; Memory Address ($7386) and binary offset [$7002]
-	tst.w	MultiPlayer.l														;4A790000EE30
-	bne		adrCd007470															;660000E2
-	pea		$00(a1,d1.w)														;48711000
-	bsr		adrCd005D2E															;6100E998
-	bsr		adrCd0098A4															;6100250A
-	bcc.s	adrCd0073A2															;6404
-	tst.b	d0																	;4A00
-	bmi.s	adrCd0073A6															;6B04
-adrCd0073A2:		; Memory Address ($73A2) and binary offset [$701E]
-	addq.w	#$04,sp																;584F
-	rts																			;4E75
+	tst.w	MultiPlayer.l														;Test the game mode before using a side return pad.
+	bne		Return_TowerEntrance												;Single-party mode uses the central return pad instead.
+	pea		$00(a1,d1.w)														;Save the trigger-record address while checking the opposite pad.
+	bsr		Resolve_ActionTargetXY												;Resolve the opposite pad's X/Y on the active floor.
+	bsr		adrCd0098A4															;Find the occupant of that map cell.
+	bcc.s	Return_KeepEntrancePartnerMissing									;Do nothing if no occupant was found.
+	tst.b	d0																	;Distinguish a player party from a champion or monster.
+	bmi.s	Prepare_KeepEntranceArrivalPair										;Continue only when a player party occupies the opposite pad.
+Return_KeepEntrancePartnerMissing:		; Memory Address ($73A2) and binary offset [$701E]
+	addq.w	#$04,sp																;Discard the saved record pointer after a failed partner check.
+	rts																			;Return without changing towers.
 
-adrCd0073A6:		; Memory Address ($73A6) and binary offset [$7022]
-	move.l	a1,-(sp)															;2F09
-	bsr		adrCd007974															;610005CA
-	movem.l	(sp)+,a1/a2															;4CDF0600
-	move.w	CurrentTower.l,d2													;34390000EE2E
-	moveq	#$00,d1																;7200
-	move.b	Keep_Start_Floors_DataTable(pc,d2.w),d1								;123B2012
-	asl.w	#$02,d2																;E542
-	lea		Keep_Start_XY_DataTable.l,a0										;41F9000073CE
-	add.w	d2,a0																;D0C2
-	moveq	#$00,d0																;7000
-	bra		adrCd00748C															;600000C2
+Prepare_KeepEntranceArrivalPair:		; Memory Address ($73A6) and binary offset [$7022]
+	move.l	a1,-(sp)															;Save the partner party's record pointer.
+	bsr		adrCd007974															;Save outgoing tower state and finish its pending effects.
+	movem.l	(sp)+,a1/a2															;Restore partner party A1 and trigger record A2.
+	move.w	CurrentTower.l,d2													;Select the Keep arrival pair for the tower being left.
+	moveq	#$00,d1																;Clear the destination-floor accumulator.
+	move.b	Keep_Start_Floors_DataTable(pc,d2.w),d1								;Read this tower's Keep arrival floor.
+	asl.w	#$02,d2																;Convert the tower number to a four-byte arrival-pair offset.
+	lea		Keep_Start_XY_DataTable.l,a0										;Load the Keep arrival coordinate table.
+	add.w	d2,a0																;Select the two arrival positions.
+	moveq	#$00,d0																;Start with the first arrival position in the Keep.
+	bra		Enter_TowerAtPairedArrivals											;Move both parties to the paired arrival positions.
 
 Keep_Start_Floors_DataTable:		; Memory Address ($73CC) and binary offset [$7048]
 	INCBIN "/data/BLOODWYCH439-clean/maps/keep.floors"
@@ -11139,95 +11184,95 @@ Keep_Start_XY_DataTable:		; Memory Address ($73CE) and binary offset [$704A]
 	INCBIN "/data/BLOODWYCH439-clean/maps/keep.entrances"
 
 Trigger_10_t14_Tower_Entrance_CentrePad:		; Memory Address ($73E6) and binary offset [$7062]
-	tst.w	MultiPlayer.l														;4A790000EE30
-	beq		adrCd007470															;67000082
-	pea		$00(a1,d1.w)														;48711000
-	bsr		adrCd007974															;6100057E
-	move.l	(sp)+,a2															;245F
-	moveq	#$00,d0																;7000
-	move.b	$0001(a2),d0														;102A0001
-	lea		Tower_Start_XY_DataTable.l,a0										;41F9000074EA
-	moveq	#$00,d1																;7200
-adrCd007408:		; Memory Address ($7408) and binary offset [$7084]
-	moveq	#$00,d2																;7400
-	move.b	$00(a0,d0.w),d2														;14300000
-	add.b	$02(a0,d0.w),d2														;D4300002
-	lsr.w	#$01,d2																;E24A
-	swap	d2																	;4842
-	move.b	$01(a0,d0.w),d2														;14300001
-	add.b	$03(a0,d0.w),d2														;D4300003
-	lsr.w	#$01,d2																;E24A
-	move.l	d2,$001C(a5)														;2B42001C
-	move.w	d1,$0058(a5)														;3B410058
-	lsr.b	#$02,d0																;E408
-	move.w	d0,CurrentTower.l													;33C00000EE2E
-	bsr		Select_CurrentTowerMapData											;61009736
-	bsr		adrCd0084D6															;610010A0
-	bsr		adrCd008498															;6100105E
-	move.l	d0,$0004(sp)														;2F400004
-	move.l	$001C(a5),$0008(sp)													;2F6D001C0008
-	move.l	a6,$000C(sp)														;2F4E000C
-	bset	#$07,$01(a6,d0.w)													;08F600070001
-	bra		UnpackTowerMonsters													;600095A4
+	tst.w	MultiPlayer.l														;Test the game mode before using the central entrance pad.
+	beq		Return_TowerEntrance												;Two-party mode uses the paired side pads instead.
+	pea		$00(a1,d1.w)														;Save the trigger-record address across tower-state packing.
+	bsr		adrCd007974															;Save outgoing tower state and finish its pending effects.
+	move.l	(sp)+,a2															;Recover the trigger-record address in A2.
+	moveq	#$00,d0																;Clear the destination-pair accumulator.
+	move.b	$0001(a2),d0														;Read BB as the arrival-pair byte offset, not a floor number.
+	lea		Tower_Start_XY_DataTable.l,a0										;Load the tower arrival coordinate pairs.
+	moveq	#$00,d1																;New towers are entered on floor zero.
+Enter_TowerAtArrivalMidpoint:		; Memory Address ($7408) and binary offset [$7084]
+	moveq	#$00,d2																;Clear the packed destination coordinates.
+	move.b	$00(a0,d0.w),d2														;Read the first arrival X coordinate.
+	add.b	$02(a0,d0.w),d2														;Add the second arrival X coordinate.
+	lsr.w	#$01,d2																;Halve the summed coordinate to place the party midway between arrivals.
+	swap	d2																	;Place X in the high word.
+	move.b	$01(a0,d0.w),d2														;Read the first arrival Y coordinate.
+	add.b	$03(a0,d0.w),d2														;Add the second arrival Y coordinate.
+	lsr.w	#$01,d2																;Halve the summed coordinate to place the party midway between arrivals.
+	move.l	d2,$001C(a5)														;Store the party's new packed X/Y.
+	move.w	d1,$0058(a5)														;Store the destination floor.
+	lsr.b	#$02,d0																;Convert the arrival-pair byte offset to a tower number.
+	move.w	d0,CurrentTower.l													;Make that tower current.
+	bsr		Select_CurrentTowerMapData											;Select the destination tower's map data.
+	bsr		adrCd0084D6															;Load geometry for the party's destination floor.
+	bsr		adrCd008498															;Resolve the party's new X/Y to its map cell.
+	move.l	d0,$0004(sp)														;Replace the dispatcher's saved cell offset with the arrival cell.
+	move.l	$001C(a5),$0008(sp)													;Replace the dispatcher's saved X/Y with the arrival coordinates.
+	move.l	a6,$000C(sp)														;Replace the dispatcher's saved map base with the destination tower.
+	bset	#$07,$01(a6,d0.w)													;Mark the arrival cell occupied.
+	bra		UnpackTowerMonsters													;Load the destination tower's live monsters and return.
 
 Trigger_09_t12_Tower_Entrance_SidePad:		; Memory Address ($7454) and binary offset [$70D0]
-	tst.w	MultiPlayer.l														;4A790000EE30
-	bmi.s	adrCd007470															;6B14
-	pea		$00(a1,d1.w)														;48711000
-	bsr		adrCd005D2E															;6100E8CC
-	bsr		adrCd0098A4															;6100243E
-	bcc.s	adrCd00746E															;6404
-	tst.b	d0																	;4A00
-	bmi.s	adrCd007472															;6B04
-adrCd00746E:		; Memory Address ($746E) and binary offset [$70EA]
-	addq.w	#$04,sp																;584F
-adrCd007470:		; Memory Address ($7470) and binary offset [$70EC]
-	rts																			;4E75
+	tst.w	MultiPlayer.l														;Test the game mode before checking the opposite side pad.
+	bmi.s	Return_TowerEntrance												;A negative mode value suppresses this entrance.
+	pea		$00(a1,d1.w)														;Save the trigger-record address while checking the opposite pad.
+	bsr		Resolve_ActionTargetXY												;Resolve the opposite pad's X/Y on the active floor.
+	bsr		adrCd0098A4															;Find the occupant of that map cell.
+	bcc.s	Discard_TowerEntranceRecord											;Do nothing if no occupant was found.
+	tst.b	d0																	;Distinguish a player party from a champion or monster.
+	bmi.s	Prepare_TowerEntranceArrivalPair									;Continue only when a player party occupies the opposite pad.
+Discard_TowerEntranceRecord:		; Memory Address ($746E) and binary offset [$70EA]
+	addq.w	#$04,sp																;Discard the saved record pointer after a failed partner check.
+Return_TowerEntrance:		; Memory Address ($7470) and binary offset [$70EC]
+	rts																			;Return without changing towers.
 
-adrCd007472:		; Memory Address ($7472) and binary offset [$70EE]
-	move.l	a1,-(sp)															;2F09
-	bsr		adrCd007974															;610004FE
-	movem.l	(sp)+,a1/a2															;4CDF0600
-	moveq	#$00,d0																;7000
-	move.b	$0001(a2),d0														;102A0001
-	add.w	d0,d0																;D040
-	lea		Tower_Start_XY_DataTable.l,a0										;41F9000074EA
-	moveq	#$00,d1																;7200
-adrCd00748C:		; Memory Address ($748C) and binary offset [$7108]
-	move.b	$00(a0,d0.w),$001D(a5)												;1B700000001D
-	move.b	$01(a0,d0.w),$001F(a5)												;1B700001001F
-	move.w	d1,$0058(a5)														;3B410058
-	eor.b	#$02,d0																;0A000002
-	move.b	$00(a0,d0.w),$001D(a1)												;13700000001D
-	move.b	$01(a0,d0.w),$001F(a1)												;13700001001F
-	move.w	d1,$0058(a1)														;33410058
-	lsr.b	#$02,d0																;E408
-	move.w	d0,CurrentTower.l													;33C00000EE2E
-	bsr		Select_CurrentTowerMapData											;610096AE
-	bsr		adrCd0084D6															;61001018
-	bsr		adrCd008498															;61000FD6
-	move.l	d0,$0004(sp)														;2F400004
-	move.l	$001C(a5),$0008(sp)													;2F6D001C0008
-	move.l	a6,$000C(sp)														;2F4E000C
-	bset	#$07,$01(a6,d0.w)													;08F600070001
-	exg		a1,a5																;CB49
-	bsr		adrCd008498															;61000FBC
-	bset	#$07,$01(a6,d0.w)													;08F600070001
-	exg		a1,a5																;CB49
-	bra		UnpackTowerMonsters													;6000950E
+Prepare_TowerEntranceArrivalPair:		; Memory Address ($7472) and binary offset [$70EE]
+	move.l	a1,-(sp)															;Save the partner party's record pointer.
+	bsr		adrCd007974															;Save outgoing tower state and finish its pending effects.
+	movem.l	(sp)+,a1/a2															;Restore partner party A1 and trigger record A2.
+	moveq	#$00,d0																;Clear the arrival-position accumulator.
+	move.b	$0001(a2),d0														;Read BB as the arrival-side index.
+	add.w	d0,d0																;Convert that index to a two-byte X/Y-pair offset.
+	lea		Tower_Start_XY_DataTable.l,a0										;Load the tower arrival coordinate pairs.
+	moveq	#$00,d1																;New towers are entered on floor zero.
+Enter_TowerAtPairedArrivals:		; Memory Address ($748C) and binary offset [$7108]
+	move.b	$00(a0,d0.w),$001D(a5)												;Store the active party's arrival X byte.
+	move.b	$01(a0,d0.w),$001F(a5)												;Store the active party's arrival Y byte.
+	move.w	d1,$0058(a5)														;Store the active party's destination floor.
+	eor.b	#$02,d0																;Select the other side of the arrival pair.
+	move.b	$00(a0,d0.w),$001D(a1)												;Store the partner party's arrival X byte.
+	move.b	$01(a0,d0.w),$001F(a1)												;Store the partner party's arrival Y byte.
+	move.w	d1,$0058(a1)														;Store the partner party's destination floor.
+	lsr.b	#$02,d0																;Convert the arrival-pair byte offset to a tower number.
+	move.w	d0,CurrentTower.l													;Make that tower current.
+	bsr		Select_CurrentTowerMapData											;Select the destination tower's map data.
+	bsr		adrCd0084D6															;Load geometry for the destination floor.
+	bsr		adrCd008498															;Resolve the arrival cell of the party currently selected by A5.
+	move.l	d0,$0004(sp)														;Replace the dispatcher's saved cell offset with the arrival cell.
+	move.l	$001C(a5),$0008(sp)													;Replace the dispatcher's saved X/Y with the arrival coordinates.
+	move.l	a6,$000C(sp)														;Replace the dispatcher's saved map base with the destination tower.
+	bset	#$07,$01(a6,d0.w)													;Mark this party's arrival cell occupied.
+	exg		a1,a5																;Temporarily select the partner party, then restore the active party.
+	bsr		adrCd008498															;Resolve the arrival cell of the party currently selected by A5.
+	bset	#$07,$01(a6,d0.w)													;Mark this party's arrival cell occupied.
+	exg		a1,a5																;Temporarily select the partner party, then restore the active party.
+	bra		UnpackTowerMonsters													;Load the destination tower's live monsters and return.
 
 Tower_Start_XY_DataTable:		; Memory Address ($74EA) and binary offset [$7166]
 	INCBIN "/data/BLOODWYCH439-clean/data/tower.entrances"
 
-adrJA007502:		; Memory Address ($7502) and binary offset [$717E]
-	move.l	Current_TowerMapDataBase.l,a6										;2C790000EE78
-	move.b	$0014(a6),d0														;102E0014
-	and.b	$001C(a6),d0														;C02E001C
-	btst	#$00,d0																;08000000
-	bne		Switch_01_s02_Trigger_11_t16_RemoveXY								;6600E7FC
-	rts																			;4E75
+Trigger_30_t3C_RemoveXY_IfPuzzleBitsSet:		; Memory Address ($7502) and binary offset [$717E]
+	move.l	Current_TowerMapDataBase.l,a6										;Load the current tower's map-cell data base.
+	move.b	$0014(a6),d0														;Read the first fixed puzzle cell's first byte at offset $14.
+	and.b	$001C(a6),d0														;Keep bits also set in the second fixed cell's first byte at offset $1C.
+	btst	#$00,d0																;Test whether both fixed cells have bit zero set.
+	bne		Switch_01_s02_Trigger_11_t16_RemoveXY								;If both bits are set, remove the record's X/Y target.
+	rts																			;Otherwise leave the target unchanged.
 
-Trigger_28_t38_GameCompletion:		; Memory Address ($751A) and binary offset [$7196]
+Trigger_29_t3A_GameCompletion:		; Memory Address ($751A) and binary offset [$7196]
 	move.l	a5,-(sp)															;2F0D
 	bsr.s	GameEndPicture														;6164
 	clr.w	FrameSyncFlagWord_AI_TBC.l											;427900008C1E
@@ -11299,308 +11344,308 @@ CongratsText:
 	dc.b	$FF	;FF
 	dc.b	$00	;00
 
-Trigger_27_t36_Rotate_WoodWall_CounterClockwise:		; Memory Address ($7630) and binary offset [$72AC]
-	bsr		adrCd005D2E															;6100E6FC
-	eor.b	#$03,$00(a6,d0.w)													;0A3600030000
-	rts																			;4E75
+Trigger_28_t38_ToggleFloorSubtype_XY:		; Memory Address ($7630) and binary offset [$72AC]
+	bsr		Resolve_ActionTargetXY												;Resolve the record's X/Y to A6/D0 on the active floor.
+	eor.b	#FloorFeature_SubtypeMask,$00(a6,d0.w)								;Flip subtype bits 0-1; ceiling-hole and reference bits stay unchanged.
+	rts																			;Return after changing the target's first byte.
 
-Trigger_24_t30_Spinner3:		; Memory Address ($763C) and binary offset [$72B8]
-	moveq	#$00,d0																;7000
-	move.b	$01(a1,d1.w),d0														;10311001
-	move.w	d0,d6																;3C00
-	bsr		adrCd0084DA															;61000E94
-	bsr		adrCd005D2E															;6100E6E4
-	tst.b	$01(a6,d0.w)														;4A360001
-	bpl.s	adrCd007660															;6A0E
-	subq.w	#$01,d7																;5347
-	bsr		CoordToMap															;61000E46
-	tst.b	$01(a6,d0.w)														;4A360001
-	bpl.s	adrCd007660															;6A02
-	rts																			;4E75
+Trigger_25_t32_Teleport_FXY:		; Memory Address ($763C) and binary offset [$72B8]
+	moveq	#$00,d0																;Clear the destination-floor accumulator.
+	move.b	$01(a1,d1.w),d0														;Read the destination floor from BB.
+	move.w	d0,d6																;Keep the destination floor for the eventual player update.
+	bsr		adrCd0084DA															;Load destination-floor geometry without yet moving the player.
+	bsr		Resolve_ActionTargetXY												;Resolve the record's destination X/Y on that floor.
+	tst.b	$01(a6,d0.w)														;Test this candidate destination for an occupied cell.
+	bpl.s	Commit_TeleportWithoutFlash											;Commit this candidate destination if it is free.
+	subq.w	#$01,d7																;Try the cell one step north when the requested cell is occupied.
+	bsr		CoordToMap															;Resolve that alternate X/Y to its map cell.
+	tst.b	$01(a6,d0.w)														;Test this candidate destination for an occupied cell.
+	bpl.s	Commit_TeleportWithoutFlash											;Commit this candidate destination if it is free.
+	rts																			;Both destinations are occupied; leave the player position unchanged.
 
-adrCd007660:		; Memory Address ($7660) and binary offset [$72DC]
-	bsr.s	adrCd007664															;6102
-	rts																			;4E75
+Commit_TeleportWithoutFlash:		; Memory Address ($7660) and binary offset [$72DC]
+	bsr.s	Commit_TriggerTeleport												;Commit the destination and rewrite the dispatcher's saved movement state.
+	rts																			;Return without adding the teleport flash.
 
-adrCd007664:		; Memory Address ($7664) and binary offset [$72E0]
-	bset	#$07,$01(a6,d0.w)													;08F600070001
-	move.l	$0008(sp),d1														;222F0008
-	bclr	#$07,$01(a6,d1.w)													;08B600071001
-	move.w	d6,$0058(a5)														;3B460058
-	move.l	d7,$001C(a5)														;2B47001C
-	move.l	d7,$000C(sp)														;2F47000C
-	move.l	d0,$0008(sp)														;2F400008
-	rts																			;4E75
+Commit_TriggerTeleport:		; Memory Address ($7664) and binary offset [$72E0]
+	bset	#$07,$01(a6,d0.w)													;Mark the destination cell occupied.
+	move.l	TriggerTeleportStack_CellOffset(sp),d1								;Read the departure cell offset saved by the trigger dispatcher.
+	bclr	#$07,$01(a6,d1.w)													;Clear the departure cell's occupied flag.
+	move.w	d6,$0058(a5)														;Store the destination floor in the player record.
+	move.l	d7,$001C(a5)														;Store the destination X/Y in the player record.
+	move.l	d7,TriggerTeleportStack_PackedXYOffset(sp)							;Replace the dispatcher's saved X/Y with the destination coordinates.
+	move.l	d0,TriggerTeleportStack_CellOffset(sp)								;Replace the dispatcher's saved cell offset with the destination cell.
+	rts																			;Return to the teleport handler; A6 still addresses the same tower.
 
-Trigger_21_t2A_Flash_Telepoprt_FXY:		; Memory Address ($7686) and binary offset [$7302]
-	moveq	#$00,d0																;7000
-	move.b	$01(a1,d1.w),d0														;10311001
-	move.w	d0,d6																;3C00
-	bsr		adrCd0084DA															;61000E4A
-	bsr		adrCd005D2E															;6100E69A
-	tst.b	$01(a6,d0.w)														;4A360001
-	bpl.s	adrCd0076AC															;6A10
-	addq.w	#$02,d0																;5440
-	swap	d7																	;4847
-	addq.w	#$01,d7																;5247
-	swap	d7																	;4847
-	tst.b	$01(a6,d0.w)														;4A360001
-	bpl.s	adrCd0076AC															;6A02
-	rts																			;4E75
+Trigger_21_t2A_Flash_Teleport_FXY:		; Memory Address ($7686) and binary offset [$7302]
+	moveq	#$00,d0																;Clear the destination-floor accumulator.
+	move.b	$01(a1,d1.w),d0														;Read the destination floor from BB.
+	move.w	d0,d6																;Keep the destination floor for the eventual player update.
+	bsr		adrCd0084DA															;Load destination-floor geometry without yet moving the player.
+	bsr		Resolve_ActionTargetXY												;Resolve the record's destination X/Y on that floor.
+	tst.b	$01(a6,d0.w)														;Test this candidate destination for an occupied cell.
+	bpl.s	Commit_TeleportAndQueueFlash										;Commit this candidate destination if it is free.
+	addq.w	#$02,d0																;Try the next map cell when the requested cell is occupied.
+	swap	d7																	;Swap coordinate words around the alternate destination X adjustment.
+	addq.w	#$01,d7																;Move the alternate destination one step east.
+	swap	d7																	;Swap coordinate words around the alternate destination X adjustment.
+	tst.b	$01(a6,d0.w)														;Test this candidate destination for an occupied cell.
+	bpl.s	Commit_TeleportAndQueueFlash										;Commit this candidate destination if it is free.
+	rts																			;Both destinations are occupied; leave the player position unchanged.
 
-adrCd0076AC:		; Memory Address ($76AC) and binary offset [$7328]
-	bsr.s	adrCd007664															;61B6
-	moveq	#$10,d7																;7E10
-	bra		adrCd001DBC															;6000A70A
+Commit_TeleportAndQueueFlash:		; Memory Address ($76AC) and binary offset [$7328]
+	bsr.s	Commit_TriggerTeleport												;Commit the destination and rewrite the dispatcher's saved movement state.
+	moveq	#CellEffect_TeleportFlash,d7										;Select the teleport-flash effect code.
+	bra		adrCd001DBC															;Queue the flash at the destination and return.
 
 Switch_04_s08_Trigger_22_t2C_RotateWall_XY:		; Memory Address ($76B4) and binary offset [$7330]
-	bsr		adrCd005D2E															;6100E678
-	move.b	$01(a6,d0.w),d1														;12360001
-	move.w	d1,d2																;3401
-	and.b	#$CF,d2																;020200CF
-	add.w	#$0010,d1															;06410010
-	and.w	#$0030,d1															;02410030
-	or.b	d1,d2																;8401
-	move.b	d2,$01(a6,d0.w)														;1D820001
-	rts																			;4E75
+	bsr		Resolve_ActionTargetXY												;Resolve the record's X/Y to A6/D0 on the active floor.
+	move.b	$01(a6,d0.w),d1														;Read the target wall's facing and flags.
+	move.w	d1,d2																;Save a copy so unrelated flags can be preserved.
+	and.b	#StoneWall_FacingPreserveMask,d2									;Clear only the wall-facing bits in that copy.
+	add.w	#StoneWall_FacingStep,d1											;Advance the wall facing by one quarter turn.
+	and.w	#StoneWall_FacingMask,d1											;Wrap the new facing within its two-bit field.
+	or.b	d1,d2																;Combine the new facing with the preserved flags.
+	move.b	d2,$01(a6,d0.w)														;Write the updated facing and flags to the target.
+	rts																			;Return after rotating the wall feature.
 
 Trigger_06_t0C_WoodTrap1:		; Memory Address ($76D2) and binary offset [$734E]
-	move.l	#$000D000C,d7														;2E3C000D000C
-	bsr		CoordToMap															;61000DC2
-	bset	#$02,$00(a6,d0.w)													;08F600020000
-	bclr	#$06,$02(a6,d0.w)													;08B600060002
-	rts																			;4E75
+	move.l	#$000D000C,d7														;Select the fixed first wood-trap location X=13, Y=12.
+	bsr		CoordToMap															;Resolve that location on the currently loaded floor.
+	bset	#$02,$00(a6,d0.w)													;Set the east-edge bit at the first cell.
+	bclr	#$06,$02(a6,d0.w)													;Clear the west-edge bit at its eastern neighbour.
+	rts																			;Return after changing the paired wooden edges.
 
 Trigger_07_t0E_WoodTrap2:		; Memory Address ($76EA) and binary offset [$7366]
-	move.l	#$00030000,d7														;2E3C00030000	;Long Addr replaced with Symbol
-	bsr		CoordToMap															;61000DAA
-	bclr	#$02,$00(a6,d0.w)													;08B600020000
-	bset	#$06,$02(a6,d0.w)													;08F600060002
-	rts																			;4E75
+	move.l	#$00030000,d7														;Select the fixed second wood-trap location X=3, Y=0.
+	bsr		CoordToMap															;Resolve that location on the currently loaded floor.
+	bclr	#$02,$00(a6,d0.w)													;Clear the east-edge bit at the first cell.
+	bset	#$06,$02(a6,d0.w)													;Set the west-edge bit at its eastern neighbour.
+	rts																			;Return after changing the paired wooden edges.
 
 Trigger_08_t10_Trader_DoorCloser:		; Memory Address ($7702) and binary offset [$737E]
-	subq.w	#$02,d0																;5540
-	tst.b	$01(a6,d0.w)														;4A360001
-	bmi.s	adrCd007710															;6B06
-	bset	#$00,$00(a6,d0.w)													;08F600000000
-adrCd007710:		; Memory Address ($7710) and binary offset [$738C]
-	rts																			;4E75
+	subq.w	#$02,d0																;Select the map cell immediately west of the trigger.
+	tst.b	$01(a6,d0.w)														;Test that cell's occupied flag.
+	bmi.s	Return_TraderDoorCloser												;Do not close the door while the cell is occupied.
+	bset	#$00,$00(a6,d0.w)													;Set the north-edge closed bit of the wooden door.
+Return_TraderDoorCloser:		; Memory Address ($7710) and binary offset [$738C]
+	rts																			;Return after the trader-door check.
 
 Trigger_01_t02_Spinner180:		; Memory Address ($7712) and binary offset [$738E]
-	eor.w	#$0002,$0020(a5)													;0A6D00020020
-	rts																			;4E75
+	eor.w	#Direction_HalfTurn,$0020(a5)										;Reverse the party's facing by 180 degrees.
+	rts																			;Return with the party still on the same cell.
 
 Trigger_02_t04_SpinnerRandom:		; Memory Address ($771A) and binary offset [$7396]
-	bsr		RandomGen_BytewithOffset											;6100DE90
-	and.w	#$0003,d0															;02400003
-	move.w	d0,$0020(a5)														;3B400020
-	rts																			;4E75
+	bsr		RandomGen_BytewithOffset											;Get the next random value for the spinner.
+	and.w	#Direction_Mask,d0													;Reduce it to one of the four compass directions.
+	move.w	d0,$0020(a5)														;Store the new party facing.
+	rts																			;Return with the party still on the same cell.
 
-adrJA007728:		; Memory Address ($7728) and binary offset [$73A4]
-	addq.w	#$01,$0020(a5)														;526D0020
-	and.w	#$0003,$0020(a5)													;026D00030020
-	rts																			;4E75
+Trigger_24_t30_SpinnerRight90:		; Memory Address ($7728) and binary offset [$73A4]
+	addq.w	#$01,$0020(a5)														;Turn the party one quarter turn to the right.
+	and.w	#Direction_Mask,$0020(a5)											;Wrap the facing from west back to north.
+	rts																			;Return with the party still on the same cell.
 
 Trigger_12_t18_Close_VoidLock_Door_XY:		; Memory Address ($7734) and binary offset [$73B0]
-	bsr		adrCd005D2E															;6100E5F8
-	bset	#$00,$00(a6,d0.w)													;08F600000000
-	move.w	#$0001,Trigger_WaitFlag_AI_TBC.w									;31FC00016FA8	;Short Absolute converted to symbol!
-	rts																			;4E75
+	bsr		Resolve_ActionTargetXY												;Resolve the record's X/Y to A6/D0 on the active floor.
+	bset	#$00,$00(a6,d0.w)													;Set the metal door's closed bit without changing its lock field.
+	move.w	#Sound_DoorClick,TriggerSound_ID.w									;Request the door-click sound after trigger dispatch.
+	rts																			;Return after closing the target door.
 
 Switch_03_s06_Trigger_03_t06_OpenLockedDoor_XY:		; Memory Address ($7746) and binary offset [$73C2]
-	bsr		adrCd005D2E															;6100E5E6
-	bclr	#$00,$00(a6,d0.w)													;08B600000000
-	move.w	#$0001,Trigger_WaitFlag_AI_TBC.w									;31FC00016FA8	;Short Absolute converted to symbol!
-	rts																			;4E75
+	bsr		Resolve_ActionTargetXY												;Resolve the record's X/Y to A6/D0 on the active floor.
+	bclr	#$00,$00(a6,d0.w)													;Clear the metal door's closed bit without changing its lock field.
+	move.w	#Sound_DoorClick,TriggerSound_ID.w									;Request the door-click sound after trigger dispatch.
+	rts																			;Return after opening the target door.
 
 Switch_07_s0E_Trigger_26_t34_RotateWood_XY:		; Memory Address ($7758) and binary offset [$73D4]
-	bsr		adrCd005D2E															;6100E5D4
-	move.b	$00(a6,d0.w),d1														;12360000
-	ror.b	#$02,d1																;E419
-	move.b	d1,$00(a6,d0.w)														;1D810000
-	rts																			;4E75
+	bsr		Resolve_ActionTargetXY												;Resolve the record's X/Y to A6/D0 on the active floor.
+	move.b	$00(a6,d0.w),d1														;Read the four two-bit wooden-edge definitions.
+	ror.b	#WoodEdges_QuarterTurnBits,d1										;Rotate every edge one side counterclockwise.
+	move.b	d1,$00(a6,d0.w)														;Write the rotated edge definitions back.
+	rts																			;Return after rotating the wooden walls and doors.
 
 Switch_06_s0C_Trigger_18_t24_CreatePillar_XY:		; Memory Address ($7768) and binary offset [$73E4]
-	bsr		Switch_01_s02_Trigger_11_t16_RemoveXY								;6100E5A8
+	bsr		Switch_01_s02_Trigger_11_t16_RemoveXY								;Remove the target feature before falling through to create a pillar.
 Switch_05_s0A_Trigger_13_t1A_TogglePillar_XY:		; Memory Address ($776C) and binary offset [$73E8]
-	bsr		adrCd005D2E															;6100E5C0
-	move.b	#$01,$00(a6,d0.w)													;1DBC00010000
-	eor.b	#$03,$01(a6,d0.w)													;0A3600030001
-	rts																			;4E75
+	bsr		Resolve_ActionTargetXY												;Resolve the record's X/Y to A6/D0 on the active floor.
+	move.b	#$01,$00(a6,d0.w)													;Set the target's first byte to the pillar form.
+	eor.b	#$03,$01(a6,d0.w)													;Toggle type bits 0-1, normally switching space and pillar.
+	rts																			;Return after changing the target pillar state.
 
-Trigger_14_t1C_Create_Spinner_or_Other_XY:		; Memory Address ($777E) and binary offset [$73FA]
-	bsr		adrCd005D2E															;6100E5AE
-	or.b	#$06,$01(a6,d0.w)													;003600060001
-	rts																			;4E75
+Trigger_14_t1C_SetFloorTypeBits_XY:		; Memory Address ($777E) and binary offset [$73FA]
+	bsr		Resolve_ActionTargetXY												;Resolve the record's X/Y to A6/D0 on the active floor.
+	or.b	#MapCell_FloorFeatureType,$01(a6,d0.w)								;Set type bits 1-2; retain the first byte and all other flags.
+	rts																			;Return after setting the target's floor-feature type bits.
 
-Trigger_25_t32_Clicker_Teleport_FXY:		; Memory Address ($778A) and binary offset [$7406]
-	bsr		adrCd005D2E															;6100E5A2
-	eor.b	#$06,$01(a6,d0.w)													;0A3600060001
-	rts																			;4E75
+Trigger_26_t34_ToggleFloorTypeBits_XY:		; Memory Address ($778A) and binary offset [$7406]
+	bsr		Resolve_ActionTargetXY												;Resolve the record's X/Y to A6/D0 on the active floor.
+	eor.b	#MapCell_FloorFeatureType,$01(a6,d0.w)								;Toggle type bits 1-2; BB, first-byte subtype and reference stay unchanged.
+	rts																			;Return after toggling the target type bits.
 
-Trigger_16_t20_Create_Pad_FXY:		; Memory Address ($7796) and binary offset [$7412]
-	moveq	#$00,d6																;7C00
-	move.b	$01(a1,d1.w),d6														;1C311001
-	move.w	d1,-(sp)															;3F01
-	bsr		adrCd0084FC															;61000D5C
-	move.w	(sp)+,d1															;321F
-	move.l	d2,d7																;2E02
-	lea		MovementOffsetTable.w,a0											;41F85794	;Short Absolute converted to symbol!
-	add.b	$08(a0,d6.w),d7														;DE306008
-	cmp.w	adrW_00EE72.l,d7													;BE790000EE72
-	bcc		Switch_01_s02_Trigger_11_t16_RemoveXY								;6400E55C
-	swap	d7																	;4847
-	add.b	$00(a0,d6.w),d7														;DE306000
-	cmp.w	adrW_00EE70.l,d7													;BE790000EE70
-	bcc		Switch_01_s02_Trigger_11_t16_RemoveXY								;6400E54C
-	swap	d7																	;4847
-	bsr		CoordToMap															;61000CD0
-	eor.b	#$06,$01(a6,d0.w)													;0A3600060001
-	rts																			;4E75
+Trigger_16_t20_ToggleNeighbourFloorType:		; Memory Address ($7796) and binary offset [$7412]
+	moveq	#$00,d6																;Clear the direction accumulator.
+	move.b	$01(a1,d1.w),d6														;Read BB as a movement-vector index, not a floor number.
+	move.w	d1,-(sp)															;Save the trigger-record offset while decoding the current cell.
+	bsr		adrCd0084FC															;Recover the triggering cell's floor and packed X/Y.
+	move.w	(sp)+,d1															;Restore the trigger-record offset for the fallback target.
+	move.l	d2,d7																;Use the triggering cell as the movement origin.
+	lea		MovementOffsetTable.w,a0											;Load the signed X/Y movement vectors.
+	add.b	$08(a0,d6.w),d7														;Apply the direction's Y step to the triggering cell.
+	cmp.w	adrW_00EE72.l,d7													;Compare the resulting Y with the active floor height.
+	bcc		Switch_01_s02_Trigger_11_t16_RemoveXY								;An out-of-bounds neighbour removes the record target instead.
+	swap	d7																	;Swap coordinate words around the neighbour X adjustment.
+	add.b	$00(a0,d6.w),d7														;Apply the direction's X step to the triggering cell.
+	cmp.w	adrW_00EE70.l,d7													;Compare the resulting X with the active floor width.
+	bcc		Switch_01_s02_Trigger_11_t16_RemoveXY								;An out-of-bounds neighbour removes the record target instead.
+	swap	d7																	;Swap coordinate words around the neighbour X adjustment.
+	bsr		CoordToMap															;Resolve the in-bounds neighbouring cell.
+	eor.b	#MapCell_FloorFeatureType,$01(a6,d0.w)								;Toggle that neighbour's type bits 1-2.
+	rts																			;Return without changing floors or moving the player.
 
-Trigger_17_t22_Move_Diagonal_Pillar:		; Memory Address ($77D6) and binary offset [$7452]
-	bsr		adrCd0084FC															;61000D24
-	move.l	d2,d7																;2E02
-	subq.b	#$01,d7																;5307
-	bsr		CoordToMap															;61000CBC
-	and.w	#$00F8,$00(a6,d0.w)													;027600F80000
-	or.w	#$0103,$00(a6,d0.w)													;007601030000
-	swap	d7																	;4847
-	subq.b	#$01,d7																;5307
-	swap	d7																	;4847
-	bsr		CoordToMap															;61000CA6
-	and.w	#$00F8,$00(a6,d0.w)													;027600F80000
-	rts																			;4E75
+Trigger_17_t22_MovePillar_NorthWestToNorth:		; Memory Address ($77D6) and binary offset [$7452]
+	bsr		adrCd0084FC															;Recover the triggering cell's floor and packed X/Y.
+	move.l	d2,d7																;Use the triggering cell as the puzzle origin.
+	subq.b	#$01,d7																;Subtract one from Y first, then from X, to visit north then northwest.
+	bsr		CoordToMap															;Resolve the selected puzzle cell on the active floor.
+	and.w	#MapCell_ClearFeatureWordMask,$00(a6,d0.w)							;Clear its first byte and type, preserving second-byte flags.
+	or.w	#MapCell_PillarWord,$00(a6,d0.w)									;Create a pillar at that northern cell.
+	swap	d7																	;Swap coordinate words around the northwest X adjustment.
+	subq.b	#$01,d7																;Subtract one from Y first, then from X, to visit north then northwest.
+	swap	d7																	;Swap coordinate words around the northwest X adjustment.
+	bsr		CoordToMap															;Resolve the selected puzzle cell on the active floor.
+	and.w	#MapCell_ClearFeatureWordMask,$00(a6,d0.w)							;Clear its first byte and type, preserving second-byte flags.
+	rts																			;Return after moving the puzzle pillar from northwest to north.
 
 Trigger_04_t08_Vivify_Machine_External:		; Memory Address ($7800) and binary offset [$747C]
-	addq.w	#$02,d0																;5440
-	tst.b	$01(a6,d0.w)														;4A360001
-	bmi		Trigger_00_t00_Null													;6B00F80E
-	bset	#$00,$00(a6,d0.w)													;08F600000000
-	addq.w	#$02,d0																;5440
-adrCd007812:		; Memory Address ($7812) and binary offset [$748E]
-	move.w	#$0086,d7															;3E3C0086
-	bsr		adrCd001DBC															;6100A5A4
-	tst.b	$01(a6,d0.w)														;4A360001
-	bmi.s	adrCd007836															;6B16
-	btst	#$06,$01(a6,d0.w)													;083600060001
-	beq.s	adrCd007836															;670E
-	moveq	#$03,d4																;7803
-adrLp00782A:		; Memory Address ($782A) and binary offset [$74A6]
-	move.w	d4,d6																;3C04
-	bsr		adrCd005F5C															;6100E72E
-	beq.s	adrCd007838															;6706
-adrCd007832:		; Memory Address ($7832) and binary offset [$74AE]
-	dbra	d4,adrLp00782A														;51CCFFF6
-adrCd007836:		; Memory Address ($7836) and binary offset [$74B2]
-	rts																			;4E75
+	addq.w	#$02,d0																;Advance east one cell: first to the doorway, then to the revival cell.
+	tst.b	$01(a6,d0.w)														;Test that cell's occupied flag.
+	bmi		Trigger_00_t00_Null													;Leave the machine unchanged if its doorway is occupied.
+	bset	#$00,$00(a6,d0.w)													;Set the doorway's closed bit.
+	addq.w	#$02,d0																;Advance east one cell: first to the doorway, then to the revival cell.
+VivifyExternal_SearchRevivalCell:		; Memory Address ($7812) and binary offset [$748E]
+	move.w	#CellEffect_Vivify,d7												;Select the Vivify cell-effect code.
+	bsr		adrCd001DBC															;Queue the machine effect at the revival cell.
+	tst.b	$01(a6,d0.w)														;Test whether the revival cell is occupied.
+	bmi.s	Return_VivifyExternalNoRemains										;Do not place another champion in an occupied cell.
+	btst	#$06,$01(a6,d0.w)													;Test whether the cell has any ground objects.
+	beq.s	Return_VivifyExternalNoRemains										;Return if there are no remains to search.
+	moveq	#$03,d4																;Start with the last of four object-stack corners.
+VivifyExternal_FindCornerStack:		; Memory Address ($782A) and binary offset [$74A6]
+	move.w	d4,d6																;Pass this corner number to the object-stack lookup.
+	bsr		adrCd005F5C															;Find the object stack at the revival cell and corner.
+	beq.s	VivifyExternal_PrepareRemainsScan									;Search a matching stack for champion remains.
+VivifyExternal_NextCorner:		; Memory Address ($7832) and binary offset [$74AE]
+	dbra	d4,VivifyExternal_FindCornerStack									;Try the next corner when no suitable remains were found.
+Return_VivifyExternalNoRemains:		; Memory Address ($7836) and binary offset [$74B2]
+	rts																			;Return without reviving a champion from ground remains.
 
-adrCd007838:		; Memory Address ($7838) and binary offset [$74B4]
-	lea		$03(a0,d7.w),a1														;43F07003
-	moveq	#$00,d3																;7600
-	move.b	-$0001(a1),d3														;1629FFFF
-	add.w	d3,d3																;D643
-adrCd007844:		; Memory Address ($7844) and binary offset [$74C0]
-	move.b	$00(a1,d3.w),d2														;14313000
-	sub.b	#$40,d2																;04020040
-	bcs.s	adrCd007854															;6506
-	cmpi.b	#$10,d2																;0C020010
-	bcs.s	adrCd00785A															;6506
-adrCd007854:		; Memory Address ($7854) and binary offset [$74D0]
-	subq.w	#$02,d3																;5543
-	bcc.s	adrCd007844															;64EC
-	bra.s	adrCd007832															;60D8
+VivifyExternal_PrepareRemainsScan:		; Memory Address ($7838) and binary offset [$74B4]
+	lea		$03(a0,d7.w),a1														;Point A1 at the matching stack's object-code/quantity pairs.
+	moveq	#$00,d3																;Clear the object-pair offset accumulator.
+	move.b	-$0001(a1),d3														;Read the stack's last object-pair index.
+	add.w	d3,d3																;Convert the index to a two-byte pair offset.
+VivifyExternal_CheckRemainsCode:		; Memory Address ($7844) and binary offset [$74C0]
+	move.b	$00(a1,d3.w),d2														;Read this object's code from the stack.
+	sub.b	#Object_ChampionRemainsFirst,d2										;Convert remains codes starting at $40 to champion numbers.
+	bcs.s	VivifyExternal_PreviousObject										;Codes below $40 are not champion remains.
+	cmpi.b	#Champion_Count,d2													;Check that the champion number is within the sixteen champions.
+	bcs.s	VivifyExternal_ConsumeRemains										;Use this remains object when its champion number is valid.
+VivifyExternal_PreviousObject:		; Memory Address ($7854) and binary offset [$74D0]
+	subq.w	#$02,d3																;Step back to the preceding object pair.
+	bcc.s	VivifyExternal_CheckRemainsCode										;Continue until the first object pair has been checked.
+	bra.s	VivifyExternal_NextCorner											;Try another corner after exhausting this stack.
 
-adrCd00785A:		; Memory Address ($785A) and binary offset [$74D6]
-	bset	#$07,$01(a6,d0.w)													;08F600070001
-	move.w	d2,-(sp)															;3F02
-	bsr		adrCd005DF8															;6100E594
-	bsr		adrCd0084FC															;61000C94
-	move.w	d1,d3																;3601
-	move.w	(sp)+,d0															;301F
-	and.w	#$000F,d0															;0240000F
-	move.l	a5,-(sp)															;2F0D
-	bsr		adrCd004066															;6100C7F0
-	tst.w	d1																	;4A41
-	bpl.s	adrCd0078A0															;6A24
-	move.l	(sp)+,a5															;2A5F
-adrCd00787E:		; Memory Address ($787E) and binary offset [$74FA]
-	bsr		Load_ChampionStatRecord												;6100EDE0
-	move.b	d2,$0017(a4)														;19420017
-	swap	d2																	;4842
-	move.b	d2,$0016(a4)														;19420016
-	move.b	d3,$001A(a4)														;1943001A
-	move.b	#$03,$0018(a4)														;197C00030018
-	move.b	CurrentTower+$01.l,$001F(a4)										;19790000EE2F001F
-	rts																			;4E75
+VivifyExternal_ConsumeRemains:		; Memory Address ($785A) and binary offset [$74D6]
+	bset	#$07,$01(a6,d0.w)													;Reserve the revival cell by marking it occupied.
+	move.w	d2,-(sp)															;Save the champion number while removing its remains.
+	bsr		adrCd005DF8															;Remove the selected remains object from the ground stack.
+	bsr		adrCd0084FC															;Recover the revival cell's floor and packed X/Y.
+	move.w	d1,d3																;Keep the revival floor for the champion or party update.
+	move.w	(sp)+,d0															;Recover the champion number.
+	and.w	#$000F,d0															;Keep only the champion-number bits.
+	move.l	a5,-(sp)															;Save the party that activated the machine.
+	bsr		adrCd004066															;Find which player party contains this champion, if any.
+	tst.w	d1																	;Test the returned party-slot index.
+	bpl.s	VivifyExternal_RestorePartyMember									;Handle a champion already associated with a player party.
+	move.l	(sp)+,a5															;Restore the activating party for an unassigned champion.
+Place_VivifiedChampionAtCell:		; Memory Address ($787E) and binary offset [$74FA]
+	bsr		Load_ChampionStatRecord												;Resolve this champion's stat record in A4.
+	move.b	d2,$0017(a4)														;Store the revival Y coordinate.
+	swap	d2																	;Bring the revival X coordinate into the low word.
+	move.b	d2,$0016(a4)														;Store the revival X coordinate.
+	move.b	d3,$001A(a4)														;Store the revival floor.
+	move.b	#$03,$0018(a4)														;Face the revived champion west.
+	move.b	CurrentTower+$01.l,$001F(a4)										;Stores the current tower in the revived champion record.
+	rts																			;Return after placing the champion at the revival cell.
 
-adrCd0078A0:		; Memory Address ($78A0) and binary offset [$751C]
-	bclr	#$06,$18(a5,d1.w)													;08B500061018
-	tst.w	d1																	;4A41
-	beq.s	adrCd0078C0															;6716
-	btst	#$06,$0018(a5)														;082D00060018
-	bne.s	adrCd0078B6															;6604
-	bsr.s	adrCd00787E															;61CA
-	bra.s	adrCd0078E4															;602E
+VivifyExternal_RestorePartyMember:		; Memory Address ($78A0) and binary offset [$751C]
+	bclr	#$06,$18(a5,d1.w)													;Clear the dead flag in the champion's party slot.
+	tst.w	d1																	;Check whether the revived champion is the party leader.
+	beq.s	VivifyExternal_InstallRevivedLeader									;A revived leader takes the party to the revival cell.
+	btst	#$06,$0018(a5)														;Check whether the existing party leader is dead.
+	bne.s	VivifyExternal_ReplaceDeadLeader									;Replace a dead leader with the revived champion.
+	bsr.s	Place_VivifiedChampionAtCell										;Place a revived non-leader at the machine as a champion record.
+	bra.s	VivifyExternal_RefreshParty											;Refresh the party panels after revival.
 
-adrCd0078B6:		; Memory Address ($78B6) and binary offset [$7532]
-	move.b	$0018(a5),$18(a5,d1.w)												;1BAD00181018
-	move.w	d0,$0006(a5)														;3B400006
-adrCd0078C0:		; Memory Address ($78C0) and binary offset [$753C]
-	move.b	d0,$0018(a5)														;1B400018
-	bset	#$04,$0018(a5)														;08ED00040018
-	move.l	d2,$001C(a5)														;2B42001C
-	move.w	d3,$0058(a5)														;3B430058
-	move.w	#$0003,$0020(a5)													;3B7C00030020
-	move.b	d0,$0026(a5)														;1B400026
-	bsr		Draw_ChampionNamePanelFrame											;6100099A
-	clr.b	$0056(a5)															;422D0056
-adrCd0078E4:		; Memory Address ($78E4) and binary offset [$7560]
-	bsr		Draw_PartyCommandInterface											;6100026A
-	bsr		adrCd008246															;6100095C
-	move.l	(sp)+,a5															;2A5F
-	rts																			;4E75
+VivifyExternal_ReplaceDeadLeader:		; Memory Address ($78B6) and binary offset [$7532]
+	move.b	$0018(a5),$18(a5,d1.w)												;Move the former leader into the revived champion's old slot.
+	move.w	d0,$0006(a5)														;Make the revived champion the selected champion.
+VivifyExternal_InstallRevivedLeader:		; Memory Address ($78C0) and binary offset [$753C]
+	move.b	d0,$0018(a5)														;Put the revived champion in the leader slot.
+	bset	#$04,$0018(a5)														;Set the leader slot's active-party flag.
+	move.l	d2,$001C(a5)														;Move the party to the revival X/Y.
+	move.w	d3,$0058(a5)														;Store the party's revival floor.
+	move.w	#$0003,$0020(a5)													;Face the revived party west.
+	move.b	d0,$0026(a5)														;Put the revived champion first in the displayed champion order.
+	bsr		Draw_ChampionNamePanelFrame											;Redraw the selected champion's name panel.
+	clr.b	$0056(a5)															;Clear the party's byte at +$56 after replacing the leader.
+VivifyExternal_RefreshParty:		; Memory Address ($78E4) and binary offset [$7560]
+	bsr		Draw_PartyCommandInterface											;Redraw the party command panel.
+	bsr		adrCd008246															;Refresh the party's champion display after revival.
+	move.l	(sp)+,a5															;Restore the party that activated the machine.
+	rts																			;Return from the external Vivify action.
 
 Trigger_05_t0A_Vivify_Machine_Internal:		; Memory Address ($78F0) and binary offset [$756C]
-	subq.w	#$02,d0																;5540
-	bset	#$00,$00(a6,d0.w)													;08F600000000
-	addq.w	#$02,d0																;5440
-adrCd0078FA:		; Memory Address ($78FA) and binary offset [$7576]
-	move.w	#$0086,d7															;3E3C0086
-	bsr		adrCd001DBC															;6100A4BC
-	moveq	#$05,d0																;7005
-	bsr		PlaySound															;61000FB8
-	move.w	#$FFFF,Trigger_WaitFlag_AI_TBC.w									;31FCFFFF6FA8	;Short Absolute converted to symbol!
-	moveq	#$03,d0																;7003
-adrLp007910:		; Memory Address ($7910) and binary offset [$758C]
-	tst.b	$18(a5,d0.w)														;4A350018
-	bmi.s	adrCd007958															;6B42
-	btst	#$05,$18(a5,d0.w)													;083500050018
-	bne.s	adrCd007958															;663A
-	bclr	#$06,$18(a5,d0.w)													;08B500060018
-	beq.s	adrCd007958															;6732
-	move.w	d0,-(sp)															;3F00
-	move.b	$18(a5,d0.w),d0														;10350018
-	bsr		Load_ChampionStatRecord												;6100ED32
-	move.b	#$05,$0007(a4)														;197C00050007
-	move.b	#$05,$0005(a4)														;197C00050005
-	move.w	(sp)+,d0															;301F
-	moveq	#$03,d1																;7203
-adrLp007940:		; Memory Address ($7940) and binary offset [$75BC]
-	tst.b	$26(a5,d1.w)														;4A351026
-	bmi.s	adrCd00794C															;6B06
-	dbra	d1,adrLp007940														;51C9FFF8
-	moveq	#$00,d1																;7200
-adrCd00794C:		; Memory Address ($794C) and binary offset [$75C8]
-	and.b	#$0F,$18(a5,d0.w)													;0235000F0018
-	move.b	$18(a5,d0.w),$26(a5,d1.w)											;1BB500181026
-adrCd007958:		; Memory Address ($7958) and binary offset [$75D4]
-	dbra	d0,adrLp007910														;51C8FFB6
-	move.w	#$FFFF,$0042(a5)													;3B7CFFFF0042
-	move.w	#$FFFF,$0040(a5)													;3B7CFFFF0040
-	clr.b	$003E(a5)															;422D003E
-	bsr		Draw_PartyCommandInterface											;610001E2
-	bra		adrCd008246															;600008D4
+	subq.w	#$02,d0																;Select the doorway immediately west of the internal pad.
+	bset	#$00,$00(a6,d0.w)													;Set the doorway's closed bit.
+	addq.w	#$02,d0																;Return the cell offset to the internal pad.
+VivifyInternal_QueueEffectAndSound:		; Memory Address ($78FA) and binary offset [$7576]
+	move.w	#CellEffect_Vivify,d7												;Select the Vivify cell-effect code.
+	bsr		adrCd001DBC															;Queue the machine effect at the internal pad.
+	moveq	#Sound_AlternativeSpell,d0											;Select the alternative spell sound.
+	bsr		PlaySound															;Play the revival sound here, before scanning the party.
+	move.w	#TriggerSound_None,TriggerSound_ID.w								;Suppress the dispatcher's later sound to avoid playing it twice.
+	moveq	#$03,d0																;Start with the last of the four party slots.
+VivifyInternal_ReviveNextSlot:		; Memory Address ($7910) and binary offset [$758C]
+	tst.b	$18(a5,d0.w)														;Read this party slot's sign flag.
+	bmi.s	VivifyInternal_FinishParty											;Skip an empty slot.
+	btst	#$05,$18(a5,d0.w)													;Test the slot's unavailable flag.
+	bne.s	VivifyInternal_FinishParty											;Skip unavailable slots.
+	bclr	#$06,$18(a5,d0.w)													;Clear the dead flag, retaining its old value for the branch.
+	beq.s	VivifyInternal_FinishParty											;Skip champions who were already alive.
+	move.w	d0,-(sp)															;Save the party-slot index while looking up the champion.
+	move.b	$18(a5,d0.w),d0														;Read the champion number and remaining slot flags.
+	bsr		Load_ChampionStatRecord												;Resolve the champion's stat record in A4.
+	move.b	#$05,ChampionStat_VitalityCurrent(a4)								;Restore five vitality points.
+	move.b	#$05,ChampionStat_HitPointsCurrent(a4)								;Restore five hit points.
+	move.w	(sp)+,d0															;Recover the party-slot index.
+	moveq	#$03,d1																;Search the displayed champion order from its last slot.
+VivifyInternal_FindDisplaySlot:		; Memory Address ($7940) and binary offset [$75BC]
+	tst.b	$26(a5,d1.w)														;Test for a free display-order slot.
+	bmi.s	VivifyInternal_InsertDisplayChampion								;Use the first free slot found by the backward scan.
+	dbra	d1,VivifyInternal_FindDisplaySlot									;Continue searching the four display-order slots.
+	moveq	#$00,d1																;If none is free, replace display-order slot zero.
+VivifyInternal_InsertDisplayChampion:		; Memory Address ($794C) and binary offset [$75C8]
+	and.b	#$0F,$18(a5,d0.w)													;Remove party-state flags, leaving just the champion number.
+	move.b	$18(a5,d0.w),$26(a5,d1.w)											;Insert the revived champion into the selected display-order slot.
+VivifyInternal_FinishParty:		; Memory Address ($7958) and binary offset [$75D4]
+	dbra	d0,VivifyInternal_ReviveNextSlot									;Repeat for all remaining party slots.
+	move.w	#$FFFF,$0042(a5)													;Reset the party-command state after revival.
+	move.w	#$FFFF,$0040(a5)													;Reset the companion party-command state word.
+	clr.b	$003E(a5)															;Clear avatar presentation state.
+	bsr		Draw_PartyCommandInterface											;Redraw the party command panel.
+	bra		adrCd008246															;Refresh the party's champion display and return.
 
 adrCd007974:		; Memory Address ($7974) and binary offset [$75F0]
 	bsr		adrCd001090															;6100971A
@@ -11844,7 +11889,7 @@ Draw_PartyCommandInterface:		; Memory Address ($7B50) and binary offset [$77CC]
 	moveq	#$5D,d4																;Sets the outer-right command-pocket decoration line at player-local X=$5D.
 	bsr		BW_blit_vertical_line												;Draws one of the four command-pocket decoration lines using D4 X, D5 Y, the high-word DBRA count in D3, and the low-word palette index in D3.
 	addq.w	#$02,d5																;Moves the inner decoration pair two pixels down to player-local Y=$0C.
-	sub.l	#$00040000,d3														;048300040000	;Long Addr replaced with Symbol
+	sub.l	#$00040000,d3														;Reduces the high-word DBRA count from $2B to $27, making each inner line 40 pixels—four pixels shorter than the outer pair.
 	moveq	#$5B,d4																;Sets the inner-right command-pocket decoration line at player-local X=$5B.
 	bsr		BW_blit_vertical_line												;Draws one of the four command-pocket decoration lines using D4 X, D5 Y, the high-word DBRA count in D3, and the low-word palette index in D3.
 	moveq	#$34,d4																;Sets the inner-left command-pocket decoration line at player-local X=$34.
@@ -12414,16 +12459,16 @@ Draw_CompactStatsFrame:		; Memory Address ($7FF8) and binary offset [$7C74]
 	bpl.s	Return_PartyShieldDrawing											;6AD6
 	moveq	#$36,d4																;Sets the compact STATS frame's upper bevel left edge to player-local X=$36.
 	moveq	#$0A,d5																;Sets the compact STATS frame's upper bevel to player-local Y=$0A before the player screen Y offset is added.
-	add.w	$0008(a5),d5														;DA6D0008
+	add.w	$0008(a5),d5														;Applies the active player's screen Y offset to the current drawing coordinate.
 	move.l	#$00240001,d3														;Top stats-frame line: DBRA terminal count $24 draws $25 pixels using palette index $01.
 	bsr		BW_blit_horiz_line													;Calls the horizontal-line drawing routine for one bevel edge segment.
 	addq.w	#$01,d5																;5245
 	subq.w	#$02,d4																;5544
-	add.l	#$00040001,d3														;068300040001	;Long Addr replaced with Symbol
+	add.l	#$00040001,d3														;Second top frame line expands by four pixels and uses palette index $02.
 	bsr		BW_blit_horiz_line													;Calls the horizontal-line drawing routine for one bevel edge segment.
 	addq.w	#$01,d5																;5245
 	subq.w	#$01,d4																;5344
-	add.l	#$00020001,d3														;068300020001	;Long Addr replaced with Symbol
+	add.l	#$00020001,d3														;Third top frame line expands by two pixels and uses palette index $03.
 	bsr		BW_blit_horiz_line													;Calls the horizontal-line drawing routine for one bevel edge segment.
 	addq.w	#$01,d5																;5245
 	addq.w	#$01,d3																;Fourth top frame line keeps the width and advances to palette index $04.
@@ -12432,7 +12477,7 @@ Draw_CompactStatsFrame:		; Memory Address ($7FF8) and binary offset [$7C74]
 	subq.w	#$03,d3																;Fifth top frame line returns the packed colour to palette index $01.
 	bsr		BW_blit_horiz_line													;Calls the horizontal-line drawing routine for one bevel edge segment.
 	moveq	#$31,d5																;Sets the first lower STATS-frame bevel line to player-local Y=$31.
-	add.w	$0008(a5),d5														;DA6D0008
+	add.w	$0008(a5),d5														;Applies the active player's screen Y offset to the current drawing coordinate.
 	moveq	#$33,d4																;Sets the first lower STATS-frame bevel line to player-local X=$33.
 	move.l	#$002A0001,d3														;First lower stats-frame line: DBRA terminal count $2A draws $2B pixels using palette index $01.
 	bsr		BW_blit_horiz_line													;Calls the horizontal-line drawing routine for one bevel edge segment.
@@ -12444,14 +12489,14 @@ Draw_CompactStatsFrame:		; Memory Address ($7FF8) and binary offset [$7C74]
 	bsr		BW_blit_horiz_line													;Calls the horizontal-line drawing routine for one bevel edge segment.
 	addq.w	#$01,d4																;5244
 	addq.w	#$01,d5																;5245
-	sub.l	#$00020001,d3														;048300020001	;Long Addr replaced with Symbol
+	sub.l	#$00020001,d3														;Fourth lower frame line shortens by two pixels and uses palette index $02.
 	bsr		BW_blit_horiz_line													;Calls the horizontal-line drawing routine for one bevel edge segment.
 	addq.w	#$02,d4																;5444
 	addq.w	#$01,d5																;5245
-	sub.l	#$00040001,d3														;048300040001	;Long Addr replaced with Symbol
+	sub.l	#$00040001,d3														;Fifth lower frame line shortens by four pixels and uses palette index $01.
 	bsr		BW_blit_horiz_line													;Calls the horizontal-line drawing routine for one bevel edge segment.
 	moveq	#$10,d5																;Sets the two vertical STATS-frame side lines to start at player-local Y=$10.
-	add.w	$0008(a5),d5														;DA6D0008
+	add.w	$0008(a5),d5														;Applies the active player's screen Y offset to the current drawing coordinate.
 	moveq	#$34,d4																;Sets the left vertical STATS-frame side line to player-local X=$34.
 	move.l	#$001F0001,d3														;Side frame lines use terminal count $1F, drawing $20 pixels in palette index $01.
 	bsr		BW_blit_vertical_line												;Calls the vertical-line drawing routine for a STATS-frame side edge.
@@ -12468,7 +12513,7 @@ Draw_CompactStatsFrame:		; Memory Address ($7FF8) and binary offset [$7C74]
 	move.l	screen_ptr.l,a0														;Starts from the player framebuffer before positioning the packed STATS title graphic.
 	add.w	$000A(a5),a0														;D0ED000A
 	add.w	#$0286,a0															;Places the packed STATS title graphic at its native compact-panel framebuffer offset.
-	move.l	#$00020005,d5														;2A3C00020005	;Long Addr replaced with Symbol
+	move.l	#$00020005,d5														;Draws the `<STATS>` graphic with its source dimensions and destination parameters.
 	bsr		Draw_PlanarGraphic													;Calls the common four-plane graphic renderer for the pre-drawn STATS title.
 Draw_MainPlayerInterface:		; Memory Address ($80CA) and binary offset [$7D46]
 	; Draws the ordinary player interface, including exactly three compact
@@ -12487,7 +12532,7 @@ Draw_MainPlayerInterface:		; Memory Address ($80CA) and binary offset [$7D46]
 	asl.w	#$05,d7																;Converts the champion ID to its 32-byte Character_Stats_DataTable record offset.
 	lea		Character_Stats_DataTable.l,a6										;4DF90000EB2A
 	lea		$05(a6,d7.w),a6														;Points A6 at the first current/maximum statistic pair used by the three compact bars.
-	move.l	#$00040019,d5														;2A3C00040019	;Long Addr replaced with Symbol
+	move.l	#$00040019,d5														;Packs the first compact-stat bar Y=$19 and its five-pixel terminal height.
 	add.w	$0008(a5),d5														;DA6D0008
 	moveq	#CompactStatsBar_LastIndex,d6										;Sets a DBRA terminal index of two, so the compact player panel draws exactly three statistics bars.
 	moveq	#Player1_CompactStatsColourIndex,d3									;Selects hard-coded palette index $07 for Player 1's three compact statistics bars.
@@ -12500,7 +12545,7 @@ Draw_CompactStatsBarsLoop:		; Memory Address ($811E) and binary offset [$7D9A]
 	move.b	(a6)+,d0															;Loads the current statistic value and advances A6 to its maximum-value byte.
 	beq.s	Advance_CompactStatsBarRow											;6710
 	move.b	(a6),d1																;Loads the maximum statistic value used to scale the current bar length.
-	bsr.s	Prepare_CompactStatBarLength										;6116
+	bsr.s	Prepare_CompactStatBarLength										;Prepares the compact-bar geometry and scales current D0 against maximum D1.
 	movem.l	d3-d6,-(sp)															;48E71E00
 	bsr		BW_draw_bar															;Calls the filled-rectangle drawing routine for one of the three compact statistic bars.
 	movem.l	(sp)+,d3-d6															;4CDF0078
@@ -12539,14 +12584,14 @@ Draw_PartyShieldStatusBars:		; Memory Address ($815C) and binary offset [$7DD8]
 	; against 21 pixels.
 	moveq	#$0E,d3																;Initialises the party-shield status-bar fallback colour before each living champion's class colour is selected.
 	lea		Character_Stats_DataTable+$05.l,a6									;Uses offset $05 within each character record as the first current/maximum value pair for shield status bars.
-	moveq	#PartyShieldStatusBar_LastSlot,d6									;7C03
+	moveq	#PartyShieldStatusBar_LastSlot,d6									;Uses the last-slot index to visit all four party shield slots with DBRA.
 	move.l	#$00060052,d5														;2A3C00060052
 Draw_PartyShieldStatusBarsLoop:		; Memory Address ($816C) and binary offset [$7DE8]
 	; Iterates party slots 3 down to 0, drawing or skipping each shield hit-point
 	; bar.
-	move.b	$18(a5,d6.w),d0														;10356018
+	move.b	$18(a5,d6.w),d0														;Loads or reloads the current party-slot state byte for suppression checks and champion selection.
 	move.w	d0,d1																;3200
-	and.w	#PartyShieldStatusBar_SuppressionMask,d1							;024100E0
+	and.w	#PartyShieldStatusBar_SuppressionMask,d1							;Tests the party-slot vacant and dead suppression bits before drawing a status bar.
 	bne.s	Advance_PartyShieldStatusBarRow										;6648
 	and.w	#$000F,d0															;0240000F
 	asl.w	#$05,d0																;Converts the occupied slot's champion ID to its 32-byte character-stat record offset.
@@ -12557,7 +12602,7 @@ Draw_PartyShieldStatusBarsLoop:		; Memory Address ($816C) and binary offset [$7D
 	moveq	#$14,d4																;Seeds the full-HP bar with terminal height $14; BW_draw_bar therefore fills 21 rows.
 	swap	d4																	;4844
 	moveq	#PartyShieldStatusBar_ScaleHeight,d2								;Uses $15 only as the scale target when current HP is below maximum; it does not set the full-HP bar height.
-	bsr.s	Scale_ValueToBarLength												;61B0
+	bsr.s	Scale_ValueToBarLength												;Calls the common scaler to convert the selected champion's current value into a shield-bar width.
 	swap	d4																	;4844
 	moveq	#$2C,d2																;742C
 	sub.w	d4,d2																;9444
@@ -12566,7 +12611,7 @@ Draw_PartyShieldStatusBarsLoop:		; Memory Address ($816C) and binary offset [$7D
 	movem.l	d3-d6,-(sp)															;48E71E00
 	exg		d4,d5																;C945
 	add.w	$0008(a5),d5														;DA6D0008
-	move.b	$18(a5,d6.w),d0														;10356018
+	move.b	$18(a5,d6.w),d0														;Loads or reloads the current party-slot state byte for suppression checks and champion selection.
 	and.w	#$000F,d0															;0240000F
 	bsr		Character_GetClassIndex												;Selects the champion magic-alignment/class index used for the full-length-avatar HP-bar colour.
 	move.b	ChampionClassBarColours(pc,d0.w),d3									;Maps the champion magic-alignment/class index through the four-entry party HP-bar palette table.
@@ -12575,7 +12620,7 @@ Draw_PartyShieldStatusBarsLoop:		; Memory Address ($816C) and binary offset [$7D
 Advance_PartyShieldStatusBarRow:		; Memory Address ($81C0) and binary offset [$7E3C]
 	; Advances to the next shield status-bar column after a drawn or suppressed
 	; party slot.
-	sub.w	#$0009,d5															;04450009
+	sub.w	#$0009,d5															;Moves to the next party-shield status-bar X position, nine pixels left of the current bar.
 	dbra	d6,Draw_PartyShieldStatusBarsLoop									;51CEFFA6
 Return_PartyShieldStatusBars:		; Memory Address ($81C8) and binary offset [$7E44]
 	; Return from the party shield hit-point bar renderer.
@@ -12668,13 +12713,13 @@ Draw_ChampionNamePanelFrame:		; Memory Address ($8278) and binary offset [$7EF4]
 Draw_ChampionNamePanelUpperBevelLoop:		; Memory Address ($828A) and binary offset [$7F06]
 	; Draws the five-line upper champion-name bevel, progressively changing the
 	; grey palette index.
-	bsr		BW_blit_horiz_line													;610058F8
+	bsr		BW_blit_horiz_line													;Draws an upper champion-name bevel scanline; the loop produces colours $01-$04 and the final call closes it with colour $01.
 	addq.w	#$01,d5																;5245
 	addq.w	#$01,d3																;Advances the packed bevel palette index on each successive horizontal line, creating the four-shade grey fade.
 	cmpi.w	#$0005,d3															;Stops the upper bevel ramp after palette indices $01 through $04 have been drawn.
 	bcs.s	Draw_ChampionNamePanelUpperBevelLoop								;65F2
 	subq.w	#$04,d3																;Restores palette index $01 for the closing lower edge of the upper bevel.
-	bsr		BW_blit_horiz_line													;610058E8
+	bsr		BW_blit_horiz_line													;Draws an upper champion-name bevel scanline; the loop produces colours $01-$04 and the final call closes it with colour $01.
 	move.l	#$00070010,d5														;Supplies BW_draw_bar with the primary-colour name strip's Y=$10 and DBRA height $07, producing eight rows Y=$10-$17.
 	add.w	$0008(a5),d5														;DA6D0008
 	move.l	#$005D00E2,d4														;Supplies the primary-colour name strip's X=$E2 and DBRA width $5D, producing 94 pixels through X=$13F.
@@ -12685,7 +12730,7 @@ Draw_ChampionNamePanelLowerEdge:		; Memory Address ($82BA) and binary offset [$7
 	; Draws the lower decorative edge and adjacent packed status graphics for the
 	; champion name panel.
 	addq.w	#$01,d5																;Advances from the name bar's final Y=$17 to the lower bevel's first scanline at Y=$19, leaving Y=$18 as background.
-	bsr		BW_blit_horiz_line													;610058C6
+	bsr		BW_blit_horiz_line													;Draws one scanline of the lower champion-name bevel; the loop repeats it for palette colours $01-$04.
 	addq.w	#$01,d3																;5243
 	cmpi.w	#$0005,d3															;0C430005
 	bcs.s	Draw_ChampionNamePanelLowerEdge										;65F2
@@ -12713,26 +12758,26 @@ adrCd008308:		; Memory Address ($8308) and binary offset [$7F84]
 	add.w	$0008(a5),d5														;DA6D0008
 	move.w	#$0120,d4															;Sets the mini status-icon bevel's X coordinate to $120, immediately right of the 64-pixel status graphic.
 	move.l	#$001F0001,d3														;Sets the mini bevel's DBRA width $1F (32 pixels) and initial grey colour index $01.
-	bsr		BW_blit_horiz_line													;61005854
+	bsr		BW_blit_horiz_line													;Draws the mini bevel's top line at Y=$20 and its icon-height divider at Y=$31.
 	add.w	#$0011,d5															;Moves from the top mini-bevel line to Y=$31, immediately below the 16-pixel status-icon row.
-	bsr		BW_blit_horiz_line													;6100584C
+	bsr		BW_blit_horiz_line													;Draws the mini bevel's top line at Y=$20 and its icon-height divider at Y=$31.
 	addq.w	#$02,d5																;Moves from the divider to player-local Y=$33 for the stepped lower part of the mini bevel.
 Draw_DungeonDisplayLowerEdge:		; Memory Address ($833C) and binary offset [$7FB8]
 	; Completes the lower dungeon-display edge with procedural lines before drawing
 	; the continuous chain strip.
-	bsr		BW_blit_horiz_line													;61005846
+	bsr		BW_blit_horiz_line													;Draws a lower mini-bevel scanline; the loop produces colours $01-$04 and the final call closes it with colour $01.
 	addq.w	#$01,d5																;5245
 	addq.w	#$01,d3																;5243
 	cmpi.w	#$0005,d3															;0C430005
 	bcs.s	Draw_DungeonDisplayLowerEdge										;65F2
 	subq.w	#$04,d3																;5943
-	bsr		BW_blit_horiz_line													;61005836
+	bsr		BW_blit_horiz_line													;Draws a lower mini-bevel scanline; the loop produces colours $01-$04 and the final call closes it with colour $01.
 	bsr.s	adrCd008396															;6144
 	move.l	#$00000E04,a0														;207C00000E04	;Long Addr replaced with Symbol
 adrCd008358:		; Memory Address ($8358) and binary offset [$7FD4]
 	move.l	#$00000070,a3														;267C00000070
-	lea		GFX_Pockets+$3C00.l,a1												;43F900050302
-	move.l	#$00050006,d5														;2A3C00050006	;Long Addr replaced with Symbol
+	lea		GFX_Pockets+$3C00.l,a1												;Uses the packed inventory interface strip at GFX_Pockets+$3C00 as the source graphic for each inventory chain decoration.
+	move.l	#$00050006,d5														;Sets the chain-strip DBRA dimensions used for both inventory decoration anchors.
 	add.l	screen_ptr.l,a0														;D1F900008D36
 	add.w	$000A(a5),a0														;D0ED000A
 	bra		Draw_PlanarGraphic													;60004942
@@ -12764,7 +12809,7 @@ adrCd008396:		; Memory Address ($8396) and binary offset [$8012]
 adrCd0083B0:		; Memory Address ($83B0) and binary offset [$802C]
 	move.w	d7,d2																;3407
 	add.w	d2,d2																;D442
-	add.w	adrW_00838E(pc,d2.w),a0												;D0FB20D8
+	add.w	adrW_00838E(pc,d2.w),a0												;Applies the compact four-slot screen-offset sequence for profession controls: upper-left, upper-right, lower-right, lower-left.
 	move.b	$26(a5,d7.w),d0														;Loads the champion assigned to this party position; a negative entry selects the empty profession-control icon.
 	bpl.s	adrCd0083C4															;6A06
 	bsr		adrCd008462															;610000A2
@@ -12845,19 +12890,19 @@ ClassColours:		; Memory Address ($846E) and binary offset [$80EA]
 	INCBIN "/data/BLOODWYCH439-clean/gfx-data/Champion_Class.colours"
 
 adrCd00847E:		; Memory Address ($847E) and binary offset [$80FA]
-	move.l	$001C(a5),d7														;2E2D001C
+	move.l	PlayerData_StartXPosition(a5),d7									;Loads adjacent player X and Y words as packed X-high/Y-low coordinates.
 adrCd008482:		; Memory Address ($8482) and binary offset [$80FE]
-	move.w	$0020(a5),d0														;302D0020
+	move.w	PlayerData_Direction(a5),d0											;Loads the player facing direction for the forward-cell lookup.
 adrCd008486:		; Memory Address ($8486) and binary offset [$8102]
 	lea		MovementOffsetTable.w,a0											;41F85794	;Short Absolute converted to symbol!
-	add.b	$08(a0,d0.w),d7														;DE300008
+	add.b	MovementOffset_YTableOffset(a0,d0.w),d7								;Adds the Y component of the selected movement vector.
 	swap	d7																	;4847
 	add.b	$00(a0,d0.w),d7														;DE300000
 	swap	d7																	;4847
 	bra.s	CoordToMap															;6004
 
 adrCd008498:		; Memory Address ($8498) and binary offset [$8114]
-	move.l	$001C(a5),d7														;2E2D001C
+	move.l	PlayerData_StartXPosition(a5),d7									;Loads adjacent player X and Y words as packed X-high/Y-low coordinates.
 CoordToMap:
 	move.l	Current_TowerMapDataBase.l,a6										;2C790000EE78
 adrCd0084A2:		; Memory Address ($84A2) and binary offset [$811E]
@@ -12866,28 +12911,28 @@ adrCd0084A2:		; Memory Address ($84A2) and binary offset [$811E]
 	swap	d7																	;4847
 	add.w	d7,d0																;D047
 	swap	d7																	;4847
-	add.w	d0,d0																;D040
-	add.w	adrW_00EE76.l,d0													;D0790000EE76
+	add.w	d0,d0																;Converts the row-major cell index to a byte offset because each map cell occupies two bytes.
+	add.w	adrW_00EE76.l,d0													;Adds the selected floor offset relative to the tower cell-data base, not the map-header base.
 	rts																			;4E75
 
 adrCd0084BA:		; Memory Address ($84BA) and binary offset [$8136]
 	lea		adrEA00EE60.l,a0													;41F90000EE60
-	add.b	$08(a0,d2.w),d7														;DE302008
+	add.b	Map_AlignmentYArrayOffset(a0,d2.w),d7								;Y-alignment bytes start eight bytes after the X-alignment bytes.
 	swap	d7																	;4847
-	add.b	$00(a0,d2.w),d7														;DE302000
-	sub.b	$00(a0,d1.w),d7														;9E301000
+	add.b	$00(a0,d2.w),d7														;Adds old-floor X alignment to form the shared-world coordinate.
+	sub.b	$00(a0,d1.w),d7														;Subtracts destination-floor X alignment to recover its local coordinate.
 	swap	d7																	;4847
-	sub.b	$08(a0,d1.w),d7														;9E301008
+	sub.b	Map_AlignmentYArrayOffset(a0,d1.w),d7								;Y-alignment bytes start eight bytes after the X-alignment bytes.
 	rts																			;4E75
 
 adrCd0084D6:		; Memory Address ($84D6) and binary offset [$8152]
-	move.w	$0058(a5),d0														;302D0058
+	move.w	PlayerData_Floor(a5),d0												;Player record word selecting the active floor, not a map-cell offset.
 adrCd0084DA:		; Memory Address ($84DA) and binary offset [$8156]
 	lea		Current_TowerMapHeaderCache.l,a0									;41F90000EE40
-	move.b	$00(a0,d0.w),adrB_00EE71.l											;13F000000000EE71
-	move.b	$08(a0,d0.w),adrB_00EE73.l											;13F000080000EE73
+	move.b	$00(a0,d0.w),adrB_00EE71.l											;Replaces the bootstrap width with the selected floor width; its high byte remains zero.
+	move.b	Map_FloorHeightsOffset(a0,d0.w),adrB_00EE73.l						;Offset of the eight height bytes in the map header.
 	add.w	d0,d0																;D040
-	move.w	$10(a0,d0.w),adrW_00EE76.l											;33F000100000EE76
+	move.w	Map_FloorDataOffsetsOffset(a0,d0.w),adrW_00EE76.l					;Offset of the eight big-endian floor cell-data offsets in the header.
 	rts																			;4E75
 
 adrCd0084FC:		; Memory Address ($84FC) and binary offset [$8178]
@@ -12901,8 +12946,8 @@ adrCd00850C:		; Memory Address ($850C) and binary offset [$8188]
 	bne.s	adrCd00850C															;66FA
 	sub.w	d0,d2																;9440
 	neg.w	d2																	;4442
-	lsr.w	#$01,d2																;E24A
-	divu	adrW_00EE70.l,d2													;84F90000EE70
+	lsr.w	#Map_CellByteShift,d2												;Converts the floor-relative two-byte map offset to a cell number before division by width.
+	divu	adrW_00EE70.l,d2													;Divides by active width: quotient is Y in the low word and remainder is X in the high word.
 	rts																			;4E75
 
 adrL_008520:		; Memory Address ($8520) and binary offset [$819C]
@@ -13066,7 +13111,7 @@ adrLp0086FC:		; Memory Address ($86FC) and binary offset [$8378]
 	rts																			;4E75
 
 adrCd008702:		; Memory Address ($8702) and binary offset [$837E]
-	clr.b	adrB_0088A2.l														;4239000088A2
+	clr.b	adrB_0088A2.l														;Clears the cached floppy-side state before pulsing DF0 select with the CIAB side-select bit set.
 	move.b	#$7D,_ciab+ciaprb.l													;13FC007D00BFD100
 	nop																			;4E71
 	nop																			;4E71
@@ -13078,7 +13123,7 @@ adrLp008720:		; Memory Address ($8720) and binary offset [$839C]
 	rts																			;4E75
 
 adrCd008726:		; Memory Address ($8726) and binary offset [$83A2]
-	tst.b	adrB_0088A2.l														;4A39000088A2
+	tst.b	adrB_0088A2.l														;Chooses the CIAB head-step control pattern from the cached floppy-side state.
 	beq.s	adrCd008744															;6716
 	move.b	#$70,_ciab+ciaprb.l													;13FC007000BFD100
 	nop																			;4E71
@@ -13121,7 +13166,7 @@ adrCd008792:		; Memory Address ($8792) and binary offset [$840E]
 
 adrCd0087A6:		; Memory Address ($87A6) and binary offset [$8422]
 	movem.l	d0-d2/d5/d6/a1,-(sp)												;48E7E640
-	moveq	#$03,d6																;7C03
+	moveq	#$03,d6																;Initialises the disk-read retry counter to three attempts; the internal entry at $879A decrements it before restarting DMA setup.
 adrCd0087AC:		; Memory Address ($87AC) and binary offset [$8428]
 	move.w	#$0002,_custom+intreq.l												;33FC000200DFF09C
 	move.l	adrL_008520.l,a1													;227900008520
@@ -14846,8 +14891,8 @@ Prepare_Monster_ScreenPosition:		; Memory Address ($995E) and binary offset [$95
 	and.w	#$0007,d0															;02400007
 	cmpi.w	#$0004,d0															;0C400004
 	bne.s	adrCd0099C6															;661C
-	move.b	adrB_0099CC(pc,d2.w),d0												;103B2020
-	move.b	adrB_0099D4(pc,d2.w),d2												;143B2024
+	move.b	Monster_StairDepthSlot_XAdjustments(pc,d2.w),d0						;103B2020
+	move.b	Monster_StairDepthSlot_YPositions(pc,d2.w),d2						;143B2024
 	btst	#$00,-$0012(a3)														;082B0000FFEE
 	bne.s	adrCd0099BE															;6604
 	neg.b	d0																	;4400
@@ -14862,24 +14907,13 @@ adrCd0099C8:		; Memory Address ($99C8) and binary offset [$9644]
 	moveq	#-$01,d1															;72FF
 	rts																			;4E75
 
-adrB_0099CC:		; Memory Address ($99CC) and binary offset [$9648]
-	dc.b	$00	;00
-	dc.b	$08	;08
-	dc.b	$00	;00
-	dc.b	$06	;06
-	dc.b	$00	;00
-	dc.b	$06	;06
-	dc.b	$00	;00
-	dc.b	$00	;00
-adrB_0099D4:		; Memory Address ($99D4) and binary offset [$9650]
-	dc.b	$4B	;4B
-	dc.b	$3E	;3E
-	dc.b	$4B	;4B
-	dc.b	$34	;34
-	dc.b	$4B	;4B
-	dc.b	$2E	;2E
-	dc.b	$4B	;4B
-	dc.b	$4B	;4B
+Monster_StairDepthSlot_XAdjustments:		; Memory Address ($99CC) and binary offset [$9648]
+	; Eight signed X adjustments used when placing an occupant in a type-4 stair
+	; cell.
+	INCBIN "/data/BLOODWYCH439-clean/gfx-data/Monster_StairDepthSlot_XAdjustments.positions"
+Monster_StairDepthSlot_YPositions:		; Memory Address ($99D4) and binary offset [$9650]
+	; Eight Y positions paired with the stair depth-slot X adjustments.
+	INCBIN "/data/BLOODWYCH439-clean/gfx-data/Monster_StairDepthSlot_YPositions.positions"
 
 Resolve_DungeonCellCentredSlot:		; Memory Address ($99DC) and binary offset [$9658]
 	; Maps the current view cell to its centred visibility bit and projected slot.
@@ -18654,7 +18688,7 @@ adrCd00C684:		; Memory Address ($C684) and binary offset [$C300]
 
 adrCd00C69C:		; Memory Address ($C69C) and binary offset [$C318]
 	add.w	#$0018,d1															;06410018
-	cmpi.w	#$0007,d1															;0C410007
+	cmpi.w	#$0007,d1															;Rejects top-control Y values below $07; the following comparison limits the band to $07-$0F before the X hit tests.
 	bcs.s	adrCd00C708															;6562
 	cmpi.w	#$0010,d1															;0C410010
 	bcc.s	adrCd00C708															;645C
@@ -18923,7 +18957,7 @@ Draw_InventoryPanel:		; Memory Address ($C938) and binary offset [$C5B4]
 	move.w	(sp)+,d7															;3E1F
 	move.l	#$0000029C,a0														;Uses screen offset $029C for the upper GFX_Pockets inventory-chain strip; this resolves to player-local X=$E0/Y=$10.
 	bsr		adrCd008358															;6100B9EE
-	move.l	#$00000B5C,a0														;207C00000B5C	;Long Addr replaced with Symbol
+	move.l	#$00000B5C,a0														;Uses screen offset $0B5C for the lower GFX_Pockets inventory-chain strip; this resolves to player-local X=$E0/Y=$48.
 	bsr		adrCd008358															;6100B9E4
 	bsr		Draw_InventoryPocketSlots											;Draws all twelve inventory positions after the title, armour bar, and two chain decorations are established.
 	lea		adrEA00EA14.l,a6													;Selects the inventory title Print_fflim_text template. Its text cell is later overwritten with the inspected champion name by the inventory redraw path.
@@ -19086,14 +19120,14 @@ Draw_PocketGraphic:		; Memory Address ($CAEA) and binary offset [$C766]
 Select_PocketGraphicBank:		; Memory Address ($CAFA) and binary offset [$C776]
 	; Locates the containing 20-picture GFX_Pockets bank for a requested pocket
 	; graphic before calculating its source offset.
-	cmpi.b	#$14,d0																;0C000014
+	cmpi.b	#$14,d0																;Splits the Pockets.gfx picture index into 20-icon banks before converting the in-bank index to a source offset.
 	bcs.s	adrCd00CB0A															;650A
-	add.w	#$0A00,a1															;D2FC0A00
+	add.w	#$0A00,a1															;Advances one 20-icon Pockets.gfx bank (20 x $80 bytes) for picture indices at or above $14.
 	sub.w	#$0014,d0															;04400014
 	bra.s	Select_PocketGraphicBank											;60F0
 
 adrCd00CB0A:		; Memory Address ($CB0A) and binary offset [$C786]
-	asl.w	#$03,d0																;E740
+	asl.w	#$03,d0																;Converts the in-bank picture index to its 16x16 four-plane source offset.
 	add.w	d0,a1																;D2C0
 	movem.l	a0/a6,-(sp)															;48E70082
 	bsr.s	adrCd00CB1C															;6108
@@ -19192,17 +19226,17 @@ Draw_ScrollFrame:		; Memory Address ($CC3A) and binary offset [$C8B6]
 	clr.w	d5																	;4245
 	swap	d5																	;4845
 	move.l	d5,-(sp)															;2F05
-	bsr.s	Draw_PlanarGraphic													;6144
+	bsr.s	Draw_PlanarGraphic													;Calls the common four-plane graphic renderer for one scroll-frame edge or cap.
 	move.l	(sp)+,d5															;2A1F
 	lea		GFX_Scroll_Edge_Right.l,a1											;Selects the pre-drawn right scroll edge graphic.
 	move.l	screen_ptr.l,a0														;207900008D36
 	add.w	#$03E6,a0															;Positions the right scroll edge at its player-local framebuffer offset.
 	add.w	$000A(a5),a0														;D0ED000A
-	bsr.s	Draw_PlanarGraphic													;612C
+	bsr.s	Draw_PlanarGraphic													;Calls the common four-plane graphic renderer for one scroll-frame edge or cap.
 	sub.w	#$000A,a0															;90FC000A
 	lea		GFX_Scroll_Edge_Bottom.l,a1											;Selects the pre-drawn bottom scroll cap graphic.
 	move.l	#$0005000E,d5														;2A3C0005000E	;Long Addr replaced with Symbol
-	bsr.s	Draw_PlanarGraphic													;611A
+	bsr.s	Draw_PlanarGraphic													;Calls the common four-plane graphic renderer for one scroll-frame edge or cap.
 	lea		GFX_Scroll_Edge_Top.l,a1											;Selects the pre-drawn top scroll cap graphic.
 	move.l	screen_ptr.l,a0														;207900008D36
 	add.w	#$0184,a0															;D0FC0184
@@ -19234,7 +19268,7 @@ Draw_MainChampionAvatarInnerFrame:		; Memory Address ($CCD8) and binary offset [
 	add.w	$0008(a5),d5														;DA6D0008
 	move.l	#$00230006,d4														;Sets inner-frame X=$06 and horizontal terminal count $23, producing a $24-pixel width.
 	moveq	#$01,d3																;7601
-	bsr.s	Select_ChampionShieldInkColour										;6104
+	bsr.s	Select_ChampionShieldInkColour										;Obtains the leader class colour used for the optional large-avatar inner-frame ink.
 	bra		BW_draw_frame														;Draws the optional inner outline after the portrait, using the default or worn-spell-selected ink.
 
 Select_ChampionShieldInkColour:		; Memory Address ($CCFE) and binary offset [$C97A]
@@ -19265,14 +19299,14 @@ Draw_ChampionLargeAvatar:		; Memory Address ($CD1C) and binary offset [$C998]
 	; Selects and draws one 32×30 large champion avatar.
 	add.l	screen_ptr.l,a0														;Converts the avatar-local framebuffer offset to an address in the active player screen buffer.
 	add.w	$000A(a5),a0														;D0ED000A
-	lea		GFX_Avatars_Large.l,a1												;43F900041D30
+	lea		GFX_Avatars_Large.l,a1												;Selects the packed large champion portrait graphics source.
 	move.w	d7,d0																;3007
 	asl.w	#$05,d0																;Begins converting the champion ID to its portrait-record source offset.
 	sub.w	d7,d0																;9047
 	sub.w	d7,d0																;9047
 	asl.w	#$04,d0																;E940
 	add.w	d0,a1																;D2C0
-	move.l	#ChampionLargeAvatar_DrawDimensions,-(sp)							;2F3C0001001D	;Long Addr replaced with Symbol
+	move.l	#ChampionLargeAvatar_DrawDimensions,-(sp)							;Supplies the large portrait renderer with a two-word-wide, 30-row graphic size.
 	sub.l	a3,a3																;97CB
 	tst.w	d4																	;4A44
 	bne		Draw_PlanarGraphicCore												;660000E4
@@ -19531,7 +19565,7 @@ adrCd00CFBC:		; Memory Address ($CFBC) and binary offset [$CC38]
 	move.l	screen_ptr.l,a0														;207900008D36
 	add.w	#$0BAE,a0															;Sets the selected-spell name raster origin to X=$F0, Y=$4A: $0BAE is 74 rows of $28 bytes plus 30 bytes.
 	add.w	$000A(a5),a0														;D0ED000A
-	moveq	#$07,d6																;7C07
+	moveq	#$07,d6																;Uses DBRA terminal index seven so the selected spell-name printer emits exactly eight characters from its fixed SpellNames record.
 	move.l	#$000B0000,adrW_00D92A.l											;23FC000B00000000D92A
 	bra.s	adrLp00CFDA															;6002
 
@@ -19672,7 +19706,7 @@ Exec_char_extensions:		; Memory Address ($D0D6) and binary offset [$CD52]
 	move.w	d1,d4																;3801
 	clr.w	d5																	;4245
 	move.b	(a6)+,d5															;1A1E
-	asl.w	#$03,d4																;E744
+	asl.w	#$03,d4																;The FC text extension converts its byte column to native 8-pixel X coordinates before calculating the text origin.
 	asl.w	#$03,d5																;E745
 	bsr		BW_xy_to_offset														;61000B3E
 	move.l	screen_ptr.l,a0														;207900008D36
@@ -19698,6 +19732,8 @@ CopyProtection:
 
 
 ;fiX Label expected
+; SOURCE_NOTE: COPY_PROTECTION_INTERNAL ($D140): Reserved workspace leading into the saved-register area.
+; COPY_PROTECTION_INTERNAL ($D140): Reserved workspace leading into the saved-register area.
 	dc.w	$0000	;0000
 	dc.w	$0000	;0000
 	dc.w	$0000	;0000
@@ -19805,6 +19841,8 @@ adrCd00D1FC:		; Memory Address ($D1FC) and binary offset [$CE78]
 	move.l	(sp)+,$00000010.l													;23DF00000010
 	illegal																		;4AFC
 ;fiX Label expected
+; SOURCE_NOTE: COPY_PROTECTION_INTERNAL ($D21C): Opaque instruction/data stream entered through the deliberate exception path.
+; COPY_PROTECTION_INTERNAL ($D21C): Opaque instruction/data stream entered through the deliberate exception path.
 	dc.w	$487A	;487A
 	dc.w	$001C	;001C
 	dc.w	$23DF	;23DF
@@ -19931,6 +19969,8 @@ adrCd00D332:		; Memory Address ($D332) and binary offset [$CFAE]
 	rte																			;4E73
 
 ;fiX Label expected
+; SOURCE_NOTE: COPY_PROTECTION_INTERNAL ($D338): Opaque word stream following the exception-handler return.
+; COPY_PROTECTION_INTERNAL ($D338): Opaque word stream following the exception-handler return.
 	dc.w	$F076	;F076
 	dc.w	$FCE0	;FCE0
 	dc.w	$40E6	;40E6
@@ -20211,6 +20251,8 @@ adrCd00D56A:		; Memory Address ($D56A) and binary offset [$D1E6]
 	bra.s	adrCd00D59A															;6016
 
 ;fiX Label expected
+; SOURCE_NOTE: COPY_PROTECTION_INTERNAL ($D584): Encoded word block deliberately skipped by the visible execution paths.
+; COPY_PROTECTION_INTERNAL ($D584): Encoded word block deliberately skipped by the visible execution paths.
 	dc.w	$8A91	;8A91
 	dc.w	$8A44	;8A44
 	dc.w	$8A45	;8A45
@@ -20227,6 +20269,8 @@ adrCd00D59A:		; Memory Address ($D59A) and binary offset [$D216]
 	move.l	d1,d0																;2001
 	illegal																		;4AFC
 ;fiX Label expected
+; SOURCE_NOTE: COPY_PROTECTION_INTERNAL ($D59E): Opaque stream following the deliberate illegal instruction; retained as raw words.
+; COPY_PROTECTION_INTERNAL ($D59E): Opaque stream following the deliberate illegal instruction; retained as raw words.
 	dc.w	$FB76	;FB76
 	dc.w	$7676	;7676
 	dc.w	$8108	;8108
@@ -21618,7 +21662,7 @@ Current_TowerMapDataBase:		; Memory Address ($EE78) and binary offset [$EAF4]
 	; Pointer to the currently selected tower's map resource immediately after its
 	; $38-byte header. Map-cell and object/trap routines use this as their shared
 	; data base.
-	dc.l	$0000EF78	;0000EF78	;Long Addr replaced with Symbol *Fix stored address **
+	dc.l	MapData1+Map_HeaderSize	;0000EF78	;Long Addr replaced with Symbol *Fix stored address **
 Player1_Data:
 	ds.b	$1
 adrB_00EE7D:		; Memory Address ($EE7D) and binary offset [$EAF9]

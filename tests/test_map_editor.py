@@ -18,6 +18,7 @@ from tools.map_editor.app import (
     monster_renderer_key,
     nearest_rectangle_edges,
     MONSTER_DESIGN_PREVIEW_DISTANCES,
+    panel_joypad_action,
     reveal_interval_delta,
 )
 from tools.map_editor.actor_editor import (
@@ -77,6 +78,17 @@ CLEAN_ROOT = DATA_DIR / "BLOODWYCH439-clean"
 
 
 class MapEditorTests(unittest.TestCase):
+    def test_panel_joypad_actions_follow_the_active_editor(self) -> None:
+        self.assertEqual(panel_joypad_action(1, "ACTION-1"), "CUT")
+        self.assertEqual(panel_joypad_action(1, "ACTION-2"), "COPY")
+        self.assertEqual(panel_joypad_action(1, "ACTION-3"), "PASTE")
+        self.assertEqual(panel_joypad_action(2, "ACTION-1"), "STACK-")
+        self.assertEqual(panel_joypad_action(2, "ACTION-2"), "MOVE-HERE")
+        self.assertEqual(panel_joypad_action(2, "ACTION-3"), "STACK+")
+        self.assertIsNone(panel_joypad_action(0, "ACTION-1"))
+        self.assertIsNone(panel_joypad_action(3, "ACTION-1"))
+        self.assertIsNone(panel_joypad_action(1, "MOVE-FORWARD"))
+
     def test_parties_use_their_shared_player_facing(self) -> None:
         quickstart = MapProject.from_extracted(CLEAN_ROOT)
         saved = MapProject.from_savegame(

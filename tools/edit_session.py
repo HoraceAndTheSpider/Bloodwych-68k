@@ -10,7 +10,7 @@ from pathlib import Path, PurePosixPath
 from types import SimpleNamespace
 
 from tools.data_overlay import related_data_roots
-from tools.resource_layout import EXTRACT_ONLY, data_action, resource_layouts, resource_name
+from tools.resource_layout import EXTRACT_ONLY, data_action, resource_name
 from tools.tool_common import (BINARIES_DIR, DEFAULT_SEGMENTS_FILE, ToolError,
                                binary_path, get_profile, load_segments, parse_int)
 
@@ -25,7 +25,6 @@ class ResourceSpec:
 
 def resource_specs(master: str, sheet: Path = DEFAULT_SEGMENTS_FILE) -> dict[str, ResourceSpec]:
     frame = load_segments(sheet, master)
-    resource_layouts(frame)
     specs = {}
     for _, row in frame.iterrows():
         name = resource_name(row)

@@ -6,7 +6,8 @@ import os
 import sys
 
 from tools.joypad import (
-    ACTIONS, ACTION_LABELS, MOVEMENT_ACTIONS, ActionState, BindingCapture,
+    ACTIONS, ACTION_LABELS, MOVEMENT_ACTIONS, PANEL_ACTIONS, POINTER_ACTIONS,
+    ActionState, BindingCapture,
     DeviceIdentity, InputState, Layout, LayoutStore,
 )
 
@@ -253,7 +254,7 @@ class JoypadControls:
                 continue
             pressed, _ = pad.actions.update(pad.layout.bindings, pad.state, now)
             result.extend(pygame.event.Event(self.action_event, joypad_action=action, instance_id=instance)
-                          for action in pressed if action in MOVEMENT_ACTIONS)
+                          for action in pressed if action in MOVEMENT_ACTIONS + PANEL_ACTIONS)
         fire = any("FIRE" in pad.actions.active for pad in self.devices.values())
         if fire != self.fire_down:
             self.fire_down = fire
@@ -266,6 +267,24 @@ class JoypadControls:
 
     def pointer_position(self):
         return tuple(round(value) for value in self.pointer)
+
+    def has_pointer(self):
+        """Return whether a connected layout can move the virtual pointer."""
+        pointer_actions = POINTER_ACTIONS[:4]
+        return any(
+            pad.layout and any(action in pad.layout.bindings for action in pointer_actions)
+            for pad in self.devices.values()
+        )
+
+    def _draw_pointer(self, screen):
+        if not self.has_pointer():
+            return
+        pygame = self.pygame
+        x, y = self.pointer_position()
+        pygame.draw.circle(screen, (18, 23, 30), (x, y), 8)
+        pygame.draw.circle(screen, (245, 220, 90), (x, y), 7, 2)
+        pygame.draw.line(screen, (245, 245, 250), (x - 4, y), (x + 4, y), 1)
+        pygame.draw.line(screen, (245, 245, 250), (x, y - 4), (x, y + 4), 1)
 
     def left_pressed(self):
         return self.fire_down or self.pygame.mouse.get_pressed(3)[0]
@@ -359,6 +378,7 @@ class JoypadControls:
         text = small.render(label, True, (245, 245, 250))
         screen.blit(text, text.get_rect(center=self.button.center))
         if not self.open:
+            self._draw_pointer(screen)
             return
         shade = pygame.Surface((width, height), pygame.SRCALPHA)
         shade.fill((0, 0, 0, 190))
@@ -387,10 +407,11 @@ class JoypadControls:
         button("PREVIOUS", pygame.Rect(box.right - 90, y + 29, 32, 25), "<")
         button("NEXT", pygame.Rect(box.right - 50, y + 29, 32, 25), ">")
         screen.blit(small.render("Select a row, then press a button / D-pad / stick. Release controls first.", True, (170, 185, 205)), (x, y + 61))
-        row_height = (box.height - 182) // 6
+        rows_per_column = (len(ACTIONS) + 1) // 2
+        row_height = (box.height - 182) // rows_per_column
         column_width = (inner - 12) // 2
         for index, action in enumerate(ACTIONS):
-            column, row = (0, index) if index < 6 else (1, index - 6)
+            column, row = divmod(index, rows_per_column)
             rectangle = pygame.Rect(x + column * (column_width + 12), y + 83 + row * row_height, column_width, row_height - 4)
             self.rects[action] = rectangle
             selected = self.row == index
@@ -398,12 +419,23 @@ class JoypadControls:
             binding = self.draft.get(action)
             label = ACTION_LABELS[action] + (" *" if action in MOVEMENT_ACTIONS else "")
             value = "Waiting for input..." if selected and self.capture else binding.label() if binding else "Not assigned"
-            screen.blit(small.render(label, True, (232, 236, 242)), (rectangle.x + 8, rectangle.y + 3))
-            screen.blit(small.render(value, True, (234, 220, 134) if selected else (164, 182, 199)), (rectangle.x + 8, rectangle.y + rectangle.height - 17))
+            if rectangle.height < 36:
+                combined = SessionPanel._fit_path(
+                    small, f"{label}: {value}", rectangle.width - 16
+                )
+                rendered = small.render(
+                    combined,
+                    True,
+                    (234, 220, 134) if selected else (190, 202, 214),
+                )
+                screen.blit(rendered, rendered.get_rect(midleft=(rectangle.x + 8, rectangle.centery)))
+            else:
+                screen.blit(small.render(label, True, (232, 236, 242)), (rectangle.x + 8, rectangle.y + 3))
+                screen.blit(small.render(value, True, (234, 220, 134) if selected else (164, 182, 199)), (rectangle.x + 8, rectangle.y + rectangle.height - 17))
         footer_y = box.bottom - 91
         for index, line in enumerate(SessionPanel._wrapped(small, self.message, inner)[:2]):
             screen.blit(small.render(line, True, (241, 195, 120)), (x, footer_y + index * 17))
         button_width = (inner - 24) // 5
         for index, action in enumerate(("DEFINE ALL", "CLEAR", "SKIP", "SAVE", "CANCEL")):
             button(action, pygame.Rect(x + index * (button_width + 6), box.bottom - 51, button_width, 27), enabled=bool(pad) or action == "CANCEL")
-        screen.blit(small.render("* Six movement controls required. Pointer / fire optional. ESC cancels; F8 reopens.", True, (156, 173, 191)), (x, box.bottom - 20))
+        screen.blit(small.render("* Movement required; other actions optional. ESC cancels; F8 reopens.", True, (156, 173, 191)), (x, box.bottom - 20))

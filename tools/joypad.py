@@ -18,10 +18,12 @@ MOVEMENT_ACTIONS = (
     "MOVE-FORWARD", "MOVE-BACK", "MOVE-LEFT", "MOVE-RIGHT", "TURN-LEFT", "TURN-RIGHT",
 )
 POINTER_ACTIONS = ("POINTER-UP", "POINTER-DOWN", "POINTER-LEFT", "POINTER-RIGHT", "FIRE")
-ACTIONS = MOVEMENT_ACTIONS + POINTER_ACTIONS
+PANEL_ACTIONS = ("ACTION-1", "ACTION-2", "ACTION-3")
+ACTIONS = MOVEMENT_ACTIONS + POINTER_ACTIONS + PANEL_ACTIONS
 ACTION_LABELS = dict(zip(ACTIONS, (
     "Move forward", "Move backward", "Strafe left", "Strafe right", "Turn left", "Turn right",
     "Pointer up", "Pointer down", "Pointer left", "Pointer right", "Fire / left click",
+    "Panel action 1", "Panel action 2", "Panel action 3",
 )))
 LAYOUT_DIR = Path(__file__).resolve().parents[1] / "config" / "joypads"
 

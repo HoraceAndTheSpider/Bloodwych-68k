@@ -53,11 +53,12 @@ because it does not identify a single direction. No axis or button number is
 assumed to mean movement.
 
 The six required movement controls are forward, backward, strafe left, strafe
-right, turn left and turn right. Optional controls are pointer up/down/left/right
-and fire (left mouse click). One physical input direction can serve only one
-action. **CLEAR** removes the selected binding; **SKIP** leaves it unchanged and
-advances. An input already assigned elsewhere is rejected with an explanation.
-Two opposite directions of an analogue axis are separate inputs.
+right, turn left and turn right. Optional controls are pointer up/down/left/right,
+fire (left mouse click), and three generic panel actions. One physical input
+direction can serve only one action. **CLEAR** removes the selected binding;
+**SKIP** leaves it unchanged and advances. An input already assigned elsewhere
+is rejected with an explanation. Two opposite directions of an analogue axis
+are separate inputs.
 
 **SAVE** validates and writes the layout. **CANCEL** discards unsaved changes;
 Escape cancels a capture first, then closes the page. The device arrows select
@@ -79,14 +80,28 @@ rules. Held controls repeat after a short delay. Stick noise is filtered and
 release thresholds prevent jitter from generating repeated steps. The cursor
 automatically pans into view at the current zoom level.
 
-The optional pointer controls work in the launcher, viewers and file browser.
-Analogue movement gives proportional pointer speed; buttons and D-pad directions
-give steady movement. Fire produces normal left-button press/release events,
-including held editor adjustments. Disconnecting a device, opening setup or
-losing window focus releases fire. Held inputs must be released before they can
-act again after setup or a focus change.
+The Interface Viewer / Editor consumes the same six named movement actions as
+its `W`/`S`, `A`/`D`, and `Q`/`E` keys. These drive the test party through the
+same collision and rendering path as its on-screen arrows. Pause and load/save
+continue to own all input while active; movement from sleep wakes the party
+before applying the requested action.
 
-The shared input adapter exposes named movement actions with the connected
-device's instance ID, and mouse events for pointer/fire. A future game test mode
-can consume these without another controller definition flow. This does not add
-a game test mode or assign connected devices to Player 1/Player 2 yet.
+The optional pointer controls work in the launcher, viewers and file browser. A
+yellow software cursor makes the configured pointer visible on every one of
+these screens, including the front menu. Analogue movement gives proportional
+pointer speed; buttons and D-pad directions give steady movement. Fire produces
+normal left-button press/release events, including held editor adjustments.
+Disconnecting a device, opening setup or losing window focus releases fire.
+Held inputs must be released before they can act again after setup or a focus
+change.
+
+The three panel actions are single presses whose meaning follows the active
+panel. In **Maps**, Actions 1, 2 and 3 are **Cut**, **Copy** and **Paste**. In
+**Objects**, they are **Previous Stack**, **Place Here** and **Next Stack**.
+They are inactive in panels that do not yet define meanings, so those meanings
+can be added later without changing the saved controller layout.
+
+The shared input adapter exposes named movement and panel actions with the
+connected device's instance ID, and mouse events for pointer/fire. Both the Map
+and Interface viewers consume these without another controller definition flow.
+This does not assign connected devices to Player 1/Player 2 yet.

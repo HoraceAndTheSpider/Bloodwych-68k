@@ -109,7 +109,8 @@ quitting: sessions are held in memory. See [the action semantics and limits](doc
 **Define Joypad Buttons** on the launcher, or **JOYPAD (F8)** in a viewer,
 opens device-specific controller setup. It opens automatically for a connected
 device without a matching layout. Define six movement controls and optional
-pointer/fire controls; movement works across all five map modes. See
+pointer, fire and three panel actions; movement works across all five map modes,
+and the configured pointer is visible on the front menu and other screens. See
 [joypad setup and layout files](docs/joypad-controls.md).
 On macOS, use the project environment (`.venv/bin/python main.py`) with the
 `pygame-ce` dependency from `requirements.txt`; an older global Pygame/SDL can

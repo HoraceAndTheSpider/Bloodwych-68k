@@ -64,7 +64,9 @@ newly drawn editor artwork.
 mapped joypad movement work in **all five map modes**. Arrow keys remain
 absolute map-cursor movement, or edit the selected property; Escape deselects
 that property. Moving the cursor pans it into view without changing zoom.
-Use **JOYPAD (F8)** to [define device-specific movement, pointer and fire controls](joypad-controls.md).
+Use **JOYPAD (F8)** to [define device-specific movement, pointer, fire and panel controls](joypad-controls.md).
+The three optional panel actions provide Cut/Copy/Paste in Maps and Previous
+Stack/Place Here/Next Stack in Objects.
 The small line inside the cycling cursor shows
 the current facing. Cursor movement is intentionally an editor navigation
 operation and is not blocked by game collision rules.

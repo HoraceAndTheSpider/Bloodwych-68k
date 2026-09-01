@@ -213,6 +213,23 @@ def load_segments(sheet: str | Path, master: str) -> pd.DataFrame:
             frame = pd.read_excel(book, sheet_name=sheet_name)
 
     frame.columns = [str(column).strip().casefold() for column in frame.columns]
+
+    def repeated_header(row: pd.Series) -> bool:
+        populated = 0
+        for column, value in row.items():
+            if value is None or pd.isna(value):
+                continue
+            text = str(value).strip().casefold()
+            if not text:
+                continue
+            populated += 1
+            if text != column:
+                return False
+        return populated >= 2
+
+    # Long maintained sheets may repeat their headings before a new section.
+    # Keep original indices so later validation still reports the real Excel row.
+    frame = frame.loc[~frame.apply(repeated_header, axis=1)]
     return frame
 
 

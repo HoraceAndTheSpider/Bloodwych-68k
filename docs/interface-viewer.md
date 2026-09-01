@@ -65,6 +65,14 @@ The primary channel is blue `$7` / red `$9`; the secondary pocket-graphic
 template channel is light blue `$8` / orange-red `$C`. The dialogue-text colour
 is selected separately from the ramp table described below.
 
+`W` and `S` move forward/backward, `A` and `D` strafe left/right, and `Q`
+and `E` turn left/right. A configured joypad supplies the same six actions.
+Keyboard, joypad and on-screen arrows all use the same preview movement and
+collision routine and briefly light the corresponding original arrow. The
+controls work while viewing any Interface page. Pause and load/save consume
+them while those states own input; movement from sleep wakes the party and then
+performs the requested action.
+
 The hitbox overlay reads the extracted main, command, and display rectangle
 tables. It is state-aware: movement and dungeon-display rectangles are shown
 only on the ordinary dungeon interface, party-command rectangles only on the

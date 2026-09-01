@@ -399,6 +399,23 @@ def default_floor(project: MapProject, tower: int) -> int:
     )
 
 
+def panel_joypad_action(selected_tab: int, action: str | None) -> str | None:
+    """Map the three configurable panel buttons to the active editor's actions."""
+    mappings = {
+        1: {
+            "ACTION-1": "CUT",
+            "ACTION-2": "COPY",
+            "ACTION-3": "PASTE",
+        },
+        2: {
+            "ACTION-1": "STACK-",
+            "ACTION-2": "MOVE-HERE",
+            "ACTION-3": "STACK+",
+        },
+    }
+    return mappings.get(selected_tab, {}).get(action)
+
+
 def launch_map_editor(
     data_root: Path | None = None,
     *,
@@ -3527,6 +3544,16 @@ def launch_map_editor(
                     continue
                 if event.type == pygame.QUIT:
                     running = False
+                elif (panel_action := panel_joypad_action(
+                    selected_tab, getattr(event, "joypad_action", None)
+                )) is not None:
+                    if selected_tab == 1:
+                        if panel_action != "PASTE" or copied_cell is not None:
+                            apply_action(panel_action)
+                        else:
+                            status_message = "COPY A MAP CELL BEFORE PASTING"
+                    elif selected_tab == 2:
+                        apply_object_action(panel_action)
                 elif (movement_action := movement_action_for_event(
                     pygame, event
                 )) is not None:

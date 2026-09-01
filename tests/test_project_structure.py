@@ -3,6 +3,8 @@ from __future__ import annotations
 import unittest
 from contextlib import redirect_stderr
 from io import StringIO
+from pathlib import Path
+from tempfile import TemporaryDirectory
 from unittest.mock import ANY, patch
 
 import main
@@ -314,6 +316,20 @@ class ProjectStructureTests(unittest.TestCase):
         frame = load_segments(DEFAULT_SEGMENTS_FILE, "Bloodwych439")
         self.assertGreater(len(frame), 2600)
         self.assertTrue({"label", "relabel", "name", "offset", "size"} <= set(frame.columns))
+
+    def test_segment_loader_ignores_an_exact_repeated_header_row(self) -> None:
+        with TemporaryDirectory() as directory:
+            segments = Path(directory) / "segments.csv"
+            segments.write_text(
+                "label,relabel,name,offset,size,data_action\n"
+                "Start,First,data/first.bin,$10,$02,data_start\n"
+                "label,relabel,name,offset,size,data_action\n"
+                "Next,Second,data/second.bin,$12,$02,data_append\n"
+            )
+            frame = load_segments(segments, "BLOODWYCH439")
+
+        self.assertEqual(list(frame.index), [0, 2])
+        self.assertEqual(list(frame["label"]), ["Start", "Next"])
 
     def test_unmapped_profile_is_explicit(self) -> None:
         with self.assertRaisesRegex(ToolError, "No segments.xlsx sheet"):

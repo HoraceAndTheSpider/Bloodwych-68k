@@ -311,7 +311,7 @@ MonsterHitPoints_DefaultMultiplierMid:		equ	$FA
 MonsterLive_RecordCapacity:		equ	$80
 	; Maximum number of live monster records represented by the cleared workspace.
 MonsterLive_RecordCountOffset:		equ	-$02
-	; Reads the live monster count before removing a record.
+	; Reads the last live-record index before removing a monster.
 MonsterLive_WorkspaceLongwordCount:		equ	$0200
 	; Clears the live-monster workspace.
 MonsterRecord_ActionCountdown:		equ	$03
@@ -351,7 +351,7 @@ MonsterRecord_YPosition:		equ	$01
 MonsterTeamData_GroupShift:		equ	$02
 	; Converts packed member data to a team-group index.
 MonsterTeamIndexTable_CountOffset:		equ	-$02
-	; Reads the number of populated team groups.
+	; Reads the last team-row index: team count minus one.
 MonsterTeamIndexTable_LongwordCount:		equ	$19
 	; Clears all twenty-five team groups.
 MonsterTeamMember_Count:		equ	$04
@@ -714,6 +714,98 @@ ObjectFloor_WideShapeFirst:		equ	$12
 	; First object floor-shape that uses the wide graphics bank and explicit projection-width selector.
 ObjectFloor_WideGraphicsOffset:		equ	$0CB8
 	; Byte offset from the ordinary ObjectsOnFloor graphics to the wide-shape graphics bank.
+ObjectData_LengthBytes:		equ	$02
+	; Bytes in the big-endian used-payload-length word preceding object-stack records.
+Map_HeaderSize:		equ	$38
+	; Copies the 56-byte header as fourteen longwords.
+Map_ResourceSize:		equ	$1000
+	; Fixed map allocation; object records begin after this map and the two-byte object-length word.
+ObjectStack_MapOffsetMask:		equ	$3FFF
+	; Retains the 14-bit map-payload byte offset; bits 15-14 encode the object mini-space.
+ObjectStack_MinimumBytes:		equ	$05
+	; Minimum record is location word, count-minus-one byte, and one object/quantity pair.
+ObjectStack_CountMinusOneOffset:		equ	$02
+	; Loads the number of additional two-byte object/quantity pairs.
+MapCell_ObjectPresentBit:		equ	$06
+	; Marks map cells that have a floor or shelf object stack.
+Map_FloorHeightsOffset:		equ	$08
+	; Offset of the eight height bytes in the map header.
+Map_FloorDataOffsetsOffset:		equ	$10
+	; Offset of the eight big-endian floor cell-data offsets in the header.
+Map_AlignmentYArrayOffset:		equ	$08
+	; Y-alignment bytes start eight bytes after the X-alignment bytes.
+Map_CellByteShift:		equ	$01
+	; Converts the floor-relative two-byte map offset to a cell number before division by width.
+MapCell_StairsType:		equ	$04
+	; Selects the stair transition path.
+MapCell_FloorFeatureType:		equ	$06
+	; Selects floor-feature cells before testing the pit subtype.
+FloorFeature_SubtypeMask:		equ	$03
+	; Extracts the floor feature independently of the ceiling-hole flag.
+Stair_DownBit:		equ	$00
+	; A clear bit ascends one floor; a set bit descends one floor.
+Direction_OppositeMask:		equ	$02
+	; Reverses the stored stair facing to obtain the permitted travel direction.
+MovementOffset_YTableOffset:		equ	$08
+	; Each addition advances one cell in Y; the consecutive pair advances two cells.
+MapCell_OccupiedBit:		equ	$07
+	; Map-cell occupied flag updated when a player changes floor.
+ObjectStack_ItemBytes:		equ	$02
+	; Grows the used object payload by one code/quantity pair without comparing against the allocation capacity.
+TriggerSound_None:		equ	$FFFF
+	; Negative trigger sound suppresses playback, rather than requesting a delay.
+FloorTrigger_IndexMask:		equ	$F8
+	; Keeps trigger index bits 3-7; shifting once right yields a four-byte record offset.
+FloorTrigger_TowerStrideShift:		equ	$07
+	; Multiplies tower number by 128 bytes for its 32 four-byte trigger records.
+WallSwitch_IndexMask:		equ	$F8
+	; Bits 3-7 encode the switch record reference.
+WallSwitch_DimBit:		equ	$02
+	; Switch light-state bit toggled for every nonzero reference.
+WallSwitch_TowerStrideShift:		equ	$06
+	; Each tower has sixteen four-byte switch records.
+FloorFeature_VisiblePadSubtype:		equ	$02
+	; Visible pads select sound zero before the handler runs.
+TriggerAction_VivifyExternal:		equ	$08
+	; Action byte is a byte offset into the trigger word-displacement table.
+TriggerAction_VivifyInternal:		equ	$0A
+	; Action byte is a byte offset into the trigger word-displacement table.
+TriggerAction_FlashTeleport:		equ	$2A
+	; Action byte is a byte offset into the trigger word-displacement table.
+MapCell_TypeMask:		equ	$07
+	; Low three bits of the second byte select the map-cell type.
+MapCell_ClearTypeMask:		equ	$F8
+	; Clear the cell type while preserving upper second-byte flags.
+StoneWall_RemoveFeatureMask:		equ	$4F
+	; Removing a stone wall clears its decoration flag and facing bits.
+MapCell_WallTogglePreserveMask:		equ	$F9
+	; Discard first-byte data and type bits 1-2 before toggling stone-wall bit zero.
+StoneWall_FacingPreserveMask:		equ	$CF
+	; Keep all second-byte fields except the wall-facing bits.
+StoneWall_FacingStep:		equ	$10
+	; Advance the two-bit wall-facing field by one direction.
+StoneWall_FacingMask:		equ	$30
+	; Facing occupies second-byte bits 4-5.
+Direction_Mask:		equ	$03
+	; Wrap a facing value to north, east, south or west.
+Direction_HalfTurn:		equ	$02
+	; Toggle the facing between opposite compass directions.
+WoodEdges_QuarterTurnBits:		equ	$02
+	; One wooden edge occupies two bits; rotate right to move each edge counterclockwise.
+MapCell_ClearFeatureWordMask:		equ	$F8
+	; Clear first-byte feature data and the three-bit type, retaining second-byte flags.
+MapCell_PillarWord:		equ	$0103
+	; First byte one and map-cell type three define the puzzle pillar.
+CellEffect_TeleportFlash:		equ	$10
+	; Effect code queued after the flashing teleport commits its destination.
+CellEffect_Vivify:		equ	$86
+	; Effect code queued at the Vivify revival cell.
+Object_ChampionRemainsFirst:		equ	$40
+	; Remains objects $40-$4F identify the sixteen champions.
+TriggerTeleportStack_CellOffset:		equ	$08
+	; Saved dispatcher D0 after the handler and commit-helper return addresses.
+TriggerTeleportStack_PackedXYOffset:		equ	$0C
+	; Replace saved dispatcher D7 after the two return addresses.
 
 ****************************************************************************
 
@@ -1187,7 +1279,7 @@ Mark_CurrentTowerTrapCells:		; Memory Address ($0960) and binary offset [$05DC]
 	moveq	#$00,d7	;7E00
 	moveq	#$00,d6	;7C00
 	move.l	Current_TowerMapDataBase.l,a6	;2C790000EE78
-	lea	$0FCA(a6),a0	;41EE0FCA
+	lea	Map_ResourceSize-Map_HeaderSize+ObjectData_LengthBytes(a6),a0	;41EE0FCA
 Mark_CurrentTowerTrapCellsLoop:		; Memory Address ($096E) and binary offset [$05EA]
 	; Iterates variable-length trap records and marks each referenced cell.
 	cmp.w	-$0002(a0),d7	;BE68FFFE
@@ -1195,11 +1287,11 @@ Mark_CurrentTowerTrapCellsLoop:		; Memory Address ($096E) and binary offset [$05
 	move.b	$00(a0,d7.w),d0	;10307000
 	rol.w	#$08,d0	;E158
 	move.b	$01(a0,d7.w),d0	;10307001
-	and.w	#$3FFF,d0	;02403FFF
-	bset	#$06,$01(a6,d0.w)	;08F600060001
-	move.b	$02(a0,d7.w),d6	;1C307002
+	and.w	#ObjectStack_MapOffsetMask,d0	;02403FFF
+	bset	#MapCell_ObjectPresentBit,$01(a6,d0.w)	;08F600060001
+	move.b	ObjectStack_CountMinusOneOffset(a0,d7.w),d6	;1C307002
 	add.w	d6,d6	;DC46
-	addq.w	#$05,d6	;5A46
+	addq.w	#ObjectStack_MinimumBytes,d6	;5A46
 	add.w	d6,d7	;DE46
 	bra.s	Mark_CurrentTowerTrapCellsLoop	;60DA
 
@@ -1397,7 +1489,7 @@ Select_CurrentTowerMapData:		; Memory Address ($0B68) and binary offset [$07E4]
 	lea	MapData1.l,a6	;4DF90000EF40
 	add.w	$00(a0,d0.w),a6	;DCF00000
 	lea	Current_TowerMapHeaderCache.l,a0	;41F90000EE40
-	moveq	#$0D,d0	;700D
+	moveq	#(Map_HeaderSize/4)-1,d0	;700D
 .CopyCurrentTowerMapPointerLoop:		; Memory Address ($0B88) and binary offset [$0804]
 	; Copies the fourteen map pointers for the selected tower.
 	move.l	(a6)+,(a0)+	;20DE
@@ -5309,7 +5401,7 @@ Interface_CheckSelectedCellInteraction:		; Memory Address ($33BE) and binary off
 	and.w	#$0007,d1	;02410007
 	subq.w	#$01,d1	;5341
 	beq.s	adrCd0033EC	;6708
-	move.w	$0058(a5),d1	;322D0058
+	move.w	PlayerData_Floor(a5),d1	;322D0058
 	bra	Find_DungeonCellOccupant	;600064BE
 
 adrCd0033EC:		; Memory Address ($33EC) and binary offset [$3068]
@@ -7613,23 +7705,23 @@ adrCd004CB2:		; Memory Address ($4CB2) and binary offset [$492E]
 	bpl.s	adrCd004D08	;6A4C
 	bsr	adrCd008498	;610037DA
 	move.w	$00(a6,d0.w),d1	;32360000
-	and.w	#$0007,d1	;02410007
-	cmpi.w	#$0006,d1	;0C410006
+	and.w	#Dungeon_CellTypeMask,d1	;02410007
+	cmpi.w	#MapCell_FloorFeatureType,d1	;0C410006
 	bne.s	adrCd004D08	;663A
 	move.b	$00(a6,d0.w),d1	;12360000
-	and.w	#$0003,d1	;02410003
+	and.w	#FloorFeature_SubtypeMask,d1	;02410003
 	subq.w	#$01,d1	;5341
 	bne.s	adrCd004D08	;662E
-	bclr	#$07,$01(a6,d0.w)	;08B600070001
-	move.w	$0058(a5),d2	;342D0058
+	bclr	#MapCell_OccupiedBit,$01(a6,d0.w)	;08B600070001
+	move.w	PlayerData_Floor(a5),d2	;342D0058
 	move.w	d2,d1	;3202
 	subq.w	#$01,d1	;5341
-	move.w	d1,$0058(a5)	;3B410058
+	move.w	d1,PlayerData_Floor(a5)	;3B410058
 	bsr	adrCd0084BA	;610037CC
 	move.l	d7,$001C(a5)	;2B47001C
 	bsr	adrCd0084D6	;610037E0
 	bsr	adrCd008498	;6100379E
-	bset	#$07,$01(a6,d0.w)	;08F600070001
+	bset	#MapCell_OccupiedBit,$01(a6,d0.w)	;08F600070001
 	move.b	#$02,$003D(a5)	;1B7C0002003D
 adrCd004D08:		; Memory Address ($4D08) and binary offset [$4984]
 	cmp.w	#$0008,$0042(a5)	;0C6D00080042
@@ -8231,7 +8323,7 @@ RestorePartyStat_NextChampion:		; Memory Address ($55FA) and binary offset [$527
 
 Spells_19_Vivify:		; Memory Address ($527E) and binary offset [$4EFA]
 	bsr	adrCd008498	;61003218
-	bsr	adrCd0078FA	;61002676
+	bsr	VivifyInternal_QueueEffectAndSound	;61002676
 	bsr	Interface_CheckSelectedCellInteraction	;6100E136
 	bcc.s	Vivify_ResolveTargetCell	;6414
 	tst.b	d0	;4A00
@@ -8239,7 +8331,7 @@ Spells_19_Vivify:		; Memory Address ($527E) and binary offset [$4EFA]
 	move.l	a5,-(sp)	;2F0D
 	move.l	a1,a5	;2A49
 	bsr	adrCd008498	;61003202
-	bsr	adrCd0078FA	;61002660
+	bsr	VivifyInternal_QueueEffectAndSound	;61002660
 	move.l	(sp)+,a5	;2A5F
 Return_Vivify:		; Memory Address ($5622) and binary offset [$529E]
 	; Returns after Vivify has resolved its selected cell or linked player context.
@@ -8252,7 +8344,7 @@ Vivify_ResolveTargetCell:		; Memory Address ($5624) and binary offset [$52A0]
 	and.w	#$0007,d1	;02410007
 	subq.w	#$01,d1	;5341
 	beq.s	Return_Vivify	;67EE
-	bra	adrCd007812	;60002560
+	bra	VivifyExternal_SearchRevivalCell	;60002560
 
 Spells_20_Dispell:		; Memory Address ($52B4) and binary offset [$4F30]
 	bsr	adrCd00847E	;610031C8
@@ -9074,7 +9166,7 @@ Exit_SocketAction:
 SocketActions_ChaosCrystal:		; Memory Address ($59F2) and binary offset [$566E]
 	bclr	#$02,$00(a6,d0.w)	;08B600020000
 	bsr	adrCd008498	;61002A9E
-	bsr	adrCd0078FA	;61001EFC
+	bsr	VivifyInternal_QueueEffectAndSound	;61001EFC
 	cmp.w	#$0005,CurrentTower.l	;0C7900050000EE2E
 	bne.s	Exit_SocketAction	;66E6
 	lea	UnpackedMonsters.l,a0	;41F900016B7E
@@ -9185,15 +9277,14 @@ BlueGemLocs:		; Memory Address ($5B12) and binary offset [$578E]
 	dc.w	$0802	;0802
 
 MainWall_Action_03_Switches:		; Memory Address ($5B2A) and binary offset [$57A6]
-	; Toggles the switch display state and dispatches the tower-specific switch trigger.
 	moveq	#$00,d1	;7200
 	move.b	$00(a6,d0.w),d1	;12360000
-	and.w	#$00F8,d1	;024100F8
+	and.w	#WallSwitch_IndexMask,d1	;024100F8
 	beq.s	Switch_00_s00_Null	;6730
-	bchg	#$02,$00(a6,d0.w)	;087600020000
+	bchg	#WallSwitch_DimBit,$00(a6,d0.w)	;087600020000
 	lsr.b	#$01,d1	;E209
 	move.w	CurrentTower.l,d0	;30390000EE2E
-	asl.w	#$06,d0	;ED40
+	asl.w	#WallSwitch_TowerStrideShift,d0	;ED40
 	lea	SwitchData_1.l,a1	;43F900005B78
 	add.w	d0,a1	;D2C0
 	moveq	#$00,d0	;7000
@@ -9210,7 +9301,7 @@ Switch_00_s00_Null:		; Memory Address ($5B66) and binary offset [$57E2]
 Switches_LookupTable:		; Memory Address ($5B68) and binary offset [$57E4]
 	dc.w	Switch_00_s00_Null-Switch_00_s00_Null	;0000
 	dc.w	Switch_01_s02_Trigger_11_t16_RemoveXY-Switch_00_s00_Null	;01AC
-	dc.w	Switch_02_s04_Trigger_23_t2E-Switch_00_s00_Null	;0196
+	dc.w	Switch_02_s04_Trigger_23_t2E_ToggleWall_XY-Switch_00_s00_Null	;0196
 	dc.w	Switch_03_s06_Trigger_03_t06_OpenLockedDoor_XY-Switch_00_s00_Null	;1BE0
 	dc.w	Switch_04_s08_Trigger_22_t2C_RotateWall_XY-Switch_00_s00_Null	;1B4E
 	dc.w	Switch_05_s0A_Trigger_13_t1A_TogglePillar_XY-Switch_00_s00_Null	;1C06
@@ -9415,29 +9506,29 @@ SwitchData_6:		; Memory Address ($5CB8) and binary offset [$5934]
 	dc.w	$0000	;0000
 	dc.w	$0000	;0000
 
-Switch_00_s00_Trigger_15_t1E_ToggleWallXY:		; Memory Address ($5CF8) and binary offset [$5974]
+Trigger_15_t1E_CreateWall_XY:		; Memory Address ($5CF8) and binary offset [$5974]
 	bsr	Switch_01_s02_Trigger_11_t16_RemoveXY	;61000018
-Switch_02_s04_Trigger_23_t2E:		; Memory Address ($5CFC) and binary offset [$5978]
-	bsr.s	adrCd005D2E	;6130
+Switch_02_s04_Trigger_23_t2E_ToggleWall_XY:		; Memory Address ($5CFC) and binary offset [$5978]
+	bsr.s	Resolve_ActionTargetXY	;6130
 	tst.b	$01(a6,d0.w)	;4A360001
-	bmi.s	adrCd005D10	;6B0C
-	and.w	#$00F9,$00(a6,d0.w)	;027600F90000
+	bmi.s	Return_WallToggle	;6B0C
+	and.w	#MapCell_WallTogglePreserveMask,$00(a6,d0.w)	;027600F90000
 	eor.b	#$01,$01(a6,d0.w)	;0A3600010001
-adrCd005D10:		; Memory Address ($5D10) and binary offset [$598C]
+Return_WallToggle:		; Memory Address ($5D10) and binary offset [$598C]
 	rts	;4E75
 
 Switch_01_s02_Trigger_11_t16_RemoveXY:		; Memory Address ($5D12) and binary offset [$598E]
-	bsr.s	adrCd005D2E	;611A
+	bsr.s	Resolve_ActionTargetXY	;611A
 	move.b	$01(a6,d0.w),d2	;14360001
-	and.w	#$0007,d2	;02420007
+	and.w	#MapCell_TypeMask,d2	;02420007
 	subq.w	#$01,d2	;5342
-	bne.s	adrCd005D26	;6606
-	and.b	#$4F,$01(a6,d0.w)	;0236004F0001
-adrCd005D26:		; Memory Address ($5D26) and binary offset [$59A2]
-	and.b	#$F8,$01(a6,d0.w)	;023600F80001
+	bne.s	Clear_TargetMapCellType	;6606
+	and.b	#StoneWall_RemoveFeatureMask,$01(a6,d0.w)	;0236004F0001
+Clear_TargetMapCellType:		; Memory Address ($5D26) and binary offset [$59A2]
+	and.b	#MapCell_ClearTypeMask,$01(a6,d0.w)	;023600F80001
 	rts	;4E75
 
-adrCd005D2E:		; Memory Address ($5D2E) and binary offset [$59AA]
+Resolve_ActionTargetXY:		; Memory Address ($5D2E) and binary offset [$59AA]
 	moveq	#$00,d7	;7E00
 	move.b	$02(a1,d1.w),d7	;1E311002
 	swap	d7	;4847
@@ -9596,7 +9687,7 @@ adrCd005EA2:		; Memory Address ($5EA2) and binary offset [$5B1E]
 	bcc.s	adrCd005EA2	;64F6
 adrCd005EAC:		; Memory Address ($5EAC) and binary offset [$5B28]
 	move.w	-$0002(a0),d2	;3428FFFE
-	addq.w	#$02,-$0002(a0)	;5468FFFE
+	addq.w	#ObjectStack_ItemBytes,-$0002(a0)	;5468FFFE
 	addq.b	#$01,-$0001(a1)	;5229FFFF
 	moveq	#$00,d3	;7600
 	move.b	-$0001(a1),d3	;1629FFFF
@@ -9634,8 +9725,8 @@ adrCd005EF4:		; Memory Address ($5EF4) and binary offset [$5B70]
 	bra.s	adrCd005EAC	;60A8
 
 adrCd005F04:		; Memory Address ($5F04) and binary offset [$5B80]
-	bset	#$06,$01(a6,d0.w)	;08F600060001
-	addq.w	#$05,-$0002(a0)	;5A68FFFE
+	bset	#MapCell_ObjectPresentBit,$01(a6,d0.w)	;08F600060001
+	addq.w	#ObjectStack_MinimumBytes,-$0002(a0)	;5A68FFFE
 	move.w	d0,d1	;3200
 	move.b	d1,$01(a0,d7.w)	;11817001
 	ror.w	#$08,d1	;E059
@@ -9683,7 +9774,7 @@ adrCd005F54:		; Memory Address ($5F54) and binary offset [$5BD0]
 
 adrCd005F5C:		; Memory Address ($5F5C) and binary offset [$5BD8]
 	move.l	Current_TowerMapDataBase.l,a0	;20790000EE78
-	add.w	#$0FCA,a0	;D0FC0FCA
+	add.w	#Map_ResourceSize-Map_HeaderSize+ObjectData_LengthBytes,a0	;D0FC0FCA
 	move.w	d0,d1	;3200
 	ror.w	#$08,d1	;E059
 	ror.b	#$02,d6	;E41E
@@ -9698,10 +9789,10 @@ adrCd005F72:		; Memory Address ($5F72) and binary offset [$5BEE]
 	cmp.b	$00(a0,d7.w),d1	;B2307000
 	beq.s	adrCd005F92	;670E
 adrCd005F84:		; Memory Address ($5F84) and binary offset [$5C00]
-	move.b	$02(a0,d7.w),d2	;14307002
+	move.b	ObjectStack_CountMinusOneOffset(a0,d7.w),d2	;14307002
 	add.w	d2,d2	;D442
 	add.w	d2,d7	;DE42
-	addq.w	#$05,d7	;5A47
+	addq.w	#ObjectStack_MinimumBytes,d7	;5A47
 	bra.s	adrCd005F72	;60E2
 
 adrCd005F90:		; Memory Address ($5F90) and binary offset [$5C0C]
@@ -11363,12 +11454,12 @@ _MoveParty:		; Memory Address ($6DFC) and binary offset [$6A78]
 	cmp.w	d0,d2	;B440
 	bne.s	Return_PlayerMoveRejected	;661E
 	move.w	$00(a6,d0.w),d1	;32360000
-	and.w	#$0007,d1	;02410007
-	cmpi.w	#$0004,d1	;0C410004
+	and.w	#Dungeon_CellTypeMask,d1	;02410007
+	cmpi.w	#MapCell_StairsType,d1	;0C410004
 	bne.s	Return_PlayerMoveRejected	;6610
 	move.b	$00(a6,d0.w),d1	;12360000
 	lsr.b	#$01,d1	;E209
-	eor.b	#$02,d1	;0A010002
+	eor.b	#Direction_OppositeMask,d1	;0A010002
 	cmp.b	d1,d6	;BC01
 	beq	Execute_StairTransition_AI_TBC	;67000096
 Return_PlayerMoveRejected:		; Memory Address ($71C0) and binary offset [$6E3C]
@@ -11381,7 +11472,7 @@ Process_PlayerMoveDestination:		; Memory Address ($71C2) and binary offset [$6E3
 	and.w	#$0007,d1	;02410007
 	subq.w	#$06,d1	;5D41
 	bcs.s	Refresh_AfterPlayerMove	;655E
-	beq.s	Process_PlayerMoveStairOrTeamPad	;6744
+	beq.s	Process_PlayerMoveFloorFeature	;6744
 	move.b	$00(a6,d0.w),d1	;12360000
 	move.w	d1,d2	;3401
 	and.w	#$0003,d2	;02420003
@@ -11406,38 +11497,38 @@ Process_PlayerMoveDestination:		; Memory Address ($71C2) and binary offset [$6E3
 	move.l	(sp)+,a5	;2A5F
 	rts	;4E75
 
-Process_PlayerMoveStairOrTeamPad:		; Memory Address ($7214) and binary offset [$6E90]
-	; Selects type-7 team-pad handling or trigger reset before the common player-destination refresh path.
+Process_PlayerMoveFloorFeature:		; Memory Address ($6E90) and binary offset [$6B0C]
+	; A6/D0: type-6 destination. Subtype 0 clears living champions worn spells; subtype 1 skips trigger dispatch; subtypes 2/3 execute the pad.
 	move.b	$00(a6,d0.w),d1	;12360000
 	and.w	#$0003,d1	;02410003
-	bne.s	Reset_PlayerMoveTriggerWait	;6606
-	bsr	TeamAvatar_LoopStart_AI_TBC	;610000E4
+	bne.s	Dispatch_PlayerMoveTriggerPad	;6606
+	bsr	Clear_PartyWornSpells	;610000E4
 	bra.s	Refresh_AfterPlayerMove	;6008
 
-Reset_PlayerMoveTriggerWait:		; Memory Address ($7224) and binary offset [$6EA0]
-	; Resets the trigger-wait state for the applicable type-7 destination subtype.
+Dispatch_PlayerMoveTriggerPad:		; Memory Address ($6EA0) and binary offset [$6B1C]
+	; D1: nonzero floor subtype. Skip pit subtype 1; dispatch visible/invisible pads 2/3 using the destination in A6/D0.
 	subq.w	#$01,d1	;5341
 	beq.s	Refresh_AfterPlayerMove	;6704
-	bsr	Reset_TriggerWait_AI_TBC	;61000104
+	bsr	Execute_FloorTrigger	;61000104
 Refresh_AfterPlayerMove:		; Memory Address ($722C) and binary offset [$6EA8]
 	; Reloads the destination map position, handles stair setup where required, then continues to player-position storage.
 	movem.l	d0/d7/a6,-(sp)	;48E78102
 	bsr	Refresh_CurrentChampionMapPositionIcon	;61001320
 	movem.l	(sp)+,d0/d7/a6	;4CDF4081
 	move.w	$00(a6,d0.w),d1	;32360000
-	and.w	#$0007,d1	;02410007
-	cmpi.w	#$0004,d1	;0C410004
+	and.w	#Dungeon_CellTypeMask,d1	;02410007
+	cmpi.w	#MapCell_StairsType,d1	;0C410004
 	bne	Store_PlayerMovePosition	;66000076
 	moveq	#$00,d6	;7C00
 	move.b	$00(a6,d0.w),d6	;1C360000
 	lsr.b	#$01,d6	;E20E
-	eor.b	#$02,d6	;0A060002
+	eor.b	#Direction_OppositeMask,d6	;0A060002
 Execute_StairTransition_AI_TBC:		; Memory Address ($6ED0) and binary offset [$6B4C]
-	bclr	#$07,$01(a6,d0.w)	;08B600070001
-	move.w	$0058(a5),d2	;342D0058
+	bclr	#MapCell_OccupiedBit,$01(a6,d0.w)	;08B600070001
+	move.w	PlayerData_Floor(a5),d2	;342D0058
 	move.w	d2,d1	;3202
 	addq.w	#$01,d1	;5241
-	btst	#$00,$00(a6,d0.w)	;083600000000
+	btst	#Stair_DownBit,$00(a6,d0.w)	;083600000000
 	beq.s	Continue_StairTransition_AI_TBC	;6702
 	subq.w	#$02,d1	;5541
 Continue_StairTransition_AI_TBC:		; Memory Address ($6EE8) and binary offset [$6B64]
@@ -11445,8 +11536,8 @@ Continue_StairTransition_AI_TBC:		; Memory Address ($6EE8) and binary offset [$6
 	move.w	d1,d0	;3001
 	bsr	adrCd0084DA	;610015EA
 	lea	MovementOffsetTable.w,a0	;41F85794	;Short Absolute converted to symbol!
-	add.b	$08(a0,d6.w),d7	;DE306008
-	add.b	$08(a0,d6.w),d7	;DE306008
+	add.b	MovementOffset_YTableOffset(a0,d6.w),d7	;DE306008
+	add.b	MovementOffset_YTableOffset(a0,d6.w),d7	;DE306008
 	swap	d7	;4847
 	add.b	$00(a0,d6.w),d7	;DE306000
 	add.b	$00(a0,d6.w),d7	;DE306000
@@ -11456,15 +11547,15 @@ Continue_StairTransition_AI_TBC:		; Memory Address ($6EE8) and binary offset [$6
 	bpl.s	Update_StairCompletion_AI_TBC	;6A10
 	bsr	adrCd0084D6	;610015C0
 	bsr	adrCd008498	;6100157E
-	bset	#$07,$01(a6,d0.w)	;08F600070001
+	bset	#MapCell_OccupiedBit,$01(a6,d0.w)	;08F600070001
 	rts	;4E75
 
 Update_StairCompletion_AI_TBC:		; Memory Address ($6F24) and binary offset [$6BA0]
-	move.w	d1,$0058(a5)	;3B410058
-	bset	#$07,$01(a6,d0.w)	;08F600070001
+	move.w	d1,PlayerData_Floor(a5)	;3B410058
+	bset	#MapCell_OccupiedBit,$01(a6,d0.w)	;08F600070001
 	move.b	$00(a6,d0.w),d0	;10360000
 	lsr.b	#$01,d0	;E208
-	move.b	d0,$0021(a5)	;1B400021
+	move.b	d0,PlayerData_Direction+1(a5)	;1B400021
 Store_PlayerMovePosition:		; Memory Address ($72BC) and binary offset [$6F38]
 	; Stores the accepted player X/Y position and clears active avatar-presentation state when necessary.
 	move.l	d7,$001C(a5)	;2B47001C
@@ -11474,7 +11565,7 @@ Store_PlayerMovePosition:		; Memory Address ($72BC) and binary offset [$6F38]
 	bsr	Draw_PartyCommandInterface	;61000C08
 Check_PlayerMoveTeamPad:		; Memory Address ($72CE) and binary offset [$6F4A]
 	; Checks the resulting player destination against the team-pad/party-avatar state before returning.
-	move.w	$0042(a5),d0	;302D0042
+	move.w	PlayerData_PartyCommandStateOffset(a5),d0	;302D0042
 	bmi.s	Return_PlayerMoveProcessed	;6B08
 	cmpi.w	#$0008,d0	;0C400008
 	bcc	Click_ShowTeamAvatars	;6400C388
@@ -11497,59 +11588,59 @@ Execute_Rotation:		; Memory Address ($6F74) and binary offset [$6BF0]
 	bsr	adrCd008498	;6100151E
 	bra	Refresh_AfterPlayerMove	;6000FF2A
 
-TeamAvatar_LoopStart_AI_TBC:		; Memory Address ($6F80) and binary offset [$6BFC]
+Clear_PartyWornSpells:		; Memory Address ($6F80) and binary offset [$6BFC]
 	movem.l	d0/d7/a6,-(sp)	;48E78102
 	moveq	#$03,d7	;7E03
-TeamAvatar_LoopBody_AI_TBC:		; Memory Address ($6F86) and binary offset [$6C02]
+Clear_PartyWornSpells_NextSlot:		; Memory Address ($6F86) and binary offset [$6C02]
 	move.b	$18(a5,d7.w),d1	;12357018
 	move.w	d1,d0	;3001
-	and.w	#$00E0,d1	;024100E0
-	bne.s	TeamAvatar_LoopEnd_AI_TBC	;6608
+	and.w	#PartyShieldStatusBar_SuppressionMask,d1	;024100E0
+	bne.s	Clear_PartyWornSpells_Continue	;6608
 	bsr	Load_ChampionStatRecord	;6100F6CC
-	clr.b	$0011(a4)	;422C0011
-TeamAvatar_LoopEnd_AI_TBC:		; Memory Address ($6F9A) and binary offset [$6C16]
-	dbra	d7,TeamAvatar_LoopBody_AI_TBC	;51CFFFEA
+	clr.b	ChampionStat_WornSpell(a4)	;422C0011
+Clear_PartyWornSpells_Continue:		; Memory Address ($6F9A) and binary offset [$6C16]
+	dbra	d7,Clear_PartyWornSpells_NextSlot	;51CFFFEA
 	bsr	Draw_PartyCommandInterface	;61000BB0
 	movem.l	(sp)+,d0/d7/a6	;4CDF4081
 	rts	;4E75
 
-Trigger_WaitFlag_AI_TBC:		; Memory Address ($6FA8) and binary offset [$6C24]
+TriggerSound_ID:		; Memory Address ($6FA8) and binary offset [$6C24]
 	dc.w	$FFFF	;FFFF
 
-Reset_TriggerWait_AI_TBC:		; Memory Address ($6FAA) and binary offset [$6C26]
-	move.w	#$FFFF,Trigger_WaitFlag_AI_TBC.w	;31FCFFFF6FA8	;Short Absolute converted to symbol!
+Execute_FloorTrigger:		; Memory Address ($6FAA) and binary offset [$6C26]
+	move.w	#TriggerSound_None,TriggerSound_ID.w	;31FCFFFF6FA8	;Short Absolute converted to symbol!
 	move.b	$00(a6,d0.w),d1	;12360000
-	and.w	#$0003,d1	;02410003
-	subq.w	#$02,d1	;5541
-	bne.s	TriggerWait_PostCheck_AI_TBC	;6604
-	clr.w	Trigger_WaitFlag_AI_TBC.w	;42786FA8	;Short Absolute converted to symbol!
-TriggerWait_PostCheck_AI_TBC:		; Memory Address ($6FC0) and binary offset [$6C3C]
+	and.w	#FloorFeature_SubtypeMask,d1	;02410003
+	subq.w	#FloorFeature_VisiblePadSubtype,d1	;5541
+	bne.s	Resolve_FloorTriggerRecord	;6604
+	clr.w	TriggerSound_ID.w	;42786FA8	;Short Absolute converted to symbol!
+Resolve_FloorTriggerRecord:		; Memory Address ($6FC0) and binary offset [$6C3C]
 	move.b	$00(a6,d0.w),d1	;12360000
-	and.w	#$00F8,d1	;024100F8
+	and.w	#FloorTrigger_IndexMask,d1	;024100F8
 	lsr.b	#$01,d1	;E209
 	lea	TriggersData_1.l,a1	;43F900007056
 	move.w	CurrentTower.l,d2	;34390000EE2E
-	asl.w	#$07,d2	;EF42
+	asl.w	#FloorTrigger_TowerStrideShift,d2	;EF42
 	add.w	d2,a1	;D2C2
 	moveq	#$00,d2	;7400
 	move.b	$00(a1,d1.w),d2	;14311000
-	cmpi.b	#$08,d2	;0C020008
-	beq.s	Setup_TriggerEffectDefault_AI_TBC	;670C
-	cmpi.b	#$0A,d2	;0C02000A
-	beq.s	Setup_TriggerEffectDefault_AI_TBC	;6706
-	cmpi.b	#$2A,d2	;0C02002A
-	bne.s	TriggerEffect_Actual_AI_TBC	;6606
-Setup_TriggerEffectDefault_AI_TBC:		; Memory Address ($6FF2) and binary offset [$6C6E]
-	move.w	#$0005,Trigger_WaitFlag_AI_TBC.w	;31FC00056FA8	;Short Absolute converted to symbol!
-TriggerEffect_Actual_AI_TBC:		; Memory Address ($6FF8) and binary offset [$6C74]
+	cmpi.b	#TriggerAction_VivifyExternal,d2	;0C020008
+	beq.s	Select_TriggerSpellSound	;670C
+	cmpi.b	#TriggerAction_VivifyInternal,d2	;0C02000A
+	beq.s	Select_TriggerSpellSound	;6706
+	cmpi.b	#TriggerAction_FlashTeleport,d2	;0C02002A
+	bne.s	Dispatch_TriggerAndPlaySound	;6606
+Select_TriggerSpellSound:		; Memory Address ($6FF2) and binary offset [$6C6E]
+	move.w	#Sound_AlternativeSpell,TriggerSound_ID.w	;31FC00056FA8	;Short Absolute converted to symbol!
+Dispatch_TriggerAndPlaySound:		; Memory Address ($6FF8) and binary offset [$6C74]
 	lea	Trigger_00_t00_Null.l,a0	;41F900007016
 	add.w	Triggers_LookupTable(pc,d2.w),a0	;D0FB2018
 	movem.l	d0/d7/a6,-(sp)	;48E78102
 	jsr	(a0)	;4E90
-	move.w	Trigger_WaitFlag_AI_TBC.w,d0	;30386FA8	;Short Absolute converted to symbol!
-	bmi.s	TriggerEffect_Post_AI_TBC	;6B04
+	move.w	TriggerSound_ID.w,d0	;30386FA8	;Short Absolute converted to symbol!
+	bmi.s	Restore_TriggerMovementState	;6B04
 	bsr	PlaySound	;610018AE
-TriggerEffect_Post_AI_TBC:		; Memory Address ($7012) and binary offset [$6C8E]
+Restore_TriggerMovementState:		; Memory Address ($7012) and binary offset [$6C8E]
 	movem.l	(sp)+,d0/d7/a6	;4CDF4081
 Trigger_00_t00_Null:		; Memory Address ($7016) and binary offset [$6C92]
 	rts	;4E75
@@ -11569,27 +11660,27 @@ Triggers_LookupTable:		; Memory Address ($7018) and binary offset [$6C94]
 	dc.w	Switch_01_s02_Trigger_11_t16_RemoveXY-Trigger_00_t00_Null	;ECFC
 	dc.w	Trigger_12_t18_Close_VoidLock_Door_XY-Trigger_00_t00_Null	;071E
 	dc.w	Switch_05_s0A_Trigger_13_t1A_TogglePillar_XY-Trigger_00_t00_Null	;0756
-	dc.w	Trigger_14_t1C_Create_Spinner_or_Other_XY-Trigger_00_t00_Null	;0768
+	dc.w	Trigger_14_t1C_SetFloorTypeBits_XY-Trigger_00_t00_Null	;0768
 
-	dc.w	Switch_00_s00_Trigger_15_t1E_ToggleWallXY-Trigger_00_t00_Null	;ECE2
-	dc.w	Trigger_16_t20_Create_Pad_FXY-Trigger_00_t00_Null	;0780
-	dc.w	Trigger_17_t22_Move_Diagonal_Pillar-Trigger_00_t00_Null	;07C0
+	dc.w	Trigger_15_t1E_CreateWall_XY-Trigger_00_t00_Null	;ECE2
+	dc.w	Trigger_16_t20_ToggleNeighbourFloorType-Trigger_00_t00_Null	;0780
+	dc.w	Trigger_17_t22_MovePillar_NorthWestToNorth-Trigger_00_t00_Null	;07C0
 	dc.w	Switch_06_s0C_Trigger_18_t24_CreatePillar_XY-Trigger_00_t00_Null	;0752
 
 	dc.w	Trigger_19_t26_Keep_Entrance_SidePad-Trigger_00_t00_Null	;0370
 	dc.w	Trigger_20_t28_Keep_Entrance_CentrePad-Trigger_00_t00_Null	;0340
-	dc.w	Trigger_21_t2A_Flash_Telepoprt_FXY-Trigger_00_t00_Null	;0670
+	dc.w	Trigger_21_t2A_Flash_Teleport_FXY-Trigger_00_t00_Null	;0670
 	dc.w	Switch_04_s08_Trigger_22_t2C_RotateWall_XY-Trigger_00_t00_Null	;069E
 
-	dc.w	Switch_02_s04_Trigger_23_t2E-Trigger_00_t00_Null	;ECE6
-	dc.w	adrJA007728-Trigger_00_t00_Null	;0712
-	dc.w	Trigger_24_t30_Spinner3-Trigger_00_t00_Null	;0626
-	dc.w	Trigger_25_t32_Clicker_Teleport_FXY-Trigger_00_t00_Null	;0774
+	dc.w	Switch_02_s04_Trigger_23_t2E_ToggleWall_XY-Trigger_00_t00_Null	;ECE6
+	dc.w	Trigger_24_t30_SpinnerRight90-Trigger_00_t00_Null	;0712
+	dc.w	Trigger_25_t32_Teleport_FXY-Trigger_00_t00_Null	;0626
+	dc.w	Trigger_26_t34_ToggleFloorTypeBits_XY-Trigger_00_t00_Null	;0774
 
 	dc.w	Switch_07_s0E_Trigger_26_t34_RotateWood_XY-Trigger_00_t00_Null	;0742
-	dc.w	Trigger_27_t36_Rotate_WoodWall_CounterClockwise-Trigger_00_t00_Null	;061A
-	dc.w	Trigger_28_t38_GameCompletion-Trigger_00_t00_Null	;0504
-	dc.w	adrJA007502-Trigger_00_t00_Null	;04EC
+	dc.w	Trigger_28_t38_ToggleFloorSubtype_XY-Trigger_00_t00_Null	;061A
+	dc.w	Trigger_29_t3A_GameCompletion-Trigger_00_t00_Null	;0504
+	dc.w	Trigger_30_t3C_RemoveXY_IfPuzzleBitsSet-Trigger_00_t00_Null	;04EC
 TriggersData_1:		; Memory Address ($7056) and binary offset [$6CD2]
 	dc.w	$0000	;0000
 	dc.w	$0000	;0000
@@ -11983,7 +12074,7 @@ TriggersData_6:		; Memory Address ($72D6) and binary offset [$6F52]
 
 Trigger_20_t28_Keep_Entrance_CentrePad:		; Memory Address ($7356) and binary offset [$6FD2]
 	tst.w	MultiPlayer.l	;4A790000EE30
-	beq	adrCd007470	;67000112
+	beq	Return_TowerEntrance	;67000112
 	pea	$00(a1,d1.w)	;48711000
 	bsr	adrCd007974	;6100060E
 	move.l	(sp)+,a2	;245F
@@ -11994,22 +12085,22 @@ Trigger_20_t28_Keep_Entrance_CentrePad:		; Memory Address ($7356) and binary off
 	lea	Keep_Start_XY_DataTable.l,a0	;41F9000073CE
 	add.w	d2,a0	;D0C2
 	moveq	#$00,d0	;7000
-	bra	adrCd007408	;60000084
+	bra	Enter_TowerAtArrivalMidpoint	;60000084
 
 Trigger_19_t26_Keep_Entrance_SidePad:		; Memory Address ($7386) and binary offset [$7002]
 	tst.w	MultiPlayer.l	;4A790000EE30
-	bne	adrCd007470	;660000E2
+	bne	Return_TowerEntrance	;660000E2
 	pea	$00(a1,d1.w)	;48711000
-	bsr	adrCd005D2E	;6100E998
+	bsr	Resolve_ActionTargetXY	;6100E998
 	bsr	adrCd0098A4	;6100250A
-	bcc.s	adrCd0073A2	;6404
+	bcc.s	Return_KeepEntrancePartnerMissing	;6404
 	tst.b	d0	;4A00
-	bmi.s	adrCd0073A6	;6B04
-adrCd0073A2:		; Memory Address ($73A2) and binary offset [$701E]
+	bmi.s	Prepare_KeepEntranceArrivalPair	;6B04
+Return_KeepEntrancePartnerMissing:		; Memory Address ($73A2) and binary offset [$701E]
 	addq.w	#$04,sp	;584F
 	rts	;4E75
 
-adrCd0073A6:		; Memory Address ($73A6) and binary offset [$7022]
+Prepare_KeepEntranceArrivalPair:		; Memory Address ($73A6) and binary offset [$7022]
 	move.l	a1,-(sp)	;2F09
 	bsr	adrCd007974	;610005CA
 	movem.l	(sp)+,a1/a2	;4CDF0600
@@ -12020,7 +12111,7 @@ adrCd0073A6:		; Memory Address ($73A6) and binary offset [$7022]
 	lea	Keep_Start_XY_DataTable.l,a0	;41F9000073CE
 	add.w	d2,a0	;D0C2
 	moveq	#$00,d0	;7000
-	bra	adrCd00748C	;600000C2
+	bra	Enter_TowerAtPairedArrivals	;600000C2
 
 Keep_Start_Floors_DataTable:		; Memory Address ($73CC) and binary offset [$7048]
 	dc.w	$0004	;0004
@@ -12040,7 +12131,7 @@ Keep_Start_XY_DataTable:		; Memory Address ($73CE) and binary offset [$704A]
 
 Trigger_10_t14_Tower_Entrance_CentrePad:		; Memory Address ($73E6) and binary offset [$7062]
 	tst.w	MultiPlayer.l	;4A790000EE30
-	beq	adrCd007470	;67000082
+	beq	Return_TowerEntrance	;67000082
 	pea	$00(a1,d1.w)	;48711000
 	bsr	adrCd007974	;6100057E
 	move.l	(sp)+,a2	;245F
@@ -12048,7 +12139,7 @@ Trigger_10_t14_Tower_Entrance_CentrePad:		; Memory Address ($73E6) and binary of
 	move.b	$0001(a2),d0	;102A0001
 	lea	Tower_Start_XY_DataTable.l,a0	;41F9000074EA
 	moveq	#$00,d1	;7200
-adrCd007408:		; Memory Address ($7408) and binary offset [$7084]
+Enter_TowerAtArrivalMidpoint:		; Memory Address ($7408) and binary offset [$7084]
 	moveq	#$00,d2	;7400
 	move.b	$00(a0,d0.w),d2	;14300000
 	add.b	$02(a0,d0.w),d2	;D4300002
@@ -12072,19 +12163,19 @@ adrCd007408:		; Memory Address ($7408) and binary offset [$7084]
 
 Trigger_09_t12_Tower_Entrance_SidePad:		; Memory Address ($7454) and binary offset [$70D0]
 	tst.w	MultiPlayer.l	;4A790000EE30
-	bmi.s	adrCd007470	;6B14
+	bmi.s	Return_TowerEntrance	;6B14
 	pea	$00(a1,d1.w)	;48711000
-	bsr	adrCd005D2E	;6100E8CC
+	bsr	Resolve_ActionTargetXY	;6100E8CC
 	bsr	adrCd0098A4	;6100243E
-	bcc.s	adrCd00746E	;6404
+	bcc.s	Discard_TowerEntranceRecord	;6404
 	tst.b	d0	;4A00
-	bmi.s	adrCd007472	;6B04
-adrCd00746E:		; Memory Address ($746E) and binary offset [$70EA]
+	bmi.s	Prepare_TowerEntranceArrivalPair	;6B04
+Discard_TowerEntranceRecord:		; Memory Address ($746E) and binary offset [$70EA]
 	addq.w	#$04,sp	;584F
-adrCd007470:		; Memory Address ($7470) and binary offset [$70EC]
+Return_TowerEntrance:		; Memory Address ($7470) and binary offset [$70EC]
 	rts	;4E75
 
-adrCd007472:		; Memory Address ($7472) and binary offset [$70EE]
+Prepare_TowerEntranceArrivalPair:		; Memory Address ($7472) and binary offset [$70EE]
 	move.l	a1,-(sp)	;2F09
 	bsr	adrCd007974	;610004FE
 	movem.l	(sp)+,a1/a2	;4CDF0600
@@ -12093,7 +12184,7 @@ adrCd007472:		; Memory Address ($7472) and binary offset [$70EE]
 	add.w	d0,d0	;D040
 	lea	Tower_Start_XY_DataTable.l,a0	;41F9000074EA
 	moveq	#$00,d1	;7200
-adrCd00748C:		; Memory Address ($748C) and binary offset [$7108]
+Enter_TowerAtPairedArrivals:		; Memory Address ($748C) and binary offset [$7108]
 	move.b	$00(a0,d0.w),$001D(a5)	;1B700000001D
 	move.b	$01(a0,d0.w),$001F(a5)	;1B700001001F
 	move.w	d1,$0058(a5)	;3B410058
@@ -12130,7 +12221,7 @@ Tower_Start_XY_DataTable:		; Memory Address ($74EA) and binary offset [$7166]
 	dc.w	$0607	;0607
 	dc.w	$0609	;0609
 
-adrJA007502:		; Memory Address ($7502) and binary offset [$717E]
+Trigger_30_t3C_RemoveXY_IfPuzzleBitsSet:		; Memory Address ($7502) and binary offset [$717E]
 	move.l	Current_TowerMapDataBase.l,a6	;2C790000EE78
 	move.b	$0014(a6),d0	;102E0014
 	and.b	$001C(a6),d0	;C02E001C
@@ -12138,7 +12229,7 @@ adrJA007502:		; Memory Address ($7502) and binary offset [$717E]
 	bne	Switch_01_s02_Trigger_11_t16_RemoveXY	;6600E7FC
 	rts	;4E75
 
-Trigger_28_t38_GameCompletion:		; Memory Address ($751A) and binary offset [$7196]
+Trigger_29_t3A_GameCompletion:		; Memory Address ($751A) and binary offset [$7196]
 	move.l	a5,-(sp)	;2F0D
 	bsr.s	GameEndPicture	;6164
 	clr.w	FrameSyncFlagWord_AI_TBC.l	;427900008C1E
@@ -12210,67 +12301,67 @@ CongratsText:
 	dc.b	$FF	;FF
 	dc.b	$00	;00
 
-Trigger_27_t36_Rotate_WoodWall_CounterClockwise:		; Memory Address ($7630) and binary offset [$72AC]
-	bsr	adrCd005D2E	;6100E6FC
-	eor.b	#$03,$00(a6,d0.w)	;0A3600030000
+Trigger_28_t38_ToggleFloorSubtype_XY:		; Memory Address ($7630) and binary offset [$72AC]
+	bsr	Resolve_ActionTargetXY	;6100E6FC
+	eor.b	#FloorFeature_SubtypeMask,$00(a6,d0.w)	;0A3600030000
 	rts	;4E75
 
-Trigger_24_t30_Spinner3:		; Memory Address ($763C) and binary offset [$72B8]
+Trigger_25_t32_Teleport_FXY:		; Memory Address ($763C) and binary offset [$72B8]
 	moveq	#$00,d0	;7000
 	move.b	$01(a1,d1.w),d0	;10311001
 	move.w	d0,d6	;3C00
 	bsr	adrCd0084DA	;61000E94
-	bsr	adrCd005D2E	;6100E6E4
+	bsr	Resolve_ActionTargetXY	;6100E6E4
 	tst.b	$01(a6,d0.w)	;4A360001
-	bpl.s	adrCd007660	;6A0E
+	bpl.s	Commit_TeleportWithoutFlash	;6A0E
 	subq.w	#$01,d7	;5347
 	bsr	CoordToMap	;61000E46
 	tst.b	$01(a6,d0.w)	;4A360001
-	bpl.s	adrCd007660	;6A02
+	bpl.s	Commit_TeleportWithoutFlash	;6A02
 	rts	;4E75
 
-adrCd007660:		; Memory Address ($7660) and binary offset [$72DC]
-	bsr.s	adrCd007664	;6102
+Commit_TeleportWithoutFlash:		; Memory Address ($7660) and binary offset [$72DC]
+	bsr.s	Commit_TriggerTeleport	;6102
 	rts	;4E75
 
-adrCd007664:		; Memory Address ($7664) and binary offset [$72E0]
+Commit_TriggerTeleport:		; Memory Address ($7664) and binary offset [$72E0]
 	bset	#$07,$01(a6,d0.w)	;08F600070001
-	move.l	$0008(sp),d1	;222F0008
+	move.l	TriggerTeleportStack_CellOffset(sp),d1	;222F0008
 	bclr	#$07,$01(a6,d1.w)	;08B600071001
 	move.w	d6,$0058(a5)	;3B460058
 	move.l	d7,$001C(a5)	;2B47001C
-	move.l	d7,$000C(sp)	;2F47000C
-	move.l	d0,$0008(sp)	;2F400008
+	move.l	d7,TriggerTeleportStack_PackedXYOffset(sp)	;2F47000C
+	move.l	d0,TriggerTeleportStack_CellOffset(sp)	;2F400008
 	rts	;4E75
 
-Trigger_21_t2A_Flash_Telepoprt_FXY:		; Memory Address ($7686) and binary offset [$7302]
+Trigger_21_t2A_Flash_Teleport_FXY:		; Memory Address ($7686) and binary offset [$7302]
 	moveq	#$00,d0	;7000
 	move.b	$01(a1,d1.w),d0	;10311001
 	move.w	d0,d6	;3C00
 	bsr	adrCd0084DA	;61000E4A
-	bsr	adrCd005D2E	;6100E69A
+	bsr	Resolve_ActionTargetXY	;6100E69A
 	tst.b	$01(a6,d0.w)	;4A360001
-	bpl.s	adrCd0076AC	;6A10
+	bpl.s	Commit_TeleportAndQueueFlash	;6A10
 	addq.w	#$02,d0	;5440
 	swap	d7	;4847
 	addq.w	#$01,d7	;5247
 	swap	d7	;4847
 	tst.b	$01(a6,d0.w)	;4A360001
-	bpl.s	adrCd0076AC	;6A02
+	bpl.s	Commit_TeleportAndQueueFlash	;6A02
 	rts	;4E75
 
-adrCd0076AC:		; Memory Address ($76AC) and binary offset [$7328]
-	bsr.s	adrCd007664	;61B6
-	moveq	#$10,d7	;7E10
+Commit_TeleportAndQueueFlash:		; Memory Address ($76AC) and binary offset [$7328]
+	bsr.s	Commit_TriggerTeleport	;61B6
+	moveq	#CellEffect_TeleportFlash,d7	;7E10
 	bra	adrCd001DBC	;6000A70A
 
 Switch_04_s08_Trigger_22_t2C_RotateWall_XY:		; Memory Address ($76B4) and binary offset [$7330]
-	bsr	adrCd005D2E	;6100E678
+	bsr	Resolve_ActionTargetXY	;6100E678
 	move.b	$01(a6,d0.w),d1	;12360001
 	move.w	d1,d2	;3401
-	and.b	#$CF,d2	;020200CF
-	add.w	#$0010,d1	;06410010
-	and.w	#$0030,d1	;02410030
+	and.b	#StoneWall_FacingPreserveMask,d2	;020200CF
+	add.w	#StoneWall_FacingStep,d1	;06410010
+	and.w	#StoneWall_FacingMask,d1	;02410030
 	or.b	d1,d2	;8401
 	move.b	d2,$01(a6,d0.w)	;1D820001
 	rts	;4E75
@@ -12292,64 +12383,64 @@ Trigger_07_t0E_WoodTrap2:		; Memory Address ($76EA) and binary offset [$7366]
 Trigger_08_t10_Trader_DoorCloser:		; Memory Address ($7702) and binary offset [$737E]
 	subq.w	#$02,d0	;5540
 	tst.b	$01(a6,d0.w)	;4A360001
-	bmi.s	adrCd007710	;6B06
+	bmi.s	Return_TraderDoorCloser	;6B06
 	bset	#$00,$00(a6,d0.w)	;08F600000000
-adrCd007710:		; Memory Address ($7710) and binary offset [$738C]
+Return_TraderDoorCloser:		; Memory Address ($7710) and binary offset [$738C]
 	rts	;4E75
 
 Trigger_01_t02_Spinner180:		; Memory Address ($7712) and binary offset [$738E]
-	eor.w	#$0002,$0020(a5)	;0A6D00020020
+	eor.w	#Direction_HalfTurn,$0020(a5)	;0A6D00020020
 	rts	;4E75
 
 Trigger_02_t04_SpinnerRandom:		; Memory Address ($771A) and binary offset [$7396]
 	bsr	RandomGen_BytewithOffset	;6100DE90
-	and.w	#$0003,d0	;02400003
+	and.w	#Direction_Mask,d0	;02400003
 	move.w	d0,$0020(a5)	;3B400020
 	rts	;4E75
 
-adrJA007728:		; Memory Address ($7728) and binary offset [$73A4]
+Trigger_24_t30_SpinnerRight90:		; Memory Address ($7728) and binary offset [$73A4]
 	addq.w	#$01,$0020(a5)	;526D0020
-	and.w	#$0003,$0020(a5)	;026D00030020
+	and.w	#Direction_Mask,$0020(a5)	;026D00030020
 	rts	;4E75
 
 Trigger_12_t18_Close_VoidLock_Door_XY:		; Memory Address ($7734) and binary offset [$73B0]
-	bsr	adrCd005D2E	;6100E5F8
+	bsr	Resolve_ActionTargetXY	;6100E5F8
 	bset	#$00,$00(a6,d0.w)	;08F600000000
-	move.w	#$0001,Trigger_WaitFlag_AI_TBC.w	;31FC00016FA8	;Short Absolute converted to symbol!
+	move.w	#Sound_DoorClick,TriggerSound_ID.w	;31FC00016FA8	;Short Absolute converted to symbol!
 	rts	;4E75
 
 Switch_03_s06_Trigger_03_t06_OpenLockedDoor_XY:		; Memory Address ($7746) and binary offset [$73C2]
-	bsr	adrCd005D2E	;6100E5E6
+	bsr	Resolve_ActionTargetXY	;6100E5E6
 	bclr	#$00,$00(a6,d0.w)	;08B600000000
-	move.w	#$0001,Trigger_WaitFlag_AI_TBC.w	;31FC00016FA8	;Short Absolute converted to symbol!
+	move.w	#Sound_DoorClick,TriggerSound_ID.w	;31FC00016FA8	;Short Absolute converted to symbol!
 	rts	;4E75
 
 Switch_07_s0E_Trigger_26_t34_RotateWood_XY:		; Memory Address ($7758) and binary offset [$73D4]
-	bsr	adrCd005D2E	;6100E5D4
+	bsr	Resolve_ActionTargetXY	;6100E5D4
 	move.b	$00(a6,d0.w),d1	;12360000
-	ror.b	#$02,d1	;E419
+	ror.b	#WoodEdges_QuarterTurnBits,d1	;E419
 	move.b	d1,$00(a6,d0.w)	;1D810000
 	rts	;4E75
 
 Switch_06_s0C_Trigger_18_t24_CreatePillar_XY:		; Memory Address ($7768) and binary offset [$73E4]
 	bsr	Switch_01_s02_Trigger_11_t16_RemoveXY	;6100E5A8
 Switch_05_s0A_Trigger_13_t1A_TogglePillar_XY:		; Memory Address ($776C) and binary offset [$73E8]
-	bsr	adrCd005D2E	;6100E5C0
+	bsr	Resolve_ActionTargetXY	;6100E5C0
 	move.b	#$01,$00(a6,d0.w)	;1DBC00010000
 	eor.b	#$03,$01(a6,d0.w)	;0A3600030001
 	rts	;4E75
 
-Trigger_14_t1C_Create_Spinner_or_Other_XY:		; Memory Address ($777E) and binary offset [$73FA]
-	bsr	adrCd005D2E	;6100E5AE
-	or.b	#$06,$01(a6,d0.w)	;003600060001
+Trigger_14_t1C_SetFloorTypeBits_XY:		; Memory Address ($777E) and binary offset [$73FA]
+	bsr	Resolve_ActionTargetXY	;6100E5AE
+	or.b	#MapCell_FloorFeatureType,$01(a6,d0.w)	;003600060001
 	rts	;4E75
 
-Trigger_25_t32_Clicker_Teleport_FXY:		; Memory Address ($778A) and binary offset [$7406]
-	bsr	adrCd005D2E	;6100E5A2
-	eor.b	#$06,$01(a6,d0.w)	;0A3600060001
+Trigger_26_t34_ToggleFloorTypeBits_XY:		; Memory Address ($778A) and binary offset [$7406]
+	bsr	Resolve_ActionTargetXY	;6100E5A2
+	eor.b	#MapCell_FloorFeatureType,$01(a6,d0.w)	;0A3600060001
 	rts	;4E75
 
-Trigger_16_t20_Create_Pad_FXY:		; Memory Address ($7796) and binary offset [$7412]
+Trigger_16_t20_ToggleNeighbourFloorType:		; Memory Address ($7796) and binary offset [$7412]
 	moveq	#$00,d6	;7C00
 	move.b	$01(a1,d1.w),d6	;1C311001
 	move.w	d1,-(sp)	;3F01
@@ -12366,21 +12457,21 @@ Trigger_16_t20_Create_Pad_FXY:		; Memory Address ($7796) and binary offset [$741
 	bcc	Switch_01_s02_Trigger_11_t16_RemoveXY	;6400E54C
 	swap	d7	;4847
 	bsr	CoordToMap	;61000CD0
-	eor.b	#$06,$01(a6,d0.w)	;0A3600060001
+	eor.b	#MapCell_FloorFeatureType,$01(a6,d0.w)	;0A3600060001
 	rts	;4E75
 
-Trigger_17_t22_Move_Diagonal_Pillar:		; Memory Address ($77D6) and binary offset [$7452]
+Trigger_17_t22_MovePillar_NorthWestToNorth:		; Memory Address ($77D6) and binary offset [$7452]
 	bsr	adrCd0084FC	;61000D24
 	move.l	d2,d7	;2E02
 	subq.b	#$01,d7	;5307
 	bsr	CoordToMap	;61000CBC
-	and.w	#$00F8,$00(a6,d0.w)	;027600F80000
-	or.w	#$0103,$00(a6,d0.w)	;007601030000
+	and.w	#MapCell_ClearFeatureWordMask,$00(a6,d0.w)	;027600F80000
+	or.w	#MapCell_PillarWord,$00(a6,d0.w)	;007601030000
 	swap	d7	;4847
 	subq.b	#$01,d7	;5307
 	swap	d7	;4847
 	bsr	CoordToMap	;61000CA6
-	and.w	#$00F8,$00(a6,d0.w)	;027600F80000
+	and.w	#MapCell_ClearFeatureWordMask,$00(a6,d0.w)	;027600F80000
 	rts	;4E75
 
 Trigger_04_t08_Vivify_Machine_External:		; Memory Address ($7800) and binary offset [$747C]
@@ -12389,40 +12480,40 @@ Trigger_04_t08_Vivify_Machine_External:		; Memory Address ($7800) and binary off
 	bmi	Trigger_00_t00_Null	;6B00F80E
 	bset	#$00,$00(a6,d0.w)	;08F600000000
 	addq.w	#$02,d0	;5440
-adrCd007812:		; Memory Address ($7812) and binary offset [$748E]
-	move.w	#$0086,d7	;3E3C0086
+VivifyExternal_SearchRevivalCell:		; Memory Address ($7812) and binary offset [$748E]
+	move.w	#CellEffect_Vivify,d7	;3E3C0086
 	bsr	adrCd001DBC	;6100A5A4
 	tst.b	$01(a6,d0.w)	;4A360001
-	bmi.s	adrCd007836	;6B16
+	bmi.s	Return_VivifyExternalNoRemains	;6B16
 	btst	#$06,$01(a6,d0.w)	;083600060001
-	beq.s	adrCd007836	;670E
+	beq.s	Return_VivifyExternalNoRemains	;670E
 	moveq	#$03,d4	;7803
-adrLp00782A:		; Memory Address ($782A) and binary offset [$74A6]
+VivifyExternal_FindCornerStack:		; Memory Address ($782A) and binary offset [$74A6]
 	move.w	d4,d6	;3C04
 	bsr	adrCd005F5C	;6100E72E
-	beq.s	adrCd007838	;6706
-adrCd007832:		; Memory Address ($7832) and binary offset [$74AE]
-	dbra	d4,adrLp00782A	;51CCFFF6
-adrCd007836:		; Memory Address ($7836) and binary offset [$74B2]
+	beq.s	VivifyExternal_PrepareRemainsScan	;6706
+VivifyExternal_NextCorner:		; Memory Address ($7832) and binary offset [$74AE]
+	dbra	d4,VivifyExternal_FindCornerStack	;51CCFFF6
+Return_VivifyExternalNoRemains:		; Memory Address ($7836) and binary offset [$74B2]
 	rts	;4E75
 
-adrCd007838:		; Memory Address ($7838) and binary offset [$74B4]
+VivifyExternal_PrepareRemainsScan:		; Memory Address ($7838) and binary offset [$74B4]
 	lea	$03(a0,d7.w),a1	;43F07003
 	moveq	#$00,d3	;7600
 	move.b	-$0001(a1),d3	;1629FFFF
 	add.w	d3,d3	;D643
-adrCd007844:		; Memory Address ($7844) and binary offset [$74C0]
+VivifyExternal_CheckRemainsCode:		; Memory Address ($7844) and binary offset [$74C0]
 	move.b	$00(a1,d3.w),d2	;14313000
-	sub.b	#$40,d2	;04020040
-	bcs.s	adrCd007854	;6506
-	cmpi.b	#$10,d2	;0C020010
-	bcs.s	adrCd00785A	;6506
-adrCd007854:		; Memory Address ($7854) and binary offset [$74D0]
+	sub.b	#Object_ChampionRemainsFirst,d2	;04020040
+	bcs.s	VivifyExternal_PreviousObject	;6506
+	cmpi.b	#Champion_Count,d2	;0C020010
+	bcs.s	VivifyExternal_ConsumeRemains	;6506
+VivifyExternal_PreviousObject:		; Memory Address ($7854) and binary offset [$74D0]
 	subq.w	#$02,d3	;5543
-	bcc.s	adrCd007844	;64EC
-	bra.s	adrCd007832	;60D8
+	bcc.s	VivifyExternal_CheckRemainsCode	;64EC
+	bra.s	VivifyExternal_NextCorner	;60D8
 
-adrCd00785A:		; Memory Address ($785A) and binary offset [$74D6]
+VivifyExternal_ConsumeRemains:		; Memory Address ($785A) and binary offset [$74D6]
 	bset	#$07,$01(a6,d0.w)	;08F600070001
 	move.w	d2,-(sp)	;3F02
 	bsr	adrCd005DF8	;6100E594
@@ -12433,9 +12524,9 @@ adrCd00785A:		; Memory Address ($785A) and binary offset [$74D6]
 	move.l	a5,-(sp)	;2F0D
 	bsr	adrCd004066	;6100C7F0
 	tst.w	d1	;4A41
-	bpl.s	adrCd0078A0	;6A24
+	bpl.s	VivifyExternal_RestorePartyMember	;6A24
 	move.l	(sp)+,a5	;2A5F
-adrCd00787E:		; Memory Address ($787E) and binary offset [$74FA]
+Place_VivifiedChampionAtCell:		; Memory Address ($787E) and binary offset [$74FA]
 	bsr	Load_ChampionStatRecord	;6100EDE0
 	move.b	d2,$0017(a4)	;19420017
 	swap	d2	;4842
@@ -12445,19 +12536,19 @@ adrCd00787E:		; Memory Address ($787E) and binary offset [$74FA]
 	move.b	CurrentTower+$01.l,$001F(a4)	;19790000EE2F001F
 	rts	;4E75
 
-adrCd0078A0:		; Memory Address ($78A0) and binary offset [$751C]
+VivifyExternal_RestorePartyMember:		; Memory Address ($78A0) and binary offset [$751C]
 	bclr	#$06,$18(a5,d1.w)	;08B500061018
 	tst.w	d1	;4A41
-	beq.s	adrCd0078C0	;6716
+	beq.s	VivifyExternal_InstallRevivedLeader	;6716
 	btst	#$06,$0018(a5)	;082D00060018
-	bne.s	adrCd0078B6	;6604
-	bsr.s	adrCd00787E	;61CA
-	bra.s	adrCd0078E4	;602E
+	bne.s	VivifyExternal_ReplaceDeadLeader	;6604
+	bsr.s	Place_VivifiedChampionAtCell	;61CA
+	bra.s	VivifyExternal_RefreshParty	;602E
 
-adrCd0078B6:		; Memory Address ($78B6) and binary offset [$7532]
+VivifyExternal_ReplaceDeadLeader:		; Memory Address ($78B6) and binary offset [$7532]
 	move.b	$0018(a5),$18(a5,d1.w)	;1BAD00181018
 	move.w	d0,$0006(a5)	;3B400006
-adrCd0078C0:		; Memory Address ($78C0) and binary offset [$753C]
+VivifyExternal_InstallRevivedLeader:		; Memory Address ($78C0) and binary offset [$753C]
 	move.b	d0,$0018(a5)	;1B400018
 	bset	#$04,$0018(a5)	;08ED00040018
 	move.l	d2,$001C(a5)	;2B42001C
@@ -12466,7 +12557,7 @@ adrCd0078C0:		; Memory Address ($78C0) and binary offset [$753C]
 	move.b	d0,$0026(a5)	;1B400026
 	bsr	Draw_ChampionNamePanelFrame	;6100099A
 	clr.b	$0056(a5)	;422D0056
-adrCd0078E4:		; Memory Address ($78E4) and binary offset [$7560]
+VivifyExternal_RefreshParty:		; Memory Address ($78E4) and binary offset [$7560]
 	bsr	Draw_PartyCommandInterface	;6100026A
 	bsr	adrCd008246	;6100095C
 	move.l	(sp)+,a5	;2A5F
@@ -12476,37 +12567,37 @@ Trigger_05_t0A_Vivify_Machine_Internal:		; Memory Address ($78F0) and binary off
 	subq.w	#$02,d0	;5540
 	bset	#$00,$00(a6,d0.w)	;08F600000000
 	addq.w	#$02,d0	;5440
-adrCd0078FA:		; Memory Address ($78FA) and binary offset [$7576]
-	move.w	#$0086,d7	;3E3C0086
+VivifyInternal_QueueEffectAndSound:		; Memory Address ($78FA) and binary offset [$7576]
+	move.w	#CellEffect_Vivify,d7	;3E3C0086
 	bsr	adrCd001DBC	;6100A4BC
-	moveq	#$05,d0	;7005
+	moveq	#Sound_AlternativeSpell,d0	;7005
 	bsr	PlaySound	;61000FB8
-	move.w	#$FFFF,Trigger_WaitFlag_AI_TBC.w	;31FCFFFF6FA8	;Short Absolute converted to symbol!
+	move.w	#TriggerSound_None,TriggerSound_ID.w	;31FCFFFF6FA8	;Short Absolute converted to symbol!
 	moveq	#$03,d0	;7003
-adrLp007910:		; Memory Address ($7910) and binary offset [$758C]
+VivifyInternal_ReviveNextSlot:		; Memory Address ($7910) and binary offset [$758C]
 	tst.b	$18(a5,d0.w)	;4A350018
-	bmi.s	adrCd007958	;6B42
+	bmi.s	VivifyInternal_FinishParty	;6B42
 	btst	#$05,$18(a5,d0.w)	;083500050018
-	bne.s	adrCd007958	;663A
+	bne.s	VivifyInternal_FinishParty	;663A
 	bclr	#$06,$18(a5,d0.w)	;08B500060018
-	beq.s	adrCd007958	;6732
+	beq.s	VivifyInternal_FinishParty	;6732
 	move.w	d0,-(sp)	;3F00
 	move.b	$18(a5,d0.w),d0	;10350018
 	bsr	Load_ChampionStatRecord	;6100ED32
-	move.b	#$05,$0007(a4)	;197C00050007
-	move.b	#$05,$0005(a4)	;197C00050005
+	move.b	#$05,ChampionStat_VitalityCurrent(a4)	;197C00050007
+	move.b	#$05,ChampionStat_HitPointsCurrent(a4)	;197C00050005
 	move.w	(sp)+,d0	;301F
 	moveq	#$03,d1	;7203
-adrLp007940:		; Memory Address ($7940) and binary offset [$75BC]
+VivifyInternal_FindDisplaySlot:		; Memory Address ($7940) and binary offset [$75BC]
 	tst.b	$26(a5,d1.w)	;4A351026
-	bmi.s	adrCd00794C	;6B06
-	dbra	d1,adrLp007940	;51C9FFF8
+	bmi.s	VivifyInternal_InsertDisplayChampion	;6B06
+	dbra	d1,VivifyInternal_FindDisplaySlot	;51C9FFF8
 	moveq	#$00,d1	;7200
-adrCd00794C:		; Memory Address ($794C) and binary offset [$75C8]
+VivifyInternal_InsertDisplayChampion:		; Memory Address ($794C) and binary offset [$75C8]
 	and.b	#$0F,$18(a5,d0.w)	;0235000F0018
 	move.b	$18(a5,d0.w),$26(a5,d1.w)	;1BB500181026
-adrCd007958:		; Memory Address ($7958) and binary offset [$75D4]
-	dbra	d0,adrLp007910	;51C8FFB6
+VivifyInternal_FinishParty:		; Memory Address ($7958) and binary offset [$75D4]
+	dbra	d0,VivifyInternal_ReviveNextSlot	;51C8FFB6
 	move.w	#$FFFF,$0042(a5)	;3B7CFFFF0042
 	move.w	#$FFFF,$0040(a5)	;3B7CFFFF0040
 	clr.b	$003E(a5)	;422D003E
@@ -13730,19 +13821,19 @@ ClassColours:		; Memory Address ($846E) and binary offset [$80EA]
 	dc.w	$070E	;070E
 
 adrCd00847E:		; Memory Address ($847E) and binary offset [$80FA]
-	move.l	$001C(a5),d7	;2E2D001C
+	move.l	PlayerData_StartXPosition(a5),d7	;2E2D001C
 adrCd008482:		; Memory Address ($8482) and binary offset [$80FE]
-	move.w	$0020(a5),d0	;302D0020
+	move.w	PlayerData_Direction(a5),d0	;302D0020
 adrCd008486:		; Memory Address ($8486) and binary offset [$8102]
 	lea	MovementOffsetTable.w,a0	;41F85794	;Short Absolute converted to symbol!
-	add.b	$08(a0,d0.w),d7	;DE300008
+	add.b	MovementOffset_YTableOffset(a0,d0.w),d7	;DE300008
 	swap	d7	;4847
 	add.b	$00(a0,d0.w),d7	;DE300000
 	swap	d7	;4847
 	bra.s	CoordToMap	;6004
 
 adrCd008498:		; Memory Address ($8498) and binary offset [$8114]
-	move.l	$001C(a5),d7	;2E2D001C
+	move.l	PlayerData_StartXPosition(a5),d7	;2E2D001C
 CoordToMap:
 	move.l	Current_TowerMapDataBase.l,a6	;2C790000EE78
 adrCd0084A2:		; Memory Address ($84A2) and binary offset [$811E]
@@ -13757,22 +13848,22 @@ adrCd0084A2:		; Memory Address ($84A2) and binary offset [$811E]
 
 adrCd0084BA:		; Memory Address ($84BA) and binary offset [$8136]
 	lea	adrEA00EE60.l,a0	;41F90000EE60
-	add.b	$08(a0,d2.w),d7	;DE302008
+	add.b	Map_AlignmentYArrayOffset(a0,d2.w),d7	;DE302008
 	swap	d7	;4847
 	add.b	$00(a0,d2.w),d7	;DE302000
 	sub.b	$00(a0,d1.w),d7	;9E301000
 	swap	d7	;4847
-	sub.b	$08(a0,d1.w),d7	;9E301008
+	sub.b	Map_AlignmentYArrayOffset(a0,d1.w),d7	;9E301008
 	rts	;4E75
 
 adrCd0084D6:		; Memory Address ($84D6) and binary offset [$8152]
-	move.w	$0058(a5),d0	;302D0058
+	move.w	PlayerData_Floor(a5),d0	;302D0058
 adrCd0084DA:		; Memory Address ($84DA) and binary offset [$8156]
 	lea	Current_TowerMapHeaderCache.l,a0	;41F90000EE40
 	move.b	$00(a0,d0.w),adrB_00EE71.l	;13F000000000EE71
-	move.b	$08(a0,d0.w),adrB_00EE73.l	;13F000080000EE73
+	move.b	Map_FloorHeightsOffset(a0,d0.w),adrB_00EE73.l	;13F000080000EE73
 	add.w	d0,d0	;D040
-	move.w	$10(a0,d0.w),adrW_00EE76.l	;33F000100000EE76
+	move.w	Map_FloorDataOffsetsOffset(a0,d0.w),adrW_00EE76.l	;33F000100000EE76
 	rts	;4E75
 
 adrCd0084FC:		; Memory Address ($84FC) and binary offset [$8178]
@@ -13786,7 +13877,7 @@ adrCd00850C:		; Memory Address ($850C) and binary offset [$8188]
 	bne.s	adrCd00850C	;66FA
 	sub.w	d0,d2	;9440
 	neg.w	d2	;4442
-	lsr.w	#$01,d2	;E24A
+	lsr.w	#Map_CellByteShift,d2	;E24A
 	divu	adrW_00EE70.l,d2	;84F90000EE70
 	rts	;4E75
 
@@ -16109,8 +16200,8 @@ Prepare_Monster_ScreenPosition:		; Memory Address ($995E) and binary offset [$95
 	and.w	#$0007,d0	;02400007
 	cmpi.w	#$0004,d0	;0C400004
 	bne.s	adrCd0099C6	;661C
-	move.b	adrB_0099CC(pc,d2.w),d0	;103B2020
-	move.b	adrB_0099D4(pc,d2.w),d2	;143B2024
+	move.b	Monster_StairDepthSlot_XAdjustments(pc,d2.w),d0	;103B2020
+	move.b	Monster_StairDepthSlot_YPositions(pc,d2.w),d2	;143B2024
 	btst	#$00,-$0012(a3)	;082B0000FFEE
 	bne.s	adrCd0099BE	;6604
 	neg.b	d0	;4400
@@ -16125,7 +16216,8 @@ adrCd0099C8:		; Memory Address ($99C8) and binary offset [$9644]
 	moveq	#-$01,d1	;72FF
 	rts	;4E75
 
-adrB_0099CC:		; Memory Address ($99CC) and binary offset [$9648]
+Monster_StairDepthSlot_XAdjustments:		; Memory Address ($99CC) and binary offset [$9648]
+	; Eight signed X adjustments used when placing an occupant in a type-4 stair cell.
 	dc.b	$00	;00
 	dc.b	$08	;08
 	dc.b	$00	;00
@@ -16134,7 +16226,8 @@ adrB_0099CC:		; Memory Address ($99CC) and binary offset [$9648]
 	dc.b	$06	;06
 	dc.b	$00	;00
 	dc.b	$00	;00
-adrB_0099D4:		; Memory Address ($99D4) and binary offset [$9650]
+Monster_StairDepthSlot_YPositions:		; Memory Address ($99D4) and binary offset [$9650]
+	; Eight Y positions paired with the stair depth-slot X adjustments.
 	dc.b	$4B	;4B
 	dc.b	$3E	;3E
 	dc.b	$4B	;4B
@@ -22691,6 +22784,8 @@ CopyProtection:
 
 
 ;fiX Label expected
+; SOURCE_NOTE: COPY_PROTECTION_INTERNAL ($D140): Reserved workspace leading into the saved-register area.
+; COPY_PROTECTION_INTERNAL ($D140): Reserved workspace leading into the saved-register area.
 	dc.w	$0000	;0000
 	dc.w	$0000	;0000
 	dc.w	$0000	;0000
@@ -22801,6 +22896,8 @@ adrCd00D1FC:		; Memory Address ($D1FC) and binary offset [$CE78]
 	move.l	(sp)+,$00000010.l	;23DF00000010
 	illegal	;4AFC
 ;fiX Label expected
+; SOURCE_NOTE: COPY_PROTECTION_INTERNAL ($D21C): Opaque instruction/data stream entered through the deliberate exception path.
+; COPY_PROTECTION_INTERNAL ($D21C): Opaque instruction/data stream entered through the deliberate exception path.
 	dc.w	$487A	;487A
 	dc.w	$001C	;001C
 	dc.w	$23DF	;23DF
@@ -22927,6 +23024,8 @@ adrCd00D332:		; Memory Address ($D332) and binary offset [$CFAE]
 	rte	;4E73
 
 ;fiX Label expected
+; SOURCE_NOTE: COPY_PROTECTION_INTERNAL ($D338): Opaque word stream following the exception-handler return.
+; COPY_PROTECTION_INTERNAL ($D338): Opaque word stream following the exception-handler return.
 	dc.w	$F076	;F076
 	dc.w	$FCE0	;FCE0
 	dc.w	$40E6	;40E6
@@ -23207,6 +23306,8 @@ adrCd00D56A:		; Memory Address ($D56A) and binary offset [$D1E6]
 	bra.s	adrCd00D59A	;6016
 
 ;fiX Label expected
+; SOURCE_NOTE: COPY_PROTECTION_INTERNAL ($D584): Encoded word block deliberately skipped by the visible execution paths.
+; COPY_PROTECTION_INTERNAL ($D584): Encoded word block deliberately skipped by the visible execution paths.
 	dc.w	$8A91	;8A91
 	dc.w	$8A44	;8A44
 	dc.w	$8A45	;8A45
@@ -23223,6 +23324,8 @@ adrCd00D59A:		; Memory Address ($D59A) and binary offset [$D216]
 	move.l	d1,d0	;2001
 	illegal	;4AFC
 ;fiX Label expected
+; SOURCE_NOTE: COPY_PROTECTION_INTERNAL ($D59E): Opaque stream following the deliberate illegal instruction; retained as raw words.
+; COPY_PROTECTION_INTERNAL ($D59E): Opaque stream following the deliberate illegal instruction; retained as raw words.
 	dc.w	$FB76	;FB76
 	dc.w	$7676	;7676
 	dc.w	$8108	;8108
@@ -25930,7 +26033,7 @@ adrW_00EE76:		; Memory Address ($EE76) and binary offset [$EAF2]
 	dc.w	$0000	;0000
 Current_TowerMapDataBase:		; Memory Address ($EE78) and binary offset [$EAF4]
 	; Pointer to the currently selected tower's map resource immediately after its $38-byte header. Map-cell and object/trap routines use this as their shared data base.
-	dc.l	$0000EF78	;0000EF78	;Long Addr replaced with Symbol *Fix stored address **
+	dc.l	MapData1+Map_HeaderSize	;0000EF78	;Long Addr replaced with Symbol *Fix stored address **
 Player1_Data:
 	dc.b	$00	;00
 adrB_00EE7D:		; Memory Address ($EE7D) and binary offset [$EAF9]

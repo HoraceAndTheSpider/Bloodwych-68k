@@ -7,7 +7,7 @@ from unittest.mock import patch
 
 from tools.binary_identity import identify_binary, identify_bytes
 from tools.champion_data import ChampionAssets
-from tools.edit_session import EditSession
+from tools.edit_session import EditSession, resource_specs
 from tools.graphics_preview import CharacterAssets
 from tools.interface_data import InterfaceProject
 from tools.map_editor.model import MapProject, MapCell, TOWERS
@@ -67,6 +67,17 @@ class EditSessionTests(unittest.TestCase):
         self.addCleanup(self.temporary.cleanup)
         self.root = Path(self.temporary.name)
         self.session = EditSession(modified_root=self.root / "modified")
+
+    def test_viewer_resource_specs_do_not_validate_extract_grouping(self):
+        segments = self.root / "segments.csv"
+        segments.write_text(
+            "label,name,offset,size,data_action\n"
+            "Interior,data/example.bin,$10,$02,data_append\n"
+        )
+
+        specs = resource_specs("BLOODWYCH439", segments)
+
+        self.assertEqual(specs["data/example.bin"].offset, 0x10)
 
     def test_baseline_comes_from_binary_and_ignores_unimported_modified_data(self):
         name = "data/characters.heads"

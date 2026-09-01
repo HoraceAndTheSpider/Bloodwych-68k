@@ -7,8 +7,12 @@ from unittest.mock import patch
 
 from tools.interface_data import (
     INTERFACE_ACTION_LOAD_SAVE,
+    INTERFACE_ACTION_MOVE_BACKWARDS,
     INTERFACE_ACTION_MOVE_FORWARDS,
+    INTERFACE_ACTION_MOVE_LEFT,
+    INTERFACE_ACTION_MOVE_RIGHT,
     INTERFACE_ACTION_PAUSE,
+    INTERFACE_ACTION_ROTATE_LEFT,
     INTERFACE_ACTION_ROTATE_RIGHT,
     INTERFACE_ACTION_SLEEP_PARTY,
     INTERFACE_MODES,
@@ -51,8 +55,13 @@ class InterfaceViewerTests(unittest.TestCase):
         box = next(box for box in self.project.hitboxes["command"] if box.action == action)
         return self.click((box.x_min + box.x_max) // 2, (box.y_min + box.y_max) // 2)
 
-    def key(self, key):
-        return self.pg.event.Event(self.pg.KEYDOWN, key=key)
+    def key(self, key, *, mod=0):
+        return self.pg.event.Event(self.pg.KEYDOWN, key=key, mod=mod)
+
+    def joypad_action(self, action):
+        return self.pg.event.Event(
+            self.pg.USEREVENT, joypad_action=action, instance_id=37
+        )
 
     def render(self, mode, player, state=None, **kwargs):
         panel, _ = viewer.render_interface_panel(
@@ -108,7 +117,7 @@ class InterfaceViewerTests(unittest.TestCase):
                 self.pg, "load_save", self.click(*point), preview,
             ), (True, "load_save"))
 
-    def run_frames(self, frames):
+    def run_frames(self, frames, *, initial_mode="comms"):
         """Exercise real event dispatch and drawing, observing resulting state."""
         from tools.edit_session import EditSession
         from tools.joypad_panel import JoypadControls
@@ -127,7 +136,9 @@ class InterfaceViewerTests(unittest.TestCase):
                 patch.object(viewer, "render_interface_panel", side_effect=observe), \
                 patch.object(SessionPanel, "handle", return_value=False) as host_events, \
                 patch.object(JoypadControls, "show") as joypad_settings:
-            viewer.launch_interface_viewer(initial_mode="comms", session=EditSession())
+            viewer.launch_interface_viewer(
+                initial_mode=initial_mode, session=EditSession()
+            )
         joypad_settings.assert_not_called()
         return rendered, [call.args[1] for call in host_events.call_args_list]
 
@@ -137,12 +148,16 @@ class InterfaceViewerTests(unittest.TestCase):
         quit_event = self.pg.event.Event(self.pg.QUIT)
         rendered, passed = self.run_frames([
             [pause],
-            [self.key(self.pg.K_h), self.key(self.pg.K_F8), self.key(self.pg.K_ESCAPE)],
+            [self.key(self.pg.K_h), self.key(self.pg.K_F8),
+             self.key(self.pg.K_w), self.joypad_action("MOVE-FORWARD"),
+             self.key(self.pg.K_ESCAPE)],
             [stats],
             [quit_event],
         ])
         self.assertEqual([state[0] for state in rendered], [None, "pause", "pause", None])
-        self.assertTrue(all(state[1:3] == ("comms", "main") for state in rendered))
+        self.assertTrue(all(
+            state[1:] == ("comms", "main", 2, 5, 0) for state in rendered
+        ))
         self.assertEqual(passed, [pause, quit_event])
 
     def test_pause_click_anywhere_including_host_controls_is_consumed(self):
@@ -162,6 +177,7 @@ class InterfaceViewerTests(unittest.TestCase):
             [enter, self.click(272, 40)],  # Entry and blocked action in one SDL batch.
             [self.click(240, 64), self.click(160, 45),
              self.pg.event.Event(self.pg.MOUSEBUTTONDOWN, button=1, pos=(360, 65)),
+             self.key(self.pg.K_w), self.joypad_action("MOVE-FORWARD"),
              self.key(self.pg.K_ESCAPE), self.key(self.pg.K_F8), self.key(self.pg.K_F1)],
             [self.key(self.pg.K_F10)],
             [enter],
@@ -182,6 +198,50 @@ class InterfaceViewerTests(unittest.TestCase):
         self.assertEqual(rendered[-1][1:], ("main", "main", 2, 5, 0))
         self.assertEqual(passed, [sleep, quit_event])
         toggle.assert_not_called()
+
+    def test_keyboard_and_named_joypad_actions_use_the_same_movement_dispatch(self):
+        expected = (
+            INTERFACE_ACTION_MOVE_FORWARDS,
+            INTERFACE_ACTION_MOVE_BACKWARDS,
+            INTERFACE_ACTION_MOVE_RIGHT,
+            INTERFACE_ACTION_MOVE_LEFT,
+            INTERFACE_ACTION_ROTATE_LEFT,
+            INTERFACE_ACTION_ROTATE_RIGHT,
+        )
+        for mode in INTERFACE_MODES:
+            with self.subTest(mode=mode.key):
+                project = InterfaceProject(DATA_ROOT)
+                events = [
+                    self.key(self.pg.K_w),
+                    self.joypad_action("MOVE-BACK"),
+                    self.key(self.pg.K_d),
+                    self.joypad_action("MOVE-LEFT"),
+                    self.key(self.pg.K_q),
+                    self.joypad_action("TURN-RIGHT"),
+                ]
+                with patch.object(viewer, "InterfaceProject", return_value=project), \
+                        patch.object(
+                            project, "move_preview_party",
+                            wraps=project.move_preview_party,
+                        ) as move:
+                    rendered, _ = self.run_frames(
+                        [events, [self.pg.event.Event(self.pg.QUIT)]],
+                        initial_mode=mode.key,
+                    )
+                self.assertEqual(
+                    tuple(call.args[0] for call in move.call_args_list), expected
+                )
+                self.assertEqual(rendered[-1][3:], (2, 5, 0))
+
+    def test_modified_movement_shortcut_is_not_dispatched(self):
+        project = InterfaceProject(DATA_ROOT)
+        with patch.object(viewer, "InterfaceProject", return_value=project), \
+                patch.object(project, "move_preview_party") as move:
+            self.run_frames([[
+                self.key(self.pg.K_w, mod=self.pg.KMOD_CTRL),
+                self.pg.event.Event(self.pg.QUIT),
+            ]], initial_mode="main")
+        move.assert_not_called()
 
     def test_modal_hitbox_overlays_do_not_advertise_inactive_actions(self):
         for state in ("pause", "load_save"):

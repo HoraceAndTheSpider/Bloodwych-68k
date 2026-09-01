@@ -9,8 +9,8 @@ import unittest
 from unittest.mock import Mock, patch
 
 from tools.joypad import (
-    ACTIONS, MOVEMENT_ACTIONS, ActionState, Binding, BindingCapture, DeviceIdentity,
-    InputState, Layout, LayoutStore,
+    ACTIONS, MOVEMENT_ACTIONS, PANEL_ACTIONS, ActionState, Binding,
+    BindingCapture, DeviceIdentity, InputState, Layout, LayoutStore,
 )
 
 
@@ -327,6 +327,25 @@ class JoypadUITests(unittest.TestCase):
         actions = [(e.joypad_action, e.instance_id) for e in events if hasattr(e, "joypad_action")]
         self.assertEqual(actions, [("MOVE-FORWARD", 37)])
 
+    def test_panel_actions_emit_named_one_shot_events(self):
+        layout = example_layout(self.identity)
+        layout.bindings.update({
+            "ACTION-1": Binding("button", 1),
+            "ACTION-2": Binding("button", 2),
+            "ACTION-3": Binding("button", 3),
+        })
+        self.store.save(layout)
+        controls = self.controls(saved=False)
+        events = self.feed(
+            controls,
+            *(self.event(self.pg.JOYBUTTONDOWN, button=index) for index in (1, 2, 3)),
+        )
+        self.assertEqual(
+            [event.joypad_action for event in events if hasattr(event, "joypad_action")],
+            list(PANEL_ACTIONS),
+        )
+        self.assertEqual(self.feed(controls, now=1000), [])
+
     def test_fast_fire_tap_yields_one_mouse_down_and_up_at_pointer(self):
         controls = self.controls()
         controls.pointer = (111.0, 222.0)
@@ -363,6 +382,13 @@ class JoypadUITests(unittest.TestCase):
         controls.pointer = (1198.0, 759.0)
         self.feed(controls, now=80)
         self.assertEqual(controls.pointer_position(), (1199, 759))
+
+    def test_configured_virtual_pointer_is_drawn_on_regular_pages(self):
+        controls = self.controls()
+        controls.pointer = (100.0, 100.0)
+        self.screen.fill((0, 0, 0))
+        controls.draw(self.screen)
+        self.assertEqual(tuple(self.screen.get_at((100, 100)))[:3], (245, 245, 250))
 
     def test_unplug_releases_fire_and_reconnect_loads_by_identity(self):
         controls = self.controls()
