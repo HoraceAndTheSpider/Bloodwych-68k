@@ -111,6 +111,60 @@ class SourceFormatterTests(unittest.TestCase):
             self.assertEqual(format_relabel_data(path), path)
             self.assertTrue(path.read_text(encoding="utf-8").endswith("\n"))
 
+    def test_file_formatting_moves_and_groups_static_equates(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            asm = root / "BLOODWYCH439_relabel_data.asm"
+            segments = root / "segments.xlsx"
+            cleanup = root / "cleanup.xlsx"
+            asm.write_text(
+                "dsksync:\t\tequ\t$0000007E\n"
+                "MonsterLive_RecordCapacity:\t\tequ\t$80\n"
+                "\t; Maximum live-record capacity.\n"
+                "InterfaceAction_WallClick:\t\tequ\t$23\n"
+                "\t; Handles a clicked wall.\n"
+                "InterfaceAction_Display:\t\tequ\t$10\n"
+                "\t; Displays the dungeon.\n"
+                "OldCleanup_Name:\t\tequ\t$7F\n"
+                "\t; Stale cleanup-owned definition.\n"
+                "\n"
+                "****************************************************************************\n"
+                "ProgStart:\n"
+                "\tmoveq\t#$00,d0\t;7000\n"
+                "LocationAlias:\t\tequ\t*-2\n",
+                encoding="utf-8",
+            )
+            pd.DataFrame({"label": ["ProgStart"], "relabel": [""]}).to_excel(
+                segments, sheet_name="BLOODWYCH439", index=False
+            )
+            format_relabel_data(asm, segments, "BLOODWYCH439")
+
+            main_text = asm.read_text(encoding="utf-8")
+            include = root / "Bloodwych439_equates.asm"
+            include_text = include.read_text(encoding="utf-8")
+            self.assertIn('\tINCLUDE\t"Bloodwych439_equates.asm"', main_text)
+            self.assertNotIn("MonsterLive_RecordCapacity", main_text)
+            self.assertNotIn("OldCleanup_Name", main_text)
+            self.assertIn("LocationAlias:", main_text)
+            self.assertIn("equ\t*-2", main_text)
+            self.assertLess(
+                include_text.index("dsksync:"),
+                include_text.index("InterfaceAction_Display:"),
+            )
+            display = include_text.index("InterfaceAction_Display:")
+            wall = include_text.index("InterfaceAction_WallClick:")
+            monster = include_text.index("MonsterLive_RecordCapacity:")
+            self.assertLess(display, wall)
+            self.assertLess(wall, monster)
+            self.assertIn("\n\n", include_text[wall:monster])
+            self.assertIn("OldCleanup_Name:", include_text)
+
+            first_main = main_text
+            first_include = include_text
+            format_relabel_data(asm, segments, "BLOODWYCH439")
+            self.assertEqual(asm.read_text(encoding="utf-8"), first_main)
+            self.assertEqual(include.read_text(encoding="utf-8"), first_include)
+
     def test_sibling_cleanup_comments_are_used(self):
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)

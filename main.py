@@ -191,7 +191,10 @@ def build_parser() -> argparse.ArgumentParser:
         help="Generate asm/<source>_asmfix.asm for Relabel to consume",
     )
     subparsers.add_parser(
-        "format", help="Format asm/<binary>_relabel_data.asm without changing code"
+        "format",
+        help=(
+            "Format asm/<binary>_relabel_data.asm and generate its EQU include"
+        ),
     )
     graphics = subparsers.add_parser("graphics", help="Open the extracted graphics viewer")
     graphics.add_argument(

@@ -50,6 +50,10 @@ GENERATED_INSTRUCTION_COMMENT = re.compile(
     r"[0-9A-Fa-f]+(?:\s*;\s*(?:Short Absolute converted to symbol!|"
     r"Long Addr replaced with Symbol))*\s*"
 )
+INCLUDE_LINE = re.compile(
+    r"^\s*include\s+(?:[\"'](?P<quoted>[^\"']+)[\"']|(?P<bare>\S+))\s*$",
+    re.IGNORECASE,
+)
 
 
 def _next_tab_stop(column: int) -> int:
@@ -145,6 +149,125 @@ def _format_equ_lines(lines: list[str]) -> list[str]:
             code = _pad_to_column(code, comment_column) + "; " + comment
         result.append(code.rstrip())
     return result
+
+
+def _equate_group(name: str) -> str:
+    """Return the semantic family used to space cleanup-owned EQU definitions."""
+
+    if not name[:1].isupper() or name.isupper():
+        return "__source__"
+    return name.partition("_")[0].casefold()
+
+
+def _leading_equate_block(lines: list[str]) -> tuple[int, int] | None:
+    """Locate the static EQU header, excluding location-dependent aliases later on."""
+
+    start: int | None = None
+    for index, line in enumerate(lines):
+        if _split_equ(line) is not None:
+            if start is None:
+                start = index
+            continue
+        if not line.strip() or _comment_text(line) is not None:
+            continue
+        if start is None:
+            return None
+        return start, index
+    return (start, len(lines)) if start is not None else None
+
+
+def _include_line_matches(line: str, include_name: str) -> bool:
+    match = INCLUDE_LINE.match(line)
+    if match is None:
+        return False
+    operand = match.group("quoted") or match.group("bare")
+    return Path(operand).name.casefold() == include_name.casefold()
+
+
+def _format_equates_include(
+    block: list[str],
+) -> list[str]:
+    """Group and format the EQU definitions already present in the source."""
+
+    formatted = _format_equ_lines(block)
+    entries: list[tuple[str, str]] = []
+    unexpected: list[str] = []
+    for line in formatted:
+        parsed = _split_equ(line)
+        if parsed is not None:
+            entries.append((parsed[0].removesuffix(":"), line))
+        elif line.strip():
+            unexpected.append(line)
+    if unexpected:
+        raise ToolError(
+            "Cannot create the EQU include because the static header contains "
+            "standalone content that cannot be moved safely"
+        )
+
+    groups: dict[str, list[tuple[str, str]]] = {}
+    for name, line in entries:
+        groups.setdefault(_equate_group(name), []).append((name, line))
+
+    result = [
+        "; Generated from the static EQU header by the final formatting pass.",
+        "; Regenerate this file from the final relabel-data source; do not edit it.",
+        "",
+    ]
+    group_names = sorted(
+        groups,
+        key=lambda group: (group != "__source__", group),
+    )
+    for group_index, group in enumerate(group_names):
+        if group_index:
+            result.append("")
+        group_entries = groups[group]
+        if group != "__source__":
+            group_entries = sorted(group_entries, key=lambda item: item[0].casefold())
+        result.extend(line for _name, line in group_entries)
+    return result
+
+
+def _externalise_equate_header(
+    lines: list[str],
+    include_name: str,
+    existing_include_lines: list[str] | None = None,
+) -> tuple[list[str], list[str] | None]:
+    """Replace the static EQU header with an INCLUDE and return its file lines."""
+
+    include_indices = [
+        index
+        for index, line in enumerate(lines)
+        if _include_line_matches(line, include_name)
+    ]
+    block = _leading_equate_block(lines)
+    if block is None:
+        if len(include_indices) > 1:
+            raise ToolError(f"Found more than one INCLUDE for '{include_name}'")
+        if len(include_indices) == 1:
+            existing_block = (
+                _leading_equate_block(existing_include_lines)
+                if existing_include_lines is not None
+                else None
+            )
+            if existing_block is None or existing_include_lines is None:
+                raise ToolError(
+                    f"Cannot refresh EQU include because '{include_name}' is missing "
+                    "or has no static EQU header"
+                )
+            start, end = existing_block
+            return lines, _format_equates_include(existing_include_lines[start:end])
+        return lines, None
+    if include_indices:
+        raise ToolError(
+            f"Generated source contains both an EQU header and INCLUDE '{include_name}'"
+        )
+
+    start, end = block
+    include_lines = _format_equates_include(lines[start:end])
+    replacement = [f'\tINCLUDE\t"{include_name}"', ""]
+    while end < len(lines) and not lines[end].strip():
+        end += 1
+    return lines[:start] + replacement + lines[end:], include_lines
 
 
 def _wrap_comment(line: str) -> list[str]:
@@ -454,20 +577,44 @@ def format_relabel_data(
     master: str | None = None,
     cleanup: str | Path | None = None,
 ) -> Path:
-    """Apply COMMENTS and format one existing ``*_relabel_data.asm`` file."""
+    """Apply COMMENTS, externalise static EQUs, and format relabel-data ASM."""
     if not asm_path.is_file():
         raise FileNotFoundError(f"Relabel-data ASM not found: {asm_path}")
     original = asm_path.read_text(encoding="utf-8")
     had_final_newline = original.endswith("\n")
     lines = original.splitlines()
+    include_path: Path | None = None
+    include_lines: list[str] | None = None
     if sheet is not None and master is not None:
         lines = apply_instruction_comments(
             lines,
             _comment_rows(sheet, master, cleanup),
             label_relabels=_segment_label_relabels(sheet, master),
         )
+        profile = get_profile(master)
+        source_stem = (
+            Path(profile.source_asm).stem
+            if profile.source_asm is not None
+            else profile.family.title()
+        )
+        include_path = asm_path.with_name(f"{source_stem}_equates.asm")
+        existing_include_lines = (
+            include_path.read_text(encoding="utf-8").splitlines()
+            if include_path.is_file()
+            else None
+        )
+        lines, include_lines = _externalise_equate_header(
+            lines,
+            include_path.name,
+            existing_include_lines=existing_include_lines,
+        )
     formatted = "\n".join(format_asm_lines(lines))
     if had_final_newline:
         formatted += "\n"
+    if include_path is not None and include_lines is not None:
+        include_path.write_text(
+            "\n".join(format_asm_lines(include_lines)).rstrip() + "\n",
+            encoding="utf-8",
+        )
     asm_path.write_text(formatted, encoding="utf-8")
     return asm_path

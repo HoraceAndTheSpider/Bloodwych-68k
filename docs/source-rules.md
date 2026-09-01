@@ -40,6 +40,22 @@ An EQU-only row leaves the scope/source fields blank. Repeating the same
 been confirmed.
 
 Verified EQU definitions are inserted after the original source EQU header.
+The final Formatting pass moves that complete static header into the sibling
+`Bloodwych439_equates.asm` file and replaces it with an `INCLUDE`. Original
+system definitions remain first; the definitions already present in the final
+source are separated into families using the part of each name before its first
+underscore (for example `ChampionPocket`, `InterfaceAction`, and `MonsterLive`).
+This is a source-formatting operation: EQU definitions and comments are moved
+from `_relabel_data.asm` without loading or regenerating their values or comments
+from the EQUATES worksheet. EQU aliases such as `equ *-2` that depend on their
+position in the main source remain inline. If the main source already contains
+its `INCLUDE`, the Formatting pass refreshes the existing include in place.
+
+`equ_value` remains a numeric field for now. Supporting expressions such as
+`Object_Food_First = Object_Arrows_Last+1` will also require undefined-name and
+dependency-cycle checks, plus dependency-aware output ordering, before those
+expressions can safely become authoritative cleanup metadata.
+
 Scoped operand substitutions are applied after ordinary label relabelling, so
 rules should use the labels present in the final relabelled source.
 
