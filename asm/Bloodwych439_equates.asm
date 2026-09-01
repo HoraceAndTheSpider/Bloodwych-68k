@@ -195,12 +195,16 @@ Food_PortionGroupSize:							equ	$03			; Finds whether the selected object is th
 Food_SolidPortionValue:							equ	$20			; Selects the larger solid-food portion value.
 Food_WholeValueStep:							equ	$42			; Adds one food-value step for each N'Egg size.
 
-GFX_Pockets_CommandPanelOffset:					equ	$7580		; Packed Pockets.gfx offset used by the lower status/command interface pieces.
-GFX_Pockets_InventoryInterfaceOffset:			equ	$3C00		; Packed Pockets.gfx offset containing the inventory chain/interface strip.
+GFX_Pockets_ChainStripCommandPanelOffset:		equ	$3C60		; Packed Pockets.gfx offset of the continuous 96 by 7 chain strip used beneath the party-command menu.
+GFX_Pockets_ChainStripContinuousOffset:			equ	$3C00		; Packed Pockets.gfx offset of the continuous 96 by 7 chain strip used at the dungeon-display lower edge and in the inventory presentation.
+GFX_Pockets_ChainStripShieldGapsOffset:			equ	$3C30		; Packed Pockets.gfx offset of the 96 by 7 chain strip whose gaps accommodate the four party shields.
+GFX_Pockets_CommandPadPlayer1Offset:			equ	$6800		; Packed Pockets.gfx offset of the Player 1 command-pad variant.
+GFX_Pockets_CommandPadPlayer2Offset:			equ	$67E0		; Packed Pockets.gfx offset of the Player 2 command-pad variant.
 GFX_Pockets_SelectedPartyShieldFrameOffset:		equ	$5070		; Offset of the 32x41 selected living-party shield surround in Pockets.gfx.
 GFX_Pockets_SelectedSpellMarkerOffset:			equ	$4130		; Packed Pockets.gfx offset used for the selected-spell marker.
-GFX_Pockets_SpellBookOffset:					equ	$4100		; Packed Pockets.gfx offset used for the spell-book surface.
-GFX_Pockets_StatusPanelOffset:					equ	$67C0		; Packed Pockets.gfx offset used by the status-panel interface pieces.
+GFX_Pockets_SpellBookOffset:					equ	$4100		; Packed Pockets.gfx offset of the 96 by 62 spell-book surface, including its page-turn arrows.
+GFX_Pockets_StatsTitleOffset:					equ	$7580		; Packed Pockets.gfx offset of the 48 by 6 STATS title graphic drawn in the compact statistics frame.
+GFX_Pockets_StatusPanelOffset:					equ	$67C0		; Packed Pockets.gfx offset of the 64 by 22 status-panel graphic containing the book and ledger icons.
 
 HeldItem_ObjectCodeByteOffset:					equ	$2F			; Offset of the low byte of the held object code.
 HeldItem_ObjectCodeOffset:						equ	$2E			; Offset of the currently held object code in the interface state.
