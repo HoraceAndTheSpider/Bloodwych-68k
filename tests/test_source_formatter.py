@@ -17,9 +17,9 @@ from tools.source_formatter import (
 class SourceFormatterTests(unittest.TestCase):
     def test_instruction_comments_align_to_longest_normal_instruction(self):
         lines = [
-            "\tswap\td2\t;4842  ",
-            "\tadd.b\tScroll_TowerOffsets_DataTable(pc,d0.w),d1\t;D23B0026",
-            "\tmove.w\t#$FFFF,PhysicalAttack_DoubleDefenceFlag.l\t;33FCFFFF00006458",
+            "\tswap\td2\t; swap register words  ",
+            "\tadd.b\tScroll_TowerOffsets_DataTable(pc,d0.w),d1\t; apply the tower offset",
+            "\tmove.w\t#$FFFF,PhysicalAttack_DoubleDefenceFlag.l\t; enable double defence",
         ]
         result = format_asm_lines(lines)
         comment_columns = {
@@ -44,12 +44,36 @@ class SourceFormatterTests(unittest.TestCase):
         self.assertTrue(all(len(line) <= 80 for line in result))
         self.assertEqual(" ".join(line[3:] for line in result[1:]), comment)
 
-    def test_declarations_are_unchanged(self):
+    def test_numeric_and_binary_declarations_are_unchanged(self):
         lines = [
             "\tdc.w\t$1234\t; data comment",
+            "\tdc.w\t$1234\t;1234",
             "\tINCBIN \"/data/file\"\t; binary",
         ]
         self.assertEqual(format_asm_lines(lines), lines)
+
+    def test_data_comments_are_removed_from_instructions(self):
+        lines = [
+            "\tmove.w\td0,d1\t;3200",
+            "\tmove.w\td1,d2\t; handwritten explanation",
+            "\tlea\t$0060.w,a0\t;41F80060\t;Short Absolute replaced by symbol!",
+        ]
+        result = format_asm_lines(lines)
+        self.assertEqual(result[0], "\tmove.w\td0,d1")
+        self.assertIn(";handwritten explanation", result[1])
+        self.assertNotIn("41F80060", result[2])
+        self.assertIn(";Short Absolute replaced by symbol!", result[2])
+
+    def test_data_comments_are_removed_from_character_string_declarations(self):
+        lines = [
+            "\tdc.b\t'BLOODWYCH'\t;424C4F4F4457594348",
+            '\tdc.b\t"I""M DUE"\t;49224D20445545',
+            "\tdc.b\t$42,$57\t;4257",
+        ]
+        self.assertEqual(
+            format_asm_lines(lines),
+            ["\tdc.b\t'BLOODWYCH'", '\tdc.b\t"I""M DUE"', lines[2]],
+        )
 
     def test_equ_fields_and_comments_are_aligned(self):
         lines = [

@@ -44,6 +44,7 @@ ciacra:											equ	$00000E00
 AirbourneSpell_ArcBolt:							equ	$82			; Live-entity form code used by Arc Bolt projectiles.
 AirbourneSpell_Beguile:							equ	$8D			; Spell-effect code queued after Beguile changes the communication state.
 AirbourneSpell_Blaze:							equ	$84			; Live-entity form code used by Blaze projectiles.
+AirbourneSpell_CodeBase:						equ	$80			; Converts a low monster-spell selector into the airborne entity-code range.
 AirbourneSpell_Confuse:							equ	$8B			; Live-entity form code used by Confuse projectiles.
 AirbourneSpell_Disrupt:							equ	$83			; Live-entity form code used by Disrupt projectiles.
 AirbourneSpell_Fireball:						equ	$80			; Live-entity form code used by Fireball projectiles.
@@ -56,6 +57,12 @@ AirbourneSpell_Terror:							equ	$8F			; Live-entity form code used by Terror pr
 AirbourneSpell_Wychwind:						equ	$81			; Live-entity form code used by each Wychwind projectile.
 
 Alchemy_BaseCoinageGain:						equ	$05			; Coinage added by Alchemy before the spell-power contribution.
+
+ArcBoltMachine_BasePower:						equ	$0C			; Base power supplied by the fixed Arc Bolt machine attack type.
+
+BitReverseLookupLastIndex:						equ	$FF			; Last byte index used while building the complete 256-entry bit-reversal lookup.
+
+CastingFatigueDividerReload:					equ	$07			; Reload value for the casting-fatigue divider, producing one fatigue decay pass every eight engine subcycles.
 
 CellEffect_TeleportFlash:						equ	$10			; Effect code queued after the flashing teleport commits its destination.
 CellEffect_Vivify:								equ	$86			; Effect code queued at the Vivify revival cell.
@@ -103,6 +110,8 @@ ChampionStat_WornSpell:							equ	$11			; Clears the worn spell at session start
 ChampionStat_XPosition:							equ	$16			; Compares the champion X/Y position word during location lookup.
 ChampionStat_XPToNextLevel:						equ	$1D			; Initialises the next-level experience value.
 ChampionStat_YPosition:							equ	$17			; Loads the champion starting Y coordinate.
+
+ChampionStatRecordLastIndex:					equ	$0F			; Last champion index scanned by the slow global statistic-regeneration loop.
 
 Character_ProfessionMask:						equ	$03			; Low two bits used to select one of the four character professions.
 Character_Zendik:								equ	$40			; Character identifier $40 represents Zendik; specific source uses still need identifying.
@@ -185,8 +194,18 @@ Dungeon_ViewCell_LastIndex:						equ	$12			; Highest zero-based index of the nin
 FloorFeature_SubtypeMask:						equ	$03			; Extracts the floor feature independently of the ceiling-hole flag.
 FloorFeature_VisiblePadSubtype:					equ	$02			; Visible pads select sound zero before the handler runs.
 
+FloorRegenerationCellType:						equ	$03			; Masked map-cell type recognised by FloorTrigger_Handler as the regeneration feature.
+
 FloorTrigger_IndexMask:							equ	$F8			; Keeps trigger index bits 3-7; shifting once right yields a four-byte record offset.
 FloorTrigger_TowerStrideShift:					equ	$07			; Multiplies tower number by 128 bytes for its 32 four-byte trigger records.
+
+FloppyDriveReadySenseBit:						equ	$05			; CIAA port bit polled until the selected floppy drive reports ready.
+
+FloppySectorLastIndex:							equ	$0A			; DBRA terminal index for the eleven sectors in a raw floppy track.
+
+FloppySectorsPerTrack:							equ	$0B			; Number of AmigaDOS sectors encoded or decoded in each raw floppy track handled by the save/load routines.
+
+FloppyTrackZeroSenseBit:						equ	$04			; CIAA port bit tested while recalibrating the floppy head to track zero.
 
 Food_DrinkPortionValue:							equ	$14			; Default portion value for Mead and Water.
 Food_LevelLimitExclusive:						equ	$C8			; Tests whether food level must be clamped.
@@ -194,6 +213,8 @@ Food_LevelMaximum:								equ	$C7			; Clamps food level to its maximum.
 Food_PortionGroupSize:							equ	$03			; Finds whether the selected object is the first stage of a three-object food group.
 Food_SolidPortionValue:							equ	$20			; Selects the larger solid-food portion value.
 Food_WholeValueStep:							equ	$42			; Adds one food-value step for each N'Egg size.
+
+GamePeriodicTickReload:							equ	$012C		; Reload value for the long periodic update counter; decimal 300 triggers linked-magic decay, floor-trigger checks, navigation-field rebuilds, and party maintenance.
 
 GFX_Pockets_ChainStripCommandPanelOffset:		equ	$3C60		; Packed Pockets.gfx offset of the continuous 96 by 7 chain strip used beneath the party-command menu.
 GFX_Pockets_ChainStripContinuousOffset:			equ	$3C00		; Packed Pockets.gfx offset of the continuous 96 by 7 chain strip used at the dungeon-display lower edge and in the inventory presentation.
@@ -292,6 +313,18 @@ Monster_Type_First:								equ	$64			; Converts the monster type code into the r
 
 MonsterActionCountdown_LevelBase:				equ	$0E			; Level value used as the starting point for monster action-countdown calculation.
 MonsterActionCountdown_Minimum:					equ	$08			; Minimum monster action-countdown level.
+
+MonsterActionState_CastingSpell:				equ	$1F			; Action-state value stored on the casting monster after it launches a spell.
+
+MonsterAttackSpell_ArcBoltIndex:				equ	$0B			; Selects entry eleven of the monster attack-spell table.
+MonsterAttackSpell_HighPowerFlag:				equ	$80			; Retains the spellbook flag that suppresses the normal final divide-by-two power step.
+MonsterAttackSpell_IndexMask:					equ	$0F			; Reduces the random value to one of the sixteen monster attack-spell entries.
+
+MonsterAttackType_ArcBoltMachine:				equ	$04			; Monster attack-type index for the fixed Arc Bolt machine behavior.
+MonsterAttackType_Drone:						equ	$02			; Monster attack-type index for movement-only drone behavior.
+MonsterAttackType_DroneSpells:					equ	$03			; Monster attack-type index for drones that occasionally cast spells.
+MonsterAttackType_NoSpells:						equ	$00			; Monster attack-type index for non-spellcasting pursuit and melee behavior.
+MonsterAttackType_Spells:						equ	$01			; Monster attack-type index for normal spellcasting behavior.
 
 MonsterForm_Zendik:								equ	$40			; Checks the reserved Zendik form.
 
@@ -437,7 +470,11 @@ PowerStaff_SpellCastingBonus:					equ	$05			; Spell-casting quality bonus suppli
 
 Recharge_PowerShift:							equ	$03			; Right shift converting spell power into replacement magic-ring uses.
 
+SaveDataTrackLastIndex:							equ	$08			; DBRA last index for the nine raw floppy tracks transferred as champion save data.
+
 Screen_BitplaneRowBytes:						equ	$28			; Number of bytes in one 320-pixel screen row for a single bitplane.
+
+SinglePlayerSaveDataStartTrack:					equ	$3C			; Starting floppy track used for one-player champion save data.
 
 Sound_AlternativeSpell:							equ	$05			; Alternative spell-effect sound ID.
 Sound_AttackClink:								equ	$02			; Sound ID for the physical attack or fighting clink.
@@ -458,6 +495,10 @@ SpellCasting_MatchingWandBonus:					equ	$03			; Cast-quality bonus for a held wa
 SpellCasting_PracticeFirstThreshold:			equ	$05			; First spell-practice threshold for matching spells.
 SpellCasting_VitalityCost:						equ	$04			; Vitality removed when a champion launches a spell.
 
+SpellCastingCostMultiplier:						equ	$05			; Multiplier applied to the selected spell's raw cost-table byte to obtain its casting cost.
+
+SpellPracticeClearLongwordLastIndex:			equ	$7F			; Last longword index cleared when initialising the 512-byte spell-practice table.
+
 Stair_DownBit:									equ	$00			; A clear bit ascends one floor; a set bit descends one floor.
 
 StoneWall_FacingMask:							equ	$30			; Facing occupies second-byte bits 4-5.
@@ -473,6 +514,12 @@ TriggerSound_None:								equ	$FFFF		; Negative trigger sound suppresses playbac
 
 TriggerTeleportStack_CellOffset:				equ	$08			; Saved dispatcher D0 after the handler and commit-helper return addresses.
 TriggerTeleportStack_PackedXYOffset:			equ	$0C			; Replace saved dispatcher D7 after the two return addresses.
+
+TwoPlayerSaveDataStartTrack:					equ	$46			; Starting floppy track used for two-player champion save data.
+
+VivifyImpactCode:								equ	$86			; Map-cell impact code queued by both Vivify-machine paths and the Vivify spell before revival processing.
+
+VivifyRestoredStatValue:						equ	$05			; Hit-points and vitality value assigned when an internally held dead party member is revived.
 
 WallOverlay_ColourEntryShift:					equ	$02			; Shift converting a wall-overlay colour index into a four-byte table offset.
 WallOverlay_ColourIndexMask:					equ	$07			; Mask selecting one of eight wall-overlay colour entries.
@@ -504,6 +551,8 @@ WornSpell_Trueview:								equ	$07			; Low three-bit worn-spell type used for Tr
 WornSpell_TypeMask:								equ	$07			; Clears the low three type bits before a worn-spell type is packed into the value.
 WornSpell_Vanish:								equ	$03			; Low three-bit worn-spell type used for Vanish.
 WornSpell_Warpower:								equ	$02			; Low three-bit worn-spell type used for Warpower.
+
+WoundFlashHighlightReload:						equ	$07			; Party-shield highlight countdown loaded when a combat wound-flash number is drawn.
 
 Wychwind_PowerBonus:							equ	$0A			; Power added before Wychwind creates its eight projectiles.
 Wychwind_ProjectileCount:						equ	$08			; Number of radial Wychwind projectiles created by one cast.

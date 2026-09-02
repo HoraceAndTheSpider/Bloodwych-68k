@@ -70,31 +70,78 @@ def _undefined_legacy_labels(lines: list[str]) -> list[str]:
 def _conflicting_relabel_targets(
     lines: list[str], rows: list[tuple[str, str]]
 ) -> dict[str, tuple[str, ...]]:
-    """Find output labels claimed by multiple source definitions.
+    """Find output labels claimed by multiple source definitions in one scope.
 
     Only labels defined in the source being relabelled participate.  This
     avoids treating aliases emitted later by the data-inspection pass as a
     collision, while ensuring that a bad spreadsheet mapping cannot produce
-    two same-named assembler labels.
+    two same-named assembler labels. Devpac labels beginning with ``.`` are
+    local to the preceding non-local label, so repeated local names collide
+    only when their definitions have the same effective parent.
     """
-    definitions = {
-        match.group(1).casefold()
+    definitions = [
+        match.group(1)
         for line in lines
         if (match := re.match(r"^\s*([^\s:;]+)\s*:", line))
-    }
-    targets: dict[str, list[str]] = defaultdict(list)
+    ]
+    defined_names = {label.casefold() for label in definitions}
+    applicable_rows = [
+        (source_label, output_label)
+        for source_label, output_label in rows
+        if source_label.casefold() in defined_names
+    ]
+
+    # Non-local labels occupy the global namespace regardless of where they
+    # appear. Resolve those collisions first because skipped global relabels
+    # retain their original names and therefore establish distinct local-label
+    # scopes below.
+    global_targets: dict[str, list[str]] = defaultdict(list)
     names: dict[str, str] = {}
-    for source_label, output_label in rows:
-        if source_label.casefold() not in definitions:
+    for source_label, output_label in applicable_rows:
+        if output_label.startswith("."):
             continue
         key = output_label.casefold()
-        targets[key].append(source_label)
+        global_targets[key].append(source_label)
         names.setdefault(key, output_label)
-    return {
+    conflicts = {
         names[key]: tuple(source_labels)
-        for key, source_labels in targets.items()
+        for key, source_labels in global_targets.items()
         if len(source_labels) > 1
     }
+    conflicting_global_sources = {
+        source_label.casefold()
+        for source_labels in conflicts.values()
+        for source_label in source_labels
+    }
+
+    relabels = {
+        source_label.casefold(): output_label
+        for source_label, output_label in applicable_rows
+    }
+    local_targets: dict[tuple[str | None, str], list[str]] = defaultdict(list)
+    local_names: dict[tuple[str | None, str], str] = {}
+    parent_label: str | None = None
+    for source_label in definitions:
+        source_key = source_label.casefold()
+        output_label = relabels.get(source_key, source_label)
+        if output_label.casefold().startswith(("_delete", "_offset_")):
+            continue
+        if source_key in conflicting_global_sources:
+            output_label = source_label
+        if not output_label.startswith("."):
+            parent_label = output_label.casefold()
+            continue
+        target_key = (parent_label, output_label.casefold())
+        local_targets[target_key].append(source_label)
+        local_names.setdefault(target_key, output_label)
+
+    for key, source_labels in local_targets.items():
+        if len(source_labels) < 2:
+            continue
+        target = local_names[key]
+        conflicts.setdefault(target, tuple())
+        conflicts[target] += tuple(source_labels)
+    return conflicts
 
 
 def relabel_segments(
@@ -154,17 +201,22 @@ def relabel_segments(
     rows = list(relabel_rows())
     conflicting_targets = _conflicting_relabel_targets(lines, rows)
     if conflicting_targets:
-        skipped_targets = {target.casefold() for target in conflicting_targets}
+        skipped_sources = {
+            source_label.casefold()
+            for source_labels in conflicting_targets.values()
+            for source_label in source_labels
+        }
         for target, source_labels in conflicting_targets.items():
             print(
                 "WARNING: Multiple source labels map to "
-                f"'{target}' ({', '.join(source_labels)}); skipping those "
-                "relabels to avoid duplicate ASM definitions."
+                f"'{target}' in the same Devpac scope "
+                f"({', '.join(source_labels)}); skipping those relabels to "
+                "avoid duplicate ASM definitions."
             )
         rows = [
             (label, new_label)
             for label, new_label in rows
-            if new_label.casefold() not in skipped_targets
+            if label.casefold() not in skipped_sources
         ]
     for label, new_label in rows:
         if not new_label.casefold().startswith("_delete"):

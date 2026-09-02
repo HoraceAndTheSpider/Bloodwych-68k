@@ -244,6 +244,77 @@ class ResourceLayoutTests(unittest.TestCase):
             self.assertIn("Second:\n\trts", generated)
             self.assertNotIn("Shared:", generated)
 
+    def test_relabel_allows_repeated_local_labels_in_distinct_scopes(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary_directory:
+            root = Path(temporary_directory)
+            source = root / "GAME.asm"
+            destination = root / "GAME_relabel.asm"
+            source.write_text(
+                "RoutineOne:\n"
+                "\tbra.s\tFirstExit\n"
+                "FirstExit:\n"
+                "\trts\n"
+                "RoutineTwo:\n"
+                "\tbra.s\tSecondExit\n"
+                "SecondExit:\n"
+                "\trts\n",
+                encoding="utf-8",
+            )
+            frame = pd.DataFrame(
+                (
+                    {"label": "FirstExit", "relabel": ".done"},
+                    {"label": "SecondExit", "relabel": ".done"},
+                )
+            )
+
+            def fake_asm_path(_master: str, stage: str) -> Path:
+                return source if stage in ("source", "asmfix") else destination
+
+            with (
+                patch("tools.tool_relabel.asm_path", side_effect=fake_asm_path),
+                patch("tools.tool_relabel.load_segments", return_value=frame),
+            ):
+                output = relabel_segments("GAME", root / "segments.xlsx")
+
+            generated = output.read_text(encoding="utf-8")
+            self.assertEqual(generated.count(".done:"), 2)
+            self.assertEqual(generated.count("bra.s\t.done"), 2)
+
+    def test_relabel_skips_repeated_local_labels_in_one_scope(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary_directory:
+            root = Path(temporary_directory)
+            source = root / "GAME.asm"
+            destination = root / "GAME_relabel.asm"
+            source.write_text(
+                "Routine:\n"
+                "\tbra.s\tFirstExit\n"
+                "FirstExit:\n"
+                "\tbra.s\tSecondExit\n"
+                "SecondExit:\n"
+                "\trts\n",
+                encoding="utf-8",
+            )
+            frame = pd.DataFrame(
+                (
+                    {"label": "FirstExit", "relabel": ".done"},
+                    {"label": "SecondExit", "relabel": ".done"},
+                )
+            )
+
+            def fake_asm_path(_master: str, stage: str) -> Path:
+                return source if stage in ("source", "asmfix") else destination
+
+            with (
+                patch("tools.tool_relabel.asm_path", side_effect=fake_asm_path),
+                patch("tools.tool_relabel.load_segments", return_value=frame),
+            ):
+                output = relabel_segments("GAME", root / "segments.xlsx")
+
+            generated = output.read_text(encoding="utf-8")
+            self.assertIn("FirstExit:", generated)
+            self.assertIn("SecondExit:", generated)
+            self.assertNotIn(".done", generated)
+
     def test_relabel_separates_fix_label_from_ordinary_anchor_relabel(self) -> None:
         with tempfile.TemporaryDirectory() as temporary_directory:
             root = Path(temporary_directory)

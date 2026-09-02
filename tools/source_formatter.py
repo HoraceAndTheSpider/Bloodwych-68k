@@ -1,4 +1,4 @@
-"""Final whitespace-only formatting for generated relabelled ASM sources."""
+"""Final presentation formatting for generated relabelled ASM sources."""
 
 from __future__ import annotations
 
@@ -49,6 +49,9 @@ COMMENT_COLUMNS = (
 GENERATED_INSTRUCTION_COMMENT = re.compile(
     r"[0-9A-Fa-f]+(?:\s*;\s*(?:Short Absolute converted to symbol!|"
     r"Long Addr replaced with Symbol))*\s*"
+)
+DATA_COMMENT_PREFIX = re.compile(
+    r"^\s*(?P<bytes>(?:[0-9A-Fa-f]{2})+)(?P<remainder>\s*(?:;.*)?)$"
 )
 INCLUDE_LINE = re.compile(
     r"^\s*include\s+(?:[\"'](?P<quoted>[^\"']+)[\"']|(?P<bare>\S+))\s*$",
@@ -313,6 +316,38 @@ def _split_source_comment(line: str) -> tuple[str, str]:
     return code, comment if separator else ""
 
 
+def _is_character_string_declaration(code: str) -> bool:
+    """Return whether code is a dc.* declaration containing quoted text."""
+    match = OPCODE_LINE.match(code.rstrip())
+    if not match or not match.group(1).casefold().startswith("dc."):
+        return False
+    operands = match.group(2) or ""
+    return "'" in operands or '"' in operands
+
+
+def _strip_data_comment(line: str) -> str:
+    """Remove a leading byte-dump comment where it is presentation noise.
+
+    Byte dumps remain on numeric dc.* declarations. They are removed from
+    executable instructions and from dc.* declarations whose values are
+    already legible as character strings. Any following non-data annotation
+    is retained.
+    """
+    code, separator, comment = line.partition(";")
+    if not separator:
+        return line
+    if _split_instruction(line) is None and not _is_character_string_declaration(code):
+        return line
+
+    match = DATA_COMMENT_PREFIX.fullmatch(comment)
+    if not match:
+        return line
+    remainder = match.group("remainder").strip()
+    if not remainder:
+        return code.rstrip()
+    return code.rstrip() + "\t;" + remainder.removeprefix(";").strip()
+
+
 def _normalise_source_match(value: str) -> str:
     """Compare instruction text without making spreadsheet whitespace significant."""
     return re.sub(r"\s+", "", value).casefold()
@@ -541,8 +576,9 @@ def apply_instruction_comments(
 
 
 def format_asm_lines(lines: list[str]) -> list[str]:
-    """Format relabel-data ASM lines while changing whitespace/comments only."""
+    """Format relabel-data ASM lines for final presentation."""
     lines = _format_equ_lines(lines)
+    lines = [_strip_data_comment(line) for line in lines]
     parsed: list[tuple[str, str, str] | None] = [_split_instruction(line) for line in lines]
 
     result: list[str] = []
