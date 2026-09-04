@@ -1066,6 +1066,7 @@ Level_2_Interrupt:		; Memory Address ($05CE) and binary offset [$024A]
 	rte	;4E73
 
 CheckKeyboard:		; Memory Address ($061C) and binary offset [$0298]
+	; Scans the 12-entry raw-key table for the keyboard interrupt's input code and dispatches the matching keyboard action; unmatched keys are ignored.
 	lea	RawKeyCodes.l,a0	;41F90000064A
 	moveq	#$0B,d1	;720B
 .keyboardloop:		; Memory Address ($0624) and binary offset [$02A0]
@@ -1077,10 +1078,10 @@ CheckKeyboard:		; Memory Address ($061C) and binary offset [$0298]
 KeyboardAction:		; Memory Address ($062E) and binary offset [$02AA]
 	lea	Player1_Data.l,a0	;41F90000EE7C
 	subq.w	#$06,d1	;5D41
-	bcc.s	.skipPlayer2	;6408
+	bcc.s	KeyboardAction_StorePendingAction	;6408
 	addq.w	#$06,d1	;5C41
 	lea	Player2_Data.l,a0	;41F90000EEDE
-.skipPlayer2:
+KeyboardAction_StorePendingAction:		; Memory Address ($0640) and binary offset [$02BC]
 	add.w	#InterfaceAction_MoveForward,d1	;0641000A
 	move.b	d1,Player_PendingActionOffset(a0)	;11410056
 	rts	;4E75
@@ -1157,6 +1158,7 @@ MainMenuText:		; Memory Address ($065D) and binary offset [$02D9]
 
 	EVEN
 MainMenu:		; Memory Address ($0746) and binary offset [$03C2]
+	; Draws the text title menu and dispatches its raw function-key choices for normal start, Quickstart, and loading a saved game.
 	clr.w	MainMenuBuffer.w	;42780656	;Short Absolute converted to symbol!
 	clr.w	MultiPlayer.l	;42790000EE30
 	jsr	Clear_DisplayBuffer.l	;4EB900008DA8
@@ -1219,6 +1221,7 @@ Ply2_Start:
 	rts	;4E75
 
 QkPly1_Start:
+	; Initialises Player 1's fixed Quickstart party: forces single-player mode and Quickstart menu state, writes champion IDs 0, 14, 5 and 3 into both party arrays, sets champion 0's stored X, Y and direction, and marks champions 3, 5 and 14 with X=$FF so normal champion selection treats them as already placed. QkPly2_Start calls this routine before initialising Player 2's fixed Quickstart party.
 	move.w	#$FFFF,MultiPlayer.l	;33FCFFFF0000EE30
 	move.w	#$FFFF,MainMenuBuffer.w	;31FCFFFF0656	;Short Absolute converted to symbol!
 	move.l	#$000E0503,$0018(a5)	;2B7C000E05030018
@@ -1539,7 +1542,7 @@ MonsterLevelHitPointMultipliers:		; Memory Address ($0B22) and binary offset [$0
 	dc.b	$DC	;DC
 
 TransferChampionStartPosition:		; Memory Address ($0B32) and binary offset [$07AE]
-	; Copies a champion’s saved start position into the active player record.
+	; Copies champion bytes $16/$17/$18/$1A as X, Y, direction, and floor into the active player record, then marks the champion's stored X and Y as $FF so the start position cannot be claimed again.
 	bsr	Load_CurrentChampionStatRecord	;61005B28
 	moveq	#$00,d0	;7000
 	move.b	ChampionStat_XPosition(a4),d0	;102C0016
@@ -1643,16 +1646,16 @@ Finish_PlayerUpdatePass:		; Memory Address ($0C88) and binary offset [$0904]
 	; Finishes player drawing, requests the next frame and continues periodic game-state processing.
 	jsr	Refresh_ActivePlayerDungeonViewport.l	;4EB900008FB8
 	move.b	#$FF,FrameSyncFlag.l	;13FC00FF00008C1E
-adrCd000C96:		; Memory Address ($0C96) and binary offset [$0912]
+MainGameLoop_WaitFrameSync:		; Memory Address ($0C96) and binary offset [$0912]
 	tst.b	FrameSyncFlag.l	;4A3900008C1E
-	bne.s	adrCd000C96	;66F8
+	bne.s	MainGameLoop_WaitFrameSync	;66F8
 	bsr.s	Flush_DirtyUIRegions_BothPlayers	;6164
 	move.b	Player1_ChampionCount.l,d0	;10390000EE94
 	and.b	Player2_ChampionPointer.l,d0	;C0390000EEF6
 	btst	#$06,d0	;08000006
-	beq.s	adrCd000CB4	;6702
+	beq.s	MainGameLoop_ArmConflictFlagAndTick	;6702
 	bsr.s	NoChampions_DelayAndFallbackToLoadGame	;610E
-adrCd000CB4:		; Memory Address ($0CB4) and binary offset [$0930]
+MainGameLoop_ArmConflictFlagAndTick:		; Memory Address ($0CB4) and binary offset [$0930]
 	move.w	#$0001,SpellEntity_PlacementConflictFlag.l	;33FC00010000505A
 	bsr	Run_300TickPeriodicUpdates	;6100057A
 	bra.s	MainGame_PlayerUpdateLoop	;608E
@@ -1707,13 +1710,13 @@ Apply_LowerViewportRefreshStrip:		; Memory Address ($0D48) and binary offset [$0
 	; Tests the final refresh-mask bit and selects the corresponding lower viewport copy region.
 	move.w	d6,d0	;3006
 	lsr.b	#$01,d3	;E20B
-	bcc	adrCd000DEA	;6400009C
+	bcc	ScreenBandCopy_SharedReturn	;6400009C
 	add.w	#$01EC,d0	;064001EC
 	move.l	screen_ptr.l,a0	;207900008D36
 	move.l	framebuffer_ptr.l,a1	;227900008D3A
 	add.w	d0,a1	;D2C0
 	add.w	d0,a0	;D0C0
-	bra	adrCd000DEC	;60000086
+	bra	PlayerHeightCheck_MainViewportRowCount	;60000086
 
 Copy_8RowScreenBand:		; Memory Address ($0D68) and binary offset [$09E4]
 	; Copies a fixed eight-row, four-plane screen band from the draw buffer to the visible buffer.
@@ -1722,31 +1725,31 @@ Copy_8RowScreenBand:		; Memory Address ($0D68) and binary offset [$09E4]
 	add.w	d0,a1	;D2C0
 	add.w	d0,a0	;D0C0
 	moveq	#$07,d0	;7007
-	bra	adrLp000DEE	;60000072
+	bra	ScreenBandCopy_SharedRowLoop	;60000072
 
 Copy_VariableHeightScreenBand:		; Memory Address ($0D7E) and binary offset [$09FA]
 	; Copies a dirty-region-selected variable-height screen band from the draw buffer to the visible buffer.
 	moveq	#$06,d2	;7406
 	btst	#$05,d3	;08030005
-	bne.s	adrCd000D8C	;6606
+	bne.s	CopyVariableHeightScreenBand_TestRowBit0	;6606
 	moveq	#-$01,d2	;74FF
 	add.w	#$0118,d0	;06400118
-adrCd000D8C:		; Memory Address ($0D8C) and binary offset [$0A08]
+CopyVariableHeightScreenBand_TestRowBit0:		; Memory Address ($0D8C) and binary offset [$0A08]
 	lsr.b	#$01,d3	;E20B
-	bcc.s	adrCd000D94	;6404
+	bcc.s	CopyVariableHeightScreenBand_TestRowBit1	;6404
 	add.w	#$0051,d2	;06420051
-adrCd000D94:		; Memory Address ($0D94) and binary offset [$0A10]
+CopyVariableHeightScreenBand_TestRowBit1:		; Memory Address ($0D94) and binary offset [$0A10]
 	lsr.b	#$01,d3	;E20B
-	bcc.s	adrCd000D9A	;6402
+	bcc.s	CopyVariableHeightScreenBand_CheckRowCount	;6402
 	addq.w	#$08,d2	;5042
-adrCd000D9A:		; Memory Address ($0D9A) and binary offset [$0A16]
+CopyVariableHeightScreenBand_CheckRowCount:		; Memory Address ($0D9A) and binary offset [$0A16]
 	tst.w	d2	;4A42
-	bmi.s	adrCd000DEA	;6B4C
+	bmi.s	ScreenBandCopy_SharedReturn	;6B4C
 	move.l	screen_ptr.l,a0	;207900008D36
 	move.l	framebuffer_ptr.l,a1	;227900008D3A
 	add.w	d0,a1	;D2C0
 	add.w	d0,a0	;D0C0
-adrLp000DAE:		; Memory Address ($0DAE) and binary offset [$0A2A]
+CopyVariableHeightScreenBand_RowCopyLoop:		; Memory Address ($0DAE) and binary offset [$0A2A]
 	lea	$5DC0(a1),a3	;47E95DC0
 	lea	$5DC0(a0),a2	;45E85DC0
 	move.l	(a3)+,(a2)+	;24DB
@@ -1767,13 +1770,13 @@ adrLp000DAE:		; Memory Address ($0DAE) and binary offset [$0A2A]
 	move.l	(a1)+,(a0)+	;20D9
 	lea	$001C(a0),a0	;41E8001C
 	lea	$001C(a1),a1	;43E9001C
-	dbra	d2,adrLp000DAE	;51CAFFC6
-adrCd000DEA:		; Memory Address ($0DEA) and binary offset [$0A66]
+	dbra	d2,CopyVariableHeightScreenBand_RowCopyLoop	;51CAFFC6
+ScreenBandCopy_SharedReturn:		; Memory Address ($0DEA) and binary offset [$0A66]
 	rts	;4E75
 
-adrCd000DEC:		; Memory Address ($0DEC) and binary offset [$0A68]
+PlayerHeightCheck_MainViewportRowCount:		; Memory Address ($0DEC) and binary offset [$0A68]
 	moveq	#$4B,d0	;704B
-adrLp000DEE:		; Memory Address ($0DEE) and binary offset [$0A6A]
+ScreenBandCopy_SharedRowLoop:		; Memory Address ($0DEE) and binary offset [$0A6A]
 	lea	$5DC0(a1),a3	;47E95DC0
 	lea	$5DC0(a0),a2	;45E85DC0
 	move.l	(a3)+,(a2)+	;24DB
@@ -1798,7 +1801,7 @@ adrLp000DEE:		; Memory Address ($0DEE) and binary offset [$0A6A]
 	move.l	(a1)+,(a0)+	;20D9
 	lea	$0018(a0),a0	;41E80018
 	lea	$0018(a1),a1	;43E90018
-	dbra	d0,adrLp000DEE	;51C8FFBE
+	dbra	d0,ScreenBandCopy_SharedRowLoop	;51C8FFBE
 	rts	;4E75
 
 Update_ChampionStatRegeneration:		; Memory Address ($0E34) and binary offset [$0AB0]
@@ -1831,20 +1834,21 @@ Update_ChampionHitPointRecovery:		; Memory Address ($0E76) and binary offset [$0
 	move.b	(a4),d0	;1014
 	lsr.b	#$01,d0	;E208
 	cmp.b	#$5B,(a0)	;0C10005B
-	beq.s	adrCd000E8A	;670A
+	beq.s	HitPointRecovery_AddToCurrentHP	;670A
 	cmp.b	#$5B,$0001(a0)	;0C28005B0001
-	beq.s	adrCd000E8A	;6702
+	beq.s	HitPointRecovery_AddToCurrentHP	;6702
 	lsr.b	#$01,d0	;E208
-adrCd000E8A:		; Memory Address ($0E8A) and binary offset [$0B06]
+HitPointRecovery_AddToCurrentHP:		; Memory Address ($0E8A) and binary offset [$0B06]
 	addq.b	#$01,d0	;5200
 	add.b	$0005(a4),d0	;D02C0005
-	bcc.s	adrCd000E94	;6402
+	bcc.s	Clamp_AIProgressToMaximum	;6402
 	moveq	#-$01,d0	;70FF
-adrCd000E94:		; Memory Address ($0E94) and binary offset [$0B10]
+Clamp_AIProgressToMaximum:		; Memory Address ($0E94) and binary offset [$0B10]
+	; Caps the newly accumulated progress byte at the record-specific maximum in byte $06, then stores it in byte $05.
 	cmp.b	$0006(a4),d0	;B02C0006
-	bcs.s	adrCd000E9E	;6504
+	bcs.s	ClampAIProgressToMaximum_StoreHP	;6504
 	move.b	$0006(a4),d0	;102C0006
-adrCd000E9E:		; Memory Address ($0E9E) and binary offset [$0B1A]
+ClampAIProgressToMaximum_StoreHP:		; Memory Address ($0E9E) and binary offset [$0B1A]
 	move.b	d0,$0005(a4)	;19400005
 	tst.b	$0007(a4)	;4A2C0007
 	bne.s	Update_ChampionFoodAndVitality	;6626
@@ -1855,45 +1859,45 @@ adrCd000E9E:		; Memory Address ($0E9E) and binary offset [$0B1A]
 	cmp.b	$0005(a4),d0	;B02C0005
 	bcs.s	Apply_StarvationDamage	;6506
 	move.b	$0005(a4),d0	;102C0005
-	beq.s	adrCd000ECA	;6708
+	beq.s	StarvationCheck_RestoreRegsAndContinue	;6708
 Apply_StarvationDamage:		; Memory Address ($0EC2) and binary offset [$0B3E]
 	; Applies a random level-influenced hit-point loss when food exhaustion has already reduced vitality to zero.
 	move.w	d0,d5	;3A00
 	move.w	d7,d0	;3007
-	bsr	adrCd002298	;610013D0
-adrCd000ECA:		; Memory Address ($0ECA) and binary offset [$0B46]
+	bsr	Apply_AttackDamage	;610013D0
+StarvationCheck_RestoreRegsAndContinue:		; Memory Address ($0ECA) and binary offset [$0B46]
 	movem.l	(sp)+,d7/a4/a5	;4CDF3080
 Update_ChampionFoodAndVitality:		; Memory Address ($0ECE) and binary offset [$0B4A]
 	; Recovers vitality according to food level or decrements vitality while starving.
 	move.b	$0010(a4),d0	;102C0010
-	bne.s	adrCd000EE0	;660C
+	bne.s	FoodAndVitality_RecoverFromFood	;660C
 	subq.b	#$01,$0007(a4)	;532C0007
-	bcc.s	adrCd000EF6	;641C
+	bcc.s	UpdateChampionFoodAndVitality_Return	;641C
 	clr.b	$0007(a4)	;422C0007
-	bra.s	adrCd000EF6	;6016
+	bra.s	UpdateChampionFoodAndVitality_Return	;6016
 
-adrCd000EE0:		; Memory Address ($0EE0) and binary offset [$0B5C]
+FoodAndVitality_RecoverFromFood:		; Memory Address ($0EE0) and binary offset [$0B5C]
 	lsr.b	#$06,d0	;EC08
 	addq.b	#$01,d0	;5200
 	add.b	$0007(a4),d0	;D02C0007
 	cmp.b	$0008(a4),d0	;B02C0008
-	bcs.s	adrCd000EF2	;6504
+	bcs.s	FoodAndVitality_StoreClampedVitality	;6504
 	move.b	$0008(a4),d0	;102C0008
-adrCd000EF2:		; Memory Address ($0EF2) and binary offset [$0B6E]
+FoodAndVitality_StoreClampedVitality:		; Memory Address ($0EF2) and binary offset [$0B6E]
 	move.b	d0,$0007(a4)	;19400007
-adrCd000EF6:		; Memory Address ($0EF6) and binary offset [$0B72]
+UpdateChampionFoodAndVitality_Return:		; Memory Address ($0EF6) and binary offset [$0B72]
 	rts	;4E75
 
 Stat_UpdateLoop:		; Memory Address ($0EF8) and binary offset [$0B74]
 	; Runs the slow global cycle for champion regeneration, party food drain, and worn-spell decay.
 	lea	Character_Stats_DataTable.l,a4	;49F90000EB2A
 	moveq	#$0F,d7	;7E0F
-adrLp000F00:		; Memory Address ($0F00) and binary offset [$0B7C]
+StatUpdateLoop_PerChampionLoop:		; Memory Address ($0F00) and binary offset [$0B7C]
 	movem.l	d7/a4,-(sp)	;48E70108
 	bsr	Update_ChampionStatRegeneration	;6100FF2E
 	movem.l	(sp)+,d7/a4	;4CDF1080
 	add.w	#$0020,a4	;D8FC0020
-	dbra	d7,adrLp000F00	;51CFFFEE
+	dbra	d7,StatUpdateLoop_PerChampionLoop	;51CFFFEE
 	subq.b	#$01,WornSpellDecayGraceCountdown.l	;53390000EE3C
 	lea	Player1_Data.l,a5	;4BF90000EE7C
 	bsr	Drain_PartyFoodLevel	;6100001C
@@ -1909,14 +1913,14 @@ Return_CharacterMaintenance:		; Memory Address ($0F3C) and binary offset [$0BB8]
 Drain_PartyFoodLevel:		; Memory Address ($0F3E) and binary offset [$0BBA]
 	; Drains one food point from each eligible party member before entering the worn-spell decay pass.
 	tst.b	WornSpellDecayGraceCountdown.l	;4A390000EE3C
-	bpl	adrCd00104A	;6A000104
+	bpl	PlayerTick_DrawInterfaceAndDispatchPanel	;6A000104
 	moveq	#$00,d6	;7C00
 	moveq	#$03,d7	;7E03
-adrLp000F4C:		; Memory Address ($0F4C) and binary offset [$0BC8]
+DrainPartyFoodLevel_SlotLoop:		; Memory Address ($0F4C) and binary offset [$0BC8]
 	move.b	$18(a5,d7.w),d0	;10357018
-	bmi.s	adrCd000FB8	;6B66
+	bmi.s	DrainPartyFoodLevel_SlotLoopTail	;6B66
 	btst	#$06,d0	;08000006
-	bne.s	adrCd000FB8	;6660
+	bne.s	DrainPartyFoodLevel_SlotLoopTail	;6660
 	and.w	#$000F,d0	;0240000F
 	move.w	d0,d1	;3200
 	bsr	Load_ChampionStatRecord	;61005700
@@ -1933,28 +1937,28 @@ Process_ChampionWornSpellTimer:		; Memory Address ($0F80) and binary offset [$0B
 	; Ages the champion's worn-spell timer and records shield-slot redraws when it expires.
 	move.b	$0011(a4),d0	;102C0011
 	and.w	#$0007,d0	;02400007
-	beq.s	adrCd000FB8	;672E
+	beq.s	DrainPartyFoodLevel_SlotLoopTail	;672E
 	subq.b	#$08,$0011(a4)	;512C0011
-	bcc.s	adrCd000FB8	;6428
+	bcc.s	DrainPartyFoodLevel_SlotLoopTail	;6428
 	clr.b	$0011(a4)	;422C0011
 	tst.w	d7	;4A47
-	bne.s	adrCd000F9A	;6602
+	bne.s	TeamAvatarUpdateLoop_CheckSlotBit	;6602
 	addq.b	#$01,d6	;5206
-adrCd000F9A:		; Memory Address ($0F9A) and binary offset [$0C16]
+TeamAvatarUpdateLoop_CheckSlotBit:		; Memory Address ($0F9A) and binary offset [$0C16]
 	btst	d7,$003E(a5)	;0F2D003E
-	bne.s	adrCd000FB8	;6618
+	bne.s	DrainPartyFoodLevel_SlotLoopTail	;6618
 	tst.w	d7	;4A47
 	beq.s	Redraw_FirstChampionShieldSlot	;6706
 	tst.w	$0042(a5)	;4A6D0042
-	bpl.s	adrCd000FB8	;6A0E
+	bpl.s	DrainPartyFoodLevel_SlotLoopTail	;6A0E
 Redraw_FirstChampionShieldSlot:		; Memory Address ($0FAA) and binary offset [$0C26]
 	; Redraws an expired shield for the first party slot when the interface state permits it.
 	movem.w	d6/d7,-(sp)	;48A70300
 	bsr	Refresh_PartyShieldSlotIfDirty	;61006F40
 	movem.w	(sp)+,d6/d7	;4C9F00C0
 	bset	d7,d6	;0FC6
-adrCd000FB8:		; Memory Address ($0FB8) and binary offset [$0C34]
-	dbra	d7,adrLp000F4C	;51CFFF92
+DrainPartyFoodLevel_SlotLoopTail:		; Memory Address ($0FB8) and binary offset [$0C34]
+	dbra	d7,DrainPartyFoodLevel_SlotLoop	;51CFFF92
 	btst	#$00,d6	;08060000
 	beq.s	Redraw_RemainingChampionShieldSlots	;670E
 	tst.b	$0015(a5)	;4A2D0015
@@ -1965,53 +1969,53 @@ adrCd000FB8:		; Memory Address ($0FB8) and binary offset [$0C34]
 Redraw_RemainingChampionShieldSlots:		; Memory Address ($0FD0) and binary offset [$0C4C]
 	; Redraws expired shield slots two through four when any changed.
 	and.w	#$000E,d6	;0246000E
-	beq.s	adrCd00104A	;6774
+	beq.s	PlayerTick_DrawInterfaceAndDispatchPanel	;6774
 	bsr	Draw_PartyShieldChainStrip	;61006EFA
-	bra.s	adrCd00104A	;606E
+	bra.s	PlayerTick_DrawInterfaceAndDispatchPanel	;606E
 
 FloorTrigger_Handler:		; Memory Address ($0FDC) and binary offset [$0C58]
 	; Detects the forward regeneration floor feature and runs one or two stat-regeneration passes for each party slot.
 	btst	#$02,(a5)	;08150002
-	beq	adrCd00108E	;670000AC
+	beq	PeriodicTick_SharedEarlyReturn	;670000AC
 	clr.w	FloorTriggerDetectedFlag.l	;427900001062
 	bsr	Select_ActivePlayerFloorMap	;610074EA
 	bsr	ForwardCellToMapOffset	;6100748E
 	move.w	$00(a6,d0.w),d1	;32360000
 	and.w	#$0007,d1	;02410007
 	subq.w	#$03,d1	;5741
-	bne.s	adrCd00100C	;660E
+	bne.s	FloorTriggerHandler_InitSlotLoop	;660E
 	tst.b	$00(a6,d0.w)	;4A360000
-	bne.s	adrCd00100C	;6608
+	bne.s	FloorTriggerHandler_InitSlotLoop	;6608
 	move.w	#$FFFF,FloorTriggerDetectedFlag.l	;33FCFFFF00001062
-adrCd00100C:		; Memory Address ($100C) and binary offset [$0C88]
+FloorTriggerHandler_InitSlotLoop:		; Memory Address ($100C) and binary offset [$0C88]
 	moveq	#$03,d7	;7E03
-adrLp00100E:		; Memory Address ($100E) and binary offset [$0C8A]
+FloorTriggerHandler_SlotLoop:		; Memory Address ($100E) and binary offset [$0C8A]
 	move.b	$18(a5,d7.w),d0	;10357018
 	and.w	#$00E0,d0	;024000E0
-	bne.s	adrCd001046	;662E
+	bne.s	FloorTriggerHandler_SlotLoopTail	;662E
 	move.b	$18(a5,d7.w),d0	;10357018
 	bsr	Load_ChampionStatRecord	;61005642
 	subq.b	#$06,$0015(a4)	;5D2C0015
-	bcc.s	adrCd00102A	;6404
+	bcc.s	FloorTriggerHandler_ApplyRegeneration	;6404
 	clr.b	$0015(a4)	;422C0015
-adrCd00102A:		; Memory Address ($102A) and binary offset [$0CA6]
+FloorTriggerHandler_ApplyRegeneration:		; Memory Address ($102A) and binary offset [$0CA6]
 	movem.l	d7/a5,-(sp)	;48E70104
 	bsr	Update_ChampionStatRegeneration	;6100FE04
 	tst.w	FloorTriggerDetectedFlag.l	;4A7900001062
-	beq.s	adrCd001042	;6708
+	beq.s	FloorTriggerHandler_RestoreLoopRegs	;6708
 	subq.b	#$01,$0009(a4)	;532C0009
 	bsr	Update_ChampionStatRegeneration	;6100FDF4
-adrCd001042:		; Memory Address ($1042) and binary offset [$0CBE]
+FloorTriggerHandler_RestoreLoopRegs:		; Memory Address ($1042) and binary offset [$0CBE]
 	movem.l	(sp)+,d7/a5	;4CDF2080
-adrCd001046:		; Memory Address ($1046) and binary offset [$0CC2]
-	dbra	d7,adrLp00100E	;51CFFFC6
-adrCd00104A:		; Memory Address ($104A) and binary offset [$0CC6]
+FloorTriggerHandler_SlotLoopTail:		; Memory Address ($1046) and binary offset [$0CC2]
+	dbra	d7,FloorTriggerHandler_SlotLoop	;51CFFFC6
+PlayerTick_DrawInterfaceAndDispatchPanel:		; Memory Address ($104A) and binary offset [$0CC6]
 	bsr	Draw_MainPlayerInterface	;6100707E
 	move.w	$0014(a5),d1	;322D0014
 	subq.w	#$01,d1	;5341
 	beq	Click_ShowStats	;670055C0
 	subq.b	#$01,d1	;5301
-	bne.s	adrCd00108E	;6632
+	bne.s	PeriodicTick_SharedEarlyReturn	;6632
 	jmp	Draw_SpellPointValues.l	;4EF90000C812
 
 FloorTriggerDetectedFlag:		; Memory Address ($1062) and binary offset [$0CDE]
@@ -2021,18 +2025,18 @@ FloorTriggerDetectedFlag:		; Memory Address ($1062) and binary offset [$0CDE]
 Decay_CastingFatigue:		; Memory Address ($1064) and binary offset [$0CE0]
 	; Decrements every champion's casting-fatigue byte once per eight engine subcycles and clamps it at zero.
 	subq.b	#$01,CastingFatigueSubcycleCountdown.l	;53390000EE3D
-	bpl.s	adrCd00108E	;6A22
+	bpl.s	PeriodicTick_SharedEarlyReturn	;6A22
 	move.b	#$07,CastingFatigueSubcycleCountdown.l	;13FC00070000EE3D
 	moveq	#$0F,d7	;7E0F
 	lea	Character_Stats_DataTable.l,a4	;49F90000EB2A
-adrLp00107C:		; Memory Address ($107C) and binary offset [$0CF8]
+DecayCastingFatigue_ChampionLoop:		; Memory Address ($107C) and binary offset [$0CF8]
 	subq.b	#$01,$0015(a4)	;532C0015
-	bcc.s	adrCd001086	;6404
+	bcc.s	DecayCastingFatigue_AdvanceRecord	;6404
 	clr.b	$0015(a4)	;422C0015
-adrCd001086:		; Memory Address ($1086) and binary offset [$0D02]
+DecayCastingFatigue_AdvanceRecord:		; Memory Address ($1086) and binary offset [$0D02]
 	add.w	#$0020,a4	;D8FC0020
-	dbra	d7,adrLp00107C	;51CFFFF0
-adrCd00108E:		; Memory Address ($108E) and binary offset [$0D0A]
+	dbra	d7,DecayCastingFatigue_ChampionLoop	;51CFFFF0
+PeriodicTick_SharedEarlyReturn:		; Memory Address ($108E) and binary offset [$0D0A]
 	rts	;4E75
 
 Maintain_MonsterGroupFormation:		; Memory Address ($1090) and binary offset [$0D0C]
@@ -2041,27 +2045,27 @@ Maintain_MonsterGroupFormation:		; Memory Address ($1090) and binary offset [$0D
 	lea	UnpackedMonsters.l,a3	;47F900016B7E
 	lea	MonsterTeamIndexTable.l,a0	;41F900017390
 	move.w	MonsterTeamIndexTable_CountOffset(a0),d7	;3E28FFFE
-	bmi.s	adrCd00108E	;6BEA
-adrLp0010A4:		; Memory Address ($10A4) and binary offset [$0D20]
+	bmi.s	PeriodicTick_SharedEarlyReturn	;6BEA
+MaintainMonsterGroupFormation_GroupLoop:		; Memory Address ($10A4) and binary offset [$0D20]
 	cmp.l	#$FFFFFFFF,(a0)	;0C90FFFFFFFF
-	beq.s	adrCd0010EA	;673E
+	beq.s	MaintainMonsterGroupFormation_RemoveGroupEntry	;673E
 	moveq	#-$01,d4	;78FF
 	moveq	#MonsterTeamMember_Count-1,d1	;7203
-adrLp0010B0:		; Memory Address ($10B0) and binary offset [$0D2C]
+MaintainMonsterGroupFormation_MemberLoop:		; Memory Address ($10B0) and binary offset [$0D2C]
 	moveq	#$00,d2	;7400
 	move.b	$00(a0,d1.w),d2	;14301000
-	bmi.s	adrCd0010CA	;6B12
+	bmi.s	MaintainMonsterGroupFormation_MemberLoopTail	;6B12
 	addq.w	#$01,d4	;5244
 	asl.w	#$04,d2	;E942
 	move.b	MonsterRecord_TeamGroupIndex(a3,d2.w),d3	;1633200D
-	bmi.s	adrCd0010CA	;6B08
+	bmi.s	MaintainMonsterGroupFormation_MemberLoopTail	;6B08
 	sub.b	d6,d3	;9606
 	move.b	d3,MonsterRecord_TeamGroupIndex(a3,d2.w)	;1783200D
 	move.w	d2,d5	;3A02
-adrCd0010CA:		; Memory Address ($10CA) and binary offset [$0D46]
-	dbra	d1,adrLp0010B0	;51C9FFE4
+MaintainMonsterGroupFormation_MemberLoopTail:		; Memory Address ($10CA) and binary offset [$0D46]
+	dbra	d1,MaintainMonsterGroupFormation_MemberLoop	;51C9FFE4
 	tst.w	d4	;4A44
-	bne.s	adrCd00110A	;6638
+	bne.s	MaintainMonsterGroupFormation_TestGroupFlags	;6638
 	move.b	#MonsterRecord_NoTeamGroup,MonsterRecord_TeamGroupIndex(a3,d5.w)	;17BC00FF500D
 	move.b	MonsterRecord_RotationAndSpace(a3,d5.w),d4	;18335002
 	and.w	#$0003,d4	;02440003
@@ -2069,44 +2073,44 @@ adrCd0010CA:		; Memory Address ($10CA) and binary offset [$0D46]
 	asl.w	#$04,d4	;E944
 	or.w	d4,d2	;8444
 	move.b	d2,$02(a3,d5.w)	;17825002
-adrCd0010EA:		; Memory Address ($10EA) and binary offset [$0D66]
+MaintainMonsterGroupFormation_RemoveGroupEntry:		; Memory Address ($10EA) and binary offset [$0D66]
 	lea	$0004(a0),a1	;43E80004
 	lea	(a0),a2	;45D0
 	move.w	d7,d1	;3207
-	bra.s	adrCd0010F6	;6002
+	bra.s	MaintainMonsterGroupFormation_ShiftLoopTail	;6002
 
-adrLp0010F4:		; Memory Address ($10F4) and binary offset [$0D70]
+MaintainMonsterGroupFormation_ShiftLoop:		; Memory Address ($10F4) and binary offset [$0D70]
 	move.l	(a1)+,(a2)+	;24D9
-adrCd0010F6:		; Memory Address ($10F6) and binary offset [$0D72]
-	dbra	d1,adrLp0010F4	;51C9FFFC
+MaintainMonsterGroupFormation_ShiftLoopTail:		; Memory Address ($10F6) and binary offset [$0D72]
+	dbra	d1,MaintainMonsterGroupFormation_ShiftLoop	;51C9FFFC
 	move.l	#$FFFFFFFF,(a2)	;24BCFFFFFFFF
 	subq.w	#$01,MonsterTeamGroupCount.l	;53790001738E
 	addq.w	#$01,d6	;5246
-	bra.s	adrCd00116E	;6064
+	bra.s	MaintainMonsterGroupFormation_GroupLoopTail	;6064
 
-adrCd00110A:		; Memory Address ($110A) and binary offset [$0D86]
+MaintainMonsterGroupFormation_TestGroupFlags:		; Memory Address ($110A) and binary offset [$0D86]
 	move.w	(a0),d0	;3010
 	and.w	#$8080,d0	;02408080
-	beq.s	adrCd00116C	;675A
+	beq.s	MaintainMonsterGroupFormation_AdvanceEntry	;675A
 	move.b	$0003(a0),d2	;14280003
-	bmi.s	adrCd001120	;6B08
+	bmi.s	MaintainMonsterGroupFormation_SelectAltSlot	;6B08
 	move.b	#$FF,$0003(a0)	;117C00FF0003
-	bra.s	adrCd00112A	;600A
+	bra.s	MaintainMonsterGroupFormation_StoreSlotValue	;600A
 
-adrCd001120:		; Memory Address ($1120) and binary offset [$0D9C]
+MaintainMonsterGroupFormation_SelectAltSlot:		; Memory Address ($1120) and binary offset [$0D9C]
 	move.b	$0002(a0),d2	;14280002
 	move.b	#$FF,$0002(a0)	;117C00FF0002
-adrCd00112A:		; Memory Address ($112A) and binary offset [$0DA6]
+MaintainMonsterGroupFormation_StoreSlotValue:		; Memory Address ($112A) and binary offset [$0DA6]
 	moveq	#$01,d1	;7201
 	tst.b	d0	;4A00
-	bmi.s	adrCd001132	;6B02
+	bmi.s	MaintainMonsterGroupFormation_RelocateRecord	;6B02
 	moveq	#$00,d1	;7200
-adrCd001132:		; Memory Address ($1132) and binary offset [$0DAE]
+MaintainMonsterGroupFormation_RelocateRecord:		; Memory Address ($1132) and binary offset [$0DAE]
 	move.b	d2,$00(a0,d1.w)	;11821000
 	move.w	d5,d3	;3605
 	lsr.w	#$04,d3	;E84B
 	cmp.b	(a0),d3	;B610
-	beq.s	adrCd00116C	;672E
+	beq.s	MaintainMonsterGroupFormation_AdvanceEntry	;672E
 	move.b	(a0),d3	;1610
 	asl.w	#$04,d3	;E943
 	move.b	MonsterRecord_XPosition(a3,d5.w),MonsterRecord_XPosition(a3,d3.w)	;17B350003000
@@ -2116,10 +2120,10 @@ adrCd001132:		; Memory Address ($1132) and binary offset [$0DAE]
 	move.b	MonsterRecord_RotationAndSpace(a3,d5.w),MonsterRecord_RotationAndSpace(a3,d3.w)	;17B350023002
 	move.b	MonsterRecord_TeamGroupIndex(a3,d5.w),MonsterRecord_TeamGroupIndex(a3,d3.w)	;17B3500D300D
 	move.b	#MonsterRecord_NoTeamGroup,MonsterRecord_TeamGroupIndex(a3,d5.w)	;17BC00FF500D
-adrCd00116C:		; Memory Address ($116C) and binary offset [$0DE8]
+MaintainMonsterGroupFormation_AdvanceEntry:		; Memory Address ($116C) and binary offset [$0DE8]
 	addq.w	#$04,a0	;5848
-adrCd00116E:		; Memory Address ($116E) and binary offset [$0DEA]
-	dbra	d7,adrLp0010A4	;51CFFF34
+MaintainMonsterGroupFormation_GroupLoopTail:		; Memory Address ($116E) and binary offset [$0DEA]
+	dbra	d7,MaintainMonsterGroupFormation_GroupLoop	;51CFFF34
 	rts	;4E75
 
 Decay_LinkedMagicRecords:		; Memory Address ($1174) and binary offset [$0DF0]
@@ -2128,28 +2132,29 @@ Decay_LinkedMagicRecords:		; Memory Address ($1174) and binary offset [$0DF0]
 	moveq	#$00,d1	;7200
 	move.l	Current_TowerMapDataBase.l,a6	;2C790000EE78
 	lea	LinkedMagicRecordList.l,a0	;41F9000173F6
-adrCd001188:		; Memory Address ($1188) and binary offset [$0E04]
+DecayLinkedMagicRecords_ScanLoop:		; Memory Address ($1188) and binary offset [$0E04]
 	cmp.w	-$0002(a0),d1	;B268FFFE
-	bcs.s	adrCd001190	;6502
+	bcs.s	DecayLinkedMagicRecords_ProcessRecord	;6502
 	rts	;4E75
 
-adrCd001190:		; Memory Address ($1190) and binary offset [$0E0C]
+DecayLinkedMagicRecords_ProcessRecord:		; Memory Address ($1190) and binary offset [$0E0C]
+	; Reduces a linked magic record's first byte by four on each 300-raster-unit update, removes the record on underflow, and applies the kind-1 occupant effect unless party levitation suppresses it.
 	move.w	$02(a0,d1.w),d0	;30301002
 	subq.b	#$04,$00(a6,d0.w)	;59360000
-	bcs.s	adrCd0011B6	;651C
+	bcs.s	DecayLinkedMagicRecords_RemoveAndContinue	;651C
 	cmp.b	#$01,$00(a0,d1.w)	;0C3000011000
-	bne.s	adrCd0011B2	;6610
+	bne.s	DecayLinkedMagicRecords_NextRecord	;6610
 	tst.b	$01(a6,d0.w)	;4A360001
-	bpl.s	adrCd0011B2	;6A0A
+	bpl.s	DecayLinkedMagicRecords_NextRecord	;6A0A
 	move.b	$01(a0,d1.w),SpellEntity_CasterIndex.l	;13F010010000EE3E
 	bsr.s	Damage_LinkedMagicCellOccupant	;6108
-adrCd0011B2:		; Memory Address ($11B2) and binary offset [$0E2E]
+DecayLinkedMagicRecords_NextRecord:		; Memory Address ($11B2) and binary offset [$0E2E]
 	addq.w	#$04,d1	;5841
-	bra.s	adrCd001188	;60D2
+	bra.s	DecayLinkedMagicRecords_ScanLoop	;60D2
 
-adrCd0011B6:		; Memory Address ($11B6) and binary offset [$0E32]
+DecayLinkedMagicRecords_RemoveAndContinue:		; Memory Address ($11B6) and binary offset [$0E32]
 	bsr.s	Remove_LinkedMagicRecord	;615A
-	bra.s	adrCd001188	;60CE
+	bra.s	DecayLinkedMagicRecords_ScanLoop	;60CE
 
 Damage_LinkedMagicCellOccupant:		; Memory Address ($11BA) and binary offset [$0E36]
 	; Resolves the occupant of a damaging linked-magic cell and applies the appropriate champion, party, or monster damage path.
@@ -2158,30 +2163,30 @@ Damage_LinkedMagicCellOccupant:		; Memory Address ($11BA) and binary offset [$0E
 	lsr.b	#$02,d1	;E409
 	movem.w	d0/d1,-(sp)	;48A7C000
 	jsr	Resolve_DiagonalCellAndFindOccupant.l	;4EB9000098A4
-	bcc.s	adrCd001208	;6438
+	bcc.s	DamageLinkedMagicOccupant_Return	;6438
 	tst.b	d0	;4A00
-	bmi.s	adrCd0011F0	;6B1C
+	bmi.s	LinkedMagicDamage_PartyLevitateCheck	;6B1C
 	cmpi.b	#$10,d0	;0C000010
-	bcs.s	adrCd0011E0	;6506
+	bcs.s	LinkedMagicDamage_HitSingleOccupant	;6506
 	tst.b	$000B(a1)	;4A29000B
-	bmi.s	adrCd001208	;6B28
-adrCd0011E0:		; Memory Address ($11E0) and binary offset [$0E5C]
+	bmi.s	DamageLinkedMagicOccupant_Return	;6B28
+LinkedMagicDamage_HitSingleOccupant:		; Memory Address ($11E0) and binary offset [$0E5C]
 	move.w	$0002(sp),d7	;3E2F0002
 	bsr	Roll_AndStagePartyDamage	;61000C5C
 	move.w	(sp),d0	;3017
 	bsr	Apply_SpellImpactAtOccupant	;61001120
-	bra.s	adrCd001208	;6018
+	bra.s	DamageLinkedMagicOccupant_Return	;6018
 
-adrCd0011F0:		; Memory Address ($11F0) and binary offset [$0E6C]
+LinkedMagicDamage_PartyLevitateCheck:		; Memory Address ($11F0) and binary offset [$0E6C]
 	move.l	a1,a5	;2A49
 	moveq	#$05,d1	;7205
-	bsr	adrCd005500	;6100430A
+	bsr	Find_HighestRankedPartyMemberByCategory	;6100430A
 	tst.w	d3	;4A43
-	bpl.s	adrCd001208	;6A0C
+	bpl.s	DamageLinkedMagicOccupant_Return	;6A0C
 	move.w	$0002(sp),d7	;3E2F0002
 	bsr	Roll_AndStagePartyDamage	;61000C40
 	bsr	Apply_PartyDamage	;61001286
-adrCd001208:		; Memory Address ($1208) and binary offset [$0E84]
+DamageLinkedMagicOccupant_Return:		; Memory Address ($1208) and binary offset [$0E84]
 	movem.w	(sp)+,d0/d1	;4C9F0003
 	movem.l	(sp)+,d1/a0/a5/a6	;4CDF6102
 	rts	;4E75
@@ -2195,19 +2200,19 @@ Remove_LinkedMagicRecord:		; Memory Address ($1212) and binary offset [$0E8E]
 	sub.w	d1,d0	;9041
 	lsr.w	#$02,d0	;E448
 	subq.w	#$01,d0	;5340
-	bra.s	adrCd00122E	;6002
+	bra.s	RemoveLinkedMagicRecord_ShiftLoopTail	;6002
 
-adrLp00122C:		; Memory Address ($122C) and binary offset [$0EA8]
+RemoveLinkedMagicRecord_ShiftLoop:		; Memory Address ($122C) and binary offset [$0EA8]
 	move.l	(a2)+,(a1)+	;22DA
-adrCd00122E:		; Memory Address ($122E) and binary offset [$0EAA]
-	dbra	d0,adrLp00122C	;51C8FFFC
+RemoveLinkedMagicRecord_ShiftLoopTail:		; Memory Address ($122E) and binary offset [$0EAA]
+	dbra	d0,RemoveLinkedMagicRecord_ShiftLoop	;51C8FFFC
 	subq.w	#$04,-$0002(a0)	;5968FFFE
 	rts	;4E75
 
 Run_300TickPeriodicUpdates:		; Memory Address ($1238) and binary offset [$0EB4]
 	; Reloads the 300-tick counter and runs linked-magic decay, floor-trigger checks, navigation rebuilds, and party maintenance.
 	tst.w	WorldTick_300UnitCountdown.l	;4A790000EE36
-	bne.s	adrCd001286	;6646
+	bne.s	Run300UnitGameTick_ActionSubcycleEntry	;6646
 	move.w	#$012C,WorldTick_300UnitCountdown.l	;33FC012C0000EE36
 	bsr	Decay_LinkedMagicRecords	;6100FF2A
 	lea	Player1_Data.l,a5	;4BF90000EE7C
@@ -2220,40 +2225,41 @@ Run_300TickPeriodicUpdates:		; Memory Address ($1238) and binary offset [$0EB4]
 	bsr	Build_PartyNavigationField	;61004422
 	bsr	Maintain_MonsterGroupFormation	;6100FE1A
 	bchg	#$01,StatUpdateLoop_AlternateTickGate.l	;087900010000EE3F
-	beq.s	adrCd001286	;6704
+	beq.s	Run300UnitGameTick_ActionSubcycleEntry	;6704
 	bsr	Stat_UpdateLoop	;6100FC74
-adrCd001286:		; Memory Address ($1286) and binary offset [$0F02]
+Run300UnitGameTick_ActionSubcycleEntry:		; Memory Address ($1286) and binary offset [$0F02]
 	tst.w	ActionSubcycleCountdown.l	;4A790000EE38
-	bne	adrCd0013C0	;66000132
+	bne	SharedEarlyReturn_Rts	;66000132
 	move.w	#$0007,ActionSubcycleCountdown.l	;33FC00070000EE38
 	bsr	Decay_CastingFatigue	;6100FDCA
 	lea	MapCellImpactList.l,a0	;41F9000174F8
 	lea	-$0002(a0),a1	;43E8FFFE
 	move.l	Current_TowerMapDataBase.l,a6	;2C790000EE78
 	move.w	-$0002(a0),d7	;3E28FFFE
-	bra.s	adrCd0012DA	;6028
+	bra.s	MapCellImpactList_DecayLoopEnd	;6028
 
-adrLp0012B2:		; Memory Address ($12B2) and binary offset [$0F2E]
+MapCellImpactList_DecayLoop:		; Memory Address ($12B2) and binary offset [$0F2E]
+	; Decrements each impact record's phase once per global subcycle; phases 2, 1 and 0 remain drawable, and the record is removed when the three-bit phase underflows.
 	move.w	(a0)+,d0	;3018
 	subq.w	#$01,(a0)	;5350
 	move.w	(a0)+,d1	;3218
 	not.w	d1	;4641
 	and.w	#$0003,d1	;02410003
-	bne.s	adrCd0012DA	;661A
+	bne.s	MapCellImpactList_DecayLoopEnd	;661A
 	bclr	#$05,$01(a6,d0.w)	;08B600050001
 	subq.w	#$04,a0	;5948
 	lea	(a0),a2	;45D0
 	lea	$0004(a0),a3	;47E80004
 	move.w	d7,d1	;3207
-	bra.s	adrCd0012D4	;6002
+	bra.s	MapCellImpactList_CompactLoopEnd	;6002
 
-adrLp0012D2:		; Memory Address ($12D2) and binary offset [$0F4E]
+MapCellImpactList_CompactLoop:		; Memory Address ($12D2) and binary offset [$0F4E]
 	move.l	(a3)+,(a2)+	;24DB
-adrCd0012D4:		; Memory Address ($12D4) and binary offset [$0F50]
-	dbra	d1,adrLp0012D2	;51C9FFFC
+MapCellImpactList_CompactLoopEnd:		; Memory Address ($12D4) and binary offset [$0F50]
+	dbra	d1,MapCellImpactList_CompactLoop	;51C9FFFC
 	subq.w	#$01,(a1)	;5351
-adrCd0012DA:		; Memory Address ($12DA) and binary offset [$0F56]
-	dbra	d7,adrLp0012B2	;51CFFFD6
+MapCellImpactList_DecayLoopEnd:		; Memory Address ($12DA) and binary offset [$0F56]
+	dbra	d7,MapCellImpactList_DecayLoop	;51CFFFD6
 	lea	Player1_Data.l,a5	;4BF90000EE7C
 	bsr	Run_PlayerPeriodicMaintenance	;6100161E
 	lea	Player2_Data.l,a5	;4BF90000EEDE
@@ -2262,33 +2268,34 @@ adrCd0012DA:		; Memory Address ($12DA) and binary offset [$0F56]
 	move.w	#$FFFF,ActorScanRecordIndex.l	;33FCFFFF000013C2
 	clr.w	PartyFormationActivationFlag.l	;4279000013C4
 	lea	Character_Stats_DataTable.l,a4	;49F90000EB2A
-adrCd001308:		; Memory Address ($1308) and binary offset [$0F84]
+ChampionCooldown_ScanLoop:		; Memory Address ($1308) and binary offset [$0F84]
 	move.w	d7,-(sp)	;3F07
 	move.w	d7,d0	;3007
 	move.w	d7,ActorScanRecordIndex.l	;33C7000013C2
 	bsr	Find_ChampionOwner	;61002D52
 	tst.w	d1	;4A41
-	bpl.s	adrCd001320	;6A06
+	bpl.s	ChampionCooldown_ScanContinue	;6A06
 	moveq	#$16,d4	;7816
 	bsr	Update_CharacterCooldownIfCurrentTower	;610000A8
-adrCd001320:		; Memory Address ($1320) and binary offset [$0F9C]
+ChampionCooldown_ScanContinue:		; Memory Address ($1320) and binary offset [$0F9C]
 	add.w	#$0020,a4	;D8FC0020
 	move.w	(sp)+,d7	;3E1F
 	addq.w	#$01,d7	;5247
 	cmpi.w	#$0010,d7	;0C470010
-	bcs.s	adrCd001308	;65DA
+	bcs.s	ChampionCooldown_ScanLoop	;65DA
 	lea	UnpackedMonsters.l,a4	;49F900016B7E
 	move.w	-$0002(a4),d7	;3E2CFFFE
-	bmi.s	adrCd001352	;6B18
-adrLp00133A:		; Memory Address ($133A) and binary offset [$0FB6]
+	bmi.s	Dispatch_PartyShieldHighlightDecay	;6B18
+UnpackedMonsters_AnimationAgeLoop:		; Memory Address ($133A) and binary offset [$0FB6]
+	; Scans the allocation-ordered monster, Summon and spell records once per actor update; records created during the scan resolve their initial collision but do not receive another scheduled move in the same pass.
 	move.w	d7,-(sp)	;3F07
 	addq.w	#$01,ActorScanRecordIndex.l	;5279000013C2
 	moveq	#$00,d4	;7800
 	bsr	Age_CharacterAnimationTimer	;61000092
 	add.w	#$0010,a4	;D8FC0010
 	move.w	(sp)+,d7	;3E1F
-	dbra	d7,adrLp00133A	;51CFFFEA
-adrCd001352:		; Memory Address ($1352) and binary offset [$0FCE]
+	dbra	d7,UnpackedMonsters_AnimationAgeLoop	;51CFFFEA
+Dispatch_PartyShieldHighlightDecay:		; Memory Address ($1352) and binary offset [$0FCE]
 	lea	Player1_Data.l,a5	;4BF90000EE7C
 	bsr.s	Decay_PartyShieldHighlightTimer	;6106
 	lea	Player2_Data.l,a5	;4BF90000EEDE
@@ -2296,51 +2303,52 @@ Decay_PartyShieldHighlightTimer:		; Memory Address ($1360) and binary offset [$0
 	; Ages the four party-shield highlight timers and redraws any slot whose timer expires.
 	moveq	#$03,d7	;7E03
 	moveq	#$00,d6	;7C00
-adrLp001364:		; Memory Address ($1364) and binary offset [$0FE0]
+PartyShieldHighlightTimer_SlotLoop:		; Memory Address ($1364) and binary offset [$0FE0]
 	tst.b	$5A(a5,d7.w)	;4A35705A
-	bmi.s	adrCd00137E	;6B14
+	bmi.s	PartyShieldHighlightTimer_SlotLoopEnd	;6B14
 	subq.b	#$01,$5A(a5,d7.w)	;5335705A
-	bpl.s	adrCd00137E	;6A0E
+	bpl.s	PartyShieldHighlightTimer_SlotLoopEnd	;6A0E
 	moveq	#$01,d6	;7C01
 	movem.w	d6/d7,-(sp)	;48A70300
 	bsr	Refresh_PartyShieldSlotIfDirty	;61006B78
 	movem.w	(sp)+,d6/d7	;4C9F00C0
-adrCd00137E:		; Memory Address ($137E) and binary offset [$0FFA]
-	dbra	d7,adrLp001364	;51CFFFE4
+PartyShieldHighlightTimer_SlotLoopEnd:		; Memory Address ($137E) and binary offset [$0FFA]
+	dbra	d7,PartyShieldHighlightTimer_SlotLoop	;51CFFFE4
 	tst.w	d6	;4A46
-	beq	adrCd00138C	;67000006
+	beq	CombatOutcomeSlotDecay_Init	;67000006
 	bsr	Draw_PartyShieldChainStrip	;61006B48
-adrCd00138C:		; Memory Address ($138C) and binary offset [$1008]
+CombatOutcomeSlotDecay_Init:		; Memory Address ($138C) and binary offset [$1008]
 	moveq	#$03,d7	;7E03
-adrLp00138E:		; Memory Address ($138E) and binary offset [$100A]
+CombatOutcomeSlotDecay_Loop:		; Memory Address ($138E) and binary offset [$100A]
+	; Decrements one formation slot's combat-outcome lifetime during the main actor scan and clears/redraws the slot when the counter underflows.
 	tst.b	$5E(a5,d7.w)	;4A35705E
-	bmi.s	adrCd0013A2	;6B0E
+	bmi.s	CombatOutcomeSlotDecay_LoopEnd	;6B0E
 	subq.b	#$01,$5E(a5,d7.w)	;5335705E
-	bpl.s	adrCd0013A2	;6A08
+	bpl.s	CombatOutcomeSlotDecay_LoopEnd	;6A08
 	move.w	d7,-(sp)	;3F07
 	bsr	Redraw_CombatOutcomeSlot	;61004CF8
 	move.w	(sp)+,d7	;3E1F
-adrCd0013A2:		; Memory Address ($13A2) and binary offset [$101E]
-	dbra	d7,adrLp00138E	;51CFFFEA
+CombatOutcomeSlotDecay_LoopEnd:		; Memory Address ($13A2) and binary offset [$101E]
+	dbra	d7,CombatOutcomeSlotDecay_Loop	;51CFFFEA
 	rts	;4E75
 
 Calculate_ManhattanDistance:		; Memory Address ($13A8) and binary offset [$1024]
 	; Returns the sum of the absolute X and Y differences between two packed coordinates.
 	sub.w	d1,d0	;9041
 	move.w	d0,d1	;3200
-	bpl.s	adrCd0013B0	;6A02
+	bpl.s	Calculate_ManhattanDistance_AbsDeltaX	;6A02
 	neg.w	d0	;4440
-adrCd0013B0:		; Memory Address ($13B0) and binary offset [$102C]
+Calculate_ManhattanDistance_AbsDeltaX:		; Memory Address ($13B0) and binary offset [$102C]
 	move.w	d0,d2	;3400
 	swap	d0	;4840
 	swap	d1	;4841
 	sub.w	d1,d0	;9041
 	move.w	d0,d1	;3200
-	bpl.s	adrCd0013BE	;6A02
+	bpl.s	Calculate_ManhattanDistance_AbsDeltaY	;6A02
 	neg.w	d0	;4440
-adrCd0013BE:		; Memory Address ($13BE) and binary offset [$103A]
+Calculate_ManhattanDistance_AbsDeltaY:		; Memory Address ($13BE) and binary offset [$103A]
 	add.w	d0,d2	;D440
-adrCd0013C0:		; Memory Address ($13C0) and binary offset [$103C]
+SharedEarlyReturn_Rts:		; Memory Address ($13C0) and binary offset [$103C]
 	rts	;4E75
 
 ActorScanRecordIndex:		; Memory Address ($13C2) and binary offset [$103E]
@@ -2354,9 +2362,9 @@ Update_CharacterCooldownIfCurrentTower:		; Memory Address ($13C6) and binary off
 	; Updates a champion's attack cooldown only when their record belongs to the current tower, then continues actor activation.
 	move.w	CurrentTower.l,d0	;30390000EE2E
 	cmp.b	$001F(a4),d0	;B02C001F
-	bne.s	adrCd0013C0	;66EE
+	bne.s	SharedEarlyReturn_Rts	;66EE
 	bsr	Update_CharacterAttackCooldown	;610015B0
-	bra.s	adrCd0013EE	;6016
+	bra.s	ActorScan_ActivationGate	;6016
 
 Age_CharacterAnimationTimer:		; Memory Address ($13D8) and binary offset [$1054]
 	; Decrements the animation timer while preserving Confuse and Terror bits, then continues actor activation.
@@ -2366,62 +2374,63 @@ Age_CharacterAnimationTimer:		; Memory Address ($13D8) and binary offset [$1054]
 	and.b	#$60,d1	;02010060
 	or.b	d1,d0	;8001
 	move.b	d0,$0005(a4)	;19400005
-adrCd0013EE:		; Memory Address ($13EE) and binary offset [$106A]
+ActorScan_ActivationGate:		; Memory Address ($13EE) and binary offset [$106A]
 	move.b	$04(a4,d4.w),d0	;10344004
 	cmp.b	AttackTypeNoSpells_FixedOriginFormCode.l,d0	;B0390000EED5
-	beq.s	adrCd001402	;6708
+	beq.s	FixedOriginForm_CooldownDecrement	;6708
 	cmp.b	AttackTypeArcBoltMachine_FixedOriginFormCode.l,d0	;B0390000EF37
-	bne.s	adrCd001414	;6612
-adrCd001402:		; Memory Address ($1402) and binary offset [$107E]
+	bne.s	FixedOriginForm_EarlyReturn	;6612
+FixedOriginForm_CooldownDecrement:		; Memory Address ($1402) and binary offset [$107E]
+	; Handles completion of the stored low-nibble cooldown: a starting value of one decrements to zero and returns, while a starting zero underflows into the completion path.
 	move.b	$03(a4,d4.w),d7	;1E344003
 	move.w	d7,d1	;3207
 	and.w	#$000F,d1	;0241000F
 	subq.w	#$01,d1	;5341
-	bcs.s	adrCd001416	;6506
+	bcs.s	Confuse_RecoveryTick	;6506
 	subq.b	#$01,$03(a4,d4.w)	;53344003
-adrCd001414:		; Memory Address ($1414) and binary offset [$1090]
+FixedOriginForm_EarlyReturn:		; Memory Address ($1414) and binary offset [$1090]
 	rts	;4E75
 
-adrCd001416:		; Memory Address ($1416) and binary offset [$1092]
+Confuse_RecoveryTick:		; Memory Address ($1416) and binary offset [$1092]
 	move.w	d7,d1	;3207
 	lsr.b	#$04,d1	;E809
 	or.b	d7,d1	;8207
 	move.b	d1,$03(a4,d4.w)	;19814003
 	btst	#$06,$05(a4,d4.w)	;083400064005
-	beq.s	adrCd00143E	;6716
+	beq.s	Terror_RecoveryTick	;6716
 	move.w	#$001E,ResistanceCheckPower.l	;33FC001E000020F4
 	bsr	Test_LevelResistanceRoll_FromPointer	;610000B6
 	tst.w	d5	;4A45
-	bne.s	adrCd00143E	;6606
+	bne.s	Terror_RecoveryTick	;6606
 	bclr	#$06,$05(a4,d4.w)	;08B400064005
-adrCd00143E:		; Memory Address ($143E) and binary offset [$10BA]
+Terror_RecoveryTick:		; Memory Address ($143E) and binary offset [$10BA]
 	btst	#$05,$05(a4,d4.w)	;083400054005
-	beq.s	adrCd00146E	;6728
+	beq.s	Paralyze_RecoveryTick	;6728
 	and.b	#$F0,$03(a4,d4.w)	;023400F04003
 	or.b	#$02,$03(a4,d4.w)	;003400024003
 	move.w	#$0028,ResistanceCheckPower.l	;33FC0028000020F4
 	bsr	Test_LevelResistanceRoll_FromPointer	;6100008C
 	tst.w	d5	;4A45
-	bne.s	adrCd00146E	;660C
+	bne.s	Paralyze_RecoveryTick	;660C
 	bclr	#$05,$05(a4,d4.w)	;08B400054005
 	or.b	#$0F,$03(a4,d4.w)	;0034000F4003
-adrCd00146E:		; Memory Address ($146E) and binary offset [$10EA]
+Paralyze_RecoveryTick:		; Memory Address ($146E) and binary offset [$10EA]
 	tst.b	$05(a4,d4.w)	;4A344005
-	bpl.s	adrCd001498	;6A24
+	bpl.s	ActorScan_ResolveOwnPositionGate	;6A24
 	move.w	#$0014,ResistanceCheckPower.l	;33FC0014000020F4
 	bsr	Test_LevelResistanceRoll_FromPointer	;6100006A
 	and.b	#$7F,$05(a4,d4.w)	;0234007F4005
 	tst.w	d5	;4A45
-	beq.s	adrCd001498	;670E
+	beq.s	ActorScan_ResolveOwnPositionGate	;670E
 	or.b	#$0F,$03(a4,d4.w)	;0034000F4003
 	bset	#$07,$05(a4,d4.w)	;08F400074005
-adrCd001496:		; Memory Address ($1496) and binary offset [$1112]
+Paralyze_RemainsActive_EarlyReturn:		; Memory Address ($1496) and binary offset [$1112]
 	rts	;4E75
 
-adrCd001498:		; Memory Address ($1498) and binary offset [$1114]
+ActorScan_ResolveOwnPositionGate:		; Memory Address ($1498) and binary offset [$1114]
 	moveq	#$00,d7	;7E00
 	move.b	$00(a4,d4.w),d7	;1E344000
-	bmi	adrCd001414	;6B00FF74
+	bmi	FixedOriginForm_EarlyReturn	;6B00FF74
 	swap	d7	;4847
 	move.b	$01(a4,d4.w),d7	;1E344001
 	moveq	#$00,d0	;7000
@@ -2429,7 +2438,7 @@ adrCd001498:		; Memory Address ($1498) and binary offset [$1114]
 	bsr	Select_FloorMapByIndex	;6100702A
 	bsr	CoordToMap	;61006FE8
 	move.b	$01(a6,d0.w),d1	;12360001
-	bpl.s	adrCd001496	;6ADA
+	bpl.s	Paralyze_RemainsActive_EarlyReturn	;6ADA
 	cmpi.w	#$0000,d4	;0C440000
 	beq.s	Begin_MonsterAttackBehaviour	;674A
 	bsr	Read_MonsterMovementTableEntry	;6100037E
@@ -2438,9 +2447,9 @@ adrCd001498:		; Memory Address ($1498) and binary offset [$1114]
 	beq	AttackType_Drone	;6700028A
 	lea	ReserveSpace_1.l,a6	;4DF900058828
 	btst	#$00,(a5)	;08150000
-	beq.s	adrCd0014E4	;6706
+	beq.s	FormationSlot_SelectReserveSpace	;6706
 	lea	ReserveSpace_2.l,a6	;4DF900058C10
-adrCd0014E4:		; Memory Address ($14E4) and binary offset [$1160]
+FormationSlot_SelectReserveSpace:		; Memory Address ($14E4) and binary offset [$1160]
 	bra	Use_SelectedMonsterNavigationMap	;600001E8
 
 Test_LevelResistanceRoll_FromPointer:		; Memory Address ($14E8) and binary offset [$1164]
@@ -2448,21 +2457,21 @@ Test_LevelResistanceRoll_FromPointer:		; Memory Address ($14E8) and binary offse
 	move.l	a4,a1	;224C
 	move.l	a1,d0	;2009
 	cmpi.w	#$0000,d4	;0C440000
-	bne.s	adrCd001500	;660E
+	bne.s	Test_LevelResistanceRoll_FromPointer_ChampionIndex	;660E
 	sub.l	#UnpackedMonsters,d0	;048000016B7E
 	lsr.w	#$04,d0	;E848
 	add.w	#$0010,d0	;06400010
-	bra.s	adrCd001508	;6008
+	bra.s	Test_LevelResistanceRoll_FromPointer_TailJump	;6008
 
-adrCd001500:		; Memory Address ($1500) and binary offset [$117C]
+Test_LevelResistanceRoll_FromPointer_ChampionIndex:		; Memory Address ($1500) and binary offset [$117C]
 	sub.l	#Character_Stats_DataTable,d0	;04800000EB2A
 	lsr.w	#$05,d0	;EA48
-adrCd001508:		; Memory Address ($1508) and binary offset [$1184]
+Test_LevelResistanceRoll_FromPointer_TailJump:		; Memory Address ($1508) and binary offset [$1184]
 	bra	Test_LevelResistanceRoll	;60000BEC
 
 Begin_MonsterAttackBehaviour:		; Memory Address ($150C) and binary offset [$1188]
 	; Loads the live monster form and enters special-form or ordinary attack processing.
-	move.b	$000B(a4),d2					;142C000B
+	move.b	MonsterRecord_Form(a4),d2					;142C000B
 	bmi	Handle_SpecialMonsterFormMovement					;6B0001F6
 	cmpi.b	#$40,d2						;0C020040
 	beq.s	Normalise_MonsterFacingState					;670C
@@ -2548,7 +2557,7 @@ MonsterAttackSpells:		; Memory Address ($15C6) and binary offset [$1242]
 
 AttackType_Spells:		; Memory Address ($15D6) and binary offset [$1252]
 	; Allows a normal spellcasting monster to select a spell on two outcomes of the shared random test; all other outcomes use no-spells behaviour.
-	bsr	adrCd005556	;61003F7E
+	bsr	RandomGen_SixSidedRoll	;61003F7E
 	subq.b	#$02,d0	;5500
 	bcc	AttackType_NoSpells	;6400008C
 Select_MonsterAttackSpell:		; Memory Address ($15E0) and binary offset [$125C]
@@ -2931,7 +2940,7 @@ Resolve_MonsterHeldObjectTarget:		; Memory Address ($199C) and binary offset [$1
 	bmi.s	Restore_MonsterHeldObjectContext	;6B18
 	moveq	#$01,d1	;7201
 	move.l	a4,-(sp)	;2F0C
-	bsr	adrCd005500	;61003B50
+	bsr	Find_HighestRankedPartyMemberByCategory	;61003B50
 	move.l	(sp)+,a4	;285F
 	tst.w	d3	;4A43
 	bmi.s	Restore_MonsterHeldObjectContext	;6B0A
@@ -3029,7 +3038,7 @@ AttackType_MonsterMelee:		; Memory Address ($1A84) and binary offset [$1700]
 	bsr	Resolve_PhysicalAttack	;61004734
 	move.w	(sp)+,d0	;301F
 	move.w	$0000(a6),d5	;3A2E0000
-	bsr	adrCd002298	;610007E8
+	bsr	Apply_AttackDamage	;610007E8
 	move.l	(sp)+,a4	;285F
 	rts	;4E75
 
@@ -3040,7 +3049,7 @@ Resolve_PlayerTargetAttack:		; Memory Address ($1AB6) and binary offset [$1732]
 	and.w	#$0001,d2	;02420001
 	moveq	#$00,d0	;7000
 	move.b	$0002(a4),d0	;102C0002
-	bsr	adrCd006018	;61004550
+	bsr	Select_MonsterMeleePartyTarget	;61004550
 	tst.b	$000B(a4)	;4A2C000B
 	bpl	CheckMonsterHeldObjectByLevel	;6A00FEB4
 	movem.l	d0/d1/a5,-(sp)	;48E7C004
@@ -3108,7 +3117,7 @@ Handle_BlockedMonsterAtDoor:		; Memory Address ($1B74) and binary offset [$17F0]
 	move.w	$00(a6,d0.w),d1	;32360000
 	and.w	#$0007,d1	;02410007
 	subq.w	#$02,d1	;5541
-	bne	adrCd001C02	;66000066
+	bne	ClearAdjacentCellStateBit_IfNotBlocked	;66000066
 	bra.s	Open_DoorForMonster	;6036
 
 Check_BlockedDestinationOccupant:		; Memory Address ($1BA0) and binary offset [$181C]
@@ -3145,16 +3154,16 @@ Open_DoorForMonster:		; Memory Address ($1BD6) and binary offset [$1852]
 	add.w	d6,d6	;DC46
 	addq.w	#$01,d6	;5246
 	btst	d6,$00(a6,d0.w)	;0D360000
-	beq.s	adrCd001C02	;6716
+	beq.s	ClearAdjacentCellStateBit_IfNotBlocked	;6716
 	subq.w	#$01,d6	;5346
 	btst	d6,$00(a6,d0.w)	;0D360000
-	beq.s	adrCd001C02	;670E
+	beq.s	ClearAdjacentCellStateBit_IfNotBlocked	;670E
 	btst	#$04,$01(a6,d0.w)	;083600040001
 	bne.s	AttackType_DroneBlockedTurn	;66BC
 	bclr	d6,$00(a6,d0.w)	;0DB60000
 	rts	;4E75
 
-adrCd001C02:		; Memory Address ($1C02) and binary offset [$187E]
+ClearAdjacentCellStateBit_IfNotBlocked:		; Memory Address ($1C02) and binary offset [$187E]
 	moveq	#$00,d7	;7E00
 	move.b	$0000(a4),d7	;1E2C0000
 	swap	d7	;4847
@@ -3178,16 +3187,17 @@ adrCd001C02:		; Memory Address ($1C02) and binary offset [$187E]
 	bclr	d6,$00(a6,d0.w)	;0DB60000
 	rts	;4E75
 
-adrCd001C48:		; Memory Address ($1C48) and binary offset [$18C4]
+AirborneEntity_CheckCoordMatch:		; Memory Address ($1C48) and binary offset [$18C4]
 	cmp.w	d0,d2	;B440
-	bne	adrCd001C86	;6600003A
-adrCd001C4E:		; Memory Address ($1C4E) and binary offset [$18CA]
+	bne	AirborneEntity_AllocateImpactCheckOccupant	;6600003A
+AirborneEntity_ComputeDropDirection:		; Memory Address ($1C4E) and binary offset [$18CA]
+	; Handles projectile forms $88-$8A: forms $88 and $89 drop objects $03 and $04 at the direction-derived corner, while form $8A maps to object $05 but deliberately skips the drop call.
 	move.b	$0002(a4),d6	;1C2C0002
 	and.w	#$0003,d6	;02460003
 	cmpi.w	#$0002,d6	;0C460002
-	bcs.s	adrCd001C60	;6504
+	bcs.s	AirborneEntity_DropObjectAndRemoveMonster	;6504
 	eor.w	#$0001,d6	;0A460001
-adrCd001C60:		; Memory Address ($1C60) and binary offset [$18DC]
+AirborneEntity_DropObjectAndRemoveMonster:		; Memory Address ($1C60) and binary offset [$18DC]
 	moveq	#$00,d1	;7200
 	move.b	$000B(a4),d1	;122C000B
 	sub.b	#$85,d1	;04010085
@@ -3195,28 +3205,29 @@ adrCd001C60:		; Memory Address ($1C60) and binary offset [$18DC]
 	bsr	Remove_MonsterRecord	;61000B70
 	movem.w	(sp)+,d0/d1/d6	;4C9F0043
 	cmpi.w	#$0005,d1	;0C410005
-	beq.s	adrCd001CD2	;6756
+	beq.s	AirborneEntity_SharedReturn	;6756
 	moveq	#$01,d5	;7A01
 	swap	d5	;4845
 	move.w	d1,d5	;3A01
 	bra	Add_FloorObjectToStack	;60004204
 
-adrCd001C86:		; Memory Address ($1C86) and binary offset [$1902]
+AirborneEntity_AllocateImpactCheckOccupant:		; Memory Address ($1C86) and binary offset [$1902]
 	moveq	#$00,d7	;7E00
 	move.b	$000B(a4),d7	;1E2C000B
 	bsr	Queue_MapCellEffect	;6100012E
 	tst.b	$01(a6,d0.w)	;4A360001
-	bmi.s	adrCd001C9E	;6B08
+	bmi.s	ResolvePhysicalDamage_FromScratchRecord	;6B08
 	eor.b	#$02,$0002(a4)	;0A2C00020002
-	bra.s	adrCd001C4E	;60B0
+	bra.s	AirborneEntity_ComputeDropDirection	;60B0
 
-adrCd001C9E:		; Memory Address ($1C9E) and binary offset [$191A]
+ResolvePhysicalDamage_FromScratchRecord:		; Memory Address ($1C9E) and binary offset [$191A]
+	; Builds the temporary projectile attacker record, preserving projectile power as its monster-level input before entering the physical-damage resolver.
 	movem.l	a4/a5,-(sp)	;48E7000C
 	lea	ProjectileImpact_MonsterRecordScratch.l,a0	;41F90001737E
 	moveq	#$03,d1	;7203
-adrLp001CAA:		; Memory Address ($1CAA) and binary offset [$1926]
+CopyMonsterRecord_ToScratchLoop:		; Memory Address ($1CAA) and binary offset [$1926]
 	move.l	(a4)+,(a0)+	;20DC
-	dbra	d1,adrLp001CAA	;51C9FFFC
+	dbra	d1,CopyMonsterRecord_ToScratchLoop	;51C9FFFC
 	sub.w	#$0010,a4	;98FC0010
 	move.w	d0,d4	;3800
 	bsr	Remove_MonsterRecord	;61000B28
@@ -3225,7 +3236,7 @@ adrLp001CAA:		; Memory Address ($1CAA) and binary offset [$1926]
 	move.b	$000C(a4),SpellEntity_CasterIndex.l	;13EC000C0000EE3E
 	bsr	AttackType_ResolveForwardOccupant	;6100FB90
 	movem.l	(sp)+,a4/a5	;4CDF3000
-adrCd001CD2:		; Memory Address ($1CD2) and binary offset [$194E]
+AirborneEntity_SharedReturn:		; Memory Address ($1CD2) and binary offset [$194E]
 	rts	;4E75
 
 Move_AirborneEntityAfterDeflection:		; Memory Address ($1CD4) and binary offset [$1950]
@@ -3289,7 +3300,7 @@ Gate_AirborneEntityFormRange:		; Memory Address ($1D58) and binary offset [$19D4
 	cmp.b	#$88,$000B(a4)	;0C2C0088000B
 	bcs.s	Pack_AirborneImpactCodeAndPower	;650A
 	cmp.b	#$8B,$000B(a4)	;0C2C008B000B
-	bcs	adrCd001C48	;6500FEE0
+	bcs	AirborneEntity_CheckCoordMatch	;6500FEE0
 Pack_AirborneImpactCodeAndPower:		; Memory Address ($1D6A) and binary offset [$19E6]
 	; Packs live airborne power and form into the impact value, clearing power for non-airborne forms.
 	moveq	#$00,d7	;7E00
@@ -3304,26 +3315,26 @@ Dispatch_AirborneEntityImpact:		; Memory Address ($1D7A) and binary offset [$19F
 	move.b	$0004(a4),d1	;122C0004
 	move.w	d0,d4	;3800
 	move.b	$000C(a4),SpellEntity_CasterIndex.l	;13EC000C0000EE3E
-	bmi.s	adrCd001DAA	;6B1E
+	bmi.s	PrepareTeleportOrEquip_RemoveThenResolve	;6B1E
 	movem.l	d0/a0,-(sp)	;48E78080
 	cmpi.b	#$83,d7	;0C070083
-	beq.s	adrCd001D9E	;6708
+	beq.s	PrepareTeleportOrEquip_LoadAltSpellSound	;6708
 	moveq	#$04,d0	;7004
 	cmpi.b	#$8B,d7	;0C07008B
-	bcs.s	adrCd001DA0	;6502
-adrCd001D9E:		; Memory Address ($1D9E) and binary offset [$1A1A]
+	bcs.s	PrepareTeleportOrEquip_PlaySelectedSound	;6502
+PrepareTeleportOrEquip_LoadAltSpellSound:		; Memory Address ($1D9E) and binary offset [$1A1A]
 	moveq	#Sound_AlternativeSpell,d0	;7005
-adrCd001DA0:		; Memory Address ($1DA0) and binary offset [$1A1C]
+PrepareTeleportOrEquip_PlaySelectedSound:		; Memory Address ($1DA0) and binary offset [$1A1C]
 	jsr	PlaySound.l	;4EB9000088BE
 	movem.l	(sp)+,d0/a0	;4CDF0101
-adrCd001DAA:		; Memory Address ($1DAA) and binary offset [$1A26]
+PrepareTeleportOrEquip_RemoveThenResolve:		; Memory Address ($1DAA) and binary offset [$1A26]
 	bsr	Remove_MonsterRecord	;61000A34
 	move.w	d4,d0	;3004
 	move.l	a4,-(sp)	;2F0C
 	bsr.s	Resolve_AirborneSpellCellEntry	;612C
 	move.l	(sp)+,a4	;285F
 	sub.w	#$0010,a4	;98FC0010
-adrCd001DBA:		; Memory Address ($1DBA) and binary offset [$1A36]
+TeleportOrSpellEntry_SharedReturn:		; Memory Address ($1DBA) and binary offset [$1A36]
 	rts	;4E75
 
 Queue_MapCellEffect:		; Memory Address ($1DBC) and binary offset [$1A38]
@@ -3344,87 +3355,87 @@ Resolve_AirborneSpellCellEntry:		; Memory Address ($1DE0) and binary offset [$1A
 	bsr.s	Queue_MapCellEffect	;61DA
 	swap	d7	;4847
 	move.b	$01(a6,d0.w),d5	;1A360001
-	bpl.s	adrCd001DBA	;6AD0
+	bpl.s	TeleportOrSpellEntry_SharedReturn	;6AD0
 	and.w	#$0007,d5	;02450007
 	subq.w	#$01,d5	;5345
-	beq.s	adrCd001DBA	;67C8
+	beq.s	TeleportOrSpellEntry_SharedReturn	;67C8
 	movem.l	d0-d7/a0-a6,-(sp)	;48E7FFFE
 	bsr	Resolve_DiagonalCellAndFindOccupant	;61007AAC
-	bcs.s	adrCd001E08	;650C
+	bcs.s	AirborneSpell_PlayWallBounceSound	;650C
 	movem.l	(sp)+,d0-d7/a0-a6	;4CDF7FFF
 	bclr	#$07,$01(a6,d0.w)	;08B600070001
-	bra.s	adrCd001DBA	;60B2
+	bra.s	TeleportOrSpellEntry_SharedReturn	;60B2
 
-adrCd001E08:		; Memory Address ($1E08) and binary offset [$1A84]
+AirborneSpell_PlayWallBounceSound:		; Memory Address ($1E08) and binary offset [$1A84]
 	tst.b	d0	;4A00
-	bpl.s	adrCd001E28	;6A1C
+	bpl.s	AirborneSpell_RestoreAndDispatchDamage	;6A1C
 	swap	d7	;4847
 	move.b	d7,d5	;1A07
 	swap	d7	;4847
 	lsr.b	#$02,d5	;E40D
 	cmpi.b	#$03,d5	;0C050003
-	beq.s	adrCd001E28	;670E
+	beq.s	AirborneSpell_RestoreAndDispatchDamage	;670E
 	cmpi.b	#$0B,d5	;0C05000B
-	bcc.s	adrCd001E28	;6408
+	bcc.s	AirborneSpell_RestoreAndDispatchDamage	;6408
 	moveq	#Sound_SpellRoar,d0	;7004
 	jsr	PlaySound.l	;4EB9000088BE
-adrCd001E28:		; Memory Address ($1E28) and binary offset [$1AA4]
+AirborneSpell_RestoreAndDispatchDamage:		; Memory Address ($1E28) and binary offset [$1AA4]
 	movem.l	(sp)+,d0-d7/a0-a6	;4CDF7FFF
 	move.b	d7,d5	;1A07
 	and.w	#$007F,d5	;0245007F
 	move.w	d5,ResistanceCheckPower.l	;33C5000020F4
 	tst.b	d7	;4A07
-	bmi.s	adrCd001E84	;6B48
+	bmi.s	AirborneSpell_DispatchSpecialForm	;6B48
 	bsr.s	Roll_AndStagePartyDamage	;6104
 	bra	Apply_SpellImpactAtOccupant	;600004CC
 
 Roll_AndStagePartyDamage:		; Memory Address ($1E42) and binary offset [$1ABE]
-	; Rolls damage from the supplied power, clamps it to $FD, and stages the resulting byte for all four party slots.
+	; Rolls (power+1) six-sided values in the range 0-5, adds a further (power+1), clamps the result to $FD, and stages the same damage byte for all four party slots.
 	move.w	#$FFFF,AirborneSpellSplashFlag.l	;33FCFFFF0000230A
 	move.w	d0,-(sp)	;3F00
 	move.w	d7,d5	;3A07
 	addq.w	#$01,d5	;5245
-adrLp001E50:		; Memory Address ($1E50) and binary offset [$1ACC]
-	bsr	adrCd005556	;61003704
+SpellPartyDamage_DiceRollLoop:		; Memory Address ($1E50) and binary offset [$1ACC]
+	bsr	RandomGen_SixSidedRoll	;61003704
 	add.w	d0,d5	;DA40
-	dbra	d7,adrLp001E50	;51CFFFF8
+	dbra	d7,SpellPartyDamage_DiceRollLoop	;51CFFFF8
 	move.w	(sp)+,d0	;301F
 	move.w	d5,-(sp)	;3F05
 	cmpi.w	#$0100,d5	;0C450100
-	bcs.s	adrCd001E68	;6504
+	bcs.s	SpellPartyDamage_BeginScratchStore	;6504
 	move.w	#$00FD,d5	;3A3C00FD
-adrCd001E68:		; Memory Address ($1E68) and binary offset [$1AE4]
+SpellPartyDamage_BeginScratchStore:		; Memory Address ($1E68) and binary offset [$1AE4]
 	moveq	#$03,d1	;7203
 	lea	FormationSlot_ScratchBytes.l,a0	;41F900002680
-adrLp001E70:		; Memory Address ($1E70) and binary offset [$1AEC]
+SpellPartyDamage_StoreScratchLoop:		; Memory Address ($1E70) and binary offset [$1AEC]
 	move.b	d5,$00(a0,d1.w)	;11851000
-	dbra	d1,adrLp001E70	;51C9FFFA
+	dbra	d1,SpellPartyDamage_StoreScratchLoop	;51C9FFFA
 	move.w	(sp)+,d5	;3A1F
 	swap	d5	;4845
 	move.w	#$FFFF,d5	;3A3CFFFF
 	swap	d5	;4845
 	rts	;4E75
 
-adrCd001E84:		; Memory Address ($1E84) and binary offset [$1B00]
+AirborneSpell_DispatchSpecialForm:		; Memory Address ($1E84) and binary offset [$1B00]
 	swap	d7						;4847
 	lsr.b	#$02,d7						;E40F
 	cmpi.b	#$03,d7						;0C070003
-	beq	adrCd001FD2					;67000144
+	beq	Apply_DisruptEffect					;67000144
 	cmpi.b	#$0B,d7						;0C07000B
-	beq	adrCd002086					;670001F0
+	beq	ConfuseSpell_ForwardCellEntry					;670001F0
 	cmpi.b	#$0C,d7						;0C07000C
-	beq	adrCd001F78					;670000DA
+	beq	AirborneSpell_ResolveOccupantForParalyze					;670000DA
 	cmpi.b	#$0F,d7						;0C07000F
-	beq	adrCd001F4A					;670000A4
+	beq	AirborneSpell_ResolveOccupantForFear					;670000A4
 	cmpi.b	#$0E,d7						;0C07000E
-	beq.s	adrCd001EB0					;6702
+	beq.s	AirborneSpell_HalveStatWithResistanceRoll					;6702
 	rts							;4E75
 
-adrCd001EB0:		; Memory Address ($1EB0) and binary offset [$1B2C]
+AirborneSpell_HalveStatWithResistanceRoll:		; Memory Address ($1EB0) and binary offset [$1B2C]
 	bsr	Resolve_DiagonalCellAndFindOccupant	;610079F2
-	bcc.s	adrCd001EDA	;6424
+	bcc.s	AirborneSpell_HalveStat_SharedReturn	;6424
 	tst.b	d0	;4A00
-	bmi.s	adrCd001F0C	;6B52
+	bmi.s	SpelltapEffect_ApplyToWholeParty_Begin	;6B52
 	cmpi.b	#$10,d0	;0C000010
 	bcs.s	Apply_SpelltapEffect	;651C
 	move.b	$0007(a1),d5	;1A290007
@@ -3433,9 +3444,9 @@ adrCd001EB0:		; Memory Address ($1EB0) and binary offset [$1B2C]
 	move.b	d5,$0007(a1)	;13450007
 	bsr	Test_LevelResistanceRoll	;61000226
 	tst.w	d5	;4A45
-	beq.s	adrCd001EDA	;6704
+	beq.s	AirborneSpell_HalveStat_SharedReturn	;6704
 	clr.b	$0007(a1)	;42290007
-adrCd001EDA:		; Memory Address ($1EDA) and binary offset [$1B56]
+AirborneSpell_HalveStat_SharedReturn:		; Memory Address ($1EDA) and binary offset [$1B56]
 	rts	;4E75
 
 Apply_SpelltapEffect:		; Memory Address ($1EDC) and binary offset [$1B58]
@@ -3445,29 +3456,29 @@ Apply_SpelltapEffect:		; Memory Address ($1EDC) and binary offset [$1B58]
 	bsr	Resolve_LevelResistanceRoll	;61000210
 	move.b	$0009(a1),d1	;12290009
 	sub.b	d5,d1	;9205
-	bcc.s	adrCd001EF4	;6402
+	bcc.s	SpelltapEffect_ClampSPAtZero	;6402
 	moveq	#$00,d1	;7200
-adrCd001EF4:		; Memory Address ($1EF4) and binary offset [$1B70]
+SpelltapEffect_ClampSPAtZero:		; Memory Address ($1EF4) and binary offset [$1B70]
 	move.b	d1,$0009(a1)	;13410009
 	move.b	$0015(a1),d1	;12290015
 	add.b	d5,d1	;D205
 	cmpi.b	#$64,d1	;0C010064
-	bcs.s	adrCd001F06	;6502
+	bcs.s	SpelltapEffect_ClampFatigueAt100	;6502
 	moveq	#$64,d1	;7264
-adrCd001F06:		; Memory Address ($1F06) and binary offset [$1B82]
+SpelltapEffect_ClampFatigueAt100:		; Memory Address ($1F06) and binary offset [$1B82]
 	move.b	d1,$0015(a1)	;13410015
 	rts	;4E75
 
-adrCd001F0C:		; Memory Address ($1F0C) and binary offset [$1B88]
+SpelltapEffect_ApplyToWholeParty_Begin:		; Memory Address ($1F0C) and binary offset [$1B88]
 	moveq	#$03,d7	;7E03
 	moveq	#$05,d0	;7005
 	jsr	PlaySound.l	;4EB9000088BE
-adrLp001F16:		; Memory Address ($1F16) and binary offset [$1B92]
+SpelltapEffect_PartyMemberLoop:		; Memory Address ($1F16) and binary offset [$1B92]
 	moveq	#$00,d0	;7000
 	move.b	$18(a1,d7.w),d0	;10317018
 	move.w	d0,d1	;3200
 	and.w	#$00E0,d0	;024000E0
-	bne.s	adrCd001F36	;6612
+	bne.s	SpelltapEffect_PartyLoopIterationEnd	;6612
 	and.w	#$000F,d1	;0241000F
 	move.w	d1,d0	;3001
 	bsr	Load_ChampionStatRecord	;61004734
@@ -3475,8 +3486,8 @@ adrLp001F16:		; Memory Address ($1F16) and binary offset [$1B92]
 	exg	a1,a4	;C949
 	bsr.s	Apply_SpelltapEffect	;61A8
 	exg	a1,a4	;C949
-adrCd001F36:		; Memory Address ($1F36) and binary offset [$1BB2]
-	dbra	d7,adrLp001F16	;51CFFFDE
+SpelltapEffect_PartyLoopIterationEnd:		; Memory Address ($1F36) and binary offset [$1BB2]
+	dbra	d7,SpelltapEffect_PartyMemberLoop	;51CFFFDE
 	move.l	a5,-(sp)	;2F0D
 	move.l	a1,a5	;2A49
 	bsr	Draw_PartyCommandInterface	;61005C10
@@ -3484,32 +3495,32 @@ adrCd001F36:		; Memory Address ($1F36) and binary offset [$1BB2]
 	move.l	(sp)+,a5	;2A5F
 	rts	;4E75
 
-adrCd001F4A:		; Memory Address ($1F4A) and binary offset [$1BC6]
+AirborneSpell_ResolveOccupantForFear:		; Memory Address ($1F4A) and binary offset [$1BC6]
 	bsr	Resolve_DiagonalCellAndFindOccupant	;61007958
-	bcc.s	adrCd001F76	;6426
+	bcc.s	ThreatFear_SharedReturn	;6426
 Comms_ApplyThreatFear:		; Memory Address ($1F50) and binary offset [$1BCC]
-	; Applies the communications Threat status effect, converting an existing Confuse state into Terror.
+	; Clears the target's speed nibble, applies Confuse, then converts the same champion or monster status byte from Confuse to Terror; dormant monsters receive no status conversion.
 	moveq	#$19,d4	;7819
 	tst.b	d0	;4A00
-	bmi.s	adrCd001F76	;6B20
+	bmi.s	ThreatFear_SharedReturn	;6B20
 	cmpi.b	#$10,d0	;0C000010
-	bcs.s	adrCd001F5E	;6502
+	bcs.s	ThreatFear_ConvertConfuseBitToTerror	;6502
 	moveq	#$03,d4	;7803
-adrCd001F5E:		; Memory Address ($1F5E) and binary offset [$1BDA]
+ThreatFear_ConvertConfuseBitToTerror:		; Memory Address ($1F5E) and binary offset [$1BDA]
 	and.b	#$F0,$00(a1,d4.w)	;023100F04000
 	bsr	Apply_ConfuseEffect	;61000126
 	bclr	#$06,$03(a1,d4.w)	;08B100064003
-	beq.s	adrCd001F76	;6706
+	beq.s	ThreatFear_SharedReturn	;6706
 	bset	#$05,$03(a1,d4.w)	;08F100054003
-adrCd001F76:		; Memory Address ($1F76) and binary offset [$1BF2]
+ThreatFear_SharedReturn:		; Memory Address ($1F76) and binary offset [$1BF2]
 	rts	;4E75
 
-adrCd001F78:		; Memory Address ($1F78) and binary offset [$1BF4]
+AirborneSpell_ResolveOccupantForParalyze:		; Memory Address ($1F78) and binary offset [$1BF4]
 	bsr	Resolve_DiagonalCellAndFindOccupant	;6100792A
-	bcc.s	adrCd001FA0	;6422
+	bcc.s	ParalyzeEffect_SharedReturn	;6422
 	moveq	#$16,d4	;7816
 	tst.b	d0	;4A00
-	bmi.s	adrCd001FA2	;6B1E
+	bmi.s	ParalyzeEffect_ApplyToWholeParty_Begin	;6B1E
 	cmpi.b	#$10,d0	;0C000010
 	bcs.s	Apply_ParalyzeEffect	;6502
 	moveq	#$00,d4	;7800
@@ -3517,22 +3528,22 @@ Apply_ParalyzeEffect:		; Memory Address ($1F8C) and binary offset [$1C08]
 	; Runs the target resistance roll and sets paralysis plus the maximum action-delay nibble when resistance fails.
 	bsr	Test_LevelResistanceRoll	;61000168
 	tst.w	d5	;4A45
-	beq.s	adrCd001FA0	;670C
+	beq.s	ParalyzeEffect_SharedReturn	;670C
 	bset	#$07,$05(a1,d4.w)	;08F100074005
 	or.b	#$0F,$03(a1,d4.w)	;0031000F4003
-adrCd001FA0:		; Memory Address ($1FA0) and binary offset [$1C1C]
+ParalyzeEffect_SharedReturn:		; Memory Address ($1FA0) and binary offset [$1C1C]
 	rts	;4E75
 
-adrCd001FA2:		; Memory Address ($1FA2) and binary offset [$1C1E]
+ParalyzeEffect_ApplyToWholeParty_Begin:		; Memory Address ($1FA2) and binary offset [$1C1E]
 	moveq	#$03,d7	;7E03
 	moveq	#$05,d0	;7005
 	jsr	PlaySound.l	;4EB9000088BE
-adrLp001FAC:		; Memory Address ($1FAC) and binary offset [$1C28]
+ParalyzeWholeParty_LoopHead:		; Memory Address ($1FAC) and binary offset [$1C28]
 	moveq	#$00,d0	;7000
 	move.b	$18(a1,d7.w),d0	;10317018
 	move.w	d0,d1	;3200
 	and.w	#$00E0,d0	;024000E0
-	bne.s	adrCd001FCC	;6612
+	bne.s	ParalyzeWholeParty_LoopSkipSlot	;6612
 	and.w	#$000F,d1	;0241000F
 	move.w	d1,d0	;3001
 	bsr	Load_ChampionStatRecord	;6100469E
@@ -3540,64 +3551,64 @@ adrLp001FAC:		; Memory Address ($1FAC) and binary offset [$1C28]
 	exg	a1,a4	;C949
 	bsr.s	Apply_ParalyzeEffect	;61C2
 	exg	a1,a4	;C949
-adrCd001FCC:		; Memory Address ($1FCC) and binary offset [$1C48]
-	dbra	d7,adrLp001FAC	;51CFFFDE
+ParalyzeWholeParty_LoopSkipSlot:		; Memory Address ($1FCC) and binary offset [$1C48]
+	dbra	d7,ParalyzeWholeParty_LoopHead	;51CFFFDE
 	rts	;4E75
 
-adrCd001FD2:		; Memory Address ($1FD2) and binary offset [$1C4E]
+Apply_DisruptEffect:		; Memory Address ($1FD2) and binary offset [$1C4E]
 	move.w	#$FFFF,AirborneSpellSplashFlag.l	;33FCFFFF0000230A
 	movem.w	d0/d1,-(sp)	;48A7C000
 	moveq	#-$01,d5	;7AFF
 	bsr	Resolve_DiagonalCellAndFindOccupant	;610078C2
-	bcc.s	adrCd00203E	;6458
+	bcc.s	Seed_DisruptDamage_EarlyReturn	;6458
 	move.w	d0,-(sp)	;3F00
 	bsr.s	Seed_DisruptDamage	;613A
 	move.w	(sp),d0	;3017
 	tst.b	d0	;4A00
-	bmi.s	adrCd002010	;6B20
+	bmi.s	DisruptEffect_TwoResistancePassTail	;6B20
 	cmpi.b	#$10,d0	;0C000010
-	bcs.s	adrCd002014	;651E
+	bcs.s	DisruptEffect_OneResistancePassTail	;651E
 	addq.w	#$02,sp	;544F
 	move.b	$0006(a1),d7	;1E290006
 	lsr.b	#$02,d7	;E40F
-	beq.s	adrCd00201C	;671C
+	beq.s	DisruptEffect_DispatchImpact	;671C
 	move.w	d0,-(sp)	;3F00
 	subq.b	#$01,d7	;5307
-	beq.s	adrCd002014	;670E
+	beq.s	DisruptEffect_OneResistancePassTail	;670E
 	subq.b	#$01,d7	;5307
-	beq.s	adrCd002010	;6706
+	beq.s	DisruptEffect_TwoResistancePassTail	;6706
 	bsr	Resolve_LevelResistanceRoll	;610000EC
 	move.w	(sp),d0	;3017
-adrCd002010:		; Memory Address ($2010) and binary offset [$1C8C]
+DisruptEffect_TwoResistancePassTail:		; Memory Address ($2010) and binary offset [$1C8C]
 	bsr	Resolve_LevelResistanceRoll	;610000E6
-adrCd002014:		; Memory Address ($2014) and binary offset [$1C90]
+DisruptEffect_OneResistancePassTail:		; Memory Address ($2014) and binary offset [$1C90]
 	movem.w	(sp)+,d0	;4C9F0001
 	bsr	Resolve_LevelResistanceRoll	;610000DE
-adrCd00201C:		; Memory Address ($201C) and binary offset [$1C98]
+DisruptEffect_DispatchImpact:		; Memory Address ($201C) and binary offset [$1C98]
 	movem.w	(sp)+,d0/d1	;4C9F0003
 	bra	Apply_SpellImpactAtOccupant	;600002EA
 
 Seed_DisruptDamage:		; Memory Address ($2024) and binary offset [$1CA0]
 	; Seeds Disrupt damage from the target's hit points and level before its tiered resistance passes.
 	tst.b	d0	;4A00
-	bmi.s	adrCd00204A	;6B22
+	bmi.s	Seed_DisruptDamage_PartyEntry	;6B22
 	cmpi.b	#$10,d0	;0C000010
-	bcs.s	adrCd002040	;6512
+	bcs.s	Seed_DisruptDamage_ChampionHP	;6512
 	clr.w	d5	;4245
 	cmp.b	#$15,$0006(a1)	;0C2900150006
-	bcc.s	adrCd00203E	;6406
+	bcc.s	Seed_DisruptDamage_EarlyReturn	;6406
 	move.w	$0008(a1),d5	;3A290008
 	addq.w	#$01,d5	;5245
-adrCd00203E:		; Memory Address ($203E) and binary offset [$1CBA]
+Seed_DisruptDamage_EarlyReturn:		; Memory Address ($203E) and binary offset [$1CBA]
 	rts	;4E75
 
-adrCd002040:		; Memory Address ($2040) and binary offset [$1CBC]
+Seed_DisruptDamage_ChampionHP:		; Memory Address ($2040) and binary offset [$1CBC]
 	clr.w	d5	;4245
 	move.b	$0005(a1),d5	;1A290005
 	addq.b	#$01,d5	;5205
 	rts	;4E75
 
-adrCd00204A:		; Memory Address ($204A) and binary offset [$1CC6]
+Seed_DisruptDamage_PartyEntry:		; Memory Address ($204A) and binary offset [$1CC6]
 	moveq	#$05,d0	;7005
 	jsr	PlaySound.l	;4EB9000088BE
 	moveq	#$01,d2	;7401
@@ -3605,39 +3616,39 @@ adrCd00204A:		; Memory Address ($204A) and binary offset [$1CC6]
 	clr.l	(a0)	;4290
 	move.l	a4,-(sp)	;2F0C
 	moveq	#$03,d7	;7E03
-adrLp002060:		; Memory Address ($2060) and binary offset [$1CDC]
+Seed_DisruptDamage_PartyLoopHead:		; Memory Address ($2060) and binary offset [$1CDC]
 	moveq	#$00,d0	;7000
 	move.b	$18(a1,d7.w),d0	;10317018
 	and.w	#$00E0,d0	;024000E0
-	bne.s	adrCd00207E	;6612
+	bne.s	Seed_DisruptDamage_PartyLoopSkip	;6612
 	move.b	$18(a1,d7.w),d0	;10317018
 	bsr	Load_ChampionStatRecord	;610045EE
 	move.b	$0005(a4),$00(a0,d7.w)	;11AC00057000
 	addq.b	#$01,$00(a0,d7.w)	;52307000
-adrCd00207E:		; Memory Address ($207E) and binary offset [$1CFA]
-	dbra	d7,adrLp002060	;51CFFFE0
+Seed_DisruptDamage_PartyLoopSkip:		; Memory Address ($207E) and binary offset [$1CFA]
+	dbra	d7,Seed_DisruptDamage_PartyLoopHead	;51CFFFE0
 	move.l	(sp)+,a4	;285F
-adrCd002084:		; Memory Address ($2084) and binary offset [$1D00]
+Seed_DisruptDamage_PartyLoopReturn:		; Memory Address ($2084) and binary offset [$1D00]
 	rts	;4E75
 
-adrCd002086:		; Memory Address ($2086) and binary offset [$1D02]
+ConfuseSpell_ForwardCellEntry:		; Memory Address ($2086) and binary offset [$1D02]
 	bsr	Resolve_DiagonalCellAndFindOccupant	;6100781C
-	bcc.s	adrCd002084	;64F8
+	bcc.s	Seed_DisruptDamage_PartyLoopReturn	;64F8
 Apply_ConfuseEffect:		; Memory Address ($208C) and binary offset [$1D08]
 	; Resolves a champion or monster facing change and records the persistent Confuse flag.
 	tst.b	d0	;4A00
-	bmi.s	adrCd0020D6	;6B46
+	bmi.s	ConfuseEffect_PlayerFacingDispatch	;6B46
 	moveq	#$18,d4	;7818
 	cmpi.b	#$10,d0	;0C000010
-	bcs.s	adrCd0020A0	;6508
+	bcs.s	ConfuseEffect_ApplyFacingChange	;6508
 	tst.b	$000B(a1)	;4A29000B
-	bmi.s	adrCd0020D4	;6B36
+	bmi.s	ConfuseFacingRoll_NoChangeReturn	;6B36
 	moveq	#$02,d4	;7802
-adrCd0020A0:		; Memory Address ($20A0) and binary offset [$1D1C]
+ConfuseEffect_ApplyFacingChange:		; Memory Address ($20A0) and binary offset [$1D1C]
 	move.b	$00(a1,d4.w),d7	;1E314000
 	bsr.s	Resolve_ConfuseFacingRoll	;6112
 	cmp.b	$00(a1,d4.w),d7	;BE314000
-	beq.s	adrCd0020D4	;6728
+	beq.s	ConfuseFacingRoll_NoChangeReturn	;6728
 	move.b	d7,$00(a1,d4.w)	;13874000
 	bset	#$06,$03(a1,d4.w)	;08F100064003
 	rts	;4E75
@@ -3647,17 +3658,17 @@ Resolve_ConfuseFacingRoll:		; Memory Address ($20B8) and binary offset [$1D34]
 	move.w	d0,d6	;3C00
 	bsr	Test_LevelResistanceRoll	;6100003A
 	tst.w	d5	;4A45
-	beq.s	adrCd0020D4	;6712
+	beq.s	ConfuseFacingRoll_NoChangeReturn	;6712
 	eor.b	#$02,d7	;0A070002
 	move.w	d6,d0	;3006
 	bsr	Test_LevelResistanceRoll	;6100002C
 	tst.w	d5	;4A45
-	bne.s	adrCd0020D4	;6604
+	bne.s	ConfuseFacingRoll_NoChangeReturn	;6604
 	eor.b	#$01,d7	;0A070001
-adrCd0020D4:		; Memory Address ($20D4) and binary offset [$1D50]
+ConfuseFacingRoll_NoChangeReturn:		; Memory Address ($20D4) and binary offset [$1D50]
 	rts	;4E75
 
-adrCd0020D6:		; Memory Address ($20D6) and binary offset [$1D52]
+ConfuseEffect_PlayerFacingDispatch:		; Memory Address ($20D6) and binary offset [$1D52]
 	bsr	Load_CurrentChampionStatRecord	;61004584
 	moveq	#$05,d0	;7005
 	jsr	PlaySound.l	;4EB9000088BE
@@ -3673,43 +3684,43 @@ ResistanceCheckPower:		; Memory Address ($20F4) and binary offset [$1D70]
 	dc.w	$0000	;0000
 
 Test_LevelResistanceRoll:		; Memory Address ($20F6) and binary offset [$1D72]
-	; Initialises the pass/fail result and enters the shared level-versus-power resistance roll.
+	; Seeds D5 with 1 and enters the shared resistance roll, returning D5=0 when resistance succeeds and D5=1 when the effect should be applied.
 	moveq	#$01,d5	;7A01
 Resolve_LevelResistanceRoll:		; Memory Address ($20F8) and binary offset [$1D74]
-	; Resolves the shared champion, monster, or Antimage level-versus-power saving throw and adjusts the staged effect.
+	; Runs the shared champion, monster, or Antimage level-versus-power resistance check. Its ordinary threshold is 8*level+100-2*power, with negative results replaced by 10; a random byte at or below the threshold halves D5.
 	tst.b	d0	;4A00
-	bmi.s	adrCd00212E	;6B32
+	bmi.s	Dispatch_AntimageResistancePasses	;6B32
 	cmpi.b	#$10,d0	;0C000010
 	bcs.s	Load_ChampionLevelForResistanceRoll	;6526
 	move.b	$0006(a1),d2	;14290006
 	and.w	#$007F,d2	;0242007F
-adrCd00210A:		; Memory Address ($210A) and binary offset [$1D86]
+ResistanceRoll_ComputeThreshold:		; Memory Address ($210A) and binary offset [$1D86]
 	asl.w	#$03,d2	;E742
 	add.w	#$0064,d2	;06420064
 	move.w	ResistanceCheckPower.w,d0	;303820F4	;Short Absolute converted to symbol!
 	add.w	d0,d0	;D040
 	sub.w	d0,d2	;9440
-	bpl.s	adrCd00211C	;6A02
+	bpl.s	ResistanceRoll_RollAndCompare	;6A02
 	moveq	#$0A,d2	;740A
-adrCd00211C:		; Memory Address ($211C) and binary offset [$1D98]
+ResistanceRoll_RollAndCompare:		; Memory Address ($211C) and binary offset [$1D98]
 	bsr	RandomGen_BytewithOffset	;6100348E
 	cmp.w	d0,d2	;B440
-	bcs.s	adrCd002126	;6502
+	bcs.s	Resolve_LevelResistanceRoll_Return	;6502
 	lsr.w	#$01,d5	;E24D
-adrCd002126:		; Memory Address ($2126) and binary offset [$1DA2]
+Resolve_LevelResistanceRoll_Return:		; Memory Address ($2126) and binary offset [$1DA2]
 	rts	;4E75
 
 Load_ChampionLevelForResistanceRoll:		; Memory Address ($2128) and binary offset [$1DA4]
 	; Loads a champion level and joins the shared resistance-threshold and random-roll calculation.
 	moveq	#$00,d2	;7400
 	move.b	(a1),d2	;1411
-	bra.s	adrCd00210A	;60DC
+	bra.s	ResistanceRoll_ComputeThreshold	;60DC
 
-adrCd00212E:		; Memory Address ($212E) and binary offset [$1DAA]
+Dispatch_AntimageResistancePasses:		; Memory Address ($212E) and binary offset [$1DAA]
 	moveq	#$06,d1	;7206
 	movem.l	a4/a5,-(sp)	;48E7000C
 	move.l	a1,a5	;2A49
-	bsr	adrCd005500	;610033C8
+	bsr	Find_HighestRankedPartyMemberByCategory	;610033C8
 	movem.l	(sp)+,a4/a5	;4CDF3000
 	tst.w	d3	;4A43
 	bmi.s	Run_AntimageResistancePass	;6B28
@@ -3724,11 +3735,11 @@ adrCd00212E:		; Memory Address ($212E) and binary offset [$1DAA]
 	move.w	d3,ResistanceCheckPower.w	;31C320F4	;Short Absolute converted to symbol!
 	lsr.w	#$02,d7	;E44F
 	addq.w	#$01,d7	;5247
-adrLp00215E:		; Memory Address ($215E) and binary offset [$1DDA]
+AntimageResistancePasses_LoopHead:		; Memory Address ($215E) and binary offset [$1DDA]
 	move.w	d7,-(sp)	;3F07
 	bsr.s	Run_AntimageResistancePass	;6108
 	move.w	(sp)+,d7	;3E1F
-	dbra	d7,adrLp00215E	;51CFFFF8
+	dbra	d7,AntimageResistancePasses_LoopHead	;51CFFFF8
 	rts	;4E75
 
 Run_AntimageResistancePass:		; Memory Address ($216A) and binary offset [$1DE6]
@@ -3737,7 +3748,7 @@ Run_AntimageResistancePass:		; Memory Address ($216A) and binary offset [$1DE6]
 	move.l	a4,-(sp)	;2F0C
 	clr.w	d5	;4245
 	moveq	#$03,d7	;7E03
-adrLp002176:		; Memory Address ($2176) and binary offset [$1DF2]
+Run_AntimageResistancePass_LoopHead:		; Memory Address ($2176) and binary offset [$1DF2]
 	move.b	$18(a1,d7.w),d0	;10317018
 	bsr	Load_ChampionStatRecord	;610044E4
 	move.b	$00(a0,d7.w),d5	;1A307000
@@ -3745,117 +3756,119 @@ adrLp002176:		; Memory Address ($2176) and binary offset [$1DF2]
 	bsr.s	Load_ChampionLevelForResistanceRoll	;61A2
 	exg	a1,a4	;C949
 	move.b	d5,$00(a0,d7.w)	;11857000
-	dbra	d7,adrLp002176	;51CFFFE8
+	dbra	d7,Run_AntimageResistancePass_LoopHead	;51CFFFE8
 	move.l	(sp)+,a4	;285F
-adrCd002192:		; Memory Address ($2192) and binary offset [$1E0E]
+Run_AntimageResistancePass_Return:		; Memory Address ($2192) and binary offset [$1E0E]
 	rts	;4E75
 
 Award_MonsterDamageExperienceAndKillBonus:		; Memory Address ($2194) and binary offset [$1E10]
 	; Awards damage-derived progress before monster HP is reduced and, on a lethal hit, applies the surviving party's level-based bonus.
 	move.b	$000B(a1),d0	;1029000B
-	bmi.s	adrCd002192	;6BF8
+	bmi.s	Run_AntimageResistancePass_Return	;6BF8
 	sub.b	#$64,d0	;04000064
-	beq.s	adrCd002192	;67F2
+	beq.s	Run_AntimageResistancePass_Return	;67F2
 	move.b	SpellEntity_CasterIndex.l,d0	;10390000EE3E
 	cmpi.b	#$10,d0	;0C000010
-	bcc.s	adrCd002192	;64E6
+	bcc.s	Run_AntimageResistancePass_Return	;64E6
 	bsr	Load_ChampionStatRecord	;610044B2
 	cmp.b	#$EC,$001C(a4)	;0C2C00EC001C
-	bcc.s	adrCd0021EC	;6434
+	bcc.s	KillExperience_OwnerPartyXPEntry	;6434
 	move.w	$001C(a4),d2	;342C001C
 	move.w	d5,d1	;3205
 	cmp.w	$0008(a1),d1	;B2690008
-	bcs.s	adrCd0021CA	;6506
+	bcs.s	KillExperience_ApplySoloHalving	;6506
 	move.w	$0008(a1),d1	;32290008
 	addq.w	#$01,d1	;5241
-adrCd0021CA:		; Memory Address ($21CA) and binary offset [$1E46]
+KillExperience_ApplySoloHalving:		; Memory Address ($21CA) and binary offset [$1E46]
+	; Applies the single-player experience adjustment; the multiplayer-zero path skips the halving step.
 	tst.w	MultiPlayer.l	;4A790000EE30
-	beq.s	adrCd0021D6	;6704
+	beq.s	KillExperience_LowLevelDoubleXP	;6704
 	addq.w	#$01,d1	;5241
 	lsr.w	#$01,d1	;E249
-adrCd0021D6:		; Memory Address ($21D6) and binary offset [$1E52]
+KillExperience_LowLevelDoubleXP:		; Memory Address ($21D6) and binary offset [$1E52]
 	sub.w	d1,d2	;9441
-	bcs.s	adrCd0021E4	;650A
+	bcs.s	KillExperience_StoreAndGrantFairy	;650A
 	cmp.b	#$09,$0006(a1)	;0C2900090006
-	bcc.s	adrCd0021E4	;6402
+	bcc.s	KillExperience_StoreAndGrantFairy	;6402
 	sub.w	d1,d2	;9441
-adrCd0021E4:		; Memory Address ($21E4) and binary offset [$1E60]
+KillExperience_StoreAndGrantFairy:		; Memory Address ($21E4) and binary offset [$1E60]
 	move.w	d2,$001C(a4)	;3942001C
 	bsr	Mark_PendingFairySpellOffer	;6100006E
-adrCd0021EC:		; Memory Address ($21EC) and binary offset [$1E68]
+KillExperience_OwnerPartyXPEntry:		; Memory Address ($21EC) and binary offset [$1E68]
 	move.l	a5,a2	;244D
 	move.b	SpellEntity_CasterIndex.l,d0	;10390000EE3E
 	and.w	#$000F,d0	;0240000F
 	bsr	Find_ChampionOwner	;61001E6C
 	exg	a5,a2	;C54D
 	tst.w	d1	;4A41
-	bmi.s	adrCd002192	;6B90
+	bmi.s	Run_AntimageResistancePass_Return	;6B90
 	move.w	$0008(a1),d1	;32290008
 	sub.w	d5,d1	;9245
-	bcc.s	adrCd002256	;644C
+	bcc.s	Apply_KillExperience_Return	;644C
 	move.b	$0006(a1),d1	;12290006
 	and.w	#$007F,d1	;0241007F
 	moveq	#$03,d7	;7E03
-adrLp002214:		; Memory Address ($2214) and binary offset [$1E90]
+KillExperience_OwnerPartyXPLoopHead:		; Memory Address ($2214) and binary offset [$1E90]
 	move.b	$18(a2,d7.w),d0	;10327018
 	and.w	#$00E0,d0	;024000E0
-	bne.s	adrCd002252	;6634
+	bne.s	KillExperience_OwnerPartyXPLoopSkip	;6634
 	move.b	$18(a2,d7.w),d0	;10327018
 	bsr	Load_ChampionStatRecord	;6100443C
 	move.b	$001C(a4),d0	;102C001C
 	cmpi.b	#$EC,d0	;0C0000EC
-	bcc.s	adrCd002252	;6422
+	bcc.s	KillExperience_OwnerPartyXPLoopSkip	;6422
 	moveq	#$00,d2	;7400
 	move.b	d1,d2	;1401
 	sub.b	(a4),d2	;9414
 	addq.b	#$02,d2	;5402
-	bmi.s	adrCd002252	;6B18
+	bmi.s	KillExperience_OwnerPartyXPLoopSkip	;6B18
 	asl.w	#$07,d2	;EF42
 	move.w	$001C(a4),d0	;302C001C
 	tst.w	MultiPlayer.l	;4A790000EE30
-	bne.s	adrCd00224A	;6602
+	bne.s	KillExperience_OwnerXPSubtractMerge	;6602
 	add.w	d2,d2	;D442
-adrCd00224A:		; Memory Address ($224A) and binary offset [$1EC6]
+KillExperience_OwnerXPSubtractMerge:		; Memory Address ($224A) and binary offset [$1EC6]
 	sub.w	d2,d0	;9042
 	move.w	d0,$001C(a4)	;3940001C
 	bsr.s	Mark_PendingFairySpellOffer	;6106
-adrCd002252:		; Memory Address ($2252) and binary offset [$1ECE]
-	dbra	d7,adrLp002214	;51CFFFC0
-adrCd002256:		; Memory Address ($2256) and binary offset [$1ED2]
+KillExperience_OwnerPartyXPLoopSkip:		; Memory Address ($2252) and binary offset [$1ECE]
+	dbra	d7,KillExperience_OwnerPartyXPLoopHead	;51CFFFC0
+Apply_KillExperience_Return:		; Memory Address ($2256) and binary offset [$1ED2]
 	rts	;4E75
 
 Mark_PendingFairySpellOffer:		; Memory Address ($2258) and binary offset [$1ED4]
-	; Marks an eligible champion for a pending fairy-spell offer after the level-progress threshold and profession checks pass.
+	; For a champion at least halfway to the next level and without an existing pending offer, marks a fairy-spell offer with $81; professions 1-2 always qualify, while professions 0 and 3 qualify only at even levels.
 	tst.b	$001E(a4)	;4A2C001E
-	bmi.s	adrCd002296	;6B38
+	bmi.s	Grant_PendingFairySpellFlag_Return	;6B38
 	moveq	#$00,d2	;7400
 	move.b	(a4),d2	;1414
 	lea	LevelUpXPThresholdTable.l,a0	;41F900004B1A
 	move.b	$00(a0,d2.w),d3	;16302000
 	lsr.b	#$01,d3	;E20B
 	cmp.b	$001C(a4),d3	;B62C001C
-	bcs.s	adrCd002296	;6522
+	bcs.s	Grant_PendingFairySpellFlag_Return	;6522
 	move.l	a4,d3	;260C
 	sub.l	#Character_Stats_DataTable,d3	;04830000EB2A
 	lsr.b	#$05,d3	;EA0B
 	and.w	#$0003,d3	;02430003
-	beq.s	adrCd00228A	;6706
+	beq.s	FairySpellGrant_EvenLevelCheck	;6706
 	cmpi.w	#$0003,d3	;0C430003
-	bcs.s	adrCd002290	;6506
-adrCd00228A:		; Memory Address ($228A) and binary offset [$1F06]
+	bcs.s	FairySpellFlag_MarkPending	;6506
+FairySpellGrant_EvenLevelCheck:		; Memory Address ($228A) and binary offset [$1F06]
 	btst	#$00,d2	;08020000
-	bne.s	adrCd002296	;6606
-adrCd002290:		; Memory Address ($2290) and binary offset [$1F0C]
+	bne.s	Grant_PendingFairySpellFlag_Return	;6606
+FairySpellFlag_MarkPending:		; Memory Address ($2290) and binary offset [$1F0C]
 	add.b	#$81,$001E(a4)	;062C0081001E
-adrCd002296:		; Memory Address ($2296) and binary offset [$1F12]
+Grant_PendingFairySpellFlag_Return:		; Memory Address ($2296) and binary offset [$1F12]
 	rts	;4E75
 
-adrCd002298:		; Memory Address ($2298) and binary offset [$1F14]
+Apply_AttackDamage:		; Memory Address ($2298) and binary offset [$1F14]
+	; Applies D5 damage to target D0, dispatching values $10 and above to monster hit-point handling and lower values to champion hit-point handling.
 	swap	d5	;4845
 	clr.w	d5	;4245
 	swap	d5	;4845
 	cmpi.w	#$0010,d0	;0C400010
-	bcs.s	adrCd0022CA	;6526
+	bcs.s	AttackDamage_ChampionTargetDispatch	;6526
 	move.w	d0,d1	;3200
 	sub.w	#$0010,d0	;04400010
 	asl.w	#$04,d0	;E940
@@ -3868,32 +3881,32 @@ adrCd002298:		; Memory Address ($2298) and binary offset [$1F14]
 	bsr	CoordToMap	;610061DA
 	move.w	d0,d4	;3800
 	move.w	d1,d0	;3001
-	bra.s	adrCd002324	;605A
+	bra.s	MonsterHit_SplashDispatch	;605A
 
-adrCd0022CA:		; Memory Address ($22CA) and binary offset [$1F46]
+AttackDamage_ChampionTargetDispatch:		; Memory Address ($22CA) and binary offset [$1F46]
 	move.w	d0,d3	;3600
 	bsr	Load_ChampionStatRecord	;61004392
 	move.l	a4,a1	;224C
 	moveq	#$00,d7	;7E00
 	move.b	$0016(a1),d7	;1E290016
-	bpl.s	adrCd0022F8	;6A1E
+	bpl.s	AttackDamage_StandingChampionHit	;6A1E
 	move.w	d3,d0	;3003
 	bsr	Find_ChampionOwner	;61001D88
 	tst.w	d1	;4A41
-	bmi	adrCd001DBA	;6B00FAD6
+	bmi	TeleportOrSpellEntry_SharedReturn	;6B00FAD6
 	move.l	a5,a1	;224D
 	lea	FormationSlot_ScratchBytes.l,a0	;41F900002680
 	clr.l	(a0)	;4290
 	move.b	d5,$00(a0,d1.w)	;11851000
 	bra	Apply_PartyDamage	;60000196
 
-adrCd0022F8:		; Memory Address ($22F8) and binary offset [$1F74]
+AttackDamage_StandingChampionHit:		; Memory Address ($22F8) and binary offset [$1F74]
 	swap	d7	;4847
 	move.b	$0017(a1),d7	;1E290017
 	bsr	CoordToMap	;6100619C
 	move.w	d0,d4	;3800
 	move.w	d3,d0	;3003
-	bra	adrCd002414	;6000010C
+	bra	Apply_StandingChampionDamage	;6000010C
 
 AirborneSpellSplashFlag:		; Memory Address ($230A) and binary offset [$1F86]
 	; When nonzero, an airborne spell impact is spread across the target monster group instead of one occupant.
@@ -3903,15 +3916,15 @@ Apply_SpellImpactAtOccupant:		; Memory Address ($230C) and binary offset [$1F88]
 	; Finds the target-cell occupant and dispatches the staged spell impact to a champion, party, monster, or monster group.
 	move.w	d0,d4	;3800
 	bsr	Resolve_DiagonalCellAndFindOccupant	;61007594
-	bcs.s	adrCd002316	;6502
+	bcs.s	SpellImpact_TargetTypeDispatch	;6502
 	rts	;4E75
 
-adrCd002316:		; Memory Address ($2316) and binary offset [$1F92]
+SpellImpact_TargetTypeDispatch:		; Memory Address ($2316) and binary offset [$1F92]
 	tst.b	d0	;4A00
 	bmi	Apply_PartyDamage	;6B000172
 	cmpi.w	#$0010,d0	;0C400010
-	bcs	adrCd002414	;650000F2
-adrCd002324:		; Memory Address ($2324) and binary offset [$1FA0]
+	bcs	Apply_StandingChampionDamage	;650000F2
+MonsterHit_SplashDispatch:		; Memory Address ($2324) and binary offset [$1FA0]
 	tst.w	AirborneSpellSplashFlag.w	;4A78230A	;Short Absolute converted to symbol!
 	beq.s	Apply_MonsterDamage	;674A
 	moveq	#$00,d1	;7200
@@ -3921,10 +3934,10 @@ adrCd002324:		; Memory Address ($2324) and binary offset [$1FA0]
 	lea	MonsterTeamIndexTable.l,a0	;41F900017390
 	add.w	d1,a0	;D0C1
 	moveq	#$03,d7	;7E03
-adrLp00233E:		; Memory Address ($233E) and binary offset [$1FBA]
+SplashDamage_TeamLoopHead:		; Memory Address ($233E) and binary offset [$1FBA]
 	moveq	#$00,d1	;7200
 	move.b	$00(a0,d7.w),d1	;12307000
-	bmi.s	adrCd002360	;6B1A
+	bmi.s	SplashDamage_LoopTailCheck	;6B1A
 	move.w	d1,d0	;3001
 	add.w	#$0010,d0	;06400010
 	asl.w	#$04,d1	;E941
@@ -3933,10 +3946,10 @@ adrLp00233E:		; Memory Address ($233E) and binary offset [$1FBA]
 	movem.l	d4/d5/d7/a0/a6,-(sp)	;48E70D82
 	bsr.s	Apply_MonsterDamage	;6118
 	movem.l	(sp)+,d4/d5/d7/a0/a6	;4CDF41B0
-adrCd002360:		; Memory Address ($2360) and binary offset [$1FDC]
-	dbra	d7,adrLp00233E	;51CFFFDC
+SplashDamage_LoopTailCheck:		; Memory Address ($2360) and binary offset [$1FDC]
+	dbra	d7,SplashDamage_TeamLoopHead	;51CFFFDC
 	cmp.l	#$FFFFFFFF,(a0)	;0C90FFFFFFFF
-	beq.s	adrCd002394	;6728
+	beq.s	MonsterDamage_ReturnAlive	;6728
 	bset	#$07,$01(a6,d4.w)	;08F600074001
 	rts	;4E75
 
@@ -3944,19 +3957,20 @@ Apply_MonsterDamage:		; Memory Address ($2374) and binary offset [$1FF0]
 	; Applies resistance when requested, awards attack progress, subtracts monster hit points, and enters the death path on underflow.
 	movem.w	d0/d4,-(sp)	;48A78800
 	tst.l	d5	;4A85
-	bpl.s	adrCd002380	;6A04
+	bpl.s	ApplyMonsterDamage_CallKillExperience	;6A04
 	bsr	Resolve_LevelResistanceRoll	;6100FD7A
-adrCd002380:		; Memory Address ($2380) and binary offset [$1FFC]
+ApplyMonsterDamage_CallKillExperience:		; Memory Address ($2380) and binary offset [$1FFC]
 	bsr	Award_MonsterDamageExperienceAndKillBonus	;6100FE12
 	movem.w	(sp)+,d0/d4	;4C9F0011
 	move.w	$0008(a1),d1	;32290008
 	sub.w	d5,d1	;9245
-	bcs.s	adrCd002396	;6506
+	bcs.s	Apply_MonsterDeath	;6506
 	move.w	d1,$0008(a1)	;33410008
-adrCd002394:		; Memory Address ($2394) and binary offset [$2010]
+MonsterDamage_ReturnAlive:		; Memory Address ($2394) and binary offset [$2010]
 	rts	;4E75
 
-adrCd002396:		; Memory Address ($2396) and binary offset [$2012]
+Apply_MonsterDeath:		; Memory Address ($2396) and binary offset [$2012]
+	; Resolves monster death and loot: damage must exceed the remaining HP, special forms select fixed or no drops, other forms roll the drop table, and any dropped object is placed in corner 0 of the slain monster's cell.
 	moveq	#$00,d2	;7400
 	move.b	$000C(a1),d2	;1429000C
 	swap	d2	;4842
@@ -3968,25 +3982,25 @@ adrCd002396:		; Memory Address ($2396) and binary offset [$2012]
 	bsr	Queue_MapCellEffect	;6100FA0E
 	move.l	(sp)+,d2	;241F
 	tst.b	d2	;4A02
-	bmi.s	adrCd002394	;6BDE
+	bmi.s	MonsterDamage_ReturnAlive	;6BDE
 	moveq	#$01,d5				;7A01
 	swap	d5				;4845
 	cmpi.b	#$64,d2				;0C020064
-	beq.s	adrCd002394			;67D4
+	beq.s	MonsterDamage_ReturnAlive			;67D4
 	move.w	#$0056,d5			;3A3C0056
 	cmpi.b	#$6B,d2				;0C02006B
 	beq.s	_DropTheObject			;672C
 	cmpi.b	#$40,d2				;0C020040
-	bne.s	adrCd0023D6			;6606
+	bne.s	MonsterDeath_RollLootTable			;6606
 	swap	d2				;4842
 	move.w	d2,d5				;3A02
 	bra.s	_DropTheObject			;6020
 
-adrCd0023D6:		; Memory Address ($23D6) and binary offset [$2052]
+MonsterDeath_RollLootTable:		; Memory Address ($23D6) and binary offset [$2052]
 	bsr	RandomGen_BytewithOffset			;610031D4
 	and.w	#$000F,d0			;0240000F
 	move.b	DroppedObjects_DataTable(pc,d0.w),d5		;1A3B0024
-	beq.s	adrCd002394			;67B0
+	beq.s	MonsterDamage_ReturnAlive			;67B0
 	cmpi.w	#$0005,d5			;0C450005
 	bcc.s	_DropTheObject			;640C
 	bsr	RandomGen_BytewithOffset			;610031C0
@@ -4017,36 +4031,37 @@ DroppedObjects_DataTable:		; Memory Address ($2404) and binary offset [$2080]
 	dc.b	$0C	;0C
 	dc.b	$03	;03
 
-adrCd002414:		; Memory Address ($2414) and binary offset [$2090]
+Apply_StandingChampionDamage:		; Memory Address ($2414) and binary offset [$2090]
 	tst.l	d5	;4A85
-	bpl.s	adrCd002420	;6A08
+	bpl.s	StandingChampionDamage_Subtract	;6A08
 	move.w	d0,-(sp)	;3F00
 	bsr	Resolve_LevelResistanceRoll	;6100FCDC
 	move.w	(sp)+,d0	;301F
-adrCd002420:		; Memory Address ($2420) and binary offset [$209C]
+StandingChampionDamage_Subtract:		; Memory Address ($2420) and binary offset [$209C]
 	moveq	#$00,d1	;7200
 	move.b	$0005(a1),d1	;12290005
 	sub.w	d5,d1	;9245
-	bcs.s	adrCd002430	;6506
+	bcs.s	Apply_StandingChampionDeath	;6506
 	move.b	d1,$0005(a1)	;13410005
 	rts	;4E75
 
-adrCd002430:		; Memory Address ($2430) and binary offset [$20AC]
+Apply_StandingChampionDeath:		; Memory Address ($2430) and binary offset [$20AC]
+	; Handles lethal damage to a standing champion by clearing current HP and vitality, dropping the champion's remains object at the stored map position, and refreshing affected party-shield slots.
 	clr.b	$0005(a1)	;42290005
 	clr.b	$0007(a1)	;42290007
 	move.l	a5,-(sp)	;2F0D
 	bsr	Find_ChampionOwner	;61001C2A
 	tst.w	d1	;4A41
-	bmi.s	adrCd002460	;6B1E
+	bmi.s	ChampionDeath_FinalizeAndDropRemains	;6B1E
 	bset	#$06,$18(a5,d1.w)	;08F500061018
 	tst.w	$0042(a5)	;4A6D0042
-	bpl.s	adrCd002460	;6A12
+	bpl.s	ChampionDeath_FinalizeAndDropRemains	;6A12
 	movem.l	d4/a1,-(sp)	;48E70840
 	move.w	d1,d7	;3E01
 	bsr	Refresh_PartyShieldSlotIfDirty	;61005A9A
 	bsr	Draw_PartyShieldChainStrip	;61005A78
 	movem.l	(sp)+,d4/a1	;4CDF0210
-adrCd002460:		; Memory Address ($2460) and binary offset [$20DC]
+ChampionDeath_FinalizeAndDropRemains:		; Memory Address ($2460) and binary offset [$20DC]
 	move.l	(sp)+,a5	;2A5F
 	move.b	#$FF,$0016(a1)	;137C00FF0016
 	move.l	Current_TowerMapDataBase.l,a6	;2C790000EE78
@@ -4063,29 +4078,30 @@ Apply_PartyDamage:		; Memory Address ($248C) and binary offset [$2108]
 	; Applies a staged byte-sized damage value across the four party formation slots, with the shared Antimage resistance path when requested.
 	or.b	#$0F,$003E(a1)	;0029000F003E
 	bclr	#$02,(a1)	;08910002
-	beq.s	adrCd00249C	;6704
+	beq.s	PartyDamage_AntimageResistanceCheck	;6704
 	clr.w	$0014(a1)	;42690014
-adrCd00249C:		; Memory Address ($249C) and binary offset [$2118]
+PartyDamage_AntimageResistanceCheck:		; Memory Address ($249C) and binary offset [$2118]
 	tst.l	d5	;4A85
-	bpl.s	adrCd0024A6	;6A06
+	bpl.s	PartyDamage_FormationLoopSetup	;6A06
 	moveq	#-$01,d0	;70FF
 	bsr	Resolve_LevelResistanceRoll	;6100FC54
-adrCd0024A6:		; Memory Address ($24A6) and binary offset [$2122]
+PartyDamage_FormationLoopSetup:		; Memory Address ($24A6) and binary offset [$2122]
 	moveq	#$03,d1	;7203
 	lea	FormationSlot_ScratchBytes.l,a0	;41F900002680
-adrLp0024AE:		; Memory Address ($24AE) and binary offset [$212A]
+PartyDamage_FormationLoopHead:		; Memory Address ($24AE) and binary offset [$212A]
 	move.b	$18(a1,d1.w),d0	;10311018
 	and.w	#$00E0,d0	;024000E0
-	beq.s	adrCd0024BE	;6706
+	beq.s	ApplyPartyDamage_DamageSlotAndFlagDeath	;6706
 	clr.b	$00(a0,d1.w)	;42301000
-	bra.s	adrCd0024F2	;6034
+	bra.s	ApplyPartyDamage_SlotLoopTail	;6034
 
-adrCd0024BE:		; Memory Address ($24BE) and binary offset [$213A]
+ApplyPartyDamage_DamageSlotAndFlagDeath:		; Memory Address ($24BE) and binary offset [$213A]
+	; Marks an in-party champion dead after HP underflow, clears worn and selected spells, leaves the champion record available to the party, and plays the character-death sound.
 	move.b	$18(a1,d1.w),d0	;10311018
 	bsr	Load_ChampionStatRecord	;6100419C
 	move.b	$0005(a4),d0	;102C0005
 	sub.b	$00(a0,d1.w),d0	;90301000
-	bcc.s	adrCd0024EE	;641E
+	bcc.s	ApplyPartyDamage_StoreSlotHP	;641E
 	or.b	#$40,$18(a1,d1.w)	;003100401018
 	clr.b	$0011(a4)	;422C0011
 	move.b	#$FF,$0013(a4)	;197C00FF0013
@@ -4094,14 +4110,14 @@ adrCd0024BE:		; Memory Address ($24BE) and binary offset [$213A]
 	jsr	PlaySound.l	;4EB9000088BE
 	move.l	(sp)+,a0	;205F
 	moveq	#$00,d0	;7000
-adrCd0024EE:		; Memory Address ($24EE) and binary offset [$216A]
+ApplyPartyDamage_StoreSlotHP:		; Memory Address ($24EE) and binary offset [$216A]
 	move.b	d0,$0005(a4)	;19400005
-adrCd0024F2:		; Memory Address ($24F2) and binary offset [$216E]
-	dbra	d1,adrLp0024AE	;51C9FFBA
+ApplyPartyDamage_SlotLoopTail:		; Memory Address ($24F2) and binary offset [$216E]
+	dbra	d1,PartyDamage_FormationLoopHead	;51C9FFBA
 	move.l	a5,-(sp)	;2F0D
 	move.l	a1,a5	;2A49
 	moveq	#$03,d1	;7203
-adrLp0024FC:		; Memory Address ($24FC) and binary offset [$2178]
+PartyDamage_ClearDeadMemberSlotLoop:		; Memory Address ($24FC) and binary offset [$2178]
 	move.b	$18(a5,d1.w),d0	;10351018
 	bmi.s	Advance_DepartedChampionSlotScan	;6B1E
 	btst	#$06,d0	;08000006
@@ -4115,7 +4131,7 @@ adrLp0024FC:		; Memory Address ($24FC) and binary offset [$2178]
 	move.b	#$FF,$26(a5,d2.w)	;1BBC00FF2026
 Advance_DepartedChampionSlotScan:		; Memory Address ($2520) and binary offset [$219C]
 	; Advances the scan that marks champion slots affected by party-member departure.
-	dbra	d1,adrLp0024FC	;51C9FFDA
+	dbra	d1,PartyDamage_ClearDeadMemberSlotLoop	;51C9FFDA
 	btst	#$06,$0018(a5)	;082D00060018
 	bne.s	Choose_DepartedChampionReplacement	;6608
 	bsr	Refresh_ModeDependentChampionDisplay	;61005D18
@@ -4154,7 +4170,7 @@ Advance_ActiveChampionReplacementCandidate:		; Memory Address ($2576) and binary
 	bcs.s	Find_ActiveChampionReplacementLoop	;65BA
 	and.b	#$01,(a5)	;02150001
 	moveq	#$03,d1	;7203
-adrLp002584:		; Memory Address ($2584) and binary offset [$2200]
+AdjustInventoryIndex_FindLeaderCandidateLoop:		; Memory Address ($2584) and binary offset [$2200]
 	move.b	$18(a5,d1.w),d0	;10351018
 	btst	#$05,d0	;08000005
 	beq.s	Continue_DepartedChampionSelectionScan	;6706
@@ -4162,7 +4178,7 @@ adrLp002584:		; Memory Address ($2584) and binary offset [$2200]
 	beq.s	Install_ActiveChampionReplacement	;6706
 Continue_DepartedChampionSelectionScan:		; Memory Address ($2594) and binary offset [$2210]
 	; Continues the fallback scan while the current slot remains unsuitable.
-	dbra	d1,adrLp002584	;51C9FFEE
+	dbra	d1,AdjustInventoryIndex_FindLeaderCandidateLoop	;51C9FFEE
 	bra.s	Handle_NoActiveChampionReplacement	;6054
 
 Install_ActiveChampionReplacement:		; Memory Address ($259A) and binary offset [$2216]
@@ -4189,7 +4205,7 @@ Handle_NoActiveChampionReplacement:		; Memory Address ($25EE) and binary offset 
 	; Externalises the remaining party members when no eligible active replacement exists.
 	bsr.s	Externalise_WipedParty_Remains	;6138
 	move.b	#$FF,$001D(a5)	;1B7C00FF001D
-	bsr	adrCd00270E	;61000116
+	bsr	Draw_PlayerDeathMessage	;61000116
 	and.b	#$01,(a5)	;02150001
 Reset_DepartedPartyState:		; Memory Address ($25FE) and binary offset [$227A]
 	; Clears transient party selection and interface state after departure handling.
@@ -4211,7 +4227,7 @@ Externalise_WipedParty_Remains:		; Memory Address ($2628) and binary offset [$22
 	bsr	PlayerPositionToMapOffset	;61005E6E
 	bclr	#$07,$01(a6,d0.w)	;08B600070001
 	moveq	#$03,d1	;7203
-adrLp002634:		; Memory Address ($2634) and binary offset [$22B0]
+Externalise_WipedParty_SlotLoop:		; Memory Address ($2634) and binary offset [$22B0]
 	moveq	#$01,d5	;7A01
 	swap	d5	;4845
 	move.b	$18(a5,d1.w),d5	;1A351018
@@ -4226,13 +4242,13 @@ adrLp002634:		; Memory Address ($2634) and binary offset [$22B0]
 	movem.l	(sp)+,d0/d1	;4CDF0003
 Advance_RemainsExternalisationLoop:		; Memory Address ($265C) and binary offset [$22D8]
 	; Advances the loop that converts departed champions into recoverable remains.
-	dbra	d1,adrLp002634	;51C9FFD6
+	dbra	d1,Externalise_WipedParty_SlotLoop	;51C9FFD6
 	rts	;4E75
 
 Loop_TeamAvatarSlots:		; Memory Address ($2662) and binary offset [$22DE]
 	; Scans all four formation slots and draws pending wound-flash numbers for flagged slots.
 	moveq	#$03,d7	;7E03
-adrLp002664:		; Memory Address ($2664) and binary offset [$22E0]
+TeamAvatarSlots_ScanFlagLoop:		; Memory Address ($2664) and binary offset [$22E0]
 	move.b	$18(a5,d7.w),d0	;10357018
 	bmi.s	Advance_PartyHitNumberLoop	;6B10
 	moveq	#$00,d0	;7000
@@ -4243,7 +4259,7 @@ adrLp002664:		; Memory Address ($2664) and binary offset [$22E0]
 	move.w	(sp)+,d7	;3E1F
 Advance_PartyHitNumberLoop:		; Memory Address ($267A) and binary offset [$22F6]
 	; Advances the loop that redraws nonzero party damage counters.
-	dbra	d7,adrLp002664	;51CFFFE8
+	dbra	d7,TeamAvatarSlots_ScanFlagLoop	;51CFFFE8
 	rts	;4E75
 
 FormationSlot_ScratchBytes:		; Memory Address ($2680) and binary offset [$22FC]
@@ -4266,7 +4282,7 @@ Draw_CombatWoundFlashNumber:		; Memory Address ($2684) and binary offset [$2300]
 	add.w	$0008(a5),d5		;DA6D0008
 	movem.l	d4/d5,-(sp)		;48E70C00
 	moveq	#$00,d6			;7C00
-	jsr	adrCd00AE66.l		;4EB90000AE66
+	jsr	Draw_PlanarSprite_RowsReversed.l		;4EB90000AE66
 	movem.l	(sp)+,d4/d5		;4CDF0030
 	move.w	(sp)+,d0		;301F
 	addq.w	#$04,d4			;5844
@@ -4276,20 +4292,20 @@ Draw_CombatWoundFlashNumber:		; Memory Address ($2684) and binary offset [$2300]
 	bsr	Convert_ThreeDigitDecimalText		;61003AA4
 	moveq	#$08,d0			;7008
 	move.w	d2,d1			;3202
-	beq.s	adrCd0026E4		;6708
+	beq.s	WoundFlashNumber_ApplyDigitXOffset		;6708
 	subq.w	#$04,d0			;5940
 	subq.w	#$01,d2			;5342
-	beq.s	adrCd0026E4		;6702
+	beq.s	WoundFlashNumber_ApplyDigitXOffset		;6702
 	subq.w	#$04,d0			;5940
-adrCd0026E4:		; Memory Address ($26E4) and binary offset [$2360]
+WoundFlashNumber_ApplyDigitXOffset:		; Memory Address ($26E4) and binary offset [$2360]
 	add.w	d0,d4	;D840
-adrLp0026E6:		; Memory Address ($26E6) and binary offset [$2362]
+WoundFlashNumber_DrawDigitLoop:		; Memory Address ($26E6) and binary offset [$2362]
 	move.b	(a6)+,d0		;101E
 	movem.l	d1/d4/d5/a6,-(sp)	;48E74C02
 	jsr	Draw_woundflash_digit.l		;4EB90000D92E
 	movem.l	(sp)+,d1/d4/d5/a6	;4CDF4032
 	addq.w	#$08,d4			;5044
-	dbra	d1,adrLp0026E6		;51C9FFEC
+	dbra	d1,WoundFlashNumber_DrawDigitLoop		;51C9FFEC
 	rts	;4E75
 
 WoundFlashPopup_XOffsetTable:		; Memory Address ($26FE) and binary offset [$237A]
@@ -4305,7 +4321,8 @@ WoundFlashPopup_YOffsetTable:		; Memory Address ($2700) and binary offset [$237C
 	dc.w	$0040	;0040
 	dc.w	$0040	;0040
 
-adrCd00270E:		; Memory Address ($270E) and binary offset [$238A]
+Draw_PlayerDeathMessage:		; Memory Address ($270E) and binary offset [$238A]
+	; Draws the player's death frame and prints the two-line THOU / ART DEAD message when no living replacement leader remains.
 	bsr.s	Draw_ViewportMessageFrame		;6124
 	lea	ThouArtDead.l,a6	;4DF90000271C
 	jmp	Print_fflim_text.l		;4EF90000D0C6
@@ -4336,21 +4353,21 @@ Draw_ViewportMessageFrame:		; Memory Address ($2734) and binary offset [$23B0]
 	move.l	#$007F0060,d4	;283C007F0060
 	moveq	#$04,d3	;7604
 	moveq	#$02,d2	;7402
-	bra.s	adrCd002760	;600A
+	bra.s	ViewportMessageFrame_DrawFramePass	;600A
 
-adrLp002756:		; Memory Address ($2756) and binary offset [$23D2]
+ViewportMessageFrame_ShrinkHeightStep:		; Memory Address ($2756) and binary offset [$23D2]
 	add.w	d2,d5	;DA42
 	swap	d5	;4845
 	sub.w	d2,d5	;9A42
 	subq.w	#$01,d5	;5345
 	swap	d5	;4845
-adrCd002760:		; Memory Address ($2760) and binary offset [$23DC]
+ViewportMessageFrame_DrawFramePass:		; Memory Address ($2760) and binary offset [$23DC]
 	movem.l	d2-d5,-(sp)	;48E73C00
 	jsr	BW_draw_frame.l	;4EB90000DAD4
 	movem.l	(sp)+,d2-d5	;4CDF003C
 	eor.w	#$0006,d3	;0A430006
 	add.l	#$FFFE0001,d4	;0684FFFE0001
-	dbra	d2,adrLp002756	;51CAFFDC
+	dbra	d2,ViewportMessageFrame_ShrinkHeightStep	;51CAFFDC
 	rts	;4E75
 
 Purge_TransientSummonsBeforeAllocation:		; Memory Address ($277E) and binary offset [$23FA]
@@ -4358,21 +4375,21 @@ Purge_TransientSummonsBeforeAllocation:		; Memory Address ($277E) and binary off
 	movem.l	d0-d7/a0-a6,-(sp)	;48E7FFFE
 	lea	UnpackedMonsters.l,a4	;49F900016B7E
 	move.w	-$0002(a4),d6	;3C2CFFFE
-adrLp00278C:		; Memory Address ($278C) and binary offset [$2408]
+PurgeTransientSummons_ScanLoop:		; Memory Address ($278C) and binary offset [$2408]
 	move.w	d6,d0	;3006
 	asl.w	#$04,d0	;E940
 	lea	$00(a4,d0.w),a3	;47F40000
 	move.b	$000B(a3),d0	;102B000B
-	bmi.s	adrCd0027A0	;6B06
+	bmi.s	PurgeTransientSummons_DespawnEntry	;6B06
 	cmpi.b	#$64,d0	;0C000064
-	bne.s	adrCd0027C6	;6626
-adrCd0027A0:		; Memory Address ($27A0) and binary offset [$241C]
+	bne.s	PurgeTransientSummons_LoopTail	;6626
+PurgeTransientSummons_DespawnEntry:		; Memory Address ($27A0) and binary offset [$241C]
 	moveq	#$00,d0	;7000
 	move.b	$0004(a3),d0	;102B0004
 	bsr	Select_FloorMapByIndex	;61005D32
 	moveq	#$00,d7	;7E00
 	move.b	$0000(a3),d7	;1E2B0000
-	bmi.s	adrCd0027C6	;6B14
+	bmi.s	PurgeTransientSummons_LoopTail	;6B14
 	swap	d7	;4847
 	move.b	$0001(a3),d7	;1E2B0001
 	bsr	CoordToMap	;61005CE2
@@ -4380,11 +4397,11 @@ adrCd0027A0:		; Memory Address ($27A0) and binary offset [$241C]
 	move.w	d6,d0	;3006
 	add.w	#$0010,d0	;06400010
 	bsr.s	Despawn_MonsterAndClearMapCell	;612A
-adrCd0027C6:		; Memory Address ($27C6) and binary offset [$2442]
-	dbra	d6,adrLp00278C	;51CEFFC4
+PurgeTransientSummons_LoopTail:		; Memory Address ($27C6) and binary offset [$2442]
+	dbra	d6,PurgeTransientSummons_ScanLoop	;51CEFFC4
 	movem.l	(sp),d0-d7/a0-a6	;4CD77FFF
 	move.w	d2,d0	;3002
-	bsr	adrCd0084FC	;61005D2A
+	bsr	Resolve_DiagonalPillarSourceCell	;61005D2A
 	move.w	d1,d0	;3001
 	bsr	Select_FloorMapByIndex	;61005D02
 	movem.l	(sp)+,d0-d7/a0-a6	;4CDF7FFF
@@ -4396,12 +4413,12 @@ Remove_MonsterRecord:		; Memory Address ($27E0) and binary offset [$245C]
 	sub.l	#UnpackedMonsters,d0	;048000016B7E
 	lsr.w	#MonsterRecord_SizeShift,d0	;E848
 	add.w	#MonsterRecord_Size,d0	;06400010
-	bra.s	adrCd0027F6	;6006
+	bra.s	RemoveMonsterRecord_BeginCompaction	;6006
 
 Despawn_MonsterAndClearMapCell:		; Memory Address ($27F0) and binary offset [$246C]
 	; Clears the monster's map occupancy and enters the shared record-compaction and reference-cleanup path.
 	bclr	#$07,$01(a6,d4.w)	;08B600074001
-adrCd0027F6:		; Memory Address ($27F6) and binary offset [$2472]
+RemoveMonsterRecord_BeginCompaction:		; Memory Address ($27F6) and binary offset [$2472]
 	bsr.s	Cleanup_MonsterReferencesAfterRemoval	;6150
 	lea	UnpackedMonsters.l,a2	;45F900016B7E
 	move.w	MonsterLive_RecordCountOffset(a2),d2	;342AFFFE
@@ -4410,34 +4427,34 @@ adrCd0027F6:		; Memory Address ($27F6) and binary offset [$2472]
 	asl.w	#MonsterRecord_SizeShift,d0	;E940
 	lea	$00(a2,d0.w),a2	;45F20000
 	lea	MonsterRecord_Size(a2),a3	;47EA0010
-	bra.s	adrCd00281C	;6008
+	bra.s	RemoveMonsterRecord_CopyLoopCheck	;6008
 
-adrLp002814:		; Memory Address ($2814) and binary offset [$2490]
+RemoveMonsterRecord_CompactionCopyLoop:		; Memory Address ($2814) and binary offset [$2490]
 	move.l	(a3)+,(a2)+	;24DB
 	move.l	(a3)+,(a2)+	;24DB
 	move.l	(a3)+,(a2)+	;24DB
 	move.l	(a3)+,(a2)+	;24DB
-adrCd00281C:		; Memory Address ($281C) and binary offset [$2498]
-	dbra	d2,adrLp002814	;51CAFFF6
+RemoveMonsterRecord_CopyLoopCheck:		; Memory Address ($281C) and binary offset [$2498]
+	dbra	d2,RemoveMonsterRecord_CompactionCopyLoop	;51CAFFF6
 	moveq	#-$01,d2	;74FF
 	move.l	d2,(a2)+	;24C2
 	move.l	d2,(a2)+	;24C2
 	move.l	d2,(a2)+	;24C2
 	move.l	d2,(a2)	;2482
-adrCd00282A:		; Memory Address ($282A) and binary offset [$24A6]
+MonsterRemoval_SharedReturn:		; Memory Address ($282A) and binary offset [$24A6]
 	rts	;4E75
 
 Adjust_PlayerTargetIndexAfterRemoval:		; Memory Address ($282C) and binary offset [$24A8]
 	; Clears or decrements a player's targeted-monster index after the live monster array is compacted.
 	tst.b	$0035(a0)	;4A280035
-	bmi.s	adrCd00282A	;6BF8
+	bmi.s	MonsterRemoval_SharedReturn	;6BF8
 	cmp.b	$0035(a0),d0	;B0280035
-	bne.s	adrCd002840	;6608
+	bne.s	AdjustPlayerTargetIndex_DecrementIfLater	;6608
 	move.b	#$FF,$0035(a0)	;117C00FF0035
 	rts	;4E75
 
-adrCd002840:		; Memory Address ($2840) and binary offset [$24BC]
-	bcc.s	adrCd00282A	;64E8
+AdjustPlayerTargetIndex_DecrementIfLater:		; Memory Address ($2840) and binary offset [$24BC]
+	bcc.s	MonsterRemoval_SharedReturn	;64E8
 	subq.b	#$01,$0035(a0)	;53280035
 	rts	;4E75
 
@@ -4450,13 +4467,13 @@ Cleanup_MonsterReferencesAfterRemoval:		; Memory Address ($2848) and binary offs
 	sub.w	#MonsterRecord_Size,d0	;04400010
 	lea	MonsterTeamIndexTable.l,a0	;41F900017390
 	move.w	MonsterTeamIndexTable_CountOffset(a0),d2	;3428FFFE
-	bmi.s	adrCd00282A	;6BC2
+	bmi.s	MonsterRemoval_SharedReturn	;6BC2
 	move.w	d5,-(sp)	;3F05
-adrLp00286A:		; Memory Address ($286A) and binary offset [$24E6]
+CleanUpMonsterRefs_GroupTableLoop:		; Memory Address ($286A) and binary offset [$24E6]
 	movem.w	d0/d2,-(sp)	;48A7A000
 	bsr.s	Adjust_MonsterTeamMemberIndexAfterRemoval	;610C
 	movem.w	(sp)+,d0/d2	;4C9F0005
-	dbra	d2,adrLp00286A	;51CAFFF4
+	dbra	d2,CleanUpMonsterRefs_GroupTableLoop	;51CAFFF4
 	move.w	(sp)+,d5	;3A1F
 	rts	;4E75
 
@@ -4464,41 +4481,41 @@ Adjust_MonsterTeamMemberIndexAfterRemoval:		; Memory Address ($287C) and binary 
 	; Clears or decrements one monster team's member indices after the live monster array is compacted.
 	moveq	#MonsterTeamMember_Count-1,d3	;7603
 	moveq	#$00,d2	;7400
-adrLp002880:		; Memory Address ($2880) and binary offset [$24FC]
+AdjustMonsterTeamMemberIndex_ScanLoop:		; Memory Address ($2880) and binary offset [$24FC]
 	move.b	$00(a0,d3.w),d5	;1A303000
-	bmi.s	adrCd002896	;6B10
+	bmi.s	AdjustMonsterTeamMemberIndex_LoopTail	;6B10
 	cmp.b	d5,d0	;B005
-	bcs.s	adrCd002892	;6508
-	bne.s	adrCd002896	;660A
+	bcs.s	AdjustMonsterTeamMemberIndex_Decrement	;6508
+	bne.s	AdjustMonsterTeamMemberIndex_LoopTail	;660A
 	clr.b	$00(a0,d3.w)	;42303000
 	moveq	#$01,d2	;7401
-adrCd002892:		; Memory Address ($2892) and binary offset [$250E]
+AdjustMonsterTeamMemberIndex_Decrement:		; Memory Address ($2892) and binary offset [$250E]
 	subq.b	#$01,$00(a0,d3.w)	;53303000
-adrCd002896:		; Memory Address ($2896) and binary offset [$2512]
-	dbra	d3,adrLp002880	;51CBFFE8
+AdjustMonsterTeamMemberIndex_LoopTail:		; Memory Address ($2896) and binary offset [$2512]
+	dbra	d3,AdjustMonsterTeamMemberIndex_ScanLoop	;51CBFFE8
 	tst.w	d2	;4A42
-	beq.s	adrCd0028B8	;671A
+	beq.s	MonsterGroupCleanup_AdvanceAndReturn	;671A
 	lea	UnpackedMonsters.l,a2	;45F900016B7E
 	asl.w	#MonsterRecord_SizeShift,d0	;E940
 	tst.b	$0D(a2,d0.w)	;4A32000D
-	bmi.s	adrCd0028B8	;6B0C
+	bmi.s	MonsterGroupCleanup_AdvanceAndReturn	;6B0C
 	moveq	#MonsterTeamMember_Count-1,d3	;7603
-adrLp0028AE:		; Memory Address ($28AE) and binary offset [$252A]
+MonsterGroupCleanup_FindReplacementLoop:		; Memory Address ($28AE) and binary offset [$252A]
 	tst.b	$00(a0,d3.w)	;4A303000
-	bpl.s	adrCd0028BC	;6A08
-	dbra	d3,adrLp0028AE	;51CBFFF8
-adrCd0028B8:		; Memory Address ($28B8) and binary offset [$2534]
+	bpl.s	MonsterGroupCleanup_PromoteReplacementMember	;6A08
+	dbra	d3,MonsterGroupCleanup_FindReplacementLoop	;51CBFFF8
+MonsterGroupCleanup_AdvanceAndReturn:		; Memory Address ($28B8) and binary offset [$2534]
 	addq.w	#$04,a0	;5848
 	rts	;4E75
 
-adrCd0028BC:		; Memory Address ($28BC) and binary offset [$2538]
+MonsterGroupCleanup_PromoteReplacementMember:		; Memory Address ($28BC) and binary offset [$2538]
 	bset	#$07,$01(a6,d4.w)	;08F600074001
 	move.b	$00(a0,d3.w),d3	;16303000
 	asl.w	#$04,d3	;E943
 	cmp.w	d0,d3	;B640
-	bcs.s	adrCd0028D0	;6504
+	bcs.s	MonsterGroupCleanup_CopyToReplacement	;6504
 	add.w	#$0010,d3	;06430010
-adrCd0028D0:		; Memory Address ($28D0) and binary offset [$254C]
+MonsterGroupCleanup_CopyToReplacement:		; Memory Address ($28D0) and binary offset [$254C]
 	lea	$00(a2,d3.w),a3	;47F23000
 	lea	$00(a2,d0.w),a2	;45F20000
 	move.b	MonsterRecord_XPosition(a2),MonsterRecord_XPosition(a3)	;176A00000000
@@ -4508,32 +4525,32 @@ adrCd0028D0:		; Memory Address ($28D0) and binary offset [$254C]
 	move.b	MonsterRecord_TeamGroupIndex(a2),MonsterRecord_TeamGroupIndex(a3)	;176A000D000D
 	move.b	#MonsterRecord_NoTeamGroup,MonsterRecord_TeamGroupIndex(a2)	;157C00FF000D
 	move.b	#MonsterRecord_NoPosition,MonsterRecord_XPosition(a2)	;157C00FF0000
-	bra.s	adrCd0028B8	;60B4
+	bra.s	MonsterGroupCleanup_AdvanceAndReturn	;60B4
 
 Run_PlayerPeriodicMaintenance:		; Memory Address ($2904) and binary offset [$2580]
 	; Conditionally redraws the casting bar, selects the player's floor, advances communications, and refreshes formation-member state.
 	cmp.b	#$02,$0015(a5)	;0C2D00020015
-	bne.s	adrCd00291A	;660E
+	bne.s	PlayerSpellBarTick_SkipCastBarDraw	;660E
 	bsr	Load_CurrentChampionStatRecord	;61003D4E
 	tst.b	$0013(a4)	;4A2C0013
-	bmi.s	adrCd00291A	;6B04
+	bmi.s	PlayerSpellBarTick_SkipCastBarDraw	;6B04
 	bsr	Draw_SpellCastingBar	;61003E08
-adrCd00291A:		; Memory Address ($291A) and binary offset [$2596]
+PlayerSpellBarTick_SkipCastBarDraw:		; Memory Address ($291A) and binary offset [$2596]
 	bsr	Select_ActivePlayerFloorMap	;61005BBA
 	bsr	Comms_RunPeriodicTickIfActive	;610002AE
 	move.b	#$FF,$0034(a5)	;1B7C00FF0034
 	moveq	#$03,d7	;7E03
-adrLp00292A:		; Memory Address ($292A) and binary offset [$25A6]
+PlayerSpellBarTick_MemberLoop:		; Memory Address ($292A) and binary offset [$25A6]
 	moveq	#$00,d0	;7000
 	move.b	$18(a5,d7.w),d0	;10357018
 	move.w	d0,d3	;3600
 	and.w	#$000F,d3	;0243000F
 	and.w	#$00E0,d0	;024000E0
-	beq.s	adrCd002960	;6724
+	beq.s	PlayerSpellBarTick_UpdateActionTimers	;6724
 	tst.b	$0050(a5)	;4A2D0050
-	beq.s	adrCd00296C	;672A
+	beq.s	PlayerSpellBarTick_MemberLoopTail	;672A
 	cmpi.b	#$20,d0	;0C000020
-	bne.s	adrCd00296C	;6624
+	bne.s	PlayerSpellBarTick_MemberLoopTail	;6624
 	move.w	d3,d0	;3003
 	move.w	d7,-(sp)	;3F07
 	bsr	Load_ChampionStatRecord	;61003D12
@@ -4541,28 +4558,28 @@ adrLp00292A:		; Memory Address ($292A) and binary offset [$25A6]
 	move.w	#$FFFF,PartyFormationActivationFlag.w	;31FCFFFF13C4	;Short Absolute converted to symbol!
 	bsr	Update_CharacterCooldownIfCurrentTower	;6100EA6C
 	move.w	(sp)+,d7	;3E1F
-	bra.s	adrCd00296C	;600C
+	bra.s	PlayerSpellBarTick_MemberLoopTail	;600C
 
-adrCd002960:		; Memory Address ($2960) and binary offset [$25DC]
+PlayerSpellBarTick_UpdateActionTimers:		; Memory Address ($2960) and binary offset [$25DC]
 	move.w	d3,d0	;3003
 	bsr	Load_ChampionStatRecord	;61003CFC
 	move.w	d7,-(sp)	;3F07
 	bsr.s	Update_CharacterActionTimers	;6130
 	move.w	(sp)+,d7	;3E1F
-adrCd00296C:		; Memory Address ($296C) and binary offset [$25E8]
-	dbra	d7,adrLp00292A	;51CFFFBC
+PlayerSpellBarTick_MemberLoopTail:		; Memory Address ($296C) and binary offset [$25E8]
+	dbra	d7,PlayerSpellBarTick_MemberLoop	;51CFFFBC
 	rts	;4E75
 
 Decrement_CharacterTimerLowBits:		; Memory Address ($2972) and binary offset [$25EE]
 	; Decrements the low three-bit character timer while preserving its control bits.
 	move.b	d0,d1	;1200
-	bmi.s	adrCd002982	;6B0C
+	bmi.s	CharacterTimer_DecrementReturn	;6B0C
 	and.w	#$0007,d1	;02410007
 	subq.b	#$01,d0	;5300
 	subq.w	#$01,d1	;5341
-	bcc.s	adrCd002982	;6402
+	bcc.s	CharacterTimer_DecrementReturn	;6402
 	moveq	#$00,d0	;7000
-adrCd002982:		; Memory Address ($2982) and binary offset [$25FE]
+CharacterTimer_DecrementReturn:		; Memory Address ($2982) and binary offset [$25FE]
 	rts	;4E75
 
 Update_CharacterAttackCooldown:		; Memory Address ($2984) and binary offset [$2600]
@@ -4584,7 +4601,7 @@ Update_CharacterActionTimers:		; Memory Address ($299A) and binary offset [$2616
 	subq.w	#$01,d1	;5341
 	bcs.s	Reload_ChampionAttackTimer	;6506
 	subq.b	#$01,$0019(a4)	;532C0019
-adrCd0029AE:		; Memory Address ($29AE) and binary offset [$262A]
+CharacterActionTimer_SharedReturn:		; Memory Address ($29AE) and binary offset [$262A]
 	rts	;4E75
 
 Reload_ChampionAttackTimer:		; Memory Address ($29B0) and binary offset [$262C]
@@ -4598,24 +4615,24 @@ Reload_ChampionAttackTimer:		; Memory Address ($29B0) and binary offset [$262C]
 	bne	Resolve_ChampionPhysicalAttack	;66000082
 	move.b	(a5),d0	;1015
 	and.w	#$000A,d0	;0240000A
-	beq.s	adrCd0029AE	;67E2
+	beq.s	CharacterActionTimer_SharedReturn	;67E2
 	tst.w	d7	;4A47
-	bne.s	adrCd0029D8	;6608
+	bne.s	CheckDoorToggle_DispatchAttackOrSpell	;6608
 	cmp.b	#$02,$0015(a5)	;0C2D00020015
-	bcc.s	adrCd0029AE	;64D6
-adrCd0029D8:		; Memory Address ($29D8) and binary offset [$2654]
+	bcc.s	CharacterActionTimer_SharedReturn	;64D6
+CheckDoorToggle_DispatchAttackOrSpell:		; Memory Address ($29D8) and binary offset [$2654]
 	move.w	d3,d0	;3003
 	move.b	d3,SpellEntity_CasterIndex.l	;13C30000EE3E
 	bsr	Load_ChampionStatRecord	;61003C7E
 	tst.b	$0013(a4)	;4A2C0013
-	bpl	adrCd002BB4	;6A0001CA
+	bpl	PostAttack_CheckSpellSelected	;6A0001CA
 	move.w	d3,d0	;3003
 	bsr	Find_ChampionFormationSlot	;610016A2
 	movem.w	d2/d3/d7,-(sp)	;48A73100
 	bsr	PostDoorToggle_Enter	;6100006C
 	bmi.s	Restore_ChampionAttackRegisters	;6B06
 	bsr	Interface_CheckSelectedCellInteraction	;610009C0
-	bcs.s	adrCd002A14	;6512
+	bcs.s	CheckDoorToggle_PostInteractionCheck	;6512
 Restore_ChampionAttackRegisters:		; Memory Address ($2A02) and binary offset [$267E]
 	; Restores target, champion and party-slot registers after a rejected attack-clearance check.
 	movem.w	(sp)+,d2/d3/d7	;4C9F008C
@@ -4626,15 +4643,15 @@ Handle_RejectedChampionAttack:		; Memory Address ($2A06) and binary offset [$268
 	and.b	#$01,(a5)	;02150001
 	bra	Prepare_RangedAttackFromPockets	;60000114
 
-adrCd002A14:		; Memory Address ($2A14) and binary offset [$2690]
+CheckDoorToggle_PostInteractionCheck:		; Memory Address ($2A14) and binary offset [$2690]
 	movem.w	(sp)+,d2/d3/d7	;4C9F008C
 	tst.b	d0	;4A00
-	bmi.s	adrCd002A28	;6B0C
+	bmi.s	CheckDoorToggle_MeleeOrRangedGate	;6B0C
 	cmpi.b	#$10,d0	;0C000010
-	bcs.s	adrCd002A28	;6506
+	bcs.s	CheckDoorToggle_MeleeOrRangedGate	;6506
 	tst.b	$000B(a1)	;4A29000B
 	bmi.s	Handle_RejectedChampionAttack	;6BDE
-adrCd002A28:		; Memory Address ($2A28) and binary offset [$26A4]
+CheckDoorToggle_MeleeOrRangedGate:		; Memory Address ($2A28) and binary offset [$26A4]
 	cmpi.w	#$0002,d2	;0C420002
 	bcc	Prepare_RangedAttackFromPockets	;640000F8
 	movem.l	a4/a5,-(sp)	;48E7000C
@@ -4647,13 +4664,13 @@ Resolve_ChampionPhysicalAttack:		; Memory Address ($2A44) and binary offset [$26
 	move.w	$0004(sp),d7	;3E2F0004
 	movem.w	d4-d7,-(sp)	;48A70F00
 	tst.w	d7	;4A47
-	bne.s	adrCd002A58	;6608
+	bne.s	DoorToggleRoutine_DrawOutcomeGlyph	;6608
 	bsr	Refresh_CurrentChampionMapPositionIcon	;6100577C
 	movem.w	(sp),d4-d7	;4C9700F0
-adrCd002A58:		; Memory Address ($2A58) and binary offset [$26D4]
+DoorToggleRoutine_DrawOutcomeGlyph:		; Memory Address ($2A58) and binary offset [$26D4]
 	bsr	Draw_CombatOutcomeProfessionGlyph	;6100356A
 	movem.w	(sp)+,d4-d7	;4C9F00F0
-	bra	adrCd0060CA	;60003668
+	bra	FormatPartySlotCombatOutcome_Entry	;60003668
 
 PostDoorToggle_Enter:		; Memory Address ($2A64) and binary offset [$26E0]
 	; Checks the current and forward map cells for a facing-matched door during the multifunction action path.
@@ -4702,16 +4719,16 @@ Prepare_PhysicalAttackContext:		; Memory Address ($2ABA) and binary offset [$273
 	sub.w	$0020(a1),d1	;92690020
 	move.w	d1,PhysicalAttack_BackstabState.l	;33C10000628A
 	move.w	$0020(a5),d0	;302D0020
-	bsr	adrCd006018	;61003540
+	bsr	Select_MonsterMeleePartyTarget	;61003540
 	bra.s	Apply_CutpurseBackstabEligibility	;601C
 
 PhysicalAttack_TargetFacingPath:		; Memory Address ($2ADC) and binary offset [$2758]
 	; Calculates the relative attack direction using the target's facing or sub-position.
 	move.b	$0002(a1),d2	;14290002
 	cmpi.b	#$10,d0	;0C000010
-	bcc.s	adrCd002AEA	;6404
+	bcc.s	PhysicalAttack_FacingByteMerge	;6404
 	move.b	$0018(a1),d2	;14290018
-adrCd002AEA:		; Memory Address ($2AEA) and binary offset [$2766]
+PhysicalAttack_FacingByteMerge:		; Memory Address ($2AEA) and binary offset [$2766]
 	and.w	#$0003,d2	;02420003
 	sub.w	d2,d1	;9242
 	move.w	d1,PhysicalAttack_BackstabState.l	;33C10000628A
@@ -4731,7 +4748,7 @@ Execute_PhysicalAttack:		; Memory Address ($2B0A) and binary offset [$2786]
 	bsr	Resolve_PhysicalAttack	;610036C4
 	move.w	(sp)+,d0	;301F
 	move.w	$0000(a6),d5	;3A2E0000
-	bsr	adrCd002298	;6100F778
+	bsr	Apply_AttackDamage	;6100F778
 	move.l	(sp)+,a4	;285F
 	rts	;4E75
 
@@ -4746,16 +4763,16 @@ Prepare_RangedAttackFromPockets:		; Memory Address ($2B26) and binary offset [$2
 	moveq	#-$01,d4	;78FF
 	moveq	#-$01,d5	;7AFF
 	moveq	#$01,d3	;7601
-adrLp002B3E:		; Memory Address ($2B3E) and binary offset [$27BA]
+ResolveRangedAttack_PocketScanLoop:		; Memory Address ($2B3E) and binary offset [$27BA]
 	bsr.s	Record_BowAndArrowPocketCandidates	;6150
-	dbra	d3,adrLp002B3E	;51CBFFFC
+	dbra	d3,ResolveRangedAttack_PocketScanLoop	;51CBFFFC
 	move.w	d4,d3	;3604
 	or.w	d5,d3	;8645
 	tst.w	d3	;4A43
-	bmi.s	adrCd002BB4	;6B68
+	bmi.s	PostAttack_CheckSpellSelected	;6B68
 	move.b	$00(a0,d4.w),d2	;14304000
 	subq.b	#$01,$0B(a0,d2.w)	;5330200B
-	bcs.s	adrCd002B86	;6530
+	bcs.s	RangedAttack_ClearBowAndAmmoSlots	;6530
 	subq.b	#$03,d2	;5702
 	move.w	#$0088,d4	;383C0088
 	add.w	d2,d4	;D842
@@ -4782,7 +4799,7 @@ Bow_ActionValueAdjustments:		; Memory Address ($2B83) and binary offset [$27FF]
 	dc.b	$00	;00
 	dc.b	$01	;01
 
-adrCd002B86:		; Memory Address ($2B86) and binary offset [$2802]
+RangedAttack_ClearBowAndAmmoSlots:		; Memory Address ($2B86) and binary offset [$2802]
 	clr.b	$00(a0,d4.w)	;42304000
 	clr.b	$0B(a0,d2.w)	;4230200B
 	rts	;4E75
@@ -4791,24 +4808,24 @@ Record_BowAndArrowPocketCandidates:		; Memory Address ($2B90) and binary offset 
 	; Tests one pocket and records candidate bow and arrow slots for the ranged-attack setup.
 	move.b	$00(a0,d3.w),d2	;14303000
 	cmpi.b	#$05,d2	;0C020005
-	bcc.s	adrCd002BA4	;640A
+	bcc.s	CheckPocketForBowOrArrow_ArrowRangeCheck	;640A
 	cmpi.b	#$03,d2	;0C020003
-	bcs.s	adrCd002BA2	;6502
+	bcs.s	CheckPocketForBowOrArrow_Return	;6502
 	move.w	d3,d4	;3803
-adrCd002BA2:		; Memory Address ($2BA2) and binary offset [$281E]
+CheckPocketForBowOrArrow_Return:		; Memory Address ($2BA2) and binary offset [$281E]
 	rts	;4E75
 
-adrCd002BA4:		; Memory Address ($2BA4) and binary offset [$2820]
+CheckPocketForBowOrArrow_ArrowRangeCheck:		; Memory Address ($2BA4) and binary offset [$2820]
 	cmpi.b	#$5C,d2	;0C02005C
-	bcs.s	adrCd002BA2	;65F8
+	bcs.s	CheckPocketForBowOrArrow_Return	;65F8
 	cmpi.b	#$5F,d2	;0C02005F
-	bcc.s	adrCd002BA2	;64F2
+	bcc.s	CheckPocketForBowOrArrow_Return	;64F2
 	move.w	d3,d5	;3A03
 	rts	;4E75
 
-adrCd002BB4:		; Memory Address ($2BB4) and binary offset [$2830]
+PostAttack_CheckSpellSelected:		; Memory Address ($2BB4) and binary offset [$2830]
 	tst.b	$0013(a4)	;4A2C0013
-	bmi.s	adrCd002BD6	;6B1C
+	bmi.s	CommsPeriodicTick_EarlyReturn	;6B1C
 	bsr	CastSpell_ValidateSelection	;610022E4
 	moveq	#$03,d4	;7803
 	tst.b	$0013(a4)	;4A2C0013
@@ -4819,29 +4836,30 @@ adrCd002BB4:		; Memory Address ($2BB4) and binary offset [$2830]
 Comms_RunPeriodicTickIfActive:		; Memory Address ($2BCE) and binary offset [$284A]
 	; Runs the communications periodic update only while the party-command state is Communication.
 	cmp.w	#$0008,$0042(a5)	;0C6D00080042
-	beq.s	adrCd002BD8	;6702
-adrCd002BD6:		; Memory Address ($2BD6) and binary offset [$2852]
+	beq.s	Comms_PeriodicTick	;6702
+CommsPeriodicTick_EarlyReturn:		; Memory Address ($2BD6) and binary offset [$2852]
 	rts	;4E75
 
-adrCd002BD8:		; Memory Address ($2BD8) and binary offset [$2854]
+Comms_PeriodicTick:		; Memory Address ($2BD8) and binary offset [$2854]
+	; Advances communications state once per engine pulse: normalises attitude, counts down delayed replies, rotates the action history when due, and applies the Threat fear roll to the active player's currently selected occupant.
 	bsr	Comms_GetState	;61001620
 	and.b	#$3F,$0006(a4)	;022C003F0006
 	subq.b	#$01,$0004(a4)	;532C0004
-	bne.s	adrCd002BD6	;66EE
+	bne.s	CommsPeriodicTick_EarlyReturn	;66EE
 	tst.b	$0005(a4)	;4A2C0005
-	bmi.s	adrCd002BD6	;6BE8
+	bmi.s	CommsPeriodicTick_EarlyReturn	;6BE8
 	move.b	$0002(a4),d0	;102C0002
 	move.b	$0003(a4),$0002(a4)	;196C00030002
 	move.b	d0,$0003(a4)	;19400003
 	moveq	#$00,d0	;7000
 	move.b	$0000(a4),d0	;102C0000
 	cmpi.b	#$09,d0	;0C000009
-	bne.s	adrCd002C40	;6638
+	bne.s	CommsPeriodicTick_DispatchResponse	;6638
 	movem.l	d0/a4/a5,-(sp)	;48E7800C
 	bsr	Interface_CheckSelectedCellInteraction	;610007B0
-	bcc.s	adrCd002C3C	;642A
+	bcc.s	CommsPeriodicTick_RestoreRegisters	;642A
 	tst.b	d0	;4A00
-	bmi.s	adrCd002C3C	;6B26
+	bmi.s	CommsPeriodicTick_RestoreRegisters	;6B26
 	moveq	#$00,d1	;7200
 	move.b	$0006(a4),d1	;122C0006
 	sub.w	#$000A,d1	;0441000A
@@ -4850,13 +4868,13 @@ adrCd002BD8:		; Memory Address ($2BD8) and binary offset [$2854]
 	move.w	d1,ResistanceCheckPower.w	;31C120F4	;Short Absolute converted to symbol!
 	bsr	Comms_ApplyThreatFear	;6100F326
 	btst	#$05,$03(a1,d4.w)	;083100054003
-	beq.s	adrCd002C3C	;6708
+	beq.s	CommsPeriodicTick_RestoreRegisters	;6708
 	movem.l	(sp)+,d0/a4/a5	;4CDF3001
 	bra	Click_ShowTeamAvatars	;600006A4
 
-adrCd002C3C:		; Memory Address ($2C3C) and binary offset [$28B8]
+CommsPeriodicTick_RestoreRegisters:		; Memory Address ($2C3C) and binary offset [$28B8]
 	movem.l	(sp)+,d0/a4/a5	;4CDF3001
-adrCd002C40:		; Memory Address ($2C40) and binary offset [$28BC]
+CommsPeriodicTick_DispatchResponse:		; Memory Address ($2C40) and binary offset [$28BC]
 	tst.b	$0006(a4)	;4A2C0006
 	beq	Reset_PartyCommandStateAndRedrawMenu	;670006E4
 	lea	Comms_Respond_Recruit.l,a0	;41F900002CE4
@@ -4875,14 +4893,14 @@ adrCd002C40:		; Memory Address ($2C40) and binary offset [$28BC]
 	or.b	#$40,$0052(a5)	;002D00400052
 	move.b	$0035(a5),d0	;102D0035
 	cmpi.b	#$10,d0	;0C000010
-	bcs.s	adrCd002C98	;6512
+	bcs.s	CommsPeriodicTick_SetMonsterActionCooldown	;6512
 	bsr	Load_ChampionStatRecord	;610039D8
 	and.b	#$F0,$0019(a4)	;022C00F00019
 	or.b	#$0A,$0019(a4)	;002C000A0019
-adrJA002C96:		; Memory Address ($2C96) and binary offset [$2912]
+Comms_NoOpResponseHandler:		; Memory Address ($2C96) and binary offset [$2912]
 	rts	;4E75
 
-adrCd002C98:		; Memory Address ($2C98) and binary offset [$2914]
+CommsPeriodicTick_SetMonsterActionCooldown:		; Memory Address ($2C98) and binary offset [$2914]
 	lea	BigMonsterList.l,a4	;49F900016A7E
 	asl.w	#$04,d0	;E940
 	and.b	#$F0,$0003(a4)	;022C00F00003
@@ -4892,11 +4910,11 @@ adrCd002C98:		; Memory Address ($2C98) and binary offset [$2914]
 Comms_ResponseHandlerOffsets:		; Memory Address ($2CAE) and binary offset [$292A]
 	; Selects the response handler for the other character's preceding communication action.
 	dc.w	Comms_Respond_Recruit-Comms_Respond_Recruit	;0000
-	dc.w	adrJA002C96-Comms_Respond_Recruit	;FFB2
-	dc.w	adrJA002C96-Comms_Respond_Recruit	;FFB2
+	dc.w	Comms_NoOpResponseHandler-Comms_Respond_Recruit	;FFB2
+	dc.w	Comms_NoOpResponseHandler-Comms_Respond_Recruit	;FFB2
 	dc.w	Comms_RespondWithRetort-Comms_Respond_Recruit	;00C2
-	dc.w	adrJA002C96-Comms_Respond_Recruit	;FFB2
-	dc.w	adrJA002C96-Comms_Respond_Recruit	;FFB2
+	dc.w	Comms_NoOpResponseHandler-Comms_Respond_Recruit	;FFB2
+	dc.w	Comms_NoOpResponseHandler-Comms_Respond_Recruit	;FFB2
 	dc.w	Comms_RespondWithRetort-Comms_Respond_Recruit	;00C2
 	dc.w	Comms_RespondWithRetort-Comms_Respond_Recruit	;00C2
 	dc.w	Comms_RespondWithRetort-Comms_Respond_Recruit	;00C2
@@ -4924,38 +4942,43 @@ Comms_Respond_Recruit:		; Memory Address ($2CE4) and binary offset [$2960]
 	tst.b	$0007(a4)	;4A2C0007
 	bmi	Comms_RespondWithRetort	;6B0000BC
 	cmpi.b	#$10,d0	;0C000010
-	bcs.s	adrCd002D04	;6512
+	bcs.s	Comms_Respond_RecruitChampion	;6512
 	cmp.b	#$07,$0006(a4)	;0C2C00070006
 	bcs	Comms_RespondWithRetort	;650000AC
-adrCd002CFC:		; Memory Address ($2CFC) and binary offset [$2978]
+Comms_PrintRecruitRefusal:		; Memory Address ($2CFC) and binary offset [$2978]
+	; Prints the standard recruitment refusal, including the case where the target champion already belongs to the other player.
 	lea	Msg_Recruit_Refusal.l,a6	;4DF900003162
-	bra.s	adrCd002D34	;6030
+	bra.s	Comms_PrintMessageAndReturn	;6030
 
-adrCd002D04:		; Memory Address ($2D04) and binary offset [$2980]
+Comms_Respond_RecruitChampion:		; Memory Address ($2D04) and binary offset [$2980]
+	; Resolves recruitment of a champion target: silently returns if already owned by the caller, refuses if owned by the other player, and otherwise continues to the attitude test.
 	move.l	a5,-(sp)	;2F0D
 	bsr	Find_ChampionOwner	;6100135E
 	move.l	a5,a1	;224D
 	move.l	(sp)+,a5	;2A5F
 	tst.w	d1	;4A41
-	bmi.s	adrCd002D1E	;6B0C
+	bmi.s	Comms_Respond_RecruitThreshold	;6B0C
 	cmp.l	a1,a5	;BBC9
-	bne.s	adrCd002CFC	;66E6
+	bne.s	Comms_PrintRecruitRefusal	;66E6
 	move.b	#$FF,$0050(a5)	;1B7C00FF0050
 	rts	;4E75
 
-adrCd002D1E:		; Memory Address ($2D1E) and binary offset [$299A]
+Comms_Respond_RecruitThreshold:		; Memory Address ($2D1E) and binary offset [$299A]
+	; Selects the recruitment response from attitude: 10 or more succeeds, 5-9 asks the player to continue talking, and below 5 produces a retort.
 	cmp.b	#$0A,$0006(a4)	;0C2C000A0006
-	bcc.s	adrCd002D3A	;6414
+	bcc.s	Comms_Respond_RecruitSuccess	;6414
 	cmp.b	#$05,$0006(a4)	;0C2C00050006
 	bcs.s	Comms_RespondWithRetort	;6578
 	lea	Msg_Recruit_KeepTalking.l,a6	;4DF900003147
-adrCd002D34:		; Memory Address ($2D34) and binary offset [$29B0]
+Comms_PrintMessageAndReturn:		; Memory Address ($2D34) and binary offset [$29B0]
+	; Prints the message addressed by A6 and returns; this shared tail serves several communications responses.
 	jmp	WriteMessage.l	;4EF90000D03A
 
-adrCd002D3A:		; Memory Address ($2D3A) and binary offset [$29B6]
+Comms_Respond_RecruitSuccess:		; Memory Address ($2D3A) and binary offset [$29B6]
+	; Completes a successful recruitment when the party has room: prints acceptance, removes the champion's standing-world position and cell occupancy, and assigns the champion to the caller's ownership and formation arrays.
 	bsr	Find_FreeOwnershipSlot	;61001318
 	tst.b	$18(a5,d1.w)	;4A351018
-	bpl.s	adrCd002D9E	;6A5A
+	bpl.s	Comms_Respond_RecruitPartyFull	;6A5A
 	lea	NumericMessageScratchBuffer.l,a6	;4DF90000CAE6
 	move.w	#$45FF,(a6)	;3CBC45FF
 	jsr	Print_npc_message.l	;4EB90000D81C
@@ -4973,18 +4996,21 @@ adrCd002D3A:		; Memory Address ($2D3A) and binary offset [$29B6]
 	bsr	Find_FreeOwnershipSlot	;610012D4
 	move.b	d2,$18(a5,d1.w)	;1B821018
 	moveq	#$03,d0	;7003
-adrLp002D88:		; Memory Address ($2D88) and binary offset [$2A04]
+CommsRecruit_FindFreeSlotLoop:		; Memory Address ($2D88) and binary offset [$2A04]
+	; Scans formation slots 3 down to 0 for a vacant entry to receive a newly recruited champion.
 	tst.b	$26(a5,d0.w)	;4A350026
-	bmi.s	adrCd002D92	;6B04
-	dbra	d0,adrLp002D88	;51C8FFF8
-adrCd002D92:		; Memory Address ($2D92) and binary offset [$2A0E]
+	bmi.s	Comms_WriteFormationSlot	;6B04
+	dbra	d0,CommsRecruit_FindFreeSlotLoop	;51C8FFF8
+Comms_WriteFormationSlot:		; Memory Address ($2D92) and binary offset [$2A0E]
+	; Writes the recruited champion into the vacant formation slot, closes communications, and returns to the party-command interface.
 	move.b	d2,$26(a5,d0.w)	;1B820026
 	bsr	Reset_PartyCommandStateAndRedrawMenu	;61000592
 	bra	Refresh_ModeDependentChampionDisplay	;600054AA
 
-adrCd002D9E:		; Memory Address ($2D9E) and binary offset [$2A1A]
+Comms_Respond_RecruitPartyFull:		; Memory Address ($2D9E) and binary offset [$2A1A]
+	; Prints the party-full response when recruitment cannot add another member.
 	lea	Msg_Recruit_PartyFull.l,a6	;4DF900003100
-	bra.s	adrCd002D34	;608E
+	bra.s	Comms_PrintMessageAndReturn	;608E
 
 Comms_RespondWithRetort:
 	; Routes an action to the contextual Retort reply generator.
@@ -5017,7 +5043,7 @@ Zendik_Named:
 	bne.s	NotNamed	;6606
 	lea	Msg_WhoGoes_Zendik.l,a6	;4DF900003191
 NotNamed:
-	bra	adrCd002D34	;6000FF48
+	bra	Comms_PrintMessageAndReturn	;6000FF48
 
 Comms_Respond_ThyTradeOrRevealSelf:		; Memory Address ($2DEE) and binary offset [$2A6A]
 	; Responds to profession questions, revealing a champion profession when applicable.
@@ -5030,10 +5056,10 @@ Comms_Respond_Persons:		; Memory Address ($2DF8) and binary offset [$2A74]
 	; Selects the response to the Persons inquiry according to attitude and randomness.
 	moveq	#-$02,d0	;70FE
 	cmp.b	#$0A,$0006(a4)	;0C2C000A0006
-	bcs.s	adrCd002E06	;6504
+	bcs.s	Persons_RandomBoastOrRetort	;6504
 	bra	Comms_Action_Praise	;60000B14
 
-adrCd002E06:		; Memory Address ($2E06) and binary offset [$2A82]
+Persons_RandomBoastOrRetort:		; Memory Address ($2E06) and binary offset [$2A82]
 	bsr	RandomGen_BytewithOffset	;610027A4
 	moveq	#CommsAction_Boast,d1	;7218
 	tst.b	d0	;4A00
@@ -5046,14 +5072,14 @@ Comms_Respond_Offer:		; Memory Address ($2E12) and binary offset [$2A8E]
 	bcs.s	Comms_RespondWithRetort					;658E
 	move.w	HeldItem_ObjectCodeOffset(a5),d1					;322D002E
 	cmp.b	$000A(a4),d1					;B22C000A
-	bne	adrCd002FD8					;660001B6
+	bne	Trade_DecrementPatience_RipOffPath					;660001B6
 	tst.w	d1						;4A41
-	beq.s	adrCd002E52					;672A
+	beq.s	Offer_CoinageOffered_SetFlagAndRetort					;672A
 	cmpi.b	#Object_Permit,d1						;0C01005F
-	beq.s	adrCd002E36					;6708
+	beq.s	Offer_DispatchByTradeMode					;6708
 	cmpi.b	#Object_Remains_First,d1						;0C010040
 	bcc	Comms_RejectUntradeableObject					;6400023A
-adrCd002E36:		; Memory Address ($2E36) and binary offset [$2AB2]
+Offer_DispatchByTradeMode:		; Memory Address ($2E36) and binary offset [$2AB2]
 	moveq	#$00,d2	;7400
 	move.b	$0008(a4),d2	;142C0008
 	lea	Comms_AcceptOfferedObject.l,a0	;41F900002E5C
@@ -5068,22 +5094,22 @@ Comms_TradeModeHandlerOffsets:		; Memory Address ($2E4A) and binary offset [$2AC
 	dc.w	Comms_ExchangeOfferedObject-Comms_AcceptOfferedObject	;0088
 	dc.w	Comms_AcceptOfferedObject-Comms_AcceptOfferedObject	;0000
 
-adrCd002E52:		; Memory Address ($2E52) and binary offset [$2ACE]
+Offer_CoinageOffered_SetFlagAndRetort:		; Memory Address ($2E52) and binary offset [$2ACE]
 	move.b	#$08,$0000(a4)	;197C00080000
 	bra	Comms_RespondWithRetort	;6000FF4C
 
 Comms_AcceptOfferedObject:		; Memory Address ($2E5C) and binary offset [$2AD8]
 	; Accepts an offered object after its tradeability has been checked.
 	cmpi.b	#Object_Permit,d1						;0C01005F
-	beq.s	adrCd002E76					;6714
+	beq.s	AcceptOffer_ClearHeldItemState					;6714
 	sub.w	#Object_TradeValueTable_First,d1					;04410014
-	bcs.s	adrCd002E76					;650E
+	bcs.s	AcceptOffer_ClearHeldItemState					;650E
 	lea	Comms_ObjectTradeValues.l,a0				;41F9000031E6
 	tst.b	$00(a0,d1.w)					;4A301000
 	bmi	Comms_RejectUntradeableObject					;6B0001FA
-adrCd002E76:		; Memory Address ($2E76) and binary offset [$2AF2]
+AcceptOffer_ClearHeldItemState:		; Memory Address ($2E76) and binary offset [$2AF2]
 	clr.l	HeldItem_StateOffset(a5)					;42AD002C
-adrCd002E7A:		; Memory Address ($2E7A) and binary offset [$2AF6]
+Trade_FinishExchangeAndRefreshDisplay:		; Memory Address ($2E7A) and binary offset [$2AF6]
 	bsr	Comms_FinishTradeExchange					;6100077E
 	bra	Refresh_HeldItemDisplay					;60003DB4
 
@@ -5091,39 +5117,39 @@ Comms_BuyOfferedObject:		; Memory Address ($2E82) and binary offset [$2AFE]
 	; Calculates the attitude-adjusted purchase price of an object offered by the player.
 	move.w	$002C(a5),d4	;382D002C
 	cmp.b	$0009(a4),d4	;B82C0009
-	bcs	adrCd002FD8	;6500014C
+	bcs	Trade_DecrementPatience_RipOffPath	;6500014C
 	bsr	Comms_GetMonsterTradeObject	;610003A2
 	move.w	$002C(a5),d4	;382D002C
 	move.w	d0,d3	;3600
 	moveq	#$01,d2	;7401
 	sub.b	#$14,d3	;04030014
-	bcs.s	adrCd002EB4	;6514
+	bcs.s	BuyOffer_ClampAttitudeMultiplier	;6514
 	cmpi.b	#$5F,d0	;0C00005F
-	bne.s	adrCd002EAA	;6604
+	bne.s	BuyOffer_LookupObjectBaseValue	;6604
 	moveq	#$5A,d2	;745A
-	bra.s	adrCd002EB4	;600A
+	bra.s	BuyOffer_ClampAttitudeMultiplier	;600A
 
-adrCd002EAA:		; Memory Address ($2EAA) and binary offset [$2B26]
+BuyOffer_LookupObjectBaseValue:		; Memory Address ($2EAA) and binary offset [$2B26]
 	lea	Comms_ObjectTradeValues.l,a1	;43F9000031E6
 	move.b	$00(a1,d3.w),d2	;14313000
-adrCd002EB4:		; Memory Address ($2EB4) and binary offset [$2B30]
+BuyOffer_ClampAttitudeMultiplier:		; Memory Address ($2EB4) and binary offset [$2B30]
 	moveq	#$6E,d3	;766E
 	sub.b	$0006(a4),d3	;962C0006
 	cmp.b	#$50,d3	;B63C0050
-	bcc.s	adrCd002EC2	;6402
+	bcc.s	BuyOffer_ComparePriceToThreshold	;6402
 	moveq	#$50,d3	;7650
-adrCd002EC2:		; Memory Address ($2EC2) and binary offset [$2B3E]
+BuyOffer_ComparePriceToThreshold:		; Memory Address ($2EC2) and binary offset [$2B3E]
 	mulu	d3,d2	;C4C3
 	divu	#$0064,d2	;84FC0064
 	cmp.b	d2,d4	;B802
-	bcs.s	adrCd002EDE	;6512
+	bcs.s	BuyOffer_PriceTooLow_RespondNo	;6512
 	move.b	#$06,$0C(a0,d1.w)	;11BC0006100C
-adrCd002ED2:		; Memory Address ($2ED2) and binary offset [$2B4E]
+Comms_AcceptTrade_StoreNewHeldItem:		; Memory Address ($2ED2) and binary offset [$2B4E]
 	move.b	d0,$002F(a5)	;1B40002F
 	move.w	#$0001,$002C(a5)	;3B7C0001002C
-	bra.s	adrCd002E7A	;609C
+	bra.s	Trade_FinishExchangeAndRefreshDisplay	;609C
 
-adrCd002EDE:		; Memory Address ($2EDE) and binary offset [$2B5A]
+BuyOffer_PriceTooLow_RespondNo:		; Memory Address ($2EDE) and binary offset [$2B5A]
 	moveq	#$07,d1	;7207
 	bra	Run_SelectedCommsAction	;6000FEC6
 
@@ -5132,27 +5158,27 @@ Comms_ExchangeOfferedObject:		; Memory Address ($2EE4) and binary offset [$2B60]
 	lea	Comms_ObjectTradeValues.l,a1		;43F9000031E6
 	moveq	#$02,d2				;7402
 	sub.w	#$0014,d1			;04410014
-	bcs.s	adrCd002F04			;6512
+	bcs.s	ExchangeOffer_GetMonsterItemValue			;6512
 	cmpi.b	#$4B,d1				;0C01004B
-	bne.s	adrCd002EFC			;6604
+	bne.s	ExchangeOffer_LookupOfferedItemValue			;6604
 	moveq	#$5A,d2				;745A
-	bra.s	adrCd002F04			;6008
+	bra.s	ExchangeOffer_GetMonsterItemValue			;6008
 
-adrCd002EFC:		; Memory Address ($2EFC) and binary offset [$2B78]
+ExchangeOffer_LookupOfferedItemValue:		; Memory Address ($2EFC) and binary offset [$2B78]
 	move.b	$00(a1,d1.w),d2	;14311000
-	bmi	adrCd00306A	;6B000168
-adrCd002F04:		; Memory Address ($2F04) and binary offset [$2B80]
+	bmi	Trade_ClearModeBeforeRejectUntradeable	;6B000168
+ExchangeOffer_GetMonsterItemValue:		; Memory Address ($2F04) and binary offset [$2B80]
 	bsr	Comms_GetMonsterTradeObject	;6100032C
 	move.w	d0,d4	;3800
 	moveq	#$02,d3	;7602
 	sub.w	#$0014,d4	;04440014
-	bcs.s	adrCd002F16	;6504
+	bcs.s	ExchangeOffer_CompareItemValues	;6504
 	move.b	$00(a1,d4.w),d3	;16314000
-adrCd002F16:		; Memory Address ($2F16) and binary offset [$2B92]
+ExchangeOffer_CompareItemValues:		; Memory Address ($2F16) and binary offset [$2B92]
 	cmp.b	d3,d2	;B403
-	bcs	adrCd002FB0	;65000096
+	bcs	Trade_RespondOfferTooLow	;65000096
 	move.b	$002F(a5),$0C(a0,d1.w)	;11AD002F100C
-	bra.s	adrCd002ED2	;60AE
+	bra.s	Comms_AcceptTrade_StoreNewHeldItem	;60AE
 
 Comms_Respond_Purchase:		; Memory Address ($2F24) and binary offset [$2BA0]
 	; Selects trader merchandise and produces the response to Purchase.
@@ -5170,7 +5196,7 @@ Comms_SelectTraderStock:
 	move.b	$000C(a1),d0	;1029000C
 Comms_PrintPurchaseObject:
 	; Builds the purchase response using the monster's currently offered object.
-	bra	adrCd0038D2	;60000984
+	bra	TradeMessage_PrepareHeldItemTemplate	;60000984
 
 Comms_Respond_Exchange:
 	; Compares the offered and requested object values and begins an exchange when acceptable.
@@ -5178,14 +5204,14 @@ Comms_Respond_Exchange:
 	bcs	Comms_RespondWithRetort	;6500FE50
 	move.w	$002E(a5),d1	;322D002E
 	cmp.b	$000A(a4),d1	;B22C000A
-	bne	adrCd002FD8	;66000076
+	bne	Trade_DecrementPatience_RipOffPath	;66000076
 	tst.w	d1	;4A41
 	beq.s	Comms_SelectTraderStock	;67C4
 	lea	Comms_ObjectTradeValues.l,a1	;43F9000031E6
 	cmpi.b	#$5F,d1	;0C01005F
 	bne.s	Comms_CompareExchangeObject	;6604
 	moveq	#$5A,d2	;745A
-	bra.s	adrCd002F90	;6018
+	bra.s	RespondExchange_GetCounterItemValue	;6018
 
 Comms_CompareExchangeObject:
 	; Loads the trade value of the held object for an exchange comparison.
@@ -5193,27 +5219,27 @@ Comms_CompareExchangeObject:
 	bcc	Comms_RejectUntradeableObject	;640000F0
 	moveq	#$02,d2	;7402
 	sub.w	#$0014,d1	;04410014
-	bcs.s	adrCd002F90	;6508
+	bcs.s	RespondExchange_GetCounterItemValue	;6508
 	move.b	$00(a1,d1.w),d2	;14311000
-	bmi	adrCd00306A	;6B0000DC
-adrCd002F90:		; Memory Address ($2F90) and binary offset [$2C0C]
+	bmi	Trade_ClearModeBeforeRejectUntradeable	;6B0000DC
+RespondExchange_GetCounterItemValue:		; Memory Address ($2F90) and binary offset [$2C0C]
 	bsr	Comms_GetMonsterTradeObject	;610002A0
 	move.w	d0,d1	;3200
 	moveq	#$02,d3	;7602
 	sub.w	#$0014,d1	;04410014
-	bcs.s	adrCd002FA2	;6504
+	bcs.s	RespondExchange_AcceptAndDispatchOffer	;6504
 	move.b	$00(a1,d1.w),d3	;16311000
-adrCd002FA2:		; Memory Address ($2FA2) and binary offset [$2C1E]
+RespondExchange_AcceptAndDispatchOffer:		; Memory Address ($2FA2) and binary offset [$2C1E]
 	cmp.b	d3,d2	;B403
-	bcs.s	adrCd002FB0	;650A
+	bcs.s	Trade_RespondOfferTooLow	;650A
 	move.b	#$12,$0001(a4)	;197C00120001
-	bra	adrCd00383E	;60000890
+	bra	TradeItem_CheckIfCoinage	;60000890
 
-adrCd002FB0:		; Memory Address ($2FB0) and binary offset [$2C2C]
+Trade_RespondOfferTooLow:		; Memory Address ($2FB0) and binary offset [$2C2C]
 	lea	Msg_Trade_OfferTooLow.l,a6	;4DF9000031D2
 	jmp	Print_npc_message.l	;4EF90000D81C
 
-adrCd002FBC:		; Memory Address ($2FBC) and binary offset [$2C38]
+Sell_NoItemOffered_ClearModeAndRetort:		; Memory Address ($2FBC) and binary offset [$2C38]
 	clr.b	$0008(a4)	;422C0008
 	bra	Comms_RespondWithRetort	;6000FDE4
 
@@ -5222,39 +5248,39 @@ Comms_Respond_Sell:		; Memory Address ($2FC4) and binary offset [$2C40]
 	cmpi.b	#$10,d0	;0C000010
 	bcs	Comms_RespondWithRetort	;6500FDDC
 	move.w	$002E(a5),d0	;302D002E
-	beq.s	adrCd002FBC	;67EA
+	beq.s	Sell_NoItemOffered_ClearModeAndRetort	;67EA
 	cmp.b	$000A(a4),d0	;B02C000A
-	beq.s	adrCd002FEE	;6716
-adrCd002FD8:		; Memory Address ($2FD8) and binary offset [$2C54]
+	beq.s	Sell_HandlePermitObject	;6716
+Trade_DecrementPatience_RipOffPath:		; Memory Address ($2FD8) and binary offset [$2C54]
 	subq.b	#$05,$0006(a4)	;5B2C0006
-	bpl.s	adrCd002FE2	;6A04
+	bpl.s	Trade_PrintRipOffMessage	;6A04
 	clr.b	$0006(a4)	;422C0006
-adrCd002FE2:		; Memory Address ($2FE2) and binary offset [$2C5E]
+Trade_PrintRipOffMessage:		; Memory Address ($2FE2) and binary offset [$2C5E]
 	lea	Msg_Trade_RipOff.l,a6	;4DF900003112
 	jmp	WriteMessage.l	;4EF90000D03A
 
-adrCd002FEE:		; Memory Address ($2FEE) and binary offset [$2C6A]
+Sell_HandlePermitObject:		; Memory Address ($2FEE) and binary offset [$2C6A]
 	cmpi.b	#$5F,d0	;0C00005F
-	bne.s	adrCd002FF8	;6604
+	bne.s	Sell_CheckObjectValueRange	;6604
 	moveq	#$5A,d0	;705A
-	bra.s	adrCd003016	;601E
+	bra.s	Sell_ComputeDefaultGoldOffer	;601E
 
-adrCd002FF8:		; Memory Address ($2FF8) and binary offset [$2C74]
+Sell_CheckObjectValueRange:		; Memory Address ($2FF8) and binary offset [$2C74]
 	cmpi.b	#$40,d0	;0C000040
 	bcc.s	Comms_RejectUntradeableObject	;6470
 	sub.b	#$14,d0	;04000014
-	bcc.s	adrCd00300A	;6406
+	bcc.s	Sell_LookupObjectBaseValue	;6406
 	moveq	#$01,d0	;7001
 	bra	Comms_PrintGoldOffer	;6000023A
 
-adrCd00300A:		; Memory Address ($300A) and binary offset [$2C86]
+Sell_LookupObjectBaseValue:		; Memory Address ($300A) and binary offset [$2C86]
 	lea	Comms_ObjectTradeValues.l,a0	;41F9000031E6
 	move.b	$00(a0,d0.w),d0	;10300000
-	bmi.s	adrCd00306A	;6B54
-adrCd003016:		; Memory Address ($3016) and binary offset [$2C92]
+	bmi.s	Trade_ClearModeBeforeRejectUntradeable	;6B54
+Sell_ComputeDefaultGoldOffer:		; Memory Address ($3016) and binary offset [$2C92]
 	moveq	#$00,d2	;7400
 	move.b	$0009(a4),d2	;142C0009
-	bne.s	adrCd00303E	;6620
+	bne.s	Sell_CheckIfPriceTooGreedy	;6620
 	moveq	#$00,d1	;7200
 	move.b	$0006(a4),d1	;122C0006
 	sub.w	#$000A,d1	;0441000A
@@ -5265,29 +5291,29 @@ adrCd003016:		; Memory Address ($3016) and binary offset [$2C92]
 	divu	#$0064,d0	;80FC0064
 	bra	Comms_PrintGoldOffer	;60000206
 
-adrCd00303E:		; Memory Address ($303E) and binary offset [$2CBA]
-	bpl.s	adrCd003054	;6A14
+Sell_CheckIfPriceTooGreedy:		; Memory Address ($303E) and binary offset [$2CBA]
+	bpl.s	Sell_ComputeHighAttitudeGoldOffer	;6A14
 	clr.b	$0008(a4)	;422C0008
 	lea	Msg_Trade_TooGreedy.l,a6	;4DF9000031B4
 	move.b	#$19,$0001(a4)	;197C00190001
-	bra	adrCd002D34	;6000FCE2
+	bra	Comms_PrintMessageAndReturn	;6000FCE2
 
-adrCd003054:		; Memory Address ($3054) and binary offset [$2CD0]
+Sell_ComputeHighAttitudeGoldOffer:		; Memory Address ($3054) and binary offset [$2CD0]
 	cmp.b	#$0F,$0006(a4)	;0C2C000F0006
-	bcs.s	adrCd003094	;6538
+	bcs.s	Comms_VeryLowAttitude_DispatchCurse	;6538
 	sub.b	d2,d0	;9002
 	lsr.b	#$01,d0	;E208
 	add.b	d2,d0	;D002
 	bset	#$07,d0	;08C00007
 	bra	Comms_PrintGoldOffer	;600001DA
 
-adrCd00306A:		; Memory Address ($306A) and binary offset [$2CE6]
+Trade_ClearModeBeforeRejectUntradeable:		; Memory Address ($306A) and binary offset [$2CE6]
 	clr.b	$0008(a4)	;422C0008
 Comms_RejectUntradeableObject:
 	; Rejects an object that cannot safely participate in trading.
 	move.b	#$07,$0001(a4)	;197C00070001
 	lea	Msg_Trade_UnnaturalObject.l,a6	;4DF90000312B
-	bra	adrCd002D34	;6000FCB8
+	bra	Comms_PrintMessageAndReturn	;6000FCB8
 
 Comms_Respond_Praise:		; Memory Address ($307E) and binary offset [$2CFA]
 	; Selects a complimentary, neutral or hostile response to Praise from the current attitude.
@@ -5296,7 +5322,7 @@ Comms_Respond_Praise:		; Memory Address ($307E) and binary offset [$2CFA]
 	bcc	Run_SelectedCommsAction	;6400FD20
 	cmp.b	#$05,$0006(a4)	;0C2C00050006
 	bcc	Comms_RespondWithRetort	;6400FD14
-adrCd003094:		; Memory Address ($3094) and binary offset [$2D10]
+Comms_VeryLowAttitude_DispatchCurse:		; Memory Address ($3094) and binary offset [$2D10]
 	moveq	#$17,d1	;7217
 	bra	Run_SelectedCommsAction	;6000FD10
 
@@ -5490,30 +5516,30 @@ Comms_PrintGoldOffer:
 	moveq	#$06,d2	;7406
 	ror.w	#$08,d1	;E059
 	cmpi.b	#$30,d1	;0C010030
-	beq.s	adrCd00326A	;670C
+	beq.s	GoldOffer_WriteOnesDigitAndFinish	;670C
 	move.b	d1,$00(a6,d2.w)	;1D812000
 	move.b	#$FA,$01(a6,d2.w)	;1DBC00FA2001
 	addq.w	#$02,d2	;5442
-adrCd00326A:		; Memory Address ($326A) and binary offset [$2EE6]
+GoldOffer_WriteOnesDigitAndFinish:		; Memory Address ($326A) and binary offset [$2EE6]
 	ror.w	#$08,d1	;E059
 	move.b	d1,$00(a6,d2.w)	;1D812000
 	move.b	#$54,$01(a6,d2.w)	;1DBC00542001
 	addq.w	#$02,d2	;5442
-	bra	adrCd0038DC	;60000662
+	bra	TradeMessage_AppendSuffixAndPrint	;60000662
 
 Comms_InitialiseMonsterTrader:
 	; Initialises monster-trader stock and applies the monster's initial attitude penalty.
 	movem.w	d0/d1,-(sp)	;48A7C000
 	move.b	#$03,$0006(a4)	;197C00030006
 	cmp.b	#$40,$000B(a1)	;0C290040000B
-	beq.s	adrCd0032D8	;674A
+	beq.s	InitialiseMonsterTrader_RestoreAndReturn	;674A
 	bsr	RandomGen_BytewithOffset	;6100231C
 	cmp.b	#$16,$000B(a1)	;0C290016000B
 	bne.s	.Trader_NotPotionsButArms	;660E
 	and.w	#$0003,d0	;02400003
 	add.w	#$0017,d0	;06400017
 	move.b	d0,$000C(a1)	;1340000C
-	bra.s	adrCd0032D8	;6030
+	bra.s	InitialiseMonsterTrader_RestoreAndReturn	;6030
 
 .Trader_NotPotionsButArms:		; Memory Address ($32A8) and binary offset [$2F24]
 	and.w	#$001F,d0	;0240001F
@@ -5531,33 +5557,34 @@ Comms_InitialiseMonsterTrader:
 	and.w	#$007F,d0	;0240007F
 	neg.b	d0	;4400
 	move.b	d0,$0006(a4)	;19400006
-adrCd0032D8:		; Memory Address ($32D8) and binary offset [$2F54]
+InitialiseMonsterTrader_RestoreAndReturn:		; Memory Address ($32D8) and binary offset [$2F54]
 	movem.w	(sp)+,d0/d1	;4C9F0003
 	rts	;4E75
 
 Click_ShowTeamAvatars:		; Memory Address ($32DE) and binary offset [$2F5A]
+	; Clears the command-selection state and redraws the ordinary party shield/avatar presentation; it does not open a separate team screen.
 	move.b	#$01,$0052(a5)	;1B7C00010052
 	clr.b	$004A(a5)	;422D004A
 	tst.b	$004B(a5)	;4A2D004B
-	bmi.s	adrCd0032F4	;6B06
+	bmi.s	ShowTeamAvatars_CheckCommandState	;6B06
 	move.w	#$00FF,$004A(a5)	;3B7C00FF004A
-adrCd0032F4:		; Memory Address ($32F4) and binary offset [$2F70]
+ShowTeamAvatars_CheckCommandState:		; Memory Address ($32F4) and binary offset [$2F70]
 	cmp.w	#$0008,$0042(a5)	;0C6D00080042
-	beq.s	adrCd003312	;6716
+	beq.s	CommsWait_CheckCounterThreshold	;6716
 	tst.w	$0042(a5)	;4A6D0042
 	bne.s	Reset_PartyCommandStateAndRedrawMenu	;6628
 	move.w	#$FFFF,$0042(a5)	;3B7CFFFF0042
 	move.w	#$FFFF,$0040(a5)	;3B7CFFFF0040
 	bra	Draw_PartyCommandInterface	;60004840
 
-adrCd003312:		; Memory Address ($3312) and binary offset [$2F8E]
+CommsWait_CheckCounterThreshold:		; Memory Address ($3312) and binary offset [$2F8E]
 	cmp.w	#$0006,$0044(a5)	;0C6D00060044
 	bcs.s	Reset_PartyCommandStateAndRedrawMenu	;6510
 Advance_CommsWaitIndicatorAndDraw:		; Memory Address ($331A) and binary offset [$2F96]
 	; Advances the communications response-wait animation divider, redraws its icons, and returns to the command menu.
 	lsr.w	$0044(a5)	;E2ED0044
 	addq.w	#$01,$0044(a5)	;526D0044
-	bsr	adrCd003344	;61000020
+	bsr	Draw_CommsWaitIndicatorIcons	;61000020
 	bra	Draw_PartyCommandMenu	;60004A44
 
 Reset_PartyCommandStateAndRedrawMenu:		; Memory Address ($332A) and binary offset [$2FA6]
@@ -5571,7 +5598,8 @@ Draw_BlankCommandIconsAndMenu:		; Memory Address ($3338) and binary offset [$2FB
 	bsr.s	Draw_CommandPanelIconPair	;610A
 	bra	Draw_PartyCommandMenu	;60004A2A
 
-adrCd003344:		; Memory Address ($3344) and binary offset [$2FC0]
+Draw_CommsWaitIndicatorIcons:		; Memory Address ($3344) and binary offset [$2FC0]
+	; Loads pocket icon codes $76 and $75 and enters the shared icon-pair renderer for the communications-wait state.
 	move.l	#$00760075,d7	;2E3C00760075
 Draw_CommandPanelIconPair:		; Memory Address ($334A) and binary offset [$2FC6]
 	; Draws the two command-panel pocket graphics packed into D7 at the active player's panel position.
@@ -5591,15 +5619,15 @@ PartyCommand_DispatchSelection:		; Memory Address ($336A) and binary offset [$2F
 	move.b	$0040(a5),d0	;102D0040
 	and.w	#$0003,d0	;02400003
 	subq.b	#$01,d0	;5300
-	bcs.s	adrCd00338A	;650E
-adrLp00337C:		; Memory Address ($337C) and binary offset [$2FF8]
+	bcs.s	DispatchSelection_FinalizeButtonIndex	;650E
+DispatchSelection_CountValidButtonsLoop:		; Memory Address ($337C) and binary offset [$2FF8]
 	addq.w	#$01,d1	;5241
 	cmp.b	#$5F,(a6)+	;0C1E005F
-	bcc.s	adrCd003386	;6402
+	bcc.s	DispatchSelection_LoopContinue	;6402
 	addq.w	#$01,d1	;5241
-adrCd003386:		; Memory Address ($3386) and binary offset [$3002]
-	dbra	d0,adrLp00337C	;51C8FFF4
-adrCd00338A:		; Memory Address ($338A) and binary offset [$3006]
+DispatchSelection_LoopContinue:		; Memory Address ($3386) and binary offset [$3002]
+	dbra	d0,DispatchSelection_CountValidButtonsLoop	;51C8FFF4
+DispatchSelection_FinalizeButtonIndex:		; Memory Address ($338A) and binary offset [$3006]
 	add.b	$0041(a5),d1	;D22D0041
 PartyCommand_DispatchState:		; Memory Address ($338E) and binary offset [$300A]
 	; Dispatches party-command states 0 through 8 through PartyCommand_HandlerOffsets: resolve selection, Communicate, Commend, View, Wait, Correct, Dismiss, Call, or handle the active communication menu.
@@ -5633,19 +5661,19 @@ Interface_CheckSelectedCellInteraction:		; Memory Address ($33BE) and binary off
 	bsr	ForwardCellToMapOffset	;610050BE
 	move.l	d7,d2	;2407
 	cmp.w	CurrentFloorHeight.l,d7	;BE790000EE72
-	bcc.s	adrCd0033EC	;6420
+	bcc.s	CheckCellInteraction_NoTargetReturn	;6420
 	swap	d7	;4847
 	cmp.w	CurrentFloorWidth.l,d7	;BE790000EE70
-	bcc.s	adrCd0033EC	;6416
+	bcc.s	CheckCellInteraction_NoTargetReturn	;6416
 	move.b	$01(a6,d0.w),d1	;12360001
-	bpl.s	adrCd0033EC	;6A10
+	bpl.s	CheckCellInteraction_NoTargetReturn	;6A10
 	and.w	#$0007,d1	;02410007
 	subq.w	#$01,d1	;5341
-	beq.s	adrCd0033EC	;6708
+	beq.s	CheckCellInteraction_NoTargetReturn	;6708
 	move.w	PlayerData_Floor(a5),d1	;322D0058
 	bra	Find_DungeonCellOccupant	;600064BE
 
-adrCd0033EC:		; Memory Address ($33EC) and binary offset [$3068]
+CheckCellInteraction_NoTargetReturn:		; Memory Address ($33EC) and binary offset [$3068]
 	rts	;4E75
 
 PartyCommand_Communicate:		; Memory Address ($33EE) and binary offset [$306A]
@@ -5669,27 +5697,27 @@ Comms_StartWithTarget:		; Memory Address ($3402) and binary offset [$307E]
 	move.b	#CommsAction_Greeting,CommsState_PreviousActionOffset(a4)	;197C001A0000
 	bclr	#$07,$0005(a4)	;08AC00070005
 	tst.b	d0	;4A00
-	bmi.s	adrCd003458	;6B30
+	bmi.s	StartComms_InitNewCommsRecord	;6B30
 	move.w	$0020(a5),d1	;322D0020
 	eor.w	#$0002,d1	;0A410002
 	moveq	#$18,d4	;7818
 	cmpi.w	#$0010,d0	;0C400010
-	bcs.s	adrCd003444	;650C
+	bcs.s	StartComms_ApplyTargetStateFlags	;650C
 	tst.b	$000B(a1)	;4A29000B
 	bmi.s	Interface_ReportCommunicationTargetUnavailable	;6BB4
 	bsr	Comms_InitialiseMonsterTrader	;6100FE3C
 	moveq	#$02,d4	;7802
-adrCd003444:		; Memory Address ($3444) and binary offset [$30C0]
+StartComms_ApplyTargetStateFlags:		; Memory Address ($3444) and binary offset [$30C0]
 	and.b	#$F0,$00(a1,d4.w)	;023100F04000
 	or.b	$00(a1,d4.w),d1	;82314000
 	move.b	d1,$00(a1,d4.w)	;13814000
 	move.b	d0,$0035(a5)	;1B400035
-	bra.s	adrCd003462	;600A
+	bra.s	StartComms_InitialiseCommsFields	;600A
 
-adrCd003458:		; Memory Address ($3458) and binary offset [$30D4]
+StartComms_InitNewCommsRecord:		; Memory Address ($3458) and binary offset [$30D4]
 	bset	#$07,$0005(a4)	;08EC00070005
 	move.w	$0006(a1),d0	;30290006
-adrCd003462:		; Memory Address ($3462) and binary offset [$30DE]
+StartComms_InitialiseCommsFields:		; Memory Address ($3462) and binary offset [$30DE]
 	move.b	$0007(a5),$0003(a4)	;196D00070003
 	and.w	#$007F,d0	;0240007F
 	move.b	d0,$0002(a4)	;19400002
@@ -5701,15 +5729,15 @@ adrCd003462:		; Memory Address ($3462) and binary offset [$30DE]
 	and.w	#$0007,d0	;02400007
 	addq.w	#$02,d0	;5440
 	sub.b	#Comms_CharismaBaseline,d2	;04020014
-	bcc.s	adrCd00348E	;6402
+	bcc.s	StartComms_ApplyCharismaBonus	;6402
 	moveq	#$00,d2	;7400
-adrCd00348E:		; Memory Address ($348E) and binary offset [$310A]
+StartComms_ApplyCharismaBonus:		; Memory Address ($348E) and binary offset [$310A]
 	lsr.b	#Comms_CharismaShift,d2	;E40A
 	add.b	d2,d0	;D002
 	add.b	CommsState_AttitudeOffset(a4),d0	;D02C0006
-	bpl.s	adrCd00349A	;6A02
+	bpl.s	StartComms_StoreInitialAttitude	;6A02
 	moveq	#$00,d0	;7000
-adrCd00349A:		; Memory Address ($349A) and binary offset [$3116]
+StartComms_StoreInitialAttitude:		; Memory Address ($349A) and binary offset [$3116]
 	move.b	d0,CommsState_AttitudeOffset(a4)	;19400006
 	bsr	RandomGen_BytewithOffset	;6100210C
 	and.w	#$0007,d0	;02400007
@@ -5720,33 +5748,33 @@ adrCd00349A:		; Memory Address ($349A) and binary offset [$3116]
 	lea	Msg_Greeting.l,a6	;4DF900003DF7
 	jsr	Print_npc_message.l	;4EB90000D81C
 	move.w	#$0004,$0044(a5)	;3B7C00040044
-	bra	adrCd003D9C	;600008D2
+	bra	Comms_FinishAction_RedrawMenu	;600008D2
 
 Comms_HandleMenuSelection:		; Memory Address ($34CC) and binary offset [$3148]
 	; Converts the visible communication menu and button into an action and runs it.
 	move.w	InterfaceState_MenuOffset(a5),d0	;302D0044
 	subq.w	#$04,d0	;5940
-	beq.s	adrCd0034E0	;670C
+	beq.s	HandleMenuSelection_ResolveAndRunAction	;670C
 	addq.w	#$04,d1	;5841
 	subq.w	#$01,d0	;5340
-	beq.s	adrCd0034E0	;6706
+	beq.s	HandleMenuSelection_ResolveAndRunAction	;6706
 	addq.w	#$02,d1	;5441
 	asl.w	#$02,d0	;E540
 	add.w	d0,d1	;D240
-adrCd0034E0:		; Memory Address ($34E0) and binary offset [$315C]
+HandleMenuSelection_ResolveAndRunAction:		; Memory Address ($34E0) and binary offset [$315C]
 	bsr	Comms_GetState	;61000D18
 	addq.b	#$01,CommsState_AttitudeOffset(a4)	;522C0006
 	bsr.s	Comms_RunAction	;6126
 	cmp.w	#$0006,InterfaceState_MenuOffset(a5)	;0C6D00060044
-	bcs.s	adrCd0034FE	;650C
+	bcs.s	HandleMenuSelection_FinalizeAction	;650C
 	cmp.b	#$06,$0001(a4)	;0C2C00060001
-	bcs.s	adrCd00350E	;6514
+	bcs.s	HandleMenuSelection_Return	;6514
 	bsr	Advance_CommsWaitIndicatorAndDraw	;6100FE1E
-adrCd0034FE:		; Memory Address ($34FE) and binary offset [$317A]
+HandleMenuSelection_FinalizeAction:		; Memory Address ($34FE) and binary offset [$317A]
 	move.b	#$14,$0004(a4)	;197C00140004
 	move.b	CommsState_CurrentActionOffset(a4),CommsState_PreviousActionOffset(a4)	;196C00010000
 	subq.b	#$01,CommsState_PatienceOffset(a4)	;532C0007
-adrCd00350E:		; Memory Address ($350E) and binary offset [$318A]
+HandleMenuSelection_Return:		; Memory Address ($350E) and binary offset [$318A]
 	rts	;4E75
 
 Comms_RunAction:		; Memory Address ($3510) and binary offset [$318C]
@@ -5826,38 +5854,38 @@ Comms_Action_Yes:		; Memory Address ($3596) and binary offset [$3212]
 	; Communicates Yes and completes an accepted object or coinage transfer when one is pending.
 	move.b	$0008(a4),d2	;142C0008
 	subq.b	#CommsTradeMode_Exchange,d2	;5502
-	bcs.s	adrCd0035FE	;6560
-	bne.s	adrCd0035DC	;663C
+	bcs.s	Trade_LoadWrapupMessage	;6560
+	bne.s	ActionYes_CompleteSaleForGold	;663C
 	cmp.b	#CommsAction_Offer,CommsState_PreviousActionOffset(a4)	;0C2C00120000
-	bne.s	adrCd0035FE	;6656
+	bne.s	Trade_LoadWrapupMessage	;6656
 	move.w	$002E(a5),d0	;302D002E
 	cmp.b	$000A(a4),d0	;B02C000A
 	bne.s	Comms_FinishTradeExchange	;6648
 	move.b	$0035(a5),d0	;102D0035
 	cmpi.b	#$10,d0	;0C000010
-	bcs.s	adrCd0035FE	;6542
+	bcs.s	Trade_LoadWrapupMessage	;6542
 	bsr	Comms_GetMonsterTradeObject	;6100FC74
 	move.b	$002F(a5),$0C(a0,d1.w)	;11AD002F100C
 	move.b	d0,$002F(a5)	;1B40002F
 	move.w	#$0001,$002C(a5)	;3B7C0001002C
-adrCd0035D0:		; Memory Address ($35D0) and binary offset [$324C]
+ActionYes_SetBoastAndFinishTrade:		; Memory Address ($35D0) and binary offset [$324C]
 	move.b	#CommsAction_Boast,CommsState_CurrentActionOffset(a4)	;197C00180001
 	bsr.s	Comms_FinishTradeExchange	;6122
 	bra	Refresh_HeldItemDisplay	;6000365A
 
-adrCd0035DC:		; Memory Address ($35DC) and binary offset [$3258]
+ActionYes_CompleteSaleForGold:		; Memory Address ($35DC) and binary offset [$3258]
 	move.b	$000A(a4),d0	;102C000A
 	cmp.b	$002F(a5),d0	;B02D002F
 	bne.s	Comms_FinishTradeExchange	;6614
 	and.b	#$7F,$0009(a4)	;022C007F0009
 	move.b	$0009(a4),$002D(a5)	;1B6C0009002D
 	move.w	#$0001,$002E(a5)	;3B7C0001002E
-	bra.s	adrCd0035D0	;60D6
+	bra.s	ActionYes_SetBoastAndFinishTrade	;60D6
 
 Comms_FinishTradeExchange:		; Memory Address ($35FA) and binary offset [$3276]
 	; Clears trading mode, selects the completion message, reduces attitude, and prints the NPC response.
 	clr.b	$0008(a4)	;422C0008
-adrCd0035FE:		; Memory Address ($35FE) and binary offset [$327A]
+Trade_LoadWrapupMessage:		; Memory Address ($35FE) and binary offset [$327A]
 	move.w	#$45FF,d0	;303C45FF
 	bra.s	Decrease_CommsAttitudeAndPrintMessage	;6022
 
@@ -5876,9 +5904,9 @@ Comms_Action_No:		; Memory Address ($3604) and binary offset [$3280]
 Decrease_CommsAttitudeAndPrintMessage:		; Memory Address ($3626) and binary offset [$32A2]
 	; Decrements the NPC attitude with a zero clamp, stages the selected response text, and prints the NPC message.
 	subq.b	#$01,CommsState_AttitudeOffset(a4)	;532C0006
-	bpl.s	adrCd003630	;6A04
+	bpl.s	Comms_PrintBufferedNumericMessage	;6A04
 	clr.b	$0006(a4)	;422C0006
-adrCd003630:		; Memory Address ($3630) and binary offset [$32AC]
+Comms_PrintBufferedNumericMessage:		; Memory Address ($3630) and binary offset [$32AC]
 	lea	NumericMessageScratchBuffer.l,a6	;4DF90000CAE6
 	move.w	d0,(a6)	;3C80
 	jmp	Print_npc_message.l	;4EF90000D81C
@@ -5896,46 +5924,46 @@ Comms_Action_Threat:		; Memory Address ($364A) and binary offset [$32C6]
 	bsr	Comms_CopyThreatFragment	;61000084
 	move.b	CommsState_AttitudeOffset(a4),d0	;102C0006
 	subq.b	#$03,CommsState_AttitudeOffset(a4)	;572C0006
-	bpl.s	adrCd00366C	;6A04
+	bpl.s	Threat_CheckOriginalAttitudeLevel	;6A04
 	clr.b	$0006(a4)	;422C0006
-adrCd00366C:		; Memory Address ($366C) and binary offset [$32E8]
+Threat_CheckOriginalAttitudeLevel:		; Memory Address ($366C) and binary offset [$32E8]
 	cmpi.b	#$0A,d0	;0C00000A
-	bcs.s	adrCd0036A2	;6530
-adrCd003672:		; Memory Address ($3672) and binary offset [$32EE]
+	bcs.s	Threat_AppendConsequenceFragment	;6530
+Threat_SelectFragmentBySpecialFlag:		; Memory Address ($3672) and binary offset [$32EE]
 	move.b	$0002(a4),d0	;102C0002
-	bpl.s	adrCd003680	;6A08
+	bpl.s	Threat_ChooseAddresseeTitleWord	;6A08
 	and.w	#$000F,d0	;0240000F
 	move.b	d0,(a6)+	;1CC0
-	bra.s	adrCd0036D0	;6050
+	bra.s	Threat_TerminateAndPrint	;6050
 
-adrCd003680:		; Memory Address ($3680) and binary offset [$32FC]
+Threat_ChooseAddresseeTitleWord:		; Memory Address ($3680) and binary offset [$32FC]
 	move.b	#$99,(a6)+	;1CFC0099
 	move.b	#$C3,d1	;123C00C3
 	btst	#$06,d0	;08000006
-	beq.s	adrCd00369E	;6710
+	beq.s	Threat_AppendChosenTitleWord	;6710
 	move.b	#$9E,d1	;123C009E
 	and.w	#$0003,d0	;02400003
-	beq.s	adrCd00369E	;6706
+	beq.s	Threat_AppendChosenTitleWord	;6706
 	add.b	#$5B,d0	;0600005B
 	move.b	d0,d1	;1200
-adrCd00369E:		; Memory Address ($369E) and binary offset [$331A]
+Threat_AppendChosenTitleWord:		; Memory Address ($369E) and binary offset [$331A]
 	move.b	d1,(a6)+	;1CC1
-	bra.s	adrCd0036D0	;602E
+	bra.s	Threat_TerminateAndPrint	;602E
 
-adrCd0036A2:		; Memory Address ($36A2) and binary offset [$331E]
+Threat_AppendConsequenceFragment:		; Memory Address ($36A2) and binary offset [$331E]
 	move.b	#$62,(a6)+	;1CFC0062
 	bsr	RandomGen_BytewithOffset	;61001F04
 	and.w	#$0003,d0	;02400003
 	lea	Comms_ThreatConsequenceFragments.l,a3	;47F900003DEE
 	bsr.s	Comms_CopyThreatFragment	;612A
 	cmp.b	#$06,$0006(a4)	;0C2C00060006
-	bcc.s	adrCd003672	;64B4
+	bcc.s	Threat_SelectFragmentBySpecialFlag	;64B4
 	move.b	#$1A,(a6)+	;1CFC001A
 	bsr	RandomGen_BytewithOffset	;61001EE8
 	and.w	#$0007,d0	;02400007
 	add.b	#$B6,d0	;060000B6
 	move.b	d0,(a6)+	;1CC0
-adrCd0036D0:		; Memory Address ($36D0) and binary offset [$334C]
+Threat_TerminateAndPrint:		; Memory Address ($36D0) and binary offset [$334C]
 	move.b	#$FF,(a6)	;1CBC00FF
 	lea	Comms_MessageBuffer.l,a6	;4DF900003DC0
 	jmp	Print_npc_message.l	;4EF90000D81C
@@ -5944,9 +5972,9 @@ Comms_CopyThreatFragment:		; Memory Address ($36E0) and binary offset [$335C]
 	; Copies one length-prefixed threat fragment into the communication message buffer.
 	jsr	Proceed_in_stringtable.l	;4EB90000D7CC
 	subq.w	#$01,d5	;5345
-adrLp0036E8:		; Memory Address ($36E8) and binary offset [$3364]
+CopyThreatFragment_ByteLoop:		; Memory Address ($36E8) and binary offset [$3364]
 	move.b	(a3)+,(a6)+	;1CDB
-	dbra	d5,adrLp0036E8	;51CDFFFC
+	dbra	d5,CopyThreatFragment_ByteLoop	;51CDFFFC
 	rts	;4E75
 
 Comms_Action_WhoGoes:		; Memory Address ($36F0) and binary offset [$336C]
@@ -5983,10 +6011,10 @@ Comms_Action_RevealSelf:		; Memory Address ($3744) and binary offset [$33C0]
 	and.w	#$000F,d0	;0240000F
 	move.b	#$9E,$0006(a6)	;1D7C009E0006
 	and.w	#$0003,d0	;02400003
-	beq.s	adrCd00376C	;6708
+	beq.s	RevealSelf_PrintMessage	;6708
 	add.w	#$005B,d0	;0640005B
 	move.b	d0,$0006(a6)	;1D400006
-adrCd00376C:		; Memory Address ($376C) and binary offset [$33E8]
+RevealSelf_PrintMessage:		; Memory Address ($376C) and binary offset [$33E8]
 	jmp	Print_npc_message.l	;4EF90000D81C
 
 Comms_Action_FolkLore:		; Memory Address ($3772) and binary offset [$33EE]
@@ -6030,43 +6058,43 @@ Comms_Action_Offer:		; Memory Address ($382C) and binary offset [$34A8]
 	; Builds the Offer message from held coinage, a held object or the empty-hand template.
 	move.w	HeldItem_ObjectCodeOffset(a5),d0	;302D002E
 	move.b	d0,$000A(a4)	;1940000A
-	bne.s	adrCd00383E	;6608
+	bne.s	TradeItem_CheckIfCoinage	;6608
 	clr.b	$0008(a4)	;422C0008
 	moveq	#$2E,d0	;702E
-	bra.s	adrCd003894	;6056
+	bra.s	TradeMessage_PrintEmptyHandOffer	;6056
 
-adrCd00383E:		; Memory Address ($383E) and binary offset [$34BA]
+TradeItem_CheckIfCoinage:		; Memory Address ($383E) and binary offset [$34BA]
 	cmpi.w	#Object_Coinage,d0	;0C400001
-	bne.s	adrCd00385C	;6618
+	bne.s	Offer_PromotePurchaseToExchange	;6618
 	move.w	HeldItem_StateOffset(a5),d0	;302D002C
 	cmp.b	#$02,$0008(a4)	;0C2C00020008
 	bne	Comms_PrintGoldOffer	;6600F9F2
 	move.b	#$01,$0008(a4)	;197C00010008
 	bra	Comms_PrintGoldOffer	;6000F9E8
 
-adrCd00385C:		; Memory Address ($385C) and binary offset [$34D8]
+Offer_PromotePurchaseToExchange:		; Memory Address ($385C) and binary offset [$34D8]
 	cmp.b	#$01,$0008(a4)	;0C2C00010008
-	bne.s	adrCd00386A	;6606
+	bne.s	Offer_PrepareHeldItemMessage	;6606
 	move.b	#$02,$0008(a4)	;197C00020008
-adrCd00386A:		; Memory Address ($386A) and binary offset [$34E6]
+Offer_PrepareHeldItemMessage:		; Memory Address ($386A) and binary offset [$34E6]
 	lea	Msg_OfferHeldItemTemplate.l,a6	;4DF900003E65
 	moveq	#$05,d2	;7405
-	bra.s	adrCd0038DA	;6066
+	bra.s	TradeMessage_AppendObjectName	;6066
 
 Comms_Action_Sell:		; Memory Address ($3874) and binary offset [$34F0]
 	; Builds the Sell message and records the held object for the proposed trade.
 	move.b	#$03,$0008(a4)	;197C00030008
 	clr.b	$0009(a4)	;422C0009
 	move.w	HeldItem_ObjectCodeOffset(a5),d0	;302D002E
-	beq.s	adrCd003892	;670E
+	beq.s	Sell_SetEmptyHandWordCode	;670E
 	move.b	d0,$000A(a4)	;1940000A
 	lea	Msg_SellHeldItemTemplate.l,a6	;4DF900003E70
 	moveq	#$05,d2	;7405
-	bra.s	adrCd0038DA	;6048
+	bra.s	TradeMessage_AppendObjectName	;6048
 
-adrCd003892:		; Memory Address ($3892) and binary offset [$350E]
+Sell_SetEmptyHandWordCode:		; Memory Address ($3892) and binary offset [$350E]
 	moveq	#$57,d0	;7057
-adrCd003894:		; Memory Address ($3894) and binary offset [$3510]
+TradeMessage_PrintEmptyHandOffer:		; Memory Address ($3894) and binary offset [$3510]
 	lea	Msg_OfferOrSellTemplate.l,a6	;4DF900003E58
 	move.b	d0,$0005(a6)	;1D400005
 	jmp	Print_npc_message.l	;4EF90000D81C
@@ -6082,16 +6110,16 @@ Comms_Action_Exchange:		; Memory Address ($38B6) and binary offset [$3532]
 	move.b	#$02,$0008(a4)	;197C00020008
 	move.w	HeldItem_ObjectCodeOffset(a5),d0	;302D002E
 	move.b	d0,$000A(a4)	;1940000A
-	bne.s	adrCd0038D2	;660C
+	bne.s	TradeMessage_PrepareHeldItemTemplate	;660C
 	lea	Msg_Exchange.l,a6	;4DF900003E0B
 	jmp	Print_npc_message.l	;4EF90000D81C
 
-adrCd0038D2:		; Memory Address ($38D2) and binary offset [$354E]
+TradeMessage_PrepareHeldItemTemplate:		; Memory Address ($38D2) and binary offset [$354E]
 	lea	Msg_ExchangeHeldItemTemplate.l,a6	;4DF900003E15
 	moveq	#$0B,d2	;740B
-adrCd0038DA:		; Memory Address ($38DA) and binary offset [$3556]
+TradeMessage_AppendObjectName:		; Memory Address ($38DA) and binary offset [$3556]
 	bsr.s	Comms_AppendObjectName	;6118
-adrCd0038DC:		; Memory Address ($38DC) and binary offset [$3558]
+TradeMessage_AppendSuffixAndPrint:		; Memory Address ($38DC) and binary offset [$3558]
 	move.b	#$FA,$00(a6,d2.w)	;1DBC00FA2000
 	move.b	#$3F,$01(a6,d2.w)	;1DBC003F2001
 	move.b	#$FF,$02(a6,d2.w)	;1DBC00FF2002
@@ -6106,36 +6134,36 @@ Comms_AppendObjectName:		; Memory Address ($38F4) and binary offset [$3570]
 	move.b	(a0)+,$00(a6,d2.w)	;1D982000
 	addq.w	#$01,d2	;5242
 	move.b	(a0),d0	;1010
-	bmi.s	adrCd003916	;6B0C
+	bmi.s	AppendObjectName_Exit	;6B0C
 	move.b	#$FE,$00(a6,d2.w)	;1DBC00FE2000
 	move.b	d0,$01(a6,d2.w)	;1D802001
 	addq.w	#$02,d2	;5442
-adrCd003916:		; Memory Address ($3916) and binary offset [$3592]
+AppendObjectName_Exit:		; Memory Address ($3916) and binary offset [$3592]
 	rts	;4E75
 
 Comms_Action_Praise:		; Memory Address ($3918) and binary offset [$3594]
 	; Builds a randomized compliment and raises attitude.
 	addq.b	#$01,CommsState_AttitudeOffset(a4)	;522C0006
 	lea	Comms_PraiseWordRanges.l,a0	;41F900003A02
-	bra.s	adrCd003934	;6010
+	bra.s	PraiseCurse_BuildSmalltalkWords	;6010
 
 Comms_Action_Curse:		; Memory Address ($3924) and binary offset [$35A0]
 	; Builds a randomized insult and reduces attitude.
 	subq.b	#$04,CommsState_AttitudeOffset(a4)	;592C0006
-	bpl.s	adrCd00392E	;6A04
+	bpl.s	Curse_LoadWordRanges	;6A04
 	clr.b	$0006(a4)	;422C0006
-adrCd00392E:		; Memory Address ($392E) and binary offset [$35AA]
+Curse_LoadWordRanges:		; Memory Address ($392E) and binary offset [$35AA]
 	lea	Comms_CurseWordRanges.l,a0	;41F900003A08
-adrCd003934:		; Memory Address ($3934) and binary offset [$35B0]
+PraiseCurse_BuildSmalltalkWords:		; Memory Address ($3934) and binary offset [$35B0]
 	bsr.s	Comms_BuildSmalltalk	;6148
 	moveq	#$02,d4	;7802
-adrLp003938:		; Memory Address ($3938) and binary offset [$35B4]
+Smalltalk_OptionalWordLoop:		; Memory Address ($3938) and binary offset [$35B4]
 	asr.w	#$01,d7	;E247
-	bcc.s	adrCd00393E	;6402
+	bcc.s	Smalltalk_AdvanceWordRange	;6402
 	bsr.s	Comms_AppendSmalltalkWord	;6112
-adrCd00393E:		; Memory Address ($393E) and binary offset [$35BA]
+Smalltalk_AdvanceWordRange:		; Memory Address ($393E) and binary offset [$35BA]
 	addq.w	#$02,a0	;5448
-	dbra	d4,adrLp003938	;51CCFFF6
+	dbra	d4,Smalltalk_OptionalWordLoop	;51CCFFF6
 	move.b	#$FF,$00(a6,d2.w)	;1DBC00FF2000
 	jmp	Print_npc_message.l	;4EF90000D81C
 
@@ -6144,15 +6172,15 @@ Comms_AppendSmalltalkWord:		; Memory Address ($3950) and binary offset [$35CC]
 	bsr	RandomGen_BytewithOffset	;61001C5A
 	and.w	#$0007,d0	;02400007
 	tst.w	d7	;4A47
-	bpl.s	adrCd003972	;6A16
+	bpl.s	Smalltalk_AppendRangeWord	;6A16
 	cmp.b	(a0),d0	;B010
-	bcs.s	adrCd00396E	;650E
+	bcs.s	Smalltalk_ClearQualifierFlag	;650E
 	move.b	#$FA,$00(a6,d2.w)	;1DBC00FA2000
 	move.b	#$4E,$01(a6,d2.w)	;1DBC004E2001
 	addq.w	#$02,d2	;5442
-adrCd00396E:		; Memory Address ($396E) and binary offset [$35EA]
+Smalltalk_ClearQualifierFlag:		; Memory Address ($396E) and binary offset [$35EA]
 	and.w	#$00FF,d7	;024700FF
-adrCd003972:		; Memory Address ($3972) and binary offset [$35EE]
+Smalltalk_AppendRangeWord:		; Memory Address ($3972) and binary offset [$35EE]
 	add.b	$0001(a0),d0	;D0280001
 	move.b	d0,$00(a6,d2.w)	;1D802000
 	addq.w	#$01,d2	;5242
@@ -6162,49 +6190,49 @@ Comms_BuildSmalltalk:		; Memory Address ($397E) and binary offset [$35FA]
 	; Builds a randomized praise or curse from a sentence pattern and three word ranges.
 	and.w	#$00FE,d0	;024000FE
 	moveq	#$00,d7	;7E00
-adrCd003984:		; Memory Address ($3984) and binary offset [$3600]
+Smalltalk_FindPatternBandLoop:		; Memory Address ($3984) and binary offset [$3600]
 	cmp.b	Comms_SmalltalkPatternBands(pc,d7.w),d0	;B03B7070
-	bcs.s	adrCd00398E	;6504
+	bcs.s	Smalltalk_SelectPattern	;6504
 	addq.w	#$02,d7	;5447
-	bra.s	adrCd003984	;60F6
+	bra.s	Smalltalk_FindPatternBandLoop	;60F6
 
-adrCd00398E:		; Memory Address ($398E) and binary offset [$360A]
+Smalltalk_SelectPattern:		; Memory Address ($398E) and binary offset [$360A]
 	move.b	Comms_SmalltalkPatternIndexTable(pc,d7.w),d7	;1E3B7067
 	lea	Comms_MessageBuffer.l,a6	;4DF900003DC0
 	move.b	#$1A,(a6)	;1CBC001A
 	moveq	#$01,d2	;7401
 	lsr.w	#$01,d7	;E24F
-	bcc.s	adrCd0039DA	;6438
+	bcc.s	Smalltalk_CheckTrailingModifier	;6438
 	cmp.b	#$03,$0001(a4)	;0C2C00030001
-	bne.s	adrCd0039B2	;6608
-	bsr	adrCd005556	;61001BAA
+	bne.s	Smalltalk_RollSubjectWordIndex	;6608
+	bsr	RandomGen_SixSidedRoll	;61001BAA
 	addq.w	#$02,d0	;5440
-	bra.s	adrCd0039BA	;6008
+	bra.s	Smalltalk_StoreSubjectWord	;6008
 
-adrCd0039B2:		; Memory Address ($39B2) and binary offset [$362E]
+Smalltalk_RollSubjectWordIndex:		; Memory Address ($39B2) and binary offset [$362E]
 	bsr	RandomGen_BytewithOffset	;61001BF8
 	and.w	#$0007,d0	;02400007
-adrCd0039BA:		; Memory Address ($39BA) and binary offset [$3636]
+Smalltalk_StoreSubjectWord:		; Memory Address ($39BA) and binary offset [$3636]
 	move.w	#$0084,d1	;323C0084
 	add.w	d0,d1	;D240
 	move.b	d1,$0001(a6)	;1D410001
 	moveq	#$02,d2	;7402
 	cmpi.w	#$0007,d0	;0C400007
-	beq.s	adrCd0039DA	;670E
+	beq.s	Smalltalk_CheckTrailingModifier	;670E
 	move.b	#$FA,$0002(a6)	;1D7C00FA0002
 	move.b	#$53,$0003(a6)	;1D7C00530003
 	moveq	#$04,d2	;7404
-adrCd0039DA:		; Memory Address ($39DA) and binary offset [$3656]
+Smalltalk_CheckTrailingModifier:		; Memory Address ($39DA) and binary offset [$3656]
 	ror.w	#$01,d7	;E25F
-	bpl.s	adrCd0039F4	;6A16
+	bpl.s	Smalltalk_Return	;6A16
 	cmpi.w	#$0005,d0	;0C400005
-	bcc.s	adrCd0039EC	;6408
+	bcc.s	Smalltalk_AppendTrailingWord	;6408
 	move.b	#$8C,$00(a6,d2.w)	;1DBC008C2000
 	addq.w	#$01,d2	;5242
-adrCd0039EC:		; Memory Address ($39EC) and binary offset [$3668]
+Smalltalk_AppendTrailingWord:		; Memory Address ($39EC) and binary offset [$3668]
 	move.b	#$8D,$00(a6,d2.w)	;1DBC008D2000
 	addq.w	#$01,d2	;5242
-adrCd0039F4:		; Memory Address ($39F4) and binary offset [$3670]
+Smalltalk_Return:		; Memory Address ($39F4) and binary offset [$3670]
 	rts	;4E75
 
 Comms_SmalltalkPatternBands:		; Memory Address ($39F6) and binary offset [$3672]
@@ -6439,12 +6467,12 @@ Msg_Reply_Greeting:
 	asl.w	#$04,d1	;E941
 	lea	Character_Pockets_DataTable.l,a0	;41F90000ED2A
 	move.b	$00(a0,d1.w),d1	;12301000
-	bne.s	adrCd003D52	;660A
+	bne.s	PocketItemMessage_AppendObjectName	;660A
 	move.b	#$44,$00(a6,d2.w)	;1DBC00442000
 	addq.w	#$01,d2	;5242
-	bra.s	adrCd003D74	;6022
+	bra.s	PocketItemMessage_AppendWordAndPrint	;6022
 
-adrCd003D52:		; Memory Address ($3D52) and binary offset [$39CE]
+PocketItemMessage_AppendObjectName:		; Memory Address ($3D52) and binary offset [$39CE]
 	lea	Object_Definition_Table+$02.l,a0	;41F90000E4C4
 	add.w	d1,d1	;D241
 	add.w	d1,d1	;D241
@@ -6452,11 +6480,11 @@ adrCd003D52:		; Memory Address ($3D52) and binary offset [$39CE]
 	move.b	(a0)+,$00(a6,d2.w)	;1D982000
 	addq.w	#$01,d2	;5242
 	move.b	(a0),d0	;1010
-	bmi.s	adrCd003D74	;6B0C
+	bmi.s	PocketItemMessage_AppendWordAndPrint	;6B0C
 	move.b	#$FE,$00(a6,d2.w)	;1DBC00FE2000
 	move.b	d0,$01(a6,d2.w)	;1D802001
 	addq.w	#$02,d2	;5442
-adrCd003D74:		; Memory Address ($3D74) and binary offset [$39F0]
+PocketItemMessage_AppendWordAndPrint:		; Memory Address ($3D74) and binary offset [$39F0]
 	move.b	#$35,$00(a6,d2.w)	;1DBC00352000
 	bsr	RandomGen_BytewithOffset	;61001830
 	and.w	#$0007,d0	;02400007
@@ -6465,9 +6493,9 @@ adrCd003D74:		; Memory Address ($3D74) and binary offset [$39F0]
 	move.b	#$FF,$02(a6,d2.w)	;1DBC00FF2002
 	jsr	Print_npc_message.l	;4EB90000D81C
 	move.w	#$0006,$0044(a5)	;3B7C00060044
-adrCd003D9C:		; Memory Address ($3D9C) and binary offset [$3A18]
+Comms_FinishAction_RedrawMenu:		; Memory Address ($3D9C) and binary offset [$3A18]
 	move.w	#$0008,$0042(a5)	;3B7C00080042
-	bsr	adrCd003344	;6100F5A0
+	bsr	Draw_CommsWaitIndicatorIcons	;6100F5A0
 	bra	Draw_PartyCommandMenu	;60003FC4
 
 Msg_NameSelfTemplate:		; Memory Address ($3DAA) and binary offset [$3A26]
@@ -6659,17 +6687,17 @@ PartyCommand_Call:		; Memory Address ($3E9C) and binary offset [$3B18]
 	move.b	#$FF,$0050(a5)	;1B7C00FF0050
 	lea	Player1_Data.l,a1	;43F90000EE7C
 	btst	#$00,(a5)	;08150000
-	bne.s	adrCd003EC0	;6606
+	bne.s	Call_ValidateOtherPlayerTarget	;6606
 	lea	Player2_Data.l,a1	;43F90000EEDE
-adrCd003EC0:		; Memory Address ($3EC0) and binary offset [$3B3C]
+Call_ValidateOtherPlayerTarget:		; Memory Address ($3EC0) and binary offset [$3B3C]
 	btst	#$06,$0018(a1)	;082900060018
-	bne	adrCd003F58	;66000090
+	bne	Call_FinishNotice	;66000090
 	move.b	(a1),d0	;1011
 	and.b	#$FE,d0	;020000FE
-	bne	adrCd003F58	;66000086
+	bne	Call_FinishNotice	;66000086
 	move.w	$0058(a5),d0	;302D0058
 	cmp.w	$0058(a1),d0	;B0690058
-	bne	adrCd003F58	;6600007A
+	bne	Call_FinishNotice	;6600007A
 	lea	Comms_MessageBuffer.w,a6	;4DF83DC0	;Short Absolute converted to symbol!
 	move.b	#$CA,(a6)+	;1CFC00CA
 	move.b	#$C4,(a6)+	;1CFC00C4
@@ -6677,13 +6705,13 @@ adrCd003EC0:		; Memory Address ($3EC0) and binary offset [$3B3C]
 	move.l	$001C(a5),d0	;202D001C
 	bsr	Calculate_ManhattanDistance	;6100D4B2
 	cmpi.w	#$0005,d2	;0C420005
-	bcs.s	adrCd003F0C	;650E
+	bcs.s	Call_AppendCallToThePhrase	;650E
 	cmpi.w	#$0009,d2	;0C420009
-	bcs.s	adrCd003F08	;6504
+	bcs.s	Call_AppendDistantWord	;6504
 	move.b	#$8E,(a6)+	;1CFC008E
-adrCd003F08:		; Memory Address ($3F08) and binary offset [$3B84]
+Call_AppendDistantWord:		; Memory Address ($3F08) and binary offset [$3B84]
 	move.b	#$C5,(a6)+	;1CFC00C5
-adrCd003F0C:		; Memory Address ($3F0C) and binary offset [$3B88]
+Call_AppendCallToThePhrase:		; Memory Address ($3F0C) and binary offset [$3B88]
 	move.b	#$16,(a6)+	;1CFC0016
 	move.b	#$FA,(a6)+	;1CFC00FA
 	move.b	#$53,(a6)+	;1CFC0053
@@ -6693,15 +6721,15 @@ adrCd003F0C:		; Memory Address ($3F0C) and binary offset [$3B88]
 	move.w	d0,d2	;3400
 	swap	d0	;4840
 	cmp.w	d0,d2	;B440
-	bcs.s	adrCd003F2E	;6504
+	bcs.s	Call_SelectAxisComponent	;6504
 	moveq	#$01,d3	;7601
 	swap	d1	;4841
-adrCd003F2E:		; Memory Address ($3F2E) and binary offset [$3BAA]
+Call_SelectAxisComponent:		; Memory Address ($3F2E) and binary offset [$3BAA]
 	swap	d1	;4841
 	tst.w	d1	;4A41
-	bmi.s	adrCd003F36	;6B02
+	bmi.s	Call_ResolveDirectionWord	;6B02
 	addq.b	#$02,d3	;5403
-adrCd003F36:		; Memory Address ($3F36) and binary offset [$3BB2]
+Call_ResolveDirectionWord:		; Memory Address ($3F36) and binary offset [$3BB2]
 	add.w	$0020(a1),d3	;D6690020
 	and.w	#$0003,d3	;02430003
 	add.w	#$00C6,d3	;064300C6
@@ -6712,7 +6740,7 @@ adrCd003F36:		; Memory Address ($3F36) and binary offset [$3BB2]
 	move.l	a1,a5	;2A49
 	jsr	Print_timed_message.l	;4EB90000D86A
 	move.l	(sp)+,a5	;2A5F
-adrCd003F58:		; Memory Address ($3F58) and binary offset [$3BD4]
+Call_FinishNotice:		; Memory Address ($3F58) and binary offset [$3BD4]
 	bra	Reset_PartyCommandStateAndRedrawMenu	;6000F3D0
 
 PartyCommand_Dismiss:		; Memory Address ($3F5C) and binary offset [$3BD8]
@@ -6749,13 +6777,13 @@ Interface_FinalizeSelectedWorldAction:		; Memory Address ($3F9C) and binary offs
 	lea	Notice_Dismiss_PartyMemberLeaves.l,a6	;4DF9000041C6
 	move.w	(sp)+,d1	;321F
 	cmpi.w	#$0015,d1	;0C410015
-	beq.s	adrCd003FCE	;6716
+	beq.s	FinalizeWorldAction_PatchNoticeChampion	;6716
 	bsr	Find_FreeOwnershipSlot	;6100009A
 	move.b	$004F(a5),d0	;102D004F
 	bset	#$05,d0	;08C00005
 	move.b	d0,$18(a5,d1.w)	;1B801018
 	lea	Notice_Wait_PartyMemberWaits.l,a6	;4DF9000041C1
-adrCd003FCE:		; Memory Address ($3FCE) and binary offset [$3C4A]
+FinalizeWorldAction_PatchNoticeChampion:		; Memory Address ($3FCE) and binary offset [$3C4A]
 	move.b	$004F(a5),d0	;102D004F
 	move.b	d0,(a6)	;1C80
 	bsr	Load_ChampionStatRecord	;6100268A
@@ -6774,42 +6802,42 @@ Interface_RemoveSelectedInventoryObject:		; Memory Address ($4004) and binary of
 	bsr	Find_ChampionFormationSlot	;6100008C
 	move.b	#$FF,$26(a5,d2.w)	;1BBC00FF2026
 	cmp.w	$0016(a5),d2	;B46D0016
-	bne.s	adrCd00401A	;6606
+	bne.s	RemoveSelectedChampion_FindSlot	;6606
 	move.w	#$FFFF,$0016(a5)	;3B7CFFFF0016
-adrCd00401A:		; Memory Address ($401A) and binary offset [$3C96]
+RemoveSelectedChampion_FindSlot:		; Memory Address ($401A) and binary offset [$3C96]
 	bsr	Find_ChampionInPlayerSlots	;6100005C
 	move.w	d1,d3	;3601
-adrCd004020:		; Memory Address ($4020) and binary offset [$3C9C]
+RemoveSelectedChampion_CompactSlotsLoop:		; Memory Address ($4020) and binary offset [$3C9C]
 	move.b	$19(a5,d1.w),$18(a5,d1.w)	;1BB510191018
 	addq.w	#$01,d1	;5241
 	cmpi.w	#$0003,d1	;0C410003
-	bcs.s	adrCd004020	;65F2
+	bcs.s	RemoveSelectedChampion_CompactSlotsLoop	;65F2
 	move.b	#$FF,$001B(a5)	;1B7C00FF001B
 	cmp.b	#$03,$0015(a5)	;0C2D00030015
-	bne.s	adrCd004052	;6616
+	bne.s	RemoveSelectedChampion_Return	;6616
 	cmp.b	$000F(a5),d3	;B62D000F
-	bne.s	adrCd00404C	;660A
+	bne.s	RemoveSelectedChampion_AdjustViewIndex	;660A
 	move.l	d7,-(sp)	;2F07
 	bsr	Click_OpenInventory	;61002BAA
 	move.l	(sp)+,d7	;2E1F
 	rts	;4E75
 
-adrCd00404C:		; Memory Address ($404C) and binary offset [$3CC8]
-	bcc.s	adrCd004052	;6404
+RemoveSelectedChampion_AdjustViewIndex:		; Memory Address ($404C) and binary offset [$3CC8]
+	bcc.s	RemoveSelectedChampion_Return	;6404
 	subq.b	#$01,$000F(a5)	;532D000F
-adrCd004052:		; Memory Address ($4052) and binary offset [$3CCE]
+RemoveSelectedChampion_Return:		; Memory Address ($4052) and binary offset [$3CCE]
 	rts	;4E75
 
 Find_FreeOwnershipSlot:		; Memory Address ($4054) and binary offset [$3CD0]
 	; Searches the ownership table for the first unused entry and returns its slot.
 	moveq	#$00,d1	;7200
-adrCd004056:		; Memory Address ($4056) and binary offset [$3CD2]
+FindFreeOwnershipSlot_ScanLoop:		; Memory Address ($4056) and binary offset [$3CD2]
 	tst.b	$18(a5,d1.w)	;4A351018
-	bmi.s	adrCd004064	;6B08
+	bmi.s	OwnershipSlotScan_Return	;6B08
 	addq.w	#$01,d1	;5241
 	cmpi.w	#$0003,d1	;0C410003
-	bcs.s	adrCd004056	;65F2
-adrCd004064:		; Memory Address ($4064) and binary offset [$3CE0]
+	bcs.s	FindFreeOwnershipSlot_ScanLoop	;65F2
+OwnershipSlotScan_Return:		; Memory Address ($4064) and binary offset [$3CE0]
 	rts	;4E75
 
 Find_ChampionOwner:		; Memory Address ($4066) and binary offset [$3CE2]
@@ -6817,39 +6845,39 @@ Find_ChampionOwner:		; Memory Address ($4066) and binary offset [$3CE2]
 	lea	Player1_Data.l,a5	;4BF90000EE7C
 	bsr.s	Find_ChampionInPlayerSlots	;610A
 	tst.w	d1	;4A41
-	bpl.s	adrCd004064	;6AF2
+	bpl.s	OwnershipSlotScan_Return	;6AF2
 	lea	Player2_Data.l,a5	;4BF90000EEDE
 Find_ChampionInPlayerSlots:		; Memory Address ($4078) and binary offset [$3CF4]
 	; Searches a player's champion slots for the selected champion index.
 	move.w	d2,-(sp)	;3F02
 	moveq	#$03,d1	;7203
-adrLp00407C:		; Memory Address ($407C) and binary offset [$3CF8]
+FindChampionInPlayerSlots_ScanLoop:		; Memory Address ($407C) and binary offset [$3CF8]
 	move.b	$18(a5,d1.w),d2	;14351018
-	bmi.s	adrCd00408A	;6B08
+	bmi.s	FindChampionInPlayerSlots_NextSlot	;6B08
 	and.w	#$000F,d2	;0242000F
 	cmp.b	d2,d0	;B002
-	beq.s	adrCd00408E	;6704
-adrCd00408A:		; Memory Address ($408A) and binary offset [$3D06]
-	dbra	d1,adrLp00407C	;51C9FFF0
-adrCd00408E:		; Memory Address ($408E) and binary offset [$3D0A]
+	beq.s	FindChampionInPlayerSlots_Return	;6704
+FindChampionInPlayerSlots_NextSlot:		; Memory Address ($408A) and binary offset [$3D06]
+	dbra	d1,FindChampionInPlayerSlots_ScanLoop	;51C9FFF0
+FindChampionInPlayerSlots_Return:		; Memory Address ($408E) and binary offset [$3D0A]
 	move.w	(sp)+,d2	;341F
 	rts	;4E75
 
 Find_ChampionFormationSlot:		; Memory Address ($4092) and binary offset [$3D0E]
 	; Searches a player's four formation positions for the selected champion index.
 	moveq	#$03,d2	;7403
-adrLp004094:		; Memory Address ($4094) and binary offset [$3D10]
+FindChampionFormationSlot_ScanLoop:		; Memory Address ($4094) and binary offset [$3D10]
 	cmp.b	$26(a5,d2.w),d0	;B0352026
-	beq.s	adrCd00409E	;6704
-	dbra	d2,adrLp004094	;51CAFFF8
-adrCd00409E:		; Memory Address ($409E) and binary offset [$3D1A]
+	beq.s	FindChampionFormationSlot_Return	;6704
+	dbra	d2,FindChampionFormationSlot_ScanLoop	;51CAFFF8
+FindChampionFormationSlot_Return:		; Memory Address ($409E) and binary offset [$3D1A]
 	rts	;4E75
 
 Interface_OpenInventoryActionSelector:		; Memory Address ($40A0) and binary offset [$3D1C]
 	; Builds the selectable inventory-object list and either opens selection or displays the supplied no-selection notice.
 	bsr	Build_EligibleCompanionList	;61003C04
 	tst.w	d2	;4A42
-	bne.s	adrCd0040BC	;6614
+	bne.s	InventoryActionSelector_OpenSelection	;6614
 	lea	Notice_PartyCommand_NoTarget.l,a6	;4DF9000041CD
 	move.b	d7,$0005(a6)	;1D470005
 Interface_ShowInventoryActionNotice:		; Memory Address ($40B2) and binary offset [$3D2E]
@@ -6857,7 +6885,7 @@ Interface_ShowInventoryActionNotice:		; Memory Address ($40B2) and binary offset
 	clr.w	$0042(a5)	;426D0042
 	jmp	Print_timed_message.l	;4EF90000D86A
 
-adrCd0040BC:		; Memory Address ($40BC) and binary offset [$3D38]
+InventoryActionSelector_OpenSelection:		; Memory Address ($40BC) and binary offset [$3D38]
 	move.w	#$0001,$0044(a5)	;3B7C00010044
 	bra.s	Interface_InitInventoryActionSelector	;6006
 
@@ -6879,16 +6907,16 @@ PartyCommand_View:		; Memory Address ($40E4) and binary offset [$3D60]
 	moveq	#$12,d7	;7E12
 	moveq	#$03,d1	;7203
 	moveq	#$00,d2	;7400
-adrLp0040F0:		; Memory Address ($40F0) and binary offset [$3D6C]
+PartyCommand_View_CountEligibleLoop:		; Memory Address ($40F0) and binary offset [$3D6C]
 	move.b	$18(a5,d1.w),d0	;10351018
-	bmi.s	adrCd004104	;6B0E
+	bmi.s	PartyCommand_View_SlotScanContinue	;6B0E
 	btst	#$06,d0	;08000006
-	bne.s	adrCd004104	;6608
+	bne.s	PartyCommand_View_SlotScanContinue	;6608
 	btst	#$05,d0	;08000005
-	beq.s	adrCd004104	;6702
+	beq.s	PartyCommand_View_SlotScanContinue	;6702
 	addq.w	#$01,d2	;5242
-adrCd004104:		; Memory Address ($4104) and binary offset [$3D80]
-	dbra	d1,adrLp0040F0	;51C9FFEA
+PartyCommand_View_SlotScanContinue:		; Memory Address ($4104) and binary offset [$3D80]
+	dbra	d1,PartyCommand_View_CountEligibleLoop	;51C9FFEA
 	tst.w	d2	;4A42
 	bne.s	Interface_OpenInventorySelection	;66B8
 	lea	Notice_View_EveryonePresent.l,a6	;4DF9000041E9
@@ -7106,6 +7134,7 @@ Enter_PartyCommandInterface:		; Memory Address ($4234) and binary offset [$3EB0]
 	bra	Draw_PartyCommandInterface	;600038F4
 
 Click_PauseGame:		; Memory Address ($425E) and binary offset [$3EDA]
+	; Pauses the shared game clock, marks the game paused, changes hardware palette entries 0 and 15 to red, waits for either player's resume input, then restores the clock, palette, pause flags, and both pending actions.
 	move.l	WorldTick_300UnitCountdown.l,d1	;22390000EE36
 	move.w	#$FFFF,Paused_Marker.l	;33FCFFFF00008C1C
 	lea	_custom+color.l,a0	;41F900DFF180
@@ -7134,18 +7163,18 @@ Draw_InitialGameInterface:		; Memory Address ($42BA) and binary offset [$3F36]
 	bsr	Reset_PlayerActionState	;61000048
 	bsr	Redraw_GameInterfaceFromScratch	;61003842
 	btst	#$06,$0018(a5)	;082D00060018
-	beq.s	adrCd0042D4	;6704
-	bsr	adrCd00270E	;6100E43C
-adrCd0042D4:		; Memory Address ($42D4) and binary offset [$3F50]
+	beq.s	Draw_InitialGameInterface_Player2Gate	;6704
+	bsr	Draw_PlayerDeathMessage	;6100E43C
+Draw_InitialGameInterface_Player2Gate:		; Memory Address ($42D4) and binary offset [$3F50]
 	tst.w	MultiPlayer.l	;4A790000EE30
-	bmi.s	adrCd0042F6	;6B1A
+	bmi.s	Draw_InitialGameInterface_PreSwapJoin	;6B1A
 	lea	Player2_Data.l,a5	;4BF90000EEDE
 	bsr	Reset_PlayerActionState	;61000026
 	bsr	Draw_PlayerInterfaceAndDungeonViewport	;6100383A
 	btst	#$06,$0018(a5)	;082D00060018
-	beq.s	adrCd0042F6	;6704
-	bsr	adrCd00270E	;6100E41A
-adrCd0042F6:		; Memory Address ($42F6) and binary offset [$3F72]
+	beq.s	Draw_InitialGameInterface_PreSwapJoin	;6704
+	bsr	Draw_PlayerDeathMessage	;6100E41A
+Draw_InitialGameInterface_PreSwapJoin:		; Memory Address ($42F6) and binary offset [$3F72]
 	jsr	Swap_DisplayAndDrawBuffers.l	;4EB900008CCA
 	bsr	Copy_DrawBufferToDisplayBuffer	;61004A8A
 	move.w	#$FFFF,FrameSyncFlag.l	;33FCFFFF00008C1E
@@ -7163,6 +7192,7 @@ Reset_PlayerActionState:		; Memory Address ($468E) and binary offset [$430A]
 	rts	;4E75
 
 Click_LoadSaveGame:		; Memory Address ($432A) and binary offset [$3FA6]
+	; Pauses world updates, presents the load/save function-key prompt for the active player panels, dispatches F1 to load and F2 to save, and restores the game interface when F10 exits.
 	move.l	WorldTick_300UnitCountdown.l,-(sp)	;2F390000EE36
 	clr.w	FrameSyncFlag.l	;427900008C1E
 	move.l	#$00067D00,screen_ptr.l	;23FC00067D0000008D36
@@ -7171,11 +7201,11 @@ Click_LoadSaveGame:		; Memory Address ($432A) and binary offset [$3FA6]
 	lea	Msg_LoadSaveFunctionKeys.l,a6	;4DF9000044C4
 	jsr	WriteText.l	;4EB90000D08E
 	tst.w	MultiPlayer.l	;4A790000EE30
-	bne.s	.skipPlayer2	;6612
+	bne.s	Click_LoadSaveGame_AfterPlayerPrompts	;6612
 	lea	Player2_Data.l,a5	;4BF90000EEDE
 	lea	Msg_LoadSaveFunctionKeys.l,a6	;4DF9000044C4
 	jsr	WriteText.l	;4EB90000D08E
-.skipPlayer2:
+Click_LoadSaveGame_AfterPlayerPrompts:		; Memory Address ($4376) and binary offset [$3FF2]
 	clr.b	KeyboardKeyCode.w	;423805C9	;Short Absolute converted to symbol!
 	bsr	Swap_DisplayAndDrawBuffers	;6100494E
 .PickLoadSaveGame_Loop:		; Memory Address ($437E) and binary offset [$3FFA]
@@ -7212,6 +7242,7 @@ SaveGame:		; Memory Address ($43BA) and binary offset [$4036]
 	bra.s	Finish_LoadSaveAndRedrawInterface	;60CA
 
 AwaitDisk:		; Memory Address ($43CC) and binary offset [$4048]
+	; Selects the insert-disk prompt for loading or saving and tail-calls the text printer.
 	lea	Msg_InstertLoadDisk.l,a6	;4DF9000044E5
 	tst.w	d0	;4A40
 	beq.s	.PickLoadSaveMessage	;6706
@@ -7223,16 +7254,17 @@ Show_LoadSaveDiskPrompt:		; Memory Address ($43E2) and binary offset [$405E]
 	; Shows the load/save disk prompt for each active player, presents it, and enters the keyboard-confirmation loop.
 	lea	Player1_Data.l,a5	;4BF90000EE7C
 	tst.w	MultiPlayer.l	;4A790000EE30
-	bne.s	.skipPlayer2	;660C
+	bne.s	Show_LoadSaveDiskPrompt_AwaitCurrentPlayer	;660C
 	move.w	d0,-(sp)	;3F00
 	bsr.s	AwaitDisk	;61D8
 	move.w	(sp)+,d0	;301F
 	lea	Player2_Data.l,a5	;4BF90000EEDE
-.skipPlayer2:
+Show_LoadSaveDiskPrompt_AwaitCurrentPlayer:		; Memory Address ($43FC) and binary offset [$4078]
 	bsr.s	AwaitDisk	;61CE
 	clr.b	KeyboardKeyCode.w	;423805C9	;Short Absolute converted to symbol!
 	bsr	Swap_DisplayAndDrawBuffers	;610048C6
 LoadSaveGame_Loop:		; Memory Address ($4406) and binary offset [$4082]
+	; Polls the keyboard during the load/save menu until a load, save, or exit key is received, returning the result to the caller.
 	move.b	KeyboardKeyCode.w,d0	;103805C9	;Short Absolute converted to symbol!
 	cmpi.b	#$44,d0			;0C000044
 	beq.s	LoadSaveGame_Action		;6712
@@ -7244,15 +7276,16 @@ LoadSaveGame_Loop:		; Memory Address ($4406) and binary offset [$4082]
 	rts				;4E75
 
 LoadSaveGame_Action:		; Memory Address ($4422) and binary offset [$409E]
+	; Selects save-data start track $3C in single-player mode or $46 in two-player mode for the following disk read or write.
 	moveq	#$3C,d0			;703C
 	tst.w	MultiPlayer.l		;4A790000EE30
-	beq.s	adrCd00442E		;6702
+	beq.s	LoadSaveGame_Action_ApplyTrackSectorCount		;6702
 	moveq	#$46,d0			;7046
-adrCd00442E:		; Memory Address ($442E) and binary offset [$40AA]
+LoadSaveGame_Action_ApplyTrackSectorCount:		; Memory Address ($442E) and binary offset [$40AA]
 	move.w	d0,SaveData_StartTrackNumber.l	;33C00000447E
 	rts				;4E75
 
-adrCd004436:		; Memory Address ($4436) and binary offset [$40B2]
+DiskIO_CopyProtectionFail_ReturnError:		; Memory Address ($4436) and binary offset [$40B2]
 	jsr	Select_FloppyDrive0.l		;4EB900008878
 	moveq	#-$01,d0		;70FF
 	rts				;4E75
@@ -7261,7 +7294,7 @@ LoadGame_ReadChampionDataFromDisk:		; Memory Address ($4440) and binary offset [
 	; Performs the protected save-disk setup and reads the champion records through the raw floppy-track decoder.
 	jsr	CopyProtection.l	;4EB90000D138
 	tst.l	d0	;4A80
-	beq.s	adrCd004436	;67EC
+	beq.s	DiskIO_CopyProtectionFail_ReturnError	;67EC
 	move.l	screen_ptr.l,SavedScreenPointer.l	;23F900008D3600008520
 	jsr	Select_FloppySideSignalHigh.l	;4EB900008702
 	move.w	SaveData_StartTrackNumber.l,d7	;3E390000447E
@@ -7281,7 +7314,7 @@ SaveGame_WriteChampionDataToDisk:		; Memory Address ($4480) and binary offset [$
 	; Performs the protected save-disk setup and writes the champion records through the raw floppy-track encoder.
 	jsr	CopyProtection.l	;4EB90000D138
 	tst.l	d0	;4A80
-	beq.s	adrCd004436	;67AC
+	beq.s	DiskIO_CopyProtectionFail_ReturnError	;67AC
 	move.l	screen_ptr.l,SavedScreenPointer.l	;23F900008D3600008520
 	jsr	Select_FloppySideSignalHigh.l	;4EB900008702
 	move.w	SaveData_StartTrackNumber.w,d7	;3E38447E	;Short Absolute converted to symbol!
@@ -7314,20 +7347,21 @@ Click_SleepParty:		; Memory Address ($4536) and binary offset [$41B2]
 	move.w	#$FFFF,$0040(a5)	;3B7CFFFF0040
 	move.b	#$FF,$0035(a5)	;1B7C00FF0035
 	moveq	#$03,d7	;7E03
-adrLp004554:		; Memory Address ($4554) and binary offset [$41D0]
+Click_SleepParty_ResetSpellStateLoop:		; Memory Address ($4554) and binary offset [$41D0]
+	; Initialises each active new-party member's spell state by clearing the worn spell and cast power and setting the selected spell to $FF.
 	move.b	$18(a5,d7.w),d0	;10357018
 	and.w	#$00C0,d0	;024000C0
-	bne.s	adrCd004574	;6616
+	bne.s	Click_SleepParty_SkipUnusedSlot	;6616
 	move.b	$18(a5,d7.w),d0	;10357018
 	bsr	Load_ChampionStatRecord	;610020FC
 	clr.b	$0011(a4)	;422C0011
 	move.b	#$FF,$0013(a4)	;197C00FF0013
 	clr.b	$0014(a4)	;422C0014
-adrCd004574:		; Memory Address ($4574) and binary offset [$41F0]
-	dbra	d7,adrLp004554	;51CFFFDE
+Click_SleepParty_SkipUnusedSlot:		; Memory Address ($4574) and binary offset [$41F0]
+	dbra	d7,Click_SleepParty_ResetSpellStateLoop	;51CFFFDE
 	bsr	Draw_PartyCommandInterface	;610035D6
 	bsr	Draw_ChampionNamePanelFrame	;61003CFA
-adrCd004580:		; Memory Address ($4580) and binary offset [$41FC]
+ShowAsleepNotice_ResetPageState:		; Memory Address ($4580) and binary offset [$41FC]
 	bsr	Draw_ViewportMessageFrame	;6100E1B2
 	and.b	#$01,(a5)	;02150001
 	bset	#$02,(a5)	;08D50002
@@ -7337,9 +7371,9 @@ adrCd004580:		; Memory Address ($4580) and binary offset [$41FC]
 	move.b	#$01,$0052(a5)	;1B7C00010052
 	clr.b	$004A(a5)	;422D004A
 	tst.b	$004B(a5)	;4A2D004B
-	bmi.s	adrCd0045B2	;6B06
+	bmi.s	ShowAsleepNotice_PrintText	;6B06
 	move.w	#$00FF,$004A(a5)	;3B7C00FF004A
-adrCd0045B2:		; Memory Address ($45B2) and binary offset [$422E]
+ShowAsleepNotice_PrintText:		; Memory Address ($45B2) and binary offset [$422E]
 	lea	ThouArtAsleep.l,a6	;4DF9000045C4
 	jsr	Print_fflim_text.l	;4EB90000D0C6
 	jmp	Clear_LowerTextStrip.l	;4EF90000CF96
@@ -7360,10 +7394,11 @@ ThouArtAsleep:		; Memory Address ($45C4) and binary offset [$4240]
 	dc.b	$FF	;FF
 	dc.b	$00	;00
 
-adrCd0045DE:		; Memory Address ($45DE) and binary offset [$425A]
+Draw_Fairy:		; Memory Address ($45DE) and binary offset [$425A]
+	; Draws the mirrored fairy portrait used by the spell-shop interface.
 	move.l	a4,-(sp)	;2F0C
 	asl.w	#$02,d0	;E540
-	lea	adrEA00462A.l,a6	;4DF90000462A
+	lea	GFX_Fairy_ColourVariants.l,a6	;4DF90000462A
 	add.w	d0,a6	;DCC0
 	link	a3,#-$0020	;4E53FFE0
 	move.l	screen_ptr.l,a0	;207900008D36
@@ -7386,7 +7421,7 @@ adrCd0045DE:		; Memory Address ($45DE) and binary offset [$425A]
 	move.l	(sp)+,a4	;285F
 	rts	;4E75
 
-adrEA00462A:		; Memory Address ($462A) and binary offset [$42A6]
+GFX_Fairy_ColourVariants:		; Memory Address ($462A) and binary offset [$42A6]
 	dc.w	$0504	;0504
 	dc.w	$0806	;0806
 	dc.w	$0B04	;0B04
@@ -7417,63 +7452,63 @@ SpellShop_CandidateSpellBitTable:		; Memory Address ($463E) and binary offset [$
 	dc.w	$1006	;1006
 	dc.w	$0C03	;0C03
 
-adrCd00465E:		; Memory Address ($465E) and binary offset [$42DA]
+FairyShop_DispatchByState:		; Memory Address ($465E) and binary offset [$42DA]
 	move.b	$004E(a5),d0	;102D004E
-	beq.s	adrCd004674	;6710
+	beq.s	FairyShop_WaitForNoticeTimerExpiry	;6710
 	subq.b	#$01,d0	;5300
-	beq	adrCd004748	;670000E0
+	beq	FairyShop_HandleClassSelectionClick	;670000E0
 	subq.b	#$01,d0	;5300
-	beq	adrCd004870	;67000202
-	bra	adrCd0049D6	;60000364
+	beq	FairyShop_HandleSpellOfferClick	;67000202
+	bra	FairyShop_HandleLearnConfirmClick	;60000364
 
-adrCd004674:		; Memory Address ($4674) and binary offset [$42F0]
+FairyShop_WaitForNoticeTimerExpiry:		; Memory Address ($4674) and binary offset [$42F0]
 	tst.b	$003F(a5)	;4A2D003F
-	bmi	adrCd004AFE	;6B000484
+	bmi	FairyShop_ResetInterfaceStateOnExit	;6B000484
 	subq.b	#$01,$003F(a5)	;532D003F
-	bpl	adrCd004AFE	;6A00047C
+	bpl	FairyShop_ResetInterfaceStateOnExit	;6A00047C
 	moveq	#$00,d7	;7E00
-adrCd004686:		; Memory Address ($4686) and binary offset [$4302]
+FairyShop_ScanChampionSlotsLoop:		; Memory Address ($4686) and binary offset [$4302]
 	move.b	$004F(a5),d7	;1E2D004F
-	bmi	adrCd004AFE	;6B000472
+	bmi	FairyShop_ResetInterfaceStateOnExit	;6B000472
 	move.b	$18(a5,d7.w),d0	;10357018
 	and.w	#$00E0,d0	;024000E0
-	bne.s	adrCd0046C6	;662E
+	bne.s	FairyShop_AdvanceToNextChampionSlot	;662E
 	move.b	$18(a5,d7.w),d0	;10357018
 	and.w	#$000F,d0	;0240000F
 	lea	SpellShop_ChampionIndexScratch.l,a6	;4DF900004B14
 	move.b	d0,(a6)	;1C80
 	bsr	Load_ChampionStatRecord	;61001FB6
 	cmp.b	#$EC,$001C(a4)	;0C2C00EC001C
-	bcs.s	adrCd0046BC	;6508
+	bcs.s	FairyShop_CheckChampionEligibleCount	;6508
 	cmp.b	#$0E,(a4)	;0C14000E
-	bcs	adrCd004AE8	;6500042E
-adrCd0046BC:		; Memory Address ($46BC) and binary offset [$4338]
+	bcs	FairyShop_GrantLevelUp	;6500042E
+FairyShop_CheckChampionEligibleCount:		; Memory Address ($46BC) and binary offset [$4338]
 	move.b	$001E(a4),d0	;102C001E
 	and.w	#$007F,d0	;0240007F
-	bne.s	adrCd0046CC	;6606
-adrCd0046C6:		; Memory Address ($46C6) and binary offset [$4342]
+	bne.s	FairyShop_ShowSpellPickPrompt	;6606
+FairyShop_AdvanceToNextChampionSlot:		; Memory Address ($46C6) and binary offset [$4342]
 	subq.b	#$01,$004F(a5)	;532D004F
-	bra.s	adrCd004686	;60BA
+	bra.s	FairyShop_ScanChampionSlotsLoop	;60BA
 
-adrCd0046CC:		; Memory Address ($46CC) and binary offset [$4348]
+FairyShop_ShowSpellPickPrompt:		; Memory Address ($46CC) and binary offset [$4348]
 	bsr	Draw_ViewportMessageFrame	;6100E066
 	jsr	Clear_LowerTextStrip.l	;4EB90000CF96
 	move.l	screen_ptr.l,a0	;207900008D36
 	add.w	$000A(a5),a0	;D0ED000A
 	add.w	#$0A86,a0	;D0FC0A86
 	moveq	#$03,d7	;7E03
-adrLp0046E6:		; Memory Address ($46E6) and binary offset [$4362]
+FairyShop_DrawClassIconRow:		; Memory Address ($46E6) and binary offset [$4362]
 	move.w	d7,d0	;3007
 	eor.w	#$0003,d0	;0A400003
 	add.w	#$0064,d0	;06400064
 	jsr	Draw_PocketGraphic.l	;4EB90000CAEA
-	dbra	d7,adrLp0046E6	;51CFFFEE
+	dbra	d7,FairyShop_DrawClassIconRow	;51CFFFEE
 	moveq	#$74,d0	;7074
 	addq.w	#$02,a0	;5448
 	move.w	$0012(a5),d3	;362D0012
 	jsr	Draw_PocketGraphic.l	;4EB90000CAEA
 	moveq	#$04,d0	;7004
-	bsr	adrCd0045DE	;6100FED2
+	bsr	Draw_Fairy	;6100FED2
 	or.b	#$40,$0054(a5)	;002D00400054
 	jsr	InitialiseText.l	;4EB90000D09A
 	moveq	#$00,d7	;7E00
@@ -7485,30 +7520,30 @@ adrLp0046E6:		; Memory Address ($46E6) and binary offset [$4362]
 	lea	MayBuySpellMsg.l,a6	;4DF900004A84
 	jsr	Print_TextCharacterLoop.l	;4EB90000CFDA
 	move.b	#$01,$004E(a5)	;1B7C0001004E
-	bra	adrCd004AFE	;600003B8
+	bra	FairyShop_ResetInterfaceStateOnExit	;600003B8
 
-adrCd004748:		; Memory Address ($4748) and binary offset [$43C4]
+FairyShop_HandleClassSelectionClick:		; Memory Address ($4748) and binary offset [$43C4]
 	bclr	#$07,$0001(a5)	;08AD00070001
-	beq	adrCd004AFE	;670003AE
+	beq	FairyShop_ResetInterfaceStateOnExit	;670003AE
 	move.l	$0002(a5),d1	;222D0002
 	sub.w	$0008(a5),d1	;926D0008
 	cmpi.b	#$42,d1	;0C010042
-	bcs	adrCd004AFE	;6500039E
+	bcs	FairyShop_ResetInterfaceStateOnExit	;6500039E
 	cmpi.b	#$54,d1	;0C010054
-	bcc	adrCd004AFE	;64000396
+	bcc	FairyShop_ResetInterfaceStateOnExit	;64000396
 	swap	d1	;4841
 	sub.b	#$70,d1	;04010070
-	bcs	adrCd004AFE	;6500038C
+	bcs	FairyShop_ResetInterfaceStateOnExit	;6500038C
 	cmpi.b	#$40,d1	;0C010040
-	bcs.s	adrCd004792	;6518
+	bcs.s	FairyShop_OnClassSelected	;6518
 	sub.b	#$50,d1	;04010050
-	bcs	adrCd004AFE	;6500037E
+	bcs	FairyShop_ResetInterfaceStateOnExit	;6500037E
 	cmpi.b	#$10,d1	;0C010010
-	bcc	adrCd004AFE	;64000376
+	bcc	FairyShop_ResetInterfaceStateOnExit	;64000376
 	subq.b	#$01,$004F(a5)	;532D004F
-	bra	adrCd004580	;6000FDF0
+	bra	ShowAsleepNotice_ResetPageState	;6000FDF0
 
-adrCd004792:		; Memory Address ($4792) and binary offset [$440E]
+FairyShop_OnClassSelected:		; Memory Address ($4792) and binary offset [$440E]
 	lsr.w	#$04,d1	;E849
 	move.w	d1,-(sp)	;3F01
 	bsr	Draw_ViewportMessageFrame	;6100DF9C
@@ -7519,7 +7554,7 @@ adrCd004792:		; Memory Address ($4792) and binary offset [$440E]
 	move.w	$0012(a5),d3	;362D0012
 	jsr	Draw_PocketGraphic.l	;4EB90000CAEA
 	move.w	(sp),d0	;3017
-	bsr	adrCd0045DE	;6100FE26
+	bsr	Draw_Fairy	;6100FE26
 	moveq	#$00,d0	;7000
 	move.b	$004F(a5),d0	;102D004F
 	move.b	$18(a5,d0.w),d0	;10350018
@@ -7532,31 +7567,31 @@ adrCd004792:		; Memory Address ($4792) and binary offset [$440E]
 	moveq	#$00,d0	;7000
 	moveq	#-$01,d2	;74FF
 	moveq	#$07,d1	;7207
-adrLp0047DC:		; Memory Address ($47DC) and binary offset [$4458]
+FairyShop_ScanCandidateSpellBitsLoop:		; Memory Address ($47DC) and binary offset [$4458]
 	move.b	$00(a6,d1.w),d0	;10361000
 	eor.b	#$1F,d0	;0A00001F
 	btst	d0,d7	;0107
-	bne.s	adrCd0047F4	;660C
+	bne.s	FairyShop_CandidateSpellLoopContinue	;660C
 	eor.b	#$1F,d0	;0A00001F
 	move.w	d0,d2	;3400
 	tst.l	d2	;4A82
-	bpl.s	adrCd004802	;6A10
+	bpl.s	FairyShop_StoreCandidateSpellChoice	;6A10
 	swap	d2	;4842
-adrCd0047F4:		; Memory Address ($47F4) and binary offset [$4470]
-	dbra	d1,adrLp0047DC	;51C9FFE6
+FairyShop_CandidateSpellLoopContinue:		; Memory Address ($47F4) and binary offset [$4470]
+	dbra	d1,FairyShop_ScanCandidateSpellBitsLoop	;51C9FFE6
 	move.w	#$FFFF,$0044(a5)	;3B7CFFFF0044
 	tst.l	d2	;4A82
-	bmi.s	adrCd004814	;6B12
-adrCd004802:		; Memory Address ($4802) and binary offset [$447E]
+	bmi.s	FairyShop_AllSpellsKnownMessage	;6B12
+FairyShop_StoreCandidateSpellChoice:		; Memory Address ($4802) and binary offset [$447E]
 	move.b	d2,$0045(a5)	;1B420045
 	swap	d2	;4842
 	move.b	d2,$0044(a5)	;1B420044
 	lea	SelectNewSpellMsg.l,a6	;4DF900004AA2
-	bra.s	adrCd00481A	;6006
+	bra.s	FairyShop_ShowSpellOfferResult	;6006
 
-adrCd004814:		; Memory Address ($4814) and binary offset [$4490]
+FairyShop_AllSpellsKnownMessage:		; Memory Address ($4814) and binary offset [$4490]
 	lea	ThouHastAllMsg.l,a6	;4DF900004AB9
-adrCd00481A:		; Memory Address ($481A) and binary offset [$4496]
+FairyShop_ShowSpellOfferResult:		; Memory Address ($481A) and binary offset [$4496]
 	bsr	Print_FormationSlotChampionName	;61000192
 	move.w	(sp)+,d1	;321F
 	lea	adrEA00463A.w,a6	;4DF8463A	;Short Absolute converted to symbol!
@@ -7574,7 +7609,7 @@ adrCd00481A:		; Memory Address ($481A) and binary offset [$4496]
 Print_SelectedSpellListEntry:		; Memory Address ($4852) and binary offset [$44CE]
 	; Prints the selected spell name when the entry is valid and advances the destination to the next spell-list row.
 	tst.b	d0	;4A00
-	bmi.s	adrCd00486E	;6B18
+	bmi.s	Return_SkipSpellListEntryPrint	;6B18
 	and.w	#$00FF,d0	;024000FF
 	move.l	a0,-(sp)	;2F08
 	bsr	Get_SelectedSpellName	;61007A76
@@ -7582,40 +7617,40 @@ Print_SelectedSpellListEntry:		; Memory Address ($4852) and binary offset [$44CE
 	jsr	Print_TextCharacterLoop.l	;4EB90000CFDA
 	move.l	(sp)+,a0	;205F
 	add.w	#$01B8,a0	;D0FC01B8
-adrCd00486E:		; Memory Address ($486E) and binary offset [$44EA]
+Return_SkipSpellListEntryPrint:		; Memory Address ($486E) and binary offset [$44EA]
 	rts	;4E75
 
-adrCd004870:		; Memory Address ($4870) and binary offset [$44EC]
+FairyShop_HandleSpellOfferClick:		; Memory Address ($4870) and binary offset [$44EC]
 	bclr	#$07,$0001(a5)	;08AD00070001
-	beq.s	adrCd00486E	;67F6
+	beq.s	Return_SkipSpellListEntryPrint	;67F6
 	move.l	$0002(a5),d1	;222D0002
 	sub.w	$0008(a5),d1	;926D0008
 	cmpi.w	#$0018,d1	;0C410018
-	bcs.s	adrCd00486E	;65E8
+	bcs.s	Return_SkipSpellListEntryPrint	;65E8
 	cmpi.w	#$0027,d1	;0C410027
-	bcs.s	adrCd0048AA	;651E
+	bcs.s	FairyShop_ProcessSpellSelectionClick	;651E
 	sub.b	#$42,d1	;04010042
-	bcs.s	adrCd00486E	;65DC
+	bcs.s	Return_SkipSpellListEntryPrint	;65DC
 	cmpi.b	#$10,d1	;0C010010
-	bcc.s	adrCd00486E	;64D6
+	bcc.s	Return_SkipSpellListEntryPrint	;64D6
 	swap	d1	;4841
 	sub.w	#$00C0,d1	;044100C0
-	bcs.s	adrCd00486E	;65CE
+	bcs.s	Return_SkipSpellListEntryPrint	;65CE
 	cmpi.b	#$10,d1	;0C010010
-	bcc.s	adrCd00486E	;64C8
-	bra	adrCd0046CC	;6000FE24
+	bcc.s	Return_SkipSpellListEntryPrint	;64C8
+	bra	FairyShop_ShowSpellPickPrompt	;6000FE24
 
-adrCd0048AA:		; Memory Address ($48AA) and binary offset [$4526]
+FairyShop_ProcessSpellSelectionClick:		; Memory Address ($48AA) and binary offset [$4526]
 	swap	d1	;4841
 	sub.b	#$90,d1	;04010090
-	bcs.s	adrCd00486E	;65BC
+	bcs.s	Return_SkipSpellListEntryPrint	;65BC
 	cmpi.b	#$40,d1	;0C010040
-	bcc.s	adrCd00486E	;64B6
+	bcc.s	Return_SkipSpellListEntryPrint	;64B6
 	swap	d1	;4841
 	sub.w	#$0018,d1	;04410018
 	lsr.w	#$03,d1	;E649
 	move.b	$44(a5,d1.w),d0	;10351044
-	bmi.s	adrCd00486E	;6BA8
+	bmi.s	Return_SkipSpellListEntryPrint	;6BA8
 	move.b	d0,$0044(a5)	;1B400044
 	jsr	InitialiseText.l	;4EB90000D09A
 	lea	SpellDescriptions.l,a3	;47F900019F8E
@@ -7660,7 +7695,7 @@ adrCd0048AA:		; Memory Address ($48AA) and binary offset [$4526]
 	move.b	#$FF,$0013(a4)	;197C00FF0013
 	or.b	#$40,$0054(a5)	;002D00400054
 	move.b	#$03,$004E(a5)	;1B7C0003004E
-adrCd004994:		; Memory Address ($4994) and binary offset [$4610]
+FairyShop_StateHandlerReturn:		; Memory Address ($4994) and binary offset [$4610]
 	rts	;4E75
 
 Calculate_SpellCastingCost:		; Memory Address ($4996) and binary offset [$4612]
@@ -7686,27 +7721,27 @@ Print_FormationSlotChampionName:		; Memory Address ($49AE) and binary offset [$4
 	jsr	Print_wordstext.l	;4EB90000D7E6
 	jmp	TerminateText.l	;4EF90000D008
 
-adrCd0049D6:		; Memory Address ($49D6) and binary offset [$4652]
+FairyShop_HandleLearnConfirmClick:		; Memory Address ($49D6) and binary offset [$4652]
 	bclr	#$07,$0001(a5)	;08AD00070001
-	beq.s	adrCd004994	;67B6
+	beq.s	FairyShop_StateHandlerReturn	;67B6
 	move.l	$0002(a5),d1	;222D0002
 	sub.w	$0008(a5),d1	;926D0008
 	sub.b	#$42,d1	;04010042
-	bcs.s	adrCd004994	;65A8
+	bcs.s	FairyShop_StateHandlerReturn	;65A8
 	cmpi.b	#$10,d1	;0C010010
-	bcc.s	adrCd004994	;64A2
+	bcc.s	FairyShop_StateHandlerReturn	;64A2
 	swap	d1	;4841
 	sub.w	#$0070,d1	;04410070
-	bcs.s	adrCd004994	;659A
+	bcs.s	FairyShop_StateHandlerReturn	;659A
 	cmpi.w	#$0010,d1	;0C410010
-	bcs.s	adrCd004A10	;6510
+	bcs.s	FairyShop_DeductSpellCostAndLearn	;6510
 	cmpi.w	#$0050,d1	;0C410050
-	bcs.s	adrCd004994	;658E
+	bcs.s	FairyShop_StateHandlerReturn	;658E
 	cmpi.w	#$0060,d1	;0C410060
-	bcc.s	adrCd004994	;6488
-	bra	adrCd0046CC	;6000FCBE
+	bcc.s	FairyShop_StateHandlerReturn	;6488
+	bra	FairyShop_ShowSpellPickPrompt	;6000FCBE
 
-adrCd004A10:		; Memory Address ($4A10) and binary offset [$468C]
+FairyShop_DeductSpellCostAndLearn:		; Memory Address ($4A10) and binary offset [$468C]
 	bsr.s	Calculate_SpellCastingCost	;6184
 	move.w	d0,d2	;3400
 	moveq	#$00,d1	;7200
@@ -7718,7 +7753,7 @@ adrCd004A10:		; Memory Address ($4A10) and binary offset [$468C]
 	add.w	d1,a4	;D8C1
 	move.b	$000C(a4),d3	;162C000C
 	sub.b	d2,d3	;9602
-	bcs.s	adrCd004A54	;6522
+	bcs.s	FairyShop_InsufficientGoldMessage	;6522
 	move.b	d3,$000C(a4)	;1943000C
 	bsr	Load_ChampionStatRecord	;61001C28
 	eor.b	#$1F,d7	;0A07001F
@@ -7727,9 +7762,9 @@ adrCd004A10:		; Memory Address ($4A10) and binary offset [$468C]
 	move.l	d0,$000C(a4)	;2940000C
 	subq.b	#$01,$001E(a4)	;532C001E
 	subq.b	#$01,$004F(a5)	;532D004F
-	bra	adrCd004580	;6000FB2E
+	bra	ShowAsleepNotice_ResetPageState	;6000FB2E
 
-adrCd004A54:		; Memory Address ($4A54) and binary offset [$46D0]
+FairyShop_InsufficientGoldMessage:		; Memory Address ($4A54) and binary offset [$46D0]
 	lea	PauperMsg.l,a6	;4DF900004AD0
 	bra	Print_FormationSlotChampionName	;6000FF52
 
@@ -7772,7 +7807,7 @@ PauperMsg:
 	dc.b	$FF	;FF
 	dc.b	$00	;00
 
-adrCd004AE8:		; Memory Address ($4AE8) and binary offset [$4764]
+FairyShop_GrantLevelUp:		; Memory Address ($4AE8) and binary offset [$4764]
 	moveq	#$00,d0	;7000
 	move.b	(a6),d0	;1016
 	move.l	a6,-(sp)	;2F0E
@@ -7780,13 +7815,13 @@ adrCd004AE8:		; Memory Address ($4AE8) and binary offset [$4764]
 	move.l	(sp)+,a6	;2C5F
 	jsr	Print_timed_message.l	;4EB90000D86A
 	move.b	#$32,$003F(a5)	;1B7C0032003F
-adrCd004AFE:		; Memory Address ($4AFE) and binary offset [$477A]
+FairyShop_ResetInterfaceStateOnExit:		; Memory Address ($4AFE) and binary offset [$477A]
 	bclr	#$07,$0001(a5)	;08AD00070001
-	beq.s	adrCd004B12	;670C
+	beq.s	Return_FairyShopStateMachine	;670C
 	clr.w	$0014(a5)	;426D0014
 	and.b	#$01,(a5)	;02150001
 	clr.b	$0056(a5)	;422D0056
-adrCd004B12:		; Memory Address ($4B12) and binary offset [$478E]
+Return_FairyShopStateMachine:		; Memory Address ($4B12) and binary offset [$478E]
 	rts	;4E75
 
 SpellShop_ChampionIndexScratch:		; Memory Address ($4B14) and binary offset [$4790]
@@ -7815,23 +7850,23 @@ Advance_ChampionLevelAndGrowStats:		; Memory Address ($4B28) and binary offset [
 	and.w	#$000F,d0	;0240000F
 	move.w	d4,d1	;3204
 	and.w	#$0001,d1	;02410001
-	beq.s	adrCd004B48	;6702
+	beq.s	LevelUp_ComputeHitPointsIncrease	;6702
 	lsr.w	#$01,d0	;E248
-adrCd004B48:		; Memory Address ($4B48) and binary offset [$47C4]
+LevelUp_ComputeHitPointsIncrease:		; Memory Address ($4B48) and binary offset [$47C4]
 	add.w	#$0009,d0	;06400009
 	add.b	$0006(a4),d0	;D02C0006
-	bcc.s	adrCd004B56	;6404
+	bcc.s	LevelUp_StoreClampedHitPoints	;6404
 	move.b	#$FD,d0	;103C00FD
-adrCd004B56:		; Memory Address ($4B56) and binary offset [$47D2]
+LevelUp_StoreClampedHitPoints:		; Memory Address ($4B56) and binary offset [$47D2]
 	move.b	d0,$0006(a4)	;19400006
 	bsr	RandomGen_BytewithOffset	;61000A50
 	and.w	#$0007,d0	;02400007
 	addq.w	#$01,d0	;5240
 	add.b	$0008(a4),d0	;D02C0008
 	cmpi.w	#$0064,d0	;0C400064
-	bcs.s	adrCd004B70	;6502
+	bcs.s	LevelUp_StoreClampedVitality	;6502
 	moveq	#$63,d0	;7063
-adrCd004B70:		; Memory Address ($4B70) and binary offset [$47EC]
+LevelUp_StoreClampedVitality:		; Memory Address ($4B70) and binary offset [$47EC]
 	move.b	d0,$0008(a4)	;19400008
 	lea	ChampionLevelUp_StatGrowthDieTable.l,a2	;45F900004C00
 	move.w	d4,d0	;3004
@@ -7839,28 +7874,28 @@ adrCd004B70:		; Memory Address ($4B70) and binary offset [$47EC]
 	asl.w	#$02,d0	;E540
 	add.w	d0,a2	;D4C0
 	moveq	#$03,d6	;7C03
-adrLp004B86:		; Memory Address ($4B86) and binary offset [$4802]
+LevelUp_StatGrowthRollLoop:		; Memory Address ($4B86) and binary offset [$4802]
 	cmp.b	#$06,(a2)	;0C120006
-	bne.s	adrCd004B92	;6606
-	bsr	adrCd005556	;610009C8
-	bra.s	adrCd004BA2	;6010
+	bne.s	LevelUp_RollStandardStatGrowth	;6606
+	bsr	RandomGen_SixSidedRoll	;610009C8
+	bra.s	LevelUp_ApplyStatGrowthRoll	;6010
 
-adrCd004B92:		; Memory Address ($4B92) and binary offset [$480E]
+LevelUp_RollStandardStatGrowth:		; Memory Address ($4B92) and binary offset [$480E]
 	bsr	RandomGen_BytewithOffset	;61000A18
 	and.w	#$0007,d0	;02400007
 	cmp.b	#$04,(a2)	;0C120004
-	bne.s	adrCd004BA2	;6602
+	bne.s	LevelUp_ApplyStatGrowthRoll	;6602
 	lsr.w	#$01,d0	;E248
-adrCd004BA2:		; Memory Address ($4BA2) and binary offset [$481E]
+LevelUp_ApplyStatGrowthRoll:		; Memory Address ($4BA2) and binary offset [$481E]
 	addq.w	#$01,d0	;5240
 	add.b	$01(a4,d6.w),d0	;D0346001
 	cmpi.b	#$64,d0	;0C000064
-	bcs.s	adrCd004BB0	;6502
+	bcs.s	LevelUp_StoreClampedStatGrowth	;6502
 	moveq	#$63,d0	;7063
-adrCd004BB0:		; Memory Address ($4BB0) and binary offset [$482C]
+LevelUp_StoreClampedStatGrowth:		; Memory Address ($4BB0) and binary offset [$482C]
 	move.b	d0,$01(a4,d6.w)	;19806001
 	addq.w	#$01,a2	;524A
-	dbra	d6,adrLp004B86	;51CEFFCE
+	dbra	d6,LevelUp_StatGrowthRollLoop	;51CEFFCE
 	bclr	#$07,$001E(a4)	;08AC0007001E
 	move.w	d4,d0	;3004
 	and.w	#$0003,d4	;02440003
@@ -7881,9 +7916,9 @@ Recalculate_CharacterDerivedStats:		; Memory Address ($4BCE) and binary offset [
 	sub.b	#$0F,d1	;0401000F
 	neg.b	d1	;4401
 	cmpi.b	#$08,d1	;0C010008
-	bcc.s	adrCd004BF8	;6402
+	bcc.s	Recalculate_ClampAndStoreActionSpeed	;6402
 	moveq	#$08,d1	;7208
-adrCd004BF8:		; Memory Address ($4BF8) and binary offset [$4874]
+Recalculate_ClampAndStoreActionSpeed:		; Memory Address ($4BF8) and binary offset [$4874]
 	asl.b	#$04,d1	;E901
 	move.b	d1,$0019(a4)	;19410019
 	rts	;4E75
@@ -7902,51 +7937,51 @@ ChampionLevelUp_StatGrowthDieTable:		; Memory Address ($4C00) and binary offset 
 Click_TogglePartyCommandRow:		; Memory Address ($4C10) and binary offset [$488C]
 	; Toggles the visible party-command row when communication mode is active.
 	cmp.w	#$0008,$0042(a5)	;0C6D00080042
-	bne.s	adrCd004C3E	;6626
+	bne.s	Return_PartyCommandRowIdle	;6626
 	cmp.w	#$0006,$0044(a5)	;0C6D00060044
-	bcc.s	adrCd004C3E	;641E
+	bcc.s	Return_PartyCommandRowIdle	;641E
 	eor.w	#$0001,$0044(a5)	;0A6D00010044
 	bra	Draw_PartyCommandMenu	;60003144
 
-adrCd004C2A:		; Memory Address ($4C2A) and binary offset [$48A6]
+PartyCommandRow_DispatchByPageState:		; Memory Address ($4C2A) and binary offset [$48A6]
 	tst.w	$0042(a5)	;4A6D0042
-	bpl.s	adrCd004C40	;6A10
+	bpl.s	PartyCommandRow_HitTestCommandButtons	;6A10
 	bclr	#$07,$0001(a5)	;08AD00070001
-	beq.s	adrCd004C3E	;6706
+	beq.s	Return_PartyCommandRowIdle	;6706
 	move.w	#$001A,$000C(a5)	;3B7C001A000C
-adrCd004C3E:		; Memory Address ($4C3E) and binary offset [$48BA]
+Return_PartyCommandRowIdle:		; Memory Address ($4C3E) and binary offset [$48BA]
 	rts	;4E75
 
-adrCd004C40:		; Memory Address ($4C40) and binary offset [$48BC]
+PartyCommandRow_HitTestCommandButtons:		; Memory Address ($4C40) and binary offset [$48BC]
 	bclr	#$07,$0001(a5)	;08AD00070001
-	beq.s	adrCd004C56	;670E
+	beq.s	PartyCommandRow_ComputeHoverHighlight	;670E
 	lea	Interface_Hitboxes_Command.l,a6	;4DF90000EAFA
 	moveq	#$1C,d0	;701C
 	moveq	#$22,d2	;7422
 	bra	HitTest_PlayerInterfaceActions	;60000160
 
-adrCd004C56:		; Memory Address ($4C56) and binary offset [$48D2]
+PartyCommandRow_ComputeHoverHighlight:		; Memory Address ($4C56) and binary offset [$48D2]
 	moveq	#-$01,d0	;70FF
 	move.l	$0002(a5),d1	;222D0002
 	sub.w	$0008(a5),d1	;926D0008
 	sub.w	#$003A,d1	;0441003A
-	bcs.s	adrCd004C80	;651A
+	bcs.s	PartyCommandRow_CompareHighlightChanged	;651A
 	lsr.w	#$03,d1	;E649
 	and.w	#$0003,d1	;02410003
 	move.w	d1,d0	;3001
 	swap	d1	;4841
 	move.l	$0046(a5),a0	;206D0046
 	cmp.b	$00(a0,d0.w),d1	;B2300000
-	bcs.s	adrCd004C7E	;6504
+	bcs.s	PartyCommandRow_PackHighlightIndex	;6504
 	add.w	#$0100,d0	;06400100
-adrCd004C7E:		; Memory Address ($4C7E) and binary offset [$48FA]
+PartyCommandRow_PackHighlightIndex:		; Memory Address ($4C7E) and binary offset [$48FA]
 	ror.w	#$08,d0	;E058
-adrCd004C80:		; Memory Address ($4C80) and binary offset [$48FC]
+PartyCommandRow_CompareHighlightChanged:		; Memory Address ($4C80) and binary offset [$48FC]
 	cmp.w	$0040(a5),d0	;B06D0040
-	bne.s	adrCd004C88	;6602
+	bne.s	PartyCommandRow_SetHighlightAndRedraw	;6602
 	rts	;4E75
 
-adrCd004C88:		; Memory Address ($4C88) and binary offset [$4904]
+PartyCommandRow_SetHighlightAndRedraw:		; Memory Address ($4C88) and binary offset [$4904]
 	move.w	d0,$0040(a5)	;3B400040
 	bra	Draw_PartyCommandMenu	;600030DE
 
@@ -7955,15 +7990,15 @@ Scan_PlayerInterfaceActions:		; Memory Address ($5014) and binary offset [$4C90]
 	move.w	#$FFFF,$000C(a5)	;3B7CFFFF000C
 	move.w	$0022(a5),$0024(a5)	;3B6D00220024
 	btst	#$06,$0018(a5)	;082D00060018
-	bne.s	adrCd004C3E	;669A
+	bne.s	Return_PartyCommandRowIdle	;669A
 	tst.b	$003D(a5)	;4A2D003D
-	bmi.s	adrCd004CB2	;6B08
+	bmi.s	DetectStairsCell_RepositionPartyLeader	;6B08
 	move.b	#$FF,$003D(a5)	;1B7C00FF003D
 	bra.s	Validate_CommsTargetThenDispatchPlayerAction	;6056
 
-adrCd004CB2:		; Memory Address ($4CB2) and binary offset [$492E]
+DetectStairsCell_RepositionPartyLeader:		; Memory Address ($4CB2) and binary offset [$492E]
 	moveq	#$05,d1	;7205
-	bsr	adrCd005500	;6100084A
+	bsr	Find_HighestRankedPartyMemberByCategory	;6100084A
 	tst.b	d3	;4A03
 	bpl.s	Validate_CommsTargetThenDispatchPlayerAction	;6A4C
 	bsr	PlayerPositionToMapOffset	;610037DA
@@ -7980,7 +8015,7 @@ adrCd004CB2:		; Memory Address ($4CB2) and binary offset [$492E]
 	move.w	d2,d1	;3202
 	subq.w	#$01,d1	;5341
 	move.w	d1,PlayerData_Floor(a5)	;3B410058
-	bsr	adrCd0084BA	;610037CC
+	bsr	Compute_StairAlignedDestination	;610037CC
 	move.l	d7,$001C(a5)	;2B47001C
 	bsr	Select_ActivePlayerFloorMap	;610037E0
 	bsr	PlayerPositionToMapOffset	;6100379E
@@ -7989,37 +8024,37 @@ adrCd004CB2:		; Memory Address ($4CB2) and binary offset [$492E]
 Validate_CommsTargetThenDispatchPlayerAction:		; Memory Address ($4D08) and binary offset [$4984]
 	; Cancels an invalid communications target when necessary, then dispatches the active player's pending interface action.
 	cmp.w	#$0008,$0042(a5)	;0C6D00080042
-	bne.s	adrCd004D1A	;660A
+	bne.s	DispatchPanelMode_PendingAction	;660A
 	bsr	Interface_CheckSelectedCellInteraction	;6100E6AC
-	bcs.s	adrCd004D1A	;6504
+	bcs.s	DispatchPanelMode_PendingAction	;6504
 	bsr	Reset_PartyCommandStateAndRedrawMenu	;6100E612
-adrCd004D1A:		; Memory Address ($4D1A) and binary offset [$4996]
+DispatchPanelMode_PendingAction:		; Memory Address ($4D1A) and binary offset [$4996]
 	move.b	$0014(a5),d0		;102D0014
 	beq.s	Consume_PlayerPendingAction		;6712
 	cmpi.b	#$01,d0			;0C000001
-	beq.s	adrCd004D8C		;6766
+	beq.s	PendingMode1_RestoreNormalView		;6766
 	cmpi.b	#$02,d0			;0C000002
-	beq	adrCd00465E		;6700F932
+	beq	FairyShop_DispatchByState		;6700F932
 	bra	Resolve_PlayerContextAction		;600000BA
 
 Consume_PlayerPendingAction:		; Memory Address ($50B6) and binary offset [$4D32]
 	; Copies PlayerX_Data+$56 into PlayerX_Data+$0C, then clears the pending byte.
 	moveq	#$00,d0	;7000
 	move.b	Player_PendingActionOffset(a5),d0	;102D0056
-	beq.s	adrCd004D4E	;6714
+	beq.s	PendingAction_RoutePointerX	;6714
 	move.w	d0,Player_ActionCommandOffset(a5)	;3B40000C
 	clr.b	$0056(a5)	;422D0056
 	cmp.w	#$0004,$0014(a5)	;0C6D00040014
-	bne.s	adrCd004D4E	;6604
+	bne.s	PendingAction_RoutePointerX	;6604
 	bsr	Click_CloseCurrentPage	;61000A58
-adrCd004D4E:		; Memory Address ($4D4E) and binary offset [$49CA]
+PendingAction_RoutePointerX:		; Memory Address ($4D4E) and binary offset [$49CA]
 	cmp.w	#$005E,$0002(a5)	;0C6D005E0002
-	bcs	adrCd004C2A	;6500FED4
+	bcs	PartyCommandRow_DispatchByPageState	;6500FED4
 	moveq	#-$01,d0	;70FF
 	tst.w	$0040(a5)	;4A6D0040
-	bpl	adrCd004C88	;6A00FF28
+	bpl	PartyCommandRow_SetHighlightAndRedraw	;6A00FF28
 	bclr	#$07,$0001(a5)	;08AD00070001
-	beq.s	adrCd004DA8	;673E
+	beq.s	PlayerInterfaceFlag_EarlyReturn	;673E
 	moveq	#$00,d0	;7000
 	move.b	$0015(a5),d0	;102D0015
 	asl.w	#$02,d0	;E540
@@ -8031,18 +8066,18 @@ MainInterfacePanelModeJumpTable:		; Memory Address ($4D78) and binary offset [$4
 	dc.l	Begin_HitTestMainInterfaceActions	;00004DAA
 	dc.l	Click_CloseCurrentPage	;000057A4
 	dc.l	Resolve_PlayerContextAction	;00004DEA
-	dc.l	adrJA005628	;00005628
+	dc.l	Resolve_SpellCastingGridClick	;00005628
 	dc.l	Click_CloseCurrentPage	;000057A4
 
-adrCd004D8C:		; Memory Address ($4D8C) and binary offset [$4A08]
+PendingMode1_RestoreNormalView:		; Memory Address ($4D8C) and binary offset [$4A08]
 	bclr	#$07,$0001(a5)	;08AD00070001
-	beq.s	adrCd004DA8	;6714
+	beq.s	PlayerInterfaceFlag_EarlyReturn	;6714
 	clr.b	$0014(a5)	;422D0014
 	move.b	#$FF,$0053(a5)	;1B7C00FF0053
 	lea	Notice_View_NormalRestored.w,a6	;4DF841ED	;Short Absolute converted to symbol!
 	jmp	Print_timed_message.l	;4EF90000D86A
 
-adrCd004DA8:		; Memory Address ($4DA8) and binary offset [$4A24]
+PlayerInterfaceFlag_EarlyReturn:		; Memory Address ($4DA8) and binary offset [$4A24]
 	rts	;4E75
 
 Begin_HitTestMainInterfaceActions:		; Memory Address ($4DAA) and binary offset [$4A26]
@@ -8054,98 +8089,98 @@ HitTest_PlayerInterfaceActions:		; Memory Address ($5138) and binary offset [$4D
 	; Tests pointer coordinates against interface rectangles and writes the resulting action directly to PlayerX_Data+$0C.
 	move.l	$0002(a5),d1	;222D0002
 	sub.w	$0008(a5),d1	;926D0008
-adrCd004DBC:		; Memory Address ($4DBC) and binary offset [$4A38]
+HitTest_CompareYRange:		; Memory Address ($4DBC) and binary offset [$4A38]
 	cmp.w	$0004(a6),d1	;B26E0004
-	bcs.s	adrCd004DE0	;651E
+	bcs.s	HitTest_AdvanceToNextHitbox	;651E
 	cmp.w	$0006(a6),d1	;B26E0006
-	beq.s	adrCd004DCA	;6702
-	bcc.s	adrCd004DE0	;6416
-adrCd004DCA:		; Memory Address ($4DCA) and binary offset [$4A46]
+	beq.s	HitTest_CompareXRange	;6702
+	bcc.s	HitTest_AdvanceToNextHitbox	;6416
+HitTest_CompareXRange:		; Memory Address ($4DCA) and binary offset [$4A46]
 	swap	d1	;4841
 	cmp.w	(a6),d1	;B256
-	bcs.s	adrCd004DDE	;650E
+	bcs.s	HitTest_RestoreYWord	;650E
 	cmp.w	$0002(a6),d1	;B26E0002
 	beq.s	Store_HitTestActionCommand	;6702
-	bcc.s	adrCd004DDE	;6406
+	bcc.s	HitTest_RestoreYWord	;6406
 Store_HitTestActionCommand:		; Memory Address ($515C) and binary offset [$4DD8]
 	; Stores the action number selected by the interface hit test.
 	move.w	d0,$000C(a5)	;3B40000C
 	rts	;4E75
 
-adrCd004DDE:		; Memory Address ($4DDE) and binary offset [$4A5A]
+HitTest_RestoreYWord:		; Memory Address ($4DDE) and binary offset [$4A5A]
 	swap	d1	;4841
-adrCd004DE0:		; Memory Address ($4DE0) and binary offset [$4A5C]
+HitTest_AdvanceToNextHitbox:		; Memory Address ($4DE0) and binary offset [$4A5C]
 	addq.w	#$08,a6	;504E
 	addq.w	#$01,d0	;5240
 	cmp.w	d2,d0	;B042
-	bcs.s	adrCd004DBC	;65D4
+	bcs.s	HitTest_CompareYRange	;65D4
 	rts	;4E75
 
 Resolve_PlayerContextAction:		; Memory Address ($516E) and binary offset [$4DEA]
 	; Resolves context-dependent actions and may invoke the display-action hit-test routine.
 	moveq	#$00,d0	;7000
 	move.b	$0014(a5),d0	;102D0014
-	bne.s	adrCd004E0C	;661A
+	bne.s	StoreContextAction_Return	;661A
 	moveq	#-$01,d2	;74FF
 	bsr	HitTest_SpellBookControls	;6100785A
-	bmi.s	adrCd004E12	;6B18
+	bmi.s	ResolvePlayerContext_CheckCastPowerRegion	;6B18
 	move.w	#$0002,$0014(a5)	;3B7C00020014
 	move.w	$000C(a5),d0	;302D000C
 	add.w	#$0011,d0	;06400011
 	move.b	d0,$0014(a5)	;1B400014
-adrCd004E0C:		; Memory Address ($4E0C) and binary offset [$4A88]
+StoreContextAction_Return:		; Memory Address ($4E0C) and binary offset [$4A88]
 	move.w	d0,$000C(a5)	;3B40000C
 	rts	;4E75
 
-adrCd004E12:		; Memory Address ($4E12) and binary offset [$4A8E]
+ResolvePlayerContext_CheckCastPowerRegion:		; Memory Address ($4E12) and binary offset [$4A8E]
 	bsr	HitTest_DisplayAction	;61000A68
 	tst.w	$000C(a5)	;4A6D000C
-	bpl.s	adrCd004E4C	;6A30
+	bpl.s	ResolveContextAction_NoMatchReturn	;6A30
 	bsr	Load_CurrentChampionStatRecord	;6100183E
 	tst.b	$0013(a4)	;4A2C0013
-	bmi.s	adrCd004E4C	;6B26
+	bmi.s	ResolveContextAction_NoMatchReturn	;6B26
 	cmpi.w	#$0048,d1	;0C410048
-	bcs.s	adrCd004E4C	;6520
+	bcs.s	ResolveContextAction_NoMatchReturn	;6520
 	cmpi.w	#$0058,d1	;0C410058
-	bcc.s	adrCd004E4C	;641A
+	bcc.s	ResolveContextAction_NoMatchReturn	;641A
 	swap	d1	;4841
 	cmpi.w	#$00E0,d1	;0C4100E0
-	bcs.s	adrCd004E4C	;6512
+	bcs.s	ResolveContextAction_NoMatchReturn	;6512
 	cmpi.w	#$00F0,d1	;0C4100F0
-	bcs.s	adrCd004E46	;6506
+	bcs.s	SetAction_CastPowerDisplayHit	;6506
 	cmpi.w	#$0132,d1	;0C410132
-	bcs.s	adrCd004E4E	;6508
-adrCd004E46:		; Memory Address ($4E46) and binary offset [$4AC2]
+	bcs.s	CastPowerControls_CheckArrowBands	;6508
+SetAction_CastPowerDisplayHit:		; Memory Address ($4E46) and binary offset [$4AC2]
 	move.w	#$0015,$000C(a5)	;3B7C0015000C
-adrCd004E4C:		; Memory Address ($4E4C) and binary offset [$4AC8]
+ResolveContextAction_NoMatchReturn:		; Memory Address ($4E4C) and binary offset [$4AC8]
 	rts	;4E75
 
-adrCd004E4E:		; Memory Address ($4E4E) and binary offset [$4ACA]
+CastPowerControls_CheckArrowBands:		; Memory Address ($4E4E) and binary offset [$4ACA]
 	swap	d1	;4841
 	cmpi.w	#$0050,d1	;0C410050
-	bcs.s	adrCd004E4C	;65F6
+	bcs.s	ResolveContextAction_NoMatchReturn	;65F6
 	swap	d1	;4841
 	cmpi.w	#$0128,d1	;0C410128
-	bcc.s	adrCd004E72	;6414
+	bcc.s	DecrementCastPower_DownArrowHit	;6414
 	cmpi.w	#$011A,d1	;0C41011A
-	bcc.s	adrCd004E4C	;64E8
+	bcc.s	ResolveContextAction_NoMatchReturn	;64E8
 	cmpi.w	#$0110,d1	;0C410110
-	bcs.s	adrCd004E4C	;65E2
+	bcs.s	ResolveContextAction_NoMatchReturn	;65E2
 	addq.b	#$01,$0014(a4)	;522C0014
-	bra	adrCd0066F6	;60001886
+	bra	Refresh_SpellCastCostDisplay	;60001886
 
-adrCd004E72:		; Memory Address ($4E72) and binary offset [$4AEE]
+DecrementCastPower_DownArrowHit:		; Memory Address ($4E72) and binary offset [$4AEE]
 	subq.b	#$01,$0014(a4)	;532C0014
-	bra	adrCd0066F6	;6000187E
+	bra	Refresh_SpellCastCostDisplay	;6000187E
 
 Click_LaunchSpellFromBook:		; Memory Address ($4E7A) and binary offset [$4AF6]
 	bsr.s	Cast_SelectedChampionSpell	;6112
-	bne.s	adrCd004E86	;6608
+	bne.s	AfterCastAttempt_SetContextActionMode	;6608
 	bsr	Draw_SelectedSpellDetails	;61001818
 	bsr	Draw_SpellBookPageSpread	;610079DA
-adrCd004E86:		; Memory Address ($4E86) and binary offset [$4B02]
+AfterCastAttempt_SetContextActionMode:		; Memory Address ($4E86) and binary offset [$4B02]
 	move.w	#$0002,$0014(a5)	;3B7C00020014
-adrCd004E8C:		; Memory Address ($4E8C) and binary offset [$4B08]
+CastSpell_EarlyReturn:		; Memory Address ($4E8C) and binary offset [$4B08]
 	rts	;4E75
 
 Cast_SelectedChampionSpell:		; Memory Address ($5212) and binary offset [$4E8E]
@@ -8156,7 +8191,7 @@ Cast_SelectedChampionSpell:		; Memory Address ($5212) and binary offset [$4E8E]
 CastSpell_ValidateSelection:		; Memory Address ($5224) and binary offset [$4EA0]
 	; Rejects an empty spell selection and closes communication mode before every spell except Beguile.
 	move.b	$0013(a4),d0	;102C0013
-	bmi.s	adrCd004E8C	;6BE6
+	bmi.s	CastSpell_EarlyReturn	;6BE6
 	subq.b	#$03,d0	;5700
 	beq.s	CastSpell_ApplyVitalityCost	;6714
 	cmp.w	#$0008,$0042(a5)	;0C6D00080042
@@ -8185,7 +8220,7 @@ CastSpell_ApplySpellPointCost:		; Memory Address ($524C) and binary offset [$4EC
 	lea	RingUses.l,a0	;41F90000EE32
 	subq.b	#$01,$00(a0,d0.w)	;53300000
 CastSpell_CalculateQualityAndCooldown:		; Memory Address ($527E) and binary offset [$4EFA]
-	; Calculates signed casting quality and accumulates the selected spell's cooldown up to 100.
+	; Calculates signed casting quality before adding this attempt's fatigue, then accumulates the selected spell's cooldown up to 100.
 	bsr	Draw_MainPlayerInterface	;610031CE
 	bsr	Calculate_SpellCastingQuality	;61001878
 	moveq	#$00,d0	;7000
@@ -8204,7 +8239,7 @@ CastSpell_SelectHandler:		; Memory Address ($52A4) and binary offset [$4F20]
 	lea	Spells_01_Armour.l,a0	;41F90000505C
 	lea	Spells_LookupTable.l,a6	;4DF90000500C
 	add.w	$00(a6,d0.w),a0	;D0F60000
-	bsr	adrCd005546	;6100060E
+	bsr	CastSpell_QualityRoll	;6100060E
 	add.b	d0,d7	;DE00
 	bmi.s	CastSpell_SelectFailedNotice	;6B72
 	move.w	d7,-(sp)	;3F07
@@ -8381,6 +8416,7 @@ Spells_05_Deflect:		; Memory Address ($50BE) and binary offset [$4D3A]
 	bra.s	StoreWornSpell_ClampPower	;609E
 
 Spells_06_Magelock:		; Memory Address ($50C2) and binary offset [$4D3E]
+	; Validates the facing wooden edge and the opposite edge of the forward cell before placing Magelock, rejecting solid edges and incompatible keyed-door configurations.
 	bsr	PlayerPositionToMapOffset	;610033D4
 	move.b	$01(a6,d0.w),d1	;12360001
 	and.w	#$0007,d1	;02410007
@@ -8431,11 +8467,11 @@ Return_Magelock:		; Memory Address ($54B8) and binary offset [$5134]
 Spells_07_Conceal:		; Memory Address ($5136) and binary offset [$4DB2]
 	bsr	ForwardCellToMapOffset	;61003346
 	cmp.w	CurrentFloorHeight.l,d7	;BE790000EE72
-	bcc.s	adrCd005150	;640E
+	bcc.s	Conceal_Return	;640E
 	cmp.w	CurrentFloorWidth.l,d7	;BE790000EE70
-	bcc.s	adrCd005150	;6406
+	bcc.s	Conceal_Return	;6406
 	bset	#MapCell_ConcealedBit,$01(a6,d0.w)	;08F600030001
-adrCd005150:		; Memory Address ($5150) and binary offset [$4DCC]
+Conceal_Return:		; Memory Address ($5150) and binary offset [$4DCC]
 	rts	;4E75
 
 Spells_08_Warpower:		; Memory Address ($5152) and binary offset [$4DCE]
@@ -8489,9 +8525,9 @@ Alchemy_StoreCoinage:		; Memory Address ($5536) and binary offset [$51B2]
 Alchemy_RemoveDuplicateCoinageLoop:		; Memory Address ($553C) and binary offset [$51B8]
 	; Scans all twelve ordinary pockets and clears existing coinage object slots.
 	cmp.b	#$01,$00(a0,d2.w)	;0C3000012000
-	bne.s	adrCd0051C4	;6604
+	bne.s	Alchemy_CoinageLoop_Decrement	;6604
 	clr.b	$00(a0,d2.w)	;42302000
-adrCd0051C4:		; Memory Address ($51C4) and binary offset [$4E40]
+Alchemy_CoinageLoop_Decrement:		; Memory Address ($51C4) and binary offset [$4E40]
 	dbra	d2,Alchemy_RemoveDuplicateCoinageLoop	;51CAFFF2
 	move.b	#Object_Coinage,$00(a0,d0.w)	;11BC00010000
 Return_Alchemy:		; Memory Address ($5552) and binary offset [$51CE]
@@ -8553,7 +8589,7 @@ RestorePartyStat_CalculateAmount:		; Memory Address ($55BA) and binary offset [$
 	move.w	d7,d5	;3A07
 RestorePartyStat_RandomiseLoop:		; Memory Address ($55BC) and binary offset [$5238]
 	; Accumulates the spell-power-controlled sequence of six-sided random values.
-	bsr	adrCd005556	;6100031C
+	bsr	RandomGen_SixSidedRoll	;6100031C
 	add.w	d0,d5	;DA40
 	dbra	d7,RestorePartyStat_RandomiseLoop	;51CFFFF8
 	cmpi.w	#$0100,d5	;0C450100
@@ -8882,48 +8918,51 @@ Spells_32_Mindrock:		; Memory Address ($54FA) and binary offset [$5176]
 	moveq	#MagicFeature_Mindrock,d4	;7802
 	bra	CreateMagicWallFeature	;6000FF7A
 
-adrCd005500:		; Memory Address ($5500) and binary offset [$517C]
+Find_HighestRankedPartyMemberByCategory:		; Memory Address ($5500) and binary offset [$517C]
+	; Scans eligible champions owned by the active player for worn-spell bytes whose low three bits match D1 and returns in D3 the matching champion with the highest upper-five-bit magnitude.
 	moveq	#-$01,d3	;76FF
 	moveq	#$03,d2	;7403
-adrLp005504:		; Memory Address ($5504) and binary offset [$5180]
+FindHighestRankedMember_ScanLoop:		; Memory Address ($5504) and binary offset [$5180]
 	move.b	$18(a5,d2.w),d0	;10352018
 	and.w	#$00E0,d0	;024000E0
-	bne.s	adrCd005540	;6632
+	bne.s	FindHighestRankedMember_LoopContinue	;6632
 	move.b	$18(a5,d2.w),d0	;10352018
 	bsr	Load_ChampionStatRecord	;6100114C
 	move.b	$0011(a4),d0	;102C0011
 	and.w	#$0007,d0	;02400007
 	sub.w	d1,d0	;9041
-	bne.s	adrCd005540	;661E
+	bne.s	FindHighestRankedMember_LoopContinue	;661E
 	move.b	$0011(a4),d0	;102C0011
 	lsr.b	#$03,d0	;E608
 	tst.b	d3	;4A03
-	bpl.s	adrCd00552E	;6A02
+	bpl.s	FindHighestRankedMember_CompareCandidate	;6A02
 	moveq	#$00,d3	;7600
-adrCd00552E:		; Memory Address ($552E) and binary offset [$51AA]
+FindHighestRankedMember_CompareCandidate:		; Memory Address ($552E) and binary offset [$51AA]
 	cmp.b	d3,d0	;B003
-	bcs.s	adrCd005540	;650E
+	bcs.s	FindHighestRankedMember_LoopContinue	;650E
 	move.b	d0,d3	;1600
 	swap	d3	;4843
 	move.b	$18(a5,d2.w),d3	;16352018
 	and.w	#$000F,d3	;0243000F
 	swap	d3	;4843
-adrCd005540:		; Memory Address ($5540) and binary offset [$51BC]
-	dbra	d2,adrLp005504	;51CAFFC2
+FindHighestRankedMember_LoopContinue:		; Memory Address ($5540) and binary offset [$51BC]
+	dbra	d2,FindHighestRankedMember_ScanLoop	;51CAFFC2
 	rts	;4E75
 
-adrCd005546:		; Memory Address ($5546) and binary offset [$51C2]
+CastSpell_QualityRoll:		; Memory Address ($5546) and binary offset [$51C2]
+	; Rolls three values from 0 to 5 and adds 3, producing the spell-casting quality roll range 3-18.
 	moveq	#$03,d6	;7C03
 	moveq	#$02,d5	;7A02
-adrLp00554A:		; Memory Address ($554A) and binary offset [$51C6]
-	bsr.s	adrCd005556	;610A
+QualityRoll_SumDiceLoop:		; Memory Address ($554A) and binary offset [$51C6]
+	bsr.s	RandomGen_SixSidedRoll	;610A
 	add.w	d0,d6	;DC40
-	dbra	d5,adrLp00554A	;51CDFFFA
+	dbra	d5,QualityRoll_SumDiceLoop	;51CDFFFA
 	move.w	d6,d0	;3006
 	rts	;4E75
 
-adrCd005556:		; Memory Address ($5556) and binary offset [$51D2]
-	move.w	adrW_0055AA.l,d0	;3039000055AA
+RandomGen_SixSidedRoll:		; Memory Address ($5556) and binary offset [$51D2]
+	; Advances the adjacent two-byte six-sided seed state and returns a remainder from 0 to 5; updating that word also changes RandomOffsetValue.
+	move.w	SixSidedRollSeed.l,d0	;3039000055AA
 	addq.w	#$01,d0	;5240
 	mulu	#$B640,d0	;C0FCB640
 	move.l	d0,d1	;2200
@@ -8931,18 +8970,18 @@ adrCd005556:		; Memory Address ($5556) and binary offset [$51D2]
 	add.l	d1,d0	;D081
 	move.w	#$0511,d1	;323C0511
 	moveq	#$00,d3	;7600
-adrCd00556E:		; Memory Address ($556E) and binary offset [$51EA]
+SixSidedRoll_DivideBy1297:		; Memory Address ($556E) and binary offset [$51EA]
 	divu	d1,d0	;80C1
-	bvc.s	adrCd005580	;680E
+	bvc.s	SixSidedRoll_StoreNewSeed	;680E
 	move.w	d0,d2	;3400
 	clr.w	d0	;4240
 	swap	d0	;4840
 	divu	d1,d0	;80C1
 	move.w	d0,d3	;3600
 	move.w	d2,d0	;3002
-	bra.s	adrCd00556E	;60EE
+	bra.s	SixSidedRoll_DivideBy1297	;60EE
 
-adrCd005580:		; Memory Address ($5580) and binary offset [$51FC]
+SixSidedRoll_StoreNewSeed:		; Memory Address ($5580) and binary offset [$51FC]
 	subq.w	#$01,d1	;5341
 	swap	d0	;4840
 	move.w	d3,d0	;3003
@@ -8950,28 +8989,29 @@ adrCd005580:		; Memory Address ($5580) and binary offset [$51FC]
 	divu	d1,d0	;80C1
 	clr.w	d0	;4240
 	swap	d0	;4840
-	move.w	d0,adrW_0055AA.l	;33C0000055AA
+	move.w	d0,SixSidedRollSeed.l	;33C0000055AA
 	moveq	#$06,d1	;7206
-adrCd005596:		; Memory Address ($5596) and binary offset [$5212]
+SixSidedRoll_DivideBySix:		; Memory Address ($5596) and binary offset [$5212]
 	divu	d1,d0	;80C1
-	bvc.s	adrCd0055A6	;680C
+	bvc.s	SixSidedRoll_ReturnRemainder	;680C
 	move.w	d0,d2	;3400
 	clr.w	d0	;4240
 	swap	d0	;4840
 	divu	d1,d0	;80C1
 	move.w	d2,d0	;3002
-	bra.s	adrCd005596	;60F0
+	bra.s	SixSidedRoll_DivideBySix	;60F0
 
-adrCd0055A6:		; Memory Address ($55A6) and binary offset [$5222]
+SixSidedRoll_ReturnRemainder:		; Memory Address ($55A6) and binary offset [$5222]
 	swap	d0	;4840
 	rts	;4E75
 
-adrW_0055AA:		; Memory Address ($55AA) and binary offset [$5226]
+SixSidedRollSeed:		; Memory Address ($55AA) and binary offset [$5226]
 	dc.b	$03	;03
 RandomOffsetValue:		; Memory Address ($55AB) and binary offset [$5227]
 	dc.b	$E1	;E1
 
 RandomGen_BytewithOffset:		; Memory Address ($55AC) and binary offset [$5228]
+	; Generates a full-range random byte and adds the current RandomOffsetValue byte.
 	moveq	#$01,d1	;7201
 	bsr.s	RandomGen	;610C
 	swap	d0	;4840
@@ -8979,8 +9019,10 @@ RandomGen_BytewithOffset:		; Memory Address ($55AC) and binary offset [$5228]
 	rts	;4E75
 
 RandomGen_100:		; Memory Address ($55B8) and binary offset [$5234]
+	; Requests range 100 from the core generator and returns a value from 0 to 99.
 	move.w	#$6400,d1	;323C6400
 RandomGen:		; Memory Address ($55BC) and binary offset [$5238]
+	; Advances the persistent eight-bit pseudo-random seed with a shift/XOR/rotate step and scales it to the caller-supplied range as floor(seed*range/256).
 	swap	d1	;4841
 	moveq	#$00,d0	;7000
 	move.b	RandomSeed.l,d0	;1039000055DE
@@ -9003,66 +9045,66 @@ RandomSeed:		; Memory Address ($55DE) and binary offset [$525A]
 Click_ViewSpell:		; Memory Address ($55E0) and binary offset [$525C]
 	move.w	#$0002,$0014(a5)	;3B7C00020014
 	bsr	Select_SpellBookRune	;61006CC4
-	bpl.s	adrCd0055F6	;6A0A
+	bpl.s	ClickViewSpell_InitCastPower	;6A0A
 	bsr	Draw_SelectedSpellDetails	;610010AA
 	bsr	Clear_LowerTextStrip	;610079A4
-	bra.s	adrCd005624	;602E
+	bra.s	ClickViewSpell_RedrawPageSpread	;602E
 
-adrCd0055F6:		; Memory Address ($55F6) and binary offset [$5272]
+ClickViewSpell_InitCastPower:		; Memory Address ($55F6) and binary offset [$5272]
 	move.l	a6,-(sp)	;2F0E
 	bsr	Calculate_SpellCastingQuality	;6100117E
 	addq.b	#$03,d7	;5607
-	bmi.s	adrCd00561A	;6B1A
+	bmi.s	ClickViewSpell_DrawDetails	;6B1A
 	lea	SpellCost_DataTable.l,a0	;41F90000685E
 	move.b	$00(a0,d6.w),d0	;10306000
 	add.w	d0,d0	;D040
 	addq.b	#$01,d0	;5200
 	cmp.b	d7,d0	;B007
-	bcs.s	adrCd005614	;6502
+	bcs.s	ClickViewSpell_NegateStoreCastPower	;6502
 	move.b	d7,d0	;1007
-adrCd005614:		; Memory Address ($5614) and binary offset [$5290]
+ClickViewSpell_NegateStoreCastPower:		; Memory Address ($5614) and binary offset [$5290]
 	neg.b	d0	;4400
 	move.b	d0,$0014(a4)	;19400014
-adrCd00561A:		; Memory Address ($561A) and binary offset [$5296]
+ClickViewSpell_DrawDetails:		; Memory Address ($561A) and binary offset [$5296]
 	bsr	Draw_SelectedSpellDetails	;6100107C
 	move.l	(sp)+,a6	;2C5F
 	bsr	Print_SelectedSpellNameWarmOrange	;6100799A
-adrCd005624:		; Memory Address ($5624) and binary offset [$52A0]
+ClickViewSpell_RedrawPageSpread:		; Memory Address ($5624) and binary offset [$52A0]
 	bra	Draw_SpellBookPageSpread	;60007238
 
-adrJA005628:		; Memory Address ($5628) and binary offset [$52A4]
+Resolve_SpellCastingGridClick:		; Memory Address ($5628) and binary offset [$52A4]
 	move.w	$000E(a5),d7	;3E2D000E
 	moveq	#-$01,d2	;74FF
 	bsr	HitTest_SpellGridCell	;610070E4
-	bpl.s	adrCd005680	;6A4C
+	bpl.s	SetActionCommand_SpellGridCellHit	;6A4C
 	bsr	HitTest_DisplayAction	;61000246
 	tst.w	$000C(a5)	;4A6D000C
-	bpl.s	adrCd005676	;6A38
+	bpl.s	NoMatch_SharedReturn	;6A38
 	cmpi.w	#$0048,d1	;0C410048
-	bcs.s	adrCd005676	;6532
+	bcs.s	NoMatch_SharedReturn	;6532
 	cmpi.w	#$0058,d1	;0C410058
-	bcc.s	adrCd005676	;642C
+	bcc.s	NoMatch_SharedReturn	;642C
 	swap	d1	;4841
 	sub.w	#$00E0,d1	;044100E0
-	bcs.s	adrCd005676	;6524
+	bcs.s	NoMatch_SharedReturn	;6524
 	lsr.w	#$04,d1	;E849
 	cmpi.w	#$0005,d1	;0C410005
 	beq	Click_CloseCurrentPage	;6700014A
 	cmpi.w	#$0004,d1	;0C410004
-	beq.s	adrCd005678	;6716
+	beq.s	SetActionCommand_13	;6716
 	move.b	$18(a5,d1.w),d0	;10351018
 	and.w	#$00A0,d0	;024000A0
-	bne.s	adrCd005676	;660A
+	bne.s	NoMatch_SharedReturn	;660A
 	move.w	#$0011,$000C(a5)	;3B7C0011000C
 	move.w	d1,$000E(a5)	;3B41000E
-adrCd005676:		; Memory Address ($5676) and binary offset [$52F2]
+NoMatch_SharedReturn:		; Memory Address ($5676) and binary offset [$52F2]
 	rts	;4E75
 
-adrCd005678:		; Memory Address ($5678) and binary offset [$52F4]
+SetActionCommand_13:		; Memory Address ($5678) and binary offset [$52F4]
 	move.w	#$0013,$000C(a5)	;3B7C0013000C
 	rts	;4E75
 
-adrCd005680:		; Memory Address ($5680) and binary offset [$52FC]
+SetActionCommand_SpellGridCellHit:		; Memory Address ($5680) and binary offset [$52FC]
 	move.w	#$0012,$000C(a5)	;3B7C0012000C
 	move.b	d7,$000E(a5)	;1B47000E
 	rts	;4E75
@@ -9079,95 +9121,95 @@ PartyNavigationField_CellPassabilityTable:		; Memory Address ($568C) and binary 
 	dc.b	$00	;00
 
 Build_PartyNavigationField:		; Memory Address ($5694) and binary offset [$5310]
-	; Builds the active party's breadth-first navigation or scent field with its range reduced by the strongest Vanish effect.
+	; Builds the active party's breadth-first navigation or scent field for up to 12 layers, reducing the range by 2*(the strongest Vanish magnitude+1).
 	bsr	Select_ActivePlayerFloorMap	;61002E40
 	moveq	#$03,d1	;7203
-	bsr	adrCd005500	;6100FE64
+	bsr	Find_HighestRankedPartyMemberByCategory	;6100FE64
 	moveq	#$0B,d2	;740B
 	tst.w	d3	;4A43
-	bmi.s	adrCd0056AC	;6B08
+	bmi.s	BuildNavigationField_InitCellScan	;6B08
 	addq.w	#$01,d3	;5243
 	add.w	d3,d3	;D643
 	sub.w	d3,d2	;9443
-	bcs.s	adrCd005676	;65CA
-adrCd0056AC:		; Memory Address ($56AC) and binary offset [$5328]
+	bcs.s	NoMatch_SharedReturn	;65CA
+BuildNavigationField_InitCellScan:		; Memory Address ($56AC) and binary offset [$5328]
 	move.l	Current_TowerMapDataBase.l,a2	;24790000EE78
-	add.w	adrW_00EE76.l,a2	;D4F90000EE76
+	add.w	Live_PlayerPosition.l,a2	;D4F90000EE76
 	move.l	a6,a3	;264E
 	move.w	CurrentFloorHeight.l,d0	;30390000EE72
 	mulu	CurrentFloorWidth.l,d0	;C0F90000EE70
 	subq.w	#$01,d0	;5340
-adrLp0056C8:		; Memory Address ($56C8) and binary offset [$5344]
+BuildNavigationField_ScanCellsLoop:		; Memory Address ($56C8) and binary offset [$5344]
 	move.w	(a2)+,d1	;321A
 	and.w	#$0007,d1	;02410007
 	cmpi.b	#$02,d1	;0C010002
-	bne.s	adrCd0056DC	;6608
+	bne.s	BuildNavigationField_CheckType7Override	;6608
 	btst	#$04,-$0001(a2)	;082A0004FFFF
-	bne.s	adrCd0056EE	;6612
-adrCd0056DC:		; Memory Address ($56DC) and binary offset [$5358]
+	bne.s	BuildNavigationField_ForcePassable	;6612
+BuildNavigationField_CheckType7Override:		; Memory Address ($56DC) and binary offset [$5358]
 	cmpi.b	#$07,d1	;0C010007
-	bne.s	adrCd0056F0	;660E
+	bne.s	BuildNavigationField_WriteCellPassability	;660E
 	move.b	-$0002(a2),d1	;122AFFFE
 	and.w	#$0003,d1	;02410003
 	subq.w	#$01,d1	;5341
-	beq.s	adrCd0056F0	;6702
-adrCd0056EE:		; Memory Address ($56EE) and binary offset [$536A]
+	beq.s	BuildNavigationField_WriteCellPassability	;6702
+BuildNavigationField_ForcePassable:		; Memory Address ($56EE) and binary offset [$536A]
 	moveq	#$01,d1	;7201
-adrCd0056F0:		; Memory Address ($56F0) and binary offset [$536C]
+BuildNavigationField_WriteCellPassability:		; Memory Address ($56F0) and binary offset [$536C]
 	move.b	PartyNavigationField_CellPassabilityTable(pc,d1.w),(a3)+	;16FB109A
-	dbra	d0,adrLp0056C8	;51C8FFD2
+	dbra	d0,BuildNavigationField_ScanCellsLoop	;51C8FFD2
 	lea	PartyNavigationField_FrontierBufferA.l,a2	;45F90001674C
 	lea	PartyNavigationField_FrontierBufferB.l,a3	;47F9000167CC
 	move.b	$001F(a5),$0001(a2)	;156D001F0001
 	move.b	$001D(a5),(a2)	;14AD001D
 	move.b	#$FF,$0002(a2)	;157C00FF0002
-adrLp005714:		; Memory Address ($5714) and binary offset [$5390]
+BuildNavigationField_FrontierLayerLoop:		; Memory Address ($5714) and binary offset [$5390]
 	move.l	a2,a0	;204A
 	move.l	a3,a1	;224B
-adrCd005718:		; Memory Address ($5718) and binary offset [$5394]
+BuildNavigationField_FrontierEntryLoop:		; Memory Address ($5718) and binary offset [$5394]
 	moveq	#$00,d7	;7E00
 	move.b	(a0)+,d7	;1E18
-	bmi.s	adrCd00575A	;6B3C
+	bmi.s	BuildNavigationField_EndOfFrontierLayer	;6B3C
 	swap	d7	;4847
 	move.b	(a0)+,d7	;1E18
 	subq.w	#$01,d7	;5347
-	bcs.s	adrCd00572A	;6504
+	bcs.s	BuildNavigationField_TestDirection0	;6504
 	moveq	#$02,d1	;7202
 	bsr.s	Mark_NavigationFieldNeighbor	;6140
-adrCd00572A:		; Memory Address ($572A) and binary offset [$53A6]
+BuildNavigationField_TestDirection0:		; Memory Address ($572A) and binary offset [$53A6]
 	addq.w	#$02,d7	;5447
 	cmp.w	CurrentFloorHeight.l,d7	;BE790000EE72
-	bcc.s	adrCd005738	;6404
+	bcc.s	BuildNavigationField_TestDirection3	;6404
 	moveq	#$00,d1	;7200
 	bsr.s	Mark_NavigationFieldNeighbor	;6132
-adrCd005738:		; Memory Address ($5738) and binary offset [$53B4]
+BuildNavigationField_TestDirection3:		; Memory Address ($5738) and binary offset [$53B4]
 	subq.w	#$01,d7	;5347
 	swap	d7	;4847
 	addq.w	#$01,d7	;5247
 	cmp.w	CurrentFloorWidth.l,d7	;BE790000EE70
-	bcc.s	adrCd00574E	;6408
+	bcc.s	BuildNavigationField_TestDirection1	;6408
 	swap	d7	;4847
 	moveq	#$03,d1	;7203
 	bsr.s	Mark_NavigationFieldNeighbor	;611E
 	swap	d7	;4847
-adrCd00574E:		; Memory Address ($574E) and binary offset [$53CA]
+BuildNavigationField_TestDirection1:		; Memory Address ($574E) and binary offset [$53CA]
 	subq.w	#$02,d7	;5547
-	bcs.s	adrCd005718	;65C6
+	bcs.s	BuildNavigationField_FrontierEntryLoop	;65C6
 	swap	d7	;4847
 	moveq	#$01,d1	;7201
 	bsr.s	Mark_NavigationFieldNeighbor	;6112
-	bra.s	adrCd005718	;60BE
+	bra.s	BuildNavigationField_FrontierEntryLoop	;60BE
 
-adrCd00575A:		; Memory Address ($575A) and binary offset [$53D6]
+BuildNavigationField_EndOfFrontierLayer:		; Memory Address ($575A) and binary offset [$53D6]
 	cmp.l	a1,a3	;B7C9
 	beq.s	Return_ActionDispatchBlocked	;6734
 	move.b	#$FF,(a1)	;12BC00FF
 	exg	a2,a3	;C74A
-	dbra	d2,adrLp005714	;51CAFFAE
+	dbra	d2,BuildNavigationField_FrontierLayerLoop	;51CAFFAE
 	rts	;4E75
 
 Mark_NavigationFieldNeighbor:		; Memory Address ($576A) and binary offset [$53E6]
-	; If the neighbouring cell is traversable and unvisited, records its incoming direction and appends its packed coordinate to the navigation queue.
+	; For one cardinal neighbour, computes Y*width+X; if its field byte is zero, stores direction|$80 and appends the packed coordinate to the next BFS frontier. Negative or other nonzero cells are skipped.
 	move.w	d7,d0	;3007
 	mulu	CurrentFloorWidth.l,d0	;C0F90000EE70
 	swap	d7	;4847
@@ -9175,10 +9217,10 @@ Mark_NavigationFieldNeighbor:		; Memory Address ($576A) and binary offset [$53E6
 	swap	d7	;4847
 	tst.b	$00(a6,d0.w)	;4A360000
 	bmi.s	Return_ActionDispatchBlocked	;6B14
-	beq.s	adrCd005782	;6702
+	beq.s	MarkNavigationFieldNeighbor_MarkVisited	;6702
 	rts	;4E75
 
-adrCd005782:		; Memory Address ($5782) and binary offset [$53FE]
+MarkNavigationFieldNeighbor_MarkVisited:		; Memory Address ($5782) and binary offset [$53FE]
 	or.b	#$80,d1	;00010080
 	move.b	d1,$00(a6,d0.w)	;1D810000
 	swap	d7	;4847
@@ -9200,6 +9242,7 @@ MovementOffsetTable:		; Memory Address ($5794) and binary offset [$5410]
 	dc.w	$01FF	;01FF
 
 Click_CloseCurrentPage:		; Memory Address ($57A4) and binary offset [$5420]
+	; Returns the current UI page to the default page and redraws the champion-name panel frame.
 	clr.w	$0014(a5)	;426D0014
 	bra	Draw_ChampionNamePanelFrame	;60002ACE
 
@@ -9253,12 +9296,12 @@ DungeonInterfaceActionTable:		; Memory Address ($5B52) and binary offset [$57CE]
 	dc.l	Click_ShowTeamAvatars	;000032DE
 	dc.l	Click_TogglePartyCommandRow	;00004C10
 	dc.l	PartyCommand_DispatchSelection	;0000336A
-	dc.l	adrJA005D3E	;00005D3E
+	dc.l	PickupOrDropFloorObjectFromDisplay	;00005D3E
 	dc.l	Handle_WallFeatureClick	;00005894
 	dc.l	Resolve_WallFeatureContext	;000064D0
 
 Return_NoDisplayContextAction:		; Memory Address ($5862) and binary offset [$54DE]
-	; Proposed: no-op return used by unavailable display-context actions.
+	; Returns without performing a display-context action when the current context has no applicable handler.
 	rts	;4E75
 
 Interface_Hitboxes_Display:		; Memory Address ($5864) and binary offset [$54E0]
@@ -9335,9 +9378,9 @@ MainWall_Action_01_Shelf:		; Memory Address ($58F4) and binary offset [$5570]
 	sub.w	$0008(a5),d1	;926D0008
 	moveq	#$02,d6	;7C02
 	cmpi.w	#$0033,d1	;0C410033
-	bcs	adrCd005D4E	;6500044A
+	bcs	PickupFloorObject_RefreshUI_SharedEntry	;6500044A
 	moveq	#$03,d6	;7C03
-	bra	adrCd005D4E	;60000444
+	bra	PickupFloorObject_RefreshUI_SharedEntry	;60000444
 
 MainWall_Action_02_WallDecoration:		; Memory Address ($590C) and binary offset [$5588]
 	; Accepts scroll-bearing wall decorations and converts their subtype into a scroll index.
@@ -9427,6 +9470,7 @@ SocketActions_SerpentCrystal:
 	bne.s	Exit_SocketAction	;6610
 	move.l	#$00090001,d7	;2E3C00090001
 Last_CrystalAction:
+	; Converts D7 to a map offset and clears the cell's low three feature-type bits after the Dragon or Moon crystal socket effect resolves.
 	bsr	CoordToMap	;61002AB4
 	and.w	#$00F8,$00(a6,d0.w)	;027600F80000
 Exit_SocketAction:
@@ -9477,13 +9521,13 @@ SocketActions_RestorePartyStatToMax:		; Memory Address ($5A7C) and binary offset
 	; Restores the stat selected by D4 to its maximum for every occupied party slot; the three crystal handlers select hit points, vitality, or spell points.
 	bclr	#$02,$00(a6,d0.w)	;08B600020000
 	moveq	#$03,d7	;7E03
-adrLp005A84:		; Memory Address ($5A84) and binary offset [$5700]
+RestorePartyStatToMax_ScanLoop:		; Memory Address ($5A84) and binary offset [$5700]
 	move.b	$18(a5,d7.w),d0	;10357018
-	bmi.s	adrCd005A94	;6B0A
+	bmi.s	RestorePartyStatToMax_LoopContinue	;6B0A
 	bsr	Load_ChampionStatRecord	;61000BD4
 	move.b	$01(a4,d4.w),$00(a4,d4.w)	;19B440014000
-adrCd005A94:		; Memory Address ($5A94) and binary offset [$5710]
-	dbra	d7,adrLp005A84	;51CFFFEE
+RestorePartyStatToMax_LoopContinue:		; Memory Address ($5A94) and binary offset [$5710]
+	dbra	d7,RestorePartyStatToMax_ScanLoop	;51CFFFEE
 	bsr	PlayerPositionToMapOffset	;610029FE
 	move.w	d6,d7	;3E06
 	bsr	Queue_MapCellEffect	;6100C31C
@@ -9504,11 +9548,11 @@ TeleportGem:		; Memory Address ($5AB4) and binary offset [$5730]
 	swap	d6	;4846
 	move.b	(a0)+,d6	;1C18
 	cmp.l	$001C(a5),d6	;BCAD001C
-	bne.s	adrCd005AD2	;6606
+	bne.s	TeleportGem_ApplyDestination	;6606
 	move.b	(a0)+,d6	;1C18
 	swap	d6	;4846
 	move.b	(a0),d6	;1C10
-adrCd005AD2:		; Memory Address ($5AD2) and binary offset [$574E]
+TeleportGem_ApplyDestination:		; Memory Address ($5AD2) and binary offset [$574E]
 	bsr	PlayerPositionToMapOffset	;610029C4
 	bclr	#$07,$01(a6,d0.w)	;08B600070001
 	move.l	d6,$001C(a5)	;2B46001C
@@ -9547,6 +9591,7 @@ BlueGemLocs:		; Memory Address ($5B12) and binary offset [$578E]
 	dc.w	$0802	;0802
 
 MainWall_Action_03_Switches:		; Memory Address ($5B2A) and binary offset [$57A6]
+	; Toggles the switch display bit and dispatches the tower-specific four-byte switch record; byte 0 is an even offset into the eight-entry handler table and bytes 2-3 provide target X/Y.
 	moveq	#$00,d1	;7200
 	move.b	$00(a6,d0.w),d1	;12360000
 	and.w	#WallSwitch_IndexMask,d1	;024100F8
@@ -9777,8 +9822,10 @@ SwitchData_6:		; Memory Address ($5CB8) and binary offset [$5934]
 	dc.w	$0000	;0000
 
 Trigger_15_t1E_CreateWall_XY:		; Memory Address ($5CF8) and binary offset [$5974]
+	; Runs the target-removal preparation used by action $16, then falls through to the shared record-target wall/space toggle for action $1E.
 	bsr	Switch_01_s02_Trigger_11_t16_RemoveXY	;61000018
 Switch_02_s04_Trigger_23_t2E_ToggleWall_XY:		; Memory Address ($5CFC) and binary offset [$5978]
+	; Resolves the record's target cell, ignores an occupied target, clears its first byte, and toggles the wall/space bit while preserving unrelated second-byte flags.
 	bsr.s	Resolve_ActionTargetXY	;6130
 	tst.b	$01(a6,d0.w)	;4A360001
 	bmi.s	Return_WallToggle	;6B0C
@@ -9788,6 +9835,7 @@ Return_WallToggle:		; Memory Address ($5D10) and binary offset [$598C]
 	rts	;4E75
 
 Switch_01_s02_Trigger_11_t16_RemoveXY:		; Memory Address ($5D12) and binary offset [$598E]
+	; Resolves the record's target cell and clears its low feature-type bits, with an additional flag cleanup for the affected cell type.
 	bsr.s	Resolve_ActionTargetXY	;611A
 	move.b	$01(a6,d0.w),d2	;14360001
 	and.w	#MapCell_TypeMask,d2	;02420007
@@ -9799,13 +9847,15 @@ Clear_TargetMapCellType:		; Memory Address ($5D26) and binary offset [$59A2]
 	rts	;4E75
 
 Resolve_ActionTargetXY:		; Memory Address ($5D2E) and binary offset [$59AA]
+	; Packs trigger-record bytes 2 and 3 as target X and Y and converts that coordinate to the current-floor map offset.
 	moveq	#$00,d7	;7E00
 	move.b	$02(a1,d1.w),d7	;1E311002
 	swap	d7	;4847
 	move.b	$03(a1,d1.w),d7	;1E311003
 	bra	CoordToMap	;60002760
 
-adrJA005D3E:		; Memory Address ($5D3E) and binary offset [$59BA]
+PickupOrDropFloorObjectFromDisplay:		; Memory Address ($5D3E) and binary offset [$59BA]
+	; Converts a display click into a target cell and one of its four object subpositions, then enters the shared floor-object pickup/drop handler.
 	bsr.s	HitTest_PickupDropQuadrant	;6112
 Refresh_UIAfterSocketAction:		; Memory Address ($5D40) and binary offset [$59BC]
 	; Refreshes the held-item panel or description after a crystal or gem socket action.
@@ -9813,8 +9863,8 @@ Refresh_UIAfterSocketAction:		; Memory Address ($5D40) and binary offset [$59BC]
 	beq	Refresh_HeldItemDisplay	;67000EEC
 	bra	Draw_HeldObjectDescription	;60000F86
 
-adrCd005D4E:		; Memory Address ($5D4E) and binary offset [$59CA]
-	bsr.s	adrCd005D9E	;614E
+PickupFloorObject_RefreshUI_SharedEntry:		; Memory Address ($5D4E) and binary offset [$59CA]
+	bsr.s	PickupFloorObjectAtResolvedCorner	;614E
 	bra.s	Refresh_UIAfterSocketAction	;60EE
 
 HitTest_PickupDropQuadrant:		; Memory Address ($5D52) and binary offset [$59CE]
@@ -9823,42 +9873,43 @@ HitTest_PickupDropQuadrant:		; Memory Address ($5D52) and binary offset [$59CE]
 	sub.w	$0008(a5),d1	;926D0008
 	moveq	#$02,d6	;7C02
 	cmpi.w	#$0051,d1	;0C410051
-	bcs.s	adrCd005D64	;6502
+	bcs.s	HitTest_PickupDropQuadrant_TestY	;6502
 	subq.w	#$02,d6	;5546
-adrCd005D64:		; Memory Address ($5D64) and binary offset [$59E0]
+HitTest_PickupDropQuadrant_TestY:		; Memory Address ($5D64) and binary offset [$59E0]
 	swap	d1	;4841
 	cmpi.w	#$00A0,d1	;0C4100A0
-	bcs.s	adrCd005D6E	;6502
+	bcs.s	HitTest_PickupDropQuadrant_ApplyFacing	;6502
 	addq.w	#$01,d6	;5246
-adrCd005D6E:		; Memory Address ($5D6E) and binary offset [$59EA]
+HitTest_PickupDropQuadrant_ApplyFacing:		; Memory Address ($5D6E) and binary offset [$59EA]
 	move.l	$001C(a5),d7	;2E2D001C
 	cmpi.w	#$0002,d6	;0C460002
-	bcc.s	adrCd005D7E	;6406
+	bcc.s	PickupDrop_ResolveFarQuadrantCell	;6406
 	bsr	CoordToMap	;61002722
-	bra.s	adrCd005D9E	;6020
+	bra.s	PickupFloorObjectAtResolvedCorner	;6020
 
-adrCd005D7E:		; Memory Address ($5D7E) and binary offset [$59FA]
+PickupDrop_ResolveFarQuadrantCell:		; Memory Address ($5D7E) and binary offset [$59FA]
 	bsr	StepCoordForwardToMapOffset	;61002702
 	cmp.w	CurrentFloorHeight.l,d7	;BE790000EE72
-	bcc.s	adrCd005D9C	;6412
+	bcc.s	PickupDrop_NoActionReturn	;6412
 	swap	d7	;4847
 	cmp.w	CurrentFloorWidth.l,d7	;BE790000EE70
-	bcc.s	adrCd005D9C	;6408
+	bcc.s	PickupDrop_NoActionReturn	;6408
 	swap	d7	;4847
 	bsr	Resolve_PickupDropTargetCell	;610000AA
-	bcc.s	adrCd005D9E	;6402
-adrCd005D9C:		; Memory Address ($5D9C) and binary offset [$5A18]
+	bcc.s	PickupFloorObjectAtResolvedCorner	;6402
+PickupDrop_NoActionReturn:		; Memory Address ($5D9C) and binary offset [$5A18]
 	rts	;4E75
 
-adrCd005D9E:		; Memory Address ($5D9E) and binary offset [$5A1A]
+PickupFloorObjectAtResolvedCorner:		; Memory Address ($5D9E) and binary offset [$5A1A]
+	; With an empty hand, removes the top object from the selected cell/subposition stack, caps counted-object quantity at $63, and compacts or removes the variable-length record when exhausted.
 	bclr	#$03,$01(a6,d0.w)	;08B600030001
 	tst.w	$002E(a5)	;4A6D002E
-	bne	adrCd005E7C	;660000D2
+	bne	DropHeldObject_AtResolvedCorner	;660000D2
 	btst	#$06,$01(a6,d0.w)	;083600060001
-	beq.s	adrCd005D9C	;67E8
-	bsr	adrCd005F2E	;61000178
-	bsr	adrCd005F5C	;610001A2
-	bne.s	adrCd005D9C	;66DE
+	beq.s	PickupDrop_NoActionReturn	;67E8
+	bsr	Rotate_ObjectSubpositionByPlayerFacing	;61000178
+	bsr	Find_FloorObjectStackAtCellSubposition	;610001A2
+	bne.s	PickupDrop_NoActionReturn	;66DE
 	lea	$03(a0,d7.w),a1	;43F07003
 	moveq	#$00,d3	;7600
 	move.b	-$0001(a1),d3	;1629FFFF
@@ -9869,20 +9920,20 @@ adrCd005D9E:		; Memory Address ($5D9E) and binary offset [$5A1A]
 	move.b	$01(a1,d3.w),d1	;12313001
 	moveq	#$01,d2	;7401
 	cmp.w	#$0005,$002E(a5)	;0C6D0005002E
-	bcc.s	adrCd005DEC	;640A
+	bcc.s	PickupFloorObject_ApplyTakeQuantity	;640A
 	move.w	d1,d2	;3401
 	cmpi.b	#$64,d2	;0C020064
-	bcs.s	adrCd005DEC	;6502
+	bcs.s	PickupFloorObject_ApplyTakeQuantity	;6502
 	moveq	#$63,d2	;7463
-adrCd005DEC:		; Memory Address ($5DEC) and binary offset [$5A68]
+PickupFloorObject_ApplyTakeQuantity:		; Memory Address ($5DEC) and binary offset [$5A68]
 	move.w	d2,$002C(a5)	;3B42002C
 	sub.b	d2,d1	;9202
 	move.b	d1,$01(a1,d3.w)	;13813001
-	bne.s	adrCd005D9C	;66A4
+	bne.s	PickupDrop_NoActionReturn	;66A4
 Remove_FloorObjectStackEntry:		; Memory Address ($5DF8) and binary offset [$5A74]
 	; Removes one floor-object stack entry and compacts the following entries or enclosing record when necessary.
 	subq.b	#$01,-$0001(a1)	;5329FFFF
-	bcs.s	adrCd005E1E	;6520
+	bcs.s	RemoveFloorObjectStackEntry_RemoveRecord	;6520
 	lea	$00(a1,d3.w),a1	;43F13000
 	lea	$0002(a1),a2	;45E90002
 	add.w	d3,d7	;DE43
@@ -9892,27 +9943,27 @@ ShiftDown_FloorObjectEntries:		; Memory Address ($5E0E) and binary offset [$5A8A
 	; Compacts the remaining floor-object bytes after an entry or record is removed.
 	move.w	-$0002(a0),d2	;3428FFFE
 	sub.w	d7,d2	;9447
-	bra.s	adrCd005E18	;6002
+	bra.s	ShiftDownFloorObjectEntries_LoopTest	;6002
 
-adrLp005E16:		; Memory Address ($5E16) and binary offset [$5A92]
+ShiftDownFloorObjectEntries_CopyByte:		; Memory Address ($5E16) and binary offset [$5A92]
 	move.b	(a2)+,(a1)+	;12DA
-adrCd005E18:		; Memory Address ($5E18) and binary offset [$5A94]
-	dbra	d2,adrLp005E16	;51CAFFFC
+ShiftDownFloorObjectEntries_LoopTest:		; Memory Address ($5E18) and binary offset [$5A94]
+	dbra	d2,ShiftDownFloorObjectEntries_CopyByte	;51CAFFFC
 	rts	;4E75
 
-adrCd005E1E:		; Memory Address ($5E1E) and binary offset [$5A9A]
+RemoveFloorObjectStackEntry_RemoveRecord:		; Memory Address ($5E1E) and binary offset [$5A9A]
 	lea	$00(a0,d7.w),a1	;43F07000
 	lea	$0005(a1),a2	;45E90005
 	subq.w	#$05,-$0002(a0)	;5B68FFFE
 	bsr.s	ShiftDown_FloorObjectEntries	;61E2
 	moveq	#$03,d5	;7A03
-adrLp005E2E:		; Memory Address ($5E2E) and binary offset [$5AAA]
+FindFloorObjectStack_ScanSubpositions:		; Memory Address ($5E2E) and binary offset [$5AAA]
 	move.w	d5,d6	;3C05
-	bsr	adrCd005F5C	;6100012A
-	beq.s	adrCd005E40	;670A
-	dbra	d5,adrLp005E2E	;51CDFFF6
+	bsr	Find_FloorObjectStackAtCellSubposition	;6100012A
+	beq.s	RemoveFloorObjectStackEntry_ClearFlagReturn	;670A
+	dbra	d5,FindFloorObjectStack_ScanSubpositions	;51CDFFF6
 	bclr	#$06,$01(a6,d0.w)	;08B600060001
-adrCd005E40:		; Memory Address ($5E40) and binary offset [$5ABC]
+RemoveFloorObjectStackEntry_ClearFlagReturn:		; Memory Address ($5E40) and binary offset [$5ABC]
 	rts	;4E75
 
 Resolve_PickupDropTargetCell:		; Memory Address ($5E42) and binary offset [$5ABE]
@@ -9922,46 +9973,46 @@ Resolve_PickupDropTargetCell:		; Memory Address ($5E42) and binary offset [$5ABE
 	move.w	d0,d2	;3400
 	bsr	PlayerPositionToMapOffset	;6100264C
 	bsr	Check_WoodCellTraversal	;61001C96
-	bcs.s	adrCd005E7A	;6526
+	bcs.s	ResolvePickupDropTargetCell_Exit	;6526
 	move.w	d2,d0	;3002
 	move.b	$01(a6,d0.w),d1	;12360001
 	and.w	#$0007,d1	;02410007
 	subq.w	#$01,d1	;5341
-	beq.s	adrCd005E76	;6714
+	beq.s	ResolvePickupDropTargetCell_RestoreTypeCode	;6714
 	subq.w	#$01,d1	;5341
-	bne.s	adrCd005E70	;660A
+	bne.s	ResolvePickupDropTargetCell_NormalReturn	;660A
 	eor.w	#$0002,d6	;0A460002
 	bsr	Test_WoodTraversalEdge	;61001C88
-	bcs.s	adrCd005E7A	;650A
-adrCd005E70:		; Memory Address ($5E70) and binary offset [$5AEC]
+	bcs.s	ResolvePickupDropTargetCell_Exit	;650A
+ResolvePickupDropTargetCell_NormalReturn:		; Memory Address ($5E70) and binary offset [$5AEC]
 	move.w	d2,d0	;3002
 	swap	d6	;4846
 	rts	;4E75
 
-adrCd005E76:		; Memory Address ($5E76) and binary offset [$5AF2]
+ResolvePickupDropTargetCell_RestoreTypeCode:		; Memory Address ($5E76) and binary offset [$5AF2]
 	sub.b	#$FF,d1	;040100FF
-adrCd005E7A:		; Memory Address ($5E7A) and binary offset [$5AF6]
+ResolvePickupDropTargetCell_Exit:		; Memory Address ($5E7A) and binary offset [$5AF6]
 	rts	;4E75
 
-adrCd005E7C:		; Memory Address ($5E7C) and binary offset [$5AF8]
+DropHeldObject_AtResolvedCorner:		; Memory Address ($5E7C) and binary offset [$5AF8]
 	move.l	$002C(a5),d5	;2A2D002C
 	clr.l	$002C(a5)	;42AD002C
-	bsr	adrCd005F2E	;610000A8
+	bsr	Rotate_ObjectSubpositionByPlayerFacing	;610000A8
 Add_FloorObjectToStack:		; Memory Address ($5E88) and binary offset [$5B04]
 	; Finds or creates a floor-object stack entry and merges or appends the dropped object.
 	bclr	#$03,$01(a6,d0.w)	;08B600030001
-	bsr	adrCd005F5C	;610000CC
-	bne	adrCd005F04	;66000070
+	bsr	Find_FloorObjectStackAtCellSubposition	;610000CC
+	bne	AddFloorObjectToStack_CreateNewStack	;66000070
 	lea	$03(a0,d7.w),a1	;43F07003
 	moveq	#$00,d3	;7600
 	move.b	-$0001(a1),d3	;1629FFFF
 	add.w	d3,d3	;D643
-adrCd005EA2:		; Memory Address ($5EA2) and binary offset [$5B1E]
+AddFloorObjectToStack_ScanMatchLoop:		; Memory Address ($5EA2) and binary offset [$5B1E]
 	cmp.b	$00(a1,d3.w),d5	;BA313000
-	beq.s	adrCd005EE2	;673A
+	beq.s	AddFloorObjectToStack_CombineMatchedQuantity	;673A
 	subq.w	#$02,d3	;5543
-	bcc.s	adrCd005EA2	;64F6
-adrCd005EAC:		; Memory Address ($5EAC) and binary offset [$5B28]
+	bcc.s	AddFloorObjectToStack_ScanMatchLoop	;64F6
+AddFloorObjectToStack_InsertNewEntry:		; Memory Address ($5EAC) and binary offset [$5B28]
 	move.w	-$0002(a0),d2	;3428FFFE
 	addq.w	#ObjectStack_ItemBytes,-$0002(a0)	;5468FFFE
 	addq.b	#$01,-$0001(a1)	;5229FFFF
@@ -9973,34 +10024,34 @@ adrCd005EAC:		; Memory Address ($5EAC) and binary offset [$5B28]
 	add.w	d3,d7	;DE43
 	addq.w	#$03,d7	;5647
 	sub.w	d7,d2	;9447
-	bra.s	adrCd005ED2	;6002
+	bra.s	AddFloorObjectToStack_ShiftUpLoopTest	;6002
 
-adrLp005ED0:		; Memory Address ($5ED0) and binary offset [$5B4C]
+AddFloorObjectToStack_ShiftUpLoop:		; Memory Address ($5ED0) and binary offset [$5B4C]
 	move.b	-(a0),-(a2)	;1520
-adrCd005ED2:		; Memory Address ($5ED2) and binary offset [$5B4E]
-	dbra	d2,adrLp005ED0	;51CAFFFC
+AddFloorObjectToStack_ShiftUpLoopTest:		; Memory Address ($5ED2) and binary offset [$5B4E]
+	dbra	d2,AddFloorObjectToStack_ShiftUpLoop	;51CAFFFC
 	move.b	d5,$00(a1,d3.w)	;13853000
 	swap	d5	;4845
 	move.b	d5,$01(a1,d3.w)	;13853001
 	rts	;4E75
 
-adrCd005EE2:		; Memory Address ($5EE2) and binary offset [$5B5E]
+AddFloorObjectToStack_CombineMatchedQuantity:		; Memory Address ($5EE2) and binary offset [$5B5E]
 	swap	d5	;4845
 	add.b	$01(a1,d3.w),d5	;DA313001
 	tst.b	-$0001(a1)	;4A29FFFF
-	bne.s	adrCd005EF4	;6606
+	bne.s	AddFloorObjectToStack_ReinsertMergedEntry	;6606
 	move.b	d5,$01(a1,d3.w)	;13853001
 	rts	;4E75
 
-adrCd005EF4:		; Memory Address ($5EF4) and binary offset [$5B70]
+AddFloorObjectToStack_ReinsertMergedEntry:		; Memory Address ($5EF4) and binary offset [$5B70]
 	swap	d5	;4845
 	move.w	d7,d1	;3207
 	bsr	Remove_FloorObjectStackEntry	;6100FEFE
 	move.w	d1,d7	;3E01
 	lea	$03(a0,d7.w),a1	;43F07003
-	bra.s	adrCd005EAC	;60A8
+	bra.s	AddFloorObjectToStack_InsertNewEntry	;60A8
 
-adrCd005F04:		; Memory Address ($5F04) and binary offset [$5B80]
+AddFloorObjectToStack_CreateNewStack:		; Memory Address ($5F04) and binary offset [$5B80]
 	bset	#MapCell_ObjectPresentBit,$01(a6,d0.w)	;08F600060001
 	addq.w	#ObjectStack_MinimumBytes,-$0002(a0)	;5A68FFFE
 	move.w	d0,d1	;3200
@@ -10014,7 +10065,8 @@ adrCd005F04:		; Memory Address ($5F04) and binary offset [$5B80]
 	move.b	d5,$04(a0,d7.w)	;11857004
 	rts	;4E75
 
-adrCd005F2E:		; Memory Address ($5F2E) and binary offset [$5BAA]
+Rotate_ObjectSubpositionByPlayerFacing:		; Memory Address ($5F2E) and binary offset [$5BAA]
+	; Rotates absolute cell subposition D6 into the player's view according to the player's facing and a 4x4 permutation table.
 	move.w	$0020(a5),d1	;322D0020
 	add.w	d1,d1	;D241
 	add.w	d1,d1	;D241
@@ -10041,15 +10093,17 @@ ObjectSubpositionRotationTable:		; Memory Address ($5F3E) and binary offset [$5B
 	dc.b	$03	;03
 	dc.b	$01	;01
 
-adrCd005F4E:		; Memory Address ($5F4E) and binary offset [$5BCA]
+Find_FloorObjectRecordByMapLink:		; Memory Address ($5F4E) and binary offset [$5BCA]
+	; Walks variable-length floor-object records until their leading map-link word matches D0, returning A0 at the matching record.
 	lea	MapCellImpactList.l,a0	;41F9000174F8
-adrCd005F54:		; Memory Address ($5F54) and binary offset [$5BD0]
+FindFloorObjectRecordByMapLink_ScanLoop:		; Memory Address ($5F54) and binary offset [$5BD0]
 	cmp.w	(a0),d0	;B050
-	beq.s	adrCd005F92	;673A
+	beq.s	FindFloorObjectStack_SharedReturn	;673A
 	addq.w	#$04,a0	;5848
-	bra.s	adrCd005F54	;60F8
+	bra.s	FindFloorObjectRecordByMapLink_ScanLoop	;60F8
 
-adrCd005F5C:		; Memory Address ($5F5C) and binary offset [$5BD8]
+Find_FloorObjectStackAtCellSubposition:		; Memory Address ($5F5C) and binary offset [$5BD8]
+	; Searches the tower's variable-length floor-object stacks for the selected cell key and rotated subposition, returning the matching record and condition state.
 	move.l	Current_TowerMapDataBase.l,a0	;20790000EE78
 	add.w	#Map_ResourceSize-Map_HeaderSize+ObjectData_LengthBytes,a0	;D0FC0FCA
 	move.w	d0,d1	;3200
@@ -10058,26 +10112,27 @@ adrCd005F5C:		; Memory Address ($5F5C) and binary offset [$5BD8]
 	or.b	d6,d1	;8206
 	moveq	#$00,d7	;7E00
 	moveq	#$00,d2	;7400
-adrCd005F72:		; Memory Address ($5F72) and binary offset [$5BEE]
+FindFloorObjectStack_ScanLoop:		; Memory Address ($5F72) and binary offset [$5BEE]
 	cmp.w	-$0002(a0),d7	;BE68FFFE
-	bcc.s	adrCd005F90	;6418
+	bcc.s	FindFloorObjectStack_NotFoundFlag	;6418
 	cmp.b	$01(a0,d7.w),d0	;B0307001
-	bne.s	adrCd005F84	;6606
+	bne.s	FindFloorObjectStack_AdvanceRecord	;6606
 	cmp.b	$00(a0,d7.w),d1	;B2307000
-	beq.s	adrCd005F92	;670E
-adrCd005F84:		; Memory Address ($5F84) and binary offset [$5C00]
+	beq.s	FindFloorObjectStack_SharedReturn	;670E
+FindFloorObjectStack_AdvanceRecord:		; Memory Address ($5F84) and binary offset [$5C00]
 	move.b	ObjectStack_CountMinusOneOffset(a0,d7.w),d2	;14307002
 	add.w	d2,d2	;D442
 	add.w	d2,d7	;DE42
 	addq.w	#ObjectStack_MinimumBytes,d7	;5A47
-	bra.s	adrCd005F72	;60E2
+	bra.s	FindFloorObjectStack_ScanLoop	;60E2
 
-adrCd005F90:		; Memory Address ($5F90) and binary offset [$5C0C]
+FindFloorObjectStack_NotFoundFlag:		; Memory Address ($5F90) and binary offset [$5C0C]
 	moveq	#$01,d1	;7201
-adrCd005F92:		; Memory Address ($5F92) and binary offset [$5C0E]
+FindFloorObjectStack_SharedReturn:		; Memory Address ($5F92) and binary offset [$5C0E]
 	rts	;4E75
 
 Click_Display_Centre:		; Memory Address ($5F94) and binary offset [$5C10]
+	; Arms player command bit 3 and enters the shared acting-champion selection path; combat uses this command state when deciding whether to double defence.
 	and.b	#$01,(a5)	;02150001
 	bset	#$03,(a5)	;08D50003
 	bra.s	Select_AttackingChampion	;6008
@@ -10089,9 +10144,9 @@ Handle_PrimaryAttackAction:		; Memory Address ($6322) and binary offset [$5F9E]
 Select_AttackingChampion:		; Memory Address ($632A) and binary offset [$5FA6]
 	; Common attack setup that selects the active champion/action participant.
 	moveq	#$03,d1	;7203
-	bsr	adrCd005500	;6100F556
+	bsr	Find_HighestRankedPartyMemberByCategory	;6100F556
 	tst.w	d3	;4A43
-	bmi.s	adrCd005F92	;6BE2
+	bmi.s	FindFloorObjectStack_SharedReturn	;6BE2
 	swap	d3	;4843
 	move.w	d3,d0	;3003
 	bsr	Load_ChampionStatRecord	;610006AA
@@ -10109,7 +10164,7 @@ Draw_CombatOutcomeProfessionGlyph:		; Memory Address ($5FC4) and binary offset [
 	move.w	d0,d1	;3200
 	and.w	#$000F,d1	;0241000F
 	and.w	#$00E0,d0	;024000E0
-	bne.s	adrCd005F92	;66AC
+	bne.s	FindFloorObjectStack_SharedReturn	;66AC
 	move.w	d1,d0	;3001
 	and.w	#$0003,d1	;02410003
 	mulu	#$0460,d1	;C2FC0460
@@ -10120,7 +10175,7 @@ Draw_CombatOutcomeProfessionGlyph:		; Memory Address ($5FC4) and binary offset [
 	add.w	d0,d0	;D040
 	add.w	ProfessionGlyphScreenOffsetTable(pc,d0.w),a0	;D0FB0010
 	move.l	#$00000006,-(sp)	;2F3C00000006
-	bra	adrCd007E62	;60001E58
+	bra	Draw_PlanarGraphicCore_WithStride98	;60001E58
 
 ProfessionGlyphClassInkTable:		; Memory Address ($600C) and binary offset [$5C88]
 	; Maps champion profession class to the ink used for combat-outcome profession glyphs.
@@ -10135,7 +10190,8 @@ ProfessionGlyphScreenOffsetTable:		; Memory Address ($6010) and binary offset [$
 	dc.w	$000D	;000D
 	dc.w	$001B	;001B
 
-adrCd006018:		; Memory Address ($6018) and binary offset [$5C94]
+Select_MonsterMeleePartyTarget:		; Memory Address ($6018) and binary offset [$5C94]
+	; Selects a party target for monster melee from the exposed formation side, tries the paired slot if vacant, falls back to the active champion, and prepares the defender and double-defence state.
 	sub.w	$0020(a1),d0	;90690020
 	addq.w	#$02,d0	;5440
 	eor.w	#$0001,d2	;0A420001
@@ -10143,15 +10199,16 @@ adrCd006018:		; Memory Address ($6018) and binary offset [$5C94]
 	and.w	#$0003,d0	;02400003
 	moveq	#$00,d1	;7200
 	move.b	$26(a1,d0.w),d1	;12310026
-	bpl.s	adrCd006046	;6A16
+	bpl.s	SelectMeleeTarget_ResolveDefender	;6A16
 	sub.w	d2,d0	;9042
 	eor.w	#$0001,d2	;0A420001
 	add.w	d2,d0	;D042
 	and.w	#$0003,d0	;02400003
 	move.b	$26(a1,d0.w),d1	;12310026
-	bpl.s	adrCd006046	;6A04
+	bpl.s	SelectMeleeTarget_ResolveDefender	;6A04
 	move.w	$0006(a1),d1	;32290006
-adrCd006046:		; Memory Address ($6046) and binary offset [$5CC2]
+SelectMeleeTarget_ResolveDefender:		; Memory Address ($6046) and binary offset [$5CC2]
+	; Determines whether the selected champion receives double defence from persistent command bits 1/3, formation-slot bit 4, and current HP at or below half maximum.
 	and.w	#$000F,d1	;0241000F
 	clr.w	PhysicalAttack_DoubleDefenceFlag.l	;427900006458
 	movem.l	d0/d1/a1/a4/a5,-(sp)	;48E7C04C
@@ -10160,34 +10217,34 @@ adrCd006046:		; Memory Address ($6046) and binary offset [$5CC2]
 	bsr	Find_ChampionInPlayerSlots	;6100E01E
 	move.b	(a5),d2	;1415
 	and.w	#$000A,d2	;0242000A
-	beq.s	adrCd006084	;6720
+	beq.s	SelectMeleeTarget_SetDoubleDefence	;6720
 	btst	#$04,$18(a5,d1.w)	;083500041018
-	beq.s	adrCd006074	;6708
+	beq.s	SelectMeleeTarget_CheckHalfHP	;6708
 	and.w	#$0008,d2	;02420008
-	beq.s	adrCd006090	;671E
-	bra.s	adrCd006084	;6010
+	beq.s	SelectMeleeTarget_RestoreRegisters	;671E
+	bra.s	SelectMeleeTarget_SetDoubleDefence	;6010
 
-adrCd006074:		; Memory Address ($6074) and binary offset [$5CF0]
+SelectMeleeTarget_CheckHalfHP:		; Memory Address ($6074) and binary offset [$5CF0]
 	bsr	Load_ChampionStatRecord	;610005EA
 	move.b	$0006(a4),d0	;102C0006
 	lsr.b	#$01,d0	;E208
 	cmp.b	$0005(a4),d0	;B02C0005
-	bcs.s	adrCd006090	;650C
-adrCd006084:		; Memory Address ($6084) and binary offset [$5D00]
+	bcs.s	SelectMeleeTarget_RestoreRegisters	;650C
+SelectMeleeTarget_SetDoubleDefence:		; Memory Address ($6084) and binary offset [$5D00]
 	move.w	#$FFFF,PhysicalAttack_DoubleDefenceFlag.l	;33FCFFFF00006458
 	bset	d1,$003C(a5)	;03ED003C
-adrCd006090:		; Memory Address ($6090) and binary offset [$5D0C]
+SelectMeleeTarget_RestoreRegisters:		; Memory Address ($6090) and binary offset [$5D0C]
 	movem.l	(sp)+,d0/d1/a1/a4/a5	;4CDF3203
-adrCd006094:		; Memory Address ($6094) and binary offset [$5D10]
+SelectMeleeTarget_Return:		; Memory Address ($6094) and binary offset [$5D10]
 	rts	;4E75
 
 Redraw_CombatOutcomeSlot:		; Memory Address ($6096) and binary offset [$5D12]
 	; Clears and redraws one formation slot's combat-outcome area when its display timer expires.
 	tst.b	d7	;4A07
-	bne.s	adrCd0060A2	;6608
+	bne.s	RedrawCombatOutcomeSlot_DrawBar	;6608
 	cmp.b	#$02,$0015(a5)	;0C2D00020015
-	bcc.s	adrCd006094	;64F2
-adrCd0060A2:		; Memory Address ($60A2) and binary offset [$5D1E]
+	bcc.s	SelectMeleeTarget_Return	;64F2
+RedrawCombatOutcomeSlot_DrawBar:		; Memory Address ($60A2) and binary offset [$5D1E]
 	or.b	#$B0,$0054(a5)	;002D00B00054
 	moveq	#$67,d4	;7867
 	moveq	#$06,d5	;7A06
@@ -10212,7 +10269,7 @@ CombatOutcomeSlotPositionTableY:		; Memory Address ($60C6) and binary offset [$5
 	dc.b	$00	;00
 	dc.b	$00	;00
 
-adrCd0060CA:		; Memory Address ($60CA) and binary offset [$5D46]
+FormatPartySlotCombatOutcome_Entry:		; Memory Address ($60CA) and binary offset [$5D46]
 	move.l	screen_ptr.l,a0	;207900008D36
 	add.w	$000A(a5),a0	;D0ED000A
 	move.l	a4,-(sp)	;2F0C
@@ -10227,27 +10284,27 @@ adrCd0060CA:		; Memory Address ($60CA) and binary offset [$5D46]
 	add.w	CombatOutcomeText_ScreenOffsetTable(pc,d7.w),a0	;D0FB7044
 	moveq	#$0B,d6	;7C0B
 	tst.w	d7	;4A47
-	bne.s	adrCd006102	;660A
+	bne.s	FormatCombatOutcome_CompanionFlag	;660A
 	moveq	#$0E,d6	;7C0E
 	or.b	#$10,$0054(a5)	;002D00100054
-	bra.s	adrCd006108	;6006
+	bra.s	FormatCombatOutcome_SetupTextInk	;6006
 
-adrCd006102:		; Memory Address ($6102) and binary offset [$5D7E]
+FormatCombatOutcome_CompanionFlag:		; Memory Address ($6102) and binary offset [$5D7E]
 	or.b	#$A0,$0054(a5)	;002D00A00054
-adrCd006108:		; Memory Address ($6108) and binary offset [$5D84]
+FormatCombatOutcome_SetupTextInk:		; Memory Address ($6108) and binary offset [$5D84]
 	move.l	#$000D0000,CurrentTextInk.l	;23FC000D00000000D92A
 	lea	OutcomeMsgs_0.l,a6	;4DF900006142
 	move.b	OutcomeMsgOffsets(pc,d4.w),d4	;183B4022
-	bne.s	adrCd00612E	;6610
+	bne.s	FormatCombatOutcome_ApplyMessageOffset	;6610
 	move.w	d5,d0	;3005
-	beq.s	adrCd006130	;670E
+	beq.s	FormatCombatOutcome_PrintMessage	;670E
 	lea	OutcomeMsgs_5.l,a6	;4DF90000616B
 	moveq	#$09,d2	;7409
 	bsr.s	Convert_ThreeDigitDecimalText	;614C
 	moveq	#$00,d4	;7800
-adrCd00612E:		; Memory Address ($612E) and binary offset [$5DAA]
+FormatCombatOutcome_ApplyMessageOffset:		; Memory Address ($612E) and binary offset [$5DAA]
 	add.w	d4,a6	;DCC4
-adrCd006130:		; Memory Address ($6130) and binary offset [$5DAC]
+FormatCombatOutcome_PrintMessage:		; Memory Address ($6130) and binary offset [$5DAC]
 	bra	Print_TextCharacterLoop	;60006EA8
 
 CombatOutcomeText_ScreenOffsetTable:		; Memory Address ($6134) and binary offset [$5DB0]
@@ -10291,23 +10348,23 @@ Convert_ThreeDigitDecimalText:		; Memory Address ($6178) and binary offset [$5DF
 	move.w	d1,d0	;3001
 	divu	#$0064,d0	;80FC0064
 	move.w	d0,d3	;3600
-	beq.s	adrCd006190	;670A
+	beq.s	ConvertThreeDigitDecimalText_FormatRemainder	;670A
 	add.b	#$30,d0	;06000030
 	move.b	d0,$00(a6,d2.w)	;1D802000
 	addq.w	#$01,d2	;5242
-adrCd006190:		; Memory Address ($6190) and binary offset [$5E0C]
+ConvertThreeDigitDecimalText_FormatRemainder:		; Memory Address ($6190) and binary offset [$5E0C]
 	swap	d0	;4840
 	bsr	Convert_ByteToDecimalText	;61006D30
 	move.b	d1,d0	;1001
 	ror.w	#$08,d1	;E059
 	tst.w	d3	;4A43
-	bne.s	adrCd0061A4	;6606
+	bne.s	ConvertThreeDigitDecimalText_WriteTensDigit	;6606
 	cmpi.b	#$30,d1	;0C010030
-	beq.s	adrCd0061AA	;6706
-adrCd0061A4:		; Memory Address ($61A4) and binary offset [$5E20]
+	beq.s	ConvertThreeDigitDecimalText_WriteOnesDigit	;6706
+ConvertThreeDigitDecimalText_WriteTensDigit:		; Memory Address ($61A4) and binary offset [$5E20]
 	move.b	d1,$00(a6,d2.w)	;1D812000
 	addq.w	#$01,d2	;5242
-adrCd0061AA:		; Memory Address ($61AA) and binary offset [$5E26]
+ConvertThreeDigitDecimalText_WriteOnesDigit:		; Memory Address ($61AA) and binary offset [$5E26]
 	move.b	d0,$00(a6,d2.w)	;1D802000
 	move.b	#$FF,$01(a6,d2.w)	;1DBC00FF2001
 	rts	;4E75
@@ -10351,13 +10408,14 @@ Resolve_PhysicalAttack:		; Memory Address ($61DA) and binary offset [$5E56]
 	bra.s	PhysicalAttack_CalculateDamage	;600C
 
 PhysicalAttack_HandleDefenderRollWin:		; Memory Address ($6210) and binary offset [$5E8C]
+	; Handles the narrow defender-roll win while retaining damage tier $40, so the subsequent damage multiplier remains x1.
 	neg.w	d2	;4442
 	move.w	d2,d0	;3002
 	moveq	#$40,d2	;7440
 	cmp.w	d2,d0	;B042
 	bpl	PhysicalAttack_Return	;6A00006E
 PhysicalAttack_CalculateDamage:		; Memory Address ($621C) and binary offset [$5E98]
-	; Calculates base damage from weapon range, level, fixed weapon damage and effective Strength.
+	; Calculates base physical damage from a 0..range-1 weapon roll, level and fixed weapon bonuses using byte addition, then adds the effective-Strength contribution before backstab, armour, and hit-quality adjustments.
 	move.w	$0006(a6),d1	;322E0006
 	bsr	RandomGen	;6100F39A
 	addq.w	#$01,d0	;5240
@@ -10441,7 +10499,7 @@ Load_CombatantCombatValues:		; Memory Address ($628C) and binary offset [$5F08]
 	rts	;4E75
 
 Load_ChampionCombatValues:		; Memory Address ($62C6) and binary offset [$5F42]
-	; Loads champion combat data and removes the fixed physical-combat Vitality cost.
+	; Loads the champion's combat values and subtracts the fixed physical-combat cost of 3 vitality, clamping underflow to zero; this also occurs when loading a defending champion.
 	move.w	d0,d1	;3200
 	bsr	Load_ChampionStatRecord	;61000396
 	subq.b	#PhysicalAttack_VitalityCost,$0007(a4)	;572C0007
@@ -10681,6 +10739,7 @@ AttackerScore_StoreResult:		; Memory Address ($64A4) and binary offset [$6120]
 	rts	;4E75
 
 Click_MultiFunctionButton:		; Memory Address ($64AA) and binary offset [$6126]
+	; Handles the context-sensitive command button: clears an active selected state, casts the selected champion's spell when appropriate, or resolves and toggles a usable facing wall feature or door before refreshing the champion map-position icon.
 	bsr	Load_CurrentChampionStatRecord	;610001B0
 	tst.b	$0011(a4)	;4A2C0011
 	beq.s	Resolve_MultiFunctionContext	;670E
@@ -10695,7 +10754,7 @@ Resolve_MultiFunctionContext:		; Memory Address ($6846) and binary offset [$64C2
 	bmi.s	Resolve_WallFeatureContext	;6B08
 	bsr	Cast_SelectedChampionSpell	;6100E9C4
 Load_MapPositionAfterMultiFunction:		; Memory Address ($64CC) and binary offset [$6148]
-	; Proposed: shared continuation after multi-function or shelf interaction state is resolved.
+	; Continues after multifunction or shelf interaction handling by refreshing the current champion's map-position icon.
 	bra	Refresh_CurrentChampionMapPositionIcon	;60001D00
 
 Resolve_WallFeatureContext:		; Memory Address ($64D0) and binary offset [$614C]
@@ -10712,7 +10771,7 @@ Resolve_WallFeatureContext:		; Memory Address ($64D0) and binary offset [$614C]
 	btst	d2,$00(a6,d0.w)	;05360000
 	bne.s	Toggle_WallFeatureOrReportLocked	;6660
 Check_FrontWallFeature:		; Memory Address ($64F2) and binary offset [$616E]
-	; Proposed: resolves and validates the front map cell for a door or wooden-wall feature.
+	; Resolves and validates the facing cell as a wooden edge or large door, rejecting out-of-bounds, occupied, unusable, and incorrectly keyed targets before state toggling.
 	bsr	StepCoordForwardToMapOffset	;61001F8E
 	cmp.w	CurrentFloorHeight.l,d7	;BE790000EE72
 	bcc.s	Return_NoWallFeatureToToggle	;6452
@@ -10741,22 +10800,22 @@ Check_FrontWallFeature:		; Memory Address ($64F2) and binary offset [$616E]
 	bra.s	Toggle_WallFeatureOrReportLocked	;6008
 
 Check_FrontWoodDoorEdge:		; Memory Address ($654A) and binary offset [$61C6]
-	; Proposed: tests the opposite wooden-door edge before common state toggling.
+	; Tests the opposite wooden-door edge and enters common state toggling only when that edge is present.
 	btst	d2,$00(a6,d0.w)	;05360000
 	bne.s	Toggle_WallFeatureOrReportLocked	;6602
 Return_NoWallFeatureToToggle:		; Memory Address ($6550) and binary offset [$61CC]
-	; Proposed: return when the current/front cell has no usable wall feature or door.
+	; Returns when neither the current cell nor the facing cell contains a usable wall feature or door.
 	rts	;4E75
 
 Toggle_WallFeatureOrReportLocked:		; Memory Address ($68D6) and binary offset [$6552]
-	; Checks and changes a wall-feature or door state.
+	; Consumes a matching common or named key when required, toggles the target lock bit, and either reports that the door remains locked or continues to toggle the validated wooden edge or large door.
 	cmp.w	$002E(a5),d3	;B66D002E
 	bne.s	Toggle_ValidatedWallFeatureState	;6624
 	subq.w	#$01,$002C(a5)	;536D002C
 	bne.s	Toggle_MapCellMagelockState	;6604
 	clr.w	$002E(a5)	;426D002E
 Toggle_MapCellMagelockState:		; Memory Address ($6562) and binary offset [$61DE]
-	; Proposed: toggles map byte 2 bit 4 before final wall-feature state validation.
+	; Toggles lock bit 4 in the target cell's second byte and redraws the held-item panel when inventory mode is active.
 	bchg	#$04,$01(a6,d0.w)	;087600040001
 	cmp.w	#$0003,$0014(a5)	;0C6D00030014
 	bne.s	Toggle_ValidatedWallFeatureState	;660C
@@ -10764,7 +10823,7 @@ Toggle_MapCellMagelockState:		; Memory Address ($6562) and binary offset [$61DE]
 	bsr	Draw_HeldItemPanel	;610006CC
 	movem.l	(sp)+,d0/d2/a6	;4CDF4005
 Toggle_ValidatedWallFeatureState:		; Memory Address ($657C) and binary offset [$61F8]
-	; Proposed: toggles the validated wooden-edge or large-door state, plays the click, and refreshes lower UI.
+	; Rejects a still-locked target or toggles the validated wooden edge or large-door bit, plays the door click, and clears the lower text strip.
 	subq.w	#$01,d2	;5342
 	btst	#$04,$01(a6,d0.w)	;083600040001
 	bne.s	Return_WallFeatureLocked	;660E
@@ -10774,7 +10833,7 @@ Toggle_ValidatedWallFeatureState:		; Memory Address ($657C) and binary offset [$
 	bra	Clear_LowerTextStrip	;60006A04
 
 Return_WallFeatureLocked:		; Memory Address ($6594) and binary offset [$6210]
-	; Existing mapping reference: loads DoorLockedMsg then enters WriteTimedText.
+	; Loads THE DOOR IS LOCKED and enters the timed top-strip text writer.
 	lea	Notice_DoorLocked.l,a6	;4DF90000659E
 	bra	WriteTimedText	;60006AEC
 
@@ -10787,35 +10846,35 @@ Click_PartyMember:		; Memory Address ($65B2) and binary offset [$622E]
 	lsr.w	#$02,d0	;E448
 	subq.w	#$06,d0	;5D40
 	tst.w	$0016(a5)	;4A6D0016
-	bpl.s	adrCd0065CC	;6A10
+	bpl.s	ClickPartyMember_SwapOrConfirmSlot	;6A10
 	tst.b	$26(a5,d0.w)	;4A350026
-	bpl.s	adrCd0065C4	;6A02
+	bpl.s	ClickPartyMember_SetSelectedSlot	;6A02
 	rts	;4E75
 
-adrCd0065C4:		; Memory Address ($65C4) and binary offset [$6240]
+ClickPartyMember_SetSelectedSlot:		; Memory Address ($65C4) and binary offset [$6240]
 	move.w	d0,$0016(a5)	;3B400016
 	bra	Draw_PartyProfessionIconGrid	;60001DCC
 
-adrCd0065CC:		; Memory Address ($65CC) and binary offset [$6248]
+ClickPartyMember_SwapOrConfirmSlot:		; Memory Address ($65CC) and binary offset [$6248]
 	cmp.w	$0016(a5),d0	;B06D0016
-	beq.s	adrCd0065E8	;6716
+	beq.s	ClickPartyMember_ActivateSelectedChampion	;6716
 	move.b	$26(a5,d0.w),d1	;12350026
 	move.w	$0016(a5),d2	;342D0016
 	move.b	$26(a5,d2.w),$26(a5,d0.w)	;1BB520260026
 	move.b	d1,$26(a5,d2.w)	;1B812026
 	moveq	#-$01,d0	;70FF
-	bra.s	adrCd0065C4	;60DC
+	bra.s	ClickPartyMember_SetSelectedSlot	;60DC
 
-adrCd0065E8:		; Memory Address ($65E8) and binary offset [$6264]
+ClickPartyMember_ActivateSelectedChampion:		; Memory Address ($65E8) and binary offset [$6264]
 	move.b	$26(a5,d0.w),d0	;10350026
-	bmi.s	adrCd006608	;6B1A
+	bmi.s	ClickPartyMember_ClearSelectionAndRedraw	;6B1A
 	move.w	$0006(a5),d2	;342D0006
 	move.w	d0,$0006(a5)	;3B400006
 	bsr	Find_ChampionInPlayerSlots	;6100DA80
 	move.b	d2,$18(a5,d1.w)	;1B821018
 	move.b	d0,$0018(a5)	;1B400018
 	bset	#$04,$0018(a5)	;08ED00040018
-adrCd006608:		; Memory Address ($6608) and binary offset [$6284]
+ClickPartyMember_ClearSelectionAndRedraw:		; Memory Address ($6608) and binary offset [$6284]
 	move.w	#$FFFF,$0016(a5)	;3B7CFFFF0016
 	bsr	Draw_ChampionNamePanelFrame	;61001C68
 	bra	Draw_PartyCommandInterface	;6000153C
@@ -10831,7 +10890,7 @@ Click_ShowStats:		; Memory Address ($6616) and binary offset [$6292]
 	lea	Character_Stats_DataTable.l,a6	;4DF90000EB2A
 	moveq	#$00,d0	;7000
 	move.b	$10(a6,d7.w),d0	;10367010
-	beq.s	adrCd00666E	;6732
+	beq.s	LoadChampionStatRecord_Return	;6732
 	move.w	#$00C7,d1	;323C00C7
 	moveq	#$30,d2	;7430
 	move.l	#$002F00F9,d4	;283C002F00F9
@@ -10850,18 +10909,18 @@ Load_ChampionStatRecord:		; Memory Address ($6660) and binary offset [$62DC]
 	asl.w	#$05,d0	;EB40
 	lea	Character_Stats_DataTable.l,a4	;49F90000EB2A
 	add.w	d0,a4	;D8C0
-adrCd00666E:		; Memory Address ($666E) and binary offset [$62EA]
+LoadChampionStatRecord_Return:		; Memory Address ($666E) and binary offset [$62EA]
 	rts	;4E75
 
 Select_SpellBookPageForSelectedSpell:		; Memory Address ($6670) and binary offset [$62EC]
 	; Selects the two-page spellbook spread containing the champion's currently selected spell.
 	clr.w	$002A(a5)	;426D002A
 	move.b	$0013(a4),d0	;102C0013
-	bmi.s	adrCd006682	;6B08
+	bmi.s	SelectSpellBookPage_Return	;6B08
 	lsr.b	#$03,d0	;E608
 	add.b	d0,d0	;D000
 	move.b	d0,$002B(a5)	;1B40002B
-adrCd006682:		; Memory Address ($6682) and binary offset [$62FE]
+SelectSpellBookPage_Return:		; Memory Address ($6682) and binary offset [$62FE]
 	rts	;4E75
 
 Click_OpenSpellBook:		; Memory Address ($6684) and binary offset [$6300]
@@ -10876,28 +10935,30 @@ Draw_SelectedSpellDetails:		; Memory Address ($6698) and binary offset [$6314]
 	bsr	Draw_SpellPointValues	;61006178
 	sub.w	#$02DC,a0	;90FC02DC
 	move.b	$0013(a4),d0	;102C0013
-	bpl.s	adrCd0066BE	;6A18
-	bsr.s	adrCd0066B8	;6110
+	bpl.s	Draw_SelectedSpellClassIcons	;6A18
+	bsr.s	Draw_EmptySpellSelectionEdgeIcon	;6110
 	moveq	#$68,d7	;7E68
-adrCd0066AA:		; Memory Address ($66AA) and binary offset [$6326]
+Draw_EmptySpellSelectionInnerIcons:		; Memory Address ($66AA) and binary offset [$6326]
+	; Draws the empty spell-selection row as pocket icons $4F,$68,$69,$6A,$6B,$4F across the six fixed positions.
 	move.w	d7,d0	;3007
 	bsr	Draw_PocketGraphic	;6100643C
 	addq.w	#$01,d7	;5247
 	cmpi.w	#$006C,d7	;0C47006C
-	bcs.s	adrCd0066AA	;65F2
-adrCd0066B8:		; Memory Address ($66B8) and binary offset [$6334]
+	bcs.s	Draw_EmptySpellSelectionInnerIcons	;65F2
+Draw_EmptySpellSelectionEdgeIcon:		; Memory Address ($66B8) and binary offset [$6334]
 	moveq	#$4F,d0	;704F
 	bra	Draw_PocketGraphic	;6000642E
 
-adrCd0066BE:		; Memory Address ($66BE) and binary offset [$633A]
+Draw_SelectedSpellClassIcons:		; Memory Address ($66BE) and binary offset [$633A]
+	; Draws the selected spell's class-symbol icons and four $3B separators using their native pocket-graphic colours.
 	bsr	Character_GetClassIndex	;61000240
 	add.w	#$0064,d0	;06400064
 	bsr	Draw_PocketGraphic	;61006422
 	moveq	#$03,d7	;7E03
-adrLp0066CC:		; Memory Address ($66CC) and binary offset [$6348]
+DrawSelectedSpellClassIcons_SeparatorLoop:		; Memory Address ($66CC) and binary offset [$6348]
 	move.w	#$003B,d0	;303C003B
 	bsr	Draw_PocketGraphic	;61006418
-	dbra	d7,adrLp0066CC	;51CFFFF6
+	dbra	d7,DrawSelectedSpellClassIcons_SeparatorLoop	;51CFFFF6
 	move.b	$0013(a4),d0	;102C0013
 	bsr	Character_GetClassIndex	;61000222
 	add.w	#$0064,d0	;06400064
@@ -10906,7 +10967,7 @@ adrLp0066CC:		; Memory Address ($66CC) and binary offset [$6348]
 	move.b	$0013(a4),d0	;102C0013
 	bsr	Get_SelectedSpellName	;61005BE4
 	bsr	Print_SelectedSpellNameWarmOrange	;610068C8
-adrCd0066F6:		; Memory Address ($66F6) and binary offset [$6372]
+Refresh_SpellCastCostDisplay:		; Memory Address ($66F6) and binary offset [$6372]
 	or.b	#$04,$0054(a5)	;002D00040054
 	bsr	Calculate_SpellPointCost	;6100018E
 	lea	CostMessageTemplate.l,a6	;4DF90000EA36
@@ -10921,15 +10982,15 @@ Show_SpellCastPrompt:		; Memory Address ($6712) and binary offset [$638E]
 Draw_SpellCastingBar:		; Memory Address ($6720) and binary offset [$639C]
 	; Converts signed casting quality into the five-pixel-high CAST bar.
 	tst.b	$0057(a5)	;4A2D0057
-	bmi.s	adrCd00675E	;6B38
+	bmi.s	Draw_SpellCastingBar_EarlyReturn	;6B38
 	or.b	#$10,$0054(a5)	;002D00100054
 	bsr	Calculate_SpellCastingQuality	;6100004A
 	neg.b	d7	;4407
-	bpl.s	adrCd006736	;6A02
+	bpl.s	Draw_SpellCastingBar_CheckIndexRange	;6A02
 	moveq	#$00,d7	;7E00
-adrCd006736:		; Memory Address ($6736) and binary offset [$63B2]
+Draw_SpellCastingBar_CheckIndexRange:		; Memory Address ($6736) and binary offset [$63B2]
 	cmpi.b	#$13,d7	;0C070013
-	bcc.s	adrCd00675E	;6422
+	bcc.s	Draw_SpellCastingBar_EarlyReturn	;6422
 	move.b	SpellCasting_CastBarPercentages(pc,d7.w),d0	;103B7022
 	moveq	#$64,d1	;7264
 	moveq	#SpellCasting_CastBarMaximumWidth,d2	;7434
@@ -10940,7 +11001,7 @@ adrCd006736:		; Memory Address ($6736) and binary offset [$63B2]
 	moveq	#$0C,d3	;760C
 	bra	BW_draw_bar	;6000730C
 
-adrCd00675E:		; Memory Address ($675E) and binary offset [$63DA]
+Draw_SpellCastingBar_EarlyReturn:		; Memory Address ($675E) and binary offset [$63DA]
 	rts	;4E75
 
 SpellCasting_CastBarPercentages:		; Memory Address ($6760) and binary offset [$63DC]
@@ -10982,11 +11043,11 @@ Calculate_SpellCastingQuality:		; Memory Address ($6778) and binary offset [$63F
 	bsr	Character_GetClassIndex	;61000166
 	moveq	#$00,d7	;7E00
 	cmp.w	(sp),d0	;B057
-	bne.s	adrCd0067AC	;660A
+	bne.s	SpellCastQuality_AfterClassBonus	;660A
 	move.w	d1,d2	;3401
 	and.w	#$0003,d2	;02420003
 	move.b	SpellCasting_ProfessionBaseBonuses(pc,d2.w),d7	;1E3B203C
-adrCd0067AC:		; Memory Address ($67AC) and binary offset [$6428]
+SpellCastQuality_AfterClassBonus:		; Memory Address ($67AC) and binary offset [$6428]
 	move.l	#adrL_007E22,a1	;227C00007E22
 	add.l	a4,a1	;D3CC
 	moveq	#$00,d6	;7C00
@@ -10995,25 +11056,25 @@ adrCd0067AC:		; Memory Address ($67AC) and binary offset [$6428]
 	moveq	#SpellCasting_PracticeFirstThreshold,d2	;7405
 	moveq	#$00,d3	;7600
 	tst.w	d7	;4A47
-	bne.s	adrCd0067D8	;6612
+	bne.s	SpellCastQuality_ThresholdLoopHead	;6612
 	move.w	(sp),d4	;3817
 	add.w	#$0057,d4	;06440057
 	cmp.b	(a0),d4	;B810
-	beq.s	adrCd0067D6	;6706
+	beq.s	SpellCastQuality_ApplyWandBonus	;6706
 	cmp.b	$0001(a0),d4	;B8280001
 	bne.s	Double_SpellQualityThresholdAndAdvanceTier	;660A
-adrCd0067D6:		; Memory Address ($67D6) and binary offset [$6452]
+SpellCastQuality_ApplyWandBonus:		; Memory Address ($67D6) and binary offset [$6452]
 	addq.b	#SpellCasting_MatchingWandBonus,d7	;5607
-adrCd0067D8:		; Memory Address ($67D8) and binary offset [$6454]
+SpellCastQuality_ThresholdLoopHead:		; Memory Address ($67D8) and binary offset [$6454]
 	cmp.w	d2,d0	;B042
-	bcs.s	adrCd0067EA	;650E
+	bcs.s	SpellCastQuality_ApplyPracticeBonus	;650E
 	addq.w	#$05,d7	;5A47
 	sub.w	d2,d0	;9042
 Double_SpellQualityThresholdAndAdvanceTier:		; Memory Address ($67E0) and binary offset [$645C]
 	; Doubles the current spell-practice threshold, advances its tier counter, and loops to the next quality comparison.
 	add.w	d2,d2	;D442
 	addq.w	#$01,d3	;5243
-	bra.s	adrCd0067D8	;60F2
+	bra.s	SpellCastQuality_ThresholdLoopHead	;60F2
 
 SpellCasting_ProfessionBaseBonuses:		; Memory Address ($67E6) and binary offset [$6462]
 	; Four profession-indexed casting bonuses used when the selected spell class matches the champion profession.
@@ -11022,7 +11083,7 @@ SpellCasting_ProfessionBaseBonuses:		; Memory Address ($67E6) and binary offset 
 	dc.b	$04	;04
 	dc.b	$04	;04
 
-adrCd0067EA:		; Memory Address ($67EA) and binary offset [$6466]
+SpellCastQuality_ApplyPracticeBonus:		; Memory Address ($67EA) and binary offset [$6466]
 	lsr.w	d3,d0	;E668
 	add.w	d0,d7	;DE40
 	move.w	d1,d4	;3801
@@ -11035,14 +11096,14 @@ adrCd0067EA:		; Memory Address ($67EA) and binary offset [$6466]
 	bsr	Character_GetClassIndex	;610000FE
 	move.w	d4,d6	;3C04
 	cmp.w	(sp)+,d0	;B05F
-	bne.s	adrCd00681A	;6610
+	bne.s	SpellCastQuality_ClearHandShift	;6610
 	add.w	#$0057,d0	;06400057
 	moveq	#$01,d1	;7201
 	cmp.b	(a0),d0	;B010
 	beq.s	Apply_PowerStaffSpellCastingBonus	;6708
 	cmp.b	$0001(a0),d0	;B0280001
 	beq.s	Apply_PowerStaffSpellCastingBonus	;6702
-adrCd00681A:		; Memory Address ($681A) and binary offset [$6496]
+SpellCastQuality_ClearHandShift:		; Memory Address ($681A) and binary offset [$6496]
 	moveq	#$00,d1	;7200
 Apply_PowerStaffSpellCastingBonus:		; Memory Address ($681C) and binary offset [$6498]
 	; Adds the Power Staff casting bonus when the object is held in either hand.
@@ -11051,11 +11112,11 @@ Apply_PowerStaffSpellCastingBonus:		; Memory Address ($681C) and binary offset [
 	sub.b	d0,d7	;9E00
 	moveq	#PowerStaff_SpellCastingBonus,d0	;7005
 	cmp.b	#Object_PowerStaff,(a0)	;0C10003F
-	beq.s	adrCd006836	;670A
+	beq.s	SpellCastQuality_ApplyStaffBonusAndPenalty	;670A
 	cmp.b	#Object_PowerStaff,$0001(a0)	;0C28003F0001
-	beq.s	adrCd006836	;6702
+	beq.s	SpellCastQuality_ApplyStaffBonusAndPenalty	;6702
 	moveq	#$00,d0	;7000
-adrCd006836:		; Memory Address ($6836) and binary offset [$64B2]
+SpellCastQuality_ApplyStaffBonusAndPenalty:		; Memory Address ($6836) and binary offset [$64B2]
 	add.b	d0,d7	;DE00
 	sub.b	SpellCasting_SpellDifficultyPenalties(pc,d6.w),d7	;9E3B6004
 	rts	;4E75
@@ -11157,26 +11218,27 @@ Calculate_SpellPointCost:		; Memory Address ($688C) and binary offset [$6508]
 	bsr.s	Character_GetClassIndex	;615A
 	add.w	#$0069,d0	;06400069
 	cmp.b	(a0),d0	;B010
-	beq.s	adrCd0068B4	;6706
+	beq.s	SpellPointCost_FreeRingCast	;6706
 	cmp.b	$0001(a0),d0	;B0280001
-	bne.s	adrCd0068D0	;661C
-adrCd0068B4:		; Memory Address ($68B4) and binary offset [$6530]
+	bne.s	SpellPointCost_ComputeAdjustment	;661C
+SpellPointCost_FreeRingCast:		; Memory Address ($68B4) and binary offset [$6530]
+	; Checks and consumes depletable-ring charges; a zero count still permits a power-zero cast and then wraps to $FF, which later calls reject.
 	sub.w	#$0069,d0	;04400069
 	lea	RingUses.l,a0	;41F90000EE32
 	tst.b	$00(a0,d0.w)	;4A300000
-	bmi.s	adrCd0068D0	;6B0C
+	bmi.s	SpellPointCost_ComputeAdjustment	;6B0C
 	moveq	#$00,d0	;7000
 	move.b	d0,$0014(a4)	;19400014
 	rts	;4E75
 
-adrCd0068CC:		; Memory Address ($68CC) and binary offset [$6548]
+SpellPointCost_ReducePowerLoop:		; Memory Address ($68CC) and binary offset [$6548]
 	subq.b	#$01,$0014(a4)	;532C0014
-adrCd0068D0:		; Memory Address ($68D0) and binary offset [$654C]
+SpellPointCost_ComputeAdjustment:		; Memory Address ($68D0) and binary offset [$654C]
 	move.b	$0014(a4),d1	;122C0014
 	ext.w	d1	;4881
-	bmi.s	adrCd0068DC	;6B04
+	bmi.s	SpellPointCost_AddBaseCost	;6B04
 	move.b	SpellCasting_CastPowerCostAdjustments(pc,d1.w),d1	;123B10A4
-adrCd0068DC:		; Memory Address ($68DC) and binary offset [$6558]
+SpellPointCost_AddBaseCost:		; Memory Address ($68DC) and binary offset [$6558]
 	moveq	#$00,d0	;7000
 	move.b	$0013(a4),d0	;102C0013
 	lea	SpellCost_DataTable.w,a0	;41F8685E	;Short Absolute converted to symbol!
@@ -11184,12 +11246,12 @@ adrCd0068DC:		; Memory Address ($68DC) and binary offset [$6558]
 	addq.w	#$01,d0	;5240
 	add.w	d0,d0	;D040
 	add.w	d1,d0	;D041
-	bne.s	adrCd0068F8	;6606
+	bne.s	SpellPointCost_ClampToMaximum	;6606
 	addq.b	#$01,$0014(a4)	;522C0014
 	moveq	#SpellCasting_ManaCostMinimum,d0	;7001
-adrCd0068F8:		; Memory Address ($68F8) and binary offset [$6574]
+SpellPointCost_ClampToMaximum:		; Memory Address ($68F8) and binary offset [$6574]
 	cmpi.w	#SpellCasting_ManaCostMaximum,d0	;0C400064
-	bcc.s	adrCd0068CC	;64CE
+	bcc.s	SpellPointCost_ReducePowerLoop	;64CE
 	rts	;4E75
 
 Character_GetClassIndex:		; Memory Address ($6900) and binary offset [$657C]
@@ -11558,7 +11620,7 @@ Draw_HeldItemPanel:		; Memory Address ($6C42) and binary offset [$68BE]
 	add.w	$000A(a5),a0	;D0ED000A
 	moveq	#$00,d7	;7E00
 Draw_HeldItemPanelPieces_Loop:		; Memory Address ($6C58) and binary offset [$68D4]
-	; Draws the four fixed decorative pieces surrounding the held-item graphic.
+	; Draws the four vacant, dead, or profession-coloured party-member slot icons shown beside the held-item panel.
 	bsr	Draw_PartyMemberSlotIcon	;610017BC
 	addq.w	#$01,d7	;5247
 	cmpi.w	#$0004,d7	;0C470004
@@ -11644,22 +11706,22 @@ Draw_SelectedInventorySlotFrame:		; Memory Address ($6D1E) and binary offset [$6
 Update_IdlePanelAnimation:		; Memory Address ($6D3C) and binary offset [$69B8]
 	; Ages the active player's idle timer and alternates the default-panel animation when it expires.
 	subq.b	#$01,$0055(a5)	;532D0055
-	bpl.s	adrCd006D44	;6A02
-adrCd006D42:		; Memory Address ($6D42) and binary offset [$69BE]
+	bpl.s	IdlePanelAnimation_CheckPanelView	;6A02
+IdlePanelAnimation_EarlyReturn:		; Memory Address ($6D42) and binary offset [$69BE]
 	rts	;4E75
 
-adrCd006D44:		; Memory Address ($6D44) and binary offset [$69C0]
+IdlePanelAnimation_CheckPanelView:		; Memory Address ($6D44) and binary offset [$69C0]
 	tst.b	$0015(a5)	;4A2D0015
-	bne.s	adrCd006D42	;66F8
+	bne.s	IdlePanelAnimation_EarlyReturn	;66F8
 	or.b	#$04,$0054(a5)	;002D00040054
 	move.l	screen_ptr.l,a0	;207900008D36
 	add.w	$000A(a5),a0	;D0ED000A
 	add.w	#$097C,a0	;D0FC097C
 	lea	GFX_Pockets+$6A60.l,a1	;43F900053162
 	btst	#$00,(a5)	;08150000
-	bne.s	adrCd006D6E	;6604
+	bne.s	IdlePanelAnimation_DrawFrame	;6604
 	lea	$0020(a1),a1	;43E90020
-adrCd006D6E:		; Memory Address ($6D6E) and binary offset [$69EA]
+IdlePanelAnimation_DrawFrame:		; Memory Address ($6D6E) and binary offset [$69EA]
 	move.l	#$00020016,d5	;2A3C00020016	;Long Addr replaced with Symbol
 	move.l	#$00000088,a3	;267C00000088
 	bra	Draw_PlanarGraphic	;60005F3C
@@ -11693,8 +11755,9 @@ Arrow_Highlights_Offsets:		; Memory Address ($6D96) and binary offset [$6A12]
 	dc.b	$09	;09
 
 Draw_Arrow_Highlights:		; Memory Address ($6DA2) and binary offset [$6A1E]
+	; Draws the temporary highlight for one of the six movement controls using direction-specific destination, source-offset, width and height tables, then restores the normal pad after its countdown expires.
 	tst.b	$0015(a5)	;4A2D0015
-	bne	adrCd004C3E	;6600DE96
+	bne	Return_PartyCommandRowIdle	;6600DE96
 	or.b	#$04,$0054(a5)	;002D00040054
 	move.b	#$81,$0055(a5)	;1B7C00810055
 	move.l	screen_ptr.l,a0	;207900008D36
@@ -11730,7 +11793,7 @@ Click_MoveLeft:		; Memory Address ($6DF6) and binary offset [$6A72]
 Click_MoveRight:		; Memory Address ($6DFA) and binary offset [$6A76]
 	moveq	#$01,d0	;7001
 _MoveParty:		; Memory Address ($6DFC) and binary offset [$6A78]
-	; Existing mapping reference: highlights navigation, computes destination, then dispatches movement/collision.
+	; Draws the movement highlight, calculates the destination cell, and dispatches the party movement and collision handling.
 	and.b	#$01,(a5)	;02150001
 	move.w	d0,-(sp)	;3F00
 	bsr.s	Draw_Arrow_Highlights	;619E
@@ -11770,7 +11833,7 @@ Process_PlayerMoveDestination:		; Memory Address ($71C2) and binary offset [$6E3
 	move.l	d7,$001C(a5)	;2B47001C
 	movem.w	d0/d1,-(sp)	;48A7C000
 	moveq	#$05,d1	;7205
-	bsr	adrCd005500	;6100E69A
+	bsr	Find_HighestRankedPartyMemberByCategory	;6100E69A
 	movem.w	(sp)+,d0/d1	;4C9F0003
 	tst.w	d3	;4A43
 	bpl.s	Return_PlayerMoveRejected	;6ACC
@@ -11823,7 +11886,7 @@ Begin_PlayerStairTransition:		; Memory Address ($6ED0) and binary offset [$6B4C]
 	subq.w	#$02,d1	;5541
 Resolve_PlayerStairDestination:		; Memory Address ($6EE8) and binary offset [$6B64]
 	; Calculates the paired stair coordinate and tests whether the destination is occupied.
-	bsr	adrCd0084BA	;610015D0
+	bsr	Compute_StairAlignedDestination	;610015D0
 	move.w	d1,d0	;3001
 	bsr	Select_FloorMapByIndex	;610015EA
 	lea	MovementOffsetTable.w,a0	;41F85794	;Short Absolute converted to symbol!
@@ -11902,6 +11965,7 @@ Trigger_WaitFlag:		; Memory Address ($6FA8) and binary offset [$6C24]
 	dc.w	$FFFF	;FFFF
 
 Execute_FloorTrigger:		; Memory Address ($6FAA) and binary offset [$6C26]
+	; Reads the current floor-trigger record and dispatches its even action byte through the 31-entry trigger-action table.
 	move.w	#TriggerSound_None,Trigger_WaitFlag.w	;31FCFFFF6FA8	;Short Absolute converted to symbol!
 	move.b	$00(a6,d0.w),d1	;12360000
 	and.w	#FloorFeature_SubtypeMask,d1	;02410003
@@ -11937,6 +12001,7 @@ Dispatch_TriggerAndPlaySound:		; Memory Address ($6FF8) and binary offset [$6C74
 Restore_TriggerMovementState:		; Memory Address ($7012) and binary offset [$6C8E]
 	movem.l	(sp)+,d0/d7/a6	;4CDF4081
 Trigger_00_t00_Null:		; Memory Address ($7016) and binary offset [$6C92]
+	; Null floor-trigger action; performs no map or player change.
 	rts	;4E75
 
 Triggers_LookupTable:		; Memory Address ($7018) and binary offset [$6C94]
@@ -12367,6 +12432,7 @@ TriggersData_6:		; Memory Address ($72D6) and binary offset [$6F52]
 	dc.w	$0607	;0607
 
 Trigger_20_t28_Keep_Entrance_CentrePad:		; Memory Address ($7356) and binary offset [$6FD2]
+	; Handles the single-player tower-to-Keep entrance pad, selecting the destination Keep floor and midpoint from current-tower lookup tables.
 	tst.w	MultiPlayer.l	;4A790000EE30
 	beq	Return_TowerEntrance	;67000112
 	pea	$00(a1,d1.w)	;48711000
@@ -12424,6 +12490,7 @@ Keep_Start_XY_DataTable:		; Memory Address ($73CE) and binary offset [$704A]
 	dc.w	$0103	;0103
 
 Trigger_10_t14_Tower_Entrance_CentrePad:		; Memory Address ($73E6) and binary offset [$7062]
+	; Handles the single-player Keep-to-tower entrance pad, using trigger-record byte 1 to select the authored tower and midpoint.
 	tst.w	MultiPlayer.l	;4A790000EE30
 	beq	Return_TowerEntrance	;67000082
 	pea	$00(a1,d1.w)	;48711000
@@ -12516,6 +12583,7 @@ Tower_Start_XY_DataTable:		; Memory Address ($74EA) and binary offset [$7166]
 	dc.w	$0609	;0609
 
 Trigger_30_t3C_RemoveXY_IfPuzzleBitsSet:		; Memory Address ($7502) and binary offset [$717E]
+	; For action $3C, tests the paired authored gate cells and removes the record's target only after both gate flag bits are set.
 	move.l	Current_TowerMapDataBase.l,a6	;2C790000EE78
 	move.b	$0014(a6),d0	;102E0014
 	and.b	$001C(a6),d0	;C02E001C
@@ -12524,6 +12592,7 @@ Trigger_30_t3C_RemoveXY_IfPuzzleBitsSet:		; Memory Address ($7502) and binary of
 	rts	;4E75
 
 Trigger_29_t3A_GameCompletion:		; Memory Address ($751A) and binary offset [$7196]
+	; Handles action $3A by running the complete game-ending picture, party-interface reset, text, and frame-synchronisation sequence.
 	move.l	a5,-(sp)	;2F0D
 	bsr.s	GameEndPicture	;6164
 	clr.w	FrameSyncFlag.l	;427900008C1E
@@ -12547,13 +12616,14 @@ DBFWait1d:		; Memory Address ($752E) and binary offset [$71AA]
 	bsr	Swap_DisplayAndDrawBuffers	;61001762
 	bsr	Copy_DrawBufferToDisplayBuffer	;6100181C
 	move.w	#$FFFF,FrameSyncFlag.l	;33FCFFFF00008C1E
-adrCd007576:		; Memory Address ($7576) and binary offset [$71F2]
+GameCompletion_WaitForFrameSync:		; Memory Address ($7576) and binary offset [$71F2]
 	tst.b	FrameSyncFlag.l	;4A3900008C1E
-	bne.s	adrCd007576	;66F8
+	bne.s	GameCompletion_WaitForFrameSync	;66F8
 	move.l	(sp)+,a5	;2A5F
 	rts	;4E75
 
 GameEndPicture:
+	; Resets both players' applicable interface state, redraws the party and bordered message presentation, and draws the ending picture used by the game-completion trigger.
 	lea	Player1_Data.l,a5	;4BF90000EE7C
 	tst.w	MultiPlayer.l	;4A790000EE30
 	bne.s	.GameEnd_repeat	;6608
@@ -12602,6 +12672,7 @@ Trigger_Action38_ToggleCellTypeLowBits:		; Memory Address ($7630) and binary off
 	rts	;4E75
 
 Trigger_25_t32_Teleport_FXY:		; Memory Address ($763C) and binary offset [$72B8]
+	; Teleports to the trigger record's floor/X/Y destination, falling back one cell north when the target cell is occupied.
 	moveq	#$00,d0	;7000
 	move.b	$01(a1,d1.w),d0	;10311001
 	move.w	d0,d6	;3C00
@@ -12631,6 +12702,7 @@ Commit_PlayerTeleportDestination:		; Memory Address ($7664) and binary offset [$
 	rts	;4E75
 
 Trigger_21_t2A_Flash_Teleport_FXY:		; Memory Address ($7686) and binary offset [$7302]
+	; Performs the flash teleport to the record's floor/X/Y destination, falling back one cell east when occupied and queueing the associated impact effect.
 	moveq	#$00,d0	;7000
 	move.b	$01(a1,d1.w),d0	;10311001
 	move.w	d0,d6	;3C00
@@ -12652,6 +12724,7 @@ Commit_TeleportAndQueueFlash:		; Memory Address ($76AC) and binary offset [$7328
 	bra	Queue_MapCellEffect	;6000A70A
 
 Switch_04_s08_Trigger_22_t2C_RotateWall_XY:		; Memory Address ($76B4) and binary offset [$7330]
+	; Resolves the trigger target and advances its two direction bits by one quarter-turn while preserving the other cell flags.
 	bsr	Resolve_ActionTargetXY	;6100E678
 	move.b	$01(a6,d0.w),d1	;12360001
 	move.w	d1,d2	;3401
@@ -12663,6 +12736,7 @@ Switch_04_s08_Trigger_22_t2C_RotateWall_XY:		; Memory Address ($76B4) and binary
 	rts	;4E75
 
 Trigger_06_t0C_WoodTrap1:		; Memory Address ($76D2) and binary offset [$734E]
+	; Applies the first fixed wooden-trap map mutation to its authored target cells.
 	move.l	#$000D000C,d7	;2E3C000D000C
 	bsr	CoordToMap	;61000DC2
 	bset	#$02,$00(a6,d0.w)	;08F600020000
@@ -12670,6 +12744,7 @@ Trigger_06_t0C_WoodTrap1:		; Memory Address ($76D2) and binary offset [$734E]
 	rts	;4E75
 
 Trigger_07_t0E_WoodTrap2:		; Memory Address ($76EA) and binary offset [$7366]
+	; Applies the second fixed wooden-trap map mutation to its authored target cells.
 	move.l	#$00030000,d7	;2E3C00030000	;Long Addr replaced with Symbol
 	bsr	CoordToMap	;61000DAA
 	bclr	#$02,$00(a6,d0.w)	;08B600020000
@@ -12677,6 +12752,7 @@ Trigger_07_t0E_WoodTrap2:		; Memory Address ($76EA) and binary offset [$7366]
 	rts	;4E75
 
 Trigger_08_t10_Trader_DoorCloser:		; Memory Address ($7702) and binary offset [$737E]
+	; Closes the trader's target door when the doorway is not occupied.
 	subq.w	#$02,d0	;5540
 	tst.b	$01(a6,d0.w)	;4A360001
 	bmi.s	Return_TraderDoorCloser	;6B06
@@ -12685,27 +12761,32 @@ Return_TraderDoorCloser:		; Memory Address ($7710) and binary offset [$738C]
 	rts	;4E75
 
 Trigger_01_t02_Spinner180:		; Memory Address ($7712) and binary offset [$738E]
+	; Rotates the activating player's facing by 180 degrees.
 	eor.w	#Direction_HalfTurn,$0020(a5)	;0A6D00020020
 	rts	;4E75
 
 Trigger_02_t04_SpinnerRandom:		; Memory Address ($771A) and binary offset [$7396]
+	; Sets the activating player's facing to a pseudo-random direction from 0 to 3.
 	bsr	RandomGen_BytewithOffset	;6100DE90
 	and.w	#Direction_Mask,d0	;02400003
 	move.w	d0,$0020(a5)	;3B400020
 	rts	;4E75
 
 Trigger_24_t30_SpinnerRight90:		; Memory Address ($7728) and binary offset [$73A4]
+	; Rotates the activating player's facing 90 degrees to the right.
 	addq.w	#$01,$0020(a5)	;526D0020
 	and.w	#Direction_Mask,$0020(a5)	;026D00030020
 	rts	;4E75
 
 Trigger_12_t18_Close_VoidLock_Door_XY:		; Memory Address ($7734) and binary offset [$73B0]
+	; Resolves the target cell, closes its Voidlock door, and applies the one-step trigger delay.
 	bsr	Resolve_ActionTargetXY	;6100E5F8
 	bset	#$00,$00(a6,d0.w)	;08F600000000
 	move.w	#Sound_DoorClick,Trigger_WaitFlag.w	;31FC00016FA8	;Short Absolute converted to symbol!
 	rts	;4E75
 
 Switch_03_s06_Trigger_03_t06_OpenLockedDoor_XY:		; Memory Address ($7746) and binary offset [$73C2]
+	; Resolves the target cell, opens its locked door, and applies the one-step trigger delay.
 	bsr	Resolve_ActionTargetXY	;6100E5E6
 	bclr	#$00,$00(a6,d0.w)	;08B600000000
 	move.w	#Sound_DoorClick,Trigger_WaitFlag.w	;31FC00016FA8	;Short Absolute converted to symbol!
@@ -12720,28 +12801,33 @@ Trigger_Action36_RotateWoodEdges:		; Memory Address ($7758) and binary offset [$
 	rts	;4E75
 
 Switch_06_s0C_Trigger_18_t24_CreatePillar_XY:		; Memory Address ($7768) and binary offset [$73E4]
+	; Clears the record target through the shared removal path, then creates the target pillar using the shared pillar-state handler.
 	bsr	Switch_01_s02_Trigger_11_t16_RemoveXY	;6100E5A8
 Switch_05_s0A_Trigger_13_t1A_TogglePillar_XY:		; Memory Address ($776C) and binary offset [$73E8]
+	; Resolves the target cell, sets its feature base state, and toggles the low pillar-state bits.
 	bsr	Resolve_ActionTargetXY	;6100E5C0
 	move.b	#$01,$00(a6,d0.w)	;1DBC00010000
 	eor.b	#$03,$01(a6,d0.w)	;0A3600030001
 	rts	;4E75
 
 Trigger_14_t1C_SetFloorTypeBits_XY:		; Memory Address ($777E) and binary offset [$73FA]
+	; Creates a pad at the record's target by preserving the first byte and setting feature-type bits 1 and 2 in the second byte.
 	bsr	Resolve_ActionTargetXY	;6100E5AE
 	or.b	#MapCell_FloorFeatureType,$01(a6,d0.w)	;003600060001
 	rts	;4E75
 
 Trigger_26_t34_ToggleFloorTypeBits_XY:		; Memory Address ($778A) and binary offset [$7406]
+	; Resolves the target cell and toggles second-byte feature bits 1 and 2 for action $34.
 	bsr	Resolve_ActionTargetXY	;6100E5A2
 	eor.b	#MapCell_FloorFeatureType,$01(a6,d0.w)	;0A3600060001
 	rts	;4E75
 
 Trigger_16_t20_ToggleNeighbourFloorType:		; Memory Address ($7796) and binary offset [$7412]
+	; Uses record byte 1 to select a neighbouring direction and toggles that cell's pad-type bits, removing the original target when the neighbour cannot be changed.
 	moveq	#$00,d6	;7C00
 	move.b	$01(a1,d1.w),d6	;1C311001
 	move.w	d1,-(sp)	;3F01
-	bsr	adrCd0084FC	;61000D5C
+	bsr	Resolve_DiagonalPillarSourceCell	;61000D5C
 	move.w	(sp)+,d1	;321F
 	move.l	d2,d7	;2E02
 	lea	MovementOffsetTable.w,a0	;41F85794	;Short Absolute converted to symbol!
@@ -12758,7 +12844,8 @@ Trigger_16_t20_ToggleNeighbourFloorType:		; Memory Address ($7796) and binary of
 	rts	;4E75
 
 Trigger_17_t22_MovePillar_NorthWestToNorth:		; Memory Address ($77D6) and binary offset [$7452]
-	bsr	adrCd0084FC	;61000D24
+	; Moves a pillar from the northwest diagonal cell to the north cell relative to the activating pad.
+	bsr	Resolve_DiagonalPillarSourceCell	;61000D24
 	move.l	d2,d7	;2E02
 	subq.b	#$01,d7	;5307
 	bsr	CoordToMap	;61000CBC
@@ -12772,6 +12859,7 @@ Trigger_17_t22_MovePillar_NorthWestToNorth:		; Memory Address ($77D6) and binary
 	rts	;4E75
 
 Trigger_04_t08_Vivify_Machine_External:		; Memory Address ($7800) and binary offset [$747C]
+	; Runs the external Vivify machine: enforces its raster gate, creates the impact, finds matching remains, and revives or relocates the affected unowned or owned champion at the machine target.
 	addq.w	#$02,d0	;5440
 	tst.b	$01(a6,d0.w)	;4A360001
 	bmi	Trigger_00_t00_Null	;6B00F80E
@@ -12787,7 +12875,7 @@ VivifyExternal_SearchRevivalCell:		; Memory Address ($7812) and binary offset [$
 	moveq	#$03,d4	;7803
 VivifyExternal_FindCornerStack:		; Memory Address ($782A) and binary offset [$74A6]
 	move.w	d4,d6	;3C04
-	bsr	adrCd005F5C	;6100E72E
+	bsr	Find_FloorObjectStackAtCellSubposition	;6100E72E
 	beq.s	VivifyExternal_PrepareRemainsScan	;6706
 VivifyExternal_NextCorner:		; Memory Address ($7832) and binary offset [$74AE]
 	dbra	d4,VivifyExternal_FindCornerStack	;51CCFFF6
@@ -12814,7 +12902,7 @@ VivifyExternal_ConsumeRemains:		; Memory Address ($785A) and binary offset [$74D
 	bset	#$07,$01(a6,d0.w)	;08F600070001
 	move.w	d2,-(sp)	;3F02
 	bsr	Remove_FloorObjectStackEntry	;6100E594
-	bsr	adrCd0084FC	;61000C94
+	bsr	Resolve_DiagonalPillarSourceCell	;61000C94
 	move.w	d1,d3	;3601
 	move.w	(sp)+,d0	;301F
 	and.w	#$000F,d0	;0240000F
@@ -12863,6 +12951,7 @@ VivifyExternal_RefreshParty:		; Memory Address ($78E4) and binary offset [$7560]
 	rts	;4E75
 
 Trigger_05_t0A_Vivify_Machine_Internal:		; Memory Address ($78F0) and binary offset [$756C]
+	; Revives a dead member of the caster's own party with current HP and vitality set to 5 and restores the champion to an available formation slot.
 	subq.w	#$02,d0	;5540
 	bset	#$00,$00(a6,d0.w)	;08F600000000
 	addq.w	#$02,d0	;5440
@@ -12918,15 +13007,15 @@ Pack_CurrentTowerMonsterBlock:		; Memory Address ($7974) and binary offset [$75F
 	move.w	MonsterLive_RecordCountOffset(a4),d1	;322CFFFE
 	lea	MonsterTotalsCounts_mod0.l,a0	;41F900017578
 	move.w	d1,$00(a0,d0.w)	;31810000
-	bmi.s	adrCd007A10	;6B6C
+	bmi.s	PackTowerBlock_ClearImpactListInit	;6B6C
 	move.l	a3,a0	;204B
 	move.w	#PackedMonster_TowerBlockLongwordCount-1,d0	;303C00BF
 	moveq	#-$01,d2	;74FF
-adrLp0079AC:		; Memory Address ($79AC) and binary offset [$7628]
+PackTowerBlock_FillNegativeOnesLoop:		; Memory Address ($79AC) and binary offset [$7628]
 	move.l	d2,(a0)+	;20C2
-	dbra	d0,adrLp0079AC	;51C8FFFC
+	dbra	d0,PackTowerBlock_FillNegativeOnesLoop	;51C8FFFC
 	move.l	a3,a0	;204B
-adrLp0079B4:		; Memory Address ($79B4) and binary offset [$7630]
+PackTowerBlock_WriteRecordsLoop:		; Memory Address ($79B4) and binary offset [$7630]
 	move.b	MonsterRecord_Type(a4),d2	;142C000A
 	asl.b	#$04,d2	;E902
 	move.b	MonsterRecord_Floor(a4),d3	;162C0004
@@ -12939,47 +13028,47 @@ adrLp0079B4:		; Memory Address ($79B4) and binary offset [$7630]
 	move.b	MonsterRecord_CurrentLevel(a4),(a3)+	;16EC0006
 	move.b	MonsterRecord_Form(a4),(a3)+	;16EC000B
 	move.b	MonsterRecord_TeamGroupIndex(a4),d3	;162C000D
-	bmi.s	adrCd007A06	;6B28
+	bmi.s	PackTowerBlock_AdvanceRecordLoop	;6B28
 	lea	MonsterTeamIndexTable.l,a6	;4DF900017390
 	asl.w	#$02,d3	;E543
 	add.w	d3,a6	;DCC3
 	moveq	#MonsterTeamMember_Count-1,d2	;7403
-adrLp0079EA:		; Memory Address ($79EA) and binary offset [$7666]
+PackTowerBlock_TeamMemberLoop:		; Memory Address ($79EA) and binary offset [$7666]
 	moveq	#$00,d0	;7000
 	move.b	$00(a6,d2.w),d0	;10362000
-	bmi.s	adrCd007A02	;6B10
+	bmi.s	PackTowerBlock_TeamMemberLoopStep	;6B10
 	add.b	d0,d0	;D000
 	add.b	$00(a6,d2.w),d0	;D0362000
 	add.w	d0,d0	;D040
 	move.b	d3,d4	;1803
 	add.b	d2,d4	;D802
 	move.b	d4,PackedMonster_TeamDataOffset(a0,d0.w)	;11840005
-adrCd007A02:		; Memory Address ($7A02) and binary offset [$767E]
-	dbra	d2,adrLp0079EA	;51CAFFE6
-adrCd007A06:		; Memory Address ($7A06) and binary offset [$7682]
+PackTowerBlock_TeamMemberLoopStep:		; Memory Address ($7A02) and binary offset [$767E]
+	dbra	d2,PackTowerBlock_TeamMemberLoop	;51CAFFE6
+PackTowerBlock_AdvanceRecordLoop:		; Memory Address ($7A06) and binary offset [$7682]
 	addq.w	#$01,a3	;524B
 	add.w	#$0010,a4	;D8FC0010
-	dbra	d1,adrLp0079B4	;51C9FFA6
-adrCd007A10:		; Memory Address ($7A10) and binary offset [$768C]
+	dbra	d1,PackTowerBlock_WriteRecordsLoop	;51C9FFA6
+PackTowerBlock_ClearImpactListInit:		; Memory Address ($7A10) and binary offset [$768C]
 	lea	MapCellImpactList.l,a0	;41F9000174F8
 	move.l	Current_TowerMapDataBase.l,a6	;2C790000EE78
 	move.w	-$0002(a0),d7	;3E28FFFE
 	clr.w	-$0002(a0)	;4268FFFE
-	bra.s	adrCd007A30	;600A
+	bra.s	PackTowerBlock_ClearImpactListCheck	;600A
 
-adrLp007A26:		; Memory Address ($7A26) and binary offset [$76A2]
+PackTowerBlock_ClearImpactListLoop:		; Memory Address ($7A26) and binary offset [$76A2]
 	move.w	(a0),d0	;3010
 	bclr	#$05,$01(a6,d0.w)	;08B600050001
 	clr.l	(a0)+	;4298
-adrCd007A30:		; Memory Address ($7A30) and binary offset [$76AC]
-	dbra	d7,adrLp007A26	;51CFFFF4
-adrCd007A34:		; Memory Address ($7A34) and binary offset [$76B0]
+PackTowerBlock_ClearImpactListCheck:		; Memory Address ($7A30) and binary offset [$76AC]
+	dbra	d7,PackTowerBlock_ClearImpactListLoop	;51CFFFF4
+Pack_CurrentTowerMonsterBlock_DecayMagicLoop:		; Memory Address ($7A34) and binary offset [$76B0]
 	tst.w	LinkedMagicRecordListLength.l	;4A79000173F4
-	beq.s	adrCd007A42	;6706
+	beq.s	Pack_CurrentTowerMonsterBlock_Return	;6706
 	bsr	Decay_LinkedMagicRecords	;61009736
-	bra.s	adrCd007A34	;60F2
+	bra.s	Pack_CurrentTowerMonsterBlock_DecayMagicLoop	;60F2
 
-adrCd007A42:		; Memory Address ($7A42) and binary offset [$76BE]
+Pack_CurrentTowerMonsterBlock_Return:		; Memory Address ($7A42) and binary offset [$76BE]
 	rts	;4E75
 
 Try_EnterMapCell:		; Memory Address ($7DC8) and binary offset [$7A44]
@@ -13075,7 +13164,7 @@ Check_WoodCellTraversal:		; Memory Address ($7E6A) and binary offset [$7AE6]
 	move.b	$01(a6,d0.w),d1	;12360001
 	and.w	#$0007,d1	;02410007
 	cmpi.b	#$02,d1	;0C010002
-	bne.s	adrCd007B04	;6610
+	bne.s	Accept_WoodCellTraversal	;6610
 Test_WoodTraversalEdge:		; Memory Address ($7E78) and binary offset [$7AF4]
 	; Converts direction to the two-bit wooden-edge selector before testing the map cell.
 	move.w	d6,d1	;3206
@@ -13083,11 +13172,11 @@ Test_WoodTraversalEdge:		; Memory Address ($7E78) and binary offset [$7AF4]
 Test_DirectedWoodEdge:		; Memory Address ($7E7C) and binary offset [$7AF8]
 	; Tests the selected wooden-wall/door edge bit and returns the resulting traversal condition.
 	btst	d1,$00(a6,d0.w)	;03360000
-	beq.s	adrCd007B04	;6706
+	beq.s	Accept_WoodCellTraversal	;6706
 	sub.b	#$FF,d1	;040100FF
 	rts	;4E75
 
-adrCd007B04:		; Memory Address ($7B04) and binary offset [$7780]
+Accept_WoodCellTraversal:		; Memory Address ($7B04) and binary offset [$7780]
 	swap	d1	;4841
 	rts	;4E75
 
@@ -13097,11 +13186,11 @@ Redraw_GameInterfaceFromScratch:		; Memory Address ($7B08) and binary offset [$7
 	moveq	#$00,d4	;7800
 	moveq	#$60,d5	;7A60
 	tst.w	MultiPlayer.l	;4A790000EE30
-	beq.s	adrCd007B20	;6708
+	beq.s	Redraw_GameInterface_DrawPlayer1Edge	;6708
 	moveq	#$1F,d5	;7A1F
 	bsr.s	Draw_PartyCommandPanelEdge	;6112
 	move.w	#$0090,d5	;3A3C0090
-adrCd007B20:		; Memory Address ($7B20) and binary offset [$779C]
+Redraw_GameInterface_DrawPlayer1Edge:		; Memory Address ($7B20) and binary offset [$779C]
 	bsr.s	Draw_PartyCommandPanelEdge	;610C
 Draw_PlayerInterfaceAndDungeonViewport:		; Memory Address ($7B22) and binary offset [$779E]
 	; Draws the champion name panel and party commands, then refreshes the active player's dungeon viewport.
@@ -13112,18 +13201,18 @@ Draw_PlayerInterfaceAndDungeonViewport:		; Memory Address ($7B22) and binary off
 Draw_PartyCommandPanelEdge:		; Memory Address ($7B2E) and binary offset [$77AA]
 	; Builds the procedural edge around the party-command panel using repeated horizontal lines.
 	move.l	#$013F0001,d3	;263C013F0001
-adrCd007B34:		; Memory Address ($7B34) and binary offset [$77B0]
+Draw_PartyCommandPanelEdge_GrowLoop:		; Memory Address ($7B34) and binary offset [$77B0]
 	bsr	BW_blit_horiz_line	;6100604E
 	addq.w	#$01,d5	;5245
 	addq.w	#$01,d3	;5243
 	cmpi.w	#$0005,d3	;0C430005
-	bcs.s	adrCd007B34	;65F2
+	bcs.s	Draw_PartyCommandPanelEdge_GrowLoop	;65F2
 	subq.w	#$02,d3	;5543
-adrCd007B44:		; Memory Address ($7B44) and binary offset [$77C0]
+Draw_PartyCommandPanelEdge_ShrinkLoop:		; Memory Address ($7B44) and binary offset [$77C0]
 	bsr	BW_blit_horiz_line	;6100603E
 	addq.w	#$01,d5	;5245
 	subq.w	#$01,d3	;5343
-	bne.s	adrCd007B44	;66F6
+	bne.s	Draw_PartyCommandPanelEdge_ShrinkLoop	;66F6
 	rts	;4E75
 
 Draw_PartyCommandInterface:		; Memory Address ($7B50) and binary offset [$77CC]
@@ -13168,10 +13257,11 @@ Draw_PartyCommandIconStrip:		; Memory Address ($7BC0) and binary offset [$783C]
 	cmpi.w	#$0075,d7	;0C470075
 	bcs.s	Draw_PartyCommandIconStrip	;65E6
 	cmp.w	#$0008,$0042(a5)	;0C6D00080042
-	bne.s	adrCd007BE8	;6606
+	bne.s	Draw_PartyCommandMenuAndContinuousChain	;6606
 	cmpi.w	#$0077,d7	;0C470077
 	bcs.s	Draw_PartyCommandIconStrip	;65D8
-adrCd007BE8:		; Memory Address ($7BE8) and binary offset [$7864]
+Draw_PartyCommandMenuAndContinuousChain:		; Memory Address ($7BE8) and binary offset [$7864]
+	; Draws the party-command menu text followed by the continuous bottom-chain strip from GFX_Pockets+$3C60.
 	bsr	Draw_PartyCommandMenu	;61000182
 	lea	GFX_Pockets+GFX_Pockets_ChainStripCommandPanelOffset.l,a1	;43F900050362
 	move.l	#$00050006,d5	;2A3C00050006	;Long Addr replaced with Symbol
@@ -13346,7 +13436,7 @@ PartyCommandDescriptorStream_Mode9:		; Memory Address ($7C93) and binary offset 
 	dc.b	$FF	;FF
 	dc.b	$00	;00
 
-adrJA007CA0:		; Memory Address ($7CA0) and binary offset [$791C]
+Select_PartyCommandDescriptorStream_Mode0:		; Memory Address ($7CA0) and binary offset [$791C]
 	lea	PartyCommandDescriptorStream_Mode0.w,a6	;4DF87C0E	;Short Absolute converted to symbol!
 	rts	;4E75
 
@@ -13355,40 +13445,40 @@ Build_EligibleCompanionList:		; Memory Address ($7CA6) and binary offset [$7922]
 	bsr.s	Reset_ActionSelectionScratchBuffer	;615E
 	moveq	#$01,d1	;7201
 	moveq	#$00,d3	;7600
-adrCd007CAC:		; Memory Address ($7CAC) and binary offset [$7928]
+Build_EligibleCompanionList_ScanLoop:		; Memory Address ($7CAC) and binary offset [$7928]
 	move.b	$18(a5,d1.w),d0	;10351018
 	and.w	#$00E0,d0	;024000E0
-	bne.s	adrCd007CCC	;6616
+	bne.s	Build_EligibleCompanionList_NextSlot	;6616
 	move.b	$18(a5,d1.w),d0	;10351018
 	and.w	#$000F,d0	;0240000F
 	move.b	d0,$04(a6,d2.w)	;1D802004
 	move.b	#$5F,$00(a6,d3.w)	;1DBC005F3000
 	addq.w	#$01,d3	;5243
 	addq.w	#$02,d2	;5442
-adrCd007CCC:		; Memory Address ($7CCC) and binary offset [$7948]
+Build_EligibleCompanionList_NextSlot:		; Memory Address ($7CCC) and binary offset [$7948]
 	addq.w	#$01,d1	;5241
 	cmpi.w	#$0004,d1	;0C410004
-	bcs.s	adrCd007CAC	;65D8
+	bcs.s	Build_EligibleCompanionList_ScanLoop	;65D8
 	rts	;4E75
 
-adrJA007CD6:		; Memory Address ($7CD6) and binary offset [$7952]
+Build_EligibleCompanionList_Reversed:		; Memory Address ($7CD6) and binary offset [$7952]
 	bsr.s	Reset_ActionSelectionScratchBuffer	;612E
 	moveq	#$02,d1	;7202
 	moveq	#$00,d3	;7600
-adrLp007CDC:		; Memory Address ($7CDC) and binary offset [$7958]
+Build_EligibleCompanionList_Reversed_ScanLoop:		; Memory Address ($7CDC) and binary offset [$7958]
 	move.b	$19(a5,d1.w),d0	;10351019
-	bmi.s	adrCd007D00	;6B1E
+	bmi.s	Build_EligibleCompanionList_Reversed_NextSlot	;6B1E
 	btst	#$05,d0	;08000005
-	beq.s	adrCd007D00	;6718
+	beq.s	Build_EligibleCompanionList_Reversed_NextSlot	;6718
 	btst	#$06,d0	;08000006
-	bne.s	adrCd007D00	;6612
+	bne.s	Build_EligibleCompanionList_Reversed_NextSlot	;6612
 	and.w	#$000F,d0	;0240000F
 	move.b	d0,$04(a6,d2.w)	;1D802004
 	move.b	#$5F,$00(a6,d3.w)	;1DBC005F3000
 	addq.w	#$02,d2	;5442
 	addq.w	#$01,d3	;5243
-adrCd007D00:		; Memory Address ($7D00) and binary offset [$797C]
-	dbra	d1,adrLp007CDC	;51C9FFDA
+Build_EligibleCompanionList_Reversed_NextSlot:		; Memory Address ($7D00) and binary offset [$797C]
+	dbra	d1,Build_EligibleCompanionList_Reversed_ScanLoop	;51C9FFDA
 	rts	;4E75
 
 Reset_ActionSelectionScratchBuffer:		; Memory Address ($7D06) and binary offset [$7982]
@@ -13396,49 +13486,49 @@ Reset_ActionSelectionScratchBuffer:		; Memory Address ($7D06) and binary offset 
 	lea	Interface_ActionSelectionScratchBuffer.w,a6	;4DF87C20	;Short Absolute converted to symbol!
 	move.b	#$FC,d0	;103C00FC
 	moveq	#$08,d2	;7408
-adrCd007D10:		; Memory Address ($7D10) and binary offset [$798C]
+Reset_ActionSelectionScratchBuffer_FillLoop:		; Memory Address ($7D10) and binary offset [$798C]
 	move.b	d0,$02(a6,d2.w)	;1D802002
 	subq.w	#$02,d2	;5542
-	bne.s	adrCd007D10	;66F8
+	bne.s	Reset_ActionSelectionScratchBuffer_FillLoop	;66F8
 	move.l	#$FFFFFFFF,(a6)	;2CBCFFFFFFFF
 	rts	;4E75
 
-adrJA007D20:		; Memory Address ($7D20) and binary offset [$799C]
+Select_PartyCommandDescriptorStream_Mode4:		; Memory Address ($7D20) and binary offset [$799C]
 	lea	PartyCommandDescriptorStream_Mode4.w,a6	;4DF87C2C	;Short Absolute converted to symbol!
 	rts	;4E75
 
-adrJA007D26:		; Memory Address ($7D26) and binary offset [$79A2]
+Select_PartyCommandDescriptorStream_Mode5:		; Memory Address ($7D26) and binary offset [$79A2]
 	lea	PartyCommandDescriptorStream_Mode5.w,a6	;4DF87C3A	;Short Absolute converted to symbol!
 	rts	;4E75
 
-adrJA007D2C:		; Memory Address ($7D2C) and binary offset [$79A8]
+Select_PartyCommandDescriptorStream_Mode6:		; Memory Address ($7D2C) and binary offset [$79A8]
 	lea	PartyCommandDescriptorStream_Mode6.w,a6	;4DF87C4D	;Short Absolute converted to symbol!
 	rts	;4E75
 
-adrJA007D32:		; Memory Address ($7D32) and binary offset [$79AE]
+Select_PartyCommandDescriptorStream_Mode7:		; Memory Address ($7D32) and binary offset [$79AE]
 	lea	PartyCommandDescriptorStream_Mode7.w,a6	;4DF87C6F	;Short Absolute converted to symbol!
 	rts	;4E75
 
-adrJA007D38:		; Memory Address ($7D38) and binary offset [$79B4]
+Select_PartyCommandDescriptorStream_Mode8:		; Memory Address ($7D38) and binary offset [$79B4]
 	lea	PartyCommandDescriptorStream_Mode8.w,a6	;4DF87C87	;Short Absolute converted to symbol!
 	rts	;4E75
 
-adrJA007D3E:		; Memory Address ($7D3E) and binary offset [$79BA]
+Select_PartyCommandDescriptorStream_Mode9:		; Memory Address ($7D3E) and binary offset [$79BA]
 	lea	PartyCommandDescriptorStream_Mode9.w,a6	;4DF87C93	;Short Absolute converted to symbol!
 	rts	;4E75
 
 PartyCommandMenu_ModeJumpTable:		; Memory Address ($7D44) and binary offset [$79C0]
 	; Mode-indexed pointer table selecting the party-command descriptor stream.
-	dc.l	adrJA007CA0	;00007CA0
+	dc.l	Select_PartyCommandDescriptorStream_Mode0	;00007CA0
 	dc.l	Build_EligibleCompanionList	;00007CA6
 	dc.l	$00000000	;00000000
-	dc.l	adrJA007CD6	;00007CD6
-	dc.l	adrJA007D20	;00007D20
-	dc.l	adrJA007D26	;00007D26
-	dc.l	adrJA007D2C	;00007D2C
-	dc.l	adrJA007D32	;00007D32
-	dc.l	adrJA007D38	;00007D38
-	dc.l	adrJA007D3E	;00007D3E
+	dc.l	Build_EligibleCompanionList_Reversed	;00007CD6
+	dc.l	Select_PartyCommandDescriptorStream_Mode4	;00007D20
+	dc.l	Select_PartyCommandDescriptorStream_Mode5	;00007D26
+	dc.l	Select_PartyCommandDescriptorStream_Mode6	;00007D2C
+	dc.l	Select_PartyCommandDescriptorStream_Mode7	;00007D32
+	dc.l	Select_PartyCommandDescriptorStream_Mode8	;00007D38
+	dc.l	Select_PartyCommandDescriptorStream_Mode9	;00007D3E
 
 Draw_PartyCommandMenu:		; Memory Address ($7D6C) and binary offset [$79E8]
 	; Selects a command descriptor stream and draws its selectable rows and text.
@@ -13451,21 +13541,21 @@ Draw_PartyCommandMenu:		; Memory Address ($7D6C) and binary offset [$79E8]
 	move.l	#$00060039,d5	;2A3C00060039
 	add.w	$0008(a5),d5	;DA6D0008
 	moveq	#$00,d7	;7E00
-adrCd007D8E:		; Memory Address ($7D8E) and binary offset [$7A0A]
+Draw_PartyCommandMenu_RowLoop:		; Memory Address ($7D8E) and binary offset [$7A0A]
 	moveq	#$02,d3	;7602
 	moveq	#$00,d4	;7800
 	move.b	$00(a6,d7.w),d4	;18367000
-	bpl.s	adrCd007D9C	;6A04
+	bpl.s	Draw_PartyCommandMenu_RowLoop_TestSelectedRow	;6A04
 	moveq	#$5F,d4	;785F
-	bra.s	adrCd007DAC	;6010
+	bra.s	Draw_PartyCommandMenu_RowLoop_DrawLeftBar	;6010
 
-adrCd007D9C:		; Memory Address ($7D9C) and binary offset [$7A18]
+Draw_PartyCommandMenu_RowLoop_TestSelectedRow:		; Memory Address ($7D9C) and binary offset [$7A18]
 	cmp.b	$0040(a5),d7	;BE2D0040
-	bne.s	adrCd007DAC	;660A
+	bne.s	Draw_PartyCommandMenu_RowLoop_DrawLeftBar	;660A
 	tst.b	$0041(a5)	;4A2D0041
-	bne.s	adrCd007DAC	;6604
+	bne.s	Draw_PartyCommandMenu_RowLoop_DrawLeftBar	;6604
 	move.w	$0010(a5),d3	;362D0010
-adrCd007DAC:		; Memory Address ($7DAC) and binary offset [$7A28]
+Draw_PartyCommandMenu_RowLoop_DrawLeftBar:		; Memory Address ($7DAC) and binary offset [$7A28]
 	subq.w	#$01,d4	;5344
 	swap	d4	;4844
 	movem.l	d4/d5/d7,-(sp)	;48E70D00
@@ -13480,30 +13570,30 @@ adrCd007DAC:		; Memory Address ($7DAC) and binary offset [$7A28]
 	addq.w	#$02,d4	;5444
 	moveq	#$5D,d0	;705D
 	sub.w	d4,d0	;9044
-	bcs.s	adrCd007DF2	;651C
+	bcs.s	Draw_PartyCommandMenu_RowLoop_NextRow	;651C
 	swap	d4	;4844
 	move.w	d0,d4	;3800
 	swap	d4	;4844
 	moveq	#$02,d3	;7602
 	cmp.b	$0040(a5),d7	;BE2D0040
-	bne.s	adrCd007DEE	;660A
+	bne.s	Draw_PartyCommandMenu_RowLoop_DrawRightBar	;660A
 	tst.b	$0041(a5)	;4A2D0041
-	beq.s	adrCd007DEE	;6704
+	beq.s	Draw_PartyCommandMenu_RowLoop_DrawRightBar	;6704
 	move.w	$0010(a5),d3	;362D0010
-adrCd007DEE:		; Memory Address ($7DEE) and binary offset [$7A6A]
+Draw_PartyCommandMenu_RowLoop_DrawRightBar:		; Memory Address ($7DEE) and binary offset [$7A6A]
 	bsr	BW_draw_bar	;61005C78
-adrCd007DF2:		; Memory Address ($7DF2) and binary offset [$7A6E]
+Draw_PartyCommandMenu_RowLoop_NextRow:		; Memory Address ($7DF2) and binary offset [$7A6E]
 	movem.l	(sp)+,d4/d5/d7	;4CDF00B0
 	addq.w	#$08,d5	;5045
 	addq.w	#$01,d7	;5247
 	cmpi.w	#$0004,d7	;0C470004
-	bcs.s	adrCd007D8E	;658E
+	bcs.s	Draw_PartyCommandMenu_RowLoop	;658E
 	move.l	screen_ptr.l,a0	;207900008D36
 	add.w	$000A(a5),a0	;D0ED000A
 	add.w	#$0910,a0	;D0FC0910
 	addq.w	#$04,a6	;584E
 	moveq	#$00,d7	;7E00
-adrCd007E12:		; Memory Address ($7E12) and binary offset [$7A8E]
+Draw_PartyCommandMenu_PrintEntriesLoop:		; Memory Address ($7E12) and binary offset [$7A8E]
 	move.l	a0,-(sp)	;2F08
 	bsr	Print_com_menu_entry	;61005936
 	clr.b	TextDoubleWidthFlag.l	;42390000EE2D
@@ -13512,7 +13602,7 @@ adrCd007E12:		; Memory Address ($7E12) and binary offset [$7A8E]
 adrL_007E22:		equ	*-2		; Memory Address ($7E22) and binary offset [$7A9E]
 	addq.w	#$01,d7	;5247
 	cmpi.w	#$0004,d7	;0C470004
-	bcs.s	adrCd007E12	;65E6
+	bcs.s	Draw_PartyCommandMenu_PrintEntriesLoop	;65E6
 	moveq	#$00,d4	;7800
 	moveq	#$39,d5	;7A39
 	add.w	$0008(a5),d5	;DA6D0008
@@ -13530,23 +13620,23 @@ Draw_SelectedLeaderChainStrip:		; Memory Address ($7E4A) and binary offset [$7AC
 	lea	GFX_Pockets+$6500.l,a1	;43F900052C02
 	move.l	#$00000024,-(sp)	;2F3C00000024
 	moveq	#$00,d3	;7600
-adrCd007E62:		; Memory Address ($7E62) and binary offset [$7ADE]
+Draw_PlanarGraphicCore_WithStride98:		; Memory Address ($7E62) and binary offset [$7ADE]
 	lea	$0098.w,a3	;47F80098
 	bra	Draw_PlanarGraphicCore	;60004FC0
 
 Draw_ActivePartyChampionInShield:		; Memory Address ($7E6A) and binary offset [$7AE6]
 	; Validate an active living party slot and draw its character inside the selected shield surround.
 	btst	d7,$003E(a5)	;0F2D003E
-	beq.s	adrCd007E80	;6710
+	beq.s	Draw_ActivePartyChampionInShield_EarlyReturn	;6710
 	move.b	$18(a5,d7.w),d1	;12357018
 	move.b	d1,d0	;1001
 	and.w	#$000F,d0	;0240000F
 	and.w	#$00E0,d1	;024100E0
-	beq.s	adrCd007E82	;6702
-adrCd007E80:		; Memory Address ($7E80) and binary offset [$7AFC]
+	beq.s	Draw_ActivePartyChampionInShield_Render	;6702
+Draw_ActivePartyChampionInShield_EarlyReturn:		; Memory Address ($7E80) and binary offset [$7AFC]
 	rts	;4E75
 
-adrCd007E82:		; Memory Address ($7E82) and binary offset [$7AFE]
+Draw_ActivePartyChampionInShield_Render:		; Memory Address ($7E82) and binary offset [$7AFE]
 	move.b	d0,-$0017(a3)	;1740FFE9
 	move.w	d7,d0	;3007
 	add.w	d7,d7	;DE47
@@ -13600,17 +13690,18 @@ Draw_PartyShieldChainStrip:		; Memory Address ($7ED2) and binary offset [$7B4E]
 Refresh_PartyShieldSlotIfDirty:		; Memory Address ($7EF0) and binary offset [$7B6C]
 	; Return unless the selected party slot is marked for redraw.
 	tst.b	$5A(a5,d7.w)	;4A35705A
-	bmi.s	adrCd007EF8	;6B02
+	bmi.s	Refresh_PartyShieldSlotIfDirty_Dispatch	;6B02
 	rts	;4E75
 
-adrCd007EF8:		; Memory Address ($7EF8) and binary offset [$7B74]
+Refresh_PartyShieldSlotIfDirty_Dispatch:		; Memory Address ($7EF8) and binary offset [$7B74]
 	or.b	#$03,$0054(a5)	;002D00030054
 	tst.w	d7	;4A47
-	beq.s	adrCd007F0A	;6708
+	beq.s	Draw_LeaderPanelPresentation	;6708
 	clr.w	adrW_00EE2A.l	;42790000EE2A
 	bra.s	Draw_PartyShieldSlot	;604A
 
-adrCd007F0A:		; Memory Address ($7F0A) and binary offset [$7B86]
+Draw_LeaderPanelPresentation:		; Memory Address ($7F0A) and binary offset [$7B86]
+	; Selects between the compact leader portrait/statistics presentation and the full-body party-leader presentation.
 	tst.w	$0042(a5)	;4A6D0042
 	bpl	Draw_MainChampionAvatarPanel	;6A004DAE
 	moveq	#$00,d3	;7600
@@ -13620,11 +13711,12 @@ adrCd007F0A:		; Memory Address ($7F0A) and binary offset [$7B86]
 	add.w	$0008(a5),d5	;DA6D0008
 	bsr	BW_draw_bar	;61005B44
 	btst	#$00,$003E(a5)	;082D0000003E
-	bne.s	adrCd007F36	;6608
+	bne.s	Draw_SelectedLeaderBodyPresentation	;6608
 	bsr	Draw_MainChampionAvatarPanel	;61004D8E
 	bra	Draw_CompactStatsFrame	;600000C4
 
-adrCd007F36:		; Memory Address ($7F36) and binary offset [$7BB2]
+Draw_SelectedLeaderBodyPresentation:		; Memory Address ($7F36) and binary offset [$7BB2]
+	; Draws the selected leader's full-body composition with its two chain strips while retaining the compact statistics frame.
 	move.l	#$00000230,a0	;207C00000230
 	bsr	Draw_SelectedLeaderChainStrip	;6100FF0C
 	move.l	#$00000235,a0	;207C00000235
@@ -13764,7 +13856,7 @@ Draw_CompactStatsFrame:		; Memory Address ($7FF8) and binary offset [$7C74]
 Draw_MainPlayerInterface:		; Memory Address ($80CA) and binary offset [$7D46]
 	; Draws the ordinary player interface, including exactly three compact statistics bars.
 	tst.w	$0042(a5)	;4A6D0042
-	bpl	adrCd008256	;6A000186
+	bpl	Return_NoPanelUpdateNeeded	;6A000186
 	or.b	#$01,$0054(a5)	;002D00010054
 	move.l	#$00240036,d4	;283C00240036
 	move.l	#$00160017,d5	;2A3C00160017
@@ -13882,22 +13974,22 @@ Refresh_CurrentChampionMapPositionIcon:		; Memory Address ($81CE) and binary off
 	moveq	#$63,d0	;7063
 	moveq	#$00,d2	;7400
 	move.b	$0011(a4),d2	;142C0011
-	bne.s	adrCd00820A	;6614
+	bne.s	Refresh_MapPositionIcon_WornItemIcon	;6614
 	move.b	$0013(a4),d2	;142C0013
-	bmi.s	adrCd008206	;6B0A
+	bmi.s	Refresh_MapPositionIcon_DrawIcon	;6B0A
 	move.w	d2,d0	;3002
 	bsr	Character_GetClassIndex	;6100E700
 	add.w	#$0064,d0	;06400064
-adrCd008206:		; Memory Address ($8206) and binary offset [$7E82]
+Refresh_MapPositionIcon_DrawIcon:		; Memory Address ($8206) and binary offset [$7E82]
 	bra	Draw_PocketGraphic	;600048E2
 
-adrCd00820A:		; Memory Address ($820A) and binary offset [$7E86]
+Refresh_MapPositionIcon_WornItemIcon:		; Memory Address ($820A) and binary offset [$7E86]
 	and.w	#$0007,d2	;02420007
 	move.b	PocketIconCodeTable(pc,d2.w),d0	;103B200E
 	cmpi.w	#$0040,d0	;0C400040
-	bne.s	adrCd008206	;66EE
+	bne.s	Refresh_MapPositionIcon_DrawIcon	;66EE
 	add.w	$0020(a5),d0	;D06D0020
-	bra.s	adrCd008206	;60E8
+	bra.s	Refresh_MapPositionIcon_DrawIcon	;60E8
 
 PocketIconCodeTable:		; Memory Address ($821E) and binary offset [$7E9A]
 	; Maps a pocket-slot index to the icon code drawn for that slot.
@@ -13912,11 +14004,11 @@ PocketIconCodeTable:		; Memory Address ($821E) and binary offset [$7E9A]
 
 adrL_008226:		; Memory Address ($8226) and binary offset [$7EA2]
 	tst.b	$0055(a5)	;4A2D0055
-	bpl.s	adrCd008230	;6A04
+	bpl.s	Show_QueuedPartyRejoinNotice	;6A04
 	bsr	Update_IdlePanelAnimation	;6100EB0E
-adrCd008230:		; Memory Address ($8230) and binary offset [$7EAC]
+Show_QueuedPartyRejoinNotice:		; Memory Address ($8230) and binary offset [$7EAC]
 	move.b	$0034(a5),d0	;102D0034
-	bmi.s	adrCd008256	;6B20
+	bmi.s	Return_NoPanelUpdateNeeded	;6B20
 	move.b	#$FF,$0034(a5)	;1B7C00FF0034
 	lea	Notice_PartyMemberRejoins.w,a6	;4DF841DE	;Short Absolute converted to symbol!
 	move.b	d0,(a6)	;1C80
@@ -13928,7 +14020,7 @@ Refresh_ModeDependentChampionDisplay:		; Memory Address ($8246) and binary offse
 	beq	Draw_PartyProfessionIconGrid	;67000148
 	subq.b	#$03,d0	;5700
 	beq	Refresh_HeldItemDisplay	;6700E9E0
-adrCd008256:		; Memory Address ($8256) and binary offset [$7ED2]
+Return_NoPanelUpdateNeeded:		; Memory Address ($8256) and binary offset [$7ED2]
 	rts	;4E75
 
 Draw_ChampionNamePanelBackground:		; Memory Address ($8258) and binary offset [$7ED4]
@@ -13982,9 +14074,9 @@ Draw_ChampionNamePanelLowerEdge:		; Memory Address ($82BA) and binary offset [$7
 	add.w	#$0028,a0	;D0FC0028
 	lea	GFX_Pockets+GFX_Pockets_CommandPadPlayer2Offset.l,a1	;43F900052EE2
 	btst	#PlayerData_PlayerIdentityBit,(a5)	;08150000
-	bne.s	adrCd008308	;6604
+	bne.s	Draw_NamePanelControlPadSprite	;6604
 	add.w	#GFX_Pockets_CommandPadPlayer1Offset-GFX_Pockets_CommandPadPlayer2Offset,a1	;D2FC0020
-adrCd008308:		; Memory Address ($8308) and binary offset [$7F84]
+Draw_NamePanelControlPadSprite:		; Memory Address ($8308) and binary offset [$7F84]
 	move.l	#$0003001E,d5	;2A3C0003001E	;Long Addr replaced with Symbol
 	bsr	Draw_PlanarGraphic	;610049A8
 	bsr	Refresh_CurrentChampionMapPositionIcon	;6100FEBA
@@ -14026,7 +14118,7 @@ Draw_InventoryPanelChainStrip:		; Memory Address ($8358) and binary offset [$7FD
 	lsr.w	#$02,d2	;E44A
 	add.w	d2,d0	;D042
 	add.w	#$0050,d0	;06400050
-adrCd00838C:		; Memory Address ($838C) and binary offset [$8008]
+Draw_PartyProfessionIconGrid_EarlyReturn:		; Memory Address ($838C) and binary offset [$8008]
 	rts	;4E75
 
 ProfessionIconGrid_ScreenOffsetTable:		; Memory Address ($838E) and binary offset [$800A]
@@ -14039,32 +14131,32 @@ ProfessionIconGrid_ScreenOffsetTable:		; Memory Address ($838E) and binary offse
 Draw_PartyProfessionIconGrid:		; Memory Address ($8396) and binary offset [$8012]
 	; Draws the four-position profession-icon grid and frames the active lead champion's position.
 	btst	#$06,$0018(a5)	;082D00060018
-	bne.s	adrCd00838C	;66EE
+	bne.s	Draw_PartyProfessionIconGrid_EarlyReturn	;66EE
 	or.b	#$04,$0054(a5)	;002D00040054
 	move.l	screen_ptr.l,a0	;207900008D36
 	add.w	$000A(a5),a0	;D0ED000A
 	moveq	#$00,d7	;7E00
-adrCd0083B0:		; Memory Address ($83B0) and binary offset [$802C]
+Draw_PartyProfessionIconGrid_SlotLoop:		; Memory Address ($83B0) and binary offset [$802C]
 	move.w	d7,d2	;3407
 	add.w	d2,d2	;D442
 	add.w	ProfessionIconGrid_ScreenOffsetTable(pc,d2.w),a0	;D0FB20D8
 	move.b	$26(a5,d7.w),d0	;10357026
-	bpl.s	adrCd0083C4	;6A06
+	bpl.s	Draw_PartyProfessionIconGrid_CheckDeadSlot	;6A06
 	bsr	Draw_VacantPartySlotIcon	;610000A2
-	bra.s	adrCd0083D4	;6010
+	bra.s	Draw_PartyProfessionIconGrid_NextSlot	;6010
 
-adrCd0083C4:		; Memory Address ($83C4) and binary offset [$8040]
+Draw_PartyProfessionIconGrid_CheckDeadSlot:		; Memory Address ($83C4) and binary offset [$8040]
 	cmp.w	$0016(a5),d7	;BE6D0016
-	beq.s	adrCd0083D0	;6706
+	beq.s	Draw_PartyProfessionIconGrid_DeadSlotColour	;6706
 	bsr	Select_LivingMemberClassColour	;61000064
-	bra.s	adrCd0083D4	;6004
+	bra.s	Draw_PartyProfessionIconGrid_NextSlot	;6004
 
-adrCd0083D0:		; Memory Address ($83D0) and binary offset [$804C]
+Draw_PartyProfessionIconGrid_DeadSlotColour:		; Memory Address ($83D0) and binary offset [$804C]
 	bsr	Select_NeutralProfessionIconMask	;6100005A
-adrCd0083D4:		; Memory Address ($83D4) and binary offset [$8050]
+Draw_PartyProfessionIconGrid_NextSlot:		; Memory Address ($83D4) and binary offset [$8050]
 	addq.w	#$01,d7	;5247
 	cmpi.w	#$0004,d7	;0C470004
-	bcs.s	adrCd0083B0	;65D4
+	bcs.s	Draw_PartyProfessionIconGrid_SlotLoop	;65D4
 	move.w	$0006(a5),d0	;302D0006
 	bsr	Find_ChampionFormationSlot	;6100BCB0
 	move.w	$0010(a5),d3	;362D0010
@@ -14072,13 +14164,13 @@ adrCd0083D4:		; Memory Address ($83D4) and binary offset [$8050]
 	move.l	#$000D0039,d5	;2A3C000D0039
 	add.w	$0008(a5),d5	;DA6D0008
 	btst	#$01,d2	;08020001
-	beq.s	adrCd008402	;6704
+	beq.s	ProfessionIconGrid_ColumnLookup	;6704
 	add.w	#$000F,d5	;0645000F
-adrCd008402:		; Memory Address ($8402) and binary offset [$807E]
+ProfessionIconGrid_ColumnLookup:		; Memory Address ($8402) and binary offset [$807E]
 	move.b	GridSlotColumnShiftTable(pc,d2.w),d2	;143B200E
-	beq.s	adrCd00840E	;6706
+	beq.s	ProfessionIconGrid_DrawSelectionFrame	;6706
 	sub.l	#$0000FFF0,d4	;04840000FFF0	;Long Addr replaced with Symbol
-adrCd00840E:		; Memory Address ($840E) and binary offset [$808A]
+ProfessionIconGrid_DrawSelectionFrame:		; Memory Address ($840E) and binary offset [$808A]
 	bra	BW_draw_frame	;600056C4
 
 GridSlotColumnShiftTable:		; Memory Address ($8412) and binary offset [$808E]
@@ -14160,6 +14252,7 @@ PlayerPositionToMapOffset:		; Memory Address ($8498) and binary offset [$8114]
 	; Converts the player's packed X and Y position to an offset in the selected floor map.
 	move.l	PlayerData_StartXPosition(a5),d7	;2E2D001C
 CoordToMap:
+	; Sets A6 to the current tower's map-data base and converts packed coordinate D7 to the current-floor map-cell offset using Y*width+X.
 	move.l	Current_TowerMapDataBase.l,a6	;2C790000EE78
 Calculate_MapOffsetFromPackedCoordinate:		; Memory Address ($84A2) and binary offset [$811E]
 	; Calculates the selected floor's byte offset for a packed X and Y coordinate, assuming the tower map base is already loaded.
@@ -14169,10 +14262,11 @@ Calculate_MapOffsetFromPackedCoordinate:		; Memory Address ($84A2) and binary of
 	add.w	d7,d0	;D047
 	swap	d7	;4847
 	add.w	d0,d0	;D040
-	add.w	adrW_00EE76.l,d0	;D0790000EE76
+	add.w	Live_PlayerPosition.l,d0	;D0790000EE76
 	rts	;4E75
 
-adrCd0084BA:		; Memory Address ($84BA) and binary offset [$8136]
+Compute_StairAlignedDestination:		; Memory Address ($84BA) and binary offset [$8136]
+	; Calculates the aligned destination coordinate and facing used when moving between paired stair cells.
 	lea	Compute_StairAlignedDestination_ScratchTable.l,a0	;41F90000EE60
 	add.b	Map_AlignmentYArrayOffset(a0,d2.w),d7	;DE302008
 	swap	d7	;4847
@@ -14191,18 +14285,19 @@ Select_FloorMapByIndex:		; Memory Address ($84DA) and binary offset [$8156]
 	move.b	$00(a0,d0.w),CurrentFloorWidth_LowByte.l	;13F000000000EE71
 	move.b	Map_FloorHeightsOffset(a0,d0.w),CurrentFloorHeight_LowByte.l	;13F000080000EE73
 	add.w	d0,d0	;D040
-	move.w	Map_FloorDataOffsetsOffset(a0,d0.w),adrW_00EE76.l	;33F000100000EE76
+	move.w	Map_FloorDataOffsetsOffset(a0,d0.w),Live_PlayerPosition.l	;33F000100000EE76
 	rts	;4E75
 
-adrCd0084FC:		; Memory Address ($84FC) and binary offset [$8178]
+Resolve_DiagonalPillarSourceCell:		; Memory Address ($84FC) and binary offset [$8178]
+	; Reconstructs X/Y from the selected-floor and current-cell offsets to locate the diagonal source cell used by pillar movement.
 	moveq	#-$01,d1	;72FF
 	moveq	#$00,d2	;7400
-	move.w	adrW_00EE76.l,d2	;34390000EE76
+	move.w	Live_PlayerPosition.l,d2	;34390000EE76
 	lea	Resolve_DiagonalPillarSourceCell_ScratchTable.l,a0	;41F90000EE50
-adrCd00850C:		; Memory Address ($850C) and binary offset [$8188]
+Resolve_DiagonalPillarSourceCell_SearchLoop:		; Memory Address ($850C) and binary offset [$8188]
 	addq.w	#$01,d1	;5241
 	cmp.w	(a0)+,d2	;B458
-	bne.s	adrCd00850C	;66FA
+	bne.s	Resolve_DiagonalPillarSourceCell_SearchLoop	;66FA
 	sub.w	d0,d2	;9440
 	neg.w	d2	;4442
 	lsr.w	#Map_CellByteShift,d2	;E24A
@@ -14226,12 +14321,12 @@ Encode_FloppyTrackForWrite:		; Memory Address ($8534) and binary offset [$81B0]
 	movem.l	d0-d7/a1-a4,-(sp)	;48E7FF78
 	move.l	SavedScreenPointer.l,a1	;227900008520
 	move.w	#$00F9,d6	;3C3C00F9
-adrLp008542:		; Memory Address ($8542) and binary offset [$81BE]
+Encode_FloppyTrackForWrite_FillGapLoop:		; Memory Address ($8542) and binary offset [$81BE]
 	move.l	#$AAAAAAAA,(a1)+	;22FCAAAAAAAA
-	dbra	d6,adrLp008542	;51CEFFF8
+	dbra	d6,Encode_FloppyTrackForWrite_FillGapLoop	;51CEFFF8
 	moveq	#$0A,d3	;760A
 	moveq	#$0B,d2	;740B
-adrLp008550:		; Memory Address ($8550) and binary offset [$81CC]
+Encode_FloppyTrackForWrite_SectorLoop:		; Memory Address ($8550) and binary offset [$81CC]
 	move.l	a1,a6	;2C49
 	move.l	#$AAAAAAAA,(a1)+	;22FCAAAAAAAA
 	move.l	#$44894489,(a1)+	;22FC44894489
@@ -14274,7 +14369,7 @@ adrLp008550:		; Memory Address ($8550) and binary offset [$81CC]
 	move.l	a1,a4	;2849
 	moveq	#$7F,d5	;7A7F
 	moveq	#$00,d4	;7800
-adrLp0085C2:		; Memory Address ($85C2) and binary offset [$823E]
+Encode_FloppyTrackForWrite_SectorDataLoop:		; Memory Address ($85C2) and binary offset [$823E]
 	move.l	(a0)+,d7	;2E18
 	move.l	d7,d6	;2C07
 	and.l	#$AAAAAAAA,d6	;0286AAAAAAAA
@@ -14284,7 +14379,7 @@ adrLp0085C2:		; Memory Address ($85C2) and binary offset [$823E]
 	move.l	d6,(a1)+	;22C6
 	eor.l	d6,d4	;BD84
 	eor.l	d7,d4	;BF84
-	dbra	d5,adrLp0085C2	;51CDFFE2
+	dbra	d5,Encode_FloppyTrackForWrite_SectorDataLoop	;51CDFFE2
 	move.l	d4,d7	;2E04
 	and.l	#$AAAAAAAA,d4	;0284AAAAAAAA
 	lsr.l	#$01,d4	;E28C
@@ -14300,7 +14395,7 @@ adrLp0085C2:		; Memory Address ($85C2) and binary offset [$823E]
 	addq.b	#$01,d1	;5201
 	subq.b	#$01,d2	;5302
 	add.l	#$00000200,a1	;D3FC00000200
-	dbra	d3,adrLp008550	;51CBFF3C
+	dbra	d3,Encode_FloppyTrackForWrite_SectorLoop	;51CBFF3C
 	move.l	#$AAAAAAAA,(a1)	;22BCAAAAAAAA
 	move.w	#$0002,_custom+intreq.l	;33FC000200DFF09C
 	move.l	SavedScreenPointer.l,a1	;227900008520
@@ -14310,16 +14405,16 @@ adrLp0085C2:		; Memory Address ($85C2) and binary offset [$823E]
 	move.w	#$9100,_custom+adkcon.l	;33FC910000DFF09E
 	move.w	#$4000,_custom+dsklen.l	;33FC400000DFF024
 	move.b	_ciab+ciaicr.l,d0	;103900BFDD00
-adrCd008656:		; Memory Address ($8656) and binary offset [$82D2]
+Encode_FloppyTrackForWrite_WaitIndexPulse:		; Memory Address ($8656) and binary offset [$82D2]
 	move.b	_ciab+ciaicr.l,d0	;103900BFDD00
 	btst	#$04,d0	;08000004
-	beq.s	adrCd008656	;67F4
+	beq.s	Encode_FloppyTrackForWrite_WaitIndexPulse	;67F4
 	move.w	#$D955,_custom+dsklen.l	;33FCD95500DFF024
 	move.w	#$D955,_custom+dsklen.l	;33FCD95500DFF024
-adrCd008672:		; Memory Address ($8672) and binary offset [$82EE]
+Encode_FloppyTrackForWrite_WaitDmaComplete:		; Memory Address ($8672) and binary offset [$82EE]
 	move.w	_custom+intreqr.l,d0	;303900DFF01E
 	btst	#$01,d0	;08000001
-	beq.s	adrCd008672	;67F4
+	beq.s	Encode_FloppyTrackForWrite_WaitDmaComplete	;67F4
 	movem.l	(sp)+,d0-d7/a1-a4	;4CDF1EFF
 	bsr	Delay_FloppyControllerSettle	;610001E6
 	bra	Wait_ForFloppyDriveReady	;6000004A
@@ -14330,7 +14425,7 @@ Encode_MFMClockBits:		; Memory Address ($868A) and binary offset [$8306]
 	add.w	d5,d5	;DA45
 	subq.w	#$01,d5	;5345
 	move.b	-$0001(a2),d0	;102AFFFF
-adrLp008696:		; Memory Address ($8696) and binary offset [$8312]
+Encode_MFMClockBits_FixupLoop:		; Memory Address ($8696) and binary offset [$8312]
 	move.l	(a2),d4	;2812
 	move.l	d4,d1	;2204
 	move.l	d4,d2	;2404
@@ -14345,17 +14440,17 @@ adrLp008696:		; Memory Address ($8696) and binary offset [$8312]
 	or.l	d1,d2	;8481
 	move.l	d2,(a2)+	;24C2
 	move.b	d2,d0	;1002
-	dbra	d5,adrLp008696	;51CDFFDE
+	dbra	d5,Encode_MFMClockBits_FixupLoop	;51CDFFDE
 	movem.l	(sp)+,d0-d5/a2	;4CDF043F
 	rts	;4E75
 
 Read_FloppyTrackSequence:		; Memory Address ($86C0) and binary offset [$833C]
 	; Reads, decodes, and advances across the requested sequence of raw floppy tracks.
 	move.l	a0,-(sp)	;2F08
-adrLp0086C2:		; Memory Address ($86C2) and binary offset [$833E]
+LoadGame_ReadTracksLoop_StepPulseLoop:		; Memory Address ($86C2) and binary offset [$833E]
 	bsr	Read_AndDecodeFloppyTrack	;610000E2
 	bsr	FloppyDrive_StepPulse	;6100005E
-	dbra	d0,adrLp0086C2	;51C8FFF6
+	dbra	d0,LoadGame_ReadTracksLoop_StepPulseLoop	;51C8FFF6
 	move.l	(sp)+,a0	;205F
 	rts	;4E75
 
@@ -14372,8 +14467,8 @@ Wait_ForFloppyDriveReady:		; Memory Address ($86D2) and binary offset [$834E]
 	nop	;4E71
 	move.b	#$71,_ciab+ciaprb.l	;13FC007100BFD100
 	move.w	#$B000,d0	;303CB000
-adrLp0086FC:		; Memory Address ($86FC) and binary offset [$8378]
-	dbra	d0,adrLp0086FC	;51C8FFFE
+SelectDrive0_SetDirTrue_SettleLoop:		; Memory Address ($86FC) and binary offset [$8378]
+	dbra	d0,SelectDrive0_SetDirTrue_SettleLoop	;51C8FFFE
 	rts	;4E75
 
 Select_FloppySideSignalHigh:		; Memory Address ($8702) and binary offset [$837E]
@@ -14385,59 +14480,59 @@ Select_FloppySideSignalHigh:		; Memory Address ($8702) and binary offset [$837E]
 	move.b	#$75,_ciab+ciaprb.l	;13FC007500BFD100
 	move.w	#$B000,d0	;303CB000
 
-adrLp008720:		; Memory Address ($8720) and binary offset [$839C]
-	dbra	d0,adrLp008720	;51C8FFFE
+SelectDrive0_ClearDirFalse_SettleLoop:		; Memory Address ($8720) and binary offset [$839C]
+	dbra	d0,SelectDrive0_ClearDirFalse_SettleLoop	;51C8FFFE
 	rts	;4E75
 
 FloppyDrive_StepPulse:		; Memory Address ($8726) and binary offset [$83A2]
 	; Issues the active-low floppy step pulse using the current driver state, waits for the controller, and resumes the floppy operation.
 	tst.b	FloppySideSelectFlag.l	;4A39000088A2
-	beq.s	adrCd008744	;6716
+	beq.s	StepPulse_EmitDir1Pulse	;6716
 	move.b	#$70,_ciab+ciaprb.l	;13FC007000BFD100
 	nop	;4E71
 	nop	;4E71
 	move.b	#$71,_ciab+ciaprb.l	;13FC007100BFD100
-	bra.s	adrCd008758	;6014
+	bra.s	StepPulse_SettleAndWaitReady	;6014
 
-adrCd008744:		; Memory Address ($8744) and binary offset [$83C0]
+StepPulse_EmitDir1Pulse:		; Memory Address ($8744) and binary offset [$83C0]
 	move.b	#$74,_ciab+ciaprb.l	;13FC007400BFD100
 	nop	;4E71
 	nop	;4E71
 	move.b	#$75,_ciab+ciaprb.l	;13FC007500BFD100
-adrCd008758:		; Memory Address ($8758) and binary offset [$83D4]
+StepPulse_SettleAndWaitReady:		; Memory Address ($8758) and binary offset [$83D4]
 	bsr	Delay_FloppyControllerSettle	;61000110
 	bra	Wait_ForFloppyDriveReady	;6000FF74
 
 FloppyDrive_OppositeDirectionStepPulse:		; Memory Address ($8760) and binary offset [$83DC]
 	; Issues a floppy head-step pulse in the direction opposite to the normal track-advance routine.
 	tst.b	FloppySideSelectFlag.l	;4A39000088A2
-	beq.s	adrCd00877E	;6716
+	beq.s	SeekPulse_EmitDir1Pulse	;6716
 	move.b	#$72,_ciab+ciaprb.l	;13FC007200BFD100
 	nop	;4E71
 	nop	;4E71
 	move.b	#$73,_ciab+ciaprb.l	;13FC007300BFD100
-	bra.s	adrCd008792	;6014
+	bra.s	SeekPulse_SettleAndWaitReady	;6014
 
-adrCd00877E:		; Memory Address ($877E) and binary offset [$83FA]
+SeekPulse_EmitDir1Pulse:		; Memory Address ($877E) and binary offset [$83FA]
 	move.b	#$76,_ciab+ciaprb.l	;13FC007600BFD100
 	nop	;4E71
 	nop	;4E71
 	move.b	#$77,_ciab+ciaprb.l	;13FC007700BFD100
-adrCd008792:		; Memory Address ($8792) and binary offset [$840E]
+SeekPulse_SettleAndWaitReady:		; Memory Address ($8792) and binary offset [$840E]
 	bsr	Delay_FloppyControllerSettle	;610000D6
 	bra	Wait_ForFloppyDriveReady	;6000FF3A
 
 ;fiX Label expected
 	subq.w	#$01,d6	;5346
-	beq	adrCd00884A	;670000AC
+	beq	StartDMA_Cleanup_SharedExit	;670000AC
 	bsr	Delay_FloppyControllerSettle	;610000C8
-	bra.s	adrCd0087AC	;6006
+	bra.s	StartDMA_ProgramDiskRegisters	;6006
 
 Read_AndDecodeFloppyTrack:		; Memory Address ($87A6) and binary offset [$8422]
 	; Starts raw-track disk DMA, waits with a timeout, and decodes all eleven MFM sectors into the destination buffer.
 	movem.l	d0-d2/d5/d6/a1,-(sp)	;48E7E640
 	moveq	#$03,d6	;7C03
-adrCd0087AC:		; Memory Address ($87AC) and binary offset [$8428]
+StartDMA_ProgramDiskRegisters:		; Memory Address ($87AC) and binary offset [$8428]
 	move.w	#$0002,_custom+intreq.l	;33FC000200DFF09C
 	move.l	SavedScreenPointer.l,a1	;227900008520
 	clr.l	$0002(a1)	;42A90002
@@ -14447,25 +14542,25 @@ adrCd0087AC:		; Memory Address ($87AC) and binary offset [$8428]
 	move.w	#$9500,_custom+adkcon.l	;33FC950000DFF09E
 	move.w	#$4000,_custom+dsklen.l	;33FC400000DFF024
 	move.b	_ciab+ciaicr.l,d0	;103900BFDD00
-adrCd0087EA:		; Memory Address ($87EA) and binary offset [$8466]
+StartDMA_WaitIndexPulse:		; Memory Address ($87EA) and binary offset [$8466]
 	move.b	_ciab+ciaicr.l,d0	;103900BFDD00
 	btst	#$04,d0	;08000004
-	beq.s	adrCd0087EA	;67F4
+	beq.s	StartDMA_WaitIndexPulse	;67F4
 	move.w	#$9F40,_custom+dsklen.l	;33FC9F4000DFF024
 	move.w	#$9F40,_custom+dsklen.l	;33FC9F4000DFF024
 	move.l	#DiskReadTimeoutCount,d1	;223C000186A0
-adrCd00880C:		; Memory Address ($880C) and binary offset [$8488]
+StartDMA_WaitDiskBlockOrTimeout:		; Memory Address ($880C) and binary offset [$8488]
 	move.w	_custom+intreqr.l,d0	;303900DFF01E
 	btst	#$01,d0	;08000001
-	bne.s	adrCd00881C	;6604
+	bne.s	StartDMA_BeginTrackDecode	;6604
 	subq.l	#$01,d1	;5381
-	bne.s	adrCd00880C	;66F0
-adrCd00881C:		; Memory Address ($881C) and binary offset [$8498]
+	bne.s	StartDMA_WaitDiskBlockOrTimeout	;66F0
+StartDMA_BeginTrackDecode:		; Memory Address ($881C) and binary offset [$8498]
 	moveq	#$0A,d5	;7A0A
 	lea	$003A(a1),a1	;43E9003A
-adrLp008822:		; Memory Address ($8822) and binary offset [$849E]
+StartDMA_DecodeSectorLoop:		; Memory Address ($8822) and binary offset [$849E]
 	moveq	#$7F,d6	;7C7F
-adrLp008824:		; Memory Address ($8824) and binary offset [$84A0]
+StartDMA_DecodeSectorLongwordLoop:		; Memory Address ($8824) and binary offset [$84A0]
 	move.l	$0200(a1),d1	;22290200
 	move.l	(a1)+,d0	;2019
 	asl.l	#$01,d0	;E380
@@ -14473,10 +14568,10 @@ adrLp008824:		; Memory Address ($8824) and binary offset [$84A0]
 	and.l	#$55555555,d1	;028155555555
 	or.l	d1,d0	;8081
 	move.l	d0,(a0)+	;20C0
-	dbra	d6,adrLp008824	;51CEFFE6
+	dbra	d6,StartDMA_DecodeSectorLongwordLoop	;51CEFFE6
 	add.l	#$00000240,a1	;D3FC00000240
-	dbra	d5,adrLp008822	;51CDFFDA
-adrCd00884A:		; Memory Address ($884A) and binary offset [$84C6]
+	dbra	d5,StartDMA_DecodeSectorLoop	;51CDFFDA
+StartDMA_Cleanup_SharedExit:		; Memory Address ($884A) and binary offset [$84C6]
 	movem.l	(sp)+,d0-d2/d5/d6/a1	;4CDF0267
 	rts	;4E75
 
@@ -14484,20 +14579,20 @@ FloppyDrive_SeekToTrackZero:		; Memory Address ($8850) and binary offset [$84CC]
 	; Pulses the floppy head toward track zero until the track-zero sense line is asserted.
 	move.b	_ciaa.l,d0	;103900BFE001
 	btst	#$04,d0	;08000004
-	beq.s	adrCd008866	;670A
+	beq.s	SeekToTrackZero_AtZero_WaitReady	;670A
 	bsr	FloppyDrive_OppositeDirectionStepPulse	;6100FF02
 	bsr	Delay_FloppyControllerSettle	;61000008
 	bra.s	FloppyDrive_SeekToTrackZero	;60EA
 
-adrCd008866:		; Memory Address ($8866) and binary offset [$84E2]
+SeekToTrackZero_AtZero_WaitReady:		; Memory Address ($8866) and binary offset [$84E2]
 	bra	Wait_ForFloppyDriveReady	;6000FE6A
 
 Delay_FloppyControllerSettle:		; Memory Address ($886A) and binary offset [$84E6]
 	; Provides the fixed hardware delay used between floppy-controller CIA operations.
 	move.l	d7,-(sp)	;2F07
 	move.w	#$0960,d7	;3E3C0960
-adrLp008870:		; Memory Address ($8870) and binary offset [$84EC]
-	dbra	d7,adrLp008870	;51CFFFFE
+SettleDelay_CountdownLoop:		; Memory Address ($8870) and binary offset [$84EC]
+	dbra	d7,SettleDelay_CountdownLoop	;51CFFFFE
 	move.l	(sp)+,d7	;2E1F
 	rts	;4E75
 
@@ -14514,11 +14609,11 @@ Seek_FloppyToTrack:		; Memory Address ($888E) and binary offset [$850A]
 	move.l	d7,-(sp)	;2F07
 	bsr.s	FloppyDrive_SeekToTrackZero	;61BE
 	subq.w	#$01,d7	;5347
-	bcs.s	adrCd00889E	;6508
-adrLp008896:		; Memory Address ($8896) and binary offset [$8512]
+	bcs.s	SeekTrackZero_StepForward_Exit	;6508
+SeekTrackZero_StepForwardLoop:		; Memory Address ($8896) and binary offset [$8512]
 	bsr	FloppyDrive_StepPulse	;6100FE8E
-	dbra	d7,adrLp008896	;51CFFFFA
-adrCd00889E:		; Memory Address ($889E) and binary offset [$851A]
+	dbra	d7,SeekTrackZero_StepForwardLoop	;51CFFFFA
+SeekTrackZero_StepForward_Exit:		; Memory Address ($889E) and binary offset [$851A]
 	move.l	(sp)+,d7	;2E1F
 	rts	;4E75
 
@@ -14596,29 +14691,29 @@ MouseControl:		; Memory Address ($8952) and binary offset [$85CE]
 	move.b	d0,d2			;1400
 	ext.w	d2			;4882
 	add.w	d2,d1			;D242
-	bpl.s	adrCd008986		;6A02
+	bpl.s	MouseControl_YFloorClamp		;6A02
 	moveq	#$00,d1			;7200
-adrCd008986:		; Memory Address ($8986) and binary offset [$8602]
+MouseControl_YFloorClamp:		; Memory Address ($8986) and binary offset [$8602]
 	cmp.b	$003B(a5),d1		;B22D003B
-	bcc.s	adrCd008990		;6404
+	bcc.s	MouseControl_YUpperBoundClamp		;6404
 	move.b	$003B(a5),d1		;122D003B
-adrCd008990:		; Memory Address ($8990) and binary offset [$860C]
+MouseControl_YUpperBoundClamp:		; Memory Address ($8990) and binary offset [$860C]
 	cmp.b	$003A(a5),d1		;B22D003A
-	bcs.s	adrCd00899A		;6504
+	bcs.s	MouseControl_YClampDone_BeginX		;6504
 	move.b	$003A(a5),d1		;122D003A
-adrCd00899A:		; Memory Address ($899A) and binary offset [$8616]
+MouseControl_YClampDone_BeginX:		; Memory Address ($899A) and binary offset [$8616]
 	move.w	d1,$0004(a5)		;3B410004
 	lsr.w	#$08,d0			;E048
 	ext.w	d0			;4880
 	move.w	$0002(a5),d1		;322D0002
 	add.w	d0,d1			;D240
-	bpl.s	adrCd0089AE		;6A04
+	bpl.s	MouseControl_XNegativeWrapAdd		;6A04
 	add.w	#$0140,d1		;06410140
-adrCd0089AE:		; Memory Address ($89AE) and binary offset [$862A]
+MouseControl_XNegativeWrapAdd:		; Memory Address ($89AE) and binary offset [$862A]
 	cmpi.w	#$0140,d1		;0C410140
-	bcs.s	adrCd0089B8		;6504
+	bcs.s	MouseControl_XWrapClamp_Store		;6504
 	sub.w	#$0140,d1		;04410140
-adrCd0089B8:		; Memory Address ($89B8) and binary offset [$8634]
+MouseControl_XWrapClamp_Store:		; Memory Address ($89B8) and binary offset [$8634]
 	move.w	d1,$0002(a5)		;3B410002
 	move.l	$0002(a5),d1		;222D0002
 	lea	SpritePosition_00.l,a0	;41F900008E84
@@ -14632,36 +14727,37 @@ adrCd0089B8:		; Memory Address ($89B8) and binary offset [$8634]
 	rol.b	#$01,d1			;E319
 	lea	PreviousFireButtonState.l,a0	;41F900008AFC
 	tst.b	d1			;4A01
-	bpl.s	adrCd0089F6		;6A04
+	bpl.s	MouseFireButton_StoreStateAndEdgeCheck		;6A04
 	tst.b	(a0)			;4A10
-	bmi.s	adrCd008A08		;6B12
-adrCd0089F6:		; Memory Address ($89F6) and binary offset [$8672]
+	bmi.s	MouseControl_ButtonEdgeExit		;6B12
+MouseFireButton_StoreStateAndEdgeCheck:		; Memory Address ($89F6) and binary offset [$8672]
 	move.b	d1,(a0)			;1081
 	tst.b	d1			;4A01
-	bpl.s	adrCd008A08		;6A0C
+	bpl.s	MouseControl_ButtonEdgeExit		;6A0C
 	tst.b	$0001(a5)		;4A2D0001
-	bmi.s	adrCd008A08		;6B06
+	bmi.s	MouseControl_ButtonEdgeExit		;6B06
 	bset	#$07,$0001(a5)		;08ED00070001
-adrCd008A08:		; Memory Address ($8A08) and binary offset [$8684]
+MouseControl_ButtonEdgeExit:		; Memory Address ($8A08) and binary offset [$8684]
 	rts				;4E75
 
 Calculate_WrappedMouseCounterDelta:		; Memory Address ($8A0A) and binary offset [$8686]
 	; Converts the difference between two eight-bit mouse counters into the signed wrapped movement delta.
 	sub.b	d1,d0			;9001
-	bcc.s	adrCd008A14		;6406
+	bcc.s	CalcMouseDelta_TestSignNoBorrow		;6406
 	tst.b	d0			;4A00
-	bmi.s	adrCd008A1A		;6B08
-	bra.s	adrCd008A18		;6004
+	bmi.s	CalcMouseDelta_ReturnAbs		;6B08
+	bra.s	CalcMouseDelta_NegateResult		;6004
 
-adrCd008A14:		; Memory Address ($8A14) and binary offset [$8690]
+CalcMouseDelta_TestSignNoBorrow:		; Memory Address ($8A14) and binary offset [$8690]
 	tst.b	d0			;4A00
-	bpl.s	adrCd008A1A		;6A02
-adrCd008A18:		; Memory Address ($8A18) and binary offset [$8694]
+	bpl.s	CalcMouseDelta_ReturnAbs		;6A02
+CalcMouseDelta_NegateResult:		; Memory Address ($8A18) and binary offset [$8694]
 	neg.b	d0			;4400
-adrCd008A1A:		; Memory Address ($8A1A) and binary offset [$8696]
+CalcMouseDelta_ReturnAbs:		; Memory Address ($8A1A) and binary offset [$8696]
 	rts	;4E75
 
 InputControls:		; Memory Address ($8A1C) and binary offset [$8698]
+	; Per-frame input dispatcher: in two-player mode it reads the mouse path; in single-player mode it reads both joystick ports, updates the associated player cursor positions, and rewrites their hardware-sprite position words.
 	tst.w	MultiPlayer.l	;4A790000EE30
 	bne	MouseControl	;6600FF2E
 	bsr	JoystickControl	;610000D6
@@ -14704,34 +14800,34 @@ Update_JoystickCursorPosition:		; Memory Address ($8A98) and binary offset [$871
 	; Applies decoded joystick direction bits to a player's pointer, clamping vertical movement and wrapping horizontal movement.
 	move.l	$0002(a5),d1	;222D0002
 	lsr.b	#$01,d0	;E208
-	bcc.s	adrCd008AAA	;640A
+	bcc.s	ClampCursor_AfterYDecrementClamp	;640A
 	subq.w	#$02,d1	;5541
 	cmp.b	$003B(a5),d1	;B22D003B
-	bcc.s	adrCd008AAA	;6402
+	bcc.s	ClampCursor_AfterYDecrementClamp	;6402
 	addq.w	#$02,d1	;5441
-adrCd008AAA:		; Memory Address ($8AAA) and binary offset [$8726]
+ClampCursor_AfterYDecrementClamp:		; Memory Address ($8AAA) and binary offset [$8726]
 	lsr.b	#$01,d0	;E208
-	bcc.s	adrCd008AB8	;640A
+	bcc.s	ClampCursor_AfterYIncrementClamp	;640A
 	addq.w	#$02,d1	;5441
 	cmp.b	$003A(a5),d1	;B22D003A
-	bcs.s	adrCd008AB8	;6502
+	bcs.s	ClampCursor_AfterYIncrementClamp	;6502
 	subq.w	#$02,d1	;5541
-adrCd008AB8:		; Memory Address ($8AB8) and binary offset [$8734]
+ClampCursor_AfterYIncrementClamp:		; Memory Address ($8AB8) and binary offset [$8734]
 	swap	d1	;4841
 	lsr.b	#$01,d0	;E208
-	bcc.s	adrCd008AC6	;6408
+	bcc.s	ClampCursor_AfterXDecrementWrap	;6408
 	subq.w	#$02,d1	;5541
-	bcc.s	adrCd008AC6	;6404
+	bcc.s	ClampCursor_AfterXDecrementWrap	;6404
 	add.w	#$0140,d1	;06410140
-adrCd008AC6:		; Memory Address ($8AC6) and binary offset [$8742]
+ClampCursor_AfterXDecrementWrap:		; Memory Address ($8AC6) and binary offset [$8742]
 	lsr.b	#$01,d0	;E208
-	bcc.s	adrCd008ACC	;6402
+	bcc.s	ClampCursor_BeforeXWrapCheck	;6402
 	addq.w	#$02,d1	;5441
-adrCd008ACC:		; Memory Address ($8ACC) and binary offset [$8748]
+ClampCursor_BeforeXWrapCheck:		; Memory Address ($8ACC) and binary offset [$8748]
 	cmpi.w	#$0140,d1	;0C410140
-	bcs.s	adrCd008AD6	;6504
+	bcs.s	ClampCursor_AfterXWrapCheck	;6504
 	sub.w	#$0140,d1	;04410140
-adrCd008AD6:		; Memory Address ($8AD6) and binary offset [$8752]
+ClampCursor_AfterXWrapCheck:		; Memory Address ($8AD6) and binary offset [$8752]
 	swap	d1	;4841
 	move.l	d1,$0002(a5)	;2B410002
 	rts	;4E75
@@ -14761,6 +14857,7 @@ PreviousFireButtonState:		; Memory Address ($8AFC) and binary offset [$8778]
 	dc.w	$0000	;0000
 
 JoystickControl:		; Memory Address ($8AFE) and binary offset [$877A]
+	; Reads both joystick/mouse-counter ports and CIAA fire-button bits, decodes their directional deltas, and stores the combined per-player movement and button state.
 	move.w	_custom+joy0dat.l,d0	;303900DFF00A
 	bsr.s	Decode_JoystickDirectionBits	;61D8
 	move.b	_ciaa.l,d1	;123900BFE001
@@ -14778,26 +14875,26 @@ JoystickControl:		; Memory Address ($8AFE) and binary offset [$877A]
 	lea	JoystickControl_PreviousButtonStateBase.l,a0	;41F900008AFA
 	lea	Player2_Data.l,a5	;4BF90000EEDE
 	moveq	#$01,d1	;7201
-adrLp008B3C:		; Memory Address ($8B3C) and binary offset [$87B8]
+JoystickControl_PerPlayerLoop:		; Memory Address ($8B3C) and binary offset [$87B8]
 	tst.b	$02(a0,d1.w)	;4A301002
-	bpl.s	adrCd008B4C	;6A0A
+	bpl.s	JoystickControl_StoreNewButtonState	;6A0A
 	move.b	d0,$02(a0,d1.w)	;11801002
 	and.b	#$7F,d0	;0200007F
-	bra.s	adrCd008B50	;6004
+	bra.s	JoystickControl_StoreDeltaAndCheckEdge	;6004
 
-adrCd008B4C:		; Memory Address ($8B4C) and binary offset [$87C8]
+JoystickControl_StoreNewButtonState:		; Memory Address ($8B4C) and binary offset [$87C8]
 	move.b	d0,$02(a0,d1.w)	;11801002
-adrCd008B50:		; Memory Address ($8B50) and binary offset [$87CC]
+JoystickControl_StoreDeltaAndCheckEdge:		; Memory Address ($8B50) and binary offset [$87CC]
 	move.b	d0,$00(a0,d1.w)	;11801000
 	tst.b	d0	;4A00
-	bpl.s	adrCd008B64	;6A0C
+	bpl.s	JoystickControl_LoopTail_NextPlayer	;6A0C
 	tst.b	$0001(a5)	;4A2D0001
-	bmi.s	adrCd008B64	;6B06
+	bmi.s	JoystickControl_LoopTail_NextPlayer	;6B06
 	bset	#$07,$0001(a5)	;08ED00070001
-adrCd008B64:		; Memory Address ($8B64) and binary offset [$87E0]
+JoystickControl_LoopTail_NextPlayer:		; Memory Address ($8B64) and binary offset [$87E0]
 	lea	Player1_Data.l,a5	;4BF90000EE7C
 	swap	d0	;4840
-	dbra	d1,adrLp008B3C	;51C9FFCE
+	dbra	d1,JoystickControl_PerPlayerLoop	;51C9FFCE
 	rts	;4E75
 
 Update_PlayerDialogueTextColour:		; Memory Address ($8B72) and binary offset [$87EE]
@@ -14808,32 +14905,32 @@ Update_PlayerDialogueTextColour:		; Memory Address ($8B72) and binary offset [$8
 	bmi.s	Restore_PlayerDialogueTextColour	;6B60
 	moveq	#$00,d0	;7000
 	move.b	$004B(a5),d0	;102D004B
-	bne.s	adrCd008B9A	;6612
+	bne.s	DialogueColour_ComputeRampIndex	;6612
 	move.b	$0052(a5),d0	;102D0052
 	and.w	#$003F,d0	;0240003F
 	beq.s	Restore_PlayerDialogueTextColour	;674E
 	move.w	#$90FF,$004A(a5)	;3B7C90FF004A
 	bra.s	Restore_PlayerDialogueTextColour	;6046
 
-adrCd008B9A:		; Memory Address ($8B9A) and binary offset [$8816]
+DialogueColour_ComputeRampIndex:		; Memory Address ($8B9A) and binary offset [$8816]
 	tst.b	$004A(a5)	;4A2D004A
-	bne.s	adrCd008BDC	;663C
+	bne.s	DialogueColour_DecrementHoldCounter	;663C
 	tst.b	d0	;4A00
-	bpl.s	adrCd008BAC	;6A08
+	bpl.s	DialogueColour_ApplyPlayerRampOffset	;6A08
 	cmpi.w	#$00F9,d0	;0C4000F9
 	beq.s	Restore_PlayerDialogueTextColour	;6736
 	neg.b	d0	;4400
-adrCd008BAC:		; Memory Address ($8BAC) and binary offset [$8828]
+DialogueColour_ApplyPlayerRampOffset:		; Memory Address ($8BAC) and binary offset [$8828]
 	subq.b	#$01,$004B(a5)	;532D004B
 	move.b	#$02,$004A(a5)	;1B7C0002004A
 	btst	#$00,(a5)	;08150000
-	beq.s	adrCd008BC0	;6704
+	beq.s	DialogueColour_ApplyAltRampOffset	;6704
 	add.w	#$000C,d0	;0640000C
-adrCd008BC0:		; Memory Address ($8BC0) and binary offset [$883C]
+DialogueColour_ApplyAltRampOffset:		; Memory Address ($8BC0) and binary offset [$883C]
 	btst	#$06,$0052(a5)	;082D00060052
-	beq.s	adrCd008BCA	;6702
+	beq.s	DialogueColour_LookupAndWriteRamp	;6702
 	addq.w	#$06,d0	;5C40
-adrCd008BCA:		; Memory Address ($8BCA) and binary offset [$8846]
+DialogueColour_LookupAndWriteRamp:		; Memory Address ($8BCA) and binary offset [$8846]
 	add.w	d0,d0	;D040
 	move.w PlayerColourRampTable-2(pc,d0.w),d0	;303B001A
 
@@ -14841,7 +14938,7 @@ adrCd008BCA:		; Memory Address ($8BCA) and binary offset [$8846]
 	move.w	d0,$004C(a5)	;3B40004C
 	rts	;4E75
 
-adrCd008BDC:		; Memory Address ($8BDC) and binary offset [$8858]
+DialogueColour_DecrementHoldCounter:		; Memory Address ($8BDC) and binary offset [$8858]
 	subq.b	#$01,$004A(a5)	;532D004A
 Restore_PlayerDialogueTextColour:		; Memory Address ($8BE0) and binary offset [$885C]
 	; Restores the active player's cached dialogue colour to hardware palette register 15.
@@ -14906,39 +15003,39 @@ Handle_CopperRasterInterrupt:		; Memory Address ($8C40) and binary offset [$88BC
 	lea	Player2_Data.l,a5	;4BF90000EEDE
 	bsr	Update_PlayerDialogueTextColour	;6100FF1A
 	movem.l	(sp)+,d0/a5	;4CDF2001
-	bra	adrCd008CC0	;60000060
+	bra	RasterInterrupt_SignalDoneAndExit_SharedTail	;60000060
 
 Handle_Player1RasterAndFrameUpdate:		; Memory Address ($8C62) and binary offset [$88DE]
 	; Runs Player 1 dialogue-colour service and the normal timing, input, and frame update at the second Copper interrupt.
 	movem.l	d0-d7/a0-a6,-(sp)	;48E7FFFE
 	subq.w	#$01,RasterInterruptCountdownA.l	;53790000EE9E
-	bcc.s	adrCd008C74	;6406
+	bcc.s	FrameUpdate_ClampCountdownB_Stage	;6406
 	clr.w	RasterInterruptCountdownA.l	;42790000EE9E
-adrCd008C74:		; Memory Address ($8C74) and binary offset [$88F0]
+FrameUpdate_ClampCountdownB_Stage:		; Memory Address ($8C74) and binary offset [$88F0]
 	subq.w	#$01,RasterInterruptCountdownB.l	;53790000EF00
-	bcc.s	adrCd008C82	;6406
+	bcc.s	FrameUpdate_BeginWorldTickClampLoop	;6406
 	clr.w	RasterInterruptCountdownB.l	;42790000EF00
-adrCd008C82:		; Memory Address ($8C82) and binary offset [$88FE]
+FrameUpdate_BeginWorldTickClampLoop:		; Memory Address ($8C82) and binary offset [$88FE]
 	lea	WorldTick_300UnitCountdown.l,a0	;41F90000EE36
 	moveq	#$02,d0	;7002
-adrLp008C8A:		; Memory Address ($8C8A) and binary offset [$8906]
+FrameUpdate_WorldTickClampLoop:		; Memory Address ($8C8A) and binary offset [$8906]
 	subq.w	#$01,(a0)+	;5358
-	bcc.s	adrCd008C92	;6404
+	bcc.s	FrameUpdate_WorldTickClamp_Continue	;6404
 	clr.w	-$0002(a0)	;4268FFFE
-adrCd008C92:		; Memory Address ($8C92) and binary offset [$890E]
-	dbra	d0,adrLp008C8A	;51C8FFF6
+FrameUpdate_WorldTickClamp_Continue:		; Memory Address ($8C92) and binary offset [$890E]
+	dbra	d0,FrameUpdate_WorldTickClampLoop	;51C8FFF6
 	lea	Player1_Data.l,a5	;4BF90000EE7C
 	bsr	Update_PlayerDialogueTextColour	;6100FED4
 	tst.b	InputProcessingEnabledFlag.l	;4A3900008C1F
-	beq.s	adrCd008CBC	;6714
+	beq.s	FrameUpdate_RestoreRegs_SharedExit	;6714
 	bsr	InputControls	;6100FD72
 	tst.b	FrameSyncFlag.l	;4A3900008C1E
-	beq.s	adrCd008CBC	;6708
+	beq.s	FrameUpdate_RestoreRegs_SharedExit	;6708
 	clr.b	FrameSyncFlag.l	;423900008C1E
 	bsr.s	Swap_DisplayAndDrawBuffers	;610E
-adrCd008CBC:		; Memory Address ($8CBC) and binary offset [$8938]
+FrameUpdate_RestoreRegs_SharedExit:		; Memory Address ($8CBC) and binary offset [$8938]
 	movem.l	(sp)+,d0-d7/a0-a6	;4CDF7FFF
-adrCd008CC0:		; Memory Address ($8CC0) and binary offset [$893C]
+RasterInterrupt_SignalDoneAndExit_SharedTail:		; Memory Address ($8CC0) and binary offset [$893C]
 	move.w	#$0010,_custom+intreq.l	;33FC001000DFF09C
 adrL_008CC8:		; Memory Address ($8CC8) and binary offset [$8944]
 	rte	;4E73
@@ -14946,12 +15043,12 @@ adrL_008CC8:		; Memory Address ($8CC8) and binary offset [$8944]
 Swap_DisplayAndDrawBuffers:		; Memory Address ($8CCA) and binary offset [$8946]
 	; Swaps the display and drawing screen buffers and updates all four Copper bitplane pointers.
 	cmp.l	#$00060000,screen_ptr.l	;0CB90006000000008D36
-	bne.s	adrCd008CEC	;6616
+	bne.s	SwapBuffers_SelectPrimaryScreen	;6616
 	move.l	#$00067D00,screen_ptr.l	;23FC00067D0000008D36
 	move.l	#$00060000,framebuffer_ptr.l	;23FC0006000000008D3A
 	bra.s	Update_CopperBitplanePointersForOppositeScreenBuffer	;6014
 
-adrCd008CEC:		; Memory Address ($8CEC) and binary offset [$8968]
+SwapBuffers_SelectPrimaryScreen:		; Memory Address ($8CEC) and binary offset [$8968]
 	move.l	#$00060000,screen_ptr.l	;23FC0006000000008D36
 	move.l	#$00067D00,framebuffer_ptr.l	;23FC00067D0000008D3A
 Update_CopperBitplanePointersForOppositeScreenBuffer:		; Memory Address ($8D00) and binary offset [$897C]
@@ -14959,18 +15056,18 @@ Update_CopperBitplanePointersForOppositeScreenBuffer:		; Memory Address ($8D00) 
 	lea	CopperList_00.l,a0	;41F900008E10
 	move.l	#$00060000,d0	;203C00060000
 	cmp.l	screen_ptr.l,d0	;B0B900008D36
-	bne.s	adrCd008D1A	;6606
+	bne.s	SwapBuffers_InitPlaneCounter	;6606
 	move.l	#$00067D00,d0	;203C00067D00
-adrCd008D1A:		; Memory Address ($8D1A) and binary offset [$8996]
+SwapBuffers_InitPlaneCounter:		; Memory Address ($8D1A) and binary offset [$8996]
 	moveq	#$03,d1	;7203
-adrLp008D1C:		; Memory Address ($8D1C) and binary offset [$8998]
+SwapBuffers_CopperPointerLoop:		; Memory Address ($8D1C) and binary offset [$8998]
 	move.w	d0,$0006(a0)	;31400006
 	swap	d0	;4840
 	move.w	d0,$0002(a0)	;31400002
 	swap	d0	;4840
 	add.l	#$00001F40,d0	;068000001F40	;Long Addr replaced with Symbol
 	addq.w	#$08,a0	;5048
-	dbra	d1,adrLp008D1C	;51C9FFEA
+	dbra	d1,SwapBuffers_CopperPointerLoop	;51C9FFEA
 	rts	;4E75
 
 screen_ptr:
@@ -14982,7 +15079,7 @@ Blit_MaskedPocketsOverlayLoop:		; Memory Address ($8D3E) and binary offset [$89B
 	; Applies a row-based AND and OR mask while copying an overlay crop from the Pockets graphics sheet.
 	swap	d5	;4845
 	move.w	d5,d4	;3805
-adrLp008D42:		; Memory Address ($8D42) and binary offset [$89BE]
+Blit_MaskedPocketsOverlayLoop_RowLoop:		; Memory Address ($8D42) and binary offset [$89BE]
 	move.w	(a0),d2	;3410
 	or.w	$1F40(a0),d2	;84681F40
 	or.w	$3E80(a0),d2	;84683E80
@@ -15000,7 +15097,7 @@ adrLp008D42:		; Memory Address ($8D42) and binary offset [$89BE]
 	swap	d0	;4840
 	and.w	d2,d0	;C042
 	or.w	d0,(a0)+	;8158
-	dbra	d4,adrLp008D42	;51CCFFD0
+	dbra	d4,Blit_MaskedPocketsOverlayLoop_RowLoop	;51CCFFD0
 	sub.w	d5,a0	;90C5
 	sub.w	d5,a0	;90C5
 	lea	$0026(a0),a0	;41E80026
@@ -15014,24 +15111,24 @@ Copy_DrawBufferToDisplayBuffer:		; Memory Address ($8D88) and binary offset [$8A
 	move.l	screen_ptr.l,a1	;227900008D36
 	move.l	framebuffer_ptr.l,a0	;207900008D3A
 	move.w	#$1F3F,d0	;303C1F3F
-adrLp008D98:		; Memory Address ($8D98) and binary offset [$8A14]
+Copy_DrawBufferToDisplayBuffer_CopyLoop:		; Memory Address ($8D98) and binary offset [$8A14]
 	move.l	(a0)+,(a1)+	;22D8
-	dbra	d0,adrLp008D98	;51C8FFFC
+	dbra	d0,Copy_DrawBufferToDisplayBuffer_CopyLoop	;51C8FFFC
 	rts	;4E75
 
 Clear_DrawBuffer:		; Memory Address ($8DA0) and binary offset [$8A1C]
 	; Selects and clears the complete drawing screen buffer.
 	move.l	framebuffer_ptr.l,a0	;207900008D3A
-	bra.s	adrCd008DAE	;6006
+	bra.s	ClearFourPlaneBuffer_SharedEntry	;6006
 
 Clear_DisplayBuffer:		; Memory Address ($8DA8) and binary offset [$8A24]
 	; Selects and clears the complete display screen buffer through the shared clearing loop.
 	move.l	screen_ptr.l,a0	;207900008D36
-adrCd008DAE:		; Memory Address ($8DAE) and binary offset [$8A2A]
+ClearFourPlaneBuffer_SharedEntry:		; Memory Address ($8DAE) and binary offset [$8A2A]
 	move.w	#$1F3F,d0	;303C1F3F
-adrLp008DB2:		; Memory Address ($8DB2) and binary offset [$8A2E]
+ClearFourPlaneBuffer_ClearLoop:		; Memory Address ($8DB2) and binary offset [$8A2E]
 	clr.l	(a0)+	;4298
-	dbra	d0,adrLp008DB2	;51C8FFFC
+	dbra	d0,ClearFourPlaneBuffer_ClearLoop	;51C8FFFC
 	rts	;4E75
 
 Load_GamePaletteIntoColourRegisters:		; Memory Address ($8DBA) and binary offset [$8A36]
@@ -15039,9 +15136,9 @@ Load_GamePaletteIntoColourRegisters:		; Memory Address ($8DBA) and binary offset
 	lea	_custom+color.l,a1	;43F900DFF180
 	lea	GamePalette.l,a0	;41F900008DD0
 	moveq	#$1F,d0	;701F
-adrLp008DC8:		; Memory Address ($8DC8) and binary offset [$8A44]
+Load_GamePalette_CopyLoop:		; Memory Address ($8DC8) and binary offset [$8A44]
 	move.w	(a0)+,(a1)+	;32D8
-	dbra	d0,adrLp008DC8	;51C8FFFC
+	dbra	d0,Load_GamePalette_CopyLoop	;51C8FFFC
 	rts	;4E75
 
 GamePalette:		; Memory Address ($8DD0) and binary offset [$8A4C]
@@ -15299,13 +15396,13 @@ Clear_ViewportMessageBackground:		; Memory Address ($8FA4) and binary offset [$8
 Refresh_ActivePlayerDungeonViewport:		; Memory Address ($8FB8) and binary offset [$8C34]
 	; Skips unavailable player states, resolves the viewer record and perception, and redraws the active player's dungeon viewport.
 	btst	#$06,$0018(a5)	;082D00060018
-	bne.s	adrCd009036	;6676
+	bne.s	Calculate_ViewerObjectPerception_ZeroExit	;6676
 	btst	#$02,(a5)	;08150002
-	bne.s	adrCd009036	;6670
+	bne.s	Calculate_ViewerObjectPerception_ZeroExit	;6670
 	move.b	$003D(a5),d3	;162D003D
 	bpl.s	Clear_ViewportMessageBackground	;6AD8
 	move.b	$0053(a5),d0	;102D0053
-	bmi.s	adrCd009042	;6B70
+	bmi.s	ViewportInk_CurrentChampionSetup	;6B70
 	bsr	Load_ChampionStatRecord	;6100D68C
 	link	a3,#-$0020	;4E53FFE0
 	moveq	#$00,d0	;7000
@@ -15318,7 +15415,7 @@ Refresh_ActivePlayerDungeonViewport:		; Memory Address ($8FB8) and binary offset
 	move.w	d0,-$000A(a3)	;3740FFF6
 	bsr.s	Calculate_ViewerObjectPerception	;6106
 	move.b	$001A(a4),d0	;102C001A
-	bra.s	adrCd00905C	;605C
+	bra.s	ViewportInk_AfterPerception_LookupTile	;605C
 
 Calculate_ViewerObjectPerception:		; Memory Address ($9000) and binary offset [$8C7C]
 	; Calculates the active viewer's nonzero perception value used when deciding whether concealed cell contents are visible.
@@ -15326,39 +15423,39 @@ Calculate_ViewerObjectPerception:		; Memory Address ($9000) and binary offset [$
 	move.b	$0011(a4),d0	;102C0011
 	and.w	#$0007,d0	;02400007
 	subq.b	#$07,d0	;5F00
-	beq.s	adrCd009038	;672A
+	beq.s	Calculate_ViewerObjectPerception_Trueview	;672A
 	move.l	a4,d0	;200C
 	sub.l	#Character_Stats_DataTable,d0	;04800000EB2A
 	lsr.w	#$05,d0	;EA48
 	move.w	d0,d2	;3400
 	and.w	#$0003,d2	;02420003
 	cmpi.b	#$03,d2	;0C020003
-	bne.s	adrCd009036	;6612
+	bne.s	Calculate_ViewerObjectPerception_ZeroExit	;6612
 	bsr	RandomGen_BytewithOffset	;6100C586
 	move.b	(a4),d2	;1414
 	asl.b	#$04,d2	;E902
 	moveq	#$00,d1	;7200
 	cmp.b	d0,d2	;B400
-	bcs.s	adrCd009036	;6504
+	bcs.s	Calculate_ViewerObjectPerception_ZeroExit	;6504
 	move.b	(a4),d1	;1214
 	add.w	d1,d1	;D241
-adrCd009036:		; Memory Address ($9036) and binary offset [$8CB2]
+Calculate_ViewerObjectPerception_ZeroExit:		; Memory Address ($9036) and binary offset [$8CB2]
 	rts	;4E75
 
-adrCd009038:		; Memory Address ($9038) and binary offset [$8CB4]
+Calculate_ViewerObjectPerception_Trueview:		; Memory Address ($9038) and binary offset [$8CB4]
 	move.b	$0011(a4),d1	;122C0011
 	lsr.b	#$03,d1	;E609
 	addq.w	#$01,d1	;5241
 	rts	;4E75
 
-adrCd009042:		; Memory Address ($9042) and binary offset [$8CBE]
+ViewportInk_CurrentChampionSetup:		; Memory Address ($9042) and binary offset [$8CBE]
 	link	a3,#-$0020	;4E53FFE0
 	move.l	$001C(a5),-$0004(a3)	;276D001CFFFC
 	move.w	$0020(a5),-$000A(a3)	;376D0020FFF6
 	bsr	Load_CurrentChampionStatRecord	;6100D608
 	bsr.s	Calculate_ViewerObjectPerception	;61A8
 	move.w	$0058(a5),d0	;302D0058
-adrCd00905C:		; Memory Address ($905C) and binary offset [$8CD8]
+ViewportInk_AfterPerception_LookupTile:		; Memory Address ($905C) and binary offset [$8CD8]
 	move.w	d0,-$001E(a3)	;3740FFE2
 	move.b	d1,-$001F(a3)	;1741FFE1
 	bsr	Select_FloorMapByIndex	;6100F474
@@ -15366,7 +15463,7 @@ adrCd00905C:		; Memory Address ($905C) and binary offset [$8CD8]
 	bsr	CoordToMap	;6100F42E
 	btst	#$05,$01(a6,d0.w)	;083600050001
 	beq.s	Draw_DungeonViewport	;675C
-	bsr	adrCd005F4E	;6100CED4
+	bsr	Find_FloorObjectRecordByMapLink	;6100CED4
 	move.w	$0002(a0),d1	;32280002
 	move.w	d1,d0	;3001
 	and.w	#$0003,d1	;02410003
@@ -15374,10 +15471,10 @@ adrCd00905C:		; Memory Address ($905C) and binary offset [$8CD8]
 	bcc.s	Draw_DungeonViewport	;6448
 	and.w	#$00FC,d0	;024000FC
 	cmpi.w	#$002C,d0	;0C40002C
-	bcc.s	adrCd00909C	;6406
+	bcc.s	ViewportInk_LookupColumnInkByte	;6406
 	cmpi.w	#$0020,d0	;0C400020
 	bcc.s	Draw_DungeonViewport	;6438
-adrCd00909C:		; Memory Address ($909C) and binary offset [$8D18]
+ViewportInk_LookupColumnInkByte:		; Memory Address ($909C) and binary offset [$8D18]
 	lsr.w	#$01,d0	;E248
 	add.w	d0,d1	;D240
 	move.b	DungeonViewportColumnInkTable(pc,d1.w),$003D(a5)	;1B7B100A003D
@@ -15462,62 +15559,62 @@ Build_DungeonVisibilityMasks_Loop:		; Memory Address ($9130) and binary offset [
 	move.l	d3,d7	;2E03
 	add.b	$0001(a0),d7	;DE280001
 	cmp.w	d2,d7	;BE42
-	bcc	adrCd0091C0	;64000082
+	bcc	Build_DungeonVisibilityMasks_MarkCellVisible	;64000082
 	swap	d7	;4847
 	add.b	(a0),d7	;DE10
 	cmp.w	d1,d7	;BE41
-	bcc.s	adrCd0091C0		;6478
+	bcc.s	Build_DungeonVisibilityMasks_MarkCellVisible		;6478
 	swap	d7			;4847
 	bsr	Calculate_MapOffsetFromPackedCoordinate		;6100F356
 	move.w	$00(a6,d0.w),d0		;30360000
 	tst.b	d0			;4A00
-	beq.s	adrCd0091C4		;676E
+	beq.s	Build_DungeonVisibilityMasks_NextCell		;676E
 	and.b	#$07,d0			;02000007
-	beq.s	adrCd0091BC		;6760
+	beq.s	Build_DungeonVisibilityMasks_MarkCellOpaque		;6760
 	cmpi.b	#Dungeon_MapCell_MainWallType,d0			;0C000001
-	beq.s	adrCd0091C0		;675E
+	beq.s	Build_DungeonVisibilityMasks_MarkCellVisible		;675E
 	cmpi.b	#$07,d0			;0C000007
-	bne.s	adrCd00917E		;6616
+	bne.s	Build_DungeonVisibilityMasks_CheckWallType2		;6616
 	lsr.w	#$08,d0			;E048
 	and.w	#$0003,d0		;02400003
 	cmpi.b	#$02,d0			;0C000002
-	bcs.s	adrCd0091BC		;6548
-	bne.s	adrCd0091C0		;664A
+	bcs.s	Build_DungeonVisibilityMasks_MarkCellOpaque		;6548
+	bne.s	Build_DungeonVisibilityMasks_MarkCellVisible		;664A
 	tst.b	-$001F(a3)		;4A2BFFE1
-	beq.s	adrCd0091C0		;6744
-	bra.s	adrCd0091BC		;603E
+	beq.s	Build_DungeonVisibilityMasks_MarkCellVisible		;6744
+	bra.s	Build_DungeonVisibilityMasks_MarkCellOpaque		;603E
 
-adrCd00917E:		; Memory Address ($917E) and binary offset [$8DFA]
+Build_DungeonVisibilityMasks_CheckWallType2:		; Memory Address ($917E) and binary offset [$8DFA]
 	cmpi.b	#$02,d0			;0C000002
-	bne.s	adrCd0091BC		;6638
+	bne.s	Build_DungeonVisibilityMasks_MarkCellOpaque		;6638
 	move.w	-$000A(a3),d7		;3E2BFFF6
 	cmpi.w	#Dungeon_ViewCell_LastIndex,d6		;0C460012
-	beq.s	adrCd009194		;6706
+	beq.s	Build_DungeonVisibilityMasks_TestFacingBit		;6706
 	addq.w	#$02,d7			;5447	
 	and.w	#$0003,d7		;02470003
-adrCd009194:		; Memory Address ($9194) and binary offset [$8E10]
+Build_DungeonVisibilityMasks_TestFacingBit:		; Memory Address ($9194) and binary offset [$8E10]
 	add.w	d7,d7	;DE47
 	addq.w	#$08,d7	;5047
 	btst	d7,d0	;0F00
-	beq.s	adrCd0091BC	;6720
+	beq.s	Build_DungeonVisibilityMasks_MarkCellOpaque	;6720
 	cmpi.w	#$000E,d6	;0C46000E
-	bcc.s	adrCd0091C0	;641E
+	bcc.s	Build_DungeonVisibilityMasks_MarkCellVisible	;641E
 	move.w	-$000A(a3),d7	;3E2BFFF6
 	addq.w	#$01,d7	;5247
 	cmpi.w	#$0007,d6	;0C460007
-	bcs.s	adrCd0091B0	;6502
+	bcs.s	Build_DungeonVisibilityMasks_TestFacingBit2	;6502
 	addq.w	#$02,d7	;5447
-adrCd0091B0:		; Memory Address ($91B0) and binary offset [$8E2C]
+Build_DungeonVisibilityMasks_TestFacingBit2:		; Memory Address ($91B0) and binary offset [$8E2C]
 	and.w	#$0003,d7	;02470003
 	add.w	d7,d7	;DE47
 	addq.w	#$08,d7	;5047
 	btst	d7,d0	;0F00
-	bne.s	adrCd0091C0	;6604
-adrCd0091BC:		; Memory Address ($91BC) and binary offset [$8E38]
+	bne.s	Build_DungeonVisibilityMasks_MarkCellVisible	;6604
+Build_DungeonVisibilityMasks_MarkCellOpaque:		; Memory Address ($91BC) and binary offset [$8E38]
 	bset	#$1F,d4	;08C4001F
-adrCd0091C0:		; Memory Address ($91C0) and binary offset [$8E3C]
+Build_DungeonVisibilityMasks_MarkCellVisible:		; Memory Address ($91C0) and binary offset [$8E3C]
 	bset	#$1F,d5	;08C5001F
-adrCd0091C4:		; Memory Address ($91C4) and binary offset [$8E40]
+Build_DungeonVisibilityMasks_NextCell:		; Memory Address ($91C4) and binary offset [$8E40]
 	addq.w	#$02,a0	;5448
 	addq.w	#$01,d6	;5246
 	cmpi.w	#$0013,d6	;0C460013
@@ -15534,12 +15631,12 @@ adrCd0091C4:		; Memory Address ($91C4) and binary offset [$8E40]
 Apply_DungeonOcclusionMasks_Loop:		; Memory Address ($91EA) and binary offset [$8E66]
 	; Combines the per-cell visible-face and occlusion masks from farthest view cell to nearest.
 	btst	d6,d5	;0D05
-	beq.s	adrCd0091F6	;6708
+	beq.s	Apply_DungeonOcclusionMasks_NextCell	;6708
 	or.l	(a6),d7	;8E96
 	btst	d6,d4	;0D04
-	bne.s	adrCd0091F6	;6602
+	bne.s	Apply_DungeonOcclusionMasks_NextCell	;6602
 	and.l	(a4),d0	;C094
-adrCd0091F6:		; Memory Address ($91F6) and binary offset [$8E72]
+Apply_DungeonOcclusionMasks_NextCell:		; Memory Address ($91F6) and binary offset [$8E72]
 	subq.w	#$04,a6	;594E
 	subq.w	#$04,a4	;594C
 	dbra	d6,Apply_DungeonOcclusionMasks_Loop	;51CEFFEE
@@ -15548,11 +15645,11 @@ adrCd0091F6:		; Memory Address ($91F6) and binary offset [$8E72]
 Draw_VisibleDungeonCells_Loop:		; Memory Address ($9202) and binary offset [$8E7E]
 	; Visits each visible player-relative cell and calls the per-cell dungeon renderer.
 	btst	d6,d5	;0D05
-	beq.s	adrCd009212	;670C
+	beq.s	Draw_VisibleDungeonCells_NextCell	;670C
 	movem.l	d5-d7,-(sp)	;48E70700
 	bsr	Draw_DungeonViewCell	;61000012
 	movem.l	(sp)+,d5-d7	;4CDF00E0
-adrCd009212:		; Memory Address ($9212) and binary offset [$8E8E]
+Draw_VisibleDungeonCells_NextCell:		; Memory Address ($9212) and binary offset [$8E8E]
 	addq.w	#$01,d6	;5246
 	cmpi.b	#Dungeon_ViewCell_Count,d6	;0C060013
 	bcs.s	Draw_VisibleDungeonCells_Loop	;65E8
@@ -15572,23 +15669,23 @@ Draw_DungeonViewCell:		; Memory Address ($921E) and binary offset [$8E9A]
 	move.b	d5,-$0019(a3)	;1745FFE7
 	cmp.w	CurrentFloorWidth.l,d5	;BA790000EE70
 	beq.s	Process_DungeonViewCellContents	;672C
-	bcs.s	adrCd009248	;6506
+	bcs.s	Draw_DungeonViewCell_CheckYBounds	;6506
 	addq.b	#$01,d5	;5205
 	beq.s	Process_DungeonViewCellContents	;6726
 	rts	;4E75
 
-adrCd009248:		; Memory Address ($9248) and binary offset [$8EC4]
+Draw_DungeonViewCell_CheckYBounds:		; Memory Address ($9248) and binary offset [$8EC4]
 	swap	d5	;4845
 	add.b	(a0),d5	;DA10
 	move.b	d5,-$001A(a3)	;1745FFE6
 	cmp.w	CurrentFloorHeight.l,d5	;BA790000EE72
 	beq.s	Process_DungeonViewCellContents	;6714
-	bcs.s	adrCd009260	;6506
+	bcs.s	Draw_DungeonViewCell_LookupMapContent	;6506
 	addq.b	#$01,d5	;5205
 	beq.s	Process_DungeonViewCellContents	;670E
 	rts	;4E75
 
-adrCd009260:		; Memory Address ($9260) and binary offset [$8EDC]
+Draw_DungeonViewCell_LookupMapContent:		; Memory Address ($9260) and binary offset [$8EDC]
 	exg	d5,d7	;CB47
 	bsr	CoordToMap	;6100F238
 	exg	d5,d7	;CB47
@@ -15613,35 +15710,36 @@ Draw_DungeonCellFeatureAndOccupants:		; Memory Address ($9286) and binary offset
 	move.w	d0,-(sp)	;3F00
 	bsr	Dispatch_DungeonCellType	;610000DA
 	move.w	(sp)+,d0	;301F
-	bsr	adrCd005F4E	;6100CCAA
+	bsr	Find_FloorObjectRecordByMapLink	;6100CCAA
 	move.w	$0002(a0),d1	;32280002
 	move.w	d1,d2	;3401
 	and.w	#$0003,d2	;02420003
 	cmpi.w	#$0002,d2	;0C420002
-	bne	adrCd0092E8	;66000032
+	bne	DungeonCellFeature_DrawSpellObject	;66000032
 	lsr.b	#$02,d1	;E409
 	add.w	#$0080,d1	;06410080
 	move.b	d1,-$0017(a3)	;1741FFE9
 	moveq	#$04,d1	;7204
 	cmp.b	#$12,-$0016(a3)	;0C2B0012FFEA
-	bne	adrCd00A6EC	;66001420
+	bne	Draw_DungeonOccupant_ResolvePosition	;66001420
 	subq.b	#$01,-$0016(a3)	;532BFFEA
 	move.l	-$0004(a3),d7	;2E2BFFFC
 	move.w	-$000A(a3),d0	;302BFFF6
 	bsr	AdjacentCoordToMapOffset	;6100F1AA
 	tst.b	$01(a6,d0.w)	;4A360001
-	bmi	adrCd00A6EC	;6B001408
+	bmi	Draw_DungeonOccupant_ResolvePosition	;6B001408
 	rts	;4E75
 
-adrCd0092E8:		; Memory Address ($92E8) and binary offset [$8F64]
+DungeonCellFeature_DrawSpellObject:		; Memory Address ($92E8) and binary offset [$8F64]
+	; Draws stationary impact phases 1 and 0 from the same source picture for forms below $1C; phase 2 uses the airborne-form path selected earlier.
 	and.w	#$00FC,d1	;024100FC
 	cmpi.w	#$001C,d1	;0C41001C
-	bcc.s	adrCd009358	;6466
+	bcc.s	DungeonCellFeature_SpellObjectExit	;6466
 	move.w	d1,-(sp)	;3F01
 	bsr	Prepare_CentredMonster_ScreenPosition	;61000666
 	move.w	(sp)+,d0	;301F
 	addq.b	#$01,d1	;5201
-	beq.s	adrCd009358	;675A
+	beq.s	DungeonCellFeature_SpellObjectExit	;675A
 	subq.b	#$01,d1	;5301
 	move.b	GFX_StationarySpell_DistanceGroups(pc,d1.w),d1	;123B1058
 	add.w	d1,d1	;D241
@@ -15666,7 +15764,7 @@ adrCd0092E8:		; Memory Address ($92E8) and binary offset [$8F64]
 	bsr	Draw_PlanarSprite_Normal	;61001B10
 	move.l	(sp)+,a3	;265F
 	clr.w	Buffer_Colour_Mask_Toggle.l	;42790000B4BE
-adrCd009358:		; Memory Address ($9358) and binary offset [$8FD4]
+DungeonCellFeature_SpellObjectExit:		; Memory Address ($9358) and binary offset [$8FD4]
 	rts	;4E75
 
 GFX_StationarySpell_DistanceGroups:		; Memory Address ($935A) and binary offset [$8FD6]
@@ -15795,23 +15893,23 @@ Draw_NextDungeonWallFace:		; Memory Address ($943A) and binary offset [$90B6]
 Draw_StoneWallFace:		; Memory Address ($9440) and binary offset [$90BC]
 	; Selects the projected stone-wall face and any main-wall overlay for the current direction.
 	move.b	-$0011(a3),d0	;102BFFEF
-	bpl.s	adrCd009474	;6A2E
+	bpl.s	Draw_StoneWallFace_CallMainFace	;6A2E
 	lsr.b	#$04,d0	;E808
 	and.w	#$0003,d0	;02400003
 	cmp.b	d0,d1	;B200
-	bne.s	adrCd009474	;6624
+	bne.s	Draw_StoneWallFace_CallMainFace	;6624
 	move.b	-$0012(a3),d0	;102BFFEE
 	move.b	#$FF,-$0015(a3)	;177C00FFFFEB
 	and.w	#$0003,d0	;02400003
-	beq.s	adrCd009474	;6714
+	beq.s	Draw_StoneWallFace_CallMainFace	;6714
 	subq.b	#$01,-$0015(a3)	;532BFFEB
 	subq.w	#$01,d0	;5340
-	beq.s	adrCd009474	;670C
+	beq.s	Draw_StoneWallFace_CallMainFace	;670C
 	subq.b	#$01,-$0015(a3)	;532BFFEB
 	subq.w	#$01,d0	;5340
-	beq.s	adrCd009474	;6704
+	beq.s	Draw_StoneWallFace_CallMainFace	;6704
 	subq.b	#$01,-$0015(a3)	;532BFFEB
-adrCd009474:		; Memory Address ($9474) and binary offset [$90F0]
+Draw_StoneWallFace_CallMainFace:		; Memory Address ($9474) and binary offset [$90F0]
 	movem.l	d5/a6,-(sp)	;48E70402
 	bsr	Draw_MainWallFace_ByPatternParity	;61001BFA
 	movem.l	(sp)+,d5/a6	;4CDF4020
@@ -15830,17 +15928,17 @@ Draw_FirepathCell:		; Memory Address ($9496) and binary offset [$9112]
 	; Interprets the Firepath cell state and selects its ordinary or randomly varied colour mask.
 	move.b	-$0012(a3),d1	;122BFFEE
 	and.w	#$0003,d1	;02410003
-	beq.s	adrCd0094B2	;6712
+	beq.s	Draw_FirepathCell_Inactive	;6712
 	cmpi.w	#$0001,d1	;0C410001
 	beq.s	Select_Firepath_ColourMask	;6716
 	cmpi.b	#$03,d1	;0C010003
-	beq.s	adrCd0094B4	;6708
+	beq.s	Draw_FirepathCell_ReprocessAsType1	;6708
 	tst.b	-$001F(a3)	;4A2BFFE1
-	beq.s	adrCd0094B4	;6702
-adrCd0094B2:		; Memory Address ($94B2) and binary offset [$912E]
+	beq.s	Draw_FirepathCell_ReprocessAsType1	;6702
+Draw_FirepathCell_Inactive:		; Memory Address ($94B2) and binary offset [$912E]
 	rts	;4E75
 
-adrCd0094B4:		; Memory Address ($94B4) and binary offset [$9130]
+Draw_FirepathCell_ReprocessAsType1:		; Memory Address ($94B4) and binary offset [$9130]
 	lsr.w	#$01,d6	;E24E
 	moveq	#$01,d1	;7201
 	bra	Process_DungeonViewCellContents	;6000FDB2
@@ -15866,9 +15964,9 @@ Draw_FloorFeature:		; Memory Address ($94E6) and binary offset [$9162]
 	cmpi.w	#$0012,d0	;0C400012
 	beq.s	Draw_CeilingHole	;6708
 	tst.b	d1	;4A01
-	bmi.s	adrCd009568	;6B74
+	bmi.s	Draw_FloorFeature_SharedExit	;6B74
 	btst	d1,d7	;0307
-	beq.s	adrCd009568	;6770
+	beq.s	Draw_FloorFeature_SharedExit	;6770
 Draw_CeilingHole:		; Memory Address ($94F8) and binary offset [$9174]
 	; Draws the ceiling-hole component when requested, then continues with the corresponding floor feature.
 	move.b	-$0012(a3),d1	;122BFFEE
@@ -15887,31 +15985,31 @@ Draw_FloorPitOrTriggerPad:		; Memory Address ($9522) and binary offset [$919E]
 	lea	GFX_FloorPit_TriggerPad_Positions.l,a2	;45F90000BF16
 	lea	GFX_Floor_Pit.l,a1	;43F900031AD8
 	and.w	#$0003,d1	;02410003
-	beq.s	adrCd009560	;6726
+	beq.s	Draw_FloorPitOrTriggerPad_CheckOccupants	;6726
 	cmpi.w	#$0003,d1	;0C410003
-	beq.s	adrCd009560	;6720
+	beq.s	Draw_FloorPitOrTriggerPad_CheckOccupants	;6720
 	btst	#$00,d1	;08010000
-	bne.s	adrCd00955E	;6618
+	bne.s	Draw_FloorPitOrTriggerPad_DrawFloorPit	;6618
 	lea	GFX_Trigger_Pad.l,a1	;43F900031D20
 	move.w	#$FFFF,Buffer_Colour_Mask_Toggle.l	;33FCFFFF0000B4BE
 	bsr.s	Draw_CentredDungeonComponent	;615E
 	clr.w	Buffer_Colour_Mask_Toggle.l	;42790000B4BE
-	bra.s	adrCd009560	;6002
+	bra.s	Draw_FloorPitOrTriggerPad_CheckOccupants	;6002
 
-adrCd00955E:		; Memory Address ($955E) and binary offset [$91DA]
+Draw_FloorPitOrTriggerPad_DrawFloorPit:		; Memory Address ($955E) and binary offset [$91DA]
 	bsr.s	Draw_CentredDungeonComponent	;6154
-adrCd009560:		; Memory Address ($9560) and binary offset [$91DC]
+Draw_FloorPitOrTriggerPad_CheckOccupants:		; Memory Address ($9560) and binary offset [$91DC]
 	tst.b	-$0011(a3)	;4A2BFFEF
 	bmi	Draw_DungeonCellOccupants	;6B00048A
-adrCd009568:		; Memory Address ($9568) and binary offset [$91E4]
+Draw_FloorFeature_SharedExit:		; Memory Address ($9568) and binary offset [$91E4]
 	rts	;4E75
 
 Draw_BedOrPillar:		; Memory Address ($956A) and binary offset [$91E6]
 	; Selects the bed or pillar graphics, offsets, and projected positions for a centred dungeon cell.
 	bsr	Resolve_DungeonCellCentredSlot	;61000470
-	bmi.s	adrCd00959E	;6B2E
+	bmi.s	Draw_BedOrPillar_Return	;6B2E
 	btst	d1,d7	;0307
-	beq.s	adrCd00959E	;672A
+	beq.s	Draw_BedOrPillar_Return	;672A
 	cmp.b	#$01,-$0012(a3)	;0C2B0001FFEE
 	beq.s	Draw_Pillar	;6724
 	lea	GFX_Misc_Bed_Offsets.l,a0	;41F900018B2C
@@ -15925,7 +16023,7 @@ Draw_Wall_Sprite:		; Memory Address ($9590) and binary offset [$920C]
 	move.l	a3,-(sp)	;2F0B
 	bsr	Draw_WallSprite_Normal	;61002030
 	move.l	(sp)+,a3	;265F
-adrCd00959E:		; Memory Address ($959E) and binary offset [$921A]
+Draw_BedOrPillar_Return:		; Memory Address ($959E) and binary offset [$921A]
 	rts	;4E75
 
 Draw_Pillar:		; Memory Address ($95A0) and binary offset [$921C]
@@ -15968,21 +16066,21 @@ Resolve_DungeonWallFaceDirection:		; Memory Address ($95D4) and binary offset [$
 	; Converts the current candidate face and player facing into the corresponding N/E/S/W direction.
 	move.w	d5,d1	;3205
 	cmp.b	#$07,-$0016(a3)	;0C2B0007FFEA
-	bcc.s	adrCd0095EA	;640C
+	bcc.s	Resolve_DungeonWallFaceDirection_HighFacing	;640C
 	btst	#$00,d1	;08010000
-	bne.s	adrCd0095FC	;6618
+	bne.s	Resolve_DungeonWallFaceDirection_MirrorFace	;6618
 	eor.w	#$0001,d1	;0A410001
-	bra.s	adrCd009600	;6016
+	bra.s	Resolve_DungeonWallFaceDirection_ApplyOffset	;6016
 
-adrCd0095EA:		; Memory Address ($95EA) and binary offset [$9266]
+Resolve_DungeonWallFaceDirection_HighFacing:		; Memory Address ($95EA) and binary offset [$9266]
 	cmp.b	#$0E,-$0016(a3)	;0C2B000EFFEA
-	bcs.s	adrCd0095FC	;650A
+	bcs.s	Resolve_DungeonWallFaceDirection_MirrorFace	;650A
 	btst	#$01,d1	;08010001
-	bne.s	adrCd0095FC	;6604
+	bne.s	Resolve_DungeonWallFaceDirection_MirrorFace	;6604
 	eor.w	#$0001,d1	;0A410001
-adrCd0095FC:		; Memory Address ($95FC) and binary offset [$9278]
+Resolve_DungeonWallFaceDirection_MirrorFace:		; Memory Address ($95FC) and binary offset [$9278]
 	eor.w	#$0003,d1	;0A410003
-adrCd009600:		; Memory Address ($9600) and binary offset [$927C]
+Resolve_DungeonWallFaceDirection_ApplyOffset:		; Memory Address ($9600) and binary offset [$927C]
 	add.w	-$000A(a3),d1	;D26BFFF6
 	and.w	#$0003,d1	;02410003
 	rts	;4E75
@@ -15990,38 +16088,38 @@ adrCd009600:		; Memory Address ($9600) and binary offset [$927C]
 Draw_DungeonCellFloorObjects:		; Memory Address ($960A) and binary offset [$9286]
 	; Checks floor-object visibility and walks the four rotated object subpositions in the current dungeon cell.
 	tst.b	-$001F(a3)	;4A2BFFE1
-	bne.s	adrCd00961A	;660A
+	bne.s	DungeonFloorObjects_ProcessSubpositions	;660A
 	btst	#$03,$01(a6,d0.w)	;083600030001
-	beq.s	adrCd00961A	;6702
+	beq.s	DungeonFloorObjects_ProcessSubpositions	;6702
 	rts	;4E75
 
-adrCd00961A:		; Memory Address ($961A) and binary offset [$9296]
+DungeonFloorObjects_ProcessSubpositions:		; Memory Address ($961A) and binary offset [$9296]
 	move.w	d1,d2	;3401
 	and.w	#$0007,d2	;02420007
 	cmpi.w	#$0006,d2	;0C420006
 	beq.s	Draw_Type6CellFeatureBeforeFloorObjects	;6714
 	subq.w	#$01,d2	;5342
-	bne.s	adrCd009648	;661E
+	bne.s	DungeonFloorObjects_InitSubpositionLoop	;661E
 	lsr.w	#$04,d1	;E849
 	and.w	#$0003,d1	;02410003
 	eor.w	#$0002,d1	;0A410002
 	cmp.w	-$000A(a3),d1	;B26BFFF6
-	bne.s	adrCd009680	;6646
+	bne.s	DrawDungeonFloorObjects_SharedReturn	;6646
 Draw_Type6CellFeatureBeforeFloorObjects:		; Memory Address ($963A) and binary offset [$92B6]
 	; Draws a type-six cell feature before resuming the ordinary floor-object pass so its items remain visible on top.
 	addq.w	#$04,sp	;584F
 	movem.l	(sp),d0/d1/d6/d7	;4CD700C3
 	bsr	Draw_DungeonCellFeatureAndOccupants	;6100FC44
 	movem.l	(sp)+,d0/d1/d6/d7	;4CDF00C3
-adrCd009648:		; Memory Address ($9648) and binary offset [$92C4]
+DungeonFloorObjects_InitSubpositionLoop:		; Memory Address ($9648) and binary offset [$92C4]
 	moveq	#$00,d1	;7200
 Draw_DungeonCellObjectSubpositions_Loop:		; Memory Address ($964A) and binary offset [$92C6]
 	; Iterates the four object subpositions after rotating them into the player-relative facing.
 	move.w	d1,-(sp)	;3F01
 	move.w	d1,d6	;3C01
-	bsr	adrCd005F2E	;6100C8DE
-	bsr	adrCd005F5C	;6100C908
-	bne.s	adrCd009676	;661E
+	bsr	Rotate_ObjectSubpositionByPlayerFacing	;6100C8DE
+	bsr	Find_FloorObjectStackAtCellSubposition	;6100C908
+	bne.s	Draw_DungeonCellObjectSubpositions_Advance	;661E
 	rol.b	#$02,d6	;E51E
 	lea	$02(a0,d7.w),a0	;41F07002
 	moveq	#$00,d7	;7E00
@@ -16035,12 +16133,12 @@ Draw_DungeonCellObjects_Loop:		; Memory Address ($9662) and binary offset [$92DE
 	movem.l	(sp)+,d0/d6/d7/a0/a3	;4CDF09C1
 	addq.w	#$02,a0	;5448
 	dbra	d7,Draw_DungeonCellObjects_Loop	;51CFFFEE
-adrCd009676:		; Memory Address ($9676) and binary offset [$92F2]
+Draw_DungeonCellObjectSubpositions_Advance:		; Memory Address ($9676) and binary offset [$92F2]
 	move.w	(sp)+,d1	;321F
 	addq.w	#$01,d1	;5241
 	cmpi.w	#ObjectFloor_SubpositionCount,d1	;0C410004
 	bcs.s	Draw_DungeonCellObjectSubpositions_Loop	;65CA
-adrCd009680:		; Memory Address ($9680) and binary offset [$92FC]
+DrawDungeonFloorObjects_SharedReturn:		; Memory Address ($9680) and binary offset [$92FC]
 	rts	;4E75
 
 GFX_ObjectsOnFloor_SubpositionRotation:		; Memory Address ($9682) and binary offset [$92FE]
@@ -16116,10 +16214,10 @@ Draw_ObjectOnFloor:		; Memory Address ($96BE) and binary offset [$933A]
 	moveq	#$00,d1	;7200
 	move.b	-$0016(a3),d1	;122BFFEA
 	move.b	GFX_ObjectsOnFloor_SubpositionRotation+$14(pc,d1.w),d0	;103B10C2
-	bmi.s	adrCd009680	;6BA8
+	bmi.s	DrawDungeonFloorObjects_SharedReturn	;6BA8
 	add.b	GFX_ObjectsOnFloor_SubpositionRotation+$10(pc,d6.w),d0	;D03B60B8
 	move.b	GFX_ObjectsOnFloor_SubpositionRotation+$27(pc,d0.w),d0	;103B00CB
-	bmi.s	adrCd009680	;6B9E
+	bmi.s	DrawDungeonFloorObjects_SharedReturn	;6B9E
 	asl.w	#$02,d1	;E541
 	add.w	d6,d1	;D246
 	moveq	#$00,d5	;7A00
@@ -16143,7 +16241,7 @@ Draw_ObjectOnFloor:		; Memory Address ($96BE) and binary offset [$933A]
 Draw_ObjectOnFloor_ResolveGraphic:		; Memory Address ($9722) and binary offset [$939E]
 	; Loads the object's floor shape, recolour definition, graphics offset and selected projection.
 	cmpi.b	#ObjectFloor_HiddenXPosition,d4	;0C040080
-	beq	adrCd009680	;6700FF58
+	beq	DrawDungeonFloorObjects_SharedReturn	;6700FF58
 	lea	Object_Floor_Colours.l,a6	;4DF90000E770
 	moveq	#$00,d3	;7600
 	move.b	$00(a6,d2.w),d3	;16362000
@@ -16435,23 +16533,23 @@ GFX_ObjectsOnFloor_YAdjustments:		; Memory Address ($981C) and binary offset [$9
 
 Resolve_DiagonalCellAndFindOccupant:		; Memory Address ($98A4) and binary offset [$9520]
 	; Resolves the caller's diagonal cell coordinates and continues into the shared dungeon-cell occupant search.
-	bsr	adrCd0084FC	;6100EC56
+	bsr	Resolve_DiagonalPillarSourceCell	;6100EC56
 Find_DungeonCellOccupant:		; Memory Address ($98A8) and binary offset [$9524]
-	; Searches players, champions, and unpacked monsters for an occupant at the requested tower and map coordinates.
+	; Searches a requested tower/floor coordinate in strict priority order: Player 1, Player 2, standing champions, then unpacked monsters, returning the first matching occupant.
 	move.w	#$0080,d0	;303C0080
 	lea	Player1_Data.l,a1	;43F90000EE7C
 	cmp.w	$0058(a1),d1	;B2690058
-	bne.s	adrCd0098BE	;6606
+	bne.s	Find_DungeonCellOccupant_CheckPlayer2	;6606
 	cmp.l	$001C(a1),d2	;B4A9001C
-	beq.s	adrCd009930	;6772
-adrCd0098BE:		; Memory Address ($98BE) and binary offset [$953A]
+	beq.s	Find_DungeonCellOccupant_Found	;6772
+Find_DungeonCellOccupant_CheckPlayer2:		; Memory Address ($98BE) and binary offset [$953A]
 	addq.b	#$01,d0	;5200
 	lea	Player2_Data.l,a1	;43F90000EEDE
 	cmp.w	$0058(a1),d1	;B2690058
-	bne.s	adrCd0098D2	;6606
+	bne.s	Find_DungeonCellOccupant_ChampionSearchInit	;6606
 	cmp.l	$001C(a1),d2	;B4A9001C
-	beq.s	adrCd009930	;675E
-adrCd0098D2:		; Memory Address ($98D2) and binary offset [$954E]
+	beq.s	Find_DungeonCellOccupant_Found	;675E
+Find_DungeonCellOccupant_ChampionSearchInit:		; Memory Address ($98D2) and binary offset [$954E]
 	lea	Character_Stats_DataTable.l,a1	;43F90000EB2A
 	move.b	d2,d0	;1002
 	swap	d2	;4842
@@ -16459,37 +16557,37 @@ adrCd0098D2:		; Memory Address ($98D2) and binary offset [$954E]
 	move.b	d0,d2	;1400
 	move.w	CurrentTower.l,d3	;36390000EE2E
 	moveq	#Champion_Count-1,d0	;700F
-adrLp0098E8:		; Memory Address ($98E8) and binary offset [$9564]
+Find_DungeonCellOccupant_ChampionLoop:		; Memory Address ($98E8) and binary offset [$9564]
 	cmp.b	ChampionStat_Tower(a1),d3	;B629001F
-	bne.s	adrCd0098FA	;660C
+	bne.s	Find_DungeonCellOccupant_ChampionLoop_Next	;660C
 	cmp.b	ChampionStat_Floor(a1),d1	;B229001A
-	bne.s	adrCd0098FA	;6606
+	bne.s	Find_DungeonCellOccupant_ChampionLoop_Next	;6606
 	cmp.w	ChampionStat_XPosition(a1),d2	;B4690016
-	beq.s	adrCd00992A	;6730
-adrCd0098FA:		; Memory Address ($98FA) and binary offset [$9576]
+	beq.s	Find_DungeonCellOccupant_ChampionFound	;6730
+Find_DungeonCellOccupant_ChampionLoop_Next:		; Memory Address ($98FA) and binary offset [$9576]
 	add.w	#$0020,a1	;D2FC0020
-	dbra	d0,adrLp0098E8	;51C8FFE8
+	dbra	d0,Find_DungeonCellOccupant_ChampionLoop	;51C8FFE8
 	moveq	#$10,d0	;7010
 	lea	UnpackedMonsters.l,a1	;43F900016B7E
 	move.w	MonsterLive_RecordCountOffset(a1),d3	;3629FFFE
-	bmi.s	adrCd009926	;6B16
-adrLp009910:		; Memory Address ($9910) and binary offset [$958C]
+	bmi.s	Find_DungeonCellOccupant_NotFound	;6B16
+Find_DungeonCellOccupant_MonsterLoop:		; Memory Address ($9910) and binary offset [$958C]
 	cmp.b	MonsterRecord_Floor(a1),d1	;B2290004
-	bne.s	adrCd00991C	;6606
+	bne.s	Find_DungeonCellOccupant_MonsterLoop_Next	;6606
 	cmp.w	MonsterRecord_XPosition(a1),d2	;B4690000
-	beq.s	adrCd009930	;6714
-adrCd00991C:		; Memory Address ($991C) and binary offset [$9598]
+	beq.s	Find_DungeonCellOccupant_Found	;6714
+Find_DungeonCellOccupant_MonsterLoop_Next:		; Memory Address ($991C) and binary offset [$9598]
 	addq.w	#$01,d0	;5240
 	add.w	#MonsterRecord_Size,a1	;D2FC0010
-	dbra	d3,adrLp009910	;51CBFFEC
-adrCd009926:		; Memory Address ($9926) and binary offset [$95A2]
+	dbra	d3,Find_DungeonCellOccupant_MonsterLoop	;51CBFFEC
+Find_DungeonCellOccupant_NotFound:		; Memory Address ($9926) and binary offset [$95A2]
 	swap	d1	;4841
 	rts	;4E75
 
-adrCd00992A:		; Memory Address ($992A) and binary offset [$95A6]
+Find_DungeonCellOccupant_ChampionFound:		; Memory Address ($992A) and binary offset [$95A6]
 	not.b	d0	;4600
 	and.w	#$000F,d0	;0240000F
-adrCd009930:		; Memory Address ($9930) and binary offset [$95AC]
+Find_DungeonCellOccupant_Found:		; Memory Address ($9930) and binary offset [$95AC]
 	ori.b	#$01,ccr	;003C0001
 	rts	;4E75
 
@@ -16551,7 +16649,7 @@ Prepare_Monster_ScreenPosition:		; Memory Address ($995E) and binary offset [$95
 	moveq	#$00,d4	;7800
 	move.b	-$0016(a3),d0	;102BFFEA
 	move.b	Monster_ViewCell_DepthSlots(pc,d0.w),d1	;123B00C9
-	bmi.s	adrCd0099C6	;6B50
+	bmi.s	Prepare_Monster_ScreenPosition_Return	;6B50
 	add.b	Monster_SubPosition_DepthAdjustments(pc,d2.w),d1	;D23B20BE
 	move.w	d0,d5	;3A00
 	asl.w	#$02,d0	;E540
@@ -16561,26 +16659,26 @@ Prepare_Monster_ScreenPosition:		; Memory Address ($995E) and binary offset [$95
 	lea	Monster_ViewCell_SubPosition_XPositions.l,a0	;41F900018A84
 	move.b	$00(a0,d0.w),d4	;18300000
 	cmpi.b	#$FF,d4	;0C0400FF
-	beq.s	adrCd0099C8	;6734
+	beq.s	Prepare_Monster_ScreenPosition_InvalidSlotReturn	;6734
 	move.b	Monster_Depth_GfxSlots(pc,d2.w),d1	;123B20B8
 	move.b	Monster_GfxSlot_YPositions(pc,d1.w),d5	;1A3B10BC
 	move.w	-$0012(a3),d0	;302BFFEE
 	and.w	#$0007,d0	;02400007
 	cmpi.w	#$0004,d0	;0C400004
-	bne.s	adrCd0099C6	;661C
+	bne.s	Prepare_Monster_ScreenPosition_Return	;661C
 	move.b	Monster_StairDepthSlot_XAdjustments(pc,d2.w),d0	;103B2020
 	move.b	Monster_StairDepthSlot_YPositions(pc,d2.w),d2	;143B2024
 	btst	#$00,-$0012(a3)	;082B0000FFEE
-	bne.s	adrCd0099BE	;6604
+	bne.s	Prepare_Monster_ScreenPosition_ApplyDepth4Offset	;6604
 	neg.b	d0	;4400
 	moveq	#$4B,d2	;744B
-adrCd0099BE:		; Memory Address ($99BE) and binary offset [$963A]
+Prepare_Monster_ScreenPosition_ApplyDepth4Offset:		; Memory Address ($99BE) and binary offset [$963A]
 	add.b	d0,d5	;DA00
 	move.w	d2,MonsterStrip_BottomY.l	;33C20000AD64
-adrCd0099C6:		; Memory Address ($99C6) and binary offset [$9642]
+Prepare_Monster_ScreenPosition_Return:		; Memory Address ($99C6) and binary offset [$9642]
 	rts	;4E75
 
-adrCd0099C8:		; Memory Address ($99C8) and binary offset [$9644]
+Prepare_Monster_ScreenPosition_InvalidSlotReturn:		; Memory Address ($99C8) and binary offset [$9644]
 	moveq	#-$01,d1	;72FF
 	rts	;4E75
 
@@ -16712,10 +16810,10 @@ Calculate_MonsterViewerRelativeFacing:		; Memory Address ($9AB2) and binary offs
 	cmp.b	#$67,-$0017(a3)	;0C2B0067FFE9
 	bcc.s	.CentralPosition	;6408
 	tst.b	-$0017(a3)	;4A2BFFE9
-	bpl	adrCd00A6EC	;6A000BFA
+	bpl	Draw_DungeonOccupant_ResolvePosition	;6A000BFA
 .CentralPosition:
 	moveq	#$04,d1	;7204
-	bra	adrCd00A6EC	;60000BF4
+	bra	Draw_DungeonOccupant_ResolvePosition	;60000BF4
 
 Draw_PlayerOccupant:		; Memory Address ($9AFA) and binary offset [$9776]
 	; Resolves the active player occupant branch.
@@ -16723,7 +16821,7 @@ Draw_PlayerOccupant:		; Memory Address ($9AFA) and binary offset [$9776]
 	move.l	a5,-(sp)	;2F0D
 	move.l	a1,a5	;2A49
 	moveq	#$03,d1	;7203
-	bsr	adrCd005500	;6100B9F8
+	bsr	Find_HighestRankedPartyMemberByCategory	;6100B9F8
 	move.l	(sp)+,a5	;2A5F
 	tst.w	d3	;4A43
 	bmi.s	Draw_PlayerPartyOccupants	;6B0A
@@ -16750,7 +16848,7 @@ Count_NextVisiblePlayerPartySlot:		; Memory Address ($9B28) and binary offset [$
 	beq	Draw_PlayerPartyChampion	;6700002A
 	moveq	#$03,d1	;7203
 Draw_PlayerPartyMemberLoop:		; Memory Address ($9B38) and binary offset [$97B4]
-	; Resolves and draws each present player-party member.
+	; Draws present members of another player's party in back-to-front formation order, rotating each draw slot by (2-partyFacing+viewerFacing+drawSlot)&3.
 	moveq	#$02,d0	;7002
 	sub.w	$0020(a1),d0	;90690020
 	add.w	-$000A(a3),d0	;D06BFFF6
@@ -16772,7 +16870,7 @@ Draw_PlayerPartyChampion:		; Memory Address ($9B5E) and binary offset [$97DA]
 	bsr	Load_ChampionStatRecord	;6100CAFC
 	move.b	$001B(a4),d0	;102C001B
 	bsr.s	Decode_Monster_RenderFlags	;6154
-	bra	adrCd00A6EC	;60000B7E
+	bra	Draw_DungeonOccupant_ResolvePosition	;60000B7E
 
 GFX_Spell_ColourMasks:		; Memory Address ($9B70) and binary offset [$97EC]
 	; Four colour-mask indices per spell code. The first 16 records cover $80–$8F; the final four $90–$93 records have no confirmed gameplay effect but are retained for byte-exact source reproduction.
@@ -16925,9 +17023,9 @@ Resolve_MonsterBodyPoseGeometry:		; Memory Address ($9CA2) and binary offset [$9
 	add.w	d1,d2	;D441
 	moveq	#$00,d6	;7C00
 	move.b	Monster_Facing_GfxVariants_LookupTable(pc,d0.w),d3	;163B00F2
-	bpl.s	adrCd009CB2	;6A02
+	bpl.s	Resolve_MonsterBodyPoseGeometry_MaskVariantFlag	;6A02
 	moveq	#-$01,d6	;7CFF
-adrCd009CB2:		; Memory Address ($9CB2) and binary offset [$992E]
+Resolve_MonsterBodyPoseGeometry_MaskVariantFlag:		; Memory Address ($9CB2) and binary offset [$992E]
 	and.w	#$007F,d3	;0243007F
 	add.w	d3,d2	;D443
 	moveq	#$00,d7	;7E00
@@ -16941,6 +17039,7 @@ adrCd009CB2:		; Memory Address ($9CB2) and binary offset [$992E]
 	rts	;4E75
 
 Draw_Summon:		; Memory Address ($9CD2) and binary offset [$994E]
+	; Composes Summon forms $64 and $65 from the main body and two independently selected appendages, using Illusion palettes when the colour-grade byte is negative.
 	lea	GFX_Summon_LookupTable.l,a2	;45F900009EBE
 	lea	GFX_Summon_Body_Layout.l,a0	;41F900009DC0
 	lea	GFX_Summon.l,a1	;43F900045018
@@ -16959,36 +17058,37 @@ Draw_Summon:		; Memory Address ($9CD2) and binary offset [$994E]
 	movem.w	(sp)+,d0/d1/d4/d5/d7	;4C9F00B3
 	addq.b	#$03,d4	;5604
 	tst.w	d1	;4A41
-	bne.s	adrCd009D28	;6614
+	bne.s	Draw_Summon_BeginArmSetup	;6614
 	btst	#$00,d0	;08000000
-	bne.s	adrCd009D28	;660E
+	bne.s	Draw_Summon_BeginArmSetup	;660E
 	moveq	#-$01,d6	;7CFF
 	movem.w	d0/d1/d4/d5,-(sp)	;48A7CC00
 	bsr	Draw_Monster_16PixelStrip	;61001012
 	movem.w	(sp)+,d0/d1/d4/d5	;4C9F0033
-adrCd009D28:		; Memory Address ($9D28) and binary offset [$99A4]
+Draw_Summon_BeginArmSetup:		; Memory Address ($9D28) and binary offset [$99A4]
 	cmpi.w	#$0004,d1	;0C410004
-	bcc	adrCd009DB6	;64000088
+	bcc	Draw_Summon_End	;64000088
 	lea	GFX_Summon_PrimaryArm_Positions.l,a2	;45F900009DDC
 	movem.w	d0/d1/d4/d5,-(sp)	;48A7CC00
 	moveq	#$00,d6	;7C00
 	moveq	#$00,d2	;7400
-	bsr	adrCd009D50	;61000010
+	bsr	Draw_Summon_AppendageSelect	;61000010
 	movem.w	(sp)+,d0/d1/d4/d5	;4C9F0033
 	lea	GFX_Summon_SecondaryArm_Positions.l,a2	;45F900009DFC
 	moveq	#-$01,d6	;7CFF
 	moveq	#$01,d2	;7401
-adrCd009D50:		; Memory Address ($9D50) and binary offset [$99CC]
+Draw_Summon_AppendageSelect:		; Memory Address ($9D50) and binary offset [$99CC]
+	; Selects each Summon appendage's normal or raised sprite and position from animation bits, distance, facing, and mirror-aware layout tables.
 	lea	GFX_Summon_ArmVariants_LookupTable.l,a0	;41F900009DCC
 	move.b	$00(a0,d0.w),d3	;16300000
-	bpl.s	adrCd009D5E	;6A02
+	bpl.s	Draw_Summon_AppendageSelect_MaskVariantFlag	;6A02
 	not.w	d6	;4646
-adrCd009D5E:		; Memory Address ($9D5E) and binary offset [$99DA]
+Draw_Summon_AppendageSelect_MaskVariantFlag:		; Memory Address ($9D5E) and binary offset [$99DA]
 	and.w	#$007F,d3	;0243007F
 	btst	d2,-$0015(a3)	;052BFFEB
-	beq.s	adrCd009D6A	;6702
+	beq.s	Draw_Summon_AppendageSelect_AfterRaisedCheck	;6702
 	moveq	#$02,d3	;7602
-adrCd009D6A:		; Memory Address ($9D6A) and binary offset [$99E6]
+Draw_Summon_AppendageSelect_AfterRaisedCheck:		; Memory Address ($9D6A) and binary offset [$99E6]
 	move.w	d1,d2	;3401
 	add.w	d2,d2	;D442
 	add.w	d1,d2	;D441
@@ -17005,16 +17105,17 @@ adrCd009D6A:		; Memory Address ($9D6A) and binary offset [$99E6]
 	add.w	d0,d2	;D440
 	add.w	d2,d2	;D442
 	cmpi.b	#$02,d3	;0C030002
-	bne.s	adrCd009DA2	;6604
+	bne.s	Draw_Summon_AppendageSelect_AfterTableOffset	;6604
 	add.w	#$0040,a2	;D4FC0040
-adrCd009DA2:		; Memory Address ($9DA2) and binary offset [$9A1E]
+Draw_Summon_AppendageSelect_AfterTableOffset:		; Memory Address ($9DA2) and binary offset [$9A1E]
 	cmp.w	#$FFFF,$00(a2,d2.w)	;0C72FFFF2000
-	beq.s	adrCd009DB6	;670C
+	beq.s	Draw_Summon_End	;670C
 	sub.b	$00(a2,d2.w),d4	;98322000
 	sub.b	$01(a2,d2.w),d5	;9A322001
 	bra	Draw_Monster_16PixelStrip	;60000F80
 
-adrCd009DB6:		; Memory Address ($9DB6) and binary offset [$9A32]
+Draw_Summon_End:		; Memory Address ($9DB6) and binary offset [$9A32]
+	; Completes the Summon compositor after its body and appendage draws.
 	rts	;4E75
 
 Monster_Summon_Colours:		; Memory Address ($9DB8) and binary offset [$9A34]
@@ -17196,13 +17297,14 @@ GFX_Summon_Arms_LookupTable:		; Memory Address ($9EE2) and binary offset [$9B5E]
 	dc.w	$1670	;1670
 
 Draw_Crab:		; Memory Address ($9EFA) and binary offset [$9B76]
+	; Entry point for the table-driven Crab body and detail compositor.
 	move.w	#$FFFF,Buffer_Colour_Mask_Toggle.l	;33FCFFFF0000B4BE
 	lea	Monster_Crabs_Colours.l,a0	;41F900009F20
 	moveq	#$02,d3	;7602
 	bsr.s	MonsterColourGrading	;6188
-	bsr	adrCd00A106	;610001F8
+	bsr	Draw_Crab_Body	;610001F8
 	lea	Buffer_Colour_Mask.l,a6	;4DF90000B4C0
-	bsr.s	adrCd009F28	;6110
+	bsr.s	Draw_Crab_DetailDispatch	;6110
 	clr.w	Buffer_Colour_Mask_Toggle.l	;42790000B4BE
 	rts	;4E75
 
@@ -17212,20 +17314,21 @@ Monster_Crabs_Colours:		; Memory Address ($9F20) and binary offset [$9B9C]
 	dc.w	$080B	;080B
 	dc.w	$090A	;090A
 
-adrCd009F28:		; Memory Address ($9F28) and binary offset [$9BA4]
+Draw_Crab_DetailDispatch:		; Memory Address ($9F28) and binary offset [$9BA4]
+	; Selects the Crab's front, side, or claw detail path for the current distance class.
 	cmpi.b	#$02,d1	;0C010002
-	bcc.s	adrCd009F32	;6404
+	bcc.s	Draw_Crab_DetailDispatch_ByPose	;6404
 	bsr	Draw_Crab_DetailDispatch_Front	;61000130
-adrCd009F32:		; Memory Address ($9F32) and binary offset [$9BAE]
+Draw_Crab_DetailDispatch_ByPose:		; Memory Address ($9F32) and binary offset [$9BAE]
 	cmpi.b	#$02,d0	;0C000002
-	beq.s	adrCd009F78	;6740
+	beq.s	Draw_Crab_DetailDispatch_Return	;6740
 	tst.b	d0	;4A00
-	bne	adrCd009FE8	;660000AC
+	bne	Draw_Crab_SidePoseSelect	;660000AC
 	cmpi.b	#$02,d1	;0C010002
-	bcs.s	adrCd009F8C	;6548
+	bcs.s	Draw_CrabCloseFrontClaw_BehemothReuse	;6548
 	subq.w	#$02,d1	;5541
 	lea	GFX_Crab_FarSideClaw_MirroredSourceOffsets.l,a2	;45F90000A17A
-	bsr	adrCd00A0F6	;610001A8
+	bsr	Draw_Crab_SideClaw	;610001A8
 	moveq	#$00,d7	;7E00
 	move.b	CrabFarSideClaw_StripHeightMinusOneTable(pc,d1.w),d7	;1E3B102C
 	add.b	CrabFarSideClaw_YOffsetTable(pc,d1.w),d5	;DA3B1022
@@ -17239,7 +17342,7 @@ adrCd009F32:		; Memory Address ($9F32) and binary offset [$9BAE]
 	add.b	CrabFarSideClaw_XOffsetTableB(pc,d1.w),d4	;D83B100B
 	bra	Draw_Monster_16PixelStrip	;60000DBE
 
-adrCd009F78:		; Memory Address ($9F78) and binary offset [$9BF4]
+Draw_Crab_DetailDispatch_Return:		; Memory Address ($9F78) and binary offset [$9BF4]
 	rts	;4E75
 
 CrabFarSideClaw_YOffsetTable:		; Memory Address ($9F7A) and binary offset [$9BF6]
@@ -17275,7 +17378,7 @@ CrabCloseFrontClaw_StripHeightMinusOneTable:		; Memory Address ($9F8A) and binar
 	dc.b	$14	;14
 	dc.b	$0D	;0D
 
-adrCd009F8C:		; Memory Address ($9F8C) and binary offset [$9C08]
+Draw_CrabCloseFrontClaw_BehemothReuse:		; Memory Address ($9F8C) and binary offset [$9C08]
 	moveq	#$00,d7	;7E00
 	move.b	CrabCloseFrontClaw_StripHeightMinusOneTable(pc,d1.w),d7	;1E3B10FA
 	moveq	#$00,d2	;7400
@@ -17294,10 +17397,10 @@ Draw_BehemothClawStrip:		; Memory Address ($9F9E) and binary offset [$9C1A]
 	add.b	BehemothClawStrip_XOffsetTable(pc,d3.w),d4	;D83B30D0
 	move.w	d1,d3	;3601
 	btst	d2,-$0015(a3)	;052BFFEB
-	beq.s	adrCd009FC4	;6704
+	beq.s	Draw_BehemothClawStrip_AfterOcclusionCheck	;6704
 	addq.w	#$01,d3	;5243
 	addq.w	#$02,a2	;544A
-adrCd009FC4:		; Memory Address ($9FC4) and binary offset [$9C40]
+Draw_BehemothClawStrip_AfterOcclusionCheck:		; Memory Address ($9FC4) and binary offset [$9C40]
 	add.b	BehemothClawStrip_YOffsetTable(pc,d3.w),d5	;DA3B30BC
 	add.w	d1,d1	;D241
 	add.w	$00(a2,d1.w),a1	;D2F21000
@@ -17310,7 +17413,7 @@ adrB_009FD8:
 	dc.b	$12	;12
 	dc.b	$07	;07
 	dc.b	$0E	;0E
-adrB_009FDC:		; Memory Address ($9FDC) and binary offset [$9C58]
+GFX_Crab_SideDetail_XAdjust:		; Memory Address ($9FDC) and binary offset [$9C58]
 	dc.b	$E6	;E6
 	dc.b	$E5	;E5
 	dc.b	$1A	;1A
@@ -17319,66 +17422,68 @@ adrB_009FDC:		; Memory Address ($9FDC) and binary offset [$9C58]
 	dc.b	$EF	;EF
 	dc.b	$0B	;0B
 	dc.b	$0B	;0B
-adrB_009FE4:		; Memory Address ($9FE4) and binary offset [$9C60]
+GFX_Crab_SideDetail_YAdjust:		; Memory Address ($9FE4) and binary offset [$9C60]
 	dc.b	$02	;02
 	dc.b	$F1	;F1
 	dc.b	$FB	;FB
 	dc.b	$F0	;F0
 
-adrCd009FE8:		; Memory Address ($9FE8) and binary offset [$9C64]
+Draw_Crab_SidePoseSelect:		; Memory Address ($9FE8) and binary offset [$9C64]
+	; Selects the Crab's normal or attacking side/claw pose from its animation bit.
 	cmpi.b	#$02,d1	;0C010002
-	bcc.s	adrCd00A030	;6442
-	lea	adrEA00A17E.l,a2	;45F90000A17E
+	bcc.s	Draw_Crab_DetailDispatch_Far	;6442
+	lea	GFX_Crab_SideDetail_SourceOffsets.l,a2	;45F90000A17E
 	add.w	d1,d1	;D241
 	moveq	#-$01,d6	;7CFF
 	lsr.b	#$01,d0	;E208
-	beq.s	adrCd009FFE	;6702
+	beq.s	Draw_Crab_SidePoseSelect_MergeMirrorFlag	;6702
 	moveq	#$00,d6	;7C00
-adrCd009FFE:		; Memory Address ($9FFE) and binary offset [$9C7A]
+Draw_Crab_SidePoseSelect_MergeMirrorFlag:		; Memory Address ($9FFE) and binary offset [$9C7A]
 	move.w	d1,d2	;3401
 	add.w	d0,d2	;D440
 	add.w	d2,d2	;D442
 	eor.b	#$01,d0	;0A000001
 	btst	d0,-$0015(a3)	;012BFFEB
-	beq.s	adrCd00A012	;6704
+	beq.s	Draw_Crab_SidePoseSelect_DrawDetail	;6704
 	addq.w	#$01,d1	;5241
 	addq.w	#$01,d2	;5242
-adrCd00A012:		; Memory Address ($A012) and binary offset [$9C8E]
+Draw_Crab_SidePoseSelect_DrawDetail:		; Memory Address ($A012) and binary offset [$9C8E]
 	moveq	#$00,d7	;7E00
 	move.b	adrB_009FD8(pc,d1.w),d7	;1E3B10C2
-	add.b	adrB_009FDC(pc,d2.w),d4	;D83B20C2
-	add.b	adrB_009FE4(pc,d1.w),d5	;DA3B10C6
-	bsr	adrCd00A0F6	;610000D4
+	add.b	GFX_Crab_SideDetail_XAdjust(pc,d2.w),d4	;D83B20C2
+	add.b	GFX_Crab_SideDetail_YAdjust(pc,d1.w),d5	;DA3B10C6
+	bsr	Draw_Crab_SideClaw	;610000D4
 	bra	Draw_Monster_16PixelStrip	;60000D0E
 
 CrabDetailDispatchFar_StripHeightMinusOneTable:		; Memory Address ($A028) and binary offset [$9CA4]
 	; DBRA height-minus-one values used by the far-distance Crab detail strip.
 	dc.b	$08	;08
 	dc.b	$06	;06
-adrB_00A02A:		; Memory Address ($A02A) and binary offset [$9CA6]
+GFX_Crab_SideDetail_Coords1:		; Memory Address ($A02A) and binary offset [$9CA6]
 	dc.b	$F3	;F3
 	dc.b	$09	;09
 	dc.b	$F2	;F2
 	dc.b	$06	;06
-adrB_00A02E:		; Memory Address ($A02E) and binary offset [$9CAA]
+GFX_Crab_SideY_Table:		; Memory Address ($A02E) and binary offset [$9CAA]
 	dc.b	$F8	;F8
 	dc.b	$F7	;F7
 
-adrCd00A030:		; Memory Address ($A030) and binary offset [$9CAC]
+Draw_Crab_DetailDispatch_Far:		; Memory Address ($A030) and binary offset [$9CAC]
+	; Continues Crab detail selection for the far-distance classes.
 	subq.b	#$02,d1	;5501
 	moveq	#$00,d7	;7E00
 	move.b	CrabDetailDispatchFar_StripHeightMinusOneTable(pc,d1.w),d7	;1E3B10F2
-	add.b	adrB_00A02E(pc,d1.w),d5	;DA3B10F4
+	add.b	GFX_Crab_SideY_Table(pc,d1.w),d5	;DA3B10F4
 	lea	GFX_Crab_DetailDispatchFar_SourceOffsets.l,a2	;45F90000A186
-	bsr	adrCd00A0F6	;610000B2
+	bsr	Draw_Crab_SideClaw	;610000B2
 	add.w	d1,d1	;D241
 	moveq	#-$01,d6	;7CFF
 	lsr.b	#$01,d0	;E208
-	beq.s	adrCd00A052	;6704
+	beq.s	Draw_Crab_DetailDispatch_Far_ApplyXOffset	;6704
 	moveq	#$00,d6	;7C00
 	addq.w	#$01,d1	;5241
-adrCd00A052:		; Memory Address ($A052) and binary offset [$9CCE]
-	add.b	adrB_00A02A(pc,d1.w),d4	;D83B10D6
+Draw_Crab_DetailDispatch_Far_ApplyXOffset:		; Memory Address ($A052) and binary offset [$9CCE]
+	add.b	GFX_Crab_SideDetail_Coords1(pc,d1.w),d4	;D83B10D6
 	bra	Draw_Monster_16PixelStrip	;60000CDC
 
 CrabDetailDispatchFront_StripHeightMinusOneTable:		; Memory Address ($A05A) and binary offset [$9CD6]
@@ -17388,42 +17493,43 @@ CrabDetailDispatchFront_StripHeightMinusOneTable:		; Memory Address ($A05A) and 
 GFX_CrabFace_Position:		; Memory Address ($A05C) and binary offset [$9CD8]
 	dc.b	$FE	;FE
 	dc.b	$FB	;FB
-adrB_00A05E:		; Memory Address ($A05E) and binary offset [$9CDA]
+GFX_Crab_SideDetail_Coords2:		; Memory Address ($A05E) and binary offset [$9CDA]
 	dc.b	$EC	;EC
 	dc.b	$14	;14
 
 Draw_Crab_DetailDispatch_Front:		; Memory Address ($A060) and binary offset [$9CDC]
 	; Draws the Crab's front-view side detail or dispatches to the rear-view detail path.
 	tst.b	d0	;4A00
-	bne.s	adrCd00A086	;6622
+	bne.s	Draw_Crab_DetailDispatch_Rear	;6622
 	moveq	#$00,d6	;7C00
 	lea	GFX_Crab_FrontClawSourceOffsets.l,a2	;45F90000A170
 	movem.w	d0/d1/d4/d5,-(sp)	;48A7CC00
 	move.b	CrabDetailDispatchFront_StripHeightMinusOneTable(pc,d1.w),d7	;1E3B10E8
-	bsr	adrCd00A0F6	;61000080
+	bsr	Draw_Crab_SideClaw	;61000080
 	add.b	GFX_CrabFace_Position(pc,d1.w),d5	;DA3B10E2
-adrCd00A07C:		; Memory Address ($A07C) and binary offset [$9CF8]
+Draw_CrabDetail_SharedDrawStrip:		; Memory Address ($A07C) and binary offset [$9CF8]
 	bsr	Draw_Monster_16PixelStrip	;61000CB6
 	movem.w	(sp)+,d0/d1/d4/d5	;4C9F0033
-adrCd00A084:		; Memory Address ($A084) and binary offset [$9D00]
+Draw_CrabDetail_SharedReturn:		; Memory Address ($A084) and binary offset [$9D00]
 	rts	;4E75
 
-adrCd00A086:		; Memory Address ($A086) and binary offset [$9D02]
+Draw_Crab_DetailDispatch_Rear:		; Memory Address ($A086) and binary offset [$9D02]
+	; Continues Crab detail selection for the rear orientation.
 	cmpi.b	#$02,d0	;0C000002
-	beq.s	adrCd00A0B4	;6728
+	beq.s	Draw_Crab_HiddenClaws	;6728
 	tst.b	d1	;4A01
-	bne.s	adrCd00A084	;66F4
+	bne.s	Draw_CrabDetail_SharedReturn	;66F4
 	lea	GFX_CrabClaw.l,a1	;43F900047F10
 	movem.w	d0/d1/d4/d5,-(sp)	;48A7CC00
 	moveq	#$07,d7	;7E07
 	subq.b	#$03,d5	;5705
 	moveq	#-$01,d6	;7CFF
 	lsr.b	#$01,d0	;E208
-	beq.s	adrCd00A0A6	;6702
+	beq.s	Draw_Crab_DetailDispatch_Rear_ApplyXOffset	;6702
 	moveq	#$00,d6	;7C00
-adrCd00A0A6:		; Memory Address ($A0A6) and binary offset [$9D22]
-	add.b	adrB_00A05E(pc,d0.w),d4	;D83B00B6
-	bra.s	adrCd00A07C	;60D0
+Draw_Crab_DetailDispatch_Rear_ApplyXOffset:		; Memory Address ($A0A6) and binary offset [$9D22]
+	add.b	GFX_Crab_SideDetail_Coords2(pc,d0.w),d4	;D83B00B6
+	bra.s	Draw_CrabDetail_SharedDrawStrip	;60D0
 
 BeholderEye_XOffsetTable:		; Memory Address ($A0AC) and binary offset [$9D28]
 	; Signed X adjustments for either of the two optional Beholder eye components; also reused by the Crab rear-detail path.
@@ -17440,11 +17546,12 @@ CrabHiddenClaws_StripHeightMinusOneTable:		; Memory Address ($A0B2) and binary o
 	dc.b	$07	;07
 	dc.b	$04	;04
 
-adrCd00A0B4:		; Memory Address ($A0B4) and binary offset [$9D30]
+Draw_Crab_HiddenClaws:		; Memory Address ($A0B4) and binary offset [$9D30]
+	; Draws the Crab's rear base strip and overlays up to two independently animated hidden-claw strips when their animation bits are set.
 	tst.b	-$0015(a3)	;4A2BFFEB
-	beq.s	adrCd00A084	;67CA
+	beq.s	Draw_CrabDetail_SharedReturn	;67CA
 	lea	GFX_Crab_HiddenClawSourceOffsets.l,a2	;45F90000A176
-	bsr.s	adrCd00A0F6	;6134
+	bsr.s	Draw_Crab_SideClaw	;6134
 	moveq	#$00,d7	;7E00
 	move.b	CrabHiddenClaws_StripHeightMinusOneTable(pc,d1.w),d7	;1E3B10EC
 	moveq	#-$01,d6	;7CFF
@@ -17455,7 +17562,7 @@ adrCd00A0B4:		; Memory Address ($A0B4) and binary offset [$9D30]
 GFX_Beholder:		; Memory Address ($A0D2) and binary offset [$9D4E]
 	; Draws the Beholder's optional eye components selected by its render flags.
 	btst	d2,-$0015(a3)	;052BFFEB
-	beq.s	adrCd00A0F4	;671C
+	beq.s	GFX_Beholder_Return	;671C
 	movem.w	d0/d1/d4/d5/d7,-(sp)	;48A7CD00
 	move.l	a1,-(sp)	;2F09
 	add.b	BeholderEye_YOffsetTable(pc,d1.w),d5	;DA3B10D0
@@ -17465,17 +17572,19 @@ GFX_Beholder:		; Memory Address ($A0D2) and binary offset [$9D4E]
 	bsr	Draw_Monster_16PixelStrip	;61000C48
 	move.l	(sp)+,a1	;225F
 	movem.w	(sp)+,d0/d1/d4/d5/d7	;4C9F00B3
-adrCd00A0F4:		; Memory Address ($A0F4) and binary offset [$9D70]
+GFX_Beholder_Return:		; Memory Address ($A0F4) and binary offset [$9D70]
 	rts	;4E75
 
-adrCd00A0F6:		; Memory Address ($A0F6) and binary offset [$9D72]
+Draw_Crab_SideClaw:		; Memory Address ($A0F6) and binary offset [$9D72]
+	; Draws the Crab's selected side/claw strip through the common 16-pixel monster-strip renderer.
 	lea	GFX_Crab.l,a1	;43F900047AB8
 	move.w	d1,d2	;3401
 	add.w	d2,d2	;D442
 	add.w	$00(a2,d2.w),a1	;D2F22000
 	rts	;4E75
 
-adrCd00A106:		; Memory Address ($A106) and binary offset [$9D82]
+Draw_Crab_Body:		; Memory Address ($A106) and binary offset [$9D82]
+	; Draws the Crab shell/body sprite selected by the shared distance-group lookup.
 	lea	Monster_DistanceGroups_LookupTable.l,a0	;41F90000A536
 	move.b	$00(a0,d1.w),d1	;12301000
 	lea	GFX_Crab_BodySourceOffsets.l,a2	;45F90000A168
@@ -17485,7 +17594,7 @@ adrCd00A106:		; Memory Address ($A106) and binary offset [$9D82]
 	move.b	$04(a0,d1.w),d7	;1E301004
 	swap	d7	;4847
 	move.b	$08(a0,d1.w),d7	;1E301008
-	bsr.s	adrCd00A0F6	;61C8
+	bsr.s	Draw_Crab_SideClaw	;61C8
 	movem.l	d0-d2/d4/d5/d7,-(sp)	;48E7ED00
 	move.l	a1,-(sp)	;2F09
 	add.b	CrabBody_XOffsetTableA(pc,d2.w),d4	;D83B201E
@@ -17538,7 +17647,7 @@ GFX_Crab_FarSideClaw_MirroredSourceOffsets:		; Memory Address ($A17A) and binary
 	; Source offsets within GFX_Crab used for the mirrored far-side claw strips.
 	dc.w	$0500	;0500
 	dc.w	$0550	;0550
-adrEA00A17E:		; Memory Address ($A17E) and binary offset [$9DFA]
+GFX_Crab_SideDetail_SourceOffsets:		; Memory Address ($A17E) and binary offset [$9DFA]
 	dc.w	$0590	;0590
 	dc.w	$05D8	;05D8
 	dc.w	$0670	;0670
@@ -17549,14 +17658,15 @@ GFX_Crab_DetailDispatchFar_SourceOffsets:		; Memory Address ($A186) and binary o
 	dc.w	$0770	;0770
 
 Draw_Beholder:		; Memory Address ($A18A) and binary offset [$9E06]
+	; Selects the Beholder colour route and composes its body, upper eyes, and large lower eye/details for the current distance and facing.
 	moveq	#$04,d3	;7604
 	lea	Monster_Beholder_Colours.l,a0	;41F90000A1AC
 	bsr	MonsterColourGrading	;6100FD00
 	bsr	Draw_Beholder_BodyAndUpperEyes	;610000D6
 	cmpi.b	#$02,d0	;0C000002
-	beq.s	adrCd00A1A4	;6704
+	beq.s	Draw_Beholder_Exit	;6704
 	bsr	Draw_Beholder_CentralEye	;6100001A
-adrCd00A1A4:		; Memory Address ($A1A4) and binary offset [$9E20]
+Draw_Beholder_Exit:		; Memory Address ($A1A4) and binary offset [$9E20]
 	clr.w	Buffer_Colour_Mask_Toggle.l	;42790000B4BE
 	rts	;4E75
 
@@ -17579,6 +17689,7 @@ GFX_Beholder_CentralEye_Near_YPositions:		; Memory Address ($A1B8) and binary of
 	dc.b	$03	;03
 
 Draw_Beholder_CentralEye:		; Memory Address ($A1BC) and binary offset [$9E38]
+	; Draws the Beholder's large lower-eye assembly and its optional near-distance detail components, mirroring the appropriate side.
 	cmpi.b	#$04,d1	;0C010004
 	bcc.s	Draw_Beholder_CentralEye_Far	;6464
 	lea	GFX_Beholder_CentralEye_Near_LookupTable.l,a2	;45F90000A308
@@ -17587,9 +17698,9 @@ Draw_Beholder_CentralEye:		; Memory Address ($A1BC) and binary offset [$9E38]
 	move.w	d1,d2	;3401
 	add.w	d2,d2	;D442
 	btst	#$01,-$0015(a3)	;082B0001FFEB
-	beq.s	adrCd00A1DC	;6702
+	beq.s	Draw_Beholder_CentralEye_MergeIndexBit	;6702
 	addq.w	#$01,d2	;5242
-adrCd00A1DC:		; Memory Address ($A1DC) and binary offset [$9E58]
+Draw_Beholder_CentralEye_MergeIndexBit:		; Memory Address ($A1DC) and binary offset [$9E58]
 	add.w	d2,d2	;D442
 	lea	GFX_Beholder_Body.l,a1	;43F900048260
 	tst.b	d0	;4A00
@@ -17639,6 +17750,7 @@ GFX_Beholder_CentralEye_Far_Side_Mirrored_XPositions:		; Memory Address ($A224) 
 	dc.b	$F7	;F7
 
 Draw_Beholder_CentralEye_Far:		; Memory Address ($A226) and binary offset [$9EA2]
+	; Draws the smaller far-distance form of the Beholder's large lower eye.
 	lea	GFX_Beholder_CentralEye_Far_LookupTable.l,a2	;45F90000A328
 	subq.w	#$04,d1	;5941
 	move.w	d1,d2	;3401
@@ -17646,13 +17758,13 @@ Draw_Beholder_CentralEye_Far:		; Memory Address ($A226) and binary offset [$9EA2
 	add.b	GFX_Beholder_CentralEye_Far_YPositions(pc,d1.w),d5	;DA3B10EE
 	moveq	#$00,d6	;7C00
 	tst.b	d0	;4A00
-	beq.s	adrCd00A248	;670C
+	beq.s	Draw_Beholder_CentralEye_Far_DrawStrip	;670C
 	addq.w	#$02,d2	;5442
 	lsr.b	#$01,d0	;E208
-	beq.s	adrCd00A248	;6706
+	beq.s	Draw_Beholder_CentralEye_Far_DrawStrip	;6706
 	moveq	#-$01,d6	;7CFF
 	add.b	GFX_Beholder_CentralEye_Far_Side_Mirrored_XPositions(pc,d1.w),d4	;D83B10DE
-adrCd00A248:		; Memory Address ($A248) and binary offset [$9EC4]
+Draw_Beholder_CentralEye_Far_DrawStrip:		; Memory Address ($A248) and binary offset [$9EC4]
 	add.w	d2,d2	;D442
 	lea	GFX_Beholder_Body.l,a1	;43F900048260
 	add.w	$00(a2,d2.w),a1	;D2F22000
@@ -17690,6 +17802,7 @@ GFX_Beholder_UpperEyes_Heights:		; Memory Address ($A26A) and binary offset [$9E
 	dc.b	$03	;03
 
 Draw_Beholder_BodyAndUpperEyes:		; Memory Address ($A26E) and binary offset [$9EEA]
+	; Draws the Beholder body and upper eye-stalk components, including the mirrored near-distance copy.
 	moveq	#$00,d7	;7E00
 	move.b	GFX_Beholder_Body_Heights(pc,d1.w),d7	;1E3B10E6
 	add.b	GFX_Beholder_Composite_XPositions(pc,d1.w),d4	;D83B10E8
@@ -17698,7 +17811,7 @@ Draw_Beholder_BodyAndUpperEyes:		; Memory Address ($A26E) and binary offset [$9E
 	bsr	Select_Beholder_GfxFromLookup	;61000060
 	bsr	Draw_Beholder_Component	;6100002E
 	cmpi.b	#$04,d1	;0C010004
-	bcc.s	adrCd00A2B4	;6424
+	bcc.s	Draw_Beholder_BodyAndUpperEyes_Return	;6424
 	lea	GFX_Beholder_UpperEyes_LookupTable.l,a2	;45F90000A300
 	bsr	Select_Beholder_GfxFromLookup	;6100004C
 	move.w	d5,-(sp)	;3F05
@@ -17711,10 +17824,11 @@ Draw_Beholder_BodyAndUpperEyes:		; Memory Address ($A26E) and binary offset [$9E
 	sub.b	d2,d5	;9A02
 	bsr.s	Draw_Beholder_Component	;6104
 	move.w	(sp)+,d5	;3A1F
-adrCd00A2B4:		; Memory Address ($A2B4) and binary offset [$9F30]
+Draw_Beholder_BodyAndUpperEyes_Return:		; Memory Address ($A2B4) and binary offset [$9F30]
 	rts	;4E75
 
 Draw_Beholder_Component:		; Memory Address ($A2B6) and binary offset [$9F32]
+	; Draws one Beholder component with the source offset, placement, and optional mirroring selected by the caller.
 	movem.w	d0/d1/d4/d5/d7,-(sp)	;48A7CD00
 	move.l	a1,-(sp)	;2F09
 	moveq	#$00,d6	;7C00
@@ -17722,7 +17836,7 @@ Draw_Beholder_Component:		; Memory Address ($A2B6) and binary offset [$9F32]
 	move.l	(sp)+,a1	;225F
 	movem.w	(sp)+,d0/d1/d4/d5/d7	;4C9F00B3
 	cmpi.b	#$02,d1	;0C010002
-	bcc.s	adrCd00A2B4	;64E6
+	bcc.s	Draw_Beholder_BodyAndUpperEyes_Return	;64E6
 	moveq	#-$01,d6	;7CFF
 	movem.w	d0/d1/d4/d5/d7,-(sp)	;48A7CD00
 	add.b	GFX_Beholder_Near_MirroredHalf_XPositions(pc,d1.w),d4	;D83B100C
@@ -17782,7 +17896,7 @@ Draw_LittleDragon:		; Memory Address ($A330) and binary offset [$9FAC]
 	moveq	#$01,d2	;7401
 	lea	GFX_LittleDragon_SourceOffsets.l,a2	;45F90000A33C
 	moveq	#$03,d3	;7603
-	bra.s	adrCd00A356	;601A
+	bra.s	Draw_Dragon_ComputeBodyPosition	;601A
 
 GFX_LittleDragon_SourceOffsets:		; Memory Address ($A33C) and binary offset [$9FB8]
 	; Source offsets within GFX_Dragon used by the Little Dragon renderer.
@@ -17800,27 +17914,27 @@ Draw_BigDragon:		; Memory Address ($A34C) and binary offset [$9FC8]
 	moveq	#$00,d2	;7400
 	lea	BigDragon_Table_Unknown.l,a2	;45F90000A344
 	moveq	#$09,d3	;7609
-adrCd00A356:		; Memory Address ($A356) and binary offset [$9FD2]
+Draw_Dragon_ComputeBodyPosition:		; Memory Address ($A356) and binary offset [$9FD2]
 	lea	Monster_DistanceGroups_LookupTable.l,a0	;41F90000A536
 	move.b	$00(a0,d1.w),d1	;12301000
 	add.b	$00(a2,d1.w),d4	;D8321000
 	add.b	$04(a2,d1.w),d5	;DA321004
 	add.w	d2,d1	;D242
 	btst	#$00,d0	;08000000
-	beq.s	adrCd00A37C	;670C
+	beq.s	Draw_Dragon_ColourAndDetailDraw	;670C
 	move.w	d0,d2	;3400
 	lsr.w	#$01,d2	;E24A
 	add.w	d1,d2	;D441
 	add.w	d1,d2	;D441
 	add.b	GFX_Dragon_Side_XPositions(pc,d2.w),d4	;D83B2022
-adrCd00A37C:		; Memory Address ($A37C) and binary offset [$9FF8]
+Draw_Dragon_ColourAndDetailDraw:		; Memory Address ($A37C) and binary offset [$9FF8]
 	lea	Monster_Dragon_Colours.l,a0	;41F90000A3A6
 	bsr	MonsterColourGrading	;6100FB10
 	move.w	#$FFFF,Buffer_Colour_Mask_Toggle.l	;33FCFFFF0000B4BE
 	bsr	Draw_DragonSideDetail	;610000E6
 	bsr.s	Draw_DragonSideDetail_Conditional	;611A
 	clr.w	Buffer_Colour_Mask_Toggle.l	;42790000B4BE
-adrCd00A39A:		; Memory Address ($A39A) and binary offset [$A016]
+Draw_Dragon_Return:		; Memory Address ($A39A) and binary offset [$A016]
 	rts	;4E75
 
 GFX_Dragon_Side_XPositions:		; Memory Address ($A39C) and binary offset [$A018]
@@ -17844,16 +17958,16 @@ Monster_Dragon_Colours:		; Memory Address ($A3A6) and binary offset [$A022]
 Draw_DragonSideDetail_Conditional:		; Memory Address ($A3AE) and binary offset [$A02A]
 	; Conditionally selects and draws the Dragon's second side-detail pass for eligible poses and facings.
 	cmpi.b	#$02,d0	;0C000002
-	beq.s	adrCd00A39A	;67E6
+	beq.s	Draw_Dragon_Return	;67E6
 	cmpi.b	#$03,d1	;0C010003
-	bcc.s	adrCd00A39A	;64E0
+	bcc.s	Draw_Dragon_Return	;64E0
 	moveq	#$00,d2	;7400
 	moveq	#$00,d6	;7C00
 	movem.w	d0/d1/d4/d5,-(sp)	;48A7CC00
 	bsr.s	Select_DragonDetailVariant	;610C
 	movem.w	(sp)+,d0/d1/d4/d5	;4C9F0033
 	tst.w	d0	;4A40
-	bne.s	adrCd00A39A	;66CE
+	bne.s	Draw_Dragon_Return	;66CE
 	moveq	#-$01,d6	;7CFF
 	moveq	#$01,d2	;7401
 Select_DragonDetailVariant:		; Memory Address ($A3D0) and binary offset [$A04C]
@@ -17861,16 +17975,16 @@ Select_DragonDetailVariant:		; Memory Address ($A3D0) and binary offset [$A04C]
 	move.w	d1,d3	;3601
 	asl.w	#$02,d3	;E543
 	move.w	d0,d7	;3E00
-	beq.s	adrCd00A3E0	;6708
+	beq.s	Select_DragonDetailVariant_MergeIndex	;6708
 	addq.w	#$02,d3	;5443
 	lsr.w	#$01,d7	;E24F
-	bne.s	adrCd00A3E0	;6602
+	bne.s	Select_DragonDetailVariant_MergeIndex	;6602
 	not.l	d6	;4686
-adrCd00A3E0:		; Memory Address ($A3E0) and binary offset [$A05C]
+Select_DragonDetailVariant_MergeIndex:		; Memory Address ($A3E0) and binary offset [$A05C]
 	btst	d2,-$0015(a3)	;052BFFEB
-	beq.s	adrCd00A3E8	;6702
+	beq.s	Select_DragonDetailVariant_LoadFrame	;6702
 	addq.w	#$01,d3	;5243
-adrCd00A3E8:		; Memory Address ($A3E8) and binary offset [$A064]
+Select_DragonDetailVariant_LoadFrame:		; Memory Address ($A3E8) and binary offset [$A064]
 	moveq	#$00,d7	;7E00
 	move.b	DragonDetail_WidthMinusOneTable(pc,d3.w),d7	;1E3B302C
 	swap	d7	;4847
@@ -17881,9 +17995,9 @@ adrCd00A3E8:		; Memory Address ($A3E8) and binary offset [$A064]
 	lea	GFX_Dragon.l,a1	;43F900048960
 	add.w	$00(a2,d3.w),a1	;D2F23000
 	tst.w	d6	;4A46
-	bpl.s	adrCd00A410	;6A02
+	bpl.s	Select_DragonDetailVariant_ApplyXOffset	;6A02
 	addq.w	#$01,d3	;5243
-adrCd00A410:		; Memory Address ($A410) and binary offset [$A08C]
+Select_DragonDetailVariant_ApplyXOffset:		; Memory Address ($A410) and binary offset [$A08C]
 	add.b	DragonDetailXOffsetTable(pc,d3.w),d4	;D83B302A
 	bra	Draw_Monster_CompositeBitmap	;600002B4
 
@@ -18003,10 +18117,10 @@ Draw_DragonSideDetail:		; Memory Address ($A476) and binary offset [$A0F2]
 	add.w	d1,d2	;D441
 	moveq	#$00,d6	;7C00
 	move.b	DragonSideDetailVariantOffsetTable(pc,d0.w),d3	;163B00E3
-	bpl.s	adrCd00A488	;6A04
+	bpl.s	Draw_DragonSideDetail_MergeVariantIndex	;6A04
 	moveq	#-$01,d6	;7CFF
 	moveq	#$01,d3	;7601
-adrCd00A488:		; Memory Address ($A488) and binary offset [$A104]
+Draw_DragonSideDetail_MergeVariantIndex:		; Memory Address ($A488) and binary offset [$A104]
 	add.b	d3,d2	;D403
 	moveq	#$00,d7	;7E00
 	move.b	DragonSideDetail_WidthMinusOneTable(pc,d2.w),d7	;1E3B20C6
@@ -18020,13 +18134,13 @@ adrCd00A488:		; Memory Address ($A488) and binary offset [$A104]
 	bsr	Draw_Monster_CompositeBitmap	;6100021C
 	movem.l	(sp)+,d0/d1/d4/d5/d7/a1	;4CDF02B3
 	btst	#$00,d0	;08000000
-	bne.s	adrCd00A4CC	;6612
+	bne.s	Draw_DragonSideDetail_Return	;6612
 	moveq	#-$01,d6	;7CFF
 	movem.w	d0/d1/d4/d5,-(sp)	;48A7CC00
 	add.b	GFX_Dragon_MirroredHalf_XPositions(pc,d1.w),d4	;D83B100C
 	bsr	Draw_Monster_CompositeBitmap	;61000204
 	movem.w	(sp)+,d0/d1/d4/d5	;4C9F0033
-adrCd00A4CC:		; Memory Address ($A4CC) and binary offset [$A148]
+Draw_DragonSideDetail_Return:		; Memory Address ($A4CC) and binary offset [$A148]
 	rts	;4E75
 
 GFX_Dragon_MirroredHalf_XPositions:		; Memory Address ($A4CE) and binary offset [$A14A]
@@ -18070,12 +18184,13 @@ GFX_Dragon_DetailSourceOffsets:		; Memory Address ($A4F2) and binary offset [$A1
 	dc.w	$28D8	;28D8
 
 Draw_Behemoth:		; Memory Address ($A50A) and binary offset [$A186]
+	; Composes the Behemoth from its family-specific layout data.
 	move.w	#$FFFF,Buffer_Colour_Mask_Toggle.l	;33FCFFFF0000B4BE
 	lea	Monster_Behemoth_Colours.l,a0	;41F90000A52E
 	moveq	#$06,d3	;7606
 	bsr	MonsterColourGrading	;6100F978
 	lea	GFX_Behemoth_Layout.l,a0	;41F90000A668
-	bsr.s	adrCd00A54C	;6126
+	bsr.s	Draw_LargeMonster_Body	;6126
 	clr.w	Buffer_Colour_Mask_Toggle.l	;42790000B4BE
 	rts	;4E75
 
@@ -18091,9 +18206,11 @@ Monster_DistanceGroups_LookupTable:		; Memory Address ($A536) and binary offset 
 	dc.w	$0203	;0203
 
 Draw_Entropy:		; Memory Address ($A53C) and binary offset [$A1B8]
+	; Composes Entropy using its family layout and the identity colour route rather than a monster-grade colour table.
 	move.l	#$04080C,Buffer_Colour_Mask.l	;23FC0004080C0000B4C0
 	lea	GFX_Entropy_Layout.l,a0	;41F90000A604
-adrCd00A54C:		; Memory Address ($A54C) and binary offset [$A1C8]
+Draw_LargeMonster_Body:		; Memory Address ($A54C) and binary offset [$A1C8]
+	; Shared body-and-arm compositor for Behemoth and Entropy, driven by the selected family's layout structure.
 	move.b	Monster_DistanceGroups_LookupTable(pc,d1.w),d1	;123B10E8
 	lea	$0042(a0),a2	;45E80042
 
@@ -18103,23 +18220,23 @@ adrCd00A54C:		; Memory Address ($A54C) and binary offset [$A1C8]
 	add.b	$16(a0,d1.w),d4	;D8301016
 	move.w	d0,d2	;3400
 	lsr.w	#$01,d2	;E24A
-	bcc.s	adrCd00A56E	;6408
+	bcc.s	Draw_LargeMonster_Body_DrawBody	;6408
 	add.w	d1,d2	;D441
 	add.w	d1,d2	;D441
 	add.b	$1A(a0,d2.w),d4	;D830201A
-adrCd00A56E:		; Memory Address ($A56E) and binary offset [$A1EA]
+Draw_LargeMonster_Body_DrawBody:		; Memory Address ($A56E) and binary offset [$A1EA]
 	movem.l	d0/d1/d4/d5/d7/a0/a1,-(sp)	;48E7CDC0
 	bsr	Draw_Monster_CompositeBitmap	;61000156
 	movem.l	(sp),d0/d1/d4/d5/d7/a0/a1	;4CD703B3
 	btst	#$00,d0	;08000000
-	bne.s	adrCd00A58A	;660A
+	bne.s	Draw_LargeMonster_Body_AfterBodyDraw	;660A
 	moveq	#-$01,d6	;7CFF
 	add.b	$22(a0,d1.w),d4	;D8301022
 	bsr	Draw_Monster_CompositeBitmap	;61000142
-adrCd00A58A:		; Memory Address ($A58A) and binary offset [$A206]
+Draw_LargeMonster_Body_AfterBodyDraw:		; Memory Address ($A58A) and binary offset [$A206]
 	movem.l	(sp)+,d0/d1/d4/d5/d7/a0/a1	;4CDF03B3
 	cmpi.b	#$02,d1	;0C010002
-	bcc.s	adrCd00A600	;646C
+	bcc.s	Draw_LargeMonster_Body_Return	;646C
 	lea	Buffer_Colour_Mask.l,a6	;4DF90000B4C0
 	moveq	#$00,d2	;7400
 	moveq	#$00,d6	;7C00
@@ -18127,7 +18244,7 @@ adrCd00A58A:		; Memory Address ($A58A) and binary offset [$A206]
 	bsr.s	Resolve_CreatureLimbOffset	;610C
 	move.l	(sp)+,a0	;205F
 	btst	#$00,d0	;08000000
-	bne.s	adrCd00A600	;6656
+	bne.s	Draw_LargeMonster_Body_Return	;6656
 	moveq	#$01,d2	;7401
 	moveq	#-$01,d6	;7CFF
 Resolve_CreatureLimbOffset:		; Memory Address ($A5AE) and binary offset [$A22A]
@@ -18137,10 +18254,10 @@ Resolve_CreatureLimbOffset:		; Memory Address ($A5AE) and binary offset [$A22A]
 	add.w	d1,d1	;D241
 	moveq	#$00,d3	;7600
 	btst	d2,-$0015(a3)	;052BFFEB
-	beq.s	adrCd00A5C4	;6704
+	beq.s	Resolve_CreatureLimbOffset_AfterOcclusion	;6704
 	addq.w	#$01,d1	;5241
 	moveq	#-$01,d3	;76FF
-adrCd00A5C4:		; Memory Address ($A5C4) and binary offset [$A240]
+Resolve_CreatureLimbOffset_AfterOcclusion:		; Memory Address ($A5C4) and binary offset [$A240]
 	moveq	#$00,d7	;7E00
 	move.b	$2A(a0,d1.w),d7	;1E30102A
 	add.b	$26(a0,d1.w),d5	;DA301026
@@ -18148,26 +18265,26 @@ adrCd00A5C4:		; Memory Address ($A5C4) and binary offset [$A240]
 	add.w	$5A(a0,d1.w),a1	;D2F0105A
 	add.w	d1,d1	;D241
 	lsr.w	#$01,d0	;E248
-	bcc.s	adrCd00A5EE	;6414
+	bcc.s	Resolve_CreatureLimbOffset_MirrorAdjustIndex	;6414
 	addq.w	#$02,d1	;5441
 	tst.w	d3	;4A43
-	bpl.s	adrCd00A5E8	;6A08
+	bpl.s	Resolve_CreatureLimbOffset_ToggleMirrorByFacing	;6A08
 	tst.w	-$0002(a0)	;4A68FFFE
-	beq.s	adrCd00A5E8	;6702
+	beq.s	Resolve_CreatureLimbOffset_ToggleMirrorByFacing	;6702
 	not.w	d6	;4646
-adrCd00A5E8:		; Memory Address ($A5E8) and binary offset [$A264]
+Resolve_CreatureLimbOffset_ToggleMirrorByFacing:		; Memory Address ($A5E8) and binary offset [$A264]
 	tst.w	d0	;4A40
-	bne.s	adrCd00A5EE	;6602
+	bne.s	Resolve_CreatureLimbOffset_MirrorAdjustIndex	;6602
 	not.w	d6	;4646
-adrCd00A5EE:		; Memory Address ($A5EE) and binary offset [$A26A]
+Resolve_CreatureLimbOffset_MirrorAdjustIndex:		; Memory Address ($A5EE) and binary offset [$A26A]
 	tst.w	d6	;4A46
-	beq.s	adrCd00A5F4	;6702
+	beq.s	Resolve_CreatureLimbOffset_DrawStrip	;6702
 	addq.w	#$01,d1	;5241
-adrCd00A5F4:		; Memory Address ($A5F4) and binary offset [$A270]
+Resolve_CreatureLimbOffset_DrawStrip:		; Memory Address ($A5F4) and binary offset [$A270]
 	add.b	$2E(a0,d1.w),d4	;D830102E
 	bsr	Draw_Monster_16PixelStrip	;6100073A
 	movem.w	(sp)+,d0/d1/d4/d5	;4C9F0033
-adrCd00A600:		; Memory Address ($A600) and binary offset [$A27C]
+Draw_LargeMonster_Body_Return:		; Memory Address ($A600) and binary offset [$A27C]
 	rts	;4E75
 
 ;fiX Label expected
@@ -18295,30 +18412,30 @@ Draw_Monster_CompositeBitmap:		; Memory Address ($A6CA) and binary offset [$A346
 	asr.w	#$04,d6	;E846
 	move.l	a3,-(sp)	;2F0B
 	tst.l	d6	;4A86
-	bmi.s	adrCd00A6E4	;6B06
+	bmi.s	Draw_Monster_CompositeBitmap_BitReversedPath	;6B06
 	bsr	Draw_PlanarSprite_Normal	;6100077E
-	bra.s	adrCd00A6E8	;6004
+	bra.s	Draw_Monster_CompositeBitmap_Return	;6004
 
-adrCd00A6E4:		; Memory Address ($A6E4) and binary offset [$A360]
+Draw_Monster_CompositeBitmap_BitReversedPath:		; Memory Address ($A6E4) and binary offset [$A360]
 	bsr	Draw_PlanarSprite_BitReversed	;61000838
-adrCd00A6E8:		; Memory Address ($A6E8) and binary offset [$A364]
+Draw_Monster_CompositeBitmap_Return:		; Memory Address ($A6E8) and binary offset [$A364]
 	move.l	(sp)+,a3	;265F
 	rts	;4E75
 
-adrCd00A6EC:		; Memory Address ($A6EC) and binary offset [$A368]
+Draw_DungeonOccupant_ResolvePosition:		; Memory Address ($A6EC) and binary offset [$A368]
 	bsr	Prepare_Monster_ScreenPosition	;6100F270
 	tst.b	d1	;4A01
-	bpl.s	adrCd00A6F6	;6A02
+	bpl.s	Draw_DungeonOccupant_CheckAirborneSpell	;6A02
 	rts	;4E75
 
-adrCd00A6F6:		; Memory Address ($A6F6) and binary offset [$A372]
+Draw_DungeonOccupant_CheckAirborneSpell:		; Memory Address ($A6F6) and binary offset [$A372]
 	move.b	-$0017(a3),d0	;102BFFE9
 	bmi	Draw_AirbourneSpell	;6B00F4F4
 	move.w	-$000A(a3),d0	;302BFFF6
 	btst	#$00,d0	;08000000
-	bne.s	adrCd00A70A	;6602
+	bne.s	Draw_DungeonOccupant_DispatchByType	;6602
 	addq.w	#$02,d0	;5440
-adrCd00A70A:		; Memory Address ($A70A) and binary offset [$A386]
+Draw_DungeonOccupant_DispatchByType:		; Memory Address ($A70A) and binary offset [$A386]
 	add.b	-$001B(a3),d0	;D02BFFE5
 	and.w	#$0003,d0	;02400003
 	moveq	#$00,d2	;7400
@@ -18342,6 +18459,7 @@ Creatures_LookupTable:		; Memory Address ($A73A) and binary offset [$A3B6]
 	dc.w	Draw_Entropy-Creatures_LookupTable	;FE02
 
 Draw_Character:		; Memory Address ($A744) and binary offset [$A3C0]
+	; Composes a character from five near-view body parts or dispatches to the single-sprite distant-view path.
 	moveq	#$00,d2	;7400
 	move.b	-$0017(a3),d2	;142BFFE9
 	lea	CharacterHeadSel.l,a0	;41F90000A91A
@@ -18356,17 +18474,17 @@ Draw_Character:		; Memory Address ($A744) and binary offset [$A3C0]
 	moveq	#$00,d6	;7C00
 	move.b	-$0017(a3),d3	;162BFFE9
 	cmpi.b	#$10,d3	;0C030010
-	bcc	adrCd00A7F2	;64000082
+	bcc	Select_CharacterBodyArmourCategory	;64000082
 	move.w	d3,d7	;3E03
 	asl.b	#$04,d7	;E907
 	lea	Character_Pockets_DataTable+$02.l,a0	;41F90000ED2C
 	move.b	$00(a0,d7.w),d7	;1E307000
 	cmpi.w	#$0024,d7	;0C470024
-	bcc.s	adrCd00A7F2	;646C
+	bcc.s	Select_CharacterBodyArmourCategory	;646C
 	sub.w	#$001B,d7	;0447001B
-	bcs.s	adrCd00A7F2	;6566
+	bcs.s	Select_CharacterBodyArmourCategory	;6566
 	move.b	Character_WornArmour_RenderOverrides(pc,d7.w),d6	;1C3B7004
-	bra.s	adrCd00A7F2	;6060
+	bra.s	Select_CharacterBodyArmourCategory	;6060
 
 Character_WornArmour_RenderOverrides:		; Memory Address ($A792) and binary offset [$A40E]
 	; Maps worn body armour $1B-$23 to the alternate character body and colour override flags.
@@ -18468,18 +18586,20 @@ CharacterBodySel:		; Memory Address ($A79C) and binary offset [$A418]
 	dc.b	$00	;00
 	dc.b	$00	;00
 
-adrCd00A7F2:		; Memory Address ($A7F2) and binary offset [$A46E]
+Select_CharacterBodyArmourCategory:		; Memory Address ($A7F2) and binary offset [$A46E]
+	; Selects the character body/armour category, flooring nonzero armoured bases at category 3 before applying the armour override.
 	move.b	CharacterBodySel(pc,d3.w),d3	;163B30A8
-	beq.s	adrCd00A808	;6710
+	beq.s	CharacterBodyArmourCategory_ResolveLayout	;6710
 	tst.w	d6	;4A46
-	beq.s	adrCd00A808	;670C
+	beq.s	CharacterBodyArmourCategory_ResolveLayout	;670C
 	cmpi.w	#$0003,d3	;0C430003
-	bcc.s	adrCd00A804	;6402
+	bcc.s	Draw_Character_ArmourCategoryShift	;6402
 	moveq	#$03,d3	;7603
-adrCd00A804:		; Memory Address ($A804) and binary offset [$A480]
+Draw_Character_ArmourCategoryShift:		; Memory Address ($A804) and binary offset [$A480]
+	; Applies the armour-category adjustment as (max(base,3)+2*override)&$0F when an armour override is present.
 	add.b	d6,d3	;D606
 	add.b	d6,d3	;D606
-adrCd00A808:		; Memory Address ($A808) and binary offset [$A484]
+CharacterBodyArmourCategory_ResolveLayout:		; Memory Address ($A808) and binary offset [$A484]
 	move.b	d6,-$001C(a3)			;1746FFE4
 	lea	Character_BodyDefinitions.l,a0		;41F90000A88E
 	and.w	#$000F,d3			;0243000F
@@ -18487,9 +18607,9 @@ adrCd00A808:		; Memory Address ($A808) and binary offset [$A484]
 	lea	$02(a0,d3.w),a0			;41F03002
 	lea	Character_RenderLayout_Standard.l,a1		;43F900018804
 	tst.w	-$0002(a0)			;4A68FFFE
-	beq.s	adrCd00A830			;6706
+	beq.s	Draw_Character_SelectRenderLayout			;6706
 	lea	Character_RenderLayout_Alternate.l,a1		;43F900018944
-adrCd00A830:		; Memory Address ($A830) and binary offset [$A4AC]
+Draw_Character_SelectRenderLayout:		; Memory Address ($A830) and binary offset [$A4AC]
 	move.l	a0,-(sp)	;2F08
 	move.l	a1,-(sp)	;2F09
 	move.w	d2,-(sp)	;3F02
@@ -18498,31 +18618,32 @@ adrCd00A830:		; Memory Address ($A830) and binary offset [$A4AC]
 	move.w	d1,-(sp)	;3F01
 	move.w	d0,-(sp)	;3F00
 	cmpi.w	#$0004,d1	;0C410004
-	beq	adrCd00AC6E	;6700042A
+	beq	Draw_Character_Distant4	;6700042A
 	cmpi.w	#$0005,d1	;0C410005
-	beq	adrCd00AC9C	;67000450
+	beq	Draw_Character_Distant5	;67000450
 	tst.b	-$0019(a3)	;4A2BFFE7
-	bmi.s	adrCd00A876	;6B22
+	bmi.s	Draw_Character_BeginPartLoop	;6B22
 	cmpi.w	#$0003,d1	;0C410003
-	bcc.s	adrCd00A876	;641C
+	bcc.s	Draw_Character_BeginPartLoop	;641C
 	bsr	RandomGen_BytewithOffset	;6100AD50
 	move.b	d0,d1	;1200
 	and.w	#$000C,d1	;0241000C
-	bne.s	adrCd00A876	;6610
+	bne.s	Draw_Character_BeginPartLoop	;6610
 	and.w	#$0003,d0	;02400003
-	beq.s	adrCd00A876	;670A
+	beq.s	Draw_Character_BeginPartLoop	;670A
 	subq.w	#$02,d0	;5540
 	add.b	$0005(sp),d0	;D02F0005
 	move.b	d0,$0005(sp)	;1F400005
-adrCd00A876:		; Memory Address ($A876) and binary offset [$A4F2]
+Draw_Character_BeginPartLoop:		; Memory Address ($A876) and binary offset [$A4F2]
 	moveq	#$00,d0	;7000
-adrCd00A878:		; Memory Address ($A878) and binary offset [$A4F4]
+Draw_Character_PartLoop:		; Memory Address ($A878) and binary offset [$A4F4]
+	; Runs the five-part near-character draw loop for legs, torso, head, and arms.
 	move.w	d0,-(sp)	;3F00
 	bsr	Draw_CharacterComponent	;6100011C
 	move.w	(sp)+,d0	;301F
 	addq.w	#$01,d0	;5240
 	cmpi.w	#$0005,d0	;0C400005
-	bcs.s	adrCd00A878	;65F0
+	bcs.s	Draw_Character_PartLoop	;65F0
 	add.w	#$0012,sp	;DEFC0012
 	rts	;4E75
 
@@ -18690,22 +18811,22 @@ Draw_CharacterComponent:		; Memory Address ($A998) and binary offset [$A614]
 	add.w	$0006(sp),d2	;D46F0006
 	moveq	#$00,d6	;7C00
 	move.b	Character_PartFacingVariants(pc,d2.w),d2	;143B20C8
-	bpl.s	adrCd00A9C2	;6A02
+	bpl.s	Draw_CharacterComponent_CheckSuppressed	;6A02
 	subq.w	#$01,d6	;5346
-adrCd00A9C2:		; Memory Address ($A9C2) and binary offset [$A63E]
+Draw_CharacterComponent_CheckSuppressed:		; Memory Address ($A9C2) and binary offset [$A63E]
 	cmpi.b	#$FF,d2	;0C0200FF
-	bne.s	adrCd00A9CA	;6602
+	bne.s	Draw_CharacterComponent_CheckArmAnimation	;6602
 	rts	;4E75
 
-adrCd00A9CA:		; Memory Address ($A9CA) and binary offset [$A646]
+Draw_CharacterComponent_CheckArmAnimation:		; Memory Address ($A9CA) and binary offset [$A646]
 	cmpi.w	#$0003,d0	;0C400003
-	bcs.s	adrCd00A9DC	;650C
+	bcs.s	Draw_CharacterComponent_ResolveFrameIndex	;650C
 	move.w	d0,d1	;3200
 	subq.w	#$03,d1	;5741
 	btst	d1,-$0015(a3)	;032BFFEB
-	beq.s	adrCd00A9DC	;6702
+	beq.s	Draw_CharacterComponent_ResolveFrameIndex	;6702
 	moveq	#$02,d2	;7402
-adrCd00A9DC:		; Memory Address ($A9DC) and binary offset [$A658]
+Draw_CharacterComponent_ResolveFrameIndex:		; Memory Address ($A9DC) and binary offset [$A658]
 	and.w	#$007F,d2	;0242007F
 	move.w	$0008(sp),d1	;322F0008
 	add.w	d1,d1	;D241
@@ -18717,23 +18838,24 @@ adrCd00A9DC:		; Memory Address ($A9DC) and binary offset [$A658]
 	moveq	#$00,d1	;7200
 	move.w	$00(a2,d2.w),d1	;32322000
 	cmpi.w	#$0002,d0	;0C400002
-	bne.s	adrCd00AA14	;6614
+	bne.s	Draw_CharacterComponent_ClampGroupIndex	;6614
 	move.b	-$0018(a3),d0	;102BFFE8
 	mulu	#$0378,d0	;C0FC0378
 	lea	$FFFFC190.l,a1	;43F9FFFFC190
 	add.w	d0,d1	;D240
 	add.w	d1,a1	;D2C1
-	bra.s	adrCd00AA24	;6010
+	bra.s	Draw_CharacterComponent_PartOffsetAndColourGroup	;6010
 
-adrCd00AA14:		; Memory Address ($AA14) and binary offset [$A690]
-	bcs.s	adrCd00AA18	;6502
+Draw_CharacterComponent_ClampGroupIndex:		; Memory Address ($AA14) and binary offset [$A690]
+	bcs.s	Draw_CharacterComponent_LoadGroupOffset	;6502
 	moveq	#$02,d0	;7002
-adrCd00AA18:		; Memory Address ($AA18) and binary offset [$A694]
+Draw_CharacterComponent_LoadGroupOffset:		; Memory Address ($AA18) and binary offset [$A694]
 	move.l	$0014(sp),a1	;226F0014
 	add.w	d0,d0	;D040
 	add.w	$00(a1,d0.w),d1	;D2710000
 	move.l	d1,a1	;2241
-adrCd00AA24:		; Memory Address ($AA24) and binary offset [$A6A0]
+Draw_CharacterComponent_PartOffsetAndColourGroup:		; Memory Address ($AA24) and binary offset [$A6A0]
+	; Loads one character part's X/Y placement and selects its colour group before drawing the component.
 	move.w	$000C(sp),d5	;3A2F000C
 	move.w	$000A(sp),d4	;382F000A
 	move.w	$0004(sp),d0	;302F0004
@@ -18742,24 +18864,24 @@ adrCd00AA24:		; Memory Address ($AA24) and binary offset [$A6A0]
 	add.b	$01(a0,d0.w),d5	;DA300001
 	lea	CharacterPart_DefaultColourMaskTable.l,a6	;4DF90000ABF6
 	cmpi.w	#$0004,d0	;0C400004
-	bcs.s	adrCd00AA92	;654C
-	bne.s	adrCd00AA4E	;6606
+	bcs.s	Draw_CharacterComponent_ColourGroupContinue	;654C
+	bne.s	Draw_CharacterComponent_CheckArmAnimFlag	;6606
 	moveq	#$00,d0	;7000
-	bra	adrCd00AADC	;60000090
+	bra	CharacterComponent_ColourOffset_SharedTail	;60000090
 
-adrCd00AA4E:		; Memory Address ($AA4E) and binary offset [$A6CA]
+Draw_CharacterComponent_CheckArmAnimFlag:		; Memory Address ($AA4E) and binary offset [$A6CA]
 	move.w	$0004(sp),d1	;322F0004
 	subq.w	#$03,d1	;5741
 	btst	d1,-$0015(a3)	;032BFFEB
-	beq.s	adrCd00AA90	;6736
+	beq.s	Draw_CharacterComponent_ArmColourGroup	;6736
 	move.w	$0008(sp),d1	;322F0008
 	subq.w	#$06,d0	;5D40
 	add.w	d0,d0	;D040
 	lea	Character_ArmAnimationPositions.l,a0	;41F90000AAFC
 	cmp.l	#Character_RenderLayout_Alternate,$0010(sp)	;0CAF000189440010
-	bne.s	adrCd00AA76	;6604
+	bne.s	Draw_CharacterComponent_ApplyArmAnimOffset	;6604
 	add.w	#$0024,a0	;D0FC0024
-adrCd00AA76:		; Memory Address ($AA76) and binary offset [$A6F2]
+Draw_CharacterComponent_ApplyArmAnimOffset:		; Memory Address ($AA76) and binary offset [$A6F2]
 	sub.b	$00(a0,d1.w),d5	;9A301000
 	addq.w	#$04,a0	;5848
 	asl.w	#$03,d1	;E741
@@ -18767,14 +18889,16 @@ adrCd00AA76:		; Memory Address ($AA76) and binary offset [$A6F2]
 	add.w	d1,d0	;D041
 	add.b	$00(a0,d0.w),d4	;D8300000
 	btst	#$00,d1	;08010000
-	beq.s	adrCd00AA90	;6702
+	beq.s	Draw_CharacterComponent_ArmColourGroup	;6702
 	not.w	d6	;4646
-adrCd00AA90:		; Memory Address ($AA90) and binary offset [$A70C]
+Draw_CharacterComponent_ArmColourGroup:		; Memory Address ($AA90) and binary offset [$A70C]
+	; Selects the arm-specific colour group before the shared material-tier mask lookup.
 	moveq	#$04,d0	;7004
-adrCd00AA92:		; Memory Address ($AA92) and binary offset [$A70E]
+Draw_CharacterComponent_ColourGroupContinue:		; Memory Address ($AA92) and binary offset [$A70E]
+	; Reads the shared colour-group/material index used to recolour the selected character component.
 	moveq	#$00,d1	;7200
 	move.b	-$001C(a3),d1	;122BFFE4
-	beq	adrCd00AAD8	;6700003E
+	beq	CharacterComponent_NoArmourColourOverride	;6700003E
 	subq.b	#$01,d1	;5301
 	move.b	d1,d2	;1401
 	asl.b	#$03,d1	;E701
@@ -18783,27 +18907,27 @@ adrCd00AA92:		; Memory Address ($AA92) and binary offset [$A70E]
 	move.l	$0014(sp),a6	;2C6F0014
 	addq.w	#$08,d1	;5041
 	tst.w	-$0002(a6)	;4A6EFFFE
-	bne.s	adrCd00AABC	;660A
+	bne.s	CharacterComponent_ArmourColourMaskLookup	;660A
 	subq.w	#$04,d1	;5941
 	cmp.w	#$2BE0,(a6)	;0C562BE0
-	bne.s	adrCd00AABC	;6602
+	bne.s	CharacterComponent_ArmourColourMaskLookup	;6602
 	subq.w	#$04,d1	;5941
-adrCd00AABC:		; Memory Address ($AABC) and binary offset [$A738]
-	lea	adrEA00ABA6.l,a0	;41F90000ABA6
+CharacterComponent_ArmourColourMaskLookup:		; Memory Address ($AABC) and binary offset [$A738]
+	lea	Character_ArmourColourMask_Table.l,a0	;41F90000ABA6
 	add.w	d1,a0	;D0C1
 	move.w	d0,d1	;3200
 	add.w	d1,d1	;D241
 	add.w	d0,d1	;D240
 	add.w	d1,d1	;D241
 	cmp.b	#$FF,$00(a0,d1.w)	;0C3000FF1000
-	beq.s	adrCd00AAD8	;6704
+	beq.s	CharacterComponent_NoArmourColourOverride	;6704
 	bsr.s	Prepare_CharacterComponentColourMask	;616E
-	bra.s	adrCd00AAF8	;6020
+	bra.s	Draw_CharacterComponent_DispatchStripDraw	;6020
 
-adrCd00AAD8:		; Memory Address ($AAD8) and binary offset [$A754]
+CharacterComponent_NoArmourColourOverride:		; Memory Address ($AAD8) and binary offset [$A754]
 	add.w	d0,d0	;D040
 	addq.w	#$04,d0	;5840
-adrCd00AADC:		; Memory Address ($AADC) and binary offset [$A758]
+CharacterComponent_ColourOffset_SharedTail:		; Memory Address ($AADC) and binary offset [$A758]
 	moveq	#$00,d1	;7200
 	move.b	-$0017(a3),d1	;122BFFE9
 	asl.w	#$02,d1	;E541
@@ -18814,7 +18938,7 @@ adrCd00AADC:		; Memory Address ($AADC) and binary offset [$A758]
 	add.w	d1,d0	;D041
 	lea	CharacterColours.l,a6	;4DF9000351C8
 	add.w	d0,a6	;DCC0
-adrCd00AAF8:		; Memory Address ($AAF8) and binary offset [$A774]
+Draw_CharacterComponent_DispatchStripDraw:		; Memory Address ($AAF8) and binary offset [$A774]
 	bra	Draw_Monster_16PixelStrip_FromBodies	;60000234
 
 Character_ArmAnimationPositions:		; Memory Address ($AAFC) and binary offset [$A778]
@@ -18863,33 +18987,33 @@ Prepare_CharacterComponentColourMask:		; Memory Address ($AB44) and binary offse
 	move.b	-$001C(a3),d1	;122BFFE4
 	rol.b	#$02,d1	;E519
 	and.w	#$0003,d1	;02410003
-	beq.s	adrCd00AB7C	;6722
+	beq.s	PrepareColourMask_RaceColourSetup	;6722
 	move.b	Character_ArmourMaterial_PalettePairEnds(pc,d1.w),d1	;123B1046
 	moveq	#$03,d2	;7403
-adrLp00AB60:		; Memory Address ($AB60) and binary offset [$A7DC]
+PrepareColourMask_MaterialTintLoop:		; Memory Address ($AB60) and binary offset [$A7DC]
 	move.b	d1,d3	;1601
 	cmp.b	#$04,$00(a6,d2.w)	;0C3600042000
-	beq.s	adrCd00AB74	;670A
+	beq.s	PrepareColourMask_WriteMaterialTint	;670A
 	subq.b	#$01,d3	;5303
 	cmp.b	#$03,$00(a6,d2.w)	;0C3600032000
-	bne.s	adrCd00AB78	;6604
-adrCd00AB74:		; Memory Address ($AB74) and binary offset [$A7F0]
+	bne.s	PrepareColourMask_MaterialTintLoop_Next	;6604
+PrepareColourMask_WriteMaterialTint:		; Memory Address ($AB74) and binary offset [$A7F0]
 	move.b	d3,$00(a6,d2.w)	;1D832000
-adrCd00AB78:		; Memory Address ($AB78) and binary offset [$A7F4]
-	dbra	d2,adrLp00AB60	;51CAFFE6
-adrCd00AB7C:		; Memory Address ($AB7C) and binary offset [$A7F8]
-	lea	adrEA00AC12.l,a0	;41F90000AC12
+PrepareColourMask_MaterialTintLoop_Next:		; Memory Address ($AB78) and binary offset [$A7F4]
+	dbra	d2,PrepareColourMask_MaterialTintLoop	;51CAFFE6
+PrepareColourMask_RaceColourSetup:		; Memory Address ($AB7C) and binary offset [$A7F8]
+	lea	Character_ArmourRaceColour_Table.l,a0	;41F90000AC12
 	move.b	-$0018(a3),d1	;122BFFE8
 	asl.w	#$02,d1	;E541
 	add.w	d1,a0	;D0C1
 	moveq	#$03,d2	;7403
-adrLp00AB8C:		; Memory Address ($AB8C) and binary offset [$A808]
+PrepareColourMask_RaceTintLoop:		; Memory Address ($AB8C) and binary offset [$A808]
 	move.b	$00(a6,d2.w),d1	;12362000
-	bpl.s	adrCd00AB9C	;6A0A
+	bpl.s	PrepareColourMask_RaceTintLoop_Next	;6A0A
 	and.w	#$0003,d1	;02410003
 	move.b	$00(a0,d1.w),$00(a6,d2.w)	;1DB010002000
-adrCd00AB9C:		; Memory Address ($AB9C) and binary offset [$A818]
-	dbra	d2,adrLp00AB8C	;51CAFFEE
+PrepareColourMask_RaceTintLoop_Next:		; Memory Address ($AB9C) and binary offset [$A818]
+	dbra	d2,PrepareColourMask_RaceTintLoop	;51CAFFEE
 	rts	;4E75
 
 Character_ArmourMaterial_PalettePairEnds:		; Memory Address ($ABA2) and binary offset [$A81E]
@@ -18898,7 +19022,7 @@ Character_ArmourMaterial_PalettePairEnds:		; Memory Address ($ABA2) and binary o
 	dc.b	$08	;08
 	dc.b	$06	;06
 	dc.b	$0B	;0B
-adrEA00ABA6:		; Memory Address ($ABA6) and binary offset [$A822]
+Character_ArmourColourMask_Table:		; Memory Address ($ABA6) and binary offset [$A822]
 	dc.b	$0B	;0B
 	dc.b	$0A	;0A
 	dc.b	$09	;09
@@ -19009,7 +19133,7 @@ CharacterPart_DefaultColourMaskTable:		; Memory Address ($ABF6) and binary offse
 	dc.b	$03	;03
 	dc.b	$03	;03
 	dc.b	$04	;04
-adrEA00AC12:		; Memory Address ($AC12) and binary offset [$A88E]
+Character_ArmourRaceColour_Table:		; Memory Address ($AC12) and binary offset [$A88E]
 	dc.b	$0B	;0B
 	dc.b	$0A	;0A
 	dc.b	$07	;07
@@ -19107,68 +19231,70 @@ DistantCharacter_SideColourMaskTable:		; Memory Address ($AC5E) and binary offse
 	dc.b	$80	;80
 	dc.b	$0C	;0C
 
-adrCd00AC6E:		; Memory Address ($AC6E) and binary offset [$A8EA]
+Draw_Character_Distant4:		; Memory Address ($AC6E) and binary offset [$A8EA]
+	; Draws the character's single-sprite portrait for distance class 4.
 	move.w	-$0002(a0),-(sp)	;3F28FFFE
 	moveq	#$00,d3	;7600
 	move.w	$0006(a0),d3	;36280006
 	tst.w	(sp)	;4A57
-	beq.s	adrCd00AC8C	;6710
+	beq.s	Draw_CharacterDistant4_StandardPositions	;6710
 	moveq	#$14,d7	;7E14
 	move.w	#$00A8,d2	;343C00A8
 	lea	Character_Distant4_Positions_Alternate.l,a0	;41F900018A74
-	bra	adrCd00ACCC	;60000042
+	bra	DistantCharacter_PositionOffset_SharedTail	;60000042
 
-adrCd00AC8C:		; Memory Address ($AC8C) and binary offset [$A908]
+Draw_CharacterDistant4_StandardPositions:		; Memory Address ($AC8C) and binary offset [$A908]
 	moveq	#$15,d7	;7E15
 	move.w	#$00B0,d2	;343C00B0
 	lea	Character_Distant4_Positions_Standard.l,a0	;41F900018934
-	bra	adrCd00ACCC	;60000032
+	bra	DistantCharacter_PositionOffset_SharedTail	;60000032
 
-adrCd00AC9C:		; Memory Address ($AC9C) and binary offset [$A918]
+Draw_Character_Distant5:		; Memory Address ($AC9C) and binary offset [$A918]
+	; Draws the character's single-sprite portrait for distance class 5.
 	move.w	-$0002(a0),-(sp)	;3F28FFFE
 	moveq	#$00,d3	;7600
 	move.w	$0006(a0),d3	;36280006
 	tst.w	(sp)	;4A57
-	beq.s	adrCd00ACBC	;6712
+	beq.s	Draw_CharacterDistant5_StandardPositions	;6712
 	moveq	#$0F,d7	;7E0F
 	move.w	#$0080,d2	;343C0080
 	lea	Character_Distant5_Positions_Alternate.l,a0	;41F900018A7C
 	add.w	#$01F8,d3	;064301F8
-	bra.s	adrCd00ACCC	;6010
+	bra.s	DistantCharacter_PositionOffset_SharedTail	;6010
 
-adrCd00ACBC:		; Memory Address ($ACBC) and binary offset [$A938]
+Draw_CharacterDistant5_StandardPositions:		; Memory Address ($ACBC) and binary offset [$A938]
 	moveq	#$10,d7	;7E10
 	move.w	#$0088,d2	;343C0088
 	lea	Character_Distant5_Positions_Standard.l,a0	;41F90001893C
 	add.w	#$0210,d3	;06430210
-adrCd00ACCC:		; Memory Address ($ACCC) and binary offset [$A948]
+DistantCharacter_PositionOffset_SharedTail:		; Memory Address ($ACCC) and binary offset [$A948]
 	move.l	d3,a1	;2243
 	add.w	d0,d0	;D040
 	add.b	$00(a0,d0.w),d4	;D8300000
 	add.b	$01(a0,d0.w),d5	;DA300001
 	moveq	#$00,d6	;7C00
 	cmpi.w	#$0006,d0	;0C400006
-	bne.s	adrCd00ACE4	;6604
+	bne.s	DistantCharacter_ScalePositionOffset	;6604
 	subq.w	#$01,d6	;5346
 	subq.w	#$04,d0	;5940
-adrCd00ACE4:		; Memory Address ($ACE4) and binary offset [$A960]
+DistantCharacter_ScalePositionOffset:		; Memory Address ($ACE4) and binary offset [$A960]
 	lsr.w	#$01,d0	;E248
 	mulu	d0,d2	;C4C0
 	add.w	d2,a1	;D2C2
 	moveq	#$00,d1	;7200
 	move.b	-$001C(a3),d1	;122BFFE4
-	beq.s	adrCd00AD0E	;671C
+	beq.s	DistantCharacter_DefaultColourTable	;671C
 	and.w	#$0003,d1	;02410003
 	asl.w	#$02,d1	;E541
 	lea	DistantCharacter_FrontColourMaskTable.l,a0	;41F90000AC52
 	tst.w	(sp)	;4A57
-	beq.s	adrCd00AD08	;6706
+	beq.s	DistantCharacter_PrepareColourMask	;6706
 	lea	DistantCharacter_SideColourMaskTable.l,a0	;41F90000AC5E
-adrCd00AD08:		; Memory Address ($AD08) and binary offset [$A984]
+DistantCharacter_PrepareColourMask:		; Memory Address ($AD08) and binary offset [$A984]
 	bsr	Prepare_CharacterComponentColourMask	;6100FE3A
-	bra.s	adrCd00AD26	;6018
+	bra.s	DistantCharacter_DrawStrip_SharedTail	;6018
 
-adrCd00AD0E:		; Memory Address ($AD0E) and binary offset [$A98A]
+DistantCharacter_DefaultColourTable:		; Memory Address ($AD0E) and binary offset [$A98A]
 	move.b	-$0017(a3),d1	;122BFFE9
 	asl.w	#$02,d1	;E541
 	moveq	#$00,d0	;7000
@@ -19177,7 +19303,7 @@ adrCd00AD0E:		; Memory Address ($AD0E) and binary offset [$A98A]
 	asl.w	#$02,d1	;E541
 	lea	CharacterColours+$10.l,a6	;4DF9000351D8
 	add.w	d1,a6	;DCC1
-adrCd00AD26:		; Memory Address ($AD26) and binary offset [$A9A2]
+DistantCharacter_DrawStrip_SharedTail:		; Memory Address ($AD26) and binary offset [$A9A2]
 	bsr.s	Draw_Monster_16PixelStrip_FromBodies	;6106
 	add.w	#$0014,sp	;DEFC0014
 	rts	;4E75
@@ -19190,9 +19316,9 @@ Draw_Monster_16PixelStrip:		; Memory Address ($AD34) and binary offset [$A9B0]
 	move.w	d5,d0	;3005
 	add.w	d7,d0	;D047
 	sub.w	MonsterStrip_BottomY.l,d0	;90790000AD64
-	bcs.s	adrCd00AD42	;6502
+	bcs.s	MonsterStrip_AfterBottomYClip	;6502
 	sub.w	d0,d7	;9E40
-adrCd00AD42:		; Memory Address ($AD42) and binary offset [$A9BE]
+MonsterStrip_AfterBottomYClip:		; Memory Address ($AD42) and binary offset [$A9BE]
 	swap	d7	;4847
 	move.b	d4,d7	;1E04
 	ext.w	d7	;4887
@@ -19243,20 +19369,20 @@ Draw_MonsterStrip_Shifted:		; Memory Address ($AD90) and binary offset [$AA0C]
 	swap	d5	;4845
 	move.w	d0,d5	;3A00
 	swap	d7	;4847
-adrLp00ADA4:		; Memory Address ($ADA4) and binary offset [$AA20]
+Draw_MonsterStrip_Shifted_RowLoop:		; Memory Address ($ADA4) and binary offset [$AA20]
 	swap	d7	;4847
 	move.w	d6,d7	;3E06
 	move.l	(a1)+,d0	;2019
 	move.l	(a1)+,d1	;2219
 	tst.l	d6	;4A86
-	bpl.s	adrCd00ADBC	;6A0C
+	bpl.s	Draw_MonsterStrip_Shifted_AfterMirror	;6A0C
 	move.l	a6,a2	;244E
 	bsr.s	Reverse_PlanarLongwordBits	;61B2
 	exg	d0,d1	;C141
 	bsr.s	Reverse_PlanarLongwordBits_WithLookup	;61B4
 	exg	d0,d1	;C141
 	move.l	a2,a6	;2C4A
-adrCd00ADBC:		; Memory Address ($ADBC) and binary offset [$AA38]
+Draw_MonsterStrip_Shifted_AfterMirror:		; Memory Address ($ADBC) and binary offset [$AA38]
 	ror.l	d4,d0	;E8B8
 	ror.l	d4,d1	;E8B9
 	move.l	d0,a2	;2440
@@ -19280,27 +19406,28 @@ adrCd00ADBC:		; Memory Address ($ADBC) and binary offset [$AA38]
 	move.l	d0,d2	;2400
 	and.l	d1,d2	;C481
 	addq.l	#$01,d2	;5282
-	bne.s	adrCd00ADF2	;6604
+	bne.s	Merge_ShiftedSpriteTrailingWord	;6604
 	addq.w	#$02,a0	;5448
-	bra.s	adrCd00ADF6	;6004
+	bra.s	Advance_ShiftedSpriteRow	;6004
 
-adrCd00ADF2:		; Memory Address ($ADF2) and binary offset [$AA6E]
+Merge_ShiftedSpriteTrailingWord:		; Memory Address ($ADF2) and binary offset [$AA6E]
 	bsr	Composite_PlanarSpriteWord_IfVisible	;61000016
-adrCd00ADF6:		; Memory Address ($ADF6) and binary offset [$AA72]
+Advance_ShiftedSpriteRow:		; Memory Address ($ADF6) and binary offset [$AA72]
 	add.w	#$0024,a0	;D0FC0024
 	swap	d7	;4847
-	dbra	d7,adrLp00ADA4	;51CFFFA6
+	dbra	d7,Draw_MonsterStrip_Shifted_RowLoop	;51CFFFA6
 	rts	;4E75
 
-adrCd00AE02:		; Memory Address ($AE02) and binary offset [$AA7E]
+Merge_PlanarSpriteWord_IfVisible:		; Memory Address ($AE02) and binary offset [$AA7E]
+	; Skips destination word columns outside the eight-word dungeon viewport and otherwise enters the transparent four-plane word merger.
 	cmpi.w	#$0008,d6	;0C460008
-	bcc.s	adrCd00AE58	;6450
+	bcc.s	Skip_ClippedPlanarSpriteWord	;6450
 	bra.s	Merge_PlanarSpriteWord	;600A
 
 Composite_PlanarSpriteWord_IfVisible:		; Memory Address ($AE0A) and binary offset [$AA86]
 	; Skips horizontally clipped words and otherwise recolours and merges one planar sprite word.
 	cmpi.w	#$0008,d7	;0C470008
-	bcc.s	adrCd00AE58	;6448
+	bcc.s	Skip_ClippedPlanarSpriteWord	;6448
 	bsr	Remap_PlanarSpriteColours	;610001BE
 Merge_PlanarSpriteWord:		; Memory Address ($AE14) and binary offset [$AA90]
 	; Builds the transparent-pixel mask and merges one sprite word into all four destination bitplanes.
@@ -19333,20 +19460,21 @@ Merge_PlanarSpriteWord:		; Memory Address ($AE14) and binary offset [$AA90]
 	move.w	d3,(a0)+	;30C3
 	rts	;4E75
 
-adrCd00AE58:		; Memory Address ($AE58) and binary offset [$AAD4]
+Skip_ClippedPlanarSpriteWord:		; Memory Address ($AE58) and binary offset [$AAD4]
 	addq.w	#$02,a0	;5448
 	rts	;4E75
 
-adrW_00AE5C:		; Memory Address ($AE5C) and binary offset [$AAD8]
+PlanarSprite_ReverseRowOrderFlag:		; Memory Address ($AE5C) and binary offset [$AAD8]
 	dc.w	$0000	;0000
 
 Draw_PlanarSprite_Normal:		; Memory Address ($AE5E) and binary offset [$AADA]
 	; Initialises and draws an ordinary aligned or shifted planar sprite into the screen bitplanes.
-	clr.w	adrW_00AE5C.l	;42790000AE5C
+	clr.w	PlanarSprite_ReverseRowOrderFlag.l	;42790000AE5C
 	bra.s	Draw_PlanarSprite_Normal_Setup	;6008
 
-adrCd00AE66:		; Memory Address ($AE66) and binary offset [$AAE2]
-	move.w	#$FFFF,adrW_00AE5C.l	;33FCFFFF0000AE5C
+Draw_PlanarSprite_RowsReversed:		; Memory Address ($AE66) and binary offset [$AAE2]
+	; Selects reverse source-row traversal before the normal aligned/shifted sprite setup; horizontal bit reversal is handled later.
+	move.w	#$FFFF,PlanarSprite_ReverseRowOrderFlag.l	;33FCFFFF0000AE5C
 Draw_PlanarSprite_Normal_Setup:		; Memory Address ($AE6E) and binary offset [$AAEA]
 	; Calculates the destination address and horizontal shift before entering the normal planar sprite loops.
 	move.w	d4,d1	;3204
@@ -19363,19 +19491,19 @@ Draw_PlanarSprite_Normal_Setup:		; Memory Address ($AE6E) and binary offset [$AA
 	move.w	d0,d5	;3A00
 	not.l	d5	;4685
 	lea	Buffer_Colour_Mask.l,a6	;4DF90000B4C0
-adrLp00AE98:		; Memory Address ($AE98) and binary offset [$AB14]
+Draw_PlanarSprite_Normal_RowLoop:		; Memory Address ($AE98) and binary offset [$AB14]
 	swap	d7	;4847
 	move.w	d6,-(sp)	;3F06
 	move.w	d7,-(sp)	;3F07
 	move.l	d5,d2	;2405
 	move.l	d5,d3	;2605
-adrLp00AEA2:		; Memory Address ($AEA2) and binary offset [$AB1E]
+Draw_PlanarSprite_Normal_WordLoop:		; Memory Address ($AEA2) and binary offset [$AB1E]
 	move.l	(a1)+,d0	;2019
 	move.l	(a1)+,d1	;2219
 	tst.w	Buffer_Colour_Mask_Toggle.l	;4A790000B4BE
-	beq.s	adrCd00AEB2	;6704
+	beq.s	Draw_PlanarSprite_Normal_AfterColourRemap	;6704
 	bsr	Remap_PlanarSpriteColours	;61000120
-adrCd00AEB2:		; Memory Address ($AEB2) and binary offset [$AB2E]
+Draw_PlanarSprite_Normal_AfterColourRemap:		; Memory Address ($AEB2) and binary offset [$AB2E]
 	ror.l	d4,d0	;E8B8
 	ror.l	d4,d1	;E8B9
 	move.l	d0,a2	;2440
@@ -19386,7 +19514,7 @@ adrCd00AEB2:		; Memory Address ($AEB2) and binary offset [$AB2E]
 	not.l	d5	;4685
 	or.l	d2,d0	;8082
 	or.l	d3,d1	;8283
-	bsr	adrCd00AE02	;6100FF3A
+	bsr	Merge_PlanarSpriteWord_IfVisible	;6100FF3A
 	addq.w	#$01,d6	;5246
 	move.l	a2,d2	;240A
 	move.l	a3,d3	;260B
@@ -19394,7 +19522,7 @@ adrCd00AEB2:		; Memory Address ($AEB2) and binary offset [$AB2E]
 	and.l	d5,d3	;C685
 	swap	d2	;4842
 	swap	d3	;4843
-	dbra	d7,adrLp00AEA2	;51CFFFC8
+	dbra	d7,Draw_PlanarSprite_Normal_WordLoop	;51CFFFC8
 	move.w	(sp)+,d7	;3E1F
 	not.l	d5	;4685
 	or.l	d5,d2	;8485
@@ -19404,27 +19532,27 @@ adrCd00AEB2:		; Memory Address ($AEB2) and binary offset [$AB2E]
 	move.l	d3,d1	;2203
 	and.l	d3,d2	;C483
 	addq.l	#$01,d2	;5282
-	bne.s	adrCd00AEF4	;6604
+	bne.s	Merge_NormalSpriteTrailingWord	;6604
 	addq.w	#$02,a0	;5448
-	bra.s	adrCd00AEF8	;6004
+	bra.s	Advance_NormalSpriteRow	;6004
 
-adrCd00AEF4:		; Memory Address ($AEF4) and binary offset [$AB70]
-	bsr	adrCd00AE02	;6100FF0C
-adrCd00AEF8:		; Memory Address ($AEF8) and binary offset [$AB74]
+Merge_NormalSpriteTrailingWord:		; Memory Address ($AEF4) and binary offset [$AB70]
+	bsr	Merge_PlanarSpriteWord_IfVisible	;6100FF0C
+Advance_NormalSpriteRow:		; Memory Address ($AEF8) and binary offset [$AB74]
 	move.w	d7,d0	;3007
 	add.w	d0,d0	;D040
-	tst.w	adrW_00AE5C.l	;4A790000AE5C
-	beq.s	adrCd00AF0E	;670A
+	tst.w	PlanarSprite_ReverseRowOrderFlag.l	;4A790000AE5C
+	beq.s	Advance_NormalSpriteDestinationRow	;670A
 	add.w	#$0098,a1	;D2FC0098
 	move.w	d0,d6	;3C00
 	asl.w	#$02,d6	;E546
 	sub.w	d6,a1	;92C6
-adrCd00AF0E:		; Memory Address ($AF0E) and binary offset [$AB8A]
+Advance_NormalSpriteDestinationRow:		; Memory Address ($AF0E) and binary offset [$AB8A]
 	lea	$0024(a0),a0	;41E80024
 	sub.w	d0,a0	;90C0
 	move.w	(sp)+,d6	;3C1F
 	swap	d7	;4847
-	dbra	d7,adrLp00AE98	;51CFFF7E
+	dbra	d7,Draw_PlanarSprite_Normal_RowLoop	;51CFFF7E
 	rts	;4E75
 
 Draw_PlanarSprite_BitReversed:		; Memory Address ($AF1E) and binary offset [$AB9A]
@@ -19442,7 +19570,7 @@ Draw_PlanarSprite_BitReversed:		; Memory Address ($AF1E) and binary offset [$AB9
 	swap	d5	;4845
 	move.w	d0,d5	;3A00
 	not.l	d5	;4685
-adrLp00AF42:		; Memory Address ($AF42) and binary offset [$ABBE]
+Draw_PlanarSprite_BitReversed_RowLoop:		; Memory Address ($AF42) and binary offset [$ABBE]
 	swap	d7	;4847
 	move.w	d6,-(sp)	;3F06
 	move.w	d7,-(sp)	;3F07
@@ -19452,7 +19580,7 @@ adrLp00AF42:		; Memory Address ($AF42) and binary offset [$ABBE]
 	add.w	d2,a1	;D2C2
 	move.l	d5,d2	;2405
 	move.l	d5,d3	;2605
-adrLp00AF54:		; Memory Address ($AF54) and binary offset [$ABD0]
+Draw_PlanarSprite_BitReversed_WordLoop:		; Memory Address ($AF54) and binary offset [$ABD0]
 	move.l	d2,a2	;2442
 	move.l	-(a1),d0	;2021
 	bsr	Reverse_PlanarLongwordBits	;6100FE0C
@@ -19472,7 +19600,7 @@ adrLp00AF54:		; Memory Address ($AF54) and binary offset [$ABD0]
 	not.l	d5	;4685
 	or.l	d2,d0	;8082
 	or.l	d3,d1	;8283
-	bsr	adrCd00AE02	;6100FE7C
+	bsr	Merge_PlanarSpriteWord_IfVisible	;6100FE7C
 	addq.w	#$01,d6	;5246
 	move.l	a2,d2	;240A
 	move.l	a3,d3	;260B
@@ -19480,7 +19608,7 @@ adrLp00AF54:		; Memory Address ($AF54) and binary offset [$ABD0]
 	and.l	d5,d3	;C685
 	swap	d2	;4842
 	swap	d3	;4843
-	dbra	d7,adrLp00AF54	;51CFFFBC
+	dbra	d7,Draw_PlanarSprite_BitReversed_WordLoop	;51CFFFBC
 	move.w	(sp)+,d7	;3E1F
 	not.l	d5	;4685
 	or.l	d5,d2	;8485
@@ -19490,13 +19618,13 @@ adrLp00AF54:		; Memory Address ($AF54) and binary offset [$ABD0]
 	move.l	d3,d1	;2203
 	and.l	d3,d2	;C483
 	addq.l	#$01,d2	;5282
-	bne.s	adrCd00AFB2	;6604
+	bne.s	Merge_BitReversedSpriteTrailingWord	;6604
 	addq.w	#$02,a0	;5448
-	bra.s	adrCd00AFB6	;6004
+	bra.s	Advance_BitReversedSpriteRow	;6004
 
-adrCd00AFB2:		; Memory Address ($AFB2) and binary offset [$AC2E]
-	bsr	adrCd00AE02	;6100FE4E
-adrCd00AFB6:		; Memory Address ($AFB6) and binary offset [$AC32]
+Merge_BitReversedSpriteTrailingWord:		; Memory Address ($AFB2) and binary offset [$AC2E]
+	bsr	Merge_PlanarSpriteWord_IfVisible	;6100FE4E
+Advance_BitReversedSpriteRow:		; Memory Address ($AFB6) and binary offset [$AC32]
 	move.w	d7,d0	;3007
 	addq.w	#$01,d0	;5240
 	add.w	d0,d0	;D040
@@ -19506,7 +19634,7 @@ adrCd00AFB6:		; Memory Address ($AFB6) and binary offset [$AC32]
 	add.w	d0,a1	;D2C0
 	move.w	(sp)+,d6	;3C1F
 	swap	d7	;4847
-	dbra	d7,adrLp00AF42	;51CFFF76
+	dbra	d7,Draw_PlanarSprite_BitReversed_RowLoop	;51CFFF76
 	rts	;4E75
 
 Remap_PlanarSpriteColours:		; Memory Address ($AFD0) and binary offset [$AC4C]
@@ -19516,7 +19644,7 @@ Remap_PlanarSpriteColours:		; Memory Address ($AFD0) and binary offset [$AC4C]
 	swap	d2	;4842
 	or.l	d0,d2	;8480
 	not.l	d2	;4682
-	beq.s	adrCd00B036	;6758
+	beq.s	Remap_PlanarSpriteColours_Exit	;6758
 	move.l	d0,-(sp)	;2F00
 	moveq	#$00,d4	;7800
 	moveq	#$00,d5	;7A00
@@ -19526,9 +19654,9 @@ Remap_PlanarSpriteColours:		; Memory Address ($AFD0) and binary offset [$AC4C]
 	or.l	d1,d3	;8681
 	not.l	d3	;4683
 	and.l	d2,d3	;C682
-	beq.s	adrCd00AFF4	;6702
+	beq.s	Remap_PlanarSpriteColours_AfterColour0	;6702
 	bsr.s	Accumulate_PlanarColourMask	;6148
-adrCd00AFF4:		; Memory Address ($AFF4) and binary offset [$AC70]
+Remap_PlanarSpriteColours_AfterColour0:		; Memory Address ($AFF4) and binary offset [$AC70]
 	addq.w	#$01,d7	;5247
 	move.l	d3,d0	;2003
 	not.l	d0	;4680
@@ -19538,9 +19666,9 @@ adrCd00AFF4:		; Memory Address ($AFF4) and binary offset [$AC70]
 	not.l	d3	;4683
 	and.l	d0,d3	;C680
 	and.l	d2,d3	;C682
-	beq.s	adrCd00B00A	;6702
+	beq.s	Remap_PlanarSpriteColours_AfterColour1	;6702
 	bsr.s	Accumulate_PlanarColourMask	;6132
-adrCd00B00A:		; Memory Address ($B00A) and binary offset [$AC86]
+Remap_PlanarSpriteColours_AfterColour1:		; Memory Address ($B00A) and binary offset [$AC86]
 	addq.w	#$01,d7	;5247
 	move.l	d1,d3	;2601
 	swap	d1	;4841
@@ -19548,31 +19676,31 @@ adrCd00B00A:		; Memory Address ($B00A) and binary offset [$AC86]
 	not.l	d3	;4683
 	and.l	d0,d3	;C680
 	and.l	d2,d3	;C682
-	beq.s	adrCd00B01C	;6702
+	beq.s	Remap_PlanarSpriteColours_AfterColour2	;6702
 	bsr.s	Accumulate_PlanarColourMask	;6120
-adrCd00B01C:		; Memory Address ($B01C) and binary offset [$AC98]
+Remap_PlanarSpriteColours_AfterColour2:		; Memory Address ($B01C) and binary offset [$AC98]
 	addq.w	#$01,d7	;5247
 	move.l	d1,d3	;2601
 	swap	d1	;4841
 	and.l	d1,d3	;C681
 	and.l	d2,d3	;C682
-	beq.s	adrCd00B02A	;6702
+	beq.s	Remap_PlanarSpriteColours_AfterColour3	;6702
 	bsr.s	Accumulate_PlanarColourMask	;6112
-adrCd00B02A:		; Memory Address ($B02A) and binary offset [$ACA6]
+Remap_PlanarSpriteColours_AfterColour3:		; Memory Address ($B02A) and binary offset [$ACA6]
 	not.l	d2	;4682
 	move.l	(sp)+,d0	;201F
 	and.l	d2,d0	;C082
 	or.l	d4,d0	;8084
 	and.l	d2,d1	;C282
 	or.l	d5,d1	;8285
-adrCd00B036:		; Memory Address ($B036) and binary offset [$ACB2]
+Remap_PlanarSpriteColours_Exit:		; Memory Address ($B036) and binary offset [$ACB2]
 	movem.l	(sp)+,d2-d7	;4CDF00FC
 	rts	;4E75
 
 Accumulate_PlanarColourMask:		; Memory Address ($B03C) and binary offset [$ACB8]
 	; Accumulates destination bitplane bits for one populated source-colour combination.
 	move.b	$00(a6,d7.w),d6	;1C367000
-	beq.s	adrCd00B062	;6720
+	beq.s	Accumulate_PlanarColourMask_SharedReturn	;6720
 	add.w	d6,d6	;DC46
 	add.w	d6,d6	;DC46
 	and.w	#PlanarColourMask_IndexMask,d6	;0246000C
@@ -19584,7 +19712,7 @@ Accumulate_PlanarColourMask:		; Memory Address ($B03C) and binary offset [$ACB8]
 	move.l	Bitplane_Mask(pc,d6.w),d6	;2C3B6008
 	and.l	d3,d6	;CC83
 	or.l	d6,d5	;8A86
-adrCd00B062:		; Memory Address ($B062) and binary offset [$ACDE]
+Accumulate_PlanarColourMask_SharedReturn:		; Memory Address ($B062) and binary offset [$ACDE]
 	rts	;4E75
 
 Bitplane_Mask:		; Memory Address ($B064) and binary offset [$ACE0]
@@ -19611,7 +19739,7 @@ Draw_MainWallFace_ByPatternParity:		; Memory Address ($B074) and binary offset [
 Draw_Main_Object_Overlay:		; Memory Address ($B08C) and binary offset [$AD08]
 	; Draws the selected wall overlay and dispatches switch, sign, shelf, socket, or other wall-feature artwork.
 	tst.b	-$0015(a3)	;4A2BFFEB
-	beq.s	adrCd00B062	;67D0
+	beq.s	Accumulate_PlanarColourMask_SharedReturn	;67D0
 	addq.b	#$01,-$0015(a3)	;522BFFEB
 	beq	Draw_Main_Shelf_Overlay	;67000148
 	addq.b	#$01,-$0015(a3)	;522BFFEB
@@ -19689,7 +19817,7 @@ Draw_Main_Sign_Base:		; Memory Address ($B16E) and binary offset [$ADEA]
 	lsr.b	#$02,d1	;E409
 	beq.s	Select_Main_SignOverlay_Direction	;670A
 	cmpi.b	#$05,d1	;0C010005
-	bcc.s	adrCd00B1C4	;642E
+	bcc.s	MainWallOverlay_SharedReturn	;642E
 	subq.b	#$01,d1	;5301
 	bra.s	Draw_Main_SignOverlay	;600A
 
@@ -19707,7 +19835,7 @@ Draw_Main_SignOverlay:		; Memory Address ($B1A4) and binary offset [$AE20]
 	lea	GFX_Main_Signoverlay_Positions.l,a2	;45F90000BDC6
 	lea	GFX_Main_Signoverlay_Offsets.l,a0	;41F90000B284
 	bsr	Draw_WallComponentFace	;6100024E
-adrCd00B1C4:		; Memory Address ($B1C4) and binary offset [$AE40]
+MainWallOverlay_SharedReturn:		; Memory Address ($B1C4) and binary offset [$AE40]
 	rts	;4E75
 
 Select_MainSwitch_ColourMask:		; Memory Address ($B1C6) and binary offset [$AE42]
@@ -19729,7 +19857,7 @@ Draw_Main_Shelf_Overlay:		; Memory Address ($B1E0) and binary offset [$AE5C]
 	tst.b	-$001F(a3)	;4A2BFFE1
 	bne.s	Draw_Main_Shelf_Visible	;6608
 	btst	#$03,-$0011(a3)	;082B0003FFEF
-	bne.s	adrCd00B1C4	;66D6
+	bne.s	MainWallOverlay_SharedReturn	;66D6
 Draw_Main_Shelf_Visible:		; Memory Address ($B1EE) and binary offset [$AE6A]
 	; Loads the shelf graphics tables and draws the shelf when its wall-face visibility conditions permit.
 	lea	GFX_Main_Shelf_Offsets.l,a0	;41F900018B90
@@ -19909,7 +20037,7 @@ Draw_Main_Door_ByViewCell:		; Memory Address ($B340) and binary offset [$AFBC]
 	cmpi.b	#$0E,d6	;0C06000E
 	bcc.s	Draw_Main_Door_CentredFace	;6406
 	bsr	Draw_CentredDungeonComponent	;6100E268
-	bra.s	adrCd00B374	;6024
+	bra.s	Draw_MainDoor_CheckOccupants_SharedTail	;6024
 
 Draw_Main_Door_CentredFace:		; Memory Address ($B350) and binary offset [$AFCC]
 	; Adjusts the centred door slot and orientation before constructing the door from two reflected halves.
@@ -19927,7 +20055,7 @@ Draw_Main_Door_CentredFace:		; Memory Address ($B350) and binary offset [$AFCC]
 Draw_Main_Door_Centred_TwoHalves:		; Memory Address ($B370) and binary offset [$AFEC]
 	; Draws a centred main door from its source half and reflected partner.
 	bsr	Draw_WallComponent_TwoHalves	;610000E6
-adrCd00B374:		; Memory Address ($B374) and binary offset [$AFF0]
+Draw_MainDoor_CheckOccupants_SharedTail:		; Memory Address ($B374) and binary offset [$AFF0]
 	clr.w	Buffer_Colour_Mask_Toggle.l	;42790000B4BE
 	tst.b	-$0011(a3)	;4A2BFFEF
 	bmi	Draw_DungeonCellOccupants	;6B00E670
@@ -19947,18 +20075,18 @@ Draw_Main_Stairs_ByViewCell:		; Memory Address ($B3B0) and binary offset [$B02C]
 	; Chooses the side-face path, suppresses the farthest central slot, or constructs centred stairs from two halves.
 	cmp.b	#$0E,-$0016(a3)	;0C2B000EFFEA
 	bcs.s	Draw_Main_Stairs_SideFace	;6514
-	beq.s	adrCd00B3CE	;6714
+	beq.s	Draw_MainStairs_CheckOccupants_SharedTail	;6714
 	move.b	-$0016(a3),d6	;1C2BFFEA
 	move.w	d6,d0	;3006
 	add.w	#$000A,d6	;0646000A
 	subq.w	#$02,d0	;5540
 	bsr	Draw_WallComponent_TwoHalves	;61000090
-	bra.s	adrCd00B3CE	;6002
+	bra.s	Draw_MainStairs_CheckOccupants_SharedTail	;6002
 
 Draw_Main_Stairs_SideFace:		; Memory Address ($B3CC) and binary offset [$B048]
 	; Draws the complete stairs component for a side view cell.
 	bsr.s	Draw_WallComponentFace	;6142
-adrCd00B3CE:		; Memory Address ($B3CE) and binary offset [$B04A]
+Draw_MainStairs_CheckOccupants_SharedTail:		; Memory Address ($B3CE) and binary offset [$B04A]
 	tst.b	-$0011(a3)	;4A2BFFEF
 	bmi	Draw_DungeonCellOccupants	;6B00E61C
 	rts	;4E75
@@ -19973,7 +20101,7 @@ Draw_WoodenWallOrDoorFace:		; Memory Address ($B3D8) and binary offset [$B054]
 	add.w	#$2498,a1	;D2FC2498
 	bsr.s	Draw_WallComponentFace	;611A
 	tst.b	-$0015(a3)	;4A2BFFEB
-	beq.s	adrCd00B42C	;6730
+	beq.s	Draw_WallComponentFace_SharedReturn	;6730
 	lea	GFX_Wooden_Doors_Offsets.l,a0	;41F900018B50
 	lea	GFX_Wooden_Doors_Positions.l,a2	;45F90000BFAE
 	lea	GFX_WoodDoors.l,a1	;43F9000242B0
@@ -19992,7 +20120,7 @@ Draw_WallComponentFace:		; Memory Address ($B410) and binary offset [$B08C]
 	move.l	a3,-(sp)	;2F0B
 	bsr	Draw_WallSprite_Normal	;610001A2
 	move.l	(sp)+,a3	;265F
-adrCd00B42C:		; Memory Address ($B42C) and binary offset [$B0A8]
+Draw_WallComponentFace_SharedReturn:		; Memory Address ($B42C) and binary offset [$B0A8]
 	rts	;4E75
 
 Flip_Sprite:		; Memory Address ($B42E) and binary offset [$B0AA]
@@ -20125,9 +20253,9 @@ Draw_WallComponent_Transformed:		; Memory Address ($B4E0) and binary offset [$B1
 	beq	Draw_WallSprite_Normal	;670000DC
 	swap	d6	;4846
 	btst	#$00,(a2)	;08120000
-	beq.s	adrCd00B4FA	;6702
+	beq.s	WallComponentTransformed_PerspectiveTrim	;6702
 	bsr.s	Draw_WallComponent_EdgeTransform	;6166
-adrCd00B4FA:		; Memory Address ($B4FA) and binary offset [$B176]
+WallComponentTransformed_PerspectiveTrim:		; Memory Address ($B4FA) and binary offset [$B176]
 	move.b	(a2),d6	;1C12
 	and.w	#WallTransform_FlagMask,d6	;02460007
 	swap	d3	;4843
@@ -20141,19 +20269,19 @@ adrCd00B4FA:		; Memory Address ($B4FA) and binary offset [$B176]
 	add.w	d6,d6	;DC46
 	add.w	d6,d2	;D446
 	movem.l	a0/a1,-(sp)	;48E700C0
-adrLp00B51A:		; Memory Address ($B51A) and binary offset [$B196]
+WallComponentTransformed_RowLoop:		; Memory Address ($B51A) and binary offset [$B196]
 	move.w	d5,d3	;3605
-adrLp00B51C:		; Memory Address ($B51C) and binary offset [$B198]
+WallComponentTransformed_ColumnLoop:		; Memory Address ($B51C) and binary offset [$B198]
 	move.w	(a1)+,(a0)+	;30D9
 	move.w	(a1)+,$1F3E(a0)	;31591F3E
 	move.w	(a1)+,$3E7E(a0)	;31593E7E
 	move.w	(a1)+,$5DBE(a0)	;31595DBE
-	dbra	d3,adrLp00B51C	;51CBFFF0
+	dbra	d3,WallComponentTransformed_ColumnLoop	;51CBFFF0
 	move.w	d6,d3	;3606
 	asl.w	#$02,d3	;E543
 	add.w	d3,a1	;D2C3
 	add.w	d2,a0	;D0C2
-	dbra	d4,adrLp00B51A	;51CCFFE2
+	dbra	d4,WallComponentTransformed_RowLoop	;51CCFFE2
 	movem.l	(sp)+,a0/a1	;4CDF0300
 	swap	d5	;4845
 	swap	d3	;4843
@@ -20163,9 +20291,9 @@ adrLp00B51C:		; Memory Address ($B51C) and binary offset [$B198]
 	sub.w	d6,a1	;92C6
 	swap	d3	;4843
 	btst	#$02,(a2)	;08120002
-	beq.s	adrCd00B554	;6702
+	beq.s	WallComponentTransformed_Finish	;6702
 	bsr.s	Draw_WallComponent_EdgeTransform	;610C
-adrCd00B554:		; Memory Address ($B554) and binary offset [$B1D0]
+WallComponentTransformed_Finish:		; Memory Address ($B554) and binary offset [$B1D0]
 	swap	d6	;4846
 	rts	;4E75
 
@@ -20189,7 +20317,7 @@ Draw_WallComponent_EdgeTransform:		; Memory Address ($B560) and binary offset [$
 	asl.w	#$02,d6	;E546
 	swap	d3	;4843
 	move.w	d5,d3	;3605
-adrLp00B570:		; Memory Address ($B570) and binary offset [$B1EC]
+Draw_WallComponent_EdgeTransform_RowLoop:		; Memory Address ($B570) and binary offset [$B1EC]
 	move.l	(a1)+,d0	;2019
 	move.l	(a1)+,d1	;2219
 	move.l	d1,d2	;2401
@@ -20221,7 +20349,7 @@ adrLp00B570:		; Memory Address ($B570) and binary offset [$B1EC]
 	move.w	d4,(a0)+	;30C4
 	add.w	#$0026,a0	;D0FC0026
 	add.w	d6,a1	;D2C6
-	dbra	d3,adrLp00B570	;51CBFFB2
+	dbra	d3,Draw_WallComponent_EdgeTransform_RowLoop	;51CBFFB2
 	movem.l	(sp)+,a0/a1	;4CDF0300
 	addq.w	#$02,a0	;5448
 	addq.w	#$08,a1	;5049
@@ -20234,7 +20362,7 @@ Draw_WallSprite_Rows_Loop:		; Memory Address ($B5CC) and binary offset [$B248]
 	; Iterates the source rows and words of an ordinary planar wall or wall-feature sprite.
 	swap	d5	;4845
 	move.w	d5,d3	;3605
-adrLp00B5D0:		; Memory Address ($B5D0) and binary offset [$B24C]
+Draw_WallSprite_Normal_WordLoop:		; Memory Address ($B5D0) and binary offset [$B24C]
 	move.l	(a1)+,d0	;2019
 	move.l	(a1)+,d1	;2219
 	tst.w	Buffer_Colour_Mask_Toggle.l	;4A790000B4BE
@@ -20246,7 +20374,7 @@ Composite_WallSprite_Row:		; Memory Address ($B5E6) and binary offset [$B262]
 	move.l	d1,d2	;2401
 	and.l	d0,d2	;C480
 	addq.l	#$01,d2	;5282
-	beq.s	adrCd00B630	;6742
+	beq.s	Draw_WallSprite_Normal_SkipTransparentWord	;6742
 	subq.l	#$01,d2	;5382
 	swap	d2	;4842
 	and.l	d0,d2	;C480
@@ -20273,12 +20401,12 @@ Composite_WallSprite_Row:		; Memory Address ($B5E6) and binary offset [$B262]
 	and.w	d2,d4	;C842
 	or.w	d0,d4	;8840
 	move.w	d4,(a0)+	;30C4
-	bra.s	adrCd00B632	;6002
+	bra.s	Draw_WallSprite_Normal_WordLoop_Next	;6002
 
-adrCd00B630:		; Memory Address ($B630) and binary offset [$B2AC]
+Draw_WallSprite_Normal_SkipTransparentWord:		; Memory Address ($B630) and binary offset [$B2AC]
 	addq.w	#$02,a0	;5448
-adrCd00B632:		; Memory Address ($B632) and binary offset [$B2AE]
-	dbra	d3,adrLp00B5D0	;51CBFF9C
+Draw_WallSprite_Normal_WordLoop_Next:		; Memory Address ($B632) and binary offset [$B2AE]
+	dbra	d3,Draw_WallSprite_Normal_WordLoop	;51CBFF9C
 	swap	d3	;4843
 	sub.w	d3,a0	;90C3
 	swap	d3	;4843
@@ -20313,9 +20441,9 @@ Draw_MainWall_Transformed:		; Memory Address ($B666) and binary offset [$B2E2]
 	beq	Draw_WallSprite_BitReversed	;670000FA
 	swap	d6	;4846
 	btst	#$00,(a2)	;08120000
-	beq.s	adrCd00B680	;6702
+	beq.s	MainWallTransformed_PerspectiveTrim	;6702
 	bsr.s	Draw_MainWall_EdgeTransform	;617A
-adrCd00B680:		; Memory Address ($B680) and binary offset [$B2FC]
+MainWallTransformed_PerspectiveTrim:		; Memory Address ($B680) and binary offset [$B2FC]
 	movem.l	d7/a0/a1,-(sp)	;48E701C0
 	move.b	(a2),d6	;1C12
 	and.w	#WallTransform_FlagMask,d6	;02460007
@@ -20329,9 +20457,9 @@ adrCd00B680:		; Memory Address ($B680) and binary offset [$B2FC]
 	sub.w	d6,d5	;9A46
 	add.w	d6,d6	;DC46
 	sub.w	d6,d7	;9E46
-adrLp00B6A2:		; Memory Address ($B6A2) and binary offset [$B31E]
+MainWallTransformed_RowLoop:		; Memory Address ($B6A2) and binary offset [$B31E]
 	move.w	d5,d3	;3605
-adrLp00B6A4:		; Memory Address ($B6A4) and binary offset [$B320]
+MainWallTransformed_ColumnLoop:		; Memory Address ($B6A4) and binary offset [$B320]
 	move.l	(a1)+,d1	;2219
 	move.l	(a1)+,d0	;2019
 	bsr	Reverse_PlanarLongwordBits	;6100F6BC
@@ -20343,12 +20471,12 @@ adrLp00B6A4:		; Memory Address ($B6A4) and binary offset [$B320]
 	move.w	d0,$1F3E(a0)	;31401F3E
 	swap	d0	;4840
 	move.w	d0,-(a0)	;3100
-	dbra	d3,adrLp00B6A4	;51CBFFDE
+	dbra	d3,MainWallTransformed_ColumnLoop	;51CBFFDE
 	move.w	d6,d3	;3606
 	asl.w	#$02,d3	;E543
 	add.w	d3,a1	;D2C3
 	add.w	d7,a0	;D0C7
-	dbra	d4,adrLp00B6A2	;51CCFFD0
+	dbra	d4,MainWallTransformed_RowLoop	;51CCFFD0
 	movem.l	(sp)+,d7/a0/a1	;4CDF0380
 	swap	d5	;4845
 	swap	d3	;4843
@@ -20358,9 +20486,9 @@ adrLp00B6A4:		; Memory Address ($B6A4) and binary offset [$B320]
 	sub.w	d6,a1	;92C6
 	swap	d3	;4843
 	btst	#$02,(a2)	;08120002
-	beq.s	adrCd00B6EE	;6702
+	beq.s	MainWallTransformed_Finish	;6702
 	bsr.s	Draw_MainWall_EdgeTransform	;610C
-adrCd00B6EE:		; Memory Address ($B6EE) and binary offset [$B36A]
+MainWallTransformed_Finish:		; Memory Address ($B6EE) and binary offset [$B36A]
 	swap	d6	;4846
 	rts	;4E75
 
@@ -20384,7 +20512,7 @@ Draw_MainWall_EdgeTransform:		; Memory Address ($B6FA) and binary offset [$B376]
 	asl.w	#$02,d6	;E546
 	swap	d3	;4843
 	move.w	d5,d3	;3605
-adrLp00B70A:		; Memory Address ($B70A) and binary offset [$B386]
+Draw_MainWall_EdgeTransform_RowLoop:		; Memory Address ($B70A) and binary offset [$B386]
 	move.l	(a1)+,d1	;2219
 	move.l	(a1)+,d0	;2019
 	bsr	Reverse_PlanarLongwordBits	;6100F656
@@ -20419,7 +20547,7 @@ adrLp00B70A:		; Memory Address ($B70A) and binary offset [$B386]
 	move.w	d4,(a0)	;3084
 	add.w	#$002A,a0	;D0FC002A
 	add.w	d6,a1	;D2C6
-	dbra	d3,adrLp00B70A	;51CBFFA8
+	dbra	d3,Draw_MainWall_EdgeTransform_RowLoop	;51CBFFA8
 	movem.l	(sp)+,a0/a1	;4CDF0300
 	subq.w	#$02,a0	;5548
 	addq.w	#$08,a1	;5049
@@ -20445,7 +20573,7 @@ Composite_BitReversedWallSprite_Row:		; Memory Address ($B792) and binary offset
 	move.l	d1,d2	;2401
 	and.l	d0,d2	;C480
 	addq.l	#$01,d2	;5282
-	beq.s	adrCd00B7DC	;6742
+	beq.s	WallSpriteBitReversed_SkipTransparentWord	;6742
 	subq.l	#$01,d2	;5382
 	swap	d2	;4842
 	and.l	d0,d2	;C480
@@ -20472,11 +20600,11 @@ Composite_BitReversedWallSprite_Row:		; Memory Address ($B792) and binary offset
 	and.w	d2,d4	;C842
 	or.w	d0,d4	;8840
 	move.w	d4,(a0)	;3084
-	bra.s	adrCd00B7DE	;6002
+	bra.s	CompositeBitReversedWallSprite_LoopTail	;6002
 
-adrCd00B7DC:		; Memory Address ($B7DC) and binary offset [$B458]
+WallSpriteBitReversed_SkipTransparentWord:		; Memory Address ($B7DC) and binary offset [$B458]
 	subq.w	#$02,a0	;5548
-adrCd00B7DE:		; Memory Address ($B7DE) and binary offset [$B45A]
+CompositeBitReversedWallSprite_LoopTail:		; Memory Address ($B7DE) and binary offset [$B45A]
 	dbra	d3,Draw_WallSprite_BitReversed_Rows_Loop	;51CBFF92
 	swap	d3	;4843
 	add.w	d3,a0	;D0C3
@@ -20499,12 +20627,12 @@ Draw_FloorAndCeiling:		; Memory Address ($B7F4) and binary offset [$B470]
 Draw_FloorAndCeiling_CopyRows_Loop:		; Memory Address ($B80C) and binary offset [$B488]
 	; Copies source rows into the floor and ceiling areas of the dungeon viewport. Copies the parity-1 floor and ceiling rows directly into the dungeon viewport.
 	moveq	#$07,d1	;7207
-adrLp00B80E:		; Memory Address ($B80E) and binary offset [$B48A]
+Draw_FloorAndCeiling_CopyRows_PlanesLoop:		; Memory Address ($B80E) and binary offset [$B48A]
 	move.w	(a1)+,(a0)+	;30D9
 	move.w	(a1)+,$1F3E(a0)	;31591F3E
 	move.w	(a1)+,$3E7E(a0)	;31593E7E
 	move.w	(a1)+,$5DBE(a0)	;31595DBE
-	dbra	d1,adrLp00B80E	;51C9FFF0
+	dbra	d1,Draw_FloorAndCeiling_CopyRows_PlanesLoop	;51C9FFF0
 	lea	$0018(a0),a0	;41E80018
 	dbra	d0,Draw_FloorAndCeiling_CopyRows_Loop	;51C8FFE6
 	rts	;4E75
@@ -20513,7 +20641,7 @@ Clear_FloorCeiling_ViewGap:		; Memory Address ($B82A) and binary offset [$B4A6]
 	; Clears the nineteen-rowhorizontal  view area between the ceiling and floor bands.
 	moveq	#$12,d0	;7012
 	moveq	#$00,d1	;7200
-adrLp00B82E:		; Memory Address ($B82E) and binary offset [$B4AA]
+Clear_FloorCeiling_ViewGap_RowLoop:		; Memory Address ($B82E) and binary offset [$B4AA]
 	lea	$1F40(a0),a2	;45E81F40
 	move.l	d1,(a2)+	;24C1
 	move.l	d1,(a2)+	;24C1
@@ -20534,7 +20662,7 @@ adrLp00B82E:		; Memory Address ($B82E) and binary offset [$B4AA]
 	move.l	d1,(a0)+	;20C1
 	move.l	d1,(a0)+	;20C1
 	lea	$0018(a0),a0	;41E80018
-	dbra	d0,adrLp00B82E	;51C8FFCE
+	dbra	d0,Clear_FloorCeiling_ViewGap_RowLoop	;51C8FFCE
 	rts	;4E75
 
 Draw_FloorAndCeiling_BitReversed:		; Memory Address ($B864) and binary offset [$B4E0]
@@ -20550,7 +20678,7 @@ Draw_FloorAndCeiling_BitReversed:		; Memory Address ($B864) and binary offset [$
 Draw_FloorAndCeiling_BitReversed_Loop:		; Memory Address ($B87E) and binary offset [$B4FA]
 	; Loop used to write the bit-reversed floor and ceiling rows. Bit-reverses and writes each floor/ceiling source row from the opposite side of the viewport.
 	moveq	#$07,d3	;7607
-adrLp00B880:		; Memory Address ($B880) and binary offset [$B4FC]
+Draw_FloorAndCeiling_BitReversed_PlanesLoop:		; Memory Address ($B880) and binary offset [$B4FC]
 	move.l	(a1)+,d0	;2019
 	bsr	Reverse_PlanarLongwordBits_WithLookup	;6100F4E8
 	move.l	d0,d1	;2200
@@ -20562,7 +20690,7 @@ adrLp00B880:		; Memory Address ($B880) and binary offset [$B4FC]
 	move.w	d1,$1F3E(a0)	;31411F3E
 	swap	d1	;4841
 	move.w	d1,-(a0)	;3101
-	dbra	d3,adrLp00B880	;51CBFFDE
+	dbra	d3,Draw_FloorAndCeiling_BitReversed_PlanesLoop	;51CBFFDE
 	lea	$0038(a0),a0	;41E80038
 	dbra	d7,Draw_FloorAndCeiling_BitReversed_Loop	;51CFFFD4
 	rts	;4E75
@@ -21548,9 +21676,9 @@ Draw_ChampionSelectionDetailsPanel:		; Memory Address ($C01E) and binary offset 
 	; Draws the portrait bevel, name strip, statistics scroll, and separators in the champion-selection details panel.
 	lea	Notice_SelectChampions.l,a6	;4DF90000E480
 	tst.w	MultiPlayer.l	;4A790000EE30
-	beq.s	adrCd00C032	;6706
+	beq.s	ChampionSelectionDetailsPanel_NoticeMerge	;6706
 	move.b	#$2E,$001B(a6)	;1D7C002E001B
-adrCd00C032:		; Memory Address ($C032) and binary offset [$BCAE]
+ChampionSelectionDetailsPanel_NoticeMerge:		; Memory Address ($C032) and binary offset [$BCAE]
 	move.l	screen_ptr.l,a0	;207900008D36
 	add.w	#$0050,a0	;D0FC0050
 	move.l	#$000F0000,CurrentTextInk.l	;23FC000F00000000D92A
@@ -21577,19 +21705,20 @@ Draw_ChampionSelectionDefaultPanel:		; Memory Address ($C060) and binary offset 
 	move.w	#$00A8,d4	;383C00A8
 	moveq	#$54,d5	;7A54
 	add.w	$0008(a5),d5	;DA6D0008
-adrCd00C09C:		; Memory Address ($C09C) and binary offset [$BD18]
+ChampionPanel_NameStrip_TopLines_Loop:		; Memory Address ($C09C) and binary offset [$BD18]
+	; Draws the name strip's four upper edge lines across X=168-319 at Y=84-87 in colours 1-4 before the following loop draws the lower edge in reverse colour order.
 	bsr	BW_blit_horiz_line	;61001AE6
 	addq.w	#$01,d5	;5245
 	addq.w	#$01,d3	;5243
 	cmpi.w	#$0005,d3	;0C430005
-	bcs.s	adrCd00C09C	;65F2
+	bcs.s	ChampionPanel_NameStrip_TopLines_Loop	;65F2
 	addq.w	#$08,d5	;5045
 	subq.w	#$01,d3	;5343
-adrCd00C0AE:		; Memory Address ($C0AE) and binary offset [$BD2A]
+ChampionPanel_NameStrip_BottomLines_Loop:		; Memory Address ($C0AE) and binary offset [$BD2A]
 	bsr	BW_blit_horiz_line	;61001AD4
 	addq.w	#$01,d5	;5245
 	subq.w	#$01,d3	;5343
-	bne.s	adrCd00C0AE	;66F6
+	bne.s	ChampionPanel_NameStrip_BottomLines_Loop	;66F6
 	rts	;4E75
 
 Draw_BevelledPanelFrame:		; Memory Address ($C0BA) and binary offset [$BD36]
@@ -21602,7 +21731,7 @@ Draw_BevelledPanelFrame:		; Memory Address ($C0BA) and binary offset [$BD36]
 	movem.l	d3-d5,-(sp)	;48E71C00
 	bsr	BW_draw_bar	;6100199A
 	movem.l	(sp)+,d3-d5	;4CDF0038
-adrCd00C0D4:		; Memory Address ($C0D4) and binary offset [$BD50]
+Draw_BevelledPanelFrame_InsetOutlines_Loop:		; Memory Address ($C0D4) and binary offset [$BD50]
 	addq.w	#$01,d4	;5244
 	addq.w	#$01,d5	;5245
 	sub.l	#$00020000,d5	;048500020000	;Long Addr replaced with Symbol
@@ -21612,10 +21741,11 @@ adrCd00C0D4:		; Memory Address ($C0D4) and binary offset [$BD50]
 	bsr	BW_draw_frame	;610019E8
 	movem.l	(sp)+,d3-d5	;4CDF0038
 	cmpi.w	#$0004,d3	;0C430004
-	bne.s	adrCd00C0D4	;66DC
+	bne.s	Draw_BevelledPanelFrame_InsetOutlines_Loop	;66DC
 	rts	;4E75
 
 ChampionSelection_Main:		; Memory Address ($C0FA) and binary offset [$BD76]
+	; Initialises the champion-selection panels, moves the single-player panel 38 pixels lower, draws the roster and detail views into both buffers as applicable, enables input, and services the players until the selection-mode state signals exit.
 	moveq	#-$01,d0	;70FF
 	move.w	d0,ChampionSelectionHeaderEnabledFlag.l	;33C00000C514
 	move.b	d0,Player1_ChampionCount_PendingCommit.l	;13C00000EE83
@@ -21627,13 +21757,13 @@ ChampionSelection_Main:		; Memory Address ($C0FA) and binary offset [$BD76]
 	move.w	d0,Player1_MouseYClampBounds.l	;33C00000EEB6
 	move.w	d0,Player2_MouseYClampBounds.l	;33C00000EF18
 	tst.w	MultiPlayer.l	;4A790000EE30
-	beq.s	adrCd00C168	;6728
+	beq.s	ChampionSelection_Main_AfterSetup	;6728
 	clr.w	ChampionSelectionHeaderEnabledFlag.l	;42790000C514
 	move.w	#$FFFF,Player2_SelectionUIMode.l	;33FCFFFF0000EEF2
 	move.l	#$00D80000,Player2_MousePosition.l	;23FC00D800000000EEE0
 	move.w	#$0026,Player1_InterfacePanelYOffset.l	;33FC00260000EE84
 	move.w	#$05F0,Player1_InterfaceScreenBufferOffset.l	;33FC05F00000EE86
-adrCd00C168:		; Memory Address ($C168) and binary offset [$BDE4]
+ChampionSelection_Main_AfterSetup:		; Memory Address ($C168) and binary offset [$BDE4]
 	bsr	ChampionSelection	;61000C22
 	bsr	Draw_ChampionSelectionDetailsPanel	;6100FEB0
 	bsr	Swap_DisplayAndDrawBuffers	;6100CB58
@@ -21642,7 +21772,7 @@ adrCd00C168:		; Memory Address ($C168) and binary offset [$BDE4]
 	move.w	#$0005,Player1_DialogueFadeTimer.l	;33FC00050000EEC6
 	move.b	#$01,InputProcessingEnabledFlag.l	;13FC000100008C1F
 	jsr	Initialize_SpellPracticeThresholds.w	;4EB808F2	;Short Absolute converted to symbol!
-adrCd00C190:		; Memory Address ($C190) and binary offset [$BE0C]
+ChampionSelection_Main_ProcessLoop:		; Memory Address ($C190) and binary offset [$BE0C]
 	move.w	Player2_SelectionUIMode.l,d1	;32390000EEF2
 	lea	Player1_Data.l,a5	;4BF90000EE7C
 	and.w	$0014(a5),d1	;C26D0014
@@ -21654,9 +21784,9 @@ adrCd00C190:		; Memory Address ($C190) and binary offset [$BE0C]
 	bsr	HitTest_ChampionSelectionPanel	;6100003E
 	bsr	Process_ChampionSelectionAction	;61000076
 	move.b	#$FF,FrameSyncFlag.l	;13FC00FF00008C1E
-adrCd00C1C6:		; Memory Address ($C1C6) and binary offset [$BE42]
+ChampionSelection_Main_WaitForFrameSync:		; Memory Address ($C1C6) and binary offset [$BE42]
 	tst.b	FrameSyncFlag.l	;4A3900008C1E
-	bne.s	adrCd00C1C6	;66F8
+	bne.s	ChampionSelection_Main_WaitForFrameSync	;66F8
 	move.b	#$01,ChampionSelectionLiveActionFlag.l	;13FC00010000EE2C
 	lea	Player1_Data.l,a5	;4BF90000EE7C
 	bsr	Process_ChampionSelectionAction	;61000054
@@ -21664,7 +21794,7 @@ adrCd00C1C6:		; Memory Address ($C1C6) and binary offset [$BE42]
 	lea	Player2_Data.l,a5	;4BF90000EEDE
 	bsr	Process_ChampionSelectionAction	;61000046
 	clr.w	$000C(a5)	;426D000C
-	bra.s	adrCd00C190	;609C
+	bra.s	ChampionSelection_Main_ProcessLoop	;609C
 
 ExitOrLoop:		; Memory Address ($C1F4) and binary offset [$BE70]
 	rts	;4E75
@@ -21698,11 +21828,11 @@ Process_ChampionSelectionAction:		; Memory Address ($C5B6) and binary offset [$C
 	bne.s	Dispatch_ChampionSelectionAction			;6614
 	lsr.w	#$08,d0				;E048
 	cmpi.w	#$0007,d0			;0C400007
-	bne.s	adrCd00C24E			;6608
+	bne.s	Process_ChampionSelectionAction_StoreIndex			;6608
 	move.w	#$0002,$0014(a5)		;3B7C00020014
 	rts	;4E75
 
-adrCd00C24E:		; Memory Address ($C24E) and binary offset [$BECA]
+Process_ChampionSelectionAction_StoreIndex:		; Memory Address ($C24E) and binary offset [$BECA]
 	move.w	d0,$000C(a5)	;3B40000C
 Dispatch_ChampionSelectionAction:		; Memory Address ($C5D6) and binary offset [$C252]
 	; Dispatches champion-selection actions through the local preview/action table.
@@ -21727,12 +21857,12 @@ ChampionPreviews_LookupTable:		; Memory Address ($C266) and binary offset [$BEE2
 
 Click_PreviewSpell:		; Memory Address ($C286) and binary offset [$BF02]
 	bsr	Select_SpellBookRune	;61000024
-	bpl.s	adrCd00C298	;6A0C
+	bpl.s	Click_PreviewSpell_PrintSpellName	;6A0C
 	move.w	$0006(a5),d7	;3E2D0006
 	bsr	Print_ChampionSelectionFullName	;61000D5E
 	bra	Draw_SpellBookPageSpread	;600005C8
 
-adrCd00C298:		; Memory Address ($C298) and binary offset [$BF14]
+Click_PreviewSpell_PrintSpellName:		; Memory Address ($C298) and binary offset [$BF14]
 	moveq	#$07,d6	;7C07
 	bsr	Position_NameFieldTextCursor	;61000D7E
 	bsr	Print_TextCharacterLoop	;61000D3A
@@ -21750,7 +21880,7 @@ Select_SpellBookRune:		; Memory Address ($C2AC) and binary offset [$BF28]
 	move.w	d0,d3	;3600
 	move.w	$000E(a5),d0	;302D000E
 	btst	d0,$0C(a4,d3.w)	;0134300C
-	beq.s	adrCd00C2E0	;671A
+	beq.s	Select_SpellBookRune_ClearSelection	;671A
 	eor.w	#$0007,d0	;0A400007
 	add.w	d2,d0	;D042
 	move.b	d0,$0013(a4)	;19400013
@@ -21762,43 +21892,43 @@ Get_SelectedSpellName:		; Memory Address ($C2D4) and binary offset [$BF50]
 	add.w	d0,a6	;DCC0
 	rts	;4E75
 
-adrCd00C2E0:		; Memory Address ($C2E0) and binary offset [$BF5C]
+Select_SpellBookRune_ClearSelection:		; Memory Address ($C2E0) and binary offset [$BF5C]
 	move.b	#$FF,$0013(a4)	;197C00FF0013
 	moveq	#-$01,d0	;70FF
-adrCd00C2E8:		; Memory Address ($C2E8) and binary offset [$BF64]
+SpellBookRune_SharedTail:		; Memory Address ($C2E8) and binary offset [$BF64]
 	rts	;4E75
 
 Click_TurnSpellBookPage:		; Memory Address ($C2EA) and binary offset [$BF66]
 	tst.w	$0024(a5)	;4A6D0024
-	bne.s	adrCd00C2E8	;66F8
+	bne.s	SpellBookRune_SharedTail	;66F8
 	tst.b	$000F(a5)	;4A2D000F
 	bpl.s	Draw_SpellBookPageTurn	;6A2C
 	tst.b	$000E(a5)	;4A2D000E
-	bmi.s	adrCd00C30C	;6B10
+	bmi.s	Click_TurnSpellBookPage_AfterPageAdvance	;6B10
 	addq.w	#SpellBook_PageSpreadIncrement,$002A(a5)	;546D002A
 	and.w	#$0007,$002A(a5)	;026D0007002A
 	move.w	#$FFFF,$000E(a5)	;3B7CFFFF000E
-adrCd00C30C:		; Memory Address ($C30C) and binary offset [$BF88]
+Click_TurnSpellBookPage_AfterPageAdvance:		; Memory Address ($C30C) and binary offset [$BF88]
 	tst.b	ChampionSelectionLiveActionFlag.l	;4A390000EE2C
-	beq.s	adrCd00C31A	;6706
+	beq.s	Click_TurnSpellBookPage_PrepareRedraw	;6706
 	move.w	#$0002,$0014(a5)	;3B7C00020014
-adrCd00C31A:		; Memory Address ($C31A) and binary offset [$BF96]
+Click_TurnSpellBookPage_PrepareRedraw:		; Memory Address ($C31A) and binary offset [$BF96]
 	bsr	Prepare_AndDrawSpellBookSurface	;610004AC
 	bra	Draw_SpellBookPageSpread	;6000053E
 
 Draw_SpellBookPageTurn:		; Memory Address ($C322) and binary offset [$BF9E]
-	; Redraws page content through the four-frame page-turn sequence.
+	; Redraws spellbook content through four overlapping 32x56 page-turn frames; previous-page animation uses phases 0-3 and next-page animation uses phases 3-0 before committing the spread.
 	bsr	Prepare_AndDrawSpellBookSurface	;610004A4
 	move.w	$002A(a5),d0	;302D002A
 	bsr	Draw_SpellBookRunePage	;6100053E
 	move.w	$000E(a5),d1	;322D000E
-	bpl.s	adrCd00C338	;6A04
+	bpl.s	Draw_SpellBookPageTurn_ResolvePhase	;6A04
 	eor.w	#$0003,d1	;0A410003
-adrCd00C338:		; Memory Address ($C338) and binary offset [$BFB4]
+Draw_SpellBookPageTurn_ResolvePhase:		; Memory Address ($C338) and binary offset [$BFB4]
 	and.w	#$0003,d1	;02410003
 	move.w	$002A(a5),d0	;302D002A
 	cmpi.w	#$0003,d1	;0C410003
-	bne.s	adrCd00C39C	;6656
+	bne.s	Draw_SpellBookPageTurn_DrawReplacementPage	;6656
 	addq.w	#$01,d0	;5240
 	bsr	Draw_SpellBookRunePage	;61000520
 	move.w	$002A(a5),d0	;302D002A
@@ -21818,17 +21948,18 @@ adrCd00C338:		; Memory Address ($C338) and binary offset [$BFB4]
 	asl.w	#$02,d7	;E547
 	swap	d7	;4847
 	move.w	#$0003,d7	;3E3C0003
-adrLp00C380:		; Memory Address ($C380) and binary offset [$BFFC]
+Draw_SpellBookPageTurn_ReplacementRuneLoop:		; Memory Address ($C380) and binary offset [$BFFC]
+	; Replaces the rightmost phase-3 rune over a freshly restored bare spellbook cell so the opaque glyph write preserves the underlying page artwork.
 	bsr	Select_SpellRuneInk	;61000584
 	move.w	d6,CurrentTextInk.l	;33C60000D92A
 	move.b	(a6),d0	;1016
 	bsr	Draw_TextGlyph	;61001532
 	addq.w	#$04,a6	;584E
 	add.w	#$013F,a0	;D0FC013F
-	dbra	d7,adrLp00C380	;51CFFFE8
+	dbra	d7,Draw_SpellBookPageTurn_ReplacementRuneLoop	;51CFFFE8
 	bra.s	Build_SpellBookPageTurnColourMask	;600A
 
-adrCd00C39C:		; Memory Address ($C39C) and binary offset [$C018]
+Draw_SpellBookPageTurn_DrawReplacementPage:		; Memory Address ($C39C) and binary offset [$C018]
 	addq.w	#$03,d0	;5640
 	and.w	#$0007,d0	;02400007
 	bsr	Draw_SpellBookRunePage	;610004C6
@@ -21846,11 +21977,11 @@ Build_SpellBookPageTurnColourMask:		; Memory Address ($C3A6) and binary offset [
 	move.w	#$0007,d7	;3E3C0007
 	lea	Buffer_Colour_Mask.l,a6	;4DF90000B4C0
 	moveq	#$03,d5	;7A03
-adrLp00C3C8:		; Memory Address ($C3C8) and binary offset [$C044]
+Build_SpellBookPageTurnColourMask_Loop:		; Memory Address ($C3C8) and binary offset [$C044]
 	bsr	Select_SpellRuneInk	;6100053C
 	move.b	d6,(a6)+	;1CC6
 	subq.w	#$01,d7	;5347
-	dbra	d5,adrLp00C3C8	;51CDFFF6
+	dbra	d5,Build_SpellBookPageTurnColourMask_Loop	;51CDFFF6
 	move.w	$000E(a5),d0	;302D000E
 	bpl.s	Draw_SelectedSpellMarker	;6A04
 	eor.w	#$0003,d0	;0A400003
@@ -21873,13 +22004,14 @@ Draw_SelectedSpellMarker:		; Memory Address ($C3DE) and binary offset [$C05A]
 	bsr	Draw_WallSprite_Rows_Loop	;6100F1B2
 	clr.w	Buffer_Colour_Mask_Toggle.l	;42790000B4BE
 	tst.b	ChampionSelectionLiveActionFlag.l	;4A390000EE2C
-	beq.s	adrCd00C434	;670A
+	beq.s	Draw_SelectedSpellMarker_Return	;670A
 	subq.b	#$01,$000F(a5)	;532D000F
 	move.w	#$0006,$0022(a5)	;3B7C00060022
-adrCd00C434:		; Memory Address ($C434) and binary offset [$C0B0]
+Draw_SelectedSpellMarker_Return:		; Memory Address ($C434) and binary offset [$C0B0]
 	rts	;4E75
 
 Click_SwitchView:		; Memory Address ($C436) and binary offset [$C0B2]
+	; Cycles the champion-selection view through inventory, spellbook, and statistics states and redraws the corresponding pocket icon.
 	move.w	$0006(a5),d7	;3E2D0006
 	bsr	Print_ChampionSelectionFullName	;61000BB4
 Draw_ChampionSelectionModePanel:		; Memory Address ($C43E) and binary offset [$C0BA]
@@ -21896,32 +22028,33 @@ Draw_ChampionSelectionModePanel:		; Memory Address ($C43E) and binary offset [$C
 	move.l	$00(a0,d0.w),a0	;20700000
 	jsr	(a0)	;4E90
 	tst.b	ChampionSelectionLiveActionFlag.l	;4A390000EE2C
-	beq.s	adrCd00C482	;6710
+	beq.s	Draw_ChampionSelectionModePanel_Return	;6710
 	addq.w	#$01,$0014(a5)	;526D0014
 	cmp.w	#$0003,$0014(a5)	;0C6D00030014
-	bcs.s	adrCd00C482	;6504
+	bcs.s	Draw_ChampionSelectionModePanel_Return	;6504
 	clr.w	$0014(a5)	;426D0014
-adrCd00C482:		; Memory Address ($C482) and binary offset [$C0FE]
+Draw_ChampionSelectionModePanel_Return:		; Memory Address ($C482) and binary offset [$C0FE]
 	rts	;4E75
 
 ChampionSelectionModeJumpTable:		; Memory Address ($C484) and binary offset [$C100]
 	; Three-entry dispatch table for inventory, spellbook, and statistics champion-selection panels.
 	dc.l	Draw_InventoryPanel	;0000C938
-	dc.l	adrJA00C852	;0000C852
+	dc.l	Draw_SpellBookPanel	;0000C852
 	dc.l	Draw_ChampionStats_DefaultPosition	;0000CB28
 
 Click_SelectChampion:		; Memory Address ($C490) and binary offset [$C10C]
+	; Draws the champion-selection confirmation heading and BEGIN GAME scroll; during the live-action pass it marks that player's selection mode complete and suppresses the heading on subsequent use.
 	clr.w	Player1_DialogueRampColour.l	;42790000EEC8
 	move.l	screen_ptr.l,a0	;207900008D36
 	add.w	#$0050,a0	;D0FC0050
 	lea	Notice_SelectChampion.l,a6	;4DF90000E4A0
 	moveq	#$27,d6	;7C27
 	tst.w	ChampionSelectionHeaderEnabledFlag.l	;4A790000C514
-	bne.s	adrCd00C4BA	;660A
+	bne.s	Click_SelectChampion_PatchPlayerNumber	;660A
 	move.w	#$00FF,Player1_DialogueFadeTimer.l	;33FC00FF0000EEC6
-	bra.s	adrCd00C4E0	;6026
+	bra.s	Click_SelectChampion_DrawReadyScroll	;6026
 
-adrCd00C4BA:		; Memory Address ($C4BA) and binary offset [$C136]
+Click_SelectChampion_PatchPlayerNumber:		; Memory Address ($C4BA) and binary offset [$C136]
 	move.b	(a5),d0	;1015
 	not.w	d0	;4640
 	and.w	#$0001,d0	;02400001
@@ -21930,7 +22063,7 @@ adrCd00C4BA:		; Memory Address ($C4BA) and binary offset [$C136]
 	move.l	#$000F0000,CurrentTextInk.l	;23FC000F00000000D92A
 	bsr	Print_fflim_text	;61000BF0
 	move.w	#$0005,Player1_DialogueFadeTimer.l	;33FC00050000EEC6
-adrCd00C4E0:		; Memory Address ($C4E0) and binary offset [$C15C]
+Click_SelectChampion_DrawReadyScroll:		; Memory Address ($C4E0) and binary offset [$C15C]
 	moveq	#$2A,d5	;7A2A
 	bsr	Draw_ScrollFrame	;61000756
 	move.b	(a5),d0	;1015
@@ -21940,10 +22073,10 @@ adrCd00C4E0:		; Memory Address ($C4E0) and binary offset [$C15C]
 	move.b	d0,$000E(a6)	;1D40000E
 	bsr	Print_fflim_text	;61000BCA
 	tst.b	ChampionSelectionLiveActionFlag.l	;4A390000EE2C
-	beq.s	adrCd00C512	;670C
+	beq.s	Click_SelectChampion_Return	;670C
 	move.w	#$FFFF,$0014(a5)	;3B7CFFFF0014
 	clr.w	ChampionSelectionHeaderEnabledFlag.l	;42790000C514
-adrCd00C512:		; Memory Address ($C512) and binary offset [$C18E]
+Click_SelectChampion_Return:		; Memory Address ($C512) and binary offset [$C18E]
 	rts	;4E75
 
 ChampionSelectionHeaderEnabledFlag:		; Memory Address ($C514) and binary offset [$C190]
@@ -21984,21 +22117,21 @@ Click_SelectionAvatar:		; Memory Address ($C53C) and binary offset [$C1B8]
 	move.w	d7,d0	;3007
 	bsr	Select_LivingMemberClassColour	;6100BEAA
 	tst.b	$0001(sp)	;4A2F0001
-	bpl.s	adrCd00C590	;6A02
+	bpl.s	Click_SelectionAvatar_AfterButtonFrames	;6A02
 	bsr.s	Draw_ChampionSelectionCommandButtonFrames	;6128
-adrCd00C590:		; Memory Address ($C590) and binary offset [$C20C]
+Click_SelectionAvatar_AfterButtonFrames:		; Memory Address ($C590) and binary offset [$C20C]
 	tst.b	ChampionSelectionLiveActionFlag.l	;4A390000EE2C
-	bne.s	adrCd00C5A4	;660C
+	bne.s	Click_SelectionAvatar_DrawModePanel	;660C
 	subq.w	#$01,$0014(a5)	;536D0014
-	bcc.s	adrCd00C5A4	;6406
+	bcc.s	Click_SelectionAvatar_DrawModePanel	;6406
 	move.w	#$0002,$0014(a5)	;3B7C00020014
-adrCd00C5A4:		; Memory Address ($C5A4) and binary offset [$C220]
+Click_SelectionAvatar_DrawModePanel:		; Memory Address ($C5A4) and binary offset [$C220]
 	bsr	Draw_ChampionSelectionModePanel	;6100FE98
 	move.w	(sp)+,d7	;3E1F
 	tst.b	ChampionSelectionLiveActionFlag.l	;4A390000EE2C
-	bne.s	adrCd00C5B6	;6604
+	bne.s	Click_SelectionAvatar_Return	;6604
 	move.w	d7,$0006(a5)	;3B470006
-adrCd00C5B6:		; Memory Address ($C5B6) and binary offset [$C232]
+Click_SelectionAvatar_Return:		; Memory Address ($C5B6) and binary offset [$C232]
 	rts	;4E75
 
 Draw_ChampionSelectionCommandButtonFrames:		; Memory Address ($C5B8) and binary offset [$C234]
@@ -22026,17 +22159,17 @@ HitTest_SelectChampionRegion:		; Memory Address ($C5F4) and binary offset [$C270
 	move.l	$0002(a5),d1	;222D0002
 	sub.w	$0008(a5),d1	;926D0008
 	cmpi.w	#$0040,d1	;0C410040
-	bcs.s	adrCd00C61E	;651C
+	bcs.s	HitTest_SelectChampionRegion_Return	;651C
 	cmpi.w	#$0050,d1	;0C410050
-	bcc.s	adrCd00C61E	;6416
+	bcc.s	HitTest_SelectChampionRegion_Return	;6416
 	swap	d1	;4841
 	cmpi.w	#$00AF,d1	;0C4100AF
-	bcs.s	adrCd00C61E	;650E
+	bcs.s	HitTest_SelectChampionRegion_Return	;650E
 	cmpi.w	#$00C3,d1	;0C4100C3
-	bcc.s	adrCd00C61E	;6408
+	bcc.s	HitTest_SelectChampionRegion_Return	;6408
 	move.w	#$0002,$000C(a5)	;3B7C0002000C
 	clr.w	d2	;4242
-adrCd00C61E:		; Memory Address ($C61E) and binary offset [$C29A]
+HitTest_SelectChampionRegion_Return:		; Memory Address ($C61E) and binary offset [$C29A]
 	tst.w	d2	;4A42
 	rts	;4E75
 
@@ -22045,40 +22178,40 @@ HitTest_ViewObjectRegion:		; Memory Address ($C622) and binary offset [$C29E]
 	move.l	$0002(a5),d1	;222D0002
 	sub.w	$0008(a5),d1	;926D0008
 	cmpi.w	#$0040,d1	;0C410040
-	bcs.s	adrCd00C64C	;651C
+	bcs.s	HitTest_ChampionSelectionPanel_NoHitReturn	;651C
 	cmpi.w	#$0050,d1	;0C410050
-	bcc.s	adrCd00C64C	;6416
+	bcc.s	HitTest_ChampionSelectionPanel_NoHitReturn	;6416
 	swap	d1	;4841
 	cmpi.w	#$00C6,d1	;0C4100C6
-	bcs.s	adrCd00C64C	;650E
+	bcs.s	HitTest_ChampionSelectionPanel_NoHitReturn	;650E
 	cmpi.w	#$00DA,d1	;0C4100DA
-	bcc.s	adrCd00C64C	;6408
+	bcc.s	HitTest_ChampionSelectionPanel_NoHitReturn	;6408
 	move.w	#$0003,$000C(a5)	;3B7C0003000C
 	clr.w	d2	;4242
-adrCd00C64C:		; Memory Address ($C64C) and binary offset [$C2C8]
+HitTest_ChampionSelectionPanel_NoHitReturn:		; Memory Address ($C64C) and binary offset [$C2C8]
 	tst.w	d2	;4A42
 	rts	;4E75
 
 HitTest_SpellBookControls:		; Memory Address ($C650) and binary offset [$C2CC]
 	; Resolves the spell-book top controls and eight rune hit targets.
 	cmp.w	#$0002,$0014(a5)	;0C6D00020014
-	bne.s	adrCd00C64C	;66F4
+	bne.s	HitTest_ChampionSelectionPanel_NoHitReturn	;66F4
 	move.l	$0002(a5),d1	;222D0002
 	sub.w	$0008(a5),d1	;926D0008
 	sub.w	#$0018,d1	;04410018
-	bcs.s	adrCd00C69C	;6536
+	bcs.s	HitTest_SpellBookControls_TestExtraButtons	;6536
 	cmpi.w	#$0020,d1	;0C410020
-	bcc.s	adrCd00C64C	;64E0
+	bcc.s	HitTest_ChampionSelectionPanel_NoHitReturn	;64E0
 	swap	d1	;4841
 	sub.w	#$00E8,d1	;044100E8
-	bcs.s	adrCd00C64C	;65D8
+	bcs.s	HitTest_ChampionSelectionPanel_NoHitReturn	;65D8
 	moveq	#$00,d0	;7000
 	sub.w	#$0020,d1	;04410020
-	bcs.s	adrCd00C684	;6508
+	bcs.s	HitTest_SpellBookControls_ResolvePageArrow	;6508
 	sub.w	#$0010,d1	;04410010
-	bcs.s	adrCd00C64C	;65CA
+	bcs.s	HitTest_ChampionSelectionPanel_NoHitReturn	;65CA
 	addq.w	#$04,d0	;5840
-adrCd00C684:		; Memory Address ($C684) and binary offset [$C300]
+HitTest_SpellBookControls_ResolvePageArrow:		; Memory Address ($C684) and binary offset [$C300]
 	swap	d1	;4841
 	lsr.w	#$03,d1	;E649
 	add.w	d1,d0	;D041
@@ -22088,72 +22221,72 @@ adrCd00C684:		; Memory Address ($C684) and binary offset [$C300]
 	moveq	#$00,d2	;7400
 	rts	;4E75
 
-adrCd00C69C:		; Memory Address ($C69C) and binary offset [$C318]
+HitTest_SpellBookControls_TestExtraButtons:		; Memory Address ($C69C) and binary offset [$C318]
 	add.w	#$0018,d1	;06410018
 	cmpi.w	#$0007,d1	;0C410007
-	bcs.s	adrCd00C708	;6562
+	bcs.s	HitTest_SpellBookControls_Return	;6562
 	cmpi.w	#$0010,d1	;0C410010
-	bcc.s	adrCd00C708	;645C
+	bcc.s	HitTest_SpellBookControls_Return	;645C
 	swap	d1	;4841
 	cmpi.w	#$00E8,d1	;0C4100E8
-	bcs.s	adrCd00C708	;6554
+	bcs.s	HitTest_SpellBookControls_Return	;6554
 	moveq	#$06,d0	;7006
 	cmpi.w	#$00F8,d1	;0C4100F8
-	bcs.s	adrCd00C6D8	;651C
+	bcs.s	HitTest_SpellBookControls_StoreButtonHit	;651C
 	cmpi.w	#$0100,d1	;0C410100
-	bcs.s	adrCd00C708	;6546
+	bcs.s	HitTest_SpellBookControls_Return	;6546
 	moveq	#$07,d0	;7007
 	cmpi.w	#$0120,d1	;0C410120
-	bcs.s	adrCd00C6D8	;650E
+	bcs.s	HitTest_SpellBookControls_StoreButtonHit	;650E
 	cmpi.w	#$0128,d1	;0C410128
-	bcs.s	adrCd00C708	;6538
+	bcs.s	HitTest_SpellBookControls_Return	;6538
 	moveq	#$08,d0	;7008
 	cmpi.w	#$0138,d1	;0C410138
-	bcc.s	adrCd00C708	;6430
-adrCd00C6D8:		; Memory Address ($C6D8) and binary offset [$C354]
+	bcc.s	HitTest_SpellBookControls_Return	;6430
+HitTest_SpellBookControls_StoreButtonHit:		; Memory Address ($C6D8) and binary offset [$C354]
 	move.w	d0,$000C(a5)	;3B40000C
 	moveq	#$03,d2	;7403
 	cmpi.w	#$0006,d0	;0C400006
-	bne.s	adrCd00C6F2	;660E
+	bne.s	HitTest_SpellBookControls_SetHitMode	;660E
 	subq.w	#$02,$002A(a5)	;556D002A
 	and.w	#$0007,$002A(a5)	;026D0007002A
 	move.w	#$8003,d2	;343C8003
-adrCd00C6F2:		; Memory Address ($C6F2) and binary offset [$C36E]
+HitTest_SpellBookControls_SetHitMode:		; Memory Address ($C6F2) and binary offset [$C36E]
 	rol.w	#$08,d0	;E158
 	move.b	#$03,d0	;103C0003
 	move.w	d0,$0014(a5)	;3B400014
 	move.w	d2,$000E(a5)	;3B42000E
 	move.w	#$0008,$0022(a5)	;3B7C00080022
 	move.w	d0,d2	;3400
-adrCd00C708:		; Memory Address ($C708) and binary offset [$C384]
+HitTest_SpellBookControls_Return:		; Memory Address ($C708) and binary offset [$C384]
 	tst.w	d2	;4A42
 	rts	;4E75
 
 HitTest_PreviewSpellRegion:		; Memory Address ($C70C) and binary offset [$C388]
 	; Runs the spell-grid hit test only while champion selection is in spellbook mode.
 	cmp.w	#$0001,$0014(a5)	;0C6D00010014
-	bne.s	adrCd00C748	;6634
+	bne.s	HitTest_SpellGridCell_Return	;6634
 HitTest_SpellGridCell:		; Memory Address ($C714) and binary offset [$C390]
 	; Tests the spell-rune grid and returns the selected row and column while recording the preview action.
 	move.l	$0002(a5),d1	;222D0002
 	sub.w	$0008(a5),d1	;926D0008
 	sub.w	#$0020,d1	;04410020
-	bcs.s	adrCd00C748	;6526
+	bcs.s	HitTest_SpellGridCell_Return	;6526
 	cmpi.w	#$0020,d1	;0C410020
-	bcc.s	adrCd00C748	;6420
+	bcc.s	HitTest_SpellGridCell_Return	;6420
 	swap	d1	;4841
 	sub.w	#$00E0,d1	;044100E0
-	bcs.s	adrCd00C748	;6518
+	bcs.s	HitTest_SpellGridCell_Return	;6518
 	move.w	#$0004,$000C(a5)	;3B7C0004000C
 	lsr.w	#$04,d1	;E849
 	move.w	d1,d2	;3401
 	swap	d1	;4841
 	sub.w	#$0010,d1	;04410010
-	bcs.s	adrCd00C744	;6502
+	bcs.s	HitTest_SpellGridCell_ResolveRow	;6502
 	addq.w	#$06,d2	;5C42
-adrCd00C744:		; Memory Address ($C744) and binary offset [$C3C0]
+HitTest_SpellGridCell_ResolveRow:		; Memory Address ($C744) and binary offset [$C3C0]
 	move.w	d2,$000E(a5)	;3B42000E
-adrCd00C748:		; Memory Address ($C748) and binary offset [$C3C4]
+HitTest_SpellGridCell_Return:		; Memory Address ($C748) and binary offset [$C3C4]
 	tst.w	d2	;4A42
 	rts	;4E75
 
@@ -22162,53 +22295,53 @@ HitTest_ChampionRosterRow:		; Memory Address ($C74C) and binary offset [$C3C8]
 	move.l	$0002(a5),d1	;222D0002
 	moveq	#-$01,d2	;74FF
 	moveq	#$0E,d3	;760E
-adrCd00C754:		; Memory Address ($C754) and binary offset [$C3D0]
+HitTest_ChampionRosterRow_BandScanLoop:		; Memory Address ($C754) and binary offset [$C3D0]
 	cmp.w	d3,d1	;B243
-	bcs.s	adrCd00C760	;6508
+	bcs.s	HitTest_ChampionRosterRow_CheckRowRange	;6508
 	addq.w	#$01,d2	;5242
 	add.w	#$0030,d3	;06430030
-	bra.s	adrCd00C754	;60F4
+	bra.s	HitTest_ChampionRosterRow_BandScanLoop	;60F4
 
-adrCd00C760:		; Memory Address ($C760) and binary offset [$C3DC]
+HitTest_ChampionRosterRow_CheckRowRange:		; Memory Address ($C760) and binary offset [$C3DC]
 	tst.w	d2	;4A42
-	bmi.s	adrCd00C7C4	;6B60
+	bmi.s	HitTest_ChampionRosterRow_Return	;6B60
 	subq.w	#$07,d3	;5F43
 	cmp.w	d3,d1	;B243
-	bcc.s	adrCd00C7C2	;6458
+	bcc.s	HitTest_ChampionRosterRow_SwapResult	;6458
 	swap	d1	;4841
 	cmpi.w	#$009E,d1	;0C41009E
-	bcc.s	adrCd00C7C2	;6450
+	bcc.s	HitTest_ChampionRosterRow_SwapResult	;6450
 	moveq	#$27,d3	;7627
-adrCd00C774:		; Memory Address ($C774) and binary offset [$C3F0]
+HitTest_ChampionRosterRow_ColumnScanLoop:		; Memory Address ($C774) and binary offset [$C3F0]
 	cmp.w	d3,d1	;B243
-	bcs.s	adrCd00C780	;6508
+	bcs.s	HitTest_ChampionRosterRow_RejectClaimed	;6508
 	addq.w	#$04,d2	;5842
 	add.w	#$0028,d3	;06430028
-	bra.s	adrCd00C774	;60F4
+	bra.s	HitTest_ChampionRosterRow_ColumnScanLoop	;60F4
 
-adrCd00C780:		; Memory Address ($C780) and binary offset [$C3FC]
+HitTest_ChampionRosterRow_RejectClaimed:		; Memory Address ($C780) and binary offset [$C3FC]
 	sub.w	#$0009,d3	;04430009
 	cmp.w	d3,d1	;B243
-	bcc.s	adrCd00C7C2	;643A
+	bcc.s	HitTest_ChampionRosterRow_SwapResult	;643A
 	cmp.w	Player2_CurrentChampionNumber.l,d2	;B4790000EEE4
-	beq.s	adrCd00C7C4	;6734
+	beq.s	HitTest_ChampionRosterRow_Return	;6734
 	cmp.w	Player1_CurrentChampionNumber.l,d2	;B4790000EE82
-	beq.s	adrCd00C7C4	;672C
+	beq.s	HitTest_ChampionRosterRow_Return	;672C
 	move.l	a5,d0	;200D
 	eor.l	#Player1_Data,d0	;0A800000EE7C
 	eor.l	#Player2_Data,d0	;0A800000EEDE
 	move.l	d0,a0	;2040
 	cmp.w	#$0001,$000C(a0)	;0C680001000C
-	bne.s	adrCd00C7B6	;6606
+	bne.s	HitTest_ChampionRosterRow_SetHitAction	;6606
 	cmp.w	$000E(a0),d2	;B468000E
-	beq.s	adrCd00C7C4	;670E
-adrCd00C7B6:		; Memory Address ($C7B6) and binary offset [$C432]
+	beq.s	HitTest_ChampionRosterRow_Return	;670E
+HitTest_ChampionRosterRow_SetHitAction:		; Memory Address ($C7B6) and binary offset [$C432]
 	move.w	d2,$000E(a5)	;3B42000E
 	move.w	#$0001,$000C(a5)	;3B7C0001000C
 	moveq	#$00,d2	;7400
-adrCd00C7C2:		; Memory Address ($C7C2) and binary offset [$C43E]
+HitTest_ChampionRosterRow_SwapResult:		; Memory Address ($C7C2) and binary offset [$C43E]
 	swap	d2	;4842
-adrCd00C7C4:		; Memory Address ($C7C4) and binary offset [$C440]
+HitTest_ChampionRosterRow_Return:		; Memory Address ($C7C4) and binary offset [$C440]
 	tst.w	d2	;4A42
 	rts	;4E75
 
@@ -22255,7 +22388,8 @@ Print_SpellPointsText:		; Memory Address ($C820) and binary offset [$C49C]
 	move.w	d1,$0010(a6)	;3D410010
 	bra	Print_fflim_text	;60000876
 
-adrJA00C852:		; Memory Address ($C852) and binary offset [$C4CE]
+Draw_SpellBookPanel:		; Memory Address ($C852) and binary offset [$C4CE]
+	; Draws the champion-selection spellbook panel and prints the spell-points label below it; this path omits the in-game casting/detail icon row.
 	bsr.s	Clear_SpellBookPanel	;61A8
 	bsr	Prepare_AndDrawSpellBookSurface	;6100FF72
 	add.w	#$00A0,a0	;D0FC00A0
@@ -22267,7 +22401,7 @@ Draw_SpellBookPageSpread:		; Memory Address ($C85E) and binary offset [$C4DA]
 	move.w	$002A(a5),d0	;302D002A
 	addq.w	#$01,d0	;5240
 Draw_SpellBookRunePage:		; Memory Address ($C86A) and binary offset [$C4E6]
-	; Draws one rune page from SpellBookRunes.
+	; Draws one of eight 16-byte rune pages as four rows of four lowercase GameFont glyphs, using champion ownership bits to choose missing, selected, or profession-coloured ink.
 	or.b	#$04,$0054(a5)	;002D00040054
 	move.w	d0,d7	;3E00
 	asl.w	#$04,d0	;E940
@@ -22285,48 +22419,48 @@ Draw_SpellBookRunePage:		; Memory Address ($C86A) and binary offset [$C4E6]
 	asl.w	#$02,d7	;E547
 	swap	d7	;4847
 	and.w	#$0001,d0	;02400001
-	bne.s	adrCd00C8D6	;6630
+	bne.s	Draw_SpellBookRunePage_RightColumnSetup	;6630
 	move.w	#$0007,d7	;3E3C0007
-adrCd00C8AA:		; Memory Address ($C8AA) and binary offset [$C526]
+Draw_SpellBookRunePage_LeftColumnRowLoop:		; Memory Address ($C8AA) and binary offset [$C526]
 	bsr.s	Select_SpellRuneInk	;615A
 	move.w	d6,CurrentTextInk.l	;33C60000D92A
 	moveq	#$02,d6	;7C02
-adrLp00C8B4:		; Memory Address ($C8B4) and binary offset [$C530]
+Draw_SpellBookRunePage_LeftColumn_GlyphLoop:		; Memory Address ($C8B4) and binary offset [$C530]
 	move.b	(a6)+,d0	;101E
 	bsr	Draw_TextGlyph	;61001008
-	dbra	d6,adrLp00C8B4	;51CEFFF8
+	dbra	d6,Draw_SpellBookRunePage_LeftColumn_GlyphLoop	;51CEFFF8
 	sub.w	#$0028,a0	;90FC0028
 	move.b	(a6)+,d0	;101E
 	bsr	Draw_TextGlyph	;61000FFA
 	add.w	#$0164,a0	;D0FC0164
 	subq.w	#$01,d7	;5347
 	cmpi.w	#$0004,d7	;0C470004
-	bcc.s	adrCd00C8AA	;64D6
+	bcc.s	Draw_SpellBookRunePage_LeftColumnRowLoop	;64D6
 	rts	;4E75
 
-adrCd00C8D6:		; Memory Address ($C8D6) and binary offset [$C552]
+Draw_SpellBookRunePage_RightColumnSetup:		; Memory Address ($C8D6) and binary offset [$C552]
 	sub.w	#$0022,a0	;90FC0022
 	move.w	#$0003,d7	;3E3C0003
-adrLp00C8DE:		; Memory Address ($C8DE) and binary offset [$C55A]
+Draw_SpellBookRunePage_RightColumnRowLoop:		; Memory Address ($C8DE) and binary offset [$C55A]
 	bsr.s	Select_SpellRuneInk	;6126
 	move.w	d6,CurrentTextInk.l	;33C60000D92A
 	move.b	(a6)+,d0	;101E
 	bsr	Draw_TextGlyph	;61000FD6
 	add.w	#$0028,a0	;D0FC0028
 	moveq	#$02,d6	;7C02
-adrLp00C8F2:		; Memory Address ($C8F2) and binary offset [$C56E]
+Draw_SpellBookRunePage_RightColumn_GlyphLoop:		; Memory Address ($C8F2) and binary offset [$C56E]
 	move.b	(a6)+,d0	;101E
 	bsr	Draw_TextGlyph	;61000FCA
-	dbra	d6,adrLp00C8F2	;51CEFFF8
+	dbra	d6,Draw_SpellBookRunePage_RightColumn_GlyphLoop	;51CEFFF8
 	add.w	#$0114,a0	;D0FC0114
-	dbra	d7,adrLp00C8DE	;51CFFFDC
+	dbra	d7,Draw_SpellBookRunePage_RightColumnRowLoop	;51CFFFDC
 	rts	;4E75
 
 Select_SpellRuneInk:		; Memory Address ($C906) and binary offset [$C582]
 	; Returns the missing-rune ink, selected-rune ink, or spell-class ink for a spell-book rune glyph.
 	moveq	#$01,d6	;7C01
 	btst	d7,$000C(a3)	;0F2B000C
-	beq.s	adrCd00C932	;6724
+	beq.s	Select_SpellRuneInk_Exit	;6724
 	swap	d7	;4847
 	move.w	d7,d6	;3C07
 	swap	d7	;4847
@@ -22337,10 +22471,10 @@ Select_SpellRuneInk:		; Memory Address ($C906) and binary offset [$C582]
 	and.w	#$001F,d0	;0240001F
 	moveq	#$0E,d6	;7C0E
 	cmp.b	$0013(a4),d0	;B02C0013
-	beq.s	adrCd00C932	;6708
+	beq.s	Select_SpellRuneInk_Exit	;6708
 	bsr	Character_GetClassIndex	;61009FD4
 	move.b	SpellClassInkTable(pc,d0.w),d6	;1C3B0004
-adrCd00C932:		; Memory Address ($C932) and binary offset [$C5AE]
+Select_SpellRuneInk_Exit:		; Memory Address ($C932) and binary offset [$C5AE]
 	rts	;4E75
 
 SpellClassInkTable:		; Memory Address ($C934) and binary offset [$C5B0]
@@ -22379,10 +22513,10 @@ Draw_InventoryArmourRating:		; Memory Address ($C984) and binary offset [$C600]
 	move.b	#$2B,d1	;123C002B
 	moveq	#$0A,d0	;700A
 	sub.b	d3,d0	;9003
-	bpl.s	adrCd00C9A0	;6A06
+	bpl.s	InventoryArmourRating_FormatValue	;6A06
 	move.b	#$2D,d1	;123C002D
 	neg.b	d0	;4400
-adrCd00C9A0:		; Memory Address ($C9A0) and binary offset [$C61C]
+InventoryArmourRating_FormatValue:		; Memory Address ($C9A0) and binary offset [$C61C]
 	lea	ArmourHeaderMessageTemplate.l,a6	;4DF90000EA25
 	move.b	d1,$000C(a6)	;1D41000C
 	bsr	Convert_ByteToDecimalText	;61000518
@@ -22407,7 +22541,7 @@ Draw_InventoryPocketSlotLoop:		; Memory Address ($C9DC) and binary offset [$C658
 	; Iterates over the selected champion’s twelve inventory positions, choosing an empty-slot template or the contained object graphic.
 	moveq	#$00,d0	;7000
 	move.b	$00(a4,d7.w),d0	;10347000
-	bne.s	adrCd00CA38	;6654
+	bne.s	InventoryPocketSlot_CheckItemCount	;6654
 	cmpi.w	#$0002,d7	;0C470002
 	bcc.s	Select_EmptyInventorySlotGraphic	;642A
 	swap	d7	;4847
@@ -22424,41 +22558,41 @@ Draw_InventoryPocketSlotLoop:		; Memory Address ($C9DC) and binary offset [$C658
 	move.b	$00(a1,d0.w),d3	;16310000
 	moveq	#$1A,d0	;701A
 	add.w	d7,d0	;D047
-	bra.s	adrCd00CA32	;601E
+	bra.s	InventoryPocketSlot_DrawGraphic	;601E
 
 Select_EmptyInventorySlotGraphic:		; Memory Address ($CA14) and binary offset [$C690]
 	; Selects the semantic empty hand, armour, shield, or pocket picture and the player secondary UI colour.
 	move.w	$0012(a5),d3	;362D0012
 	cmpi.w	#$0004,d7	;0C470004
-	bcc.s	adrCd00CA32	;6414
+	bcc.s	InventoryPocketSlot_DrawGraphic	;6414
 	move.w	d7,d0	;3007
 	cmpi.w	#$0003,d7	;0C470003
-	bne.s	adrCd00CA2E	;6608
+	bne.s	EmptyInventorySlot_AddGraphicBankOffset	;6608
 	btst	#$10,d7	;08070010
-	beq.s	adrCd00CA2E	;6702
+	beq.s	EmptyInventorySlot_AddGraphicBankOffset	;6702
 	addq.w	#$01,d0	;5240
-adrCd00CA2E:		; Memory Address ($CA2E) and binary offset [$C6AA]
+EmptyInventorySlot_AddGraphicBankOffset:		; Memory Address ($CA2E) and binary offset [$C6AA]
 	add.w	#$006C,d0	;0640006C
-adrCd00CA32:		; Memory Address ($CA32) and binary offset [$C6AE]
+InventoryPocketSlot_DrawGraphic:		; Memory Address ($CA32) and binary offset [$C6AE]
 	bsr	Draw_PocketGraphic	;610000B6
-	bra.s	adrCd00CA4C	;6014
+	bra.s	InventoryPocketSlotLoop_AdvanceIndex	;6014
 
-adrCd00CA38:		; Memory Address ($CA38) and binary offset [$C6B4]
+InventoryPocketSlot_CheckItemCount:		; Memory Address ($CA38) and binary offset [$C6B4]
 	cmpi.w	#$0005,d0	;0C400005
-	bcc.s	adrCd00CA4A	;640C
+	bcc.s	InventoryPocketSlot_DrawItemGraphic	;640C
 	move.b	$0B(a4,d0.w),d1	;1234000B
-	bne.s	adrCd00CA4A	;6606
+	bne.s	InventoryPocketSlot_DrawItemGraphic	;6606
 	clr.b	$00(a4,d7.w)	;42347000
 	bra.s	Draw_InventoryPocketSlotLoop	;6092
 
-adrCd00CA4A:		; Memory Address ($CA4A) and binary offset [$C6C6]
+InventoryPocketSlot_DrawItemGraphic:		; Memory Address ($CA4A) and binary offset [$C6C6]
 	bsr.s	ObjectGraphic	;611A
-adrCd00CA4C:		; Memory Address ($CA4C) and binary offset [$C6C8]
+InventoryPocketSlotLoop_AdvanceIndex:		; Memory Address ($CA4C) and binary offset [$C6C8]
 	addq.w	#$01,d7	;5247
 	cmpi.w	#$0006,d7	;0C470006
-	bne.s	adrCd00CA58	;6604
+	bne.s	InventoryPocketSlotLoop_CheckDone	;6604
 	add.w	#$0274,a0	;D0FC0274
-adrCd00CA58:		; Memory Address ($CA58) and binary offset [$C6D4]
+InventoryPocketSlotLoop_CheckDone:		; Memory Address ($CA58) and binary offset [$C6D4]
 	cmpi.w	#$000C,d7	;0C47000C
 	bcs	Draw_InventoryPocketSlotLoop	;6500FF7E
 	swap	d7	;4847
@@ -22466,6 +22600,7 @@ adrCd00CA58:		; Memory Address ($CA58) and binary offset [$C6D4]
 	rts	;4E75
 
 ObjectGraphic:		; Memory Address ($CA66) and binary offset [$C6E2]
+	; Resolves and draws a held or pocket object's graphic, including the empty-slot image, counted objects, and substitution of a depleted ring's generic used-up sprite.
 	tst.w	d0	;4A40
 	beq	Draw_PocketGraphic	;67000080
 	cmpi.w	#$0005,d0	;0C400005
@@ -22499,9 +22634,9 @@ NumberedObject:		; Memory Address ($CAA6) and binary offset [$C722]
 	move.l	$0002(sp),a0	;206F0002
 	add.w	#$0050,a0	;D0FC0050
 	cmp.w	#$0003,(sp)+	;0C5F0003
-	bcs.s	adrCd00CACC	;6504
+	bcs.s	NumberedObject_PrintCountText	;6504
 	add.w	#$0118,a0	;D0FC0118
-adrCd00CACC:		; Memory Address ($CACC) and binary offset [$C748]
+NumberedObject_PrintCountText:		; Memory Address ($CACC) and binary offset [$C748]
 	lea	NumericMessageScratchBuffer.l,a6	;4DF90000CAE6
 	move.l	#$00060000,CurrentTextInk.l	;23FC000600000000D92A
 	bsr	Print_fflim_text	;610005E8
@@ -22525,21 +22660,22 @@ Draw_PocketGraphic:		; Memory Address ($CAEA) and binary offset [$C766]
 Select_PocketGraphicBank:		; Memory Address ($CAFA) and binary offset [$C776]
 	; Locates the containing 20-picture GFX_Pockets bank for a requested pocket graphic before calculating its source offset.
 	cmpi.b	#$14,d0	;0C000014
-	bcs.s	adrCd00CB0A	;650A
+	bcs.s	PocketGraphicBank_ComputeOffsetAndDraw	;650A
 	add.w	#$0A00,a1	;D2FC0A00
 	sub.w	#$0014,d0	;04400014
 	bra.s	Select_PocketGraphicBank	;60F0
 
-adrCd00CB0A:		; Memory Address ($CB0A) and binary offset [$C786]
+PocketGraphicBank_ComputeOffsetAndDraw:		; Memory Address ($CB0A) and binary offset [$C786]
 	asl.w	#$03,d0	;E740
 	add.w	d0,a1	;D2C0
 	movem.l	a0/a6,-(sp)	;48E70082
-	bsr.s	adrCd00CB1C	;6108
+	bsr.s	Draw_ChampionStatsScrollDecoration	;6108
 	movem.l	(sp)+,a0/a6	;4CDF4100
 	addq.w	#$02,a0	;5448
 	rts	;4E75
 
-adrCd00CB1C:		; Memory Address ($CB1C) and binary offset [$C798]
+Draw_ChampionStatsScrollDecoration:		; Memory Address ($CB1C) and binary offset [$C798]
+	; Supplies a 15-row height and tail-calls the planar graphic renderer for the champion-statistics scroll decoration.
 	move.l	#$0000000F,-(sp)	;2F3C0000000F
 	jmp	Draw_PlanarGraphicCore.l	;4EF90000CE28
 
@@ -22572,9 +22708,9 @@ ChampionStats_InsertFieldsLoop:		; Memory Address ($CB4E) and binary offset [$C7
 	move.b	$0005(a0),d0	;10280005
 	divu	#$0064,d0	;80FC0064
 	tst.w	d0	;4A40
-	bne.s	adrCd00CB7E	;6604
+	bne.s	ChampionStats_HPCurrent_HundredsToAscii	;6604
 	move.b	#$F0,d0	;103C00F0
-adrCd00CB7E:		; Memory Address ($CB7E) and binary offset [$C7FA]
+ChampionStats_HPCurrent_HundredsToAscii:		; Memory Address ($CB7E) and binary offset [$C7FA]
 	add.b	#$30,d0	;06000030
 	move.b	d0,$0049(a6)	;1D400049
 	swap	d0	;4840
@@ -22586,11 +22722,11 @@ adrCd00CB7E:		; Memory Address ($CB7E) and binary offset [$C7FA]
 	move.b	$0006(a0),d0	;10280006
 	divu	#$0064,d0	;80FC0064
 	tst.b	d0	;4A00
-	beq.s	adrCd00CBB0	;670A
+	beq.s	ChampionStats_HPMax_WriteDigitPair	;670A
 	add.b	#$30,d0	;06000030
 	move.b	d0,$00(a6,d2.w)	;1D802000
 	addq.w	#$01,d2	;5242
-adrCd00CBB0:		; Memory Address ($CBB0) and binary offset [$C82C]
+ChampionStats_HPMax_WriteDigitPair:		; Memory Address ($CBB0) and binary offset [$C82C]
 	swap	d0	;4840
 	bsr	Convert_ByteToDecimalText	;61000310
 	move.b	d1,$01(a6,d2.w)	;1D812001
@@ -22750,7 +22886,7 @@ Draw_MainChampionAvatarPanel:		; Memory Address ($CCBE) and binary offset [$C93A
 Draw_MainChampionAvatarInnerFrame:		; Memory Address ($CCD8) and binary offset [$C954]
 	; Draws the inner large-avatar outline unless the current player state suppresses it.
 	btst	#$00,$003E(a5)	;082D0000003E
-	bne.s	adrCd00CD12	;6632
+	bne.s	AvatarFrame_SharedSkipReturn	;6632
 	or.b	#$01,$0054(a5)	;002D00010054
 	move.l	#$0021000F,d5	;2A3C0021000F
 	add.w	$0008(a5),d5	;DA6D0008
@@ -22764,10 +22900,10 @@ Select_ChampionShieldInkColour:		; Memory Address ($CCFE) and binary offset [$C9
 	move.w	d7,d0	;3007
 	bsr	Load_ChampionStatRecord	;6100995E
 	move.b	ChampionStat_WornSpell(a4),d0	;102C0011
-	beq.s	adrCd00CD12	;6708
+	beq.s	AvatarFrame_SharedSkipReturn	;6708
 	and.w	#$0007,d0	;02400007
 	move.b	ChampionShieldInkColourLookup(pc,d0.w),d3	;163B0004
-adrCd00CD12:		; Memory Address ($CD12) and binary offset [$C98E]
+AvatarFrame_SharedSkipReturn:		; Memory Address ($CD12) and binary offset [$C98E]
 	rts	;4E75
 
 ChampionShieldInkColourLookup:		; Memory Address ($CD14) and binary offset [$C990]
@@ -22827,6 +22963,7 @@ Draw_SelectedChampionClickedShield:		; Memory Address ($CD78) and binary offset 
 	bra	Draw_ShieldPlanarGraphic	;6000009C
 
 ChampionSelection:		; Memory Address ($CD8C) and binary offset [$CA08]
+	; Iterates champion indices 15 down to 0 and draws all sixteen shield portraits at their selection-screen positions.
 	moveq	#$0F,d7	;7E0F
 .ChampionSelection_Loop:		; Memory Address ($CD8E) and binary offset [$CA0A]
 	bsr.s	Draw_Select_Avatars	;6106
@@ -22835,6 +22972,7 @@ ExitAvatarDrawing:		; Memory Address ($CD94) and binary offset [$CA10]
 	rts	;4E75
 
 Draw_Select_Avatars:
+	; Rejects champion indices outside 0-15, otherwise resolves the shield position and enters the champion-selection avatar renderer.
 	cmpi.w	#$0010,d7	;0C470010
 	bcc.s	ExitAvatarDrawing	;64F8
 	bsr.s	Get_ChampionShieldScreenPosition	;61AC
@@ -22885,16 +23023,16 @@ Draw_ShieldPlanarGraphic:		; Memory Address ($CE26) and binary offset [$CAA2]
 Draw_PlanarGraphicCore:		; Memory Address ($CE28) and binary offset [$CAA4]
 	; Draws packed four-plane graphic rows and applies the supplied template colour index.
 	move.l	(sp)+,d5	;2A1F
-adrLp00CE2A:		; Memory Address ($CE2A) and binary offset [$CAA6]
+PlanarGraphicCore_RowLoop:		; Memory Address ($CE2A) and binary offset [$CAA6]
 	swap	d5	;4845
 	move.w	d5,-(sp)	;3F05
-adrLp00CE2E:		; Memory Address ($CE2E) and binary offset [$CAAA]
+PlanarGraphicCore_ColumnLoop:		; Memory Address ($CE2E) and binary offset [$CAAA]
 	move.l	(a1)+,d0	;2019
 	move.l	(a1)+,d1	;2219
 	tst.w	Buffer_Colour_Mask_Toggle.l	;4A790000B4BE
-	beq.s	adrCd00CE3E	;6704
+	beq.s	PlanarGraphicCore_ReplaceInk15	;6704
 	bsr	Remap_PlanarSpriteColours	;6100E194
-adrCd00CE3E:		; Memory Address ($CE3E) and binary offset [$CABA]
+PlanarGraphicCore_ReplaceInk15:		; Memory Address ($CE3E) and binary offset [$CABA]
 	bsr	Replace_PlanarInk15WithColour	;61000046
 	move.b	d1,$5DC1(a0)	;11415DC1
 	swap	d1	;4841
@@ -22911,14 +23049,14 @@ adrCd00CE3E:		; Memory Address ($CE3E) and binary offset [$CABA]
 	swap	d0	;4840
 	move.b	d0,$1F40(a0)	;11401F40
 	addq.w	#$02,a0	;5448
-	dbra	d5,adrLp00CE2E	;51CDFFBE
+	dbra	d5,PlanarGraphicCore_ColumnLoop	;51CDFFBE
 	move.w	(sp)+,d5	;3A1F
 	sub.w	d5,a0	;90C5
 	sub.w	d5,a0	;90C5
 	add.w	#$0026,a0	;D0FC0026
 	add.w	a3,a1	;D2CB
 	swap	d5	;4845
-	dbra	d5,adrLp00CE2A	;51CDFFA8
+	dbra	d5,PlanarGraphicCore_RowLoop	;51CDFFA8
 	rts	;4E75
 
 Replace_PlanarInk15WithColour:		; Memory Address ($CE86) and binary offset [$CB02]
@@ -22986,9 +23124,9 @@ Convert_NibbleToASCII:		; Memory Address ($CEF4) and binary offset [$CB70]
 	; Converts a hexadecimal nibble to its ASCII character representation.
 	and.b	#$0F,d1	;0201000F
 	cmpi.b	#$0A,d1	;0C01000A
-	bcs.s	adrCd00CF02	;6504
+	bcs.s	ConvertNibbleToASCII_ApplyOffset	;6504
 	add.b	#$07,d1	;06010007
-adrCd00CF02:		; Memory Address ($CF02) and binary offset [$CB7E]
+ConvertNibbleToASCII_ApplyOffset:		; Memory Address ($CF02) and binary offset [$CB7E]
 	add.b	#$30,d1	;06010030
 	rts	;4E75
 
@@ -23043,6 +23181,7 @@ Clear_LowerTextStrip:		; Memory Address ($CF96) and binary offset [$CC12]
 	bra	BW_draw_bar	;60000AB2
 
 LowerText:
+	; Clears the shared lower message strip and prints the text stream addressed by A6.
 	bsr.s	Clear_LowerTextBackground	;6194
 	bra.s	Print_TextCharacterLoop	;601E
 
@@ -23060,12 +23199,12 @@ Print_SelectedSpellNameWarmOrange:		; Memory Address ($CFBC) and binary offset [
 Print_TextCharacterLoop:		; Memory Address ($CFDA) and binary offset [$CC56]
 	; Consumes text bytes, dispatches extension commands, and draws ordinary glyphs until termination or width exhaustion.
 	move.b	(a6)+,d0	;101E
-	bpl.s	adrCd00CFE6	;6A08
+	bpl.s	PrintTextCharacterLoop_DrawGlyph	;6A08
 	bsr	Exec_char_extensions	;610000F6
 	bcc.s	Print_TextCharacterLoop	;64F6
 	bra.s	TerminateText	;6022
 
-adrCd00CFE6:		; Memory Address ($CFE6) and binary offset [$CC62]
+PrintTextCharacterLoop_DrawGlyph:		; Memory Address ($CFE6) and binary offset [$CC62]
 	bsr	Draw_TextGlyph	;610008D8
 	dbra	d6,Print_TextCharacterLoop	;51CEFFEE
 	rts	;4E75
@@ -23082,13 +23221,14 @@ Print_ChampionSelectionFullName:		; Memory Address ($CFF0) and binary offset [$C
 	add.w	d7,d0	;D047
 	bsr	Print_wordstext	;610007E0
 TerminateText:		; Memory Address ($D008) and binary offset [$CC84]
+	; Pads the remainder of the current text field with D6+1 blank glyphs, or returns immediately when the field is already full.
 	tst.w	d6	;4A46
-	bmi.s	adrCd00D016	;6B0A
-adrLp00D00C:		; Memory Address ($D00C) and binary offset [$CC88]
+	bmi.s	TerminateText_Exit	;6B0A
+TerminateText_PadLoop:		; Memory Address ($D00C) and binary offset [$CC88]
 	moveq	#$20,d0	;7020
 	bsr	Draw_TextGlyph	;610008B0
-	dbra	d6,adrLp00D00C	;51CEFFF8
-adrCd00D016:		; Memory Address ($D016) and binary offset [$CC92]
+	dbra	d6,TerminateText_PadLoop	;51CEFFF8
+TerminateText_Exit:		; Memory Address ($D016) and binary offset [$CC92]
 	rts	;4E75
 
 Prepare_19CharacterPanelTextCursor:		; Memory Address ($D018) and binary offset [$CC94]
@@ -23105,12 +23245,12 @@ Position_NameFieldTextCursor:		; Memory Address ($D01A) and binary offset [$CC96
 
 WriteMessage:
 	move.b	#$81,d2	;143C0081
-	bra.s	adrCd00D042	;6002
+	bra.s	WriteMessage_SwitchToOtherPlayerContext	;6002
 
 ;fiX Label expected
 	moveq	#$00,d2	;ASM_RECOVERY: write_message_default | 7400
 
-adrCd00D042:		; Memory Address ($D042) and binary offset [$CCBE]
+WriteMessage_SwitchToOtherPlayerContext:		; Memory Address ($D042) and binary offset [$CCBE]
 	tst.b	$0005(a4)	;4A2C0005
 	bpl.s	WriteFText	;6A48
 	movem.l	d2/a6,-(sp)	;48E72002
@@ -23126,27 +23266,30 @@ adrCd00D042:		; Memory Address ($D042) and binary offset [$CCBE]
 	move.b	$0001(a4),d0	;102C0001
 	jsr	Comms_GetState.w	;4EB841FA	;Short Absolute converted to symbol!
 	tst.b	$0005(a4)	;4A2C0005
-	bpl.s	adrCd00D07C	;6A04
+	bpl.s	WriteMessage_RelayToOtherPlayer	;6A04
 	move.b	d0,$0000(a4)	;19400000
-adrCd00D07C:		; Memory Address ($D07C) and binary offset [$CCF8]
+WriteMessage_RelayToOtherPlayer:		; Memory Address ($D07C) and binary offset [$CCF8]
 	or.b	#$40,d2	;00020040
 	bsr.s	WriteFText	;610E
 	movem.l	(sp)+,a4/a5	;4CDF3000
 	rts	;4E75
 
 WriteTimedText:		; Memory Address ($D088) and binary offset [$CD04]
-	; Existing mapping reference: writes timed-text state $81 then enters the text writer.
+	; Selects timed/fading text state $81 and enters the shared top-strip text writer.
 	move.b	#$81,d2	;143C0081
 	bra.s	WriteFText	;6002
 
 WriteText:
+	; Selects fixed ink and enters WriteFText to print the A6 text stream in the top text strip.
 	moveq	#$00,d2	;7400
 WriteFText:		; Memory Address ($D090) and binary offset [$CD0C]
+	; Stores the requested ink, initialises the top text strip, and prints the text stream addressed by A6.
 	move.b	d2,$0052(a5)	;1B420052
 	bsr.s	InitialiseText	;6104
 	bra	Print_TextCharacterLoop	;6000FF42
 
 InitialiseText:		; Memory Address ($D09A) and binary offset [$CD16]
+	; Initialises a fresh 40-character top text strip, resets its cursor and redraw state, and arms the timed colour-fade state.
 	or.b	#$A0,$0054(a5)	;002D00A00054
 	move.l	screen_ptr.l,a0	;207900008D36
 	add.w	$000A(a5),a0	;D0ED000A
@@ -23158,6 +23301,7 @@ InitialiseText:		; Memory Address ($D09A) and binary offset [$CD16]
 	rts	;4E75
 
 Print_fflim_text:		; Memory Address ($D0C6) and binary offset [$CD42]
+	; Prints an A6 byte stream character by character, dispatching bytes $80 and above through the text escape-code handler.
 	move.b	(a6)+,d0	;101E
 	bpl.s	.continuedcode_002	;6A06
 	bsr.s	Exec_char_extensions	;610A
@@ -23169,6 +23313,7 @@ Print_fflim_text:		; Memory Address ($D0C6) and binary offset [$CD42]
 	bra.s	Print_fflim_text	;60F0
 
 Exec_char_extensions:		; Memory Address ($D0D6) and binary offset [$CD52]
+	; Handles text-stream escape codes for foreground ink, background ink, cursor X/Y, and inline copy-protection; unsupported codes signal the caller to stop.
 	cmpi.b	#$F0,d0				;0C0000F0
 	beq	.Call_F0_Function			;6700004E
 	moveq	#$00,d1				;7200
@@ -23210,11 +23355,12 @@ Exec_char_extensions:		; Memory Address ($D0D6) and binary offset [$CD52]
 	tst.l	d0	;4A80
 	beq.s	.Exit	;67F8
 	lea	MainGame_PlayerUpdateLoop.w,a0	;41F80C50	;Short Absolute converted to symbol!
-	bra	adrCd008DAE		;6000BC78
+	bra	ClearFourPlaneBuffer_SharedEntry		;6000BC78
 
 CopyProtection:
+	; Preserves A4-A6 and enters the executable's copy-protection check, used from the text escape-code dispatcher and disk load/save paths.
 	movem.l	a4-a6,-(sp)	;48E7000E
-	bra	adrCd00D1FC	;600000BE
+	bra	CopyProtection_SaveStateAndReenter	;600000BE
 ;	move.l	#$8488ffc4,$24.w
 ;	moveq	#0,d0
 ;	rts
@@ -23322,7 +23468,7 @@ TraceCipher_ActiveInstructionState:		; Memory Address ($D1F0) and binary offset 
 adrL_00D1F8:		; Memory Address ($D1F8) and binary offset [$CE74]
 	dc.l	$FFFFFFFF	;FFFFFFFF
 
-adrCd00D1FC:		; Memory Address ($D1FC) and binary offset [$CE78]
+CopyProtection_SaveStateAndReenter:		; Memory Address ($D1FC) and binary offset [$CE78]
 	move.l	a6,-(sp)	;2F0E
 	lea	IllegalTrap_RegisterSaveArea(pc),a6	;4DFAFF86
 	movem.l	d0-d7/a0-a7,(a6)	;48D6FFFF
@@ -23427,38 +23573,38 @@ adrCd00D1FC:		; Memory Address ($D1FC) and binary offset [$CE78]
 	dc.w	$D5C1	;D5C1
 	dc.w	$FFF5	;FFF5
 
-adrEA00D2D2:		; Memory Address ($D2D2) and binary offset [$CF4E]
+Install_TraceCipherExceptionVectors:		; Memory Address ($D2D2) and binary offset [$CF4E]
 	movem.l	d0/a0/a1,-(sp)	;48E780C0
-	lea	adrEA00D30C(pc),a0	;41FA0034
+	lea	TraceCipher_StepDecryptNextInstruction(pc),a0	;41FA0034
 	move.l	a0,$00000024.l	;23C800000024
-	lea	adrEA00D740(pc),a0	;41FA045E
+	lea	TraceCipher_PrivilegeViolationHandler(pc),a0	;41FA045E
 	move.l	a0,$00000020.l	;23C800000020
-adrCd00D2EA:		; Memory Address ($D2EA) and binary offset [$CF66]
+TraceCipher_ArmOrDisarmTraceBit:		; Memory Address ($D2EA) and binary offset [$CF66]
 	add.l	#$00000002,$000E(sp)	;06AF00000002000E
 	or.b	#$07,$000C(sp)	;002F0007000C
 	bchg	#$07,$000C(sp)	;086F0007000C
 	lea	TraceCipher_ActiveInstructionState(pc),a1	;43FAFEF0
-	beq.s	adrCd00D31E	;671A
+	beq.s	TraceCipher_LoadNextInstructionAddress	;671A
 	move.l	(a1),a0	;2051
 	move.l	$0004(a1),(a0)	;20A90004
-	bra.s	adrCd00D332	;6026
+	bra.s	TraceCipher_RestoreAndReturn	;6026
 
-adrEA00D30C:		; Memory Address ($D30C) and binary offset [$CF88]
+TraceCipher_StepDecryptNextInstruction:		; Memory Address ($D30C) and binary offset [$CF88]
 	andi.w	#$F8FF,sr	;027CF8FF
 	movem.l	d0/a0/a1,-(sp)	;48E780C0
 	lea	TraceCipher_ActiveInstructionState(pc),a1	;43FAFEDA
 	move.l	(a1),a0	;2051
 	move.l	$0004(a1),(a0)	;20A90004
-adrCd00D31E:		; Memory Address ($D31E) and binary offset [$CF9A]
+TraceCipher_LoadNextInstructionAddress:		; Memory Address ($D31E) and binary offset [$CF9A]
 	move.l	$000E(sp),a0	;206F000E
-adrCd00D322:		; Memory Address ($D322) and binary offset [$CF9E]
+TraceCipher_DecryptNextInstruction:		; Memory Address ($D322) and binary offset [$CF9E]
 	move.l	a0,(a1)	;2288
 	move.l	(a0),$0004(a1)	;23500004
 	move.l	-$0004(a0),d0	;2028FFFC
 	not.l	d0	;4680
 	swap	d0	;4840
 	eor.l	d0,(a0)	;B190
-adrCd00D332:		; Memory Address ($D332) and binary offset [$CFAE]
+TraceCipher_RestoreAndReturn:		; Memory Address ($D332) and binary offset [$CFAE]
 	movem.l	(sp)+,d0/a0/a1	;4CDF0301
 	rte	;4E73
 
@@ -23709,40 +23855,40 @@ adrCd00D332:		; Memory Address ($D332) and binary offset [$CFAE]
 	dc.w	$00BF	;00BF
 	dc.w	$DD00	;DD00
 
-adrCd00D51E:		; Memory Address ($D51E) and binary offset [$D19A]
+CopyProtection_WaitIndexPulse:		; Memory Address ($D51E) and binary offset [$D19A]
 	btst	#$04,_ciab+ciaicr.l	;0839000400BFDD00
-	beq.s	adrCd00D51E	;67F6
+	beq.s	CopyProtection_WaitIndexPulse	;67F6
 	move.w	#$8000,$0024(a0)	;317C80000024
 	move.w	#$8000,$0024(a0)	;317C80000024
 	moveq	#$00,d1	;7200
 	move.l	#$00061A80,d2	;243C00061A80
-adrCd00D53C:		; Memory Address ($D53C) and binary offset [$D1B8]
+CopyProtection_WaitSyncBitOrTimeout:		; Memory Address ($D53C) and binary offset [$D1B8]
 	subq.l	#$01,d2	;5382
-	beq.s	adrCd00D56A	;672A
+	beq.s	CopyProtection_ResolvePulseCountResult	;672A
 	move.b	$001A(a0),d0	;1028001A
 	btst	#$04,d0	;08000004
-	beq.s	adrCd00D53C	;67F2
+	beq.s	CopyProtection_WaitSyncBitOrTimeout	;67F2
 	moveq	#$31,d2	;7431
-adrLp00D54C:		; Memory Address ($D54C) and binary offset [$D1C8]
+CopyProtection_CaptureTrackBytes:		; Memory Address ($D54C) and binary offset [$D1C8]
 	addq.l	#$01,d1	;5281
 	move.w	$001A(a0),d0	;3028001A
-	bpl.s	adrLp00D54C	;6AF8
+	bpl.s	CopyProtection_CaptureTrackBytes	;6AF8
 	move.b	d0,(a1)+	;12C0
-	dbra	d2,adrLp00D54C	;51CAFFF4
+	dbra	d2,CopyProtection_CaptureTrackBytes	;51CAFFF4
 	move.w	#$03CD,d2	;343C03CD
-adrLp00D55E:		; Memory Address ($D55E) and binary offset [$D1DA]
+CopyProtection_SkipRemainingPulses:		; Memory Address ($D55E) and binary offset [$D1DA]
 	addq.l	#$01,d1	;5281
 	move.w	$001A(a0),d0	;3028001A
-	bpl.s	adrLp00D55E	;6AF8
-	dbra	d2,adrLp00D55E	;51CAFFF6
-adrCd00D56A:		; Memory Address ($D56A) and binary offset [$D1E6]
+	bpl.s	CopyProtection_SkipRemainingPulses	;6AF8
+	dbra	d2,CopyProtection_SkipRemainingPulses	;51CAFFF6
+CopyProtection_ResolvePulseCountResult:		; Memory Address ($D56A) and binary offset [$D1E6]
 	move.w	$001E(a0),d0	;3028001E
 	move.w	#$0002,$009C(a0)	;317C0002009C
 	move.w	#$4000,$0024(a0)	;317C40000024
 	btst	#$01,d0	;08000001
-	bne.s	adrCd00D59A	;661A
+	bne.s	CopyProtection_TrapWithPulseCount	;661A
 	moveq	#$00,d1	;7200
-	bra.s	adrCd00D59A	;6016
+	bra.s	CopyProtection_TrapWithPulseCount	;6016
 
 ;fiX Label expected
 ; SOURCE_NOTE: COPY_PROTECTION_INTERNAL ($D584): Encoded word block deliberately skipped by the visible execution paths.
@@ -23759,7 +23905,7 @@ adrCd00D56A:		; Memory Address ($D56A) and binary offset [$D1E6]
 	dc.w	$8945	;8945
 	dc.w	$8951	;8951
 
-adrCd00D59A:		; Memory Address ($D59A) and binary offset [$D216]
+CopyProtection_TrapWithPulseCount:		; Memory Address ($D59A) and binary offset [$D216]
 	move.l	d1,d0	;2001
 	illegal	;4AFC
 ;fiX Label expected
@@ -23976,12 +24122,13 @@ adrCd00D59A:		; Memory Address ($D59A) and binary offset [$D216]
 
 	rte	;4E73
 
-adrEA00D740:		; Memory Address ($D740) and binary offset [$D3BC]
+TraceCipher_PrivilegeViolationHandler:		; Memory Address ($D740) and binary offset [$D3BC]
 	movem.l	(sp)+,a4-a6	;4CDF7000
 	sub.l	#$8488FFC4,d0	;04808488FFC4
 	rts	;4E75
 
 Print_com_menu_entry:		; Memory Address ($D74C) and binary offset [$D3C8]
+	; Prints one party-command menu row, choosing normal or hovered inks and interpreting its word-stream separators, literal characters, and WordsText references.
 	move.l	#$000D0002,CurrentTextInk.l	;23FC000D00020000D92A
 	cmp.b	$0040(a5),d7	;BE2D0040
 	bne.s	.continuedcode_005	;6616
@@ -24024,6 +24171,7 @@ Select_WordsTextTable:		; Memory Address ($D7C6) and binary offset [$D442]
 	; Selects the WordsText string table and enters the shared indexed-string lookup.
 	lea	WordsText.l,a3	;47F90000DC64
 Proceed_in_stringtable:		; Memory Address ($D7CC) and binary offset [$D448]
+	; Walks a length-prefixed string table to entry D0 and returns A3 at the entry text with its character count in D5.
 	and.w	#$00FF,d0	;024000FF
 	moveq	#$00,d5	;7A00
 .continuedcode_006:		; Memory Address ($D7D2) and binary offset [$D44E]
@@ -24034,14 +24182,17 @@ Print_LineEnd:		; Memory Address ($D7DA) and binary offset [$D456]
 	rts	;4E75
 
 Print_item_name:		; Memory Address ($D7DC) and binary offset [$D458]
+	; Selects Objects_Texts and enters the shared word printer to draw object name D0.
 	lea	Objects_Texts.l,a3	;47F90000E21E
 Print_word:		; Memory Address ($D7E2) and binary offset [$D45E]
 	bsr.s	Proceed_in_stringtable	;61E8
 	bra.s	Print_nchars	;6002
 
 Print_wordstext:		; Memory Address ($D7E6) and binary offset [$D462]
+	; Looks up word D0 in WordsText and enters the shared counted-character printer.
 	bsr.s	Select_WordsTextTable	;61DE
 Print_nchars:		; Memory Address ($D7E8) and binary offset [$D464]
+	; Draws D5+1 characters from A3 and reduces the caller's remaining field-width counter accordingly.
 	sub.w	d5,d6	;9C45
 	subq.w	#$01,d5	;5345
 .continuedcode_007:		; Memory Address ($D7EC) and binary offset [$D468]
@@ -24085,37 +24236,39 @@ Print_npc_message:		; Memory Address ($D81C) and binary offset [$D498]
 	movem.l	(sp)+,d2/a6	;4CDF4004
 	lea	Player1_Data.l,a0	;41F90000EE7C
 	btst	#$00,(a5)	;08150000
-	bne.s	adrCd00D846	;6606
+	bne.s	PrintMessage_SwitchToOtherPlayerContext	;6606
 	lea	Player2_Data.l,a0	;41F90000EEDE
-adrCd00D846:		; Memory Address ($D846) and binary offset [$D4C2]
+PrintMessage_SwitchToOtherPlayerContext:		; Memory Address ($D846) and binary offset [$D4C2]
 	movem.l	a4/a5,-(sp)	;48E7000C
 	move.l	a0,a5	;2A48
 	move.b	$0001(a4),d0	;102C0001
 	jsr	Comms_GetState.w	;4EB841FA	;Short Absolute converted to symbol!
 	tst.b	$0005(a4)	;4A2C0005
-	bpl.s	adrCd00D85E	;6A04
+	bpl.s	PrintMessage_RelayToOtherPlayer	;6A04
 	move.b	d0,$0000(a4)	;19400000
-adrCd00D85E:		; Memory Address ($D85E) and binary offset [$D4DA]
+PrintMessage_RelayToOtherPlayer:		; Memory Address ($D85E) and binary offset [$D4DA]
 	or.b	#$40,d2	;00020040
 	bsr.s	Print_message	;610E
 	movem.l	(sp)+,a4/a5	;4CDF3000
 	rts	;4E75
 
 Print_timed_message:		; Memory Address ($D86A) and binary offset [$D4E6]
+	; Selects timed/fading ink state $81 and enters the shared top-strip message printer.
 	move.b	#$81,d2	;143C0081
 	bra.s	Print_message	;6002
 
 Print_fix_message:		; Memory Address ($D870) and binary offset [$D4EC]
 	moveq	#$00,d2	;7400
 Print_message:		; Memory Address ($D872) and binary offset [$D4EE]
+	; Stores the message ink and timing flag, initialises the top text strip, and prints the word-stream addressed by A6.
 	move.b	d2,$0052(a5)	;1B420052
 	bsr	InitialiseText	;6100F822
 Print_NewLine:		; Memory Address ($D87A) and binary offset [$D4F6]
 	move.b	(a6)+,d0				;101E
 	cmpi.b	#$FA,d0					;0C0000FA
-	bcc.s	adrCd00D894				;6412
+	bcc.s	PrintNewLine_DispatchControlCode				;6412
 	bsr	Print_wordstext				;6100FF62
-adrCd00D886:		; Memory Address ($D886) and binary offset [$D502]
+PrintNewLine_SpaceOrTerminate:		; Memory Address ($D886) and binary offset [$D502]
 	tst.w	d6	;4A46
 	bmi	TerminateText	;6B00F77E
 	moveq	#$20,d0	;7020
@@ -24123,8 +24276,8 @@ adrCd00D886:		; Memory Address ($D886) and binary offset [$D502]
 	subq.w	#$01,d6	;5346
 	bra.s	Print_NewLine	;60E6
 
-adrCd00D894:		; Memory Address ($D894) and binary offset [$D510]
-	beq.s	adrCd00D8B8				;6722
+PrintNewLine_DispatchControlCode:		; Memory Address ($D894) and binary offset [$D510]
+	beq.s	PrintNewLine_DrawLiteralGlyph				;6722
 	cmpi.b	#$FF,d0					;0C0000FF
 	beq	TerminateText				;6700F76C
 	cmpi.b	#$FB,d0					;0C0000FB
@@ -24133,18 +24286,18 @@ adrCd00D894:		; Memory Address ($D894) and binary offset [$D510]
 	bne.s	Print_NewLine				;66D0
 	move.b	(a6)+,d0				;101E
 	bsr	Print_item_name				;6100FF2E
-	bra.s	adrCd00D886				;60D4
+	bra.s	PrintNewLine_SpaceOrTerminate				;60D4
 
 Print_FB_Function:		; Memory Address ($D8B2) and binary offset [$D52E]
 	addq.w	#$01,d6	;5246
 	subq.w	#$01,a0	;5348
 	bra.s	Print_NewLine	;60C2
 
-adrCd00D8B8:		; Memory Address ($D8B8) and binary offset [$D534]
+PrintNewLine_DrawLiteralGlyph:		; Memory Address ($D8B8) and binary offset [$D534]
 	subq.w	#$01,a0	;5348
 	move.b	(a6)+,d0	;101E
 	bsr.s	Draw_TextGlyph	;6102
-	bra.s	adrCd00D886	;60C6
+	bra.s	PrintNewLine_SpaceOrTerminate	;60C6
 
 Draw_TextGlyph:		; Memory Address ($D8C0) and binary offset [$D53C]
 	; Selects the five-row font glyph, draws it into the enabled colour planes, and advances the text cursor by one character cell.
@@ -24163,31 +24316,31 @@ Print_GlyphRowsWithOptionalColumnShift:		; Memory Address ($D8D6) and binary off
 	swap	d1	;4841
 	move.b	(a1)+,d1	;1219
 	tst.b	TextDoubleWidthFlag.l	;4A390000EE2D
-	beq.s	adrCd00D8E8	;6704
+	beq.s	DrawTextGlyph_InvertRowByte	;6704
 	add.l	d1,d1	;D281
 	add.l	d1,d1	;D281
-adrCd00D8E8:		; Memory Address ($D8E8) and binary offset [$D564]
+DrawTextGlyph_InvertRowByte:		; Memory Address ($D8E8) and binary offset [$D564]
 	not.b	d1	;4601
 	swap	d0	;4840
 	move.w	#$0003,d0	;303C0003
 	move.w	#$5DC0,d4	;383C5DC0
-adrLp00D8F4:		; Memory Address ($D8F4) and binary offset [$D570]
+DrawTextGlyph_SelectBackgroundPlaneBit:		; Memory Address ($D8F4) and binary offset [$D570]
 	move.b	d1,d3	;1601
 	btst	d0,CurrentTextBackgroundInk_LowByte(pc)	;013A0035
-	bne.s	adrCd00D8FE	;6602
+	bne.s	DrawTextGlyph_SelectForegroundPlaneBit	;6602
 	clr.b	d3	;4203
-adrCd00D8FE:		; Memory Address ($D8FE) and binary offset [$D57A]
+DrawTextGlyph_SelectForegroundPlaneBit:		; Memory Address ($D8FE) and binary offset [$D57A]
 	swap	d1	;4841
 	move.b	d1,d2	;1401
 	swap	d1	;4841
 	btst	d0,CurrentTextInk_LowByte(pc)	;013A0025
-	bne.s	adrCd00D90C	;6602
+	bne.s	DrawTextGlyph_WriteCombinedPlaneByte	;6602
 	clr.b	d2	;4202
-adrCd00D90C:		; Memory Address ($D90C) and binary offset [$D588]
+DrawTextGlyph_WriteCombinedPlaneByte:		; Memory Address ($D90C) and binary offset [$D588]
 	or.b	d3,d2	;8403
 	move.b	d2,$00(a0,d4.w)	;11824000
 	sub.w	#$1F40,d4	;04441F40
-	dbra	d0,adrLp00D8F4	;51C8FFDC
+	dbra	d0,DrawTextGlyph_SelectBackgroundPlaneBit	;51C8FFDC
 	swap	d0	;4840
 	add.w	#$0028,a0	;D0FC0028
 	dbra	d0,Print_GlyphRowsWithOptionalColumnShift	;51C8FFB4
@@ -24248,6 +24401,7 @@ Data_Woundflash:		; Memory Address ($D988) and binary offset [$D604]
 	dc.l	$00000000	;00000000
 
 BW_Blitchar:
+	; Blits one GameFont character using the current foreground/background colour masks; this standalone path draws combat wound-flash digits.
 	lea	GameFont.l,a1	;43F900018C7E	;
 	move.l	a0,-(sp)	;2F08
 	and.w	#$007F,d0	;0240007F
@@ -24332,6 +24486,7 @@ BW_blitchar_data:
 	swap	d5	;ASM_RECOVERY: draw_square | 4845
 
 BW_draw_bar:
+	; Fills a solid rectangle by drawing one horizontal line for each row using inclusive width and height extents.
 	swap	d4	;4844	;
 	swap	d3	;4843
 	move.w	d4,d3	;3604
@@ -24347,6 +24502,7 @@ BW_draw_bar:
 	rts	;4E75
 
 BW_cs_draw_frame:
+	; Draws the champion-selection variant of a four-sided rectangle frame using horizontal and vertical line primitives.
 	addq.w	#$01,d4	;5244	;
 	swap	d4	;4844
 	swap	d3	;4843
@@ -24386,6 +24542,7 @@ BW_cs_draw_frame:
 	swap	d4	;4844
 	swap	d5	;4845
 BW_draw_frame:
+	; Draws a generic four-sided rectangle outline from two horizontal and two vertical lines.
 	swap	d4	;4844	;
 	swap	d3	;4843
 	move.w	d4,d3	;3604
@@ -24409,6 +24566,7 @@ BW_draw_frame:
 	swap	d4	;4844
 	add.w	d7,d4	;D847
 BW_blit_vertical_line:
+	; Draws one clipped vertical line across all four bitplanes with a masked AND/OR write on each screen row.
 	bsr	BW_xy_to_offset	;6100014E	;
 	move.l	screen_ptr.l,a0	;207900008D36
 	add.w	d0,a0	;D0C0
@@ -24465,6 +24623,7 @@ hline_data:
 	dc.w	$FFFF	;FFFF
 
 BW_blit_horiz_line:
+	; Draws one clipped horizontal span using edge masks and the shared masked-byte writer across all four bitplanes.
 	movem.l	d3-d5,-(sp)	;48E71C00	;
 	bsr	BW_xy_to_offset	;610000CA
 	move.l	screen_ptr.l,a0	;207900008D36
@@ -24482,11 +24641,11 @@ BW_blit_horiz_line:
 	addq.w	#$01,d3	;5243
 	move.w	d4,d2	;3404
 	and.w	#$0007,d2	;02420007
-	beq.s	adrCd00DC14	;6756
+	beq.s	BlitHorizLine_SetupFullByteRun	;6756
 	subq.w	#$08,d2	;5142
 	neg.w	d2	;4442
 	cmp.w	d2,d3	;B642
-	bgt.s	adrCd00DBFE	;6E38
+	bgt.s	BlitHorizLine_DrawLeftEdgeByte	;6E38
 	moveq	#-$01,d2	;74FF
 	and.w	#$0007,d4	;02440007
 	lsr.b	d3,d2	;E62A
@@ -24495,7 +24654,7 @@ BW_blit_horiz_line:
 	move.b	d2,d3	;1602
 	not.b	d3	;4603
 	bsr	Blit_MaskedByteAcrossPlanes	;61000004
-	bra.s	adrCd00DC4E	;6072
+	bra.s	BlitHorizLine_RestoreAndReturn	;6072
 
 Blit_MaskedByteAcrossPlanes:		; Memory Address ($DBDC) and binary offset [$D858]
 	; Combines one masked source byte with the existing destination byte across all four screen bitplanes.
@@ -24514,7 +24673,7 @@ Blit_MaskedByteAcrossPlanes:		; Memory Address ($DBDC) and binary offset [$D858]
 	move.l	d6,d0	;2006
 	rts	;4E75
 
-adrCd00DBFE:		; Memory Address ($DBFE) and binary offset [$D87A]
+BlitHorizLine_DrawLeftEdgeByte:		; Memory Address ($DBFE) and binary offset [$D87A]
 	sub.w	d2,d3	;9642
 	swap	d3	;4843
 	and.w	#$0007,d4	;02440007
@@ -24525,39 +24684,40 @@ adrCd00DBFE:		; Memory Address ($DBFE) and binary offset [$D87A]
 	bsr.s	Blit_MaskedByteAcrossPlanes	;61CC
 	swap	d3	;4843
 	addq.w	#$01,a0	;5248
-adrCd00DC14:		; Memory Address ($DC14) and binary offset [$D890]
+BlitHorizLine_SetupFullByteRun:		; Memory Address ($DC14) and binary offset [$D890]
 	move.w	d3,d4	;3803
 	lsr.w	#$03,d3	;E64B
-	beq.s	adrCd00DC3E	;6724
+	beq.s	BlitHorizLine_DrawRightEdgeByte	;6724
 	subq.w	#$01,d3	;5343
 	move.l	a0,a1	;2248
 	moveq	#$00,d2	;7400
 	moveq	#$03,d5	;7A03
-adrLp00DC22:		; Memory Address ($DC22) and binary offset [$D89E]
+BlitHorizLine_PlaneFillLoop:		; Memory Address ($DC22) and binary offset [$D89E]
 	move.l	a1,a0	;2049
 	add.w	d2,a0	;D0C2
 	move.w	d3,d1	;3203
-adrLp00DC28:		; Memory Address ($DC28) and binary offset [$D8A4]
+BlitHorizLine_FillByteRun:		; Memory Address ($DC28) and binary offset [$D8A4]
 	move.b	d0,(a0)+	;10C0
-	dbra	d1,adrLp00DC28	;51C9FFFC
+	dbra	d1,BlitHorizLine_FillByteRun	;51C9FFFC
 	ror.l	#$08,d0	;E098
 	add.w	#$1F40,d2	;06421F40
-	dbra	d5,adrLp00DC22	;51CDFFEC
+	dbra	d5,BlitHorizLine_PlaneFillLoop	;51CDFFEC
 	sub.w	#$1F40,d2	;04421F40
 	sub.w	d2,a0	;90C2
-adrCd00DC3E:		; Memory Address ($DC3E) and binary offset [$D8BA]
+BlitHorizLine_DrawRightEdgeByte:		; Memory Address ($DC3E) and binary offset [$D8BA]
 	and.w	#$0007,d4	;02440007
-	beq.s	adrCd00DC4E	;670A
+	beq.s	BlitHorizLine_RestoreAndReturn	;670A
 	moveq	#-$01,d3	;76FF
 	lsr.b	d4,d3	;E82B
 	move.b	d3,d2	;1403
 	not.b	d2	;4602
 	bsr.s	Blit_MaskedByteAcrossPlanes	;618E
-adrCd00DC4E:		; Memory Address ($DC4E) and binary offset [$D8CA]
+BlitHorizLine_RestoreAndReturn:		; Memory Address ($DC4E) and binary offset [$D8CA]
 	movem.l	(sp)+,d3-d5	;4CDF0038
 	rts	;4E75
 
 BW_xy_to_offset:
+	; Converts screen X in D4 and Y in D5 to the byte offset (Y*320+X)/8 used by the planar drawing primitives.
 	move.w	d5,d0	;3005	;
 	add.w	d0,d0	;D040
 	add.w	d0,d0	;D040
@@ -26498,7 +26658,7 @@ CurrentFloorHeight_LowByte:		; Memory Address ($EE73) and binary offset [$EAEF]
 	dc.b	$00	;00
 	dc.b	$00	;00
 	dc.b	$00	;00
-adrW_00EE76:		; Memory Address ($EE76) and binary offset [$EAF2]
+Live_PlayerPosition:		; Memory Address ($EE76) and binary offset [$EAF2]
 	dc.w	$0000	;0000
 Current_TowerMapDataBase:		; Memory Address ($EE78) and binary offset [$EAF4]
 	; Pointer to the currently selected tower's map resource immediately after its $38-byte header. Map-cell and object/trap routines use this as their shared data base.
