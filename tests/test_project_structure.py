@@ -30,6 +30,7 @@ class ProjectStructureTests(unittest.TestCase):
                 "extract",
                 "asmfix",
                 "relabel",
+                "relabel-alt",
                 "inspect",
                 "format",
                 "patch",
@@ -41,12 +42,21 @@ class ProjectStructureTests(unittest.TestCase):
         )
         self.assertEqual(
             main.DATA_GUI_COMMANDS,
-            ("extract", "asmfix", "relabel", "inspect", "format", "patch"),
+            (
+                "extract",
+                "asmfix",
+                "relabel",
+                "relabel-alt",
+                "inspect",
+                "format",
+                "patch",
+            ),
         )
         self.assertEqual(
             main.VIEWER_GUI_COMMANDS, ("graphics", "maps", "interface", "files")
         )
         self.assertEqual(main.GUI_LABELS["inspect"], "Inspect / Data")
+        self.assertEqual(main.GUI_LABELS["relabel-alt"], "Relabel ALT")
         self.assertEqual(main.GUI_LABELS["graphics"], "Data Viewer")
         self.assertEqual(main.GUI_LABELS["maps"], "Map Viewer / Editor")
         self.assertEqual(main.GUI_LABELS["interface"], "Interface Viewer / Editor")
@@ -83,6 +93,7 @@ class ProjectStructureTests(unittest.TestCase):
                     "extract",
                     "asmfix",
                     "relabel",
+                    "relabel-alt",
                     "inspect",
                     "format",
                     "patch",
@@ -93,12 +104,35 @@ class ProjectStructureTests(unittest.TestCase):
             patch("tools.session_panel.launch_session_browser") as browser,
         ):
             self.assertEqual(main.main(), 0)
-        self.assertEqual(launch_gui.call_count, 7)
+        self.assertEqual(launch_gui.call_count, 8)
         browser.assert_called_once()
         self.assertEqual(
             commands,
-            ["extract", "asmfix", "relabel", "inspect", "format"],
+            ["extract", "asmfix", "relabel", "relabel-alt", "inspect", "format"],
         )
+
+    def test_relabel_commands_dispatch_to_separate_engines(self) -> None:
+        parser = main.build_parser()
+
+        legacy_args = parser.parse_args(["relabel"])
+        with patch("main.relabel_segments") as legacy, patch(
+            "main.relabel_segments_alt"
+        ) as alternate:
+            self.assertEqual(main.run(legacy_args, parser), 0)
+        legacy.assert_called_once_with(
+            "BLOODWYCH439", str(DEFAULT_SEGMENTS_FILE), None
+        )
+        alternate.assert_not_called()
+
+        alternate_args = parser.parse_args(["relabel-alt"])
+        with patch("main.relabel_segments") as legacy, patch(
+            "main.relabel_segments_alt"
+        ) as alternate:
+            self.assertEqual(main.run(alternate_args, parser), 0)
+        alternate.assert_called_once_with(
+            "BLOODWYCH439", str(DEFAULT_SEGMENTS_FILE), None
+        )
+        legacy.assert_not_called()
 
     def test_launcher_reuses_one_session_across_viewers(self):
         sessions = []

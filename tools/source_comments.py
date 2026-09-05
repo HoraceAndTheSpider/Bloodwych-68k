@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from collections.abc import Callable, Sequence
 import re
 
 import pandas as pd
@@ -67,7 +68,15 @@ def _target_label(row: pd.Series) -> str:
     return "" if label.casefold() == "ignore" else label
 
 
-def apply_source_comments(lines: list[str], frame: pd.DataFrame) -> list[str]:
+LabelLookup = Callable[[str], Sequence[int]]
+
+
+def apply_source_comments(
+    lines: list[str],
+    frame: pd.DataFrame,
+    *,
+    label_lookup: LabelLookup | None = None,
+) -> list[str]:
     """Replace generated comments after labels, leaving handwritten comments alone.
 
     Generated comments are replaced on reruns. Rows whose final label is not
@@ -138,7 +147,11 @@ def apply_source_comments(lines: list[str], frame: pd.DataFrame) -> list[str]:
         pattern = re.compile(
             rf"^(\s*{re.escape(label_key)}\s*:)(.*)$", re.IGNORECASE
         )
-        matches = [index for index, line in enumerate(result) if pattern.match(line)]
+        matches = (
+            list(label_lookup(label_key))
+            if label_lookup is not None
+            else [index for index, line in enumerate(result) if pattern.match(line)]
+        )
         if len(matches) != 1:
             continue
         index = matches[0]
@@ -159,9 +172,13 @@ def apply_source_comments(lines: list[str], frame: pd.DataFrame) -> list[str]:
             pattern = re.compile(
                 rf"^\s*{re.escape(label_key)}\s*:", re.IGNORECASE
             )
-            matches = [
-                index for index, line in enumerate(result) if pattern.match(line)
-            ]
+            matches = (
+                list(label_lookup(label_key))
+                if label_lookup is not None
+                else [
+                    index for index, line in enumerate(result) if pattern.match(line)
+                ]
+            )
             if len(matches) != 1:
                 continue
             start = matches[0] + 1

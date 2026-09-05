@@ -21,16 +21,26 @@ from tools.tool_extract import extract_segments
 from tools.tool_inspect import inspect_source
 from tools.tool_patch import patch_segments
 from tools.tool_relabel import build_asmfix, relabel_segments
+from tools.tool_relabel_alt import relabel_segments_alt
 from tools.source_formatter import format_relabel_data
 from tools.pygame_window import is_fullscreen, set_display_mode, set_scaled_fullscreen, set_windowed
 
 
-DATA_GUI_COMMANDS = ("extract", "asmfix", "relabel", "inspect", "format", "patch")
+DATA_GUI_COMMANDS = (
+    "extract",
+    "asmfix",
+    "relabel",
+    "relabel-alt",
+    "inspect",
+    "format",
+    "patch",
+)
 VIEWER_GUI_COMMANDS = ("graphics", "maps", "interface", "files")
 GUI_COMMANDS = DATA_GUI_COMMANDS + VIEWER_GUI_COMMANDS
 GUI_LABELS = {
     "extract": "Extract Binary Data",
     "relabel": "Relabel",
+    "relabel-alt": "Relabel ALT",
     "asmfix": "ASM Fix",
     "inspect": "Inspect / Data",
     "format": "Format Source",
@@ -60,7 +70,7 @@ def launch_gui(
     from tools.session_panel import SessionPanel
     from tools.joypad_panel import JoypadControls
     try:
-        window_size = (620, 450)
+        window_size = (620, 505)
         surface = set_display_mode(pygame, window_size)
         joypad = JoypadControls(pygame)
         fullscreen = is_fullscreen()
@@ -187,6 +197,10 @@ def build_parser() -> argparse.ArgumentParser:
 
     subparsers.add_parser("relabel", help="Generate asm/<binary>_relabel.asm")
     subparsers.add_parser(
+        "relabel-alt",
+        help="Generate indexed comparison output asm/<binary>_relabel_alt.asm",
+    )
+    subparsers.add_parser(
         "asmfix",
         help="Generate asm/<source>_asmfix.asm for Relabel to consume",
     )
@@ -280,6 +294,8 @@ def run(args: argparse.Namespace, parser: argparse.ArgumentParser) -> int:
         )
     elif args.command == "relabel":
         relabel_segments(args.master, args.sheet, args.cleanup)
+    elif args.command == "relabel-alt":
+        relabel_segments_alt(args.master, args.sheet, args.cleanup)
     elif args.command == "asmfix":
         build_asmfix(args.master, args.sheet, args.cleanup)
     elif args.command == "format":

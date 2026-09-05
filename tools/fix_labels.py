@@ -69,9 +69,14 @@ def load_fix_label_metadata(
     sheet: str | Path,
     master: str,
     cleanup: str | Path | None = None,
+    *,
+    frame: pd.DataFrame | None = None,
 ) -> tuple[FixLabelRule, ...]:
     """Load verified fix-label rules from the optional cleanup tab."""
-    frame = _optional_workbook_sheet(resolve_cleanup_path(sheet, cleanup))
+    if frame is None:
+        frame = _optional_workbook_sheet(resolve_cleanup_path(sheet, cleanup))
+    else:
+        frame = _normalise_columns(frame)
     if frame.empty:
         return ()
     required = (

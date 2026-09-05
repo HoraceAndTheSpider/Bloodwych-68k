@@ -67,9 +67,14 @@ def load_source_note_metadata(
     sheet: str | Path,
     master: str,
     cleanup: str | Path | None = None,
+    *,
+    frame: pd.DataFrame | None = None,
 ) -> tuple[SourceNote, ...]:
     """Load scoped standalone source notes from the cleanup workbook."""
-    frame = _optional_workbook_sheet(resolve_cleanup_path(sheet, cleanup))
+    if frame is None:
+        frame = _optional_workbook_sheet(resolve_cleanup_path(sheet, cleanup))
+    else:
+        frame = _normalise_columns(frame)
     if frame.empty:
         return ()
     required = (

@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from collections.abc import Mapping
+from collections.abc import Callable, Mapping, Sequence
 from dataclasses import dataclass
 from pathlib import Path
 import re
@@ -107,11 +107,16 @@ def load_source_metadata(
     sheet: str | Path,
     master: str,
     cleanup: str | Path | None = None,
+    *,
+    frame: pd.DataFrame | None = None,
 ) -> tuple[tuple[EquateDefinition, ...], tuple[SourceRule, ...]]:
     """Load EQU definitions and scoped rules from the cleanup workbook."""
 
-    path = resolve_cleanup_path(sheet, cleanup)
-    frame = _optional_workbook_sheet(path, EQUATES_SHEET)
+    if frame is None:
+        path = resolve_cleanup_path(sheet, cleanup)
+        frame = _optional_workbook_sheet(path, EQUATES_SHEET)
+    else:
+        frame = _normalise_columns(frame)
     if frame.empty:
         return (), ()
 
@@ -242,7 +247,14 @@ def load_source_metadata(
     return equates, tuple(rules)
 
 
-def _label_matches(lines: list[str], label: str) -> list[int]:
+LabelLookup = Callable[[str], Sequence[int]]
+
+
+def _label_matches(
+    lines: list[str], label: str, label_lookup: LabelLookup | None = None
+) -> list[int]:
+    if label_lookup is not None:
+        return list(label_lookup(label))
     return [
         index
         for index, line in enumerate(lines)
@@ -256,11 +268,12 @@ def _label_index(
     label: str,
     rule_id: str,
     label_relabels: Mapping[str, str],
+    label_lookup: LabelLookup | None = None,
 ) -> int:
-    matches = _label_matches(lines, label)
+    matches = _label_matches(lines, label, label_lookup)
     fallback = label_relabels.get(label.casefold())
     if not matches and fallback and fallback.casefold() != label.casefold():
-        matches = _label_matches(lines, fallback)
+        matches = _label_matches(lines, fallback, label_lookup)
         if len(matches) == 1:
             print(
                 f"Source rule '{rule_id}' resolved relabelled scope "
@@ -310,12 +323,17 @@ def _apply_source_rule(
     lines: list[str],
     rule: SourceRule,
     label_relabels: Mapping[str, str],
+    label_lookup: LabelLookup | None = None,
 ) -> tuple[list[str], int]:
     """Apply one rule atomically and return its updated source and match count."""
 
     result = list(lines)
-    start = _label_index(result, rule.scope_start, rule.rule_id, label_relabels)
-    end = _label_index(result, rule.scope_end, rule.rule_id, label_relabels)
+    start = _label_index(
+        result, rule.scope_start, rule.rule_id, label_relabels, label_lookup
+    )
+    end = _label_index(
+        result, rule.scope_end, rule.rule_id, label_relabels, label_lookup
+    )
     if end <= start:
         raise ToolError(
             f"Source rule '{rule.rule_id}' has scope_end before scope_start"
@@ -371,6 +389,7 @@ def apply_source_rules(
     *,
     label_relabels: Mapping[str, str] | None = None,
     continue_on_error: bool = False,
+    label_lookup: LabelLookup | None = None,
 ) -> list[str]:
     """Apply verified operand rewrites inside fail-closed labelled scopes."""
 
@@ -386,7 +405,9 @@ def apply_source_rules(
         if rule.status != VERIFIED:
             continue
         try:
-            updated, match_count = _apply_source_rule(result, rule, relabels)
+            updated, match_count = _apply_source_rule(
+                result, rule, relabels, label_lookup
+            )
         except ToolError as error:
             if not continue_on_error:
                 raise
