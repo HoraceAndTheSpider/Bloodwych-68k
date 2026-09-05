@@ -11,8 +11,13 @@ import pandas as pd
 
 from tools.source_rules import (
     EquateDefinition,
+    SourceInstructionIndex,
+    SourceOperandRelabeler,
     SourceRule,
+    SourceRuleMetrics,
+    _relabel_rule_operands,
     apply_source_rules,
+    apply_source_rules_indexed,
     insert_generated_equates,
     load_source_metadata,
 )
@@ -394,6 +399,417 @@ class SourceRuleTests(unittest.TestCase):
             equates, rules = load_source_metadata(workbook, "BLOODWYCH439")
         self.assertEqual(len(equates), 1)
         self.assertEqual(len(rules), 2)
+
+
+class SelectiveO2SourceRuleTests(unittest.TestCase):
+    @staticmethod
+    def make_rule(
+        rule_id: str,
+        mnemonic: str,
+        match_operands: str,
+        expected_opcode: str,
+        replacement_operands: str,
+        *,
+        equ_name: str = "ChampionStat_Level",
+    ) -> SourceRule:
+        return SourceRule(
+            "BLOODWYCH439",
+            rule_id,
+            "replace_operand",
+            equ_name,
+            "Start",
+            "End",
+            mnemonic,
+            match_operands,
+            expected_opcode,
+            replacement_operands,
+            1,
+            "verified",
+        )
+
+    def apply_both(
+        self,
+        lines: list[str],
+        equates: tuple[EquateDefinition, ...],
+        rules: tuple[SourceRule, ...],
+    ) -> list[str]:
+        with redirect_stdout(StringIO()):
+            legacy = apply_source_rules(lines, equates, rules)
+            indexed = apply_source_rules_indexed(
+                lines, equates, rules, metrics=SourceRuleMetrics()
+            )
+        self.assertEqual(indexed, legacy)
+        return indexed
+
+    def test_plain_an_zero_equ_rewrite_gets_local_o2_scope(self) -> None:
+        lines = ["Start:", "\tmove.b\t(a4),d0\t;1014", "End:"]
+        source_rule = self.make_rule(
+            "level", "move.b", "(a4),d0", "1014",
+            "ChampionStat_Level(a4),d0",
+        )
+
+        result = self.apply_both(
+            lines, (equate("ChampionStat_Level", 0),), (source_rule,)
+        )
+
+        self.assertEqual(
+            result,
+            [
+                "Start:",
+                "\tOPT\tO2+",
+                "\tmove.b\tChampionStat_Level(a4),d0\t;1014",
+                "\tOPT\tO2-",
+                "End:",
+            ],
+        )
+
+    def test_zero_equ_introduced_as_second_operand_is_detected(self) -> None:
+        lines = ["Start:", "\tcmp.b\t#$5B,(a0)\t;0C10005B", "End:"]
+        source_rule = self.make_rule(
+            "heal-wand",
+            "cmp.b",
+            "#$5B,(a0)",
+            "0C10005B",
+            "#Object_HealWand,ChampionPocket_LeftHand(a0)",
+            equ_name="Object_HealWand",
+        )
+
+        result = self.apply_both(
+            lines,
+            (
+                equate("Object_HealWand", 0x5B),
+                equate("ChampionPocket_LeftHand", 0),
+            ),
+            (source_rule,),
+        )
+
+        self.assertIn("\tOPT\tO2+", result)
+        self.assertIn("\tOPT\tO2-", result)
+
+    def test_plain_an_move_destination_is_proved_from_destination_ea_bits(self) -> None:
+        lines = ["Start:", "\tmove.b\td7,(a4)\t;1887", "End:"]
+        source_rule = self.make_rule(
+            "destination", "move.b", "d7,(a4)", "1887",
+            "d7,ActorRecord_XPosition(a4)",
+            equ_name="ActorRecord_XPosition",
+        )
+
+        result = self.apply_both(
+            lines, (equate("ActorRecord_XPosition", 0),), (source_rule,)
+        )
+
+        self.assertIn("\tOPT\tO2+", result)
+
+    def test_original_zero_displacement_encoding_is_left_unoptimised(self) -> None:
+        lines = ["Start:", "\tmove.b\t$0000(a4),d7\t;1E2C0000", "End:"]
+        source_rule = self.make_rule(
+            "long-zero", "move.b", "$0000(a4),d7", "1E2C0000",
+            "ActorRecord_XPosition(a4),d7",
+            equ_name="ActorRecord_XPosition",
+        )
+
+        result = self.apply_both(
+            lines, (equate("ActorRecord_XPosition", 0),), (source_rule,)
+        )
+
+        self.assertNotIn("\tOPT\tO2+", result)
+
+    def test_opcode_must_confirm_plain_an_even_when_source_text_claims_it(self) -> None:
+        lines = ["Start:", "\tmove.b\t(a4),d0\t;102C0000", "End:"]
+        source_rule = self.make_rule(
+            "contradictory-opcode", "move.b", "(a4),d0", "102C0000",
+            "ChampionStat_Level(a4),d0",
+        )
+
+        result = self.apply_both(
+            lines, (equate("ChampionStat_Level", 0),), (source_rule,)
+        )
+
+        self.assertNotIn("\tOPT\tO2+", result)
+
+    def test_nonzero_equ_is_left_unoptimised(self) -> None:
+        lines = ["Start:", "\tmove.b\t(a4),d0\t;1014", "End:"]
+        source_rule = self.make_rule(
+            "nonzero", "move.b", "(a4),d0", "1014", "Offset(a4),d0",
+            equ_name="Offset",
+        )
+
+        result = self.apply_both(lines, (equate("Offset", 1),), (source_rule,))
+
+        self.assertNotIn("\tOPT\tO2+", result)
+
+    def test_adjacent_qualified_instructions_share_one_o2_scope(self) -> None:
+        lines = [
+            "Start:",
+            "\tmove.b\t(a4),d0\t;1014",
+            "\tadd.b\t(a4),d1\t;D214",
+            "End:",
+        ]
+        rules = (
+            self.make_rule(
+                "move", "move.b", "(a4),d0", "1014",
+                "ChampionStat_Level(a4),d0",
+            ),
+            self.make_rule(
+                "add", "add.b", "(a4),d1", "D214",
+                "ChampionStat_Level(a4),d1",
+            ),
+        )
+
+        result = self.apply_both(
+            lines, (equate("ChampionStat_Level", 0),), rules
+        )
+
+        self.assertEqual(result.count("\tOPT\tO2+"), 1)
+        self.assertEqual(result.count("\tOPT\tO2-"), 1)
+
+
+class IndexedSourceRuleTests(unittest.TestCase):
+    def assert_engines_equal(
+        self,
+        lines: list[str],
+        rules: tuple[SourceRule, ...],
+        *,
+        relabels: dict[str, str] | None = None,
+        continue_on_error: bool = False,
+    ) -> list[str]:
+        with redirect_stdout(StringIO()):
+            legacy = apply_source_rules(
+                lines,
+                (),
+                rules,
+                label_relabels=relabels,
+                continue_on_error=continue_on_error,
+            )
+            indexed = apply_source_rules_indexed(
+                lines,
+                (),
+                rules,
+                label_relabels=relabels,
+                continue_on_error=continue_on_error,
+            )
+        self.assertEqual(indexed, legacy)
+        return indexed
+
+    @staticmethod
+    def make_rule(
+        rule_id: str,
+        match_operands: str,
+        replacement_operands: str,
+        *,
+        scope_start: str = "Start",
+        scope_end: str = "End",
+        mnemonic: str = "move.l",
+        expected_opcode: str = "0001",
+        expected_matches: int = 1,
+        status: str = "verified",
+    ) -> SourceRule:
+        return SourceRule(
+            "BLOODWYCH439",
+            rule_id,
+            "replace_operand",
+            "Value",
+            scope_start,
+            scope_end,
+            mnemonic,
+            match_operands,
+            expected_opcode,
+            replacement_operands,
+            expected_matches,
+            status,
+        )
+
+    def test_instruction_index_preserves_reconstruction_data_and_reindexes(self) -> None:
+        lines = ["\tMOVE.L  #$01, d0  \t; 0001 original bytes"]
+        index = SourceInstructionIndex(lines)
+        signature = ("move.l", "#$01,d0")
+
+        self.assertEqual(index.indices_for(signature), [0])
+        record = index.record(0)
+        self.assertEqual(record.prefix, "\tMOVE.L  ")
+        self.assertEqual(record.trailing, "  \t")
+        self.assertEqual(record.comment, " 0001 original bytes")
+        self.assertEqual(record.normalised_opcode, "0001")
+
+        index.reindex_line(0, "\tMOVE.L  #Value, d0  \t; 0001 original bytes")
+        self.assertEqual(index.indices_for(signature), [])
+        self.assertEqual(index.indices_for(("move.l", "#value,d0")), [0])
+
+    def test_indexed_operand_relabelling_matches_ordered_legacy_semantics(self) -> None:
+        cases = (
+            (
+                {"a": "B", "b": "C"},
+                "A+A.w",
+            ),
+            (
+                {"b": "C", "a": "B"},
+                "A+B",
+            ),
+            (
+                {"foo": "First", ".foo": "Second"},
+                ".FOO+foo.bar",
+            ),
+            (
+                {"foo.bar": "Whole", "foo": "Part", "bar": "Tail"},
+                "foo.bar+foo+bar",
+            ),
+            (
+                {"adrValue?": "Question", "adrValue": "Plain"},
+                "adrValue?.l+adrValue.w",
+            ),
+        )
+        for relabels, value in cases:
+            with self.subTest(relabels=relabels, value=value):
+                self.assertEqual(
+                    SourceOperandRelabeler(relabels).replace(value),
+                    _relabel_rule_operands(value, relabels),
+                )
+
+    def test_expected_matches_scope_and_text_preservation_match_legacy(self) -> None:
+        lines = [
+            "Outside:",
+            "\tmove.l\t#$01,d0\t;0001",
+            "Start:",
+            "\tMOVE.L  #$01, d0  \t; 0001 first",
+            "\tmove.l\t#$01,d0\t;0001 second",
+            "End:",
+            "\tmove.l\t#$01,d0\t;0001",
+        ]
+        source_rule = self.make_rule(
+            "two-in-scope", "#$01,d0", "#Value,d0", expected_matches=2
+        )
+
+        result = self.assert_engines_equal(lines, (source_rule,))
+
+        self.assertEqual(result[1], lines[1])
+        self.assertEqual(result[3], "\tMOVE.L  #Value,d0  \t; 0001 first")
+        self.assertEqual(result[4], "\tmove.l\t#Value,d0\t;0001 second")
+        self.assertEqual(result[6], lines[6])
+
+    def test_overlapping_scopes_and_different_instructions_match_legacy(self) -> None:
+        lines = ["Start:"] + ["\tnop"] * 500 + [
+            "\tmove.l\t#$01,d0\t;0001",
+            "Middle:",
+            "\tadd.l\t#$02,d0\t;0002",
+        ] + ["\tnop"] * 500 + ["End:"]
+        rules = (
+            self.make_rule("move", "#$01,d0", "#First,d0"),
+            self.make_rule(
+                "add",
+                "#$02,d0",
+                "#Second,d0",
+                scope_start="Middle",
+                mnemonic="add.l",
+                expected_opcode="0002",
+            ),
+        )
+
+        self.assert_engines_equal(lines, rules)
+
+    def test_later_rule_matches_text_created_by_earlier_rule(self) -> None:
+        lines = ["Start:", "\tmove.l\t#$01,d0\t;0001", "End:"]
+        rules = (
+            self.make_rule("first", "#$01,d0", "#Intermediate,d0"),
+            self.make_rule("second", "#Intermediate,d0", "#Final,d0"),
+        )
+
+        result = self.assert_engines_equal(lines, rules)
+
+        self.assertEqual(result[1], "\tmove.l\t#Final,d0\t;0001")
+
+    def test_relabelled_scopes_match_and_replacement_operands_match_legacy(self) -> None:
+        lines = [
+            "NewStart:",
+            "\tmove.l\t#NewInput.l,d0\t;0001",
+            "NewEnd:",
+        ]
+        source_rule = self.make_rule(
+            "relabels",
+            "#OldInput.l,d0",
+            "#OldOutput.l,d0",
+            scope_start="OldStart",
+            scope_end="OldEnd",
+        )
+        relabels = {
+            "OldStart": "NewStart",
+            "OldEnd": "NewEnd",
+            "OldInput": "NewInput",
+            "OldOutput": "NewOutput",
+        }
+
+        result = self.assert_engines_equal(
+            lines, (source_rule,), relabels=relabels
+        )
+
+        self.assertEqual(result[1], "\tmove.l\t#NewOutput.l,d0\t;0001")
+
+    def test_failures_raise_identically_without_mutating_input(self) -> None:
+        lines = ["Start:", "\tmove.l\t#$01,d0\t;0001", "End:"]
+        cases = (
+            self.make_rule("opcode", "#$01,d0", "#Value,d0", expected_opcode="FFFF"),
+            self.make_rule("count", "#$02,d0", "#Value,d0"),
+            self.make_rule(
+                "reversed",
+                "#$01,d0",
+                "#Value,d0",
+                scope_start="End",
+                scope_end="Start",
+            ),
+        )
+        for source_rule in cases:
+            with self.subTest(rule=source_rule.rule_id):
+                original = list(lines)
+                errors = []
+                for engine in (apply_source_rules, apply_source_rules_indexed):
+                    with self.assertRaises(ToolError) as raised, redirect_stdout(
+                        StringIO()
+                    ):
+                        engine(lines, (), (source_rule,))
+                    errors.append(str(raised.exception))
+                self.assertEqual(errors[0], errors[1])
+                self.assertEqual(lines, original)
+
+    def test_continue_on_error_keeps_index_unchanged_for_later_rule(self) -> None:
+        lines = ["Start:", "\tmove.l\t#$01,d0\t;0001", "End:"]
+        bad = self.make_rule(
+            "bad-opcode", "#$01,d0", "#Broken,d0", expected_opcode="FFFF"
+        )
+        good = self.make_rule("good", "#$01,d0", "#Value,d0")
+        metrics = SourceRuleMetrics()
+
+        with redirect_stdout(StringIO()):
+            indexed = apply_source_rules_indexed(
+                lines,
+                (),
+                (bad, good),
+                continue_on_error=True,
+                metrics=metrics,
+            )
+            legacy = apply_source_rules(
+                lines, (), (bad, good), continue_on_error=True
+            )
+
+        self.assertEqual(indexed, legacy)
+        self.assertEqual(indexed[1], "\tmove.l\t#Value,d0\t;0001")
+        self.assertEqual(metrics.verified_rules, 2)
+        self.assertEqual(metrics.indexed_candidates, 2)
+        self.assertEqual(metrics.rewritten_lines, 1)
+        self.assertEqual(metrics.failed_rules, 1)
+
+    def test_proposed_and_disabled_rules_remain_inactive(self) -> None:
+        lines = ["Start:", "\tmove.l\t#$01,d0\t;0001", "End:"]
+        rules = (
+            self.make_rule("proposed", "#$01,d0", "#Proposed,d0", status="proposed"),
+            self.make_rule("disabled", "#$01,d0", "#Disabled,d0", status="disabled"),
+        )
+        metrics = SourceRuleMetrics()
+
+        with redirect_stdout(StringIO()):
+            result = apply_source_rules_indexed(lines, (), rules, metrics=metrics)
+
+        self.assertEqual(result, lines)
+        self.assertEqual(metrics.verified_rules, 0)
+        self.assertEqual(metrics.rewritten_lines, 0)
 
 
 if __name__ == "__main__":

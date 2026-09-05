@@ -213,7 +213,7 @@ KeyboardAction:		; Memory Address ($062E) and binary offset [$02AA]
 	lea		Player2_Data.l,a0
 KeyboardAction_StorePendingAction:		; Memory Address ($0640) and binary offset [$02BC]
 	add.w	#InterfaceAction_MoveForward,d1										;Base dungeon action added to the raw-key index so keyboard movement begins with Move Forward.
-	move.b	d1,Player_PendingActionOffset(a0)									;Offset of the pending action byte written by keyboard input.
+	move.b	d1,PlayerData_PendingAction(a0)										;Offset of the pending action byte written by keyboard input.
 	rts		
 
 RawKeyCodes:
@@ -359,33 +359,33 @@ QkPly1_Start:
 	; Quickstart party.
 	move.w	#$FFFF,MultiPlayer.l
 	move.w	#$FFFF,MainMenuBuffer.w												;Short Absolute converted to symbol!
-	move.l	#$000E0503,$0018(a5)												;Initialises Player 1's four Quickstart champion slots in the authored party order 0, 14, 5, 3.
-	move.l	$0018(a5),$0026(a5)
-	clr.w	$0006(a5)
+	move.l	#Quickstart_Player1ChampionRoster,PlayerData_ChampionSlotsOffset(a5)	;Initialises Player 1's four Quickstart champion slots in the authored party order 0, 14, 5, 3.
+	move.l	PlayerData_ChampionSlotsOffset(a5),PlayerData_FormationSlotsOffset(a5)
+	clr.w	PlayerData_CurrentChampionNumber(a5)
 	lea		Character_Stats_DataTable.l,a0
-	move.b	#$0C,$0016(a0)
-	move.b	#$17,$0017(a0)
-	clr.b	$0018(a0)															;Sets the selected Quickstart lead champion's saved direction to North before its start position is transferred to the player record.
+	move.b	#$0C,ChampionStat_XPosition(a0)
+	move.b	#$17,ChampionStat_YPosition(a0)
+	clr.b	ChampionStat_Direction(a0)											;Sets the selected Quickstart lead champion's saved direction to North before its start position is transferred to the player record.
 	moveq	#-$01,d0
-	move.b	d0,$01D6(a0)
-	move.b	d0,$00B6(a0)
-	move.b	d0,$0076(a0)
+	move.b	d0,ChampionIndex_Hengist*ChampionStat_RecordSize+ChampionStat_XPosition(a0)	;Sets Hengist's ChampionStat_XPosition to $FF so the Quickstart follower has no independent saved map position.
+	move.b	d0,ChampionIndex_Zothen*ChampionStat_RecordSize+ChampionStat_XPosition(a0)	;Sets Zothen's ChampionStat_XPosition to $FF so the Quickstart follower has no independent saved map position.
+	move.b	d0,ChampionIndex_Rosanne*ChampionStat_RecordSize+ChampionStat_XPosition(a0)	;Sets Rosanne's ChampionStat_XPosition to $FF so the Quickstart follower has no independent saved map position.
 	rts		
 
 QkPly2_Start:
 	bsr.s	QkPly1_Start
 	clr.w	MultiPlayer.l
-	move.l	#$04060D0F,Player2_ChampionPointer.l								;Initialises Player 2's four Quickstart champion slots in the authored party order 4, 6, 13, 15.
-	move.l	#$04060D0F,Player2_ChampionRosterShadowCopy.l
-	move.w	#$0004,Player2_CurrentChampionNumber.l
+	move.l	#Quickstart_Player2ChampionRoster,Player2_ChampionPointer.l			;Initialises Player 2's four Quickstart champion slots in the authored party order 4, 6, 13, 15.
+	move.l	#Quickstart_Player2ChampionRoster,Player2_ChampionRosterShadowCopy.l
+	move.w	#ChampionIndex_Astroth,Player2_CurrentChampionNumber.l
 	lea		Character_Stats_DataTable+$80.l,a0
-	move.b	#$0E,$0016(a0)
-	move.b	#$17,$0017(a0)
-	clr.b	$0018(a0)
+	move.b	#$0E,ChampionStat_XPosition(a0)
+	move.b	#$17,ChampionStat_YPosition(a0)
+	clr.b	ChampionStat_Direction(a0)
 	moveq	#-$01,d0
-	move.b	d0,$0056(a0)
-	move.b	d0,$0136(a0)
-	move.b	d0,$0176(a0)
+	move.b	d0,(ChampionIndex_Baldrick-ChampionIndex_Astroth)*ChampionStat_RecordSize+ChampionStat_XPosition(a0)	;Sets Baldrick's ChampionStat_XPosition to $FF so the Quickstart follower has no independent saved map position.
+	move.b	d0,(ChampionIndex_Zastaph-ChampionIndex_Astroth)*ChampionStat_RecordSize+ChampionStat_XPosition(a0)	;Sets Zastaph's ChampionStat_XPosition to $FF so the Quickstart follower has no independent saved map position.
+	move.b	d0,(ChampionIndex_ThaiChang-ChampionIndex_Astroth)*ChampionStat_RecordSize+ChampionStat_XPosition(a0)	;Sets Thai Chang's ChampionStat_XPosition to $FF so the Quickstart follower has no independent saved map position.
 	rts		
 
 Init_BitReverseTableAndSpellPracticeData:		; Memory Address ($08C4) and binary offset [$0540]
@@ -416,11 +416,11 @@ Clear_SpellPracticeTableLoop:		; Memory Address ($08EA) and binary offset [$0566
 Initialize_SpellPracticeThresholds:		; Memory Address ($08F2) and binary offset [$056E]
 	; Initialises calculated spell-practice values for all sixteen champion
 	; records.
-	moveq	#$0F,d7
+	moveq	#Champion_Count-1,d7
 SpellPractice_ThresholdLoop:		; Memory Address ($08F4) and binary offset [$0570]
 	move.w	d7,d0
 	bsr		Calculate_SpellPracticeThreshold
-	move.b	d0,$0009(a4)
+	move.b	d0,ChampionStat_SpellPointsCurrent(a4)
 	dbra	d7,SpellPractice_ThresholdLoop
 	rts		
 
@@ -431,7 +431,7 @@ Calculate_SpellPracticeThreshold:		; Memory Address ($0904) and binary offset [$
 	bsr		Load_ChampionStatRecord
 	bsr.s	Calculate_WizardLevelContribution
 	asl.w	#$02,d0
-	move.b	$0003(a4),d1
+	move.b	ChampionStat_Intelligence(a4),d1
 	lsr.b	#$01,d1
 	add.b	d1,d0
 	cmpi.b	#$64,d0
@@ -439,7 +439,7 @@ Calculate_SpellPracticeThreshold:		; Memory Address ($0904) and binary offset [$
 	moveq	#$63,d0
 SpellPractice_StoreThreshold:		; Memory Address ($091E) and binary offset [$059A]
 	; Stores the calculated spell-practice threshold in the champion record.
-	move.b	d0,$000A(a4)
+	move.b	d0,ChampionStat_SpellPointsMaximum(a4)
 	rts		
 
 Calculate_WarriorLevelContribution:		; Memory Address ($0924) and binary offset [$05A0]
@@ -448,9 +448,13 @@ Calculate_WarriorLevelContribution:		; Memory Address ($0924) and binary offset 
 	move.b	WarriorLevel_ChampionTypeShifts(pc,d1.w),d1
 	bpl.s	Calculate_ShiftedChampionLevel
 	moveq	#$00,d0
-	move.b	(a4),d0
+	OPT		O2+
+	move.b	ChampionStat_Level(a4),d0
+	OPT		O2-
 	add.w	d0,d0
-	add.b	(a4),d0
+	OPT		O2+
+	add.b	ChampionStat_Level(a4),d0
+	OPT		O2-
 	lsr.w	#$02,d0
 	rts		
 
@@ -482,7 +486,9 @@ Calculate_CutpurseLevelContribution:		; Memory Address ($094C) and binary offset
 Calculate_ShiftedChampionLevel:		; Memory Address ($0954) and binary offset [$05D0]
 	; Loads the champion's level and applies the selected right-shift weighting.
 	moveq	#$00,d0
-	move.b	(a4),d0
+	OPT		O2+
+	move.b	ChampionStat_Level(a4),d0
+	OPT		O2-
 	lsr.w	d1,d0
 	rts		
 
@@ -531,7 +537,7 @@ PrepareCharacters_ChampionLoop:
 	clr.b	ChampionStat_WornSpell(a4)											;Clears the champion's currently worn spell so no spell remains equipped at tower start.
 	move.b	#$FF,ChampionStat_SpellToCast(a4)									;Sets the spell-to-cast field to $FF, meaning that no spell-casting request is pending.
 	clr.b	ChampionStat_FairySpellCount(a4)									;Clears the fairy-spell purchase count so tower-start setup begins with no queued purchases.
-	clr.b	ChampionStat_AttackCooldown(a4)										;Clears the champion's physical-attack cooldown before play begins.
+	clr.b	ChampionStat_ActionState(a4)										;Clears the champion's physical-attack cooldown before play begins.
 	move.b	#$FF,ChampionStat_XPToNextLevel(a4)									;Sets the experience threshold field to $FF, the start-of-game sentinel for experience-to-next-level handling.
 	move.w	d6,d0																;Copies the reverse loop counter into d0 so the champion's logical table index can be calculated.
 	eor.b	#Champion_Count-1,d0												;Reverses the countdown index, turning the backward loop position into the champion number expected by stat calculation.
@@ -564,7 +570,7 @@ UnpackTowerMonsters:		; Memory Address ($09F6) and binary offset [$0672]
 	move.l	d6,(a4)+															;Writes the empty sentinel into the current team-table longword and advances to the next slot.
 	dbra	d0,.ClearMonsterTeamIndexLoop										;Clears every team-table longword before rebuilding team membership from packed monster data.
 	lea		UnpackedMonsters.l,a4												;Loads a4 with the base of the live, unpacked monster-record workspace.
-	move.w	#MonsterLive_WorkspaceLongwordCount-1,d0							;Sets the clearing loop to cover 512 longwords, the full $800-byte live-monster workspace.
+	move.w	#LiveActorRecord_WorkspaceLongwordCount-1,d0						;Sets the clearing loop to cover 512 longwords, the full $800-byte live-monster workspace.
 .ClearLiveMonsterRecordsLoop:
 	; Clears the live-monster workspace before unpacking.
 	move.l	d6,(a4)+															;Fills the current live-monster longword with the empty sentinel and advances through the workspace.
@@ -575,7 +581,7 @@ UnpackTowerMonsters:		; Memory Address ($09F6) and binary offset [$0672]
 	lea		MonsterTotalsCounts_mod0.l,a4										;Loads the table of per-tower monster totals.
 	move.w	$00(a4,d0.w),d6														;Reads this tower's last packed-record index for the DBRA loop.
 	lea		UnpackedMonsters.l,a4												;Restores a4 to the live-monster base so the count and records use the same workspace.
-	move.w	d6,MonsterLive_RecordCountOffset(a4)								;Stores the last live-record index at offset -2; $FFFF means none.
+	move.w	d6,LiveActorRecord_CountOffset(a4)									;Stores the last live-record index at offset -2; $FFFF means none.
 	bmi		Trigger_00_t00_Null													;Exits through the null-trigger path when this tower contains no monsters.
 	add.w	d1,d0																;Forms three times the tower index before multiplying by $100.
 	asl.w	#PackedMonster_TowerBlockShift,d0									;Produces tower * $300, the byte offset of its packed block.
@@ -584,22 +590,22 @@ UnpackTowerMonsters:		; Memory Address ($09F6) and binary offset [$0672]
 	moveq	#$00,d4																;Initialises d4 as the zero-based packed/live monster ordinal used in team-table entries.
 UnpackNextMonsterRecord:
 	; Expands one packed six-byte monster record into a sixteen-byte live record.
-	clr.b	MonsterRecord_ActionState(a4)										;Clears the live action/status byte before copying data into this monster record.
-	clr.b	MonsterRecord_RotationAndSpace(a4)									;Clears the live rotation/occupied-space byte because it is rebuilt later by movement logic.
+	clr.b	ActorRecord_ActionState(a4)											;Clears the live action/status byte before copying data into this monster record.
+	clr.b	ActorRecord_RotationAndSpace(a4)									;Clears the live rotation/occupied-space byte because it is rebuilt later by movement logic.
 	move.b	(a3)+,d0															;Reads the packed type-and-floor byte and advances a3 to the packed X coordinate.
 	subq.b	#PackedMonster_FloorEncodingBias,d0									;Removes the packed floor encoding bias before splitting type and floor.
 	move.b	d0,d1																;Copies the adjusted packed byte into d1 so its high nibble can be extracted without losing the floor nibble.
 	lsr.b	#PackedMonster_TypeShift,d1											;Shifts the packed high nibble down to produce the monster type code.
-	move.b	d1,MonsterRecord_Type(a4)											;Stores the decoded monster type in the live record's type field.
+	move.b	d1,ActorRecord_BehaviourType(a4)									;Stores the decoded monster type in the live record's type field.
 	and.w	#PackedMonster_NibbleMask,d0										;Masks off the high nibble, retaining the packed floor number in d0.
-	move.b	d0,MonsterRecord_Floor(a4)											;Stores the decoded floor number in the live monster record.
+	move.b	d0,ActorRecord_Floor(a4)											;Stores the decoded floor number in the live monster record.
 	bsr		Select_FloorMapByIndex												;Selects the floor-specific map context used for this monster's coordinate conversion.
 	moveq	#$00,d7																;Clears d7 before assembling the packed live X/Y coordinate.
 	move.b	(a3)+,d7															;Reads the packed X byte into the high-byte staging register d7 and advances to packed Y.
-	move.b	d7,MonsterRecord_XPosition(a4)										;Stores the decoded X coordinate in the live monster record.
+	move.b	d7,ActorRecord_XPosition(a4)										;Stores the decoded X coordinate in the live monster record.
 	swap	d7																	;Swaps d7 so the staged X coordinate occupies the high word while Y is appended below it.
 	move.b	(a3)+,d7															;Reads the packed X byte into the high-byte staging register d7 and advances to packed Y.
-	move.b	d7,MonsterRecord_YPosition(a4)										;Stores the decoded Y coordinate in the live monster record.
+	move.b	d7,ActorRecord_YPosition(a4)										;Stores the decoded Y coordinate in the live monster record.
 	btst	#$17,d7																;Tests X bit 7; set means no separate map-cell occupancy mark.
 	bne.s	.MonsterPositionHandled												;Skips map occupancy marking when this monster has no valid starting position.
 	bsr		CoordToMap															;Converts the decoded monster X/Y coordinate into a map-cell index.
@@ -608,8 +614,8 @@ UnpackNextMonsterRecord:
 	; Continues after packed-coordinate map handling.
 	moveq	#$00,d0																;Clears d0 before reading the packed monster level.
 	move.b	(a3)+,d0															;Reads the packed level byte and advances a3 to the packed monster form.
-	move.b	d0,MonsterRecord_CurrentLevel(a4)									;Stores the level used by the monster's current behaviour and hit-point calculations.
-	move.b	d0,MonsterRecord_BaseLevel(a4)										;Stores the original unpacked level as the monster's base level for later progression.
+	move.b	d0,MonsterRecord_BaseLevel(a4)										;Stores the level used by the monster's current behaviour and hit-point calculations.
+	move.b	d0,MonsterRecord_EffectiveLevel(a4)									;Stores the original unpacked level as the monster's base level for later progression.
 	moveq	#$0E,d1																;Loads 14 as the starting value for the level-derived action-countdown calculation.
 	sub.b	d0,d1																;Subtracts the monster level from the countdown base; d1 becomes the encoded action delay.
 	bcs.s	.UseMinimumActionCountdown											;Uses the minimum-delay path when the subtraction underflows or produces a value below the supported range.
@@ -621,7 +627,7 @@ UnpackNextMonsterRecord:
 .StoreActionCountdown:		; Memory Address ($0AA8) and binary offset [$0724]
 	; Stores the level-derived action countdown.
 	asl.b	#$04,d1																;Shifts the delay into the high nibble used by the live action-countdown field.
-	move.b	d1,MonsterRecord_ActionCountdown(a4)								;Stores the level-derived action countdown in the live monster record.
+	move.b	d1,MonsterRecord_ActionCycleTimer(a4)								;Stores the level-derived action countdown in the live monster record.
 	move.w	#$0190,d1															;Loads the default high-level hit-point multiplier into d1.
 	cmpi.b	#$19,d0																;Checks whether the monster level is below the high-level multiplier range.
 	bcc.s	.StoreStartingHitPoints												;Uses the selected multiplier to calculate hit points once the high-level range has been reached.
@@ -633,15 +639,15 @@ UnpackNextMonsterRecord:
 	; Calculates starting hit points from the monster level.
 	mulu	d1,d0																;Multiplies the monster level by its selected hit-point multiplier.
 	add.w	#$0019,d0															;Adds the fixed base hit-point bonus to the scaled level result.
-	move.w	d0,MonsterRecord_HitPoints(a4)										;Stores the calculated starting hit points in the live monster record.
-	move.b	(a3)+,MonsterRecord_Form(a4)										;Reads the packed monster form/graphic identifier into the live record.
+	move.w	d0,ActorRecord_HitPoints(a4)										;Stores the calculated starting hit points in the live monster record.
+	move.b	(a3)+,ActorRecord_Form(a4)											;Reads the packed monster form/graphic identifier into the live record.
 	bpl.s	CheckMonsterFormForCarriedObject									;Branches to the Zendik special-case check only for non-negative, ordinary monster forms.
-	move.b	#$10,MonsterRecord_ActionCountdown(a4)								;Gives a negative/special form the fixed action countdown used by that special behaviour.
+	move.b	#$10,MonsterRecord_ActionCycleTimer(a4)								;Gives a negative/special form the fixed action countdown used by that special behaviour.
 	bra.s	StoreTeamData														;Skips the Zendik object check and continues with packed team-data processing.
 
 CheckMonsterFormForCarriedObject:
 	; Handles the monster-form special case that assigns a fixed carried object.
-	cmp.b	#MonsterForm_Zendik,MonsterRecord_Form(a4)
+	cmp.b	#MonsterForm_Zendik,ActorRecord_Form(a4)
 	bne.s	StoreTeamData														;Continues normal unpacking when the form is not the Zendik special case.
 	move.b	#Object_AceOfSwords,MonsterRecord_CarriedObject(a4)					;Assigns the Ace of Swords object to Zendik's carried-object field for the unique drop encounter.
 StoreTeamData:		; Memory Address ($0AEC) and binary offset [$0768]
@@ -654,14 +660,14 @@ StoreTeamData:		; Memory Address ($0AEC) and binary offset [$0768]
 	move.b	d4,$00(a0,d0.w)														;Stores this monster's ordinal in the team slot selected by the packed team byte.
 	move.b	d0,d1																;Copies the packed team byte into d1 for slot and group extraction.
 	and.b	#MonsterTeamMember_SlotMask,d1										;Masks the low two bits to select one of the four member slots in the team.
-	tst.b	MonsterRecord_XPosition(a4)											;Tests X bit 7 to distinguish a positioned leader from a follower.
+	tst.b	ActorRecord_XPosition(a4)											;Tests X bit 7 to distinguish a positioned leader from a follower.
 	bmi.s	.AdvanceToNextMonster												;Leaves a follower in its table slot, but skips live group assignment.
 	addq.w	#$01,MonsterTeamIndexTable_CountOffset(a0)							;Increments the last team-row index once for this positioned leader.
 	lsr.b	#MonsterTeamData_GroupShift,d0										;Shifts away the member-slot bits, leaving the packed team group number.
 	move.b	d0,MonsterRecord_TeamGroupIndex(a4)									;Stores the group on the positioned leader; followers keep $FF.
 .AdvanceToNextMonster:		; Memory Address ($0B16) and binary offset [$0792]
 	; Advances to the next packed and live monster record.
-	add.w	#MonsterRecord_Size,a4												;Advances a4 by the $10-byte live monster record size.
+	add.w	#ActorRecord_Size,a4												;Advances a4 by the $10-byte live monster record size.
 	addq.w	#$01,d4																;Increments the zero-based monster ordinal used by team-table entries.
 	dbra	d6,UnpackNextMonsterRecord											;Repeats unpacking until d6 has processed every packed monster in this tower.
 	rts																			;Returns after all packed monster records have been expanded and team membership has been rebuilt.
@@ -694,10 +700,10 @@ TransferChampionStartPosition:		; Memory Address ($0B32) and binary offset [$07A
 	move.b	ChampionStat_XPosition(a4),d0										;Loads the saved champion X coordinate for transfer into the active player position.
 	bmi.s	.NoChampionStartPosition											;Returns without copying a position when X is negative, the no-start-position sentinel.
 	move.b	#$FF,ChampionStat_XPosition(a4)										;Marks the champion's saved X coordinate consumed so it cannot be reused on the next transfer.
-	move.w	d0,PlayerData_StartXPosition(a5)									;Copies the X coordinate into the active player record's start-position word at offset $1C.
+	move.w	d0,PlayerData_XPosition(a5)											;Copies the X coordinate into the active player record's start-position word at offset $1C.
 	move.b	ChampionStat_YPosition(a4),d0										;Loads the saved champion Y coordinate into d0.
 	move.b	#$FF,ChampionStat_YPosition(a4)										;Marks the champion's saved Y coordinate consumed after it has been selected.
-	move.w	d0,PlayerData_StartYPosition(a5)									;Copies the Y coordinate into the active player record's start-position word at offset $1E.
+	move.w	d0,PlayerData_YPosition(a5)											;Copies the Y coordinate into the active player record's start-position word at offset $1E.
 	move.b	ChampionStat_Direction(a4),d0										;Loads the champion's saved facing/direction byte.
 	move.w	d0,PlayerData_Direction(a5)											;Copies the direction into the active player record's orientation field at offset $20.
 	move.b	ChampionStat_Floor(a4),d0											;Loads the champion's saved floor byte.
@@ -744,14 +750,14 @@ InitialiseActivePlayerData:		; Memory Address ($0BA6) and binary offset [$0822]
 	clr.w	FrameSyncFlag.l														;Clears the frame-synchronisation flag before constructing the player state.
 	move.b	#$FF,ChampionSelectionLiveActionFlag.l								;Sets the shared player/session state byte to its inactive sentinel value.
 	lea		Player1_Data.l,a5													;Loads a5 with the first player's data record.
-	move.l	#$00F00020,$0002(a5)												;Initialises the first player's packed state/position word with its single-player defaults.
-	move.w	#$5601,$003A(a5)													;Initialises the first player's control and interface state word.
+	move.l	#$00F00020,PlayerData_MousePosition(a5)								;Initialises the first player's packed state/position word with its single-player defaults.
+	move.w	#$5601,PlayerData_MouseYClampBounds(a5)								;Initialises the first player's control and interface state word.
 	tst.w	MultiPlayer.l														;Checks whether the session is running in multiplayer mode.
 	beq.s	InitialisePlayer2Data												;Takes the single-player path into the shared second-player/default setup block.
-	move.w	#$8223,$003A(a5)													;Replaces the first player's control state with the multiplayer configuration.
+	move.w	#$8223,PlayerData_MouseYClampBounds(a5)								;Replaces the first player's control state with the multiplayer configuration.
 	move.l	#$FFFFFFFF,Player2_ChampionPointer.l								;Invalidates the second player's champion pointer until multiplayer selection supplies it.
-	move.w	#$0027,$0008(a5)													;Initialises the first player's multiplayer start-position word.
-	move.w	#$0618,$000A(a5)													;Initialises the first player's multiplayer map/viewport word.
+	move.w	#$0027,PlayerData_InterfacePanelYOffset(a5)							;Initialises the first player's multiplayer start-position word.
+	move.w	#$0618,PlayerData_InterfaceScreenBufferOffset(a5)					;Initialises the first player's multiplayer map/viewport word.
 	clr.l	Player2_MousePosition.l												;Clears the shared second-player/session scratch longword.
 	moveq	#$00,d7																;Sets d7 to zero so the shared player loop handles only the active first player on this path.
 	bra.s	InitialisePlayerDataLoop											;Jumps into the common player-record initialisation loop.
@@ -759,19 +765,19 @@ InitialiseActivePlayerData:		; Memory Address ($0BA6) and binary offset [$0822]
 InitialisePlayer2Data:		; Memory Address ($0BF6) and binary offset [$0872]
 	; Initialises the second player structure for a two-player session.
 	lea		Player2_Data.l,a5													;Loads a5 with the second player's data record.
-	move.l	#$00F00088,$0002(a5)												;Initialises the second player's packed state/position word for the two-player path.
-	move.w	#$BE68,$003A(a5)													;Initialises the second player's control and interface state word.
-	move.w	#$0068,$0008(a5)													;Initialises the second player's start-position word.
-	move.w	#$1040,$000A(a5)													;Initialises the second player's map/viewport word.
+	move.l	#$00F00088,PlayerData_MousePosition(a5)								;Initialises the second player's packed state/position word for the two-player path.
+	move.w	#$BE68,PlayerData_MouseYClampBounds(a5)								;Initialises the second player's control and interface state word.
+	move.w	#$0068,PlayerData_InterfacePanelYOffset(a5)							;Initialises the second player's start-position word.
+	move.w	#$1040,PlayerData_InterfaceScreenBufferOffset(a5)					;Initialises the second player's map/viewport word.
 	moveq	#$01,d7																;Sets d7 to one so the common loop processes both player records.
 InitialisePlayerDataLoop:		; Memory Address ($0C18) and binary offset [$0894]
 	; Initialises each active player structure and transfers its saved champion
 	; start position.
 	clr.w	$0014(a5)															;Clears the active player's transient action/state word before input processing begins.
-	move.w	#$FFFF,$0042(a5)													;Initialises the party-command/interface state word to $FFFF, meaning no numbered command state is active.
-	move.w	#$FFFF,$0040(a5)													;Sets the command-type/state word to $FFFF, meaning no command is pending.
+	move.w	#$FFFF,PlayerData_PartyCommandState(a5)								;Initialises the party-command/interface state word to $FFFF, meaning no numbered command state is active.
+	move.w	#$FFFF,PlayerData_PartyCommandSelection(a5)							;Sets the command-type/state word to $FFFF, meaning no command is pending.
 	bsr		TransferChampionStartPosition										;Transfers the active player's saved champion start position into the player record.
-	bset	#$04,$0018(a5)														;Sets the active-player flag bit used to mark the player record as initialised/available.
+	bset	#PlayerData_ChampionSlots_CorrectedBit,PlayerData_ChampionSlotsOffset(a5)	;Sets the active-player flag bit used to mark the player record as initialised/available.
 	lea		Player1_Data.l,a5													;Resets a5 to Player1_Data so the next loop iteration starts from the first player record.
 	dbra	d7,InitialisePlayerDataLoop											;Repeats player initialisation for the remaining player selected by d7.
 	bsr		Draw_InitialGameInterface											;Runs the shared post-player setup routine after all player records are initialised.
@@ -841,10 +847,10 @@ Flush_DirtyUIRegions_BothPlayers:		; Memory Address ($0D04) and binary offset [$
 Flush_DirtyUIRegions:		; Memory Address ($0D12) and binary offset [$098E]
 	; Copies only the player interface regions selected by the dirty-region byte
 	; from the draw buffer to the visible buffer.
-	and.b	#$7F,$0052(a5)
-	move.b	$0054(a5),d3
-	clr.b	$0054(a5)
-	move.w	$000A(a5),d0
+	and.b	#$7F,PlayerData_DialogueColourState(a5)
+	move.b	PlayerData_UIDirtyRegionFlags(a5),d3
+	clr.b	PlayerData_UIDirtyRegionFlags(a5)
+	move.w	PlayerData_InterfaceScreenBufferOffset(a5),d0
 	move.w	d0,d6
 	bsr.s	Copy_VariableHeightScreenBand
 	move.w	d6,d0
@@ -910,26 +916,26 @@ CopyVariableHeightScreenBand_CheckRowCount:		; Memory Address ($0D9A) and binary
 	add.w	d0,a1
 	add.w	d0,a0
 CopyVariableHeightScreenBand_RowCopyLoop:		; Memory Address ($0DAE) and binary offset [$0A2A]
-	lea		$5DC0(a1),a3
-	lea		$5DC0(a0),a2
+	lea		Screen_Bitplane3Offset(a1),a3
+	lea		Screen_Bitplane3Offset(a0),a2
 	move.l	(a3)+,(a2)+
 	move.l	(a3)+,(a2)+
 	move.l	(a3)+,(a2)+
-	lea		$3E80(a1),a3
-	lea		$3E80(a0),a2
+	lea		Screen_Bitplane2Offset(a1),a3
+	lea		Screen_Bitplane2Offset(a0),a2
 	move.l	(a3)+,(a2)+
 	move.l	(a3)+,(a2)+
 	move.l	(a3)+,(a2)+
-	lea		$1F40(a1),a3
-	lea		$1F40(a0),a2
+	lea		Screen_BitplaneSize(a1),a3
+	lea		Screen_BitplaneSize(a0),a2
 	move.l	(a3)+,(a2)+
 	move.l	(a3)+,(a2)+
 	move.l	(a3)+,(a2)+
 	move.l	(a1)+,(a0)+
 	move.l	(a1)+,(a0)+
 	move.l	(a1)+,(a0)+
-	lea		$001C(a0),a0
-	lea		$001C(a1),a1
+	lea		ScreenBand_12ByteRowSkip(a0),a0
+	lea		ScreenBand_12ByteRowSkip(a1),a1
 	dbra	d2,CopyVariableHeightScreenBand_RowCopyLoop
 ScreenBandCopy_SharedReturn:		; Memory Address ($0DEA) and binary offset [$0A66]
 	rts		
@@ -937,20 +943,20 @@ ScreenBandCopy_SharedReturn:		; Memory Address ($0DEA) and binary offset [$0A66]
 PlayerHeightCheck_MainViewportRowCount:		; Memory Address ($0DEC) and binary offset [$0A68]
 	moveq	#$4B,d0
 ScreenBandCopy_SharedRowLoop:		; Memory Address ($0DEE) and binary offset [$0A6A]
-	lea		$5DC0(a1),a3
-	lea		$5DC0(a0),a2
+	lea		Screen_Bitplane3Offset(a1),a3
+	lea		Screen_Bitplane3Offset(a0),a2
 	move.l	(a3)+,(a2)+
 	move.l	(a3)+,(a2)+
 	move.l	(a3)+,(a2)+
 	move.l	(a3)+,(a2)+
-	lea		$3E80(a1),a3
-	lea		$3E80(a0),a2
+	lea		Screen_Bitplane2Offset(a1),a3
+	lea		Screen_Bitplane2Offset(a0),a2
 	move.l	(a3)+,(a2)+
 	move.l	(a3)+,(a2)+
 	move.l	(a3)+,(a2)+
 	move.l	(a3)+,(a2)+
-	lea		$1F40(a1),a3
-	lea		$1F40(a0),a2
+	lea		Screen_BitplaneSize(a1),a3
+	lea		Screen_BitplaneSize(a0),a2
 	move.l	(a3)+,(a2)+
 	move.l	(a3)+,(a2)+
 	move.l	(a3)+,(a2)+
@@ -959,8 +965,8 @@ ScreenBandCopy_SharedRowLoop:		; Memory Address ($0DEE) and binary offset [$0A6A
 	move.l	(a1)+,(a0)+
 	move.l	(a1)+,(a0)+
 	move.l	(a1)+,(a0)+
-	lea		$0018(a0),a0
-	lea		$0018(a1),a1
+	lea		ScreenBand_16ByteRowSkip(a0),a0
+	lea		ScreenBand_16ByteRowSkip(a1),a1
 	dbra	d0,ScreenBandCopy_SharedRowLoop
 	rts		
 
@@ -972,7 +978,7 @@ Update_ChampionStatRegeneration:		; Memory Address ($0E34) and binary offset [$0
 	lsr.w	#$01,d0
 	lea		Character_Pockets_DataTable.l,a0
 	add.w	d0,a0
-	lsr.w	#$04,d0
+	lsr.w	#ChampionPocket_RecordSizeShift,d0
 	move.w	d0,d7
 	movem.l	d0/d1/d7/a5,-(sp)
 	bsr		Find_ChampionOwner
@@ -987,34 +993,38 @@ Update_ChampionSpellPoints:		; Memory Address ($0E64) and binary offset [$0AE0]
 	; Increments current spell points toward the maximum, then continues into
 	; hit-point recovery.
 	movem.l	(sp)+,d0/d1/d7/a5
-	move.b	$0009(a4),d0
-	cmp.b	$000A(a4),d0
+	move.b	ChampionStat_SpellPointsCurrent(a4),d0
+	cmp.b	ChampionStat_SpellPointsMaximum(a4),d0
 	beq.s	Update_ChampionHitPointRecovery
-	addq.b	#$01,$0009(a4)
+	addq.b	#$01,ChampionStat_SpellPointsCurrent(a4)
 Update_ChampionHitPointRecovery:		; Memory Address ($0E76) and binary offset [$0AF2]
 	; Recovers hit points from champion level, doubles the rate when object $5B is
 	; in either leading pocket, and clamps to maximum.
-	move.b	(a4),d0
+	OPT		O2+
+	move.b	ChampionStat_Level(a4),d0
+	OPT		O2-
 	lsr.b	#$01,d0
-	cmp.b	#$5B,(a0)
+	OPT		O2+
+	cmp.b	#Object_HealWand,ChampionPocket_LeftHand(a0)
+	OPT		O2-
 	beq.s	HitPointRecovery_AddToCurrentHP
-	cmp.b	#$5B,$0001(a0)
+	cmp.b	#Object_HealWand,ChampionPocket_RightHand(a0)
 	beq.s	HitPointRecovery_AddToCurrentHP
 	lsr.b	#$01,d0
 HitPointRecovery_AddToCurrentHP:		; Memory Address ($0E8A) and binary offset [$0B06]
 	addq.b	#$01,d0
-	add.b	$0005(a4),d0
+	add.b	ChampionStat_HitPointsCurrent(a4),d0
 	bcc.s	Clamp_AIProgressToMaximum
 	moveq	#-$01,d0
 Clamp_AIProgressToMaximum:		; Memory Address ($0E94) and binary offset [$0B10]
 	; Caps the newly accumulated progress byte at the record-specific maximum in
 	; byte $06, then stores it in byte $05.
-	cmp.b	$0006(a4),d0
+	cmp.b	ChampionStat_HitPointsMaximum(a4),d0
 	bcs.s	ClampAIProgressToMaximum_StoreHP
-	move.b	$0006(a4),d0
+	move.b	ChampionStat_HitPointsMaximum(a4),d0
 ClampAIProgressToMaximum_StoreHP:		; Memory Address ($0E9E) and binary offset [$0B1A]
-	move.b	d0,$0005(a4)
-	tst.b	$0007(a4)
+	move.b	d0,ChampionStat_HitPointsCurrent(a4)
+	tst.b	ChampionStat_VitalityCurrent(a4)
 	bne.s	Update_ChampionFoodAndVitality
 	movem.l	d7/a4/a5,-(sp)
 	bsr		RandomGen_BytewithOffset
@@ -1035,22 +1045,22 @@ StarvationCheck_RestoreRegsAndContinue:		; Memory Address ($0ECA) and binary off
 Update_ChampionFoodAndVitality:		; Memory Address ($0ECE) and binary offset [$0B4A]
 	; Recovers vitality according to food level or decrements vitality while
 	; starving.
-	move.b	$0010(a4),d0
+	move.b	ChampionStat_FoodLevel(a4),d0
 	bne.s	FoodAndVitality_RecoverFromFood
-	subq.b	#$01,$0007(a4)
+	subq.b	#$01,ChampionStat_VitalityCurrent(a4)
 	bcc.s	UpdateChampionFoodAndVitality_Return
-	clr.b	$0007(a4)
+	clr.b	ChampionStat_VitalityCurrent(a4)
 	bra.s	UpdateChampionFoodAndVitality_Return
 
 FoodAndVitality_RecoverFromFood:		; Memory Address ($0EE0) and binary offset [$0B5C]
 	lsr.b	#$06,d0
 	addq.b	#$01,d0
-	add.b	$0007(a4),d0
-	cmp.b	$0008(a4),d0
+	add.b	ChampionStat_VitalityCurrent(a4),d0
+	cmp.b	ChampionStat_VitalityMaximum(a4),d0
 	bcs.s	FoodAndVitality_StoreClampedVitality
-	move.b	$0008(a4),d0
+	move.b	ChampionStat_VitalityMaximum(a4),d0
 FoodAndVitality_StoreClampedVitality:		; Memory Address ($0EF2) and binary offset [$0B6E]
-	move.b	d0,$0007(a4)
+	move.b	d0,ChampionStat_VitalityCurrent(a4)
 UpdateChampionFoodAndVitality_Return:		; Memory Address ($0EF6) and binary offset [$0B72]
 	rts		
 
@@ -1058,12 +1068,12 @@ Stat_UpdateLoop:		; Memory Address ($0EF8) and binary offset [$0B74]
 	; Runs the slow global cycle for champion regeneration, party food drain, and
 	; worn-spell decay.
 	lea		Character_Stats_DataTable.l,a4
-	moveq	#$0F,d7
+	moveq	#Champion_Count-1,d7
 StatUpdateLoop_PerChampionLoop:		; Memory Address ($0F00) and binary offset [$0B7C]
 	movem.l	d7/a4,-(sp)
 	bsr		Update_ChampionStatRegeneration
 	movem.l	(sp)+,d7/a4
-	add.w	#$0020,a4
+	add.w	#ChampionStat_RecordSize,a4
 	dbra	d7,StatUpdateLoop_PerChampionLoop
 	subq.b	#$01,WornSpellDecayGraceCountdown.l
 	lea		Player1_Data.l,a5
@@ -1098,18 +1108,18 @@ DrainPartyFoodLevel_SlotLoop:		; Memory Address ($0F4C) and binary offset [$0BC8
 	bne.s	Process_ChampionWornSpellTimer
 	cmpi.b	#$0B,d1
 	beq.s	Process_ChampionWornSpellTimer
-	subq.b	#$01,$0010(a4)
+	subq.b	#$01,ChampionStat_FoodLevel(a4)
 	bcc.s	Process_ChampionWornSpellTimer
-	clr.b	$0010(a4)
+	clr.b	ChampionStat_FoodLevel(a4)
 Process_ChampionWornSpellTimer:		; Memory Address ($0F80) and binary offset [$0BFC]
 	; Ages the champion's worn-spell timer and records shield-slot redraws when it
 	; expires.
-	move.b	$0011(a4),d0
+	move.b	ChampionStat_WornSpell(a4),d0
 	and.w	#$0007,d0
 	beq.s	DrainPartyFoodLevel_SlotLoopTail
-	subq.b	#$08,$0011(a4)
+	subq.b	#$08,ChampionStat_WornSpell(a4)
 	bcc.s	DrainPartyFoodLevel_SlotLoopTail
-	clr.b	$0011(a4)
+	clr.b	ChampionStat_WornSpell(a4)
 	tst.w	d7
 	bne.s	TeamAvatarUpdateLoop_CheckSlotBit
 	addq.b	#$01,d6
@@ -1166,15 +1176,15 @@ FloorTriggerHandler_SlotLoop:		; Memory Address ($100E) and binary offset [$0C8A
 	bne.s	FloorTriggerHandler_SlotLoopTail
 	move.b	$18(a5,d7.w),d0
 	bsr		Load_ChampionStatRecord
-	subq.b	#$06,$0015(a4)
+	subq.b	#$06,ChampionStat_SpellCooldown(a4)
 	bcc.s	FloorTriggerHandler_ApplyRegeneration
-	clr.b	$0015(a4)
+	clr.b	ChampionStat_SpellCooldown(a4)
 FloorTriggerHandler_ApplyRegeneration:		; Memory Address ($102A) and binary offset [$0CA6]
 	movem.l	d7/a5,-(sp)
 	bsr		Update_ChampionStatRegeneration
 	tst.w	FloorTriggerDetectedFlag.l
 	beq.s	FloorTriggerHandler_RestoreLoopRegs
-	subq.b	#$01,$0009(a4)
+	subq.b	#$01,ChampionStat_SpellPointsCurrent(a4)
 	bsr		Update_ChampionStatRegeneration
 FloorTriggerHandler_RestoreLoopRegs:		; Memory Address ($1042) and binary offset [$0CBE]
 	movem.l	(sp)+,d7/a5
@@ -1199,14 +1209,14 @@ Decay_CastingFatigue:		; Memory Address ($1064) and binary offset [$0CE0]
 	subq.b	#$01,CastingFatigueSubcycleCountdown.l
 	bpl.s	PeriodicTick_SharedEarlyReturn
 	move.b	#$07,CastingFatigueSubcycleCountdown.l
-	moveq	#$0F,d7
+	moveq	#Champion_Count-1,d7
 	lea		Character_Stats_DataTable.l,a4
 DecayCastingFatigue_ChampionLoop:		; Memory Address ($107C) and binary offset [$0CF8]
-	subq.b	#$01,$0015(a4)
+	subq.b	#$01,ChampionStat_SpellCooldown(a4)
 	bcc.s	DecayCastingFatigue_AdvanceRecord
-	clr.b	$0015(a4)
+	clr.b	ChampionStat_SpellCooldown(a4)
 DecayCastingFatigue_AdvanceRecord:		; Memory Address ($1086) and binary offset [$0D02]
-	add.w	#$0020,a4
+	add.w	#ChampionStat_RecordSize,a4
 	dbra	d7,DecayCastingFatigue_ChampionLoop
 PeriodicTick_SharedEarlyReturn:		; Memory Address ($108E) and binary offset [$0D0A]
 	rts		
@@ -1240,7 +1250,7 @@ MaintainMonsterGroupFormation_MemberLoopTail:		; Memory Address ($10CA) and bina
 	tst.w	d4
 	bne.s	MaintainMonsterGroupFormation_TestGroupFlags
 	move.b	#MonsterRecord_NoTeamGroup,MonsterRecord_TeamGroupIndex(a3,d5.w)
-	move.b	MonsterRecord_RotationAndSpace(a3,d5.w),d4
+	move.b	ActorRecord_RotationAndSpace(a3,d5.w),d4
 	and.w	#$0003,d4
 	move.w	d4,d2
 	asl.w	#$04,d4
@@ -1286,11 +1296,11 @@ MaintainMonsterGroupFormation_RelocateRecord:		; Memory Address ($1132) and bina
 	beq.s	MaintainMonsterGroupFormation_AdvanceEntry
 	move.b	(a0),d3
 	asl.w	#$04,d3
-	move.b	MonsterRecord_XPosition(a3,d5.w),MonsterRecord_XPosition(a3,d3.w)
-	move.b	MonsterRecord_YPosition(a3,d5.w),MonsterRecord_YPosition(a3,d3.w)
-	move.b	MonsterRecord_Floor(a3,d5.w),MonsterRecord_Floor(a3,d3.w)
+	move.b	ActorRecord_XPosition(a3,d5.w),ActorRecord_XPosition(a3,d3.w)
+	move.b	ActorRecord_YPosition(a3,d5.w),ActorRecord_YPosition(a3,d3.w)
+	move.b	ActorRecord_Floor(a3,d5.w),ActorRecord_Floor(a3,d3.w)
 	move.b	#$FF,$00(a3,d5.w)
-	move.b	MonsterRecord_RotationAndSpace(a3,d5.w),MonsterRecord_RotationAndSpace(a3,d3.w)
+	move.b	ActorRecord_RotationAndSpace(a3,d5.w),ActorRecord_RotationAndSpace(a3,d3.w)
 	move.b	MonsterRecord_TeamGroupIndex(a3,d5.w),MonsterRecord_TeamGroupIndex(a3,d3.w)
 	move.b	#MonsterRecord_NoTeamGroup,MonsterRecord_TeamGroupIndex(a3,d5.w)
 MaintainMonsterGroupFormation_AdvanceEntry:		; Memory Address ($116C) and binary offset [$0DE8]
@@ -1664,7 +1674,7 @@ Test_LevelResistanceRoll_FromPointer_TailJump:		; Memory Address ($1508) and bin
 Begin_MonsterAttackBehaviour:		; Memory Address ($150C) and binary offset [$1188]
 	; Loads the live monster form and enters special-form or ordinary attack
 	; processing.
-	move.b	MonsterRecord_Form(a4),d2
+	move.b	ActorRecord_Form(a4),d2
 	bmi		Handle_SpecialMonsterFormMovement
 	cmpi.b	#$40,d2
 	beq.s	Normalise_MonsterFacingState
@@ -1710,7 +1720,7 @@ Dispatch_MonsterActionState:		; Memory Address ($153A) and binary offset [$11B6]
 Select_MonsterAttackType:		; Memory Address ($1596) and binary offset [$1212]
 	; Dispatches live monster type byte $0A through the five-entry attack-type
 	; table.
-	move.b	MonsterRecord_Type(a4),d1											;Loads the live monster attack-type index.
+	move.b	ActorRecord_BehaviourType(a4),d1									;Loads the live monster attack-type index.
 	add.w	d1,d1																;Converts the attack-type index into a word-table byte offset.
 	lea		AttackType_NoSpells.l,a1
 	lea		MonsterAttackTypeTable.l,a0
@@ -1750,7 +1760,7 @@ Select_MonsterAttackSpell:		; Memory Address ($15E0) and binary offset [$125C]
 	; monsters toward earlier entries.
 	bsr		RandomGen_BytewithOffset
 	and.w	#MonsterAttackSpell_IndexMask,d0
-	move.b	MonsterRecord_BaseLevel(a4),d3										;Uses the monster's base level as the spell-power seed.
+	move.b	MonsterRecord_EffectiveLevel(a4),d3									;Uses the monster's base level as the spell-power seed.
 	and.w	#$007F,d3
 	cmpi.b	#$08,d3
 	bcc.s	Create_MonsterAttackSpell
@@ -1780,18 +1790,18 @@ Create_MonsterAttackSpell:		; Memory Address ($1608) and binary offset [$1284]
 Initialise_MonsterAttackSpellEntity:		; Memory Address ($162C) and binary offset [$12A8]
 	; Packs the live monster's facing, floor and X/Y position and calls the common
 	; live-entity constructor.
-	move.b	MonsterRecord_RotationAndSpace(a4),d0								;Loads the casting monster's facing from the live record.
+	move.b	ActorRecord_RotationAndSpace(a4),d0									;Loads the casting monster's facing from the live record.
 	and.w	#$0003,d0
 	move.w	d0,d6
 	swap	d6
 	move.w	d0,d6
 	moveq	#$00,d5
-	move.b	MonsterRecord_Floor(a4),d5											;Passes the caster's floor to the shared live spell-entity constructor.
+	move.b	ActorRecord_Floor(a4),d5											;Passes the caster's floor to the shared live spell-entity constructor.
 	moveq	#$00,d7
-	move.b	MonsterRecord_XPosition(a4),d7
+	move.b	ActorRecord_XPosition(a4),d7
 	swap	d7
-	move.b	MonsterRecord_YPosition(a4),d7
-	move.b	#MonsterActionState_CastingSpell,MonsterRecord_ActionState(a4)		;Marks the monster as having launched a spell before allocating the projectile.
+	move.b	ActorRecord_YPosition(a4),d7
+	move.b	#CharacterActionState_MonsterSpellStart,ActorRecord_ActionState(a4)	;Marks the monster as having launched a spell before allocating the projectile.
 	move.l	a4,-(sp)
 	move.b	#$FF,SpellEntity_CasterIndex.l
 	bsr		SpellEntity_CheckPlacement
@@ -1809,7 +1819,7 @@ AttackType_NoSpells:		; Memory Address ($166A) and binary offset [$12E6]
 	; Begins pursuit logic by measuring the monster against the first fixed player
 	; origin when the floor matches.
 	moveq	#-$01,d2															;Initialises the first fixed-origin distance as unavailable.
-	move.b	MonsterRecord_Floor(a4),d1
+	move.b	ActorRecord_Floor(a4),d1
 	cmp.b	AttackTypeNoSpells_FixedOriginFormCode.l,d1
 	bne.s	Check_SecondFixedMonsterOrigin
 	move.l	AttackTypeNoSpells_FixedOriginPosition.l,d0
@@ -1820,7 +1830,7 @@ Check_SecondFixedMonsterOrigin:		; Memory Address ($1684) and binary offset [$13
 	; shared logic, not the Arc Bolt machine entry.
 	move.w	d2,d3																;Preserves the first fixed-origin distance while checking the second origin.
 	moveq	#-$01,d2
-	move.b	MonsterRecord_Floor(a4),d1
+	move.b	ActorRecord_Floor(a4),d1
 	cmp.b	AttackTypeArcBoltMachine_FixedOriginFormCode.l,d1
 	bne.s	Choose_MonsterNavigationMap
 	move.l	AttackTypeArcBoltMachine_FixedOriginPosition.l,d0
@@ -2133,7 +2143,7 @@ CheckMonsterHeldObject:		; Memory Address ($1982) and binary offset [$15FE]
 CheckMonsterHeldObjectByLevel:		; Memory Address ($1984) and binary offset [$1600]
 	; Routes ordinary monsters to team/melee handling and airborne entities to
 	; held-object or worn-spell handling.
-	move.b	MonsterRecord_Form(a4),d0											;Loads the live monster form/graphic identifier into d0.
+	move.b	ActorRecord_Form(a4),d0												;Loads the live monster form/graphic identifier into d0.
 	bpl		Attack_TargetMonsterTeam											;Skips special held-object processing for a non-negative, ordinary monster form.
 	cmpi.b	#$10,d1																;Checks whether the caller's level or interaction value is below the special-processing threshold $10.
 	bcs.s	Resolve_MonsterHeldObjectTarget										;Enters the carried-object resolution path for values below the threshold.
@@ -2170,11 +2180,11 @@ Check_TargetWornSpell:		; Memory Address ($19C6) and binary offset [$1642]
 	move.l	a4,a2																;Preserves the live monster pointer in a2 while a4 is temporarily used for the champion record.
 	bsr		Load_ChampionStatRecord												;Loads the selected champion's stat record into a4.
 	exg		a4,a2																;Swaps a4 and a2 so a4 again addresses the monster and a2 addresses the selected champion.
-	move.b	$0011(a2),d0														;Reads the selected champion's worn-spell field.
+	move.b	ChampionStat_WornSpell(a2),d0										;Reads the selected champion's worn-spell field.
 	and.w	#$0007,d0															;Masks the spell field to its low three-bit spell code.
 	subq.w	#$01,d0																;Normalises the spell code around the first spell entry before testing the required spell.
 	bne.s	Attack_TargetMonsterTeam											;Skips the special action when the selected champion is not wearing the required spell.
-	move.b	#$01,$0011(a2)														;Sets the selected champion's worn-spell field to the required spell code.
+	move.b	#$01,ChampionStat_WornSpell(a2)										;Sets the selected champion's worn-spell field to the required spell code.
 	moveq	#$00,d7																;Clears d7 before assembling the monster's map coordinate.
 	move.b	$0000(a4),d7														;Loads the monster X coordinate into the high-byte staging register d7.
 	swap	d7																	;Moves the X coordinate into the high word so Y can be appended.
@@ -2689,22 +2699,22 @@ AirborneSpell_HalveStat_SharedReturn:		; Memory Address ($1EDA) and binary offse
 Apply_SpelltapEffect:		; Memory Address ($1EDC) and binary offset [$1B58]
 	; Clears worn magic, rolls resistance, drains spell points, and adds the drain
 	; to casting fatigue with a cap of 100.
-	clr.b	$0011(a1)
+	clr.b	ChampionStat_WornSpell(a1)											;Clears the champion's worn-spell effect before applying Spelltap resistance and drain.
 	move.w	ResistanceCheckPower.l,d5
 	bsr		Resolve_LevelResistanceRoll
-	move.b	$0009(a1),d1
+	move.b	ChampionStat_SpellPointsCurrent(a1),d1
 	sub.b	d5,d1
 	bcc.s	SpelltapEffect_ClampSPAtZero
 	moveq	#$00,d1
 SpelltapEffect_ClampSPAtZero:		; Memory Address ($1EF4) and binary offset [$1B70]
-	move.b	d1,$0009(a1)
-	move.b	$0015(a1),d1
+	move.b	d1,ChampionStat_SpellPointsCurrent(a1)
+	move.b	ChampionStat_SpellCooldown(a1),d1
 	add.b	d5,d1
 	cmpi.b	#$64,d1
 	bcs.s	SpelltapEffect_ClampFatigueAt100
 	moveq	#$64,d1
 SpelltapEffect_ClampFatigueAt100:		; Memory Address ($1F06) and binary offset [$1B82]
-	move.b	d1,$0015(a1)
+	move.b	d1,ChampionStat_SpellCooldown(a1)
 	rts		
 
 SpelltapEffect_ApplyToWholeParty_Begin:		; Memory Address ($1F0C) and binary offset [$1B88]
@@ -2740,25 +2750,25 @@ Comms_ApplyThreatFear:		; Memory Address ($1F50) and binary offset [$1BCC]
 	; Clears the target's speed nibble, applies Confuse, then converts the same
 	; champion or monster status byte from Confuse to Terror; dormant monsters
 	; receive no status conversion.
-	moveq	#$19,d4
+	moveq	#ChampionStat_ActionCycleTimer,d4
 	tst.b	d0
 	bmi.s	ThreatFear_SharedReturn
 	cmpi.b	#$10,d0
 	bcs.s	ThreatFear_ConvertConfuseBitToTerror
-	moveq	#$03,d4
+	moveq	#MonsterRecord_ActionCycleTimer,d4
 ThreatFear_ConvertConfuseBitToTerror:		; Memory Address ($1F5E) and binary offset [$1BDA]
-	and.b	#$F0,$00(a1,d4.w)
+	and.b	#CharacterActionTimer_ReloadMask,$00(a1,d4.w)
 	bsr		Apply_ConfuseEffect
-	bclr	#$06,$03(a1,d4.w)
+	bclr	#CharacterActionState_ConfuseBit,CharacterState_ActionStateFromFacingOffset(a1,d4.w)
 	beq.s	ThreatFear_SharedReturn
-	bset	#$05,$03(a1,d4.w)
+	bset	#CharacterActionState_TerrorBit,CharacterState_ActionStateFromFacingOffset(a1,d4.w)
 ThreatFear_SharedReturn:		; Memory Address ($1F76) and binary offset [$1BF2]
 	rts		
 
 AirborneSpell_ResolveOccupantForParalyze:		; Memory Address ($1F78) and binary offset [$1BF4]
 	bsr		Resolve_DiagonalCellAndFindOccupant
 	bcc.s	ParalyzeEffect_SharedReturn
-	moveq	#$16,d4
+	moveq	#CharacterState_ChampionRecordBias,d4
 	tst.b	d0
 	bmi.s	ParalyzeEffect_ApplyToWholeParty_Begin
 	cmpi.b	#$10,d0
@@ -2770,8 +2780,8 @@ Apply_ParalyzeEffect:		; Memory Address ($1F8C) and binary offset [$1C08]
 	bsr		Test_LevelResistanceRoll
 	tst.w	d5
 	beq.s	ParalyzeEffect_SharedReturn
-	bset	#$07,$05(a1,d4.w)
-	or.b	#$0F,$03(a1,d4.w)
+	bset	#CharacterActionState_ParalyzeBit,ActorRecord_ActionState(a1,d4.w)	;Sets Paralyse in the action-state byte selected for either a monster or champion record.
+	or.b	#CharacterActionTimer_MaxCountdown,MonsterRecord_ActionCycleTimer(a1,d4.w)	;Forces the matching monster or champion action-cycle countdown to its maximum without changing the reload nibble.
 ParalyzeEffect_SharedReturn:		; Memory Address ($1FA0) and binary offset [$1C1C]
 	rts		
 
@@ -2846,7 +2856,7 @@ Seed_DisruptDamage_EarlyReturn:		; Memory Address ($203E) and binary offset [$1C
 
 Seed_DisruptDamage_ChampionHP:		; Memory Address ($2040) and binary offset [$1CBC]
 	clr.w	d5
-	move.b	$0005(a1),d5
+	move.b	ChampionStat_HitPointsCurrent(a1),d5
 	addq.b	#$01,d5
 	rts		
 
@@ -2865,7 +2875,7 @@ Seed_DisruptDamage_PartyLoopHead:		; Memory Address ($2060) and binary offset [$
 	bne.s	Seed_DisruptDamage_PartyLoopSkip
 	move.b	$18(a1,d7.w),d0
 	bsr		Load_ChampionStatRecord
-	move.b	$0005(a4),$00(a0,d7.w)
+	move.b	ChampionStat_HitPointsCurrent(a4),$00(a0,d7.w)
 	addq.b	#$01,$00(a0,d7.w)
 Seed_DisruptDamage_PartyLoopSkip:		; Memory Address ($207E) and binary offset [$1CFA]
 	dbra	d7,Seed_DisruptDamage_PartyLoopHead
@@ -2881,19 +2891,19 @@ Apply_ConfuseEffect:		; Memory Address ($208C) and binary offset [$1D08]
 	; Confuse flag.
 	tst.b	d0
 	bmi.s	ConfuseEffect_PlayerFacingDispatch
-	moveq	#$18,d4
+	moveq	#CharacterState_ChampionRecordBias+ActorRecord_RotationAndSpace,d4
 	cmpi.b	#$10,d0
 	bcs.s	ConfuseEffect_ApplyFacingChange
 	tst.b	$000B(a1)
 	bmi.s	ConfuseFacingRoll_NoChangeReturn
-	moveq	#$02,d4
+	moveq	#ActorRecord_RotationAndSpace,d4
 ConfuseEffect_ApplyFacingChange:		; Memory Address ($20A0) and binary offset [$1D1C]
 	move.b	$00(a1,d4.w),d7
 	bsr.s	Resolve_ConfuseFacingRoll
 	cmp.b	$00(a1,d4.w),d7
 	beq.s	ConfuseFacingRoll_NoChangeReturn
 	move.b	d7,$00(a1,d4.w)
-	bset	#$06,$03(a1,d4.w)
+	bset	#CharacterActionState_ConfuseBit,CharacterState_ActionStateFromFacingOffset(a1,d4.w)
 	rts		
 
 Resolve_ConfuseFacingRoll:		; Memory Address ($20B8) and binary offset [$1D34]
@@ -2961,7 +2971,9 @@ Load_ChampionLevelForResistanceRoll:		; Memory Address ($2128) and binary offset
 	; Loads a champion level and joins the shared resistance-threshold and
 	; random-roll calculation.
 	moveq	#$00,d2
-	move.b	(a1),d2
+	OPT		O2+
+	move.b	ChampionStat_Level(a1),d2
+	OPT		O2-
 	bra.s	ResistanceRoll_ComputeThreshold
 
 Dispatch_AntimageResistancePasses:		; Memory Address ($212E) and binary offset [$1DAA]
@@ -3021,9 +3033,9 @@ Award_MonsterDamageExperienceAndKillBonus:		; Memory Address ($2194) and binary 
 	cmpi.b	#$10,d0
 	bcc.s	Run_AntimageResistancePass_Return
 	bsr		Load_ChampionStatRecord
-	cmp.b	#$EC,$001C(a4)
+	cmp.b	#$EC,ChampionStat_LevelProgress(a4)
 	bcc.s	KillExperience_OwnerPartyXPEntry
-	move.w	$001C(a4),d2
+	move.w	$001C(a4),d2														;Reads the packed LevelProgress/XPToNextLevel word beginning at ChampionStat_LevelProgress.
 	move.w	d5,d1
 	cmp.w	$0008(a1),d1
 	bcs.s	KillExperience_ApplySoloHalving
@@ -3043,7 +3055,7 @@ KillExperience_LowLevelDoubleXP:		; Memory Address ($21D6) and binary offset [$1
 	bcc.s	KillExperience_StoreAndGrantFairy
 	sub.w	d1,d2
 KillExperience_StoreAndGrantFairy:		; Memory Address ($21E4) and binary offset [$1E60]
-	move.w	d2,$001C(a4)
+	move.w	d2,$001C(a4)														;Stores the updated packed LevelProgress/XPToNextLevel word.
 	bsr		Mark_PendingFairySpellOffer
 KillExperience_OwnerPartyXPEntry:		; Memory Address ($21EC) and binary offset [$1E68]
 	move.l	a5,a2
@@ -3065,22 +3077,24 @@ KillExperience_OwnerPartyXPLoopHead:		; Memory Address ($2214) and binary offset
 	bne.s	KillExperience_OwnerPartyXPLoopSkip
 	move.b	$18(a2,d7.w),d0
 	bsr		Load_ChampionStatRecord
-	move.b	$001C(a4),d0
+	move.b	ChampionStat_LevelProgress(a4),d0
 	cmpi.b	#$EC,d0
 	bcc.s	KillExperience_OwnerPartyXPLoopSkip
 	moveq	#$00,d2
 	move.b	d1,d2
-	sub.b	(a4),d2
+	OPT		O2+
+	sub.b	ChampionStat_Level(a4),d2
+	OPT		O2-
 	addq.b	#$02,d2
 	bmi.s	KillExperience_OwnerPartyXPLoopSkip
 	asl.w	#$07,d2
-	move.w	$001C(a4),d0
+	move.w	$001C(a4),d0														;Reads the packed LevelProgress/XPToNextLevel word for the party kill bonus.
 	tst.w	MultiPlayer.l
 	bne.s	KillExperience_OwnerXPSubtractMerge
 	add.w	d2,d2
 KillExperience_OwnerXPSubtractMerge:		; Memory Address ($224A) and binary offset [$1EC6]
 	sub.w	d2,d0
-	move.w	d0,$001C(a4)
+	move.w	d0,$001C(a4)														;Stores the party champion's updated packed LevelProgress/XPToNextLevel word.
 	bsr.s	Mark_PendingFairySpellOffer
 KillExperience_OwnerPartyXPLoopSkip:		; Memory Address ($2252) and binary offset [$1ECE]
 	dbra	d7,KillExperience_OwnerPartyXPLoopHead
@@ -3091,14 +3105,16 @@ Mark_PendingFairySpellOffer:		; Memory Address ($2258) and binary offset [$1ED4]
 	; For a champion at least halfway to the next level and without an existing
 	; pending offer, marks a fairy-spell offer with $81; professions 1-2 always
 	; qualify, while professions 0 and 3 qualify only at even levels.
-	tst.b	$001E(a4)
+	tst.b	ChampionStat_FairySpellCount(a4)
 	bmi.s	Grant_PendingFairySpellFlag_Return
 	moveq	#$00,d2
-	move.b	(a4),d2
+	OPT		O2+
+	move.b	ChampionStat_Level(a4),d2
+	OPT		O2-
 	lea		LevelUpXPThresholdTable.l,a0
 	move.b	$00(a0,d2.w),d3
 	lsr.b	#$01,d3
-	cmp.b	$001C(a4),d3
+	cmp.b	ChampionStat_LevelProgress(a4),d3
 	bcs.s	Grant_PendingFairySpellFlag_Return
 	move.l	a4,d3
 	sub.l	#Character_Stats_DataTable,d3
@@ -3111,7 +3127,7 @@ FairySpellGrant_EvenLevelCheck:		; Memory Address ($228A) and binary offset [$1F
 	btst	#$00,d2
 	bne.s	Grant_PendingFairySpellFlag_Return
 FairySpellFlag_MarkPending:		; Memory Address ($2290) and binary offset [$1F0C]
-	add.b	#$81,$001E(a4)
+	add.b	#$81,ChampionStat_FairySpellCount(a4)
 Grant_PendingFairySpellFlag_Return:		; Memory Address ($2296) and binary offset [$1F12]
 	rts		
 
@@ -3689,8 +3705,8 @@ Remove_MonsterRecord:		; Memory Address ($27E0) and binary offset [$245C]
 	; the remaining array, and clears the vacated final record.
 	move.l	a4,d0
 	sub.l	#UnpackedMonsters,d0
-	lsr.w	#MonsterRecord_SizeShift,d0
-	add.w	#MonsterRecord_Size,d0
+	lsr.w	#ActorRecord_SizeShift,d0
+	add.w	#ActorRecord_Size,d0
 	bra.s	RemoveMonsterRecord_BeginCompaction
 
 Despawn_MonsterAndClearMapCell:		; Memory Address ($27F0) and binary offset [$246C]
@@ -3700,12 +3716,12 @@ Despawn_MonsterAndClearMapCell:		; Memory Address ($27F0) and binary offset [$24
 RemoveMonsterRecord_BeginCompaction:		; Memory Address ($27F6) and binary offset [$2472]
 	bsr.s	Cleanup_MonsterReferencesAfterRemoval
 	lea		UnpackedMonsters.l,a2
-	move.w	MonsterLive_RecordCountOffset(a2),d2
-	subq.w	#$01,MonsterLive_RecordCountOffset(a2)
+	move.w	LiveActorRecord_CountOffset(a2),d2
+	subq.w	#$01,LiveActorRecord_CountOffset(a2)
 	sub.w	d0,d2
-	asl.w	#MonsterRecord_SizeShift,d0
+	asl.w	#ActorRecord_SizeShift,d0
 	lea		$00(a2,d0.w),a2
-	lea		MonsterRecord_Size(a2),a3
+	lea		ActorRecord_Size(a2),a3
 	bra.s	RemoveMonsterRecord_CopyLoopCheck
 
 RemoveMonsterRecord_CompactionCopyLoop:		; Memory Address ($2814) and binary offset [$2490]
@@ -3745,7 +3761,7 @@ Cleanup_MonsterReferencesAfterRemoval:		; Memory Address ($2848) and binary offs
 	bsr.s	Adjust_PlayerTargetIndexAfterRemoval
 	lea		Player2_Data.l,a0
 	bsr.s	Adjust_PlayerTargetIndexAfterRemoval
-	sub.w	#MonsterRecord_Size,d0
+	sub.w	#ActorRecord_Size,d0
 	lea		MonsterTeamIndexTable.l,a0
 	move.w	MonsterTeamIndexTable_CountOffset(a0),d2
 	bmi.s	MonsterRemoval_SharedReturn
@@ -3778,7 +3794,7 @@ AdjustMonsterTeamMemberIndex_LoopTail:		; Memory Address ($2896) and binary offs
 	tst.w	d2
 	beq.s	MonsterGroupCleanup_AdvanceAndReturn
 	lea		UnpackedMonsters.l,a2
-	asl.w	#MonsterRecord_SizeShift,d0
+	asl.w	#ActorRecord_SizeShift,d0
 	tst.b	$0D(a2,d0.w)
 	bmi.s	MonsterGroupCleanup_AdvanceAndReturn
 	moveq	#MonsterTeamMember_Count-1,d3
@@ -3800,13 +3816,13 @@ MonsterGroupCleanup_PromoteReplacementMember:		; Memory Address ($28BC) and bina
 MonsterGroupCleanup_CopyToReplacement:		; Memory Address ($28D0) and binary offset [$254C]
 	lea		$00(a2,d3.w),a3
 	lea		$00(a2,d0.w),a2
-	move.b	MonsterRecord_XPosition(a2),MonsterRecord_XPosition(a3)
-	move.b	MonsterRecord_YPosition(a2),MonsterRecord_YPosition(a3)
-	move.b	MonsterRecord_Floor(a2),MonsterRecord_Floor(a3)
-	move.b	MonsterRecord_RotationAndSpace(a2),MonsterRecord_RotationAndSpace(a3)
+	move.b	ActorRecord_XPosition(a2),ActorRecord_XPosition(a3)
+	move.b	ActorRecord_YPosition(a2),ActorRecord_YPosition(a3)
+	move.b	ActorRecord_Floor(a2),ActorRecord_Floor(a3)
+	move.b	ActorRecord_RotationAndSpace(a2),ActorRecord_RotationAndSpace(a3)
 	move.b	MonsterRecord_TeamGroupIndex(a2),MonsterRecord_TeamGroupIndex(a3)
 	move.b	#MonsterRecord_NoTeamGroup,MonsterRecord_TeamGroupIndex(a2)
-	move.b	#MonsterRecord_NoPosition,MonsterRecord_XPosition(a2)
+	move.b	#ActorRecord_NoPosition,ActorRecord_XPosition(a2)
 	bra.s	MonsterGroupCleanup_AdvanceAndReturn
 
 Run_PlayerPeriodicMaintenance:		; Memory Address ($2904) and binary offset [$2580]
@@ -3858,7 +3874,7 @@ Decrement_CharacterTimerLowBits:		; Memory Address ($2972) and binary offset [$2
 	; bits.
 	move.b	d0,d1
 	bmi.s	CharacterTimer_DecrementReturn
-	and.w	#$0007,d1
+	and.w	#CharacterActionState_CountdownMask,d1
 	subq.b	#$01,d0
 	subq.w	#$01,d1
 	bcc.s	CharacterTimer_DecrementReturn
@@ -3869,23 +3885,23 @@ CharacterTimer_DecrementReturn:		; Memory Address ($2982) and binary offset [$25
 Update_CharacterAttackCooldown:		; Memory Address ($2984) and binary offset [$2600]
 	; Updates the physical-attack cooldown stored at champion byte $1B while
 	; preserving bit 5.
-	move.b	$001B(a4),d0
+	move.b	ChampionStat_ActionState(a4),d0
 	bsr.s	Decrement_CharacterTimerLowBits
-	move.b	$001B(a4),d1
-	and.b	#$20,d1
+	move.b	ChampionStat_ActionState(a4),d1
+	and.b	#1<<CharacterActionState_TerrorBit,d1
 	or.b	d1,d0
-	move.b	d0,$001B(a4)
+	move.b	d0,ChampionStat_ActionState(a4)
 	rts		
 
 Update_CharacterActionTimers:		; Memory Address ($299A) and binary offset [$2616]
 	; Updates the champion attack cooldown and general action-speed countdown.
 	bsr.s	Update_CharacterAttackCooldown
-	move.b	$0019(a4),d0
+	move.b	ChampionStat_ActionCycleTimer(a4),d0
 	move.b	d0,d1
-	and.w	#$000F,d1
+	and.w	#CharacterActionTimer_CountdownMask,d1
 	subq.w	#$01,d1
 	bcs.s	Reload_ChampionAttackTimer
-	subq.b	#$01,$0019(a4)
+	subq.b	#$01,ChampionStat_ActionCycleTimer(a4)
 CharacterActionTimer_SharedReturn:		; Memory Address ($29AE) and binary offset [$262A]
 	rts		
 
@@ -3893,11 +3909,11 @@ Reload_ChampionAttackTimer:		; Memory Address ($29B0) and binary offset [$262C]
 	; Reloads the champion's cyclic action timer and dispatches a queued attack
 	; when present.
 	move.b	d0,d1
-	lsr.b	#$04,d1
+	lsr.b	#CharacterActionTimer_ReloadShift,d1
 	or.b	d0,d1
-	move.b	d1,$0019(a4)
+	move.b	d1,ChampionStat_ActionCycleTimer(a4)
 	moveq	#$04,d4
-	bclr	d7,$003C(a5)
+	bclr	d7,PlayerData_PendingAttackSlotFlags(a5)
 	bne		Resolve_ChampionPhysicalAttack
 	move.b	(a5),d0
 	and.w	#$000A,d0
@@ -4037,7 +4053,7 @@ Apply_CutpurseBackstabEligibility:		; Memory Address ($2AF8) and binary offset [
 Execute_PhysicalAttack:		; Memory Address ($2B0A) and binary offset [$2786]
 	; Sets the attack cooldown, resolves physical combat and applies the resulting
 	; damage.
-	move.b	#PhysicalAttack_CooldownInitial,$001B(a4)							;Initial cooldown written whenever a champion performs a physical attack.
+	move.b	#CharacterActionState_PhysicalAttackStart,ChampionStat_ActionState(a4)	;Initial cooldown written whenever a champion performs a physical attack.
 	move.l	a4,-(sp)
 	move.w	d1,-(sp)
 	bsr		Resolve_PhysicalAttack
@@ -5029,7 +5045,7 @@ Comms_StartWithTarget:		; Memory Address ($3402) and binary offset [$307E]
 	; prints the greeting.
 	move.w	d0,d1
 	bsr		Load_CurrentChampionStatRecord
-	move.b	#$17,$001B(a4)
+	move.b	#CharacterActionState_CommunicationStart,ChampionStat_ActionState(a4)
 	move.w	d1,d0
 	bsr		Comms_GetState
 	clr.b	$0006(a4)
@@ -6727,11 +6743,11 @@ Msg_InstertSaveDisk:
 	dc.b	$00	;00
 
 Click_SleepParty:		; Memory Address ($4536) and binary offset [$41B2]
-	move.b	#$03,$004F(a5)
+	move.b	#$03,PlayerData_InteractionPartySlotIndex(a5)
 	clr.w	$0014(a5)
-	move.w	#$FFFF,$0042(a5)
-	move.w	#$FFFF,$0040(a5)
-	move.b	#$FF,$0035(a5)
+	move.w	#$FFFF,PlayerData_PartyCommandState(a5)
+	move.w	#$FFFF,PlayerData_PartyCommandSelection(a5)
+	move.b	#$FF,PlayerData_EngagedActorIndex(a5)
 	moveq	#$03,d7
 Click_SleepParty_ResetSpellStateLoop:		; Memory Address ($4554) and binary offset [$41D0]
 	; Initialises each active new-party member's spell state by clearing the worn
@@ -6741,9 +6757,9 @@ Click_SleepParty_ResetSpellStateLoop:		; Memory Address ($4554) and binary offse
 	bne.s	Click_SleepParty_SkipUnusedSlot
 	move.b	$18(a5,d7.w),d0
 	bsr		Load_ChampionStatRecord
-	clr.b	$0011(a4)
-	move.b	#$FF,$0013(a4)
-	clr.b	$0014(a4)
+	clr.b	ChampionStat_WornSpell(a4)
+	move.b	#$FF,ChampionStat_SpellToCast(a4)
+	clr.b	ChampionStat_SpellPowerBoost(a4)
 Click_SleepParty_SkipUnusedSlot:		; Memory Address ($4574) and binary offset [$41F0]
 	dbra	d7,Click_SleepParty_ResetSpellStateLoop
 	bsr		Draw_PartyCommandInterface
@@ -6751,13 +6767,15 @@ Click_SleepParty_SkipUnusedSlot:		; Memory Address ($4574) and binary offset [$4
 ShowAsleepNotice_ResetPageState:		; Memory Address ($4580) and binary offset [$41FC]
 	bsr		Draw_ViewportMessageFrame
 	and.b	#$01,(a5)
-	bset	#$02,(a5)
-	move.b	#$32,$003F(a5)
-	move.b	#$02,$0014(a5)
-	clr.b	$004E(a5)
-	move.b	#$01,$0052(a5)
-	clr.b	$004A(a5)
-	tst.b	$004B(a5)
+	OPT		O2+
+	bset	#PlayerData_StateFlags_SleepingBit,PlayerData_StateFlags(a5)
+	OPT		O2-
+	move.b	#$32,PlayerData_FairyOfferDelayCountdown(a5)
+	move.b	#$02,PlayerData_InterfaceContextState(a5)
+	clr.b	PlayerData_InteractionSelectionStage(a5)
+	move.b	#$01,PlayerData_DialogueColourState(a5)
+	clr.b	PlayerData_DialogueFadeStepCountdown(a5)
+	tst.b	PlayerData_DialogueFadeRampStep(a5)
 	bmi.s	ShowAsleepNotice_PrintText
 	move.w	#$00FF,$004A(a5)
 ShowAsleepNotice_PrintText:		; Memory Address ($45B2) and binary offset [$422E]
@@ -6841,7 +6859,7 @@ SpellShop_CandidateSpellBitTable:		; Memory Address ($463E) and binary offset [$
 	dc.w	$0C03	;0C03
 
 FairyShop_DispatchByState:		; Memory Address ($465E) and binary offset [$42DA]
-	move.b	$004E(a5),d0
+	move.b	PlayerData_InteractionSelectionStage(a5),d0
 	beq.s	FairyShop_WaitForNoticeTimerExpiry
 	subq.b	#$01,d0
 	beq		FairyShop_HandleClassSelectionClick
@@ -6856,7 +6874,7 @@ FairyShop_WaitForNoticeTimerExpiry:		; Memory Address ($4674) and binary offset 
 	bpl		FairyShop_ResetInterfaceStateOnExit
 	moveq	#$00,d7
 FairyShop_ScanChampionSlotsLoop:		; Memory Address ($4686) and binary offset [$4302]
-	move.b	$004F(a5),d7
+	move.b	PlayerData_InteractionPartySlotIndex(a5),d7
 	bmi		FairyShop_ResetInterfaceStateOnExit
 	move.b	$18(a5,d7.w),d0
 	and.w	#$00E0,d0
@@ -6866,12 +6884,14 @@ FairyShop_ScanChampionSlotsLoop:		; Memory Address ($4686) and binary offset [$4
 	lea		SpellShop_ChampionIndexScratch.l,a6
 	move.b	d0,(a6)
 	bsr		Load_ChampionStatRecord
-	cmp.b	#$EC,$001C(a4)
+	cmp.b	#$EC,ChampionStat_LevelProgress(a4)
 	bcs.s	FairyShop_CheckChampionEligibleCount
-	cmp.b	#$0E,(a4)
+	OPT		O2+
+	cmp.b	#$0E,ChampionStat_Level(a4)
+	OPT		O2-
 	bcs		FairyShop_GrantLevelUp
 FairyShop_CheckChampionEligibleCount:		; Memory Address ($46BC) and binary offset [$4338]
-	move.b	$001E(a4),d0
+	move.b	ChampionStat_FairySpellCount(a4),d0
 	and.w	#$007F,d0
 	bne.s	FairyShop_ShowSpellPickPrompt
 FairyShop_AdvanceToNextChampionSlot:		; Memory Address ($46C6) and binary offset [$4342]
@@ -6947,7 +6967,7 @@ FairyShop_OnClassSelected:		; Memory Address ($4792) and binary offset [$440E]
 	move.b	$004F(a5),d0
 	move.b	$18(a5,d0.w),d0
 	bsr		Load_ChampionStatRecord
-	move.l	$000C(a4),d7
+	move.l	ChampionStat_KnownSpellMask(a4),d7
 	lea		SpellShop_CandidateSpellBitTable.w,a6								;Short Absolute converted to symbol!
 	move.w	(sp),d1
 	asl.w	#$03,d1
@@ -7078,10 +7098,10 @@ FairyShop_ProcessSpellSelectionClick:		; Memory Address ($48AA) and binary offse
 	move.b	$004F(a5),d0
 	move.b	$18(a5,d0.w),d0
 	bsr		Load_ChampionStatRecord
-	move.b	$0044(a5),$0013(a4)
-	clr.b	$0015(a4)
+	move.b	$0044(a5),ChampionStat_SpellToCast(a4)
+	clr.b	ChampionStat_SpellCooldown(a4)
 	bsr		Show_SpellCastPrompt
-	move.b	#$FF,$0013(a4)
+	move.b	#$FF,ChampionStat_SpellToCast(a4)
 	or.b	#$40,$0054(a5)
 	move.b	#$03,$004E(a5)
 FairyShop_StateHandlerReturn:		; Memory Address ($4994) and binary offset [$4610]
@@ -7147,10 +7167,10 @@ FairyShop_DeductSpellCostAndLearn:		; Memory Address ($4A10) and binary offset [
 	move.b	d3,$000C(a4)
 	bsr		Load_ChampionStatRecord
 	eor.b	#$1F,d7
-	move.l	$000C(a4),d0
+	move.l	ChampionStat_KnownSpellMask(a4),d0
 	bset	d7,d0
-	move.l	d0,$000C(a4)
-	subq.b	#$01,$001E(a4)
+	move.l	d0,ChampionStat_KnownSpellMask(a4)
+	subq.b	#$01,ChampionStat_FairySpellCount(a4)
 	subq.b	#$01,$004F(a5)
 	bra		ShowAsleepNotice_ResetPageState
 
@@ -7235,10 +7255,14 @@ LevelUpXPThresholdTable:		; Memory Address ($4B1A) and binary offset [$4796]
 Advance_ChampionLevelAndGrowStats:		; Memory Address ($4B28) and binary offset [$47A4]
 	; Increments champion level, reloads level progress, and applies the dice-based
 	; hit-point and vitality growth.
-	addq.b	#$01,(a4)
+	OPT		O2+
+	addq.b	#$01,ChampionStat_Level(a4)
+	OPT		O2-
 	moveq	#$00,d1
-	move.b	(a4),d1
-	move.b	LevelUpXPThresholdTable(pc,d1.w),$001C(a4)
+	OPT		O2+
+	move.b	ChampionStat_Level(a4),d1
+	OPT		O2-
+	move.b	LevelUpXPThresholdTable(pc,d1.w),ChampionStat_LevelProgress(a4)
 	move.w	d0,d4
 	bsr		RandomGen_BytewithOffset
 	and.w	#$000F,d0
@@ -7248,20 +7272,20 @@ Advance_ChampionLevelAndGrowStats:		; Memory Address ($4B28) and binary offset [
 	lsr.w	#$01,d0
 LevelUp_ComputeHitPointsIncrease:		; Memory Address ($4B48) and binary offset [$47C4]
 	add.w	#$0009,d0
-	add.b	$0006(a4),d0
+	add.b	ChampionStat_HitPointsMaximum(a4),d0
 	bcc.s	LevelUp_StoreClampedHitPoints
 	move.b	#$FD,d0
 LevelUp_StoreClampedHitPoints:		; Memory Address ($4B56) and binary offset [$47D2]
-	move.b	d0,$0006(a4)
+	move.b	d0,ChampionStat_HitPointsMaximum(a4)
 	bsr		RandomGen_BytewithOffset
 	and.w	#$0007,d0
 	addq.w	#$01,d0
-	add.b	$0008(a4),d0
+	add.b	ChampionStat_VitalityMaximum(a4),d0
 	cmpi.w	#$0064,d0
 	bcs.s	LevelUp_StoreClampedVitality
 	moveq	#$63,d0
 LevelUp_StoreClampedVitality:		; Memory Address ($4B70) and binary offset [$47EC]
-	move.b	d0,$0008(a4)
+	move.b	d0,ChampionStat_VitalityMaximum(a4)
 	lea		ChampionLevelUp_StatGrowthDieTable.l,a2
 	move.w	d4,d0
 	and.w	#$0003,d0
@@ -7282,29 +7306,31 @@ LevelUp_RollStandardStatGrowth:		; Memory Address ($4B92) and binary offset [$48
 	lsr.w	#$01,d0
 LevelUp_ApplyStatGrowthRoll:		; Memory Address ($4BA2) and binary offset [$481E]
 	addq.w	#$01,d0
-	add.b	$01(a4,d6.w),d0
+	add.b	$01(a4,d6.w),d0														;D6 walks Charisma, Intelligence, Agility and Strength backwards through ChampionStat offsets $04-$01.
 	cmpi.b	#$64,d0
 	bcs.s	LevelUp_StoreClampedStatGrowth
 	moveq	#$63,d0
 LevelUp_StoreClampedStatGrowth:		; Memory Address ($4BB0) and binary offset [$482C]
-	move.b	d0,$01(a4,d6.w)
+	move.b	d0,$01(a4,d6.w)														;Stores the grown primary statistic selected by D6: Charisma, Intelligence, Agility or Strength.
 	addq.w	#$01,a2
 	dbra	d6,LevelUp_StatGrowthRollLoop
-	bclr	#$07,$001E(a4)
+	bclr	#$07,ChampionStat_FairySpellCount(a4)
 	move.w	d4,d0
 	and.w	#$0003,d4
 	subq.w	#$01,d4
 	bne.s	Recalculate_CharacterDerivedStats
-	addq.b	#$01,$001E(a4)
+	addq.b	#$01,ChampionStat_FairySpellCount(a4)
 Recalculate_CharacterDerivedStats:		; Memory Address ($4BCE) and binary offset [$484A]
 	; Recalculates derived champion values including spell thresholds and the
 	; Level/Agility action-speed reload.
 	bsr		Calculate_SpellPracticeThreshold
 	moveq	#$00,d2
-	move.b	(a4),d2
+	OPT		O2+
+	move.b	ChampionStat_Level(a4),d2
+	OPT		O2-
 	lea		LevelUpXPThresholdTable.w,a6										;Short Absolute converted to symbol!
-	move.b	$00(a6,d2.w),$001C(a4)
-	move.b	$0002(a4),d1
+	move.b	$00(a6,d2.w),ChampionStat_LevelProgress(a4)
+	move.b	ChampionStat_Agility(a4),d1
 	lsr.b	#$04,d1
 	lsr.b	#$01,d2
 	add.b	d2,d1
@@ -7314,8 +7340,8 @@ Recalculate_CharacterDerivedStats:		; Memory Address ($4BCE) and binary offset [
 	bcc.s	Recalculate_ClampAndStoreActionSpeed
 	moveq	#$08,d1
 Recalculate_ClampAndStoreActionSpeed:		; Memory Address ($4BF8) and binary offset [$4874]
-	asl.b	#$04,d1
-	move.b	d1,$0019(a4)
+	asl.b	#CharacterActionTimer_ReloadShift,d1
+	move.b	d1,ChampionStat_ActionCycleTimer(a4)
 	rts		
 
 ChampionLevelUp_StatGrowthDieTable:		; Memory Address ($4C00) and binary offset [$487C]
@@ -7437,9 +7463,9 @@ DispatchPanelMode_PendingAction:		; Memory Address ($4D1A) and binary offset [$4
 Consume_PlayerPendingAction:		; Memory Address ($50B6) and binary offset [$4D32]
 	; Copies PlayerX_Data+$56 into PlayerX_Data+$0C, then clears the pending byte.
 	moveq	#$00,d0
-	move.b	Player_PendingActionOffset(a5),d0									;Offset read when transferring a pending action into the active command.
+	move.b	PlayerData_PendingAction(a5),d0										;Offset read when transferring a pending action into the active command.
 	beq.s	PendingAction_RoutePointerX
-	move.w	d0,Player_ActionCommandOffset(a5)									;Offset of the active per-player interface command.
+	move.w	d0,PlayerData_ActionCommand(a5)										;Offset of the active per-player interface command.
 	clr.b	$0056(a5)
 	cmp.w	#$0004,$0014(a5)
 	bne.s	PendingAction_RoutePointerX
@@ -7592,7 +7618,7 @@ Cast_SelectedChampionSpell:		; Memory Address ($5212) and binary offset [$4E8E]
 CastSpell_ValidateSelection:		; Memory Address ($5224) and binary offset [$4EA0]
 	; Rejects an empty spell selection and closes communication mode before every
 	; spell except Beguile.
-	move.b	$0013(a4),d0														;Loads the selected zero-based spell index; $FF means that no spell is queued.
+	move.b	ChampionStat_SpellToCast(a4),d0										;Loads the selected zero-based spell index; $FF means that no spell is queued.
 	bmi.s	CastSpell_EarlyReturn
 	subq.b	#$03,d0																;Tests spell index 3, Beguile, which is allowed to preserve communication mode.
 	beq.s	CastSpell_ApplyVitalityCost
@@ -7604,22 +7630,22 @@ CastSpell_ValidateSelection:		; Memory Address ($5224) and binary offset [$4EA0]
 CastSpell_ApplyVitalityCost:		; Memory Address ($5242) and binary offset [$4EBE]
 	; Removes four vitality for the cast attempt and clamps the champion's current
 	; vitality to zero.
-	subq.b	#SpellCasting_VitalityCost,$0007(a4)								;Vitality removed when a champion launches a spell.
+	subq.b	#SpellCasting_VitalityCost,ChampionStat_VitalityCurrent(a4)			;Vitality removed when a champion launches a spell.
 	bcc.s	CastSpell_ApplySpellPointCost
-	clr.b	$0007(a4)
+	clr.b	ChampionStat_VitalityCurrent(a4)
 CastSpell_ApplySpellPointCost:		; Memory Address ($524C) and binary offset [$4EC8]
 	; Applies action state, calculates spell-point cost, consumes ring-assisted
 	; casts, and rejects insufficient spell points.
-	move.b	#SpellCasting_ActionCooldown,$001B(a4)								;Applies the champion action cooldown as soon as the cast attempt is committed.
-	clr.b	$0011(a4)															;Removes the champion's currently worn spell before resolving the new cast.
+	move.b	#CharacterActionState_ChampionSpellStart,ChampionStat_ActionState(a4)	;Applies the champion action cooldown as soon as the cast attempt is committed.
+	clr.b	ChampionStat_WornSpell(a4)											;Removes the champion's currently worn spell before resolving the new cast.
 	bsr		Calculate_SpellPointCost											;Calculates the spell-point cost, including ring-based free casting and the champion's power setting.
-	move.b	$0009(a4),d1
+	move.b	ChampionStat_SpellPointsCurrent(a4),d1
 	sub.b	d0,d1																;Subtracts the calculated cost from current spell points; borrow rejects the cast.
 	bcs		CastSpell_RejectInsufficientSpellPoints
-	move.b	d1,$0009(a4)
+	move.b	d1,ChampionStat_SpellPointsCurrent(a4)
 	tst.b	d0
 	bne.s	CastSpell_CalculateQualityAndCooldown
-	move.b	$0013(a4),d0
+	move.b	ChampionStat_SpellToCast(a4),d0
 	bsr		Character_GetClassIndex
 	lea		RingUses.l,a0
 	subq.b	#$01,$00(a0,d0.w)													;Consumes one use from the matching magic ring when it reduced the spell-point cost to zero.
@@ -7629,18 +7655,18 @@ CastSpell_CalculateQualityAndCooldown:		; Memory Address ($527E) and binary offs
 	bsr		Draw_MainPlayerInterface
 	bsr		Calculate_SpellCastingQuality										;Builds signed casting quality from practice, profession, level, power, equipment and spell difficulty.
 	moveq	#$00,d0
-	move.b	$0013(a4),d0
+	move.b	ChampionStat_SpellToCast(a4),d0
 	lea		SpellCost_DataTable.l,a6
 	move.b	$00(a6,d0.w),d1
 	addq.b	#SpellCasting_CooldownBaseIncrement,d1								;Adds the fixed cooldown increment after loading the selected spell cost value.
-	add.b	$0015(a4),d1														;Accumulates the selected spell's base delay onto the champion's current spell cooldown.
+	add.b	ChampionStat_SpellCooldown(a4),d1									;Accumulates the selected spell's base delay onto the champion's current spell cooldown.
 	cmpi.b	#SpellCasting_CooldownMaximum,d1									;Clamps accumulated spell cooldown to 100.
 	bcs.s	CastSpell_SelectHandler
 	moveq	#$64,d1
 CastSpell_SelectHandler:		; Memory Address ($52A4) and binary offset [$4F20]
 	; Loads the selected spell routine from the thirty-two-entry relative-offset
 	; dispatch table and performs the final cast roll.
-	move.b	d1,$0015(a4)
+	move.b	d1,ChampionStat_SpellCooldown(a4)
 	add.w	d0,d0
 	lea		Spells_01_Armour.l,a0
 	lea		Spells_LookupTable.l,a6
@@ -7679,7 +7705,7 @@ CastSpell_ExecuteHandler:		; Memory Address ($52E2) and binary offset [$4F5E]
 CastSpell_RefreshChampionStatus:		; Memory Address ($530A) and binary offset [$4F86]
 	; Refreshes the selected champion's displayed status when the post-spell party
 	; lookup returns the active slot.
-	move.w	$0006(a5),d7
+	move.w	PlayerData_CurrentChampionNumber(a5),d7
 	bsr		Draw_MainChampionAvatarInnerFrame
 CastSpell_RecordPractice:		; Memory Address ($5312) and binary offset [$4F8E]
 	; Increments the casting champion's per-spell practice counter with saturation
@@ -7688,7 +7714,7 @@ CastSpell_RecordPractice:		; Memory Address ($5312) and binary offset [$4F8E]
 	move.l	#adrL_007E22,a0
 	add.l	a4,a0
 	moveq	#$00,d0
-	move.b	$0013(a4),d0
+	move.b	ChampionStat_SpellToCast(a4),d0
 	addq.b	#$01,$00(a0,d0.w)													;Increments this champion's per-spell practice counter after the handler runs.
 	bcc.s	CastSpell_Complete
 	subq.b	#$01,$00(a0,d0.w)													;Restores a saturated practice counter to $FF after byte overflow.
@@ -7706,7 +7732,7 @@ CastSpell_SelectFailedNotice:		; Memory Address ($5334) and binary offset [$4FB0
 CastSpell_Finalize:		; Memory Address ($5342) and binary offset [$4FBE]
 	; Clears the queued spell and displays the selected result notice when message
 	; output is enabled.
-	move.b	#$FF,$0013(a4)														;Clears the queued spell index when the cast succeeds, fails or fizzles.
+	move.b	#$FF,ChampionStat_SpellToCast(a4)									;Clears the queued spell index when the cast succeeds, fails or fizzles.
 	tst.b	SpellEntity_BackgroundOriginFlag.l
 	bne.s	Return_CastSpell
 	jsr		LowerText.l
@@ -8044,11 +8070,11 @@ RestorePartyStat_ClampOverflow:		; Memory Address ($55EC) and binary offset [$52
 	; maximum-stat clamping.
 	cmp.b	$01(a4,d4.w),d0														;Clamps the restored current stat to its adjacent maximum-stat byte.
 	bcs.s	RestorePartyStat_StoreCurrent
-	move.b	$01(a4,d4.w),d0
+	move.b	$01(a4,d4.w),d0														;Loads the following maximum-statistic byte for the D4-selected current statistic.
 RestorePartyStat_StoreCurrent:		; Memory Address ($55F6) and binary offset [$5272]
 	; Stores the clamped current hit-point or vitality value for one active
 	; champion.
-	move.b	d0,$00(a4,d4.w)
+	move.b	d0,$00(a4,d4.w)														;Stores the restored D4-selected current statistic.
 RestorePartyStat_NextChampion:		; Memory Address ($55FA) and binary offset [$5276]
 	; Advances the active-party restoration loop and refreshes the champion display
 	; when complete.
@@ -8197,25 +8223,25 @@ SpellEntity_AllocateRecord:		; Memory Address ($56E2) and binary offset [$535E]
 SpellEntity_InitialiseRecord:		; Memory Address ($5700) and binary offset [$537C]
 	; Initialises position, facing, floor, caster, form, power, state, and team
 	; fields for a new spell entity.
-	asl.w	#$04,d1
+	asl.w	#ActorRecord_SizeShift,d1
 	add.w	d1,a4
-	move.b	d7,$0001(a4)
+	move.b	d7,ActorRecord_YPosition(a4)
 	swap	d7
-	move.b	d7,$0000(a4)
+	move.b	d7,ActorRecord_XPosition(a4)
 	swap	d6
-	move.b	d6,$0002(a4)
-	move.b	d5,$0004(a4)
+	move.b	d6,ActorRecord_RotationAndSpace(a4)
+	move.b	d5,ActorRecord_Floor(a4)
 	swap	d5
-	move.b	SpellEntity_CasterIndex.l,$000C(a4)
-	move.b	d4,$000B(a4)														;Stores the spell/entity form code in the overloaded live-record form byte.
+	move.b	SpellEntity_CasterIndex.l,SpellEntity_CasterIndexOffset(a4)
+	move.b	d4,ActorRecord_Form(a4)												;Stores the spell/entity form code in the overloaded live-record form byte.
 	move.b	SpellEntity_BackgroundOriginFlag.w,$0003(a4)						;Short Absolute converted to symbol!
-	clr.w	$0008(a4)
-	clr.b	$0005(a4)
-	move.b	#$03,$000A(a4)
-	move.b	#$FF,$000D(a4)
+	clr.w	ActorRecord_HitPoints(a4)
+	clr.b	ActorRecord_ActionState(a4)
+	move.b	#$03,ActorRecord_BehaviourType(a4)
+	move.b	#MonsterRecord_NoTeamGroup,MonsterRecord_TeamGroupIndex(a4)
 	tst.b	d4
 	bmi.s	SpellEntity_InitialiseAirbourne
-	move.b	#$64,$000B(a4)
+	move.b	#ActorForm_MonsterRendererFirst,ActorRecord_Form(a4)
 	cmpi.b	#$65,d4
 	beq.s	SpellEntity_InitialiseIllusion
 	moveq	#$06,d4
@@ -8233,17 +8259,17 @@ SpellEntity_InitialiseMonsterLike:		; Memory Address ($5766) and binary offset [
 	; Initialises the level and state fields shared by Illusion and Summon
 	; entities.
 	addq.w	#$02,d3
-	move.b	d3,$0006(a4)
+	move.b	d3,SpellEntity_PowerOffset(a4)
 	and.w	#$007F,d3
-	move.b	d3,$0007(a4)
-	move.b	#$80,$0003(a4)
-	move.b	#$1F,$0005(a4)
+	move.b	d3,MonsterRecord_EffectiveLevel(a4)
+	move.b	#$80,MonsterRecord_ActionCycleTimer(a4)
+	move.b	#CharacterActionState_MonsterSpellStart,ActorRecord_ActionState(a4)
 	bra.s	SpellEntity_FinalizeCreation
 
 SpellEntity_InitialiseAirbourne:		; Memory Address ($5782) and binary offset [$53FE]
 	; Initialises airborne-spell power fields and transfers the high spell-power
 	; flag into the record.
-	move.b	d3,$0006(a4)
+	move.b	d3,SpellEntity_PowerOffset(a4)
 	clr.b	$0007(a4)
 	btst	#$08,d3
 	beq.s	SpellEntity_FinalizeCreation
@@ -8722,7 +8748,7 @@ Dispatch_PlayerInterfaceActionGuarded:		; Memory Address ($5B30) and binary offs
 	pea		adrL_008226.l
 Dispatch_PlayerInterfaceAction:		; Memory Address ($5B3E) and binary offset [$57BA]
 	; Indexes the dungeon InterfaceButtons jump table using PlayerX_Data+$0C.
-	move.w	Player_ActionCommandOffset(a5),d0									;Offset used to dispatch the active player interface command.
+	move.w	PlayerData_ActionCommand(a5),d0										;Offset used to dispatch the active player interface command.
 	bmi.s	Return_ActionDispatchBlocked
 	asl.w	#InterfaceAction_TableEntryShift,d0									;Shift count converting an interface action index into a four-byte jump-table offset.
 	lea		DungeonInterfaceActionTable.l,a0
@@ -8989,7 +9015,7 @@ RestorePartyStatToMax_ScanLoop:		; Memory Address ($5A84) and binary offset [$57
 	move.b	$18(a5,d7.w),d0
 	bmi.s	RestorePartyStatToMax_LoopContinue
 	bsr		Load_ChampionStatRecord
-	move.b	$01(a4,d4.w),$00(a4,d4.w)
+	move.b	$01(a4,d4.w),$00(a4,d4.w)											;Restores the D4-selected current statistic from its following maximum-statistic byte.
 RestorePartyStatToMax_LoopContinue:		; Memory Address ($5A94) and binary offset [$5710]
 	dbra	d7,RestorePartyStatToMax_ScanLoop
 	bsr		PlayerPositionToMapOffset
@@ -9419,7 +9445,7 @@ Handle_PrimaryAttackAction:		; Memory Address ($6322) and binary offset [$5F9E]
 	; Primary attack action handler; sets the primary attack state bit and
 	; continues through the common attack routine.
 	and.b	#$01,(a5)
-	bset	#Player_AttackPrimaryStateBit,(a5)									;State bit set by the primary attack handler.
+	bset	#PlayerData_StateFlags_PrimaryAttackBit,(a5)						;State bit set by the primary attack handler.
 Select_AttackingChampion:		; Memory Address ($632A) and binary offset [$5FA6]
 	; Common attack setup that selects the active champion/action participant.
 	moveq	#$03,d1
@@ -9799,9 +9825,9 @@ Load_ChampionCombatValues:		; Memory Address ($62C6) and binary offset [$5F42]
 	; a defending champion.
 	move.w	d0,d1
 	bsr		Load_ChampionStatRecord
-	subq.b	#PhysicalAttack_VitalityCost,$0007(a4)								;Vitality removed when champion combat values are loaded for physical combat.
+	subq.b	#PhysicalAttack_VitalityCost,ChampionStat_VitalityCurrent(a4)		;Vitality removed when champion combat values are loaded for physical combat.
 	bcc.s	Apply_ChampionCombatModifiers
-	clr.b	$0007(a4)
+	clr.b	ChampionStat_VitalityCurrent(a4)
 Apply_ChampionCombatModifiers:		; Memory Address ($62D6) and binary offset [$5F52]
 	; Applies armour, held weapon and active worn-spell modifiers to champion
 	; combat values.
@@ -9811,11 +9837,13 @@ Apply_ChampionCombatModifiers:		; Memory Address ($62D6) and binary offset [$5F5
 	bsr		Calculate_WarriorLevelContribution
 	tst.w	PhysicalAttack_BackstabState.w										;Short Absolute converted to symbol!
 	bne.s	Apply_WarpowerCombatModifiers
-	move.b	(a4),d0
+	OPT		O2+
+	move.b	ChampionStat_Level(a4),d0
+	OPT		O2-
 Apply_WarpowerCombatModifiers:		; Memory Address ($62EA) and binary offset [$5F66]
 	; Applies Warpower magnitude to effective Level, Strength and Agility.
 	moveq	#$00,d1
-	move.b	$0011(a4),d1
+	move.b	ChampionStat_WornSpell(a4),d1
 	move.w	d1,d2
 	and.w	#$0007,d2
 	subq.b	#WornSpell_Warpower,d2												;Low three-bit worn-spell type used for Warpower.
@@ -9826,16 +9854,16 @@ Apply_WarpowerCombatModifiers:		; Memory Address ($62EA) and binary offset [$5F6
 	addq.w	#$01,d2
 	add.w	d2,d0
 	move.w	d1,d2
-	add.b	$0001(a4),d1
+	add.b	ChampionStat_Strength(a4),d1
 	addq.b	#Combat_StrengthBias,d1												;Internal Strength bias applied before physical-combat thresholds.
-	add.b	$0002(a4),d2
+	add.b	ChampionStat_Agility(a4),d2
 	rts		
 
 Load_NormalChampionCombatStats:		; Memory Address ($6312) and binary offset [$5F8E]
 	; Loads normal Strength and Agility when Warpower is not active.
-	move.b	$0001(a4),d1
+	move.b	ChampionStat_Strength(a4),d1
 	addq.b	#Combat_StrengthBias,d1												;Internal Strength bias applied before physical-combat thresholds.
-	move.b	$0002(a4),d2
+	move.b	ChampionStat_Agility(a4),d2
 	rts		
 
 Calculate_CharacterArmourLevel:		; Memory Address ($631E) and binary offset [$5F9A]
@@ -9844,7 +9872,7 @@ Calculate_CharacterArmourLevel:		; Memory Address ($631E) and binary offset [$5F
 	lea		Character_Pockets_DataTable.l,a1
 	asl.w	#$04,d0
 	add.w	d0,a1
-	move.b	$0011(a4),d3
+	move.b	ChampionStat_WornSpell(a4),d3
 	move.w	d3,d2
 	lsr.b	#$03,d2
 	and.w	#$0007,d3
@@ -9852,7 +9880,7 @@ Calculate_CharacterArmourLevel:		; Memory Address ($631E) and binary offset [$5F
 	moveq	#$00,d2
 Armour_SelectInnateOrSpellValue:		; Memory Address ($6338) and binary offset [$5FB4]
 	; Selects the greater of innate armour and an active Armour-spell magnitude.
-	move.b	$000B(a4),d3
+	move.b	ChampionStat_ArmourLevel(a4),d3
 	cmp.b	d3,d2
 	bcs.s	Armour_ApplyBodyArmour
 	move.b	d2,d3
@@ -9869,7 +9897,7 @@ Armour_ApplyBodyArmour:		; Memory Address ($6342) and binary offset [$5FBE]
 	move.b	d2,d3
 Armour_ApplyWornHandArmour:		; Memory Address ($6356) and binary offset [$5FD2]
 	; Adds the contribution of the champion's worn hand-armour object.
-	move.b	$0012(a4),d2														;Reads the worn-hand-armour object and adds its source-defined protection after body and spell protection have been resolved.
+	move.b	ChampionStat_WornHandArmour(a4),d2									;Reads the worn-hand-armour object and adds its source-defined protection after body and spell protection have been resolved.
 	beq.s	Armour_ApplyShield
 	sub.b	#$2B,d2
 	add.b	d2,d3
@@ -10012,9 +10040,9 @@ Click_MultiFunctionButton:		; Memory Address ($64AA) and binary offset [$6126]
 	; toggles a usable facing wall feature or door before refreshing the champion
 	; map-position icon.
 	bsr		Load_CurrentChampionStatRecord
-	tst.b	$0011(a4)
+	tst.b	ChampionStat_WornSpell(a4)
 	beq.s	Resolve_MultiFunctionContext
-	clr.b	$0011(a4)
+	clr.b	ChampionStat_WornSpell(a4)
 	move.w	$0006(a5),d7
 	bsr		Draw_MainChampionAvatarInnerFrame
 	bra.s	Load_MapPositionAfterMultiFunction
@@ -10022,7 +10050,7 @@ Click_MultiFunctionButton:		; Memory Address ($64AA) and binary offset [$6126]
 Resolve_MultiFunctionContext:		; Memory Address ($6846) and binary offset [$64C2]
 	; Continuation of the multi-function handler; selects interaction, spell, or
 	; map-AI behaviour from context.
-	tst.b	$0013(a4)
+	tst.b	ChampionStat_SpellToCast(a4)
 	bmi.s	Resolve_WallFeatureContext
 	bsr		Cast_SelectedChampionSpell
 Load_MapPositionAfterMultiFunction:		; Memory Address ($64CC) and binary offset [$6148]
@@ -10187,12 +10215,12 @@ Click_ShowStats:		; Memory Address ($6616) and binary offset [$6292]
 Load_CurrentChampionStatRecord:		; Memory Address ($665C) and binary offset [$62D8]
 	; Loads the current player champion number before resolving its statistics
 	; record.
-	move.w	$0006(a5),d0
+	move.w	PlayerData_CurrentChampionNumber(a5),d0
 Load_ChampionStatRecord:		; Memory Address ($6660) and binary offset [$62DC]
 	; Converts champion number D0 into a pointer to its 32-byte statistics record
 	; in A4.
-	and.w	#$000F,d0
-	asl.w	#$05,d0
+	and.w	#Champion_Count-1,d0
+	asl.w	#ChampionStat_RecordSizeShift,d0
 	lea		Character_Stats_DataTable.l,a4
 	add.w	d0,a4
 LoadChampionStatRecord_Return:		; Memory Address ($666E) and binary offset [$62EA]
@@ -10303,7 +10331,7 @@ SpellCasting_CastBarPercentages:		; Memory Address ($6760) and binary offset [$6
 Calculate_SpellCastingQuality:		; Memory Address ($6778) and binary offset [$63F4]
 	; Existing mapping; calculates signed spell quality from class, practice,
 	; level, power, equipment, cooldown, and difficulty.
-	move.b	$0013(a4),d0
+	move.b	ChampionStat_SpellToCast(a4),d0
 	bsr		Character_GetClassIndex
 	move.w	d0,-(sp)
 	move.l	a4,d0
@@ -10324,7 +10352,7 @@ SpellCastQuality_AfterClassBonus:		; Memory Address ($67AC) and binary offset [$
 	move.l	#adrL_007E22,a1
 	add.l	a4,a1
 	moveq	#$00,d6
-	move.b	$0013(a4),d6
+	move.b	ChampionStat_SpellToCast(a4),d6
 	move.b	$00(a1,d6.w),d0														;Loads the selected spell's per-champion success-practice count from the runtime 16 by 32 practice area.
 	moveq	#SpellCasting_PracticeFirstThreshold,d2								;Starts the matching spell-practice curve at five successes; the non-matching path doubles this to ten.
 	moveq	#$00,d3
@@ -10362,7 +10390,7 @@ SpellCastQuality_ApplyPracticeBonus:		; Memory Address ($67EA) and binary offset
 	bsr		Calculate_WizardLevelContribution
 	add.b	d0,d7
 	add.b	d0,d7
-	add.b	$0014(a4),d7
+	add.b	ChampionStat_SpellPowerBoost(a4),d7
 	move.w	d4,d0
 	move.w	d6,d4
 	bsr		Character_GetClassIndex
@@ -10412,7 +10440,7 @@ Calculate_SpellPointCost:		; Memory Address ($688C) and binary offset [$6508]
 	lea		Character_Pockets_DataTable.l,a0
 	add.w	d0,a0
 	moveq	#$00,d0
-	move.b	$0013(a4),d0
+	move.b	ChampionStat_SpellToCast(a4),d0
 	bsr.s	Character_GetClassIndex
 	add.w	#$0069,d0
 	cmp.b	(a0),d0
@@ -10427,26 +10455,26 @@ SpellPointCost_FreeRingCast:		; Memory Address ($68B4) and binary offset [$6530]
 	tst.b	$00(a0,d0.w)
 	bmi.s	SpellPointCost_ComputeAdjustment
 	moveq	#$00,d0
-	move.b	d0,$0014(a4)
+	move.b	d0,ChampionStat_SpellPowerBoost(a4)
 	rts		
 
 SpellPointCost_ReducePowerLoop:		; Memory Address ($68CC) and binary offset [$6548]
-	subq.b	#$01,$0014(a4)
+	subq.b	#$01,ChampionStat_SpellPowerBoost(a4)
 SpellPointCost_ComputeAdjustment:		; Memory Address ($68D0) and binary offset [$654C]
-	move.b	$0014(a4),d1
+	move.b	ChampionStat_SpellPowerBoost(a4),d1
 	ext.w	d1
 	bmi.s	SpellPointCost_AddBaseCost											;Uses negative byte $14 values directly as low-cost penalties instead of indexing the non-negative extra-mana curve.
 	move.b	SpellCasting_CastPowerCostAdjustments(pc,d1.w),d1
 SpellPointCost_AddBaseCost:		; Memory Address ($68DC) and binary offset [$6558]
 	moveq	#$00,d0
-	move.b	$0013(a4),d0														;Loads the selected spell index from champion byte $13 before choosing its base SpellCost_DataTable entry.
+	move.b	ChampionStat_SpellToCast(a4),d0										;Loads the selected spell index from champion byte $13 before choosing its base SpellCost_DataTable entry.
 	lea		SpellCost_DataTable.w,a0											;Short Absolute converted to symbol!
 	move.b	$00(a0,d0.w),d0
 	addq.w	#$01,d0																;Increments the stored base spell cost before doubling it, so the base contribution is twice (the table value plus one).
 	add.w	d0,d0																;Doubles the adjusted base spell cost before the cast-power adjustment is added.
 	add.w	d1,d0																;Adds the source cast-power curve adjustment to form the COST +nn+ value.
 	bne.s	SpellPointCost_ClampToMaximum
-	addq.b	#$01,$0014(a4)														;Reverses the final decrement when cost normalisation reaches zero, preserving the one-point minimum.
+	addq.b	#$01,ChampionStat_SpellPowerBoost(a4)								;Reverses the final decrement when cost normalisation reaches zero, preserving the one-point minimum.
 	moveq	#SpellCasting_ManaCostMinimum,d0
 SpellPointCost_ClampToMaximum:		; Memory Address ($68F8) and binary offset [$6574]
 	cmpi.w	#SpellCasting_ManaCostMaximum,d0									;Rejects a cast-power setting when the calculated spell-point cost reaches $64; displayed costs are therefore limited to $01-$63.
@@ -10528,12 +10556,12 @@ Potion_2_BrimstoneBroth:		; Memory Address ($6976) and binary offset [$65F2]
 Potion_2_RestoreStatHalfway:		; Memory Address ($6984) and binary offset [$6600]
 	; Moves one current statistic halfway towards its following maximum-statistic
 	; byte, rounding upward.
-	move.b	$01(a4,d4.w),d0
-	sub.b	$00(a4,d4.w),d0
+	move.b	$01(a4,d4.w),d0														;Loads the maximum value paired with the D4-selected current champion statistic.
+	sub.b	$00(a4,d4.w),d0														;Calculates the deficit of the D4-selected current champion statistic.
 	addq.b	#$01,d0
 	lsr.b	#$01,d0
-	add.b	$00(a4,d4.w),d0
-	move.b	d0,$00(a4,d4.w)
+	add.b	$00(a4,d4.w),d0														;Adds half the deficit back to the D4-selected current champion statistic.
+	move.b	d0,$00(a4,d4.w)														;Stores the halfway-restored D4-selected current champion statistic.
 	rts		
 
 Use_FoodOrCountedObject:		; Memory Address ($699A) and binary offset [$6616]
@@ -11167,7 +11195,7 @@ Store_PlayerMovePosition:		; Memory Address ($72BC) and binary offset [$6F38]
 Check_PlayerMoveTeamPad:		; Memory Address ($72CE) and binary offset [$6F4A]
 	; Checks the resulting player destination against the team-pad/party-avatar
 	; state before returning.
-	move.w	PlayerData_PartyCommandStateOffset(a5),d0							;Checks party-command state after movement; negative and states below eight return, rather than testing a map pad.
+	move.w	PlayerData_PartyCommandState(a5),d0									;Checks party-command state after movement; negative and states below eight return, rather than testing a map pad.
 	bmi.s	Return_PlayerMoveProcessed
 	cmpi.w	#$0008,d0
 	bcc		Click_ShowTeamAvatars
@@ -11790,12 +11818,12 @@ Restore_VivifiedExternalChampionAtTarget:		; Memory Address ($787E) and binary o
 	; Restores an unowned champion record at the Vivify target coordinate, facing,
 	; floor, and current tower.
 	bsr		Load_ChampionStatRecord												;Resolve this champion's stat record in A4.
-	move.b	d2,$0017(a4)														;Store the revival Y coordinate.
+	move.b	d2,ChampionStat_YPosition(a4)										;Store the revival Y coordinate.
 	swap	d2																	;Bring the revival X coordinate into the low word.
-	move.b	d2,$0016(a4)														;Store the revival X coordinate.
-	move.b	d3,$001A(a4)														;Store the revival floor.
-	move.b	#$03,$0018(a4)														;Face the revived champion west.
-	move.b	CurrentTower+$01.l,$001F(a4)										;Stores the current tower in the revived champion record.
+	move.b	d2,ChampionStat_XPosition(a4)										;Store the revival X coordinate.
+	move.b	d3,ChampionStat_Floor(a4)											;Store the revival floor.
+	move.b	#$03,ChampionStat_Direction(a4)										;Face the revived champion west.
+	move.b	CurrentTower+$01.l,ChampionStat_Tower(a4)							;Stores the current tower in the revived champion record.
 	rts																			;Return after placing the champion at the revival cell.
 
 Restore_VivifiedOwnedChampionToParty:		; Memory Address ($78A0) and binary offset [$751C]
@@ -11884,7 +11912,7 @@ Pack_CurrentTowerMonsterBlock:		; Memory Address ($7974) and binary offset [$75F
 	lea		MonsterBlock_mod0.l,a3
 	add.w	d1,a3
 	lea		UnpackedMonsters.l,a4
-	move.w	MonsterLive_RecordCountOffset(a4),d1
+	move.w	LiveActorRecord_CountOffset(a4),d1
 	lea		MonsterTotalsCounts_mod0.l,a0
 	move.w	d1,$00(a0,d0.w)
 	bmi.s	PackTowerBlock_ClearImpactListInit
@@ -11896,17 +11924,17 @@ PackTowerBlock_FillNegativeOnesLoop:		; Memory Address ($79AC) and binary offset
 	dbra	d0,PackTowerBlock_FillNegativeOnesLoop
 	move.l	a3,a0
 PackTowerBlock_WriteRecordsLoop:		; Memory Address ($79B4) and binary offset [$7630]
-	move.b	MonsterRecord_Type(a4),d2
+	move.b	ActorRecord_BehaviourType(a4),d2
 	asl.b	#$04,d2
-	move.b	MonsterRecord_Floor(a4),d3
+	move.b	ActorRecord_Floor(a4),d3
 	addq.w	#$01,d3
 	and.w	#$000F,d3
 	or.b	d2,d3
 	move.b	d3,(a3)+
-	move.b	MonsterRecord_XPosition(a4),(a3)+
-	move.b	MonsterRecord_YPosition(a4),(a3)+
-	move.b	MonsterRecord_CurrentLevel(a4),(a3)+
-	move.b	MonsterRecord_Form(a4),(a3)+
+	move.b	ActorRecord_XPosition(a4),(a3)+
+	move.b	ActorRecord_YPosition(a4),(a3)+
+	move.b	MonsterRecord_BaseLevel(a4),(a3)+
+	move.b	ActorRecord_Form(a4),(a3)+
 	move.b	MonsterRecord_TeamGroupIndex(a4),d3
 	bmi.s	PackTowerBlock_AdvanceRecordLoop
 	lea		MonsterTeamIndexTable.l,a6
@@ -12891,9 +12919,9 @@ Refresh_CurrentChampionMapPositionIcon:		; Memory Address ($81CE) and binary off
 	bsr		Load_CurrentChampionStatRecord
 	moveq	#$63,d0
 	moveq	#$00,d2
-	move.b	$0011(a4),d2
+	move.b	ChampionStat_WornSpell(a4),d2
 	bne.s	Refresh_MapPositionIcon_WornItemIcon
-	move.b	$0013(a4),d2
+	move.b	ChampionStat_SpellToCast(a4),d2
 	bmi.s	Refresh_MapPositionIcon_DrawIcon
 	move.w	d2,d0
 	bsr		Character_GetClassIndex
@@ -12996,7 +13024,7 @@ Draw_ChampionNamePanelLowerEdge:		; Memory Address ($82BA) and binary offset [$7
 	bsr		Draw_PlanarGraphic
 	add.w	#$0028,a0
 	lea		GFX_Pockets+GFX_Pockets_CommandPadPlayer2Offset.l,a1				;Starts from the Player 2 command-pad source; Player 1 applies the following $20 adjustment.
-	btst	#PlayerData_PlayerIdentityBit,(a5)									;Player 2's set identity bit retains the $67E0 command pad; Player 1 falls through to the $20 source adjustment.
+	btst	#PlayerData_StateFlags_PlayerIdentityBit,(a5)						;Player 2's set identity bit retains the $67E0 command pad; Player 1 falls through to the $20 source adjustment.
 	bne.s	Draw_NamePanelControlPadSprite
 	add.w	#GFX_Pockets_CommandPadPlayer1Offset-GFX_Pockets_CommandPadPlayer2Offset,a1	;Selects the Player 1 command-pad source by advancing from $67E0 to $6800.
 Draw_NamePanelControlPadSprite:		; Memory Address ($8308) and binary offset [$7F84]
@@ -13158,7 +13186,7 @@ ClassColours:		; Memory Address ($846E) and binary offset [$80EA]
 ForwardCellToMapOffset:		; Memory Address ($847E) and binary offset [$80FA]
 	; Applies the player's facing vector to the packed position and converts the
 	; forward cell to a map offset.
-	move.l	PlayerData_StartXPosition(a5),d7									;Loads adjacent player X and Y words as packed X-high/Y-low coordinates.
+	move.l	PlayerData_XPosition(a5),d7											;Loads adjacent player X and Y words as packed X-high/Y-low coordinates.
 StepCoordForwardToMapOffset:		; Memory Address ($8482) and binary offset [$80FE]
 	; Steps the supplied packed coordinate in the active player's facing direction
 	; and converts it to a map offset.
@@ -13176,7 +13204,7 @@ AdjacentCoordToMapOffset:		; Memory Address ($8486) and binary offset [$8102]
 PlayerPositionToMapOffset:		; Memory Address ($8498) and binary offset [$8114]
 	; Converts the player's packed X and Y position to an offset in the selected
 	; floor map.
-	move.l	PlayerData_StartXPosition(a5),d7									;Loads adjacent player X and Y words as packed X-high/Y-low coordinates.
+	move.l	PlayerData_XPosition(a5),d7											;Loads adjacent player X and Y words as packed X-high/Y-low coordinates.
 CoordToMap:
 	; Sets A6 to the current tower's map-data base and converts packed coordinate
 	; D7 to the current-floor map-cell offset using Y*width+X.
@@ -14315,29 +14343,29 @@ Refresh_ActivePlayerDungeonViewport:		; Memory Address ($8FB8) and binary offset
 	bne.s	Calculate_ViewerObjectPerception_ZeroExit
 	btst	#$02,(a5)
 	bne.s	Calculate_ViewerObjectPerception_ZeroExit
-	move.b	$003D(a5),d3
+	move.b	PlayerData_ViewportFillInk(a5),d3
 	bpl.s	Clear_ViewportMessageBackground
-	move.b	$0053(a5),d0
+	move.b	PlayerData_RemoteViewerChampionIndex(a5),d0
 	bmi.s	ViewportInk_CurrentChampionSetup
 	bsr		Load_ChampionStatRecord
 	link	a3,#-$0020
 	moveq	#$00,d0
-	move.b	$0016(a4),d0
+	move.b	ChampionStat_XPosition(a4),d0
 	move.w	d0,-$0004(a3)
-	move.b	$0017(a4),d0
+	move.b	ChampionStat_YPosition(a4),d0
 	move.w	d0,-$0002(a3)
-	move.b	$0018(a4),d0
+	move.b	ChampionStat_Direction(a4),d0
 	and.w	#$0003,d0
 	move.w	d0,-$000A(a3)
 	bsr.s	Calculate_ViewerObjectPerception
-	move.b	$001A(a4),d0
+	move.b	ChampionStat_Floor(a4),d0
 	bra.s	ViewportInk_AfterPerception_LookupTile
 
 Calculate_ViewerObjectPerception:		; Memory Address ($9000) and binary offset [$8C7C]
 	; Calculates the active viewer's nonzero perception value used when deciding
 	; whether concealed cell contents are visible.
 	moveq	#$00,d1
-	move.b	$0011(a4),d0
+	move.b	ChampionStat_WornSpell(a4),d0
 	and.w	#$0007,d0
 	subq.b	#$07,d0
 	beq.s	Calculate_ViewerObjectPerception_Trueview
@@ -14349,12 +14377,16 @@ Calculate_ViewerObjectPerception:		; Memory Address ($9000) and binary offset [$
 	cmpi.b	#$03,d2
 	bne.s	Calculate_ViewerObjectPerception_ZeroExit
 	bsr		RandomGen_BytewithOffset
-	move.b	(a4),d2
+	OPT		O2+
+	move.b	ChampionStat_Level(a4),d2
+	OPT		O2-
 	asl.b	#$04,d2
 	moveq	#$00,d1
 	cmp.b	d0,d2
 	bcs.s	Calculate_ViewerObjectPerception_ZeroExit
-	move.b	(a4),d1
+	OPT		O2+
+	move.b	ChampionStat_Level(a4),d1
+	OPT		O2-
 	add.w	d1,d1
 Calculate_ViewerObjectPerception_ZeroExit:		; Memory Address ($9036) and binary offset [$8CB2]
 	rts		
@@ -15192,16 +15224,16 @@ Find_DungeonCellOccupant_ChampionLoop_Next:		; Memory Address ($98FA) and binary
 	dbra	d0,Find_DungeonCellOccupant_ChampionLoop
 	moveq	#$10,d0
 	lea		UnpackedMonsters.l,a1
-	move.w	MonsterLive_RecordCountOffset(a1),d3
+	move.w	LiveActorRecord_CountOffset(a1),d3
 	bmi.s	Find_DungeonCellOccupant_NotFound
 Find_DungeonCellOccupant_MonsterLoop:		; Memory Address ($9910) and binary offset [$958C]
-	cmp.b	MonsterRecord_Floor(a1),d1
+	cmp.b	ActorRecord_Floor(a1),d1
 	bne.s	Find_DungeonCellOccupant_MonsterLoop_Next
-	cmp.w	MonsterRecord_XPosition(a1),d2
+	cmp.w	ActorRecord_XPosition(a1),d2
 	beq.s	Find_DungeonCellOccupant_Found
 Find_DungeonCellOccupant_MonsterLoop_Next:		; Memory Address ($991C) and binary offset [$9598]
 	addq.w	#$01,d0
-	add.w	#MonsterRecord_Size,a1
+	add.w	#ActorRecord_Size,a1
 	dbra	d3,Find_DungeonCellOccupant_MonsterLoop
 Find_DungeonCellOccupant_NotFound:		; Memory Address ($9926) and binary offset [$95A2]
 	swap	d1
@@ -15378,7 +15410,7 @@ Calculate_MonsterViewerRelativeFacing:		; Memory Address ($9AB2) and binary offs
 	move.b	d1,d2
 	and.b	#$03,d2
 	move.b	d2,-$001B(a3)
-	lsr.b	#MonsterRecord_RotationFacingShift,d1
+	lsr.b	#ActorRecord_MiniSpaceShift,d1
 	subq.w	#$02,d1
 	sub.w	-$000A(a3),d1														;Converts the actor's rotation nibble to viewer-relative artwork direction by subtracting the player facing, then wrapping it to two bits.
 	and.w	#$0003,d1
@@ -15450,7 +15482,7 @@ Draw_PlayerPartyChampion:		; Memory Address ($9B5E) and binary offset [$97DA]
 	; Loads and draws one champion from the active player party.
 	move.b	d0,-$0017(a3)
 	bsr		Load_ChampionStatRecord
-	move.b	$001B(a4),d0
+	move.b	ChampionStat_ActionState(a4),d0
 	bsr.s	Decode_Monster_RenderFlags
 	bra		Draw_DungeonOccupant_ResolvePosition
 
@@ -15464,7 +15496,7 @@ Decode_Monster_RenderFlags:		; Memory Address ($9BC0) and binary offset [$983C]
 	; Masks a monster render state to five bits and uses the resulting lookup entry
 	; for arm or claw animation flags.
 	clr.b	-$0015(a3)
-	and.w	#Monster_RenderFlagMask,d0											;Keeps only the five bits used to choose monster arm or claw animation flags.
+	and.w	#CharacterActionState_RenderIndexMask,d0							;Keeps only the five bits used to choose monster arm or claw animation flags.
 	move.b	Monster_RenderFlags_LookupTable(pc,d0.w),-$0015(a3)
 	rts		
 
@@ -16712,7 +16744,7 @@ Draw_DungeonOccupant_DispatchByType:		; Memory Address ($A70A) and binary offset
 	and.w	#$0003,d0
 	moveq	#$00,d2
 	move.b	-$0017(a3),d2
-	sub.b	#Monster_Type_First,d2												;Converts the monster type code into the renderer dispatch index; codes below the first monster type continue to character drawing.
+	sub.b	#ActorForm_MonsterRendererFirst,d2									;Converts the monster type code into the renderer dispatch index; codes below the first monster type continue to character drawing.
 	bcs.s	Draw_Character
 	cmpi.b	#$02,d2
 	beq		Draw_Beholder
@@ -18846,18 +18878,18 @@ Select_SpellBookRune:		; Memory Address ($C2AC) and binary offset [$BF28]
 	; Tests the clicked ownership bit, loads an owned spell, or clears the queued
 	; spell.
 	bsr		Load_CurrentChampionStatRecord
-	move.w	$002A(a5),d0
+	move.w	PlayerData_SpellBookPageSpread(a5),d0
 	move.w	d0,d2
 	asl.w	#$02,d2
 	lsr.w	#$01,d0
 	move.w	d0,d3
 	move.w	$000E(a5),d0
-	btst	d0,$0C(a4,d3.w)														;Tests the clicked rune entry against its page nibble; a clear bit deselects the currently loaded spell instead of selecting that rune.
+	btst	d0,ChampionStat_KnownSpellMask(a4,d3.w)								;Tests the clicked rune entry against its page nibble; a clear bit deselects the currently loaded spell instead of selecting that rune.
 	beq.s	Select_SpellBookRune_ClearSelection
 	eor.w	#$0007,d0
 	add.w	d2,d0
-	move.b	d0,$0013(a4)
-	clr.b	$0014(a4)
+	move.b	d0,ChampionStat_SpellToCast(a4)
+	clr.b	ChampionStat_SpellPowerBoost(a4)
 Get_SelectedSpellName:		; Memory Address ($C2D4) and binary offset [$BF50]
 	; Resolves the selected spell’s fixed eight-character SpellNames record.
 	asl.w	#$03,d0
@@ -18866,7 +18898,7 @@ Get_SelectedSpellName:		; Memory Address ($C2D4) and binary offset [$BF50]
 	rts		
 
 Select_SpellBookRune_ClearSelection:		; Memory Address ($C2E0) and binary offset [$BF5C]
-	move.b	#$FF,$0013(a4)
+	move.b	#$FF,ChampionStat_SpellToCast(a4)
 	moveq	#-$01,d0
 SpellBookRune_SharedTail:		; Memory Address ($C2E8) and binary offset [$BF64]
 	rts		
@@ -19365,9 +19397,9 @@ Print_SpellPointsText:		; Memory Address ($C820) and binary offset [$C49C]
 	; Formats and prints the selected champion's current and maximum spell points.
 	bsr		Load_CurrentChampionStatRecord
 	or.b	#$0C,$0054(a5)
-	move.b	$0009(a4),d0														;Loads the champion's current spell points for the SP.PTS value.
+	move.b	ChampionStat_SpellPointsCurrent(a4),d0								;Loads the champion's current spell points for the SP.PTS value.
 	bsr		Convert_ByteToDecimalText
-	move.b	$000A(a4),d0														;Loads the champion's maximum spell points for the SP.PTS value.
+	move.b	ChampionStat_SpellPointsMaximum(a4),d0								;Loads the champion's maximum spell points for the SP.PTS value.
 	lea		SpellPointsMessageTemplate.l,a6
 	move.b	d1,$000E(a6)
 	ror.w	#$08,d1
@@ -19688,15 +19720,15 @@ Draw_ChampionStats:		; Memory Address ($CB2A) and binary offset [$C7A6]
 	; Draws the scroll frame, inserts fields from the selected 32-byte champion
 	; record into ChampionStatsScroll_TextTemplate, then calls Print_fflim_text. D5
 	; supplies the scroll Y position.
-	move.w	$0006(a5),-(sp)														;Saves the current leader champion ID while the generic scroll frame is drawn.
+	move.w	PlayerData_CurrentChampionNumber(a5),-(sp)							;Saves the current leader champion ID while the generic scroll frame is drawn.
 	bsr		Draw_ScrollFrame													;Calls the shared scroll-frame drawing routine before printing champion statistics.
 	move.w	(sp),d0
 	lea		ChampionStatsScroll_TextTemplate.l,a6								;Selects the stats Print_fflim_text stream. Its $FC commands place LEVEL and the ST, IN, HP, and VI rows at consecutive eight-pixel text rows $03-$07.
-	asl.w	#$05,d0																;Converts the champion ID to its 32-byte Character_Stats_DataTable record offset.
+	asl.w	#ChampionStat_RecordSizeShift,d0									;Converts the champion ID to its 32-byte Character_Stats_DataTable record offset.
 	lea		Character_Stats_DataTable.l,a0
 	add.w	d0,a0
 	lea		ChampionStatsScroll_FieldAndTextOffsets.l,a2
-	moveq	#$06,d7
+	moveq	#ChampionStatsScroll_FieldCount-1,d7
 	moveq	#$00,d0
 ChampionStats_InsertFieldsLoop:		; Memory Address ($CB4E) and binary offset [$C7CA]
 	; Copies seven champion fields into their corresponding positions within the
@@ -19710,7 +19742,7 @@ ChampionStats_InsertFieldsLoop:		; Memory Address ($CB4E) and binary offset [$C7
 	move.b	d1,$00(a6,d0.w)
 	dbra	d7,ChampionStats_InsertFieldsLoop									;Repeats for all seven lookup-defined champion-statistic fields.
 	move.w	(sp)+,d7
-	move.b	$0005(a0),d0
+	move.b	ChampionStat_HitPointsCurrent(a0),d0
 	divu	#$0064,d0
 	tst.w	d0
 	bne.s	ChampionStats_HPCurrent_HundredsToAscii
@@ -19724,7 +19756,7 @@ ChampionStats_HPCurrent_HundredsToAscii:		; Memory Address ($CB7E) and binary of
 	move.b	#$20,$0053(a6)
 	moveq	#$51,d2
 	moveq	#$00,d0
-	move.b	$0006(a0),d0
+	move.b	ChampionStat_HitPointsMaximum(a0),d0
 	divu	#$0064,d0
 	tst.b	d0
 	beq.s	ChampionStats_HPMax_WriteDigitPair

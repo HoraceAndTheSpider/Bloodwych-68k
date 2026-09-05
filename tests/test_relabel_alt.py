@@ -50,12 +50,10 @@ class RelabelAltTests(unittest.TestCase):
                 )
             )
 
-    def test_default_destination_appends_alt_to_configured_relabel_name(self) -> None:
+    def test_default_destination_uses_configured_relabel_name(self) -> None:
         configured = Path("asm/Custom_relabel.asm")
         with patch("tools.tool_relabel_alt.asm_path", return_value=configured):
-            self.assertEqual(
-                _default_alt_destination("GAME"), Path("asm/Custom_relabel_alt.asm")
-            )
+            self.assertEqual(_default_alt_destination("GAME"), configured)
 
     def test_cleanup_metadata_uses_one_excel_workbook_open(self) -> None:
         with TemporaryDirectory() as directory:

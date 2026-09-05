@@ -29,7 +29,8 @@ from .source_notes import (
 )
 from .source_rules import (
     EQUATES_SHEET,
-    apply_source_rules,
+    SourceRuleMetrics,
+    apply_source_rules_indexed,
     insert_generated_equates,
     load_source_metadata,
 )
@@ -44,8 +45,7 @@ from .tool_relabel import _conflicting_relabel_targets, _undefined_legacy_labels
 
 
 def _default_alt_destination(master: str) -> Path:
-    legacy = asm_path(master, "relabel")
-    return legacy.with_name(f"{legacy.stem}_alt{legacy.suffix}")
+    return asm_path(master, "relabel")
 
 
 def _cleanup_frames(
@@ -82,6 +82,21 @@ def _print_timings(timings: list[tuple[str, float]], total: float) -> None:
     for label, elapsed in timings:
         print(f"  {label:<24} {elapsed:.2f}s")
     print(f"  {'TOTAL':<24} {total:.2f}s")
+
+
+def _print_source_rule_metrics(metrics: SourceRuleMetrics) -> None:
+    print("Source rule ALT timings:")
+    print(f"  index build:            {metrics.index_build_seconds:.3f}s")
+    print(
+        "  operand regex build:    "
+        f"{metrics.operand_relabel_build_seconds:.3f}s"
+    )
+    print(f"  verified rules:         {metrics.verified_rules:5d}")
+    print(f"  indexed candidates:     {metrics.indexed_candidates:5d}")
+    print(f"  rewritten lines:        {metrics.rewritten_lines:5d}")
+    print(f"  selective O2 lines:     {metrics.selective_o2_lines:5d}")
+    print(f"  failed safely:          {metrics.failed_rules:5d}")
+    print(f"  rule processing:        {metrics.rule_processing_seconds:.3f}s")
 
 
 def relabel_segments_alt(
@@ -227,14 +242,17 @@ def relabel_segments_alt(
     label_relabels = {label: new_label for label, new_label in normal_rows}
     definitions = casefold_definition_index(lines)
     label_lookup = lambda label: definitions.get(label.casefold(), ())
-    lines = apply_source_rules(
+    source_rule_metrics = SourceRuleMetrics()
+    lines = apply_source_rules_indexed(
         lines,
         equates,
         source_rules,
         label_relabels=label_relabels,
         continue_on_error=True,
         label_lookup=label_lookup,
+        metrics=source_rule_metrics,
     )
+    _print_source_rule_metrics(source_rule_metrics)
     lines = insert_generated_equates(lines, equates)
     timings.append(("source rules/equates", perf_counter() - phase_started))
 

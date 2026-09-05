@@ -1509,9 +1509,13 @@ Calculate_WarriorLevelContribution:		; Memory Address ($0924) and binary offset 
 	move.b	WarriorLevel_ChampionTypeShifts(pc,d1.w),d1	;123B1010
 	bpl.s	Calculate_ShiftedChampionLevel	;6A26
 	moveq	#$00,d0	;7000
+	OPT	O2+
 	move.b	ChampionStat_Level(a4),d0	;1014
+	OPT	O2-
 	add.w	d0,d0	;D040
+	OPT	O2+
 	add.b	ChampionStat_Level(a4),d0	;D014
+	OPT	O2-
 	lsr.w	#$02,d0	;E448
 	rts	;4E75
 
@@ -1542,7 +1546,9 @@ Calculate_CutpurseLevelContribution:		; Memory Address ($094C) and binary offset
 Calculate_ShiftedChampionLevel:		; Memory Address ($0954) and binary offset [$05D0]
 	; Loads the champion's level and applies the selected right-shift weighting.
 	moveq	#$00,d0	;7000
+	OPT	O2+
 	move.b	ChampionStat_Level(a4),d0	;1014
+	OPT	O2-
 	lsr.w	d1,d0	;E268
 	rts	;4E75
 
@@ -2031,9 +2037,13 @@ Update_ChampionSpellPoints:		; Memory Address ($0E64) and binary offset [$0AE0]
 	addq.b	#$01,ChampionStat_SpellPointsCurrent(a4)	;522C0009
 Update_ChampionHitPointRecovery:		; Memory Address ($0E76) and binary offset [$0AF2]
 	; Recovers hit points from champion level, doubles the rate when object $5B is in either leading pocket, and clamps to maximum.
+	OPT	O2+
 	move.b	ChampionStat_Level(a4),d0	;1014
+	OPT	O2-
 	lsr.b	#$01,d0	;E208
+	OPT	O2+
 	cmp.b	#Object_HealWand,ChampionPocket_LeftHand(a0)	;0C10005B
+	OPT	O2-
 	beq.s	HitPointRecovery_AddToCurrentHP	;670A
 	cmp.b	#Object_HealWand,ChampionPocket_RightHand(a0)	;0C28005B0001
 	beq.s	HitPointRecovery_AddToCurrentHP	;6702
@@ -3913,7 +3923,9 @@ Resolve_LevelResistanceRoll_Return:		; Memory Address ($2126) and binary offset 
 Load_ChampionLevelForResistanceRoll:		; Memory Address ($2128) and binary offset [$1DA4]
 	; Loads a champion level and joins the shared resistance-threshold and random-roll calculation.
 	moveq	#$00,d2	;7400
+	OPT	O2+
 	move.b	ChampionStat_Level(a1),d2	;1411
+	OPT	O2-
 	bra.s	ResistanceRoll_ComputeThreshold	;60DC
 
 Dispatch_AntimageResistancePasses:		; Memory Address ($212E) and binary offset [$1DAA]
@@ -4019,7 +4031,9 @@ KillExperience_OwnerPartyXPLoopHead:		; Memory Address ($2214) and binary offset
 	bcc.s	KillExperience_OwnerPartyXPLoopSkip	;6422
 	moveq	#$00,d2	;7400
 	move.b	d1,d2	;1401
+	OPT	O2+
 	sub.b	ChampionStat_Level(a4),d2	;9414
+	OPT	O2-
 	addq.b	#$02,d2	;5402
 	bmi.s	KillExperience_OwnerPartyXPLoopSkip	;6B18
 	asl.w	#$07,d2	;EF42
@@ -4041,7 +4055,9 @@ Mark_PendingFairySpellOffer:		; Memory Address ($2258) and binary offset [$1ED4]
 	tst.b	ChampionStat_FairySpellCount(a4)	;4A2C001E
 	bmi.s	Grant_PendingFairySpellFlag_Return	;6B38
 	moveq	#$00,d2	;7400
+	OPT	O2+
 	move.b	ChampionStat_Level(a4),d2	;1414
+	OPT	O2-
 	lea	LevelUpXPThresholdTable.l,a0	;41F900004B1A
 	move.b	$00(a0,d2.w),d3	;16302000
 	lsr.b	#$01,d3	;E20B
@@ -7564,7 +7580,9 @@ Click_SleepParty_SkipUnusedSlot:		; Memory Address ($4574) and binary offset [$4
 ShowAsleepNotice_ResetPageState:		; Memory Address ($4580) and binary offset [$41FC]
 	bsr	Draw_ViewportMessageFrame	;6100E1B2
 	and.b	#$01,(a5)	;02150001
+	OPT	O2+
 	bset	#PlayerData_StateFlags_SleepingBit,PlayerData_StateFlags(a5)	;08D50002
+	OPT	O2-
 	move.b	#$32,PlayerData_FairyOfferDelayCountdown(a5)	;1B7C0032003F
 	move.b	#$02,PlayerData_InterfaceContextState(a5)	;1B7C00020014
 	clr.b	PlayerData_InteractionSelectionStage(a5)	;422D004E
@@ -7680,7 +7698,9 @@ FairyShop_ScanChampionSlotsLoop:		; Memory Address ($4686) and binary offset [$4
 	bsr	Load_ChampionStatRecord	;61001FB6
 	cmp.b	#$EC,ChampionStat_LevelProgress(a4)	;0C2C00EC001C
 	bcs.s	FairyShop_CheckChampionEligibleCount	;6508
+	OPT	O2+
 	cmp.b	#$0E,ChampionStat_Level(a4)	;0C14000E
+	OPT	O2-
 	bcs	FairyShop_GrantLevelUp	;6500042E
 FairyShop_CheckChampionEligibleCount:		; Memory Address ($46BC) and binary offset [$4338]
 	move.b	ChampionStat_FairySpellCount(a4),d0	;102C001E
@@ -8041,9 +8061,13 @@ LevelUpXPThresholdTable:		; Memory Address ($4B1A) and binary offset [$4796]
 
 Advance_ChampionLevelAndGrowStats:		; Memory Address ($4B28) and binary offset [$47A4]
 	; Increments champion level, reloads level progress, and applies the dice-based hit-point and vitality growth.
+	OPT	O2+
 	addq.b	#$01,ChampionStat_Level(a4)	;5214
+	OPT	O2-
 	moveq	#$00,d1	;7200
+	OPT	O2+
 	move.b	ChampionStat_Level(a4),d1	;1214
+	OPT	O2-
 	move.b	LevelUpXPThresholdTable(pc,d1.w),ChampionStat_LevelProgress(a4)	;197B10EA001C
 	move.w	d0,d4	;3800
 	bsr	RandomGen_BytewithOffset	;61000A74
@@ -8106,7 +8130,9 @@ Recalculate_CharacterDerivedStats:		; Memory Address ($4BCE) and binary offset [
 	; Recalculates derived champion values including spell thresholds and the Level/Agility action-speed reload.
 	bsr	Calculate_SpellPracticeThreshold	;6100BD34
 	moveq	#$00,d2	;7400
+	OPT	O2+
 	move.b	ChampionStat_Level(a4),d2	;1414
+	OPT	O2-
 	lea	LevelUpXPThresholdTable.w,a6	;4DF84B1A	;Short Absolute converted to symbol!
 	move.b	$00(a6,d2.w),ChampionStat_LevelProgress(a4)	;19762000001C
 	move.b	ChampionStat_Agility(a4),d1	;122C0002
@@ -10713,7 +10739,9 @@ Apply_ChampionCombatModifiers:		; Memory Address ($62D6) and binary offset [$5F5
 	bsr	Calculate_WarriorLevelContribution	;6100A644
 	tst.w	PhysicalAttack_BackstabState.w	;4A78628A	;Short Absolute converted to symbol!
 	bne.s	Apply_WarpowerCombatModifiers	;6602
+	OPT	O2+
 	move.b	ChampionStat_Level(a4),d0	;1014
+	OPT	O2-
 Apply_WarpowerCombatModifiers:		; Memory Address ($62EA) and binary offset [$5F66]
 	; Applies Warpower magnitude to effective Level, Strength and Agility.
 	moveq	#$00,d1	;7200
@@ -15632,12 +15660,16 @@ Calculate_ViewerObjectPerception:		; Memory Address ($9000) and binary offset [$
 	cmpi.b	#$03,d2	;0C020003
 	bne.s	Calculate_ViewerObjectPerception_ZeroExit	;6612
 	bsr	RandomGen_BytewithOffset	;6100C586
+	OPT	O2+
 	move.b	ChampionStat_Level(a4),d2	;1414
+	OPT	O2-
 	asl.b	#$04,d2	;E902
 	moveq	#$00,d1	;7200
 	cmp.b	d0,d2	;B400
 	bcs.s	Calculate_ViewerObjectPerception_ZeroExit	;6504
+	OPT	O2+
 	move.b	ChampionStat_Level(a4),d1	;1214
+	OPT	O2-
 	add.w	d1,d1	;D241
 Calculate_ViewerObjectPerception_ZeroExit:		; Memory Address ($9036) and binary offset [$8CB2]
 	rts	;4E75

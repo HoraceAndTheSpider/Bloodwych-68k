@@ -39,8 +39,8 @@ VIEWER_GUI_COMMANDS = ("graphics", "maps", "interface", "files")
 GUI_COMMANDS = DATA_GUI_COMMANDS + VIEWER_GUI_COMMANDS
 GUI_LABELS = {
     "extract": "Extract Binary Data",
-    "relabel": "Relabel",
-    "relabel-alt": "Relabel ALT",
+    "relabel": "Relabel Original",
+    "relabel-alt": "Relabel Alternative",
     "asmfix": "ASM Fix",
     "inspect": "Inspect / Data",
     "format": "Format Source",
@@ -198,7 +198,7 @@ def build_parser() -> argparse.ArgumentParser:
     subparsers.add_parser("relabel", help="Generate asm/<binary>_relabel.asm")
     subparsers.add_parser(
         "relabel-alt",
-        help="Generate indexed comparison output asm/<binary>_relabel_alt.asm",
+        help="Generate asm/<binary>_relabel.asm using the indexed alternative",
     )
     subparsers.add_parser(
         "asmfix",
