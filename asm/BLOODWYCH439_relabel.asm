@@ -1130,6 +1130,10 @@ DungeonRender_MonsterGrade:		equ	-$18
 	; Stack-frame byte holding the current monster grade or Summon illusion flag for occupant rendering.
 DungeonRender_OccupantFacing:		equ	-$1B
 	; Stack-frame byte holding the current occupant's facing before conversion to viewer-relative orientation.
+MonsterForm_DemonBeastman:		equ	$1A
+	; Live monster form for the Demon/Beastman, whose renderer alternates between graphics $1A and $1B to create a flicker effect.
+MonsterRender_DemonBeastmanAlternateFrame:		equ	$1B
+	; Renderer-only alternate Demon/Beastman graphic code used for the flicker effect.
 
 ****************************************************************************
 
@@ -17077,16 +17081,16 @@ Load_SingleMonsterRotationAndSpace:		; Memory Address ($9A82) and binary offset 
 	; Inputs: A1 ungrouped live monster record and A3 dungeon-render stack frame. Loads the monster's packed facing/mini-space byte into D1 and falls through to shared occupant render preparation.
 	move.b	ActorRecord_RotationAndSpace(a1),d1	;12290002
 Prepare_MonsterOccupantRender:		; Memory Address ($9A86) and binary offset [$9702]
-	; Loads monster form and handles its render-specific special cases.
+	; Inputs: A1 points to the live monster record, A3 points to the dungeon-render stack frame, and D1 holds packed facing/mini-space data. Copies the live monster form into the render-local occupant code. For Demon/Beastman form $1A, a random bit selects render graphic $1A or $1B to create its flicker effect without changing the live monster record; then execution falls through to load animation state and grade.
 	move.b	ActorRecord_Form(a1),DungeonRender_OccupantCode(a3)	;1769000BFFE9
-	cmp.b	#$1A,-$0017(a3)	;0C2B001AFFE9
+	cmp.b	#MonsterForm_DemonBeastman,DungeonRender_OccupantCode(a3)	;0C2B001AFFE9
 	bne.s	Load_MonsterRenderState	;6614
 	move.w	d1,d3	;3601
 	bsr	RandomGen_BytewithOffset	;6100BB14
 	move.w	d3,d1	;3203
 	and.w	#$0001,d0	;02400001
-	add.w	#$001A,d0	;0640001A
-	move.b	d0,-$0017(a3)	;1740FFE9
+	add.w	#MonsterForm_DemonBeastman,d0	;0640001A
+	move.b	d0,DungeonRender_OccupantCode(a3)	;1740FFE9
 Load_MonsterRenderState:		; Memory Address ($9AA8) and binary offset [$9724]
 	; Loads monster animation state and current grade before rendering.
 	move.b	ActorRecord_ActionState(a1),d0	;10290005

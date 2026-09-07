@@ -15438,16 +15438,21 @@ Load_SingleMonsterRotationAndSpace:		; Memory Address ($9A82) and binary offset 
 	; to shared occupant render preparation.
 	move.b	ActorRecord_RotationAndSpace(a1),d1									;For an ungrouped monster, return its own packed facing and mini-space state in d1.
 Prepare_MonsterOccupantRender:		; Memory Address ($9A86) and binary offset [$9702]
-	; Loads monster form and handles its render-specific special cases.
+	; Inputs: A1 points to the live monster record, A3 points to the dungeon-render
+	; stack frame, and D1 holds packed facing/mini-space data. Copies the live
+	; monster form into the render-local occupant code. For Demon/Beastman form
+	; $1A, a random bit selects render graphic $1A or $1B to create its flicker
+	; effect without changing the live monster record; then execution falls through
+	; to load animation state and grade.
 	move.b	ActorRecord_Form(a1),DungeonRender_OccupantCode(a3)					;Store the actor form in the enclosing dungeon-render stack frame; a3 is not a live actor pointer here.
-	cmp.b	#$1A,-$0017(a3)
+	cmp.b	#MonsterForm_DemonBeastman,DungeonRender_OccupantCode(a3)			;Demon/Beastman is the only form that alternates between two render codes for its flicker effect.
 	bne.s	Load_MonsterRenderState
 	move.w	d1,d3
 	bsr		RandomGen_BytewithOffset
 	move.w	d3,d1
-	and.w	#$0001,d0
-	add.w	#$001A,d0
-	move.b	d0,-$0017(a3)
+	and.w	#$0001,d0															;Use one random bit to select Demon/Beastman graphic $1A or $1B.
+	add.w	#MonsterForm_DemonBeastman,d0										;Convert random 0/1 into the two Demon/Beastman render codes, $1A/$1B.
+	move.b	d0,DungeonRender_OccupantCode(a3)									;Store the chosen flicker graphic in the render local without changing the live monster form.
 Load_MonsterRenderState:		; Memory Address ($9AA8) and binary offset [$9724]
 	; Loads monster animation state and current grade before rendering.
 	move.b	ActorRecord_ActionState(a1),d0

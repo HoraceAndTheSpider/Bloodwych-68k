@@ -399,6 +399,7 @@ MonsterAttackType_NoSpells:								equ	$00			; Monster attack-type index for non
 MonsterAttackType_Spells:								equ	$01			; Monster attack-type index for normal spellcasting behavior.
 
 MonsterForm_Behemoth:									equ	$67			; Live actor form used by the Behemoth and the first form in the large-monster renderer range.
+MonsterForm_DemonBeastman:								equ	$1A			; Live monster form for the Demon/Beastman, whose renderer alternates between graphics $1A and $1B to create a flicker effect.
 MonsterForm_TraderPotions:								equ	$16			; Live actor form used by the potion trader.
 MonsterForm_TraderWeapons:								equ	$15			; Live actor form used by the weapon trader.
 MonsterForm_Zendik:										equ	$40			; Checks the reserved Zendik form.
@@ -416,6 +417,8 @@ MonsterRecord_CarriedObject:							equ	$0C			; Tests whether the monster has a c
 MonsterRecord_EffectiveLevel:							equ	$07			; Stores the base live monster level.
 MonsterRecord_NoTeamGroup:								equ	$FF			; Clears the first team member's group assignment.
 MonsterRecord_TeamGroupIndex:							equ	$0D			; Reads a live monster's team group index.
+
+MonsterRender_DemonBeastmanAlternateFrame:				equ	$1B			; Renderer-only alternate Demon/Beastman graphic code used for the flicker effect.
 
 MonsterTeamData_GroupShift:								equ	$02			; Converts packed member data to a team-group index.
 
