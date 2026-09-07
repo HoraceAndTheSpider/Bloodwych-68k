@@ -1070,6 +1070,66 @@ SpellEntity_PowerOffset:		equ	$06
 	; Subtype overlay at live-record byte $06 holding a spell entity's power or summoned level.
 SpellEntity_CasterIndexOffset:		equ	$0C
 	; Subtype overlay at live-record byte $0C holding a spell entity's caster index.
+PlayerData_PrimaryInputLatch_ClickBit:		equ	$07
+	; Bit consumed from the primary input latch when a click is handled.
+PlayerData_ChampionSlots_DeadOrEmptyMask:		equ	$C0
+	; Mask selecting the dead and empty flags in a PlayerData champion-slot byte.
+PlayerData_ChampionSlots_InactiveMask:		equ	$E0
+	; Mask selecting the away, dead and empty flags in a PlayerData champion-slot byte.
+ChampionLevel_FairyAutoLevelMaximum:		equ	$0E
+	; Highest champion level reachable through the Fairy shop's automatic catch-up level-up path.
+FairyShop_LevelProgressAutoLevelThreshold:		equ	$EC
+	; Level-progress value at which the Fairy shop grants a catch-up level when the champion is below level fourteen.
+MonsterTeamIndexTable_EntrySize:		equ	$04
+	; Size in bytes of one four-member live monster-team index row.
+MonsterTeamIndexTable_EntrySizeShift:		equ	$02
+	; Shift converting a live monster-team index to its four-byte row offset.
+MonsterTeamIndexTable_EmptyEntry:		equ	$FFFFFFFF
+	; Sentinel longword marking all four member slots in a live monster-team row as empty.
+MonsterTeamMember_Empty:		equ	$FF
+	; Sentinel byte marking an unused member slot in a live monster-team row.
+MonsterTeamMember_Slot0Offset:		equ	$00
+	; Offset of zero-based member slot 0 in a live monster-team row.
+MonsterTeamMember_Slot1Offset:		equ	$01
+	; Offset of zero-based member slot 1 in a live monster-team row.
+MonsterTeamMember_Slot2Offset:		equ	$02
+	; Offset of zero-based member slot 2 in a live monster-team row.
+MonsterTeamMember_Slot3Offset:		equ	$03
+	; Offset of zero-based member slot 3 in a live monster-team row.
+MonsterTeamMember_LeadingPairEmptyMask:		equ	$8080
+	; Word mask testing the sign or empty bit of member slots 0 and 1 together.
+MonsterForm_TraderWeapons:		equ	$15
+	; Live actor form used by the weapon trader.
+MonsterForm_TraderPotions:		equ	$16
+	; Live actor form used by the potion trader.
+MonsterForm_Behemoth:		equ	$67
+	; Live actor form used by the Behemoth and the first form in the large-monster renderer range.
+MonsterLevel_ValueMask:		equ	$7F
+	; Mask retaining the seven-bit monster level while excluding its transient high-bit flag.
+MonsterLevel_TransientFlagBit:		equ	$07
+	; High bit toggled in the effective monster level during the level-resistance adjustment.
+CharacterActionState_ConfuseOrTerrorMask:		equ	$60
+	; Mask selecting the Confuse and Terror status bits in a live actor action-state byte.
+MagicFeature_Firepath:		equ	$01
+	; Low two-bit map magic-feature subtype used for Firepath.
+MagicFeature_PowerMaximum:		equ	$3F
+	; Largest six-bit power stored in a packed map magic-feature byte.
+AirbourneSpell_BlazeFireball:		equ	$85
+	; Special Fireball entity produced when Blaze collides; it has bespoke reversal and cell-persistence handling.
+AirbourneSpell_Arrow:		equ	$88
+	; Live-entity form code used by ordinary arrows in flight.
+AirbourneSpell_ElfArrow:		equ	$89
+	; Live-entity form code used by Elf Arrows in flight.
+MapCell_DoorType:		equ	$02
+	; Low three-bit map-cell type identifying a door.
+DungeonRender_ViewerFacing:		equ	-$0A
+	; Stack-frame word holding the dungeon viewer's facing during viewport rendering.
+DungeonRender_OccupantCode:		equ	-$17
+	; Stack-frame byte holding the current champion identifier, monster form or airborne entity code for occupant rendering.
+DungeonRender_MonsterGrade:		equ	-$18
+	; Stack-frame byte holding the current monster grade or Summon illusion flag for occupant rendering.
+DungeonRender_OccupantFacing:		equ	-$1B
+	; Stack-frame byte holding the current occupant's facing before conversion to viewer-relative orientation.
 
 ****************************************************************************
 
@@ -2054,21 +2114,24 @@ HitPointRecovery_AddToCurrentHP:		; Memory Address ($0E8A) and binary offset [$0
 	bcc.s	Clamp_AIProgressToMaximum	;6402
 	moveq	#-$01,d0	;70FF
 Clamp_AIProgressToMaximum:		; Memory Address ($0E94) and binary offset [$0B10]
-	; Caps the newly accumulated progress byte at the record-specific maximum in byte $06, then stores it in byte $05.
+	; Inputs: A4 champion-stat record and D0 candidate hit points. Clamps D0 to ChampionStat_HitPointsMaximum before falling through to the store.
 	cmp.b	ChampionStat_HitPointsMaximum(a4),d0	;B02C0006
 	bcs.s	ClampAIProgressToMaximum_StoreHP	;6504
 	move.b	ChampionStat_HitPointsMaximum(a4),d0	;102C0006
 ClampAIProgressToMaximum_StoreHP:		; Memory Address ($0E9E) and binary offset [$0B1A]
+	; Inputs: A4 champion-stat record and D0 clamped hit points. Stores current HP, then applies level-influenced starvation damage only when vitality is already zero; continues into food/vitality maintenance.
 	move.b	d0,ChampionStat_HitPointsCurrent(a4)	;19400005
 	tst.b	ChampionStat_VitalityCurrent(a4)	;4A2C0007
 	bne.s	Update_ChampionFoodAndVitality	;6626
 	movem.l	d7/a4/a5,-(sp)	;48E7010C
 	bsr	RandomGen_BytewithOffset	;610046FE
 	and.w	#$0007,d0	;02400007
-	add.b	(a4),d0	;D014
-	cmp.b	$0005(a4),d0	;B02C0005
+	OPT	O2+
+	add.b	ChampionStat_Level(a4),d0	;D014
+	OPT	O2-
+	cmp.b	ChampionStat_HitPointsCurrent(a4),d0	;B02C0005
 	bcs.s	Apply_StarvationDamage	;6506
-	move.b	$0005(a4),d0	;102C0005
+	move.b	ChampionStat_HitPointsCurrent(a4),d0	;102C0005
 	beq.s	StarvationCheck_RestoreRegsAndContinue	;6708
 Apply_StarvationDamage:		; Memory Address ($0EC2) and binary offset [$0B3E]
 	; Applies a random level-influenced hit-point loss when food exhaustion has already reduced vitality to zero.
@@ -2184,15 +2247,17 @@ Redraw_RemainingChampionShieldSlots:		; Memory Address ($0FD0) and binary offset
 	bra.s	PlayerTick_DrawInterfaceAndDispatchPanel	;606E
 
 FloorTrigger_Handler:		; Memory Address ($0FDC) and binary offset [$0C58]
-	; Detects the forward regeneration floor feature and runs one or two stat-regeneration passes for each party slot.
-	btst	#$02,(a5)	;08150002
+	; Input: A5 PlayerData. While the party is sleeping, checks the forward cell for regeneration type 3/subtype 0, reduces active champions' casting fatigue and performs one normal or two special-floor regeneration passes before redrawing the interface.
+	OPT	O2+
+	btst	#PlayerData_StateFlags_SleepingBit,PlayerData_StateFlags(a5)	;08150002
+	OPT	O2-
 	beq	PeriodicTick_SharedEarlyReturn	;670000AC
 	clr.w	FloorTriggerDetectedFlag.l	;427900001062
 	bsr	Select_ActivePlayerFloorMap	;610074EA
 	bsr	ForwardCellToMapOffset	;6100748E
 	move.w	$00(a6,d0.w),d1	;32360000
-	and.w	#$0007,d1	;02410007
-	subq.w	#$03,d1	;5741
+	and.w	#MapCell_TypeMask,d1	;02410007
+	subq.w	#FloorRegenerationCellType,d1	;5741
 	bne.s	FloorTriggerHandler_InitSlotLoop	;660E
 	tst.b	$00(a6,d0.w)	;4A360000
 	bne.s	FloorTriggerHandler_InitSlotLoop	;6608
@@ -2200,10 +2265,10 @@ FloorTrigger_Handler:		; Memory Address ($0FDC) and binary offset [$0C58]
 FloorTriggerHandler_InitSlotLoop:		; Memory Address ($100C) and binary offset [$0C88]
 	moveq	#$03,d7	;7E03
 FloorTriggerHandler_SlotLoop:		; Memory Address ($100E) and binary offset [$0C8A]
-	move.b	$18(a5,d7.w),d0	;10357018
-	and.w	#$00E0,d0	;024000E0
+	move.b	PlayerData_ChampionSlotsOffset(a5,d7.w),d0	;10357018
+	and.w	#PlayerData_ChampionSlots_InactiveMask,d0	;024000E0
 	bne.s	FloorTriggerHandler_SlotLoopTail	;662E
-	move.b	$18(a5,d7.w),d0	;10357018
+	move.b	PlayerData_ChampionSlotsOffset(a5,d7.w),d0	;10357018
 	bsr	Load_ChampionStatRecord	;61005642
 	subq.b	#$06,ChampionStat_SpellCooldown(a4)	;5D2C0015
 	bcc.s	FloorTriggerHandler_ApplyRegeneration	;6404
@@ -2220,8 +2285,9 @@ FloorTriggerHandler_RestoreLoopRegs:		; Memory Address ($1042) and binary offset
 FloorTriggerHandler_SlotLoopTail:		; Memory Address ($1046) and binary offset [$0CC2]
 	dbra	d7,FloorTriggerHandler_SlotLoop	;51CFFFC6
 PlayerTick_DrawInterfaceAndDispatchPanel:		; Memory Address ($104A) and binary offset [$0CC6]
+	; Input: A5 PlayerData. Draws the main interface, then uses the word at PlayerData_InterfaceContextState to dispatch context 1 to champion statistics or context 2 to spell-point values; other contexts return.
 	bsr	Draw_MainPlayerInterface	;6100707E
-	move.w	$0014(a5),d1	;322D0014
+	move.w	PlayerData_InterfaceContextState(a5),d1	;322D0014
 	subq.w	#$01,d1	;5341
 	beq	Click_ShowStats	;670055C0
 	subq.b	#$01,d1	;5301
@@ -2250,14 +2316,14 @@ PeriodicTick_SharedEarlyReturn:		; Memory Address ($108E) and binary offset [$0D
 	rts	;4E75
 
 Maintain_MonsterGroupFormation:		; Memory Address ($1090) and binary offset [$0D0C]
-	; Rebuilds live monster-team membership and dissolves a group when only one living member remains.
+	; No caller inputs. Compacts the four-member live team-index table, renumbers surviving group indices, dissolves one-member teams, repairs empty leading slots by relocating live-record state and updates MonsterTeamGroupCount; clobbers D0-D7/A0-A3.
 	moveq	#$00,d6	;7C00
 	lea	UnpackedMonsters.l,a3	;47F900016B7E
 	lea	MonsterTeamIndexTable.l,a0	;41F900017390
 	move.w	MonsterTeamIndexTable_CountOffset(a0),d7	;3E28FFFE
 	bmi.s	PeriodicTick_SharedEarlyReturn	;6BEA
 MaintainMonsterGroupFormation_GroupLoop:		; Memory Address ($10A4) and binary offset [$0D20]
-	cmp.l	#$FFFFFFFF,(a0)	;0C90FFFFFFFF
+	cmp.l	#MonsterTeamIndexTable_EmptyEntry,(a0)	;0C90FFFFFFFF
 	beq.s	MaintainMonsterGroupFormation_RemoveGroupEntry	;673E
 	moveq	#-$01,d4	;78FF
 	moveq	#MonsterTeamMember_Count-1,d1	;7203
@@ -2266,7 +2332,7 @@ MaintainMonsterGroupFormation_MemberLoop:		; Memory Address ($10B0) and binary o
 	move.b	$00(a0,d1.w),d2	;14301000
 	bmi.s	MaintainMonsterGroupFormation_MemberLoopTail	;6B12
 	addq.w	#$01,d4	;5244
-	asl.w	#$04,d2	;E942
+	asl.w	#ActorRecord_SizeShift,d2	;E942
 	move.b	MonsterRecord_TeamGroupIndex(a3,d2.w),d3	;1633200D
 	bmi.s	MaintainMonsterGroupFormation_MemberLoopTail	;6B08
 	sub.b	d6,d3	;9606
@@ -2278,13 +2344,13 @@ MaintainMonsterGroupFormation_MemberLoopTail:		; Memory Address ($10CA) and bina
 	bne.s	MaintainMonsterGroupFormation_TestGroupFlags	;6638
 	move.b	#MonsterRecord_NoTeamGroup,MonsterRecord_TeamGroupIndex(a3,d5.w)	;17BC00FF500D
 	move.b	ActorRecord_RotationAndSpace(a3,d5.w),d4	;18335002
-	and.w	#$0003,d4	;02440003
+	and.w	#ActorRecord_FacingMask,d4	;02440003
 	move.w	d4,d2	;3404
-	asl.w	#$04,d4	;E944
+	asl.w	#ActorRecord_MiniSpaceShift,d4	;E944
 	or.w	d4,d2	;8444
-	move.b	d2,$02(a3,d5.w)	;17825002
+	move.b	d2,ActorRecord_RotationAndSpace(a3,d5.w)	;17825002
 MaintainMonsterGroupFormation_RemoveGroupEntry:		; Memory Address ($10EA) and binary offset [$0D66]
-	lea	$0004(a0),a1	;43E80004
+	lea	MonsterTeamIndexTable_EntrySize(a0),a1	;43E80004
 	lea	(a0),a2	;45D0
 	move.w	d7,d1	;3207
 	bra.s	MaintainMonsterGroupFormation_ShiftLoopTail	;6002
@@ -2293,23 +2359,23 @@ MaintainMonsterGroupFormation_ShiftLoop:		; Memory Address ($10F4) and binary of
 	move.l	(a1)+,(a2)+	;24D9
 MaintainMonsterGroupFormation_ShiftLoopTail:		; Memory Address ($10F6) and binary offset [$0D72]
 	dbra	d1,MaintainMonsterGroupFormation_ShiftLoop	;51C9FFFC
-	move.l	#$FFFFFFFF,(a2)	;24BCFFFFFFFF
+	move.l	#MonsterTeamIndexTable_EmptyEntry,(a2)	;24BCFFFFFFFF
 	subq.w	#$01,MonsterTeamGroupCount.l	;53790001738E
 	addq.w	#$01,d6	;5246
 	bra.s	MaintainMonsterGroupFormation_GroupLoopTail	;6064
 
 MaintainMonsterGroupFormation_TestGroupFlags:		; Memory Address ($110A) and binary offset [$0D86]
 	move.w	(a0),d0	;3010
-	and.w	#$8080,d0	;02408080
+	and.w	#MonsterTeamMember_LeadingPairEmptyMask,d0	;02408080
 	beq.s	MaintainMonsterGroupFormation_AdvanceEntry	;675A
-	move.b	$0003(a0),d2	;14280003
+	move.b	MonsterTeamMember_Slot3Offset(a0),d2	;14280003
 	bmi.s	MaintainMonsterGroupFormation_SelectAltSlot	;6B08
-	move.b	#$FF,$0003(a0)	;117C00FF0003
+	move.b	#MonsterTeamMember_Empty,MonsterTeamMember_Slot3Offset(a0)	;117C00FF0003
 	bra.s	MaintainMonsterGroupFormation_StoreSlotValue	;600A
 
 MaintainMonsterGroupFormation_SelectAltSlot:		; Memory Address ($1120) and binary offset [$0D9C]
-	move.b	$0002(a0),d2	;14280002
-	move.b	#$FF,$0002(a0)	;117C00FF0002
+	move.b	MonsterTeamMember_Slot2Offset(a0),d2	;14280002
+	move.b	#MonsterTeamMember_Empty,MonsterTeamMember_Slot2Offset(a0)	;117C00FF0002
 MaintainMonsterGroupFormation_StoreSlotValue:		; Memory Address ($112A) and binary offset [$0DA6]
 	moveq	#$01,d1	;7201
 	tst.b	d0	;4A00
@@ -2326,12 +2392,12 @@ MaintainMonsterGroupFormation_RelocateRecord:		; Memory Address ($1132) and bina
 	move.b	ActorRecord_XPosition(a3,d5.w),ActorRecord_XPosition(a3,d3.w)	;17B350003000
 	move.b	ActorRecord_YPosition(a3,d5.w),ActorRecord_YPosition(a3,d3.w)	;17B350013001
 	move.b	ActorRecord_Floor(a3,d5.w),ActorRecord_Floor(a3,d3.w)	;17B350043004
-	move.b	#$FF,$00(a3,d5.w)	;17BC00FF5000
+	move.b	#ActorRecord_NoPosition,ActorRecord_XPosition(a3,d5.w)	;17BC00FF5000
 	move.b	ActorRecord_RotationAndSpace(a3,d5.w),ActorRecord_RotationAndSpace(a3,d3.w)	;17B350023002
 	move.b	MonsterRecord_TeamGroupIndex(a3,d5.w),MonsterRecord_TeamGroupIndex(a3,d3.w)	;17B3500D300D
 	move.b	#MonsterRecord_NoTeamGroup,MonsterRecord_TeamGroupIndex(a3,d5.w)	;17BC00FF500D
 MaintainMonsterGroupFormation_AdvanceEntry:		; Memory Address ($116C) and binary offset [$0DE8]
-	addq.w	#$04,a0	;5848
+	addq.w	#MonsterTeamIndexTable_EntrySize,a0	;5848
 MaintainMonsterGroupFormation_GroupLoopTail:		; Memory Address ($116E) and binary offset [$0DEA]
 	dbra	d7,MaintainMonsterGroupFormation_GroupLoop	;51CFFF34
 	rts	;4E75
@@ -2569,9 +2635,9 @@ PartyFormationActivationFlag:		; Memory Address ($13C4) and binary offset [$1040
 	dc.w	$0000	;0000
 
 Update_CharacterCooldownIfCurrentTower:		; Memory Address ($13C6) and binary offset [$1042]
-	; Updates a champion's attack cooldown only when their record belongs to the current tower, then continues actor activation.
+	; Inputs: A4 champion-stat record and D4=$16 champion-field bias. Ages attack cooldown only when ChampionStat_Tower matches CurrentTower, then tail-dispatches through the shared actor activation gate.
 	move.w	CurrentTower.l,d0	;30390000EE2E
-	cmp.b	$001F(a4),d0	;B02C001F
+	cmp.b	ChampionStat_Tower(a4),d0	;B02C001F
 	bne.s	SharedEarlyReturn_Rts	;66EE
 	bsr	Update_CharacterAttackCooldown	;610015B0
 	bra.s	ActorScan_ActivationGate	;6016
@@ -2680,24 +2746,24 @@ Test_LevelResistanceRoll_FromPointer_TailJump:		; Memory Address ($1508) and bin
 	bra	Test_LevelResistanceRoll	;60000BEC
 
 Begin_MonsterAttackBehaviour:		; Memory Address ($150C) and binary offset [$1188]
-	; Loads the live monster form and enters special-form or ordinary attack processing.
+	; Input: A4 live actor record, with D4=0 for monsters. Airborne forms take special movement; Zendik, Behemoth-or-later forms and team members first copy current facing into both nibbles of the rotation/state byte, then continue to action dispatch.
 	move.b	ActorRecord_Form(a4),d2					;142C000B
 	bmi	Handle_SpecialMonsterFormMovement					;6B0001F6
-	cmpi.b	#$40,d2						;0C020040
+	cmpi.b	#MonsterForm_Zendik,d2						;0C020040
 	beq.s	Normalise_MonsterFacingState					;670C
-	cmpi.b	#$67,d2						;0C020067
+	cmpi.b	#MonsterForm_Behemoth,d2						;0C020067
 	bcc.s	Normalise_MonsterFacingState					;6406
-	tst.b	$000D(a4)					;4A2C000D
+	tst.b	MonsterRecord_TeamGroupIndex(a4)					;4A2C000D
 	bmi.s	Dispatch_MonsterActionState					;6B14
 Normalise_MonsterFacingState:		; Memory Address ($1526) and binary offset [$11A2]
 	; Copies the current facing into both nibbles of the live monster rotation/state byte when its form requires normalisation.
-	and.b	#$03,$0002(a4)					;022C00030002
-	move.b	$0002(a4),d6					;1C2C0002
-	asl.b	#$04,d6						;E906
-	or.b	$0002(a4),d6					;8C2C0002
-	move.b	d6,$0002(a4)					;19460002
+	and.b	#ActorRecord_FacingMask,ActorRecord_RotationAndSpace(a4)					;022C00030002
+	move.b	ActorRecord_RotationAndSpace(a4),d6					;1C2C0002
+	asl.b	#ActorRecord_MiniSpaceShift,d6						;E906
+	or.b	ActorRecord_RotationAndSpace(a4),d6					;8C2C0002
+	move.b	d6,ActorRecord_RotationAndSpace(a4)					;19460002
 Dispatch_MonsterActionState:		; Memory Address ($153A) and binary offset [$11B6]
-	; Checks the movement table, protected player actors, action state and level before choosing the monster attack behaviour.
+	; Input: A4 live monster record with current scan/map context. Applies movement-table and controlled-actor gates, forces Confuse/Terror to Drone behaviour, conditionally advances an effective level below base via resistance testing, then dispatches behaviour byte $0A through the five-entry attack table.
 	bsr	Read_MonsterMovementTableEntry	;61000306
 	bpl	Store_MonsterRotationByte	;6A00068E
 	move.w	ActorScanRecordIndex.w,d1	;323813C2	;Short Absolute converted to symbol!
@@ -2705,13 +2771,13 @@ Dispatch_MonsterActionState:		; Memory Address ($153A) and binary offset [$11B6]
 	beq	Return_MonsterBehaviour	;67000686
 	cmp.b	Player2_ControlledActorScanIndex.l,d1	;B2390000EF13
 	beq	Return_MonsterBehaviour	;6700067C
-	move.b	$0005(a4),d1	;122C0005
-	and.w	#$0060,d1	;02410060
+	move.b	ActorRecord_ActionState(a4),d1	;122C0005
+	and.w	#CharacterActionState_ConfuseOrTerrorMask,d1	;02410060
 	bne	AttackType_Drone	;660001F6
-	move.b	$0006(a4),d0	;102C0006
-	move.b	$0007(a4),d1	;122C0007
-	and.w	#$007F,d1	;0241007F
-	and.w	#$007F,d0	;0240007F
+	move.b	MonsterRecord_BaseLevel(a4),d0	;102C0006
+	move.b	MonsterRecord_EffectiveLevel(a4),d1	;122C0007
+	and.w	#MonsterLevel_ValueMask,d1	;0241007F
+	and.w	#MonsterLevel_ValueMask,d0	;0240007F
 	cmp.w	d0,d1	;B240
 	bcc.s	Select_MonsterAttackType	;641C
 	move.l	a4,a1	;224C
@@ -2719,9 +2785,9 @@ Dispatch_MonsterActionState:		; Memory Address ($153A) and binary offset [$11B6]
 	bsr	Test_LevelResistanceRoll	;61000B72
 	tst.w	d5	;4A45
 	beq.s	Select_MonsterAttackType	;670C
-	bchg	#$07,$0007(a4)	;086C00070007
+	bchg	#MonsterLevel_TransientFlagBit,MonsterRecord_EffectiveLevel(a4)	;086C00070007
 	beq.s	Select_MonsterAttackType	;6704
-	addq.b	#$01,$0007(a4)	;522C0007
+	addq.b	#$01,MonsterRecord_EffectiveLevel(a4)	;522C0007
 Select_MonsterAttackType:		; Memory Address ($1596) and binary offset [$1212]
 	; Dispatches live monster type byte $0A through the five-entry attack-type table.
 	move.b	ActorRecord_BehaviourType(a4),d1	;122C000A
@@ -2902,23 +2968,23 @@ Validate_SpecialMonsterDestination:		; Memory Address ($1714) and binary offset 
 	tst.b	$00(a6,d0.w)				;4A360000
 	bne.s	AttackType_Drone				;6632
 Convert_SpecialMonsterCellToMagicFeature:		; Memory Address ($1728) and binary offset [$13A4]
-	; Marks the destination cell and derives its stored feature power from the live entity.
-	or.b	#$07,$01(a6,d0.w)			;003600070001
+	; Inputs: A4 Blaze or Firepath entity, A6 map base and D0 destination offset. Converts the destination to Firepath subtype 1, doubles and clamps Blaze power to $3F, preserves Firepath power, creates the linked feature with the caster ID and continues into Drone movement.
+	or.b	#MapCell_MagicFeatureType,$01(a6,d0.w)			;003600070001
 	moveq	#$00,d1					;7200
-	move.b	$0006(a4),d1				;122C0006
-	cmp.b	#$84,$000B(a4)				;0C2C0084000B
+	move.b	SpellEntity_PowerOffset(a4),d1				;122C0006
+	cmp.b	#AirbourneSpell_Blaze,ActorRecord_Form(a4)				;0C2C0084000B
 	bne.s	Store_SpecialMonsterFeaturePower				;660A
 	add.b	d1,d1					;D201
-	cmpi.b	#$40,d1					;0C010040
+	cmpi.b	#MagicFeature_PowerMaximum+1,d1					;0C010040
 	bcs.s	Store_SpecialMonsterFeaturePower				;6502
-	moveq	#$3F,d1					;723F
+	moveq	#MagicFeature_PowerMaximum,d1					;723F
 Store_SpecialMonsterFeaturePower:		; Memory Address ($1746) and binary offset [$13C2]
 	; Clamps and stores special feature power before removing the source live entity.
 	asl.b	#$02,d1					;E501
-	addq.b	#$01,d1					;5201
+	addq.b	#MagicFeature_Firepath,d1					;5201
 	move.b	d1,$00(a6,d0.w)	;1D810000
 	move.w	#$0100,d1	;323C0100
-	move.b	$000C(a4),d1	;122C000C
+	move.b	SpellEntity_CasterIndexOffset(a4),d1	;122C000C
 	bsr	Formwall_PrepareLinkedFeature	;61003D66
 AttackType_Drone:		; Memory Address ($175A) and binary offset [$13D6]
 	; Attempts forward movement using the live monster facing and enters the blocked-turn path if movement fails.
@@ -3034,32 +3100,32 @@ Read_MonsterMovementTableEntry:		; Memory Address ($1842) and binary offset [$14
 	rts	;4E75
 
 AttackType_ResolveForwardOccupant:		; Memory Address ($185C) and binary offset [$14D8]
-	; Resolves the occupant of the monster's forward cell and dispatches attack, joining or blocked-turn handling.
+	; Input: A4 attacking live actor with forward-cell map context. Resolves the occupant; IDs 0-15 are champions and 16+ are live monster/entity records, then dispatches player attack, Summon caster handling, target-team logic or a blocked turn.
 	clr.w	PhysicalAttack_DoubleDefenceFlag.l	;427900006458
 	jsr	Resolve_DiagonalCellAndFindOccupant.l	;4EB9000098A4
 	bcc	AttackType_DroneBlockedTurn	;6400034E
 	tst.b	d0	;4A00
 	bmi	Resolve_PlayerTargetAttack	;6B000246
-	cmpi.b	#$10,d0	;0C000010
+	cmpi.b	#Champion_Count,d0	;0C000010
 	bcs	CheckMonsterHeldObject	;6500010A
-	move.b	$000B(a4),d2	;142C000B
+	move.b	ActorRecord_Form(a4),d2	;142C000B
 	bmi	CheckMonsterHeldObject	;6B000102
-	cmpi.b	#$64,d2	;0C020064
+	cmpi.b	#ActorForm_MonsterRendererFirst,d2	;0C020064
 	bne.s	Resolve_MonsterTargetType	;660C
-	move.b	$000C(a4),SpellEntity_CasterIndex.l	;13EC000C0000EE3E
+	move.b	SpellEntity_CasterIndexOffset(a4),SpellEntity_CasterIndex.l	;13EC000C0000EE3E
 	bra	CheckMonsterHeldObject	;600000F0
 
 Resolve_MonsterTargetType:		; Memory Address ($1894) and binary offset [$1510]
-	; Distinguishes ordinary monsters, grouped monsters and eligible airborne targets in the forward cell.
-	cmp.b	#$64,$000B(a1)				;0C290064000B
+	; Inputs: A4 attacker, A1 resolved target live record, D0 target occupant ID and D2 attacker form. Routes Summons specially, prevents Zendik and Behemoth-or-later attackers joining teams, joins ordinary targets and handles only Blaze-derived Fireball form $85 through the airborne collision path.
+	cmp.b	#ActorForm_MonsterRendererFirst,ActorRecord_Form(a1)				;0C290064000B
 	beq	CheckMonsterHeldObject				;670000E6
-	cmpi.b	#$40,d2					;0C020040
+	cmpi.b	#MonsterForm_Zendik,d2					;0C020040
 	beq	AttackType_DroneBlockedTurn				;67000314
-	cmpi.b	#$67,d2					;0C020067
+	cmpi.b	#MonsterForm_Behemoth,d2					;0C020067
 	bcc	AttackType_DroneBlockedTurn				;6400030C
-	move.b	$000B(a1),d2				;1429000B
+	move.b	ActorRecord_Form(a1),d2				;1429000B
 	bpl.s	Add_MonsterToTargetTeam				;6A42
-	cmpi.b	#$85,d2					;0C020085
+	cmpi.b	#AirbourneSpell_BlazeFireball,d2					;0C020085
 	bne	AttackType_DroneBlockedTurn				;660002FE
 	move.l	a4,-(sp)				;2F0C
 	moveq	#$00,d7					;7E00
@@ -3081,31 +3147,31 @@ Resolve_MonsterTargetType:		; Memory Address ($1894) and binary offset [$1510]
 	rts				;4E75
 
 Add_MonsterToTargetTeam:		; Memory Address ($18F6) and binary offset [$1572]
-	; Creates or extends a target monster team when the attacker can join it.
-	cmpi.b	#$40,d2	;0C020040
+	; Inputs: A4 attacker, A1 target, D0 target occupant ID and D2 target form. Rejects Zendik, Behemoth-or-later forms and already-grouped attackers; otherwise creates or extends the target's four-slot team, clears standalone map occupancy and marks the attacker unpositioned.
+	cmpi.b	#MonsterForm_Zendik,d2	;0C020040
 	beq	AttackType_DroneBlockedTurn	;670002BC
-	cmpi.b	#$67,d2	;0C020067
+	cmpi.b	#MonsterForm_Behemoth,d2	;0C020067
 	bcc	AttackType_DroneBlockedTurn	;640002B4
-	tst.b	$000D(a4)	;4A2C000D
+	tst.b	MonsterRecord_TeamGroupIndex(a4)	;4A2C000D
 	bpl	AttackType_DroneBlockedTurn	;6A0002AC
 	moveq	#$00,d3	;7600
-	move.b	$000D(a1),d3	;1629000D
+	move.b	MonsterRecord_TeamGroupIndex(a1),d3	;1629000D
 	bpl.s	Find_EmptyTargetTeamSlot	;6A26
 	lea	MonsterTeamIndexTable.l,a0	;41F900017390
-	addq.w	#$01,-$0002(a0)	;5268FFFE
-	move.w	-$0002(a0),d3	;3628FFFE
-	move.b	d3,$000D(a1)	;1343000D
-	asl.w	#$02,d3	;E543
-	sub.w	#$0010,d0	;04400010
-	move.l	#$FFFFFFFF,$00(a0,d3.w)	;21BCFFFFFFFF3000
+	addq.w	#$01,MonsterTeamIndexTable_CountOffset(a0)	;5268FFFE
+	move.w	MonsterTeamIndexTable_CountOffset(a0),d3	;3628FFFE
+	move.b	d3,MonsterRecord_TeamGroupIndex(a1)	;1343000D
+	asl.w	#MonsterTeamIndexTable_EntrySizeShift,d3	;E543
+	sub.w	#Champion_Count,d0	;04400010
+	move.l	#MonsterTeamIndexTable_EmptyEntry,$00(a0,d3.w)	;21BCFFFFFFFF3000
 	move.b	d0,$00(a0,d3.w)	;11803000
 	lsr.w	#$02,d3	;E44B
 Find_EmptyTargetTeamSlot:		; Memory Address ($193C) and binary offset [$15B8]
 	; Prepares the four-slot target-team record scan.
-	asl.w	#$02,d3	;E543
+	asl.w	#MonsterTeamIndexTable_EntrySizeShift,d3	;E543
 	lea	MonsterTeamIndexTable.l,a0	;41F900017390
 	add.w	d3,a0	;D0C3
-	moveq	#$03,d2	;7403
+	moveq	#MonsterTeamMember_Count-1,d2	;7403
 Find_EmptyTargetTeamSlotLoop:		; Memory Address ($1948) and binary offset [$15C4]
 	; Scans the target monster team for an unused member slot.
 	tst.b	$00(a0,d2.w)	;4A302000
@@ -3117,13 +3183,13 @@ Move_MonsterIntoTargetTeam:		; Memory Address ($1956) and binary offset [$15D2]
 	; Stores the attacker in the target team, clears its map-cell occupancy and removes its standalone position.
 	move.l	a4,d0	;200C
 	sub.l	#UnpackedMonsters,d0	;048000016B7E
-	lsr.w	#$04,d0	;E848
+	lsr.w	#ActorRecord_SizeShift,d0	;E848
 	move.b	d0,$00(a0,d2.w)	;11802000
 	moveq	#$00,d7	;7E00
 	move.b	$0000(a4),d7	;1E2C0000
 	swap	d7	;4847
 	move.b	$0001(a4),d7	;1E2C0001
-	move.b	#$FF,$0000(a4)	;197C00FF0000
+	move.b	#ActorRecord_NoPosition,ActorRecord_XPosition(a4)	;197C00FF0000
 	bsr	CoordToMap	;61006B24
 	bclr	#$07,$01(a6,d0.w)	;08B600070001
 	rts	;4E75
@@ -3132,10 +3198,10 @@ CheckMonsterHeldObject:		; Memory Address ($1982) and binary offset [$15FE]
 	; Preserves the resolved target identifier before checking whether the attacking entity can process it.
 	move.w	d0,d1	;3200
 CheckMonsterHeldObjectByLevel:		; Memory Address ($1984) and binary offset [$1600]
-	; Routes ordinary monsters to team/melee handling and airborne entities to held-object or worn-spell handling.
+	; Inputs: A4 attacking actor/entity and D1 resolved target occupant ID. Ordinary monsters proceed to team/melee handling; airborne attacks against champion IDs 0-15 resolve the owning party and allow a selected champion's Deflect worn spell to relaunch the entity back toward its attacker.
 	move.b	ActorRecord_Form(a4),d0	;102C000B
 	bpl	Attack_TargetMonsterTeam	;6A0000C0
-	cmpi.b	#$10,d1	;0C010010
+	cmpi.b	#Champion_Count,d1	;0C010010
 	bcs.s	Resolve_MonsterHeldObjectTarget	;650A
 	tst.b	MonsterRecord_CarriedObject(a4)	;4A2C000C
 	bpl	Attack_TargetMonsterTeam	;6A0000B2
@@ -3169,10 +3235,10 @@ Check_TargetWornSpell:		; Memory Address ($19C6) and binary offset [$1642]
 	bsr	Load_ChampionStatRecord			;61004C94
 	exg	a4,a2				;C54C
 	move.b	ChampionStat_WornSpell(a2),d0			;102A0011
-	and.w	#$0007,d0			;02400007
-	subq.w	#$01,d0				;5340
+	and.w	#WornSpell_TypeMask,d0			;02400007
+	subq.w	#WornSpell_Deflect,d0				;5340
 	bne.s	Attack_TargetMonsterTeam	;666E
-	move.b	#$01,ChampionStat_WornSpell(a2)	;157C00010011
+	move.b	#WornSpell_Deflect,ChampionStat_WornSpell(a2)	;157C00010011
 	moveq	#$00,d7	;7E00
 	move.b	$0000(a4),d7	;1E2C0000
 	swap	d7	;4847
@@ -3315,18 +3381,18 @@ Store_SeparatedChampion:		; Memory Address ($1B68) and binary offset [$17E4]
 	rts	;4E75
 
 Handle_BlockedMonsterAtDoor:		; Memory Address ($1B74) and binary offset [$17F0]
-	; Routes a blocked ordinary monster through door opening, actor collision or airborne collision handling.
-	tst.b	$000B(a4)	;4A2C000B
+	; Inputs: A4 blocked actor, A6 map base and D0/D2 attempted cell offsets. Sends airborne forms to collision handling, makes weapon and potion traders turn instead of opening doors, opens an eligible non-Magelocked door or dispatches occupant collision/random turning.
+	tst.b	ActorRecord_Form(a4)	;4A2C000B
 	bmi	Resolve_AirborneEntityCollisionForm	;6B000182
-	cmp.b	#$15,$000B(a4)	;0C2C0015000B
+	cmp.b	#MonsterForm_TraderWeapons,ActorRecord_Form(a4)	;0C2C0015000B
 	beq.s	AttackType_DroneBlockedTurn	;6734
-	cmp.b	#$16,$000B(a4)	;0C2C0016000B
+	cmp.b	#MonsterForm_TraderPotions,ActorRecord_Form(a4)	;0C2C0016000B
 	beq.s	AttackType_DroneBlockedTurn	;672C
 	cmp.w	d2,d0	;B042
 	bne.s	Check_BlockedDestinationOccupant	;6610
 	move.w	$00(a6,d0.w),d1	;32360000
-	and.w	#$0007,d1	;02410007
-	subq.w	#$02,d1	;5541
+	and.w	#MapCell_TypeMask,d1	;02410007
+	subq.w	#MapCell_DoorType,d1	;5541
 	bne	ClearAdjacentCellStateBit_IfNotBlocked	;66000066
 	bra.s	Open_DoorForMonster	;6036
 
@@ -3469,30 +3535,30 @@ Reverse_HeadOnAirborneEntity:		; Memory Address ($1CF0) and binary offset [$196C
 	rts	;4E75
 
 Resolve_AirborneEntityCollisionForm:		; Memory Address ($1CFC) and binary offset [$1978]
-	; Converts form $84 to $85 with increased power or routes other airborne collision forms.
-	cmp.b	#$84,$000B(a4)	;0C2C0084000B
+	; Input: A4 colliding airborne entity. Converts Blaze $84 to the special Fireball state $85, transforms power to (old power + 4) * 4 and reverses direction; all other forms continue to common collision handling unchanged.
+	cmp.b	#AirbourneSpell_Blaze,ActorRecord_Form(a4)	;0C2C0084000B
 	bne.s	Resolve_AirborneEntityCollision	;661A
-	move.b	#$85,$000B(a4)	;197C0085000B
-	move.b	$0006(a4),d1	;122C0006
+	move.b	#AirbourneSpell_BlazeFireball,ActorRecord_Form(a4)	;197C0085000B
+	move.b	SpellEntity_PowerOffset(a4),d1	;122C0006
 	addq.w	#$04,d1	;5841
 	asl.w	#$02,d1	;E541
-	move.b	d1,$0006(a4)	;19410006
+	move.b	d1,SpellEntity_PowerOffset(a4)	;19410006
 Reverse_AirborneEntityDirection:		; Memory Address ($1D16) and binary offset [$1992]
 	; Reverses the live airborne entity's facing and returns.
-	eor.b	#$02,$0002(a4)	;0A2C00020002
+	eor.b	#$02,ActorRecord_RotationAndSpace(a4)	;0A2C00020002
 	rts	;4E75
 
 Resolve_AirborneEntityCollision:		; Memory Address ($1D1E) and binary offset [$199A]
-	; Selects deflection, reversal or impact behaviour from the colliding entity form and cell.
+	; Inputs: A4 airborne entity, A6 map base and D0/D2 collision cell offsets. Deflects Arc Bolt $82 on a head-on collision, reverses or preserves the Blaze-derived Fireball $85 according to cell compatibility, then routes arrows/missiles to physical impact and later spell codes to spell-effect dispatch.
 	cmp.w	d2,d0	;B042
 	bne.s	Validate_Form85CollisionCell	;6610
-	cmp.b	#$85,$000B(a4)	;0C2C0085000B
+	cmp.b	#AirbourneSpell_BlazeFireball,ActorRecord_Form(a4)	;0C2C0085000B
 	beq.s	Reverse_AirborneEntityDirection	;67EC
-	cmp.b	#$82,$000B(a4)	;0C2C0082000B
+	cmp.b	#AirbourneSpell_ArcBolt,ActorRecord_Form(a4)	;0C2C0082000B
 	beq.s	Move_AirborneEntityAfterDeflection	;67A2
 Validate_Form85CollisionCell:		; Memory Address ($1D32) and binary offset [$19AE]
 	; Checks whether form $85 may persist in the collided map cell.
-	cmp.b	#$85,$000B(a4)	;0C2C0085000B
+	cmp.b	#AirbourneSpell_BlazeFireball,ActorRecord_Form(a4)	;0C2C0085000B
 	bne.s	Clear_AirborneDestinationOccupancy	;6618
 	move.w	$00(a6,d0.w),d1	;32360000
 	not.b	d1	;4601
@@ -3507,24 +3573,24 @@ Clear_AirborneDestinationOccupancy:		; Memory Address ($1D52) and binary offset 
 	bclr	#$07,$01(a6,d2.w)	;08B600072001
 Gate_AirborneEntityFormRange:		; Memory Address ($1D58) and binary offset [$19D4]
 	; Routes airborne entity forms $88-$8A to the special impact path and forms $8B or above to the alternate dispatch.
-	cmp.b	#$88,$000B(a4)	;0C2C0088000B
+	cmp.b	#AirbourneSpell_Arrow,ActorRecord_Form(a4)	;0C2C0088000B
 	bcs.s	Pack_AirborneImpactCodeAndPower	;650A
-	cmp.b	#$8B,$000B(a4)	;0C2C008B000B
+	cmp.b	#AirbourneSpell_Confuse,ActorRecord_Form(a4)	;0C2C008B000B
 	bcs	AirborneEntity_CheckCoordMatch	;6500FEE0
 Pack_AirborneImpactCodeAndPower:		; Memory Address ($1D6A) and binary offset [$19E6]
 	; Packs live airborne power and form into the impact value, clearing power for non-airborne forms.
 	moveq	#$00,d7	;7E00
-	move.b	$0006(a4),d7	;1E2C0006
+	move.b	SpellEntity_PowerOffset(a4),d7	;1E2C0006
 	swap	d7	;4847
-	move.b	$000B(a4),d7	;1E2C000B
+	move.b	ActorRecord_Form(a4),d7	;1E2C000B
 	bmi.s	Dispatch_AirborneEntityImpact	;6B02
 	clr.w	d7	;4247
 Dispatch_AirborneEntityImpact:		; Memory Address ($1D7A) and binary offset [$19F6]
 	; Sets floor, caster and sound context before resolving the live airborne entity's cell impact.
 	moveq	#$00,d1	;7200
-	move.b	$0004(a4),d1	;122C0004
+	move.b	ActorRecord_Floor(a4),d1	;122C0004
 	move.w	d0,d4	;3800
-	move.b	$000C(a4),SpellEntity_CasterIndex.l	;13EC000C0000EE3E
+	move.b	SpellEntity_CasterIndexOffset(a4),SpellEntity_CasterIndex.l	;13EC000C0000EE3E
 	bmi.s	PrepareTeleportOrEquip_RemoveThenResolve	;6B1E
 	movem.l	d0/a0,-(sp)	;48E78080
 	cmpi.b	#$83,d7	;0C070083
@@ -7557,6 +7623,7 @@ Msg_InstertSaveDisk:
 	dc.b	$00	;00
 
 Click_SleepParty:		; Memory Address ($4536) and binary offset [$41B2]
+	; Input: A5 PlayerData. Clears interface command/engaged-actor state and active champions' worn/selected spell state, marks the party sleeping, initialises the Fairy-offer delay and prepares the asleep notice; modifies A4 while scanning champion records.
 	move.b	#$03,PlayerData_InteractionPartySlotIndex(a5)	;1B7C0003004F
 	clr.w	$0014(a5)	;426D0014
 	move.w	#$FFFF,PlayerData_PartyCommandState(a5)	;3B7CFFFF0042
@@ -7743,6 +7810,7 @@ FairyShop_DrawClassIconRow:		; Memory Address ($46E6) and binary offset [$4362]
 	bra	FairyShop_ResetInterfaceStateOnExit	;600003B8
 
 FairyShop_HandleClassSelectionClick:		; Memory Address ($4748) and binary offset [$43C4]
+	; Input: A5 PlayerData containing the click latch, packed mouse position and panel offset. Accepts one of four class icons, scans that class's eight candidate spells and records up to two unknown offers; the separate pre-click scan grants catch-up levels only below level 14 when progress is at least $EC.
 	bclr	#$07,$0001(a5)	;08AD00070001
 	beq	FairyShop_ResetInterfaceStateOnExit	;670003AE
 	move.l	$0002(a5),d1	;222D0002
@@ -17006,11 +17074,11 @@ Draw_NextMonsterTeamMember:		; Memory Address ($9A7C) and binary offset [$96F8]
 	rts	;4E75
 
 Load_SingleMonsterRotationAndSpace:		; Memory Address ($9A82) and binary offset [$96FE]
-	; Uses the live monster rotation-and-mini-space byte for a non-team monster.
-	move.b	$0002(a1),d1	;12290002
+	; Inputs: A1 ungrouped live monster record and A3 dungeon-render stack frame. Loads the monster's packed facing/mini-space byte into D1 and falls through to shared occupant render preparation.
+	move.b	ActorRecord_RotationAndSpace(a1),d1	;12290002
 Prepare_MonsterOccupantRender:		; Memory Address ($9A86) and binary offset [$9702]
 	; Loads monster form and handles its render-specific special cases.
-	move.b	$000B(a1),-$0017(a3)	;1769000BFFE9
+	move.b	ActorRecord_Form(a1),DungeonRender_OccupantCode(a3)	;1769000BFFE9
 	cmp.b	#$1A,-$0017(a3)	;0C2B001AFFE9
 	bne.s	Load_MonsterRenderState	;6614
 	move.w	d1,d3	;3601
@@ -17021,25 +17089,25 @@ Prepare_MonsterOccupantRender:		; Memory Address ($9A86) and binary offset [$970
 	move.b	d0,-$0017(a3)	;1740FFE9
 Load_MonsterRenderState:		; Memory Address ($9AA8) and binary offset [$9724]
 	; Loads monster animation state and current grade before rendering.
-	move.b	$0005(a1),d0	;10290005
-	move.b	$0006(a1),-$0018(a3)	;17690006FFE8
+	move.b	ActorRecord_ActionState(a1),d0	;10290005
+	move.b	MonsterRecord_BaseLevel(a1),DungeonRender_MonsterGrade(a3)	;17690006FFE8
 Calculate_MonsterViewerRelativeFacing:		; Memory Address ($9AB2) and binary offset [$972E]
-	; Converts live rotation into viewer-relative facing and mini-space.
+	; Inputs: A1 live monster record, A3 dungeon-render stack frame and D1 packed facing/mini-space. Stores absolute facing, rotates mini-space relative to the viewer and returns the resulting draw position in D1; traders, Zendik, Behemoth-or-later forms and airborne forms are forced to the centred position.
 	bsr	Decode_Monster_RenderFlags	;6100010C
 	move.b	d1,d2	;1401
-	and.b	#$03,d2	;02020003
-	move.b	d2,-$001B(a3)	;1742FFE5
+	and.b	#ActorRecord_FacingMask,d2	;02020003
+	move.b	d2,DungeonRender_OccupantFacing(a3)	;1742FFE5
 	lsr.b	#ActorRecord_MiniSpaceShift,d1	;E809
 	subq.w	#$02,d1	;5541
-	sub.w	-$000A(a3),d1	;926BFFF6
+	sub.w	DungeonRender_ViewerFacing(a3),d1	;926BFFF6
 	and.w	#$0003,d1	;02410003
-	cmp.b	#$15,-$0017(a3)	;0C2B0015FFE9
+	cmp.b	#MonsterForm_TraderWeapons,DungeonRender_OccupantCode(a3)	;0C2B0015FFE9
 	beq.s	.CentralPosition	;6720
-	cmp.b	#$16,-$0017(a3)	;0C2B0016FFE9
+	cmp.b	#MonsterForm_TraderPotions,DungeonRender_OccupantCode(a3)	;0C2B0016FFE9
 	beq.s	.CentralPosition	;6718
-	cmp.b	#$40,-$0017(a3)	;0C2B0040FFE9
+	cmp.b	#MonsterForm_Zendik,DungeonRender_OccupantCode(a3)	;0C2B0040FFE9
 	beq.s	.CentralPosition	;6710
-	cmp.b	#$67,-$0017(a3)	;0C2B0067FFE9
+	cmp.b	#MonsterForm_Behemoth,DungeonRender_OccupantCode(a3)	;0C2B0067FFE9
 	bcc.s	.CentralPosition	;6408
 	tst.b	-$0017(a3)	;4A2BFFE9
 	bpl	Draw_DungeonOccupant_ResolvePosition	;6A000BFA

@@ -59,11 +59,14 @@ ActorRecord_XPosition:									equ	$00			; Copies the X coordinate while compact
 ActorRecord_YPosition:									equ	$01			; Copies the Y coordinate while compacting team records.
 
 AirbourneSpell_ArcBolt:									equ	$82			; Live-entity form code used by Arc Bolt projectiles.
+AirbourneSpell_Arrow:									equ	$88			; Live-entity form code used by ordinary arrows in flight.
 AirbourneSpell_Beguile:									equ	$8D			; Spell-effect code queued after Beguile changes the communication state.
 AirbourneSpell_Blaze:									equ	$84			; Live-entity form code used by Blaze projectiles.
+AirbourneSpell_BlazeFireball:							equ	$85			; Special Fireball entity produced when Blaze collides; it has bespoke reversal and cell-persistence handling.
 AirbourneSpell_CodeBase:								equ	$80			; Converts a low monster-spell selector into the airborne entity-code range.
 AirbourneSpell_Confuse:									equ	$8B			; Live-entity form code used by Confuse projectiles.
 AirbourneSpell_Disrupt:									equ	$83			; Live-entity form code used by Disrupt projectiles.
+AirbourneSpell_ElfArrow:								equ	$89			; Live-entity form code used by Elf Arrows in flight.
 AirbourneSpell_Fireball:								equ	$80			; Live-entity form code used by Fireball projectiles.
 AirbourneSpell_Firepath:								equ	$87			; Live-entity form code used to launch Firepath.
 AirbourneSpell_GeneralFirstCode:						equ	$86			; First airborne-spell code using the general spell picture/layout family rather than the fireball family.
@@ -104,6 +107,8 @@ ChampionIndex_Zastaph:									equ	$0D			; Champion index for Zastaph.
 ChampionIndex_Zothen:									equ	$05			; Champion index for Zothen.
 
 ChampionLargeAvatar_DrawDimensions:						equ	$0001001D	; Packed DBRA terminal counts for a large champion portrait: two 16-pixel words across and 30 rows.
+
+ChampionLevel_FairyAutoLevelMaximum:					equ	$0E			; Highest champion level reachable through the Fairy shop's automatic catch-up level-up path.
 
 ChampionPocket_BodyArmour:								equ	$02			; Offset of the dedicated body-armour pocket.
 ChampionPocket_CountedObjectCountsOffset:				equ	$0B			; Base offset of the object-code-indexed counted-object quantities in a champion-pockets record.
@@ -156,6 +161,7 @@ Character_Zendik:										equ	$40			; Character identifier $40 represents Zendi
 CharacterActionState_ChampionSpellStart:				equ	$0F			; Champion action cooldown applied when a spell-cast attempt begins.
 CharacterActionState_CommunicationStart:				equ	$17			; Initial state for the communication action/render sequence.
 CharacterActionState_ConfuseBit:						equ	$06			; Bit marking Confuse in a character action-state byte.
+CharacterActionState_ConfuseOrTerrorMask:				equ	$60			; Mask selecting the Confuse and Terror status bits in a live actor action-state byte.
 CharacterActionState_CountdownMask:						equ	$07			; Mask selecting the low three-bit action-sequence countdown.
 CharacterActionState_MonsterSpellStart:					equ	$1F			; Action-state value stored on the casting monster after it launches a spell.
 CharacterActionState_ParalyzeBit:						equ	$07			; Bit marking Paralyse in a character action-state byte.
@@ -246,6 +252,13 @@ Dungeon_CellTypeMask:									equ	$07			; Mask retaining the three-bit dungeon m
 Dungeon_MapCell_MainWallType:							equ	$01			; Dungeon map-cell type for a main stone wall and its wall-mounted features.
 Dungeon_ViewCell_Count:									equ	$13			; Number of player-relative dungeon view cells scanned by the renderer.
 Dungeon_ViewCell_LastIndex:								equ	$12			; Highest zero-based index of the nineteen dungeon view cells.
+
+DungeonRender_MonsterGrade:								equ	-$18		; Stack-frame byte holding the current monster grade or Summon illusion flag for occupant rendering.
+DungeonRender_OccupantCode:								equ	-$17		; Stack-frame byte holding the current champion identifier, monster form or airborne entity code for occupant rendering.
+DungeonRender_OccupantFacing:							equ	-$1B		; Stack-frame byte holding the current occupant's facing before conversion to viewer-relative orientation.
+DungeonRender_ViewerFacing:								equ	-$0A		; Stack-frame word holding the dungeon viewer's facing during viewport rendering.
+
+FairyShop_LevelProgressAutoLevelThreshold:				equ	$EC			; Level-progress value at which the Fairy shop grants a catch-up level when the champion is below level fourteen.
 
 FloorFeature_SubtypeMask:								equ	$03			; Extracts the floor feature independently of the ceiling-hole flag.
 FloorFeature_VisiblePadSubtype:							equ	$02			; Visible pads select sound zero before the handler runs.
@@ -341,8 +354,10 @@ LiveActorRecord_Capacity:								equ	$80			; Maximum number of records represent
 LiveActorRecord_CountOffset:							equ	-$02		; Reads the last live-record index before removing a monster.
 LiveActorRecord_WorkspaceLongwordCount:					equ	$0200		; Clears the live-monster workspace.
 
+MagicFeature_Firepath:									equ	$01			; Low two-bit map magic-feature subtype used for Firepath.
 MagicFeature_Formwall:									equ	$03			; Low two-bit map magic-feature subtype used for Formwall.
 MagicFeature_Mindrock:									equ	$02			; Low two-bit map magic-feature subtype used for Mindrock.
+MagicFeature_PowerMaximum:								equ	$3F			; Largest six-bit power stored in a packed map magic-feature byte.
 
 MainChampionAvatar_ScreenByteOffset:					equ	$02A9		; Player-local screen byte offset for the 32 by 30 large champion portrait at coordinate ($08,$11).
 
@@ -356,6 +371,7 @@ Map_ResourceSize:										equ	$1000		; Fixed map allocation; object records beg
 MapCell_ClearFeatureWordMask:							equ	$F8			; Clear first-byte feature data and the three-bit type, retaining second-byte flags.
 MapCell_ClearTypeMask:									equ	$F8			; Clear the cell type while preserving upper second-byte flags.
 MapCell_ConcealedBit:									equ	$03			; Map-cell flag bit set by Conceal and cleared by Dispel.
+MapCell_DoorType:										equ	$02			; Low three-bit map-cell type identifying a door.
 MapCell_FloorFeatureType:								equ	$06			; Selects floor-feature cells before testing the pit subtype.
 MapCell_MagelockedBit:									equ	$04			; Door-state flag bit toggled by Magelock.
 MapCell_MagicFeatureType:								equ	$07			; Map-cell type value shared by Firepath, Mindrock and Formwall.
@@ -382,11 +398,17 @@ MonsterAttackType_DroneSpells:							equ	$03			; Monster attack-type index for d
 MonsterAttackType_NoSpells:								equ	$00			; Monster attack-type index for non-spellcasting pursuit and melee behavior.
 MonsterAttackType_Spells:								equ	$01			; Monster attack-type index for normal spellcasting behavior.
 
+MonsterForm_Behemoth:									equ	$67			; Live actor form used by the Behemoth and the first form in the large-monster renderer range.
+MonsterForm_TraderPotions:								equ	$16			; Live actor form used by the potion trader.
+MonsterForm_TraderWeapons:								equ	$15			; Live actor form used by the weapon trader.
 MonsterForm_Zendik:										equ	$40			; Checks the reserved Zendik form.
 
 MonsterHitPoints_BaseBonus:								equ	$19			; Base value added to calculated monster hit points.
 MonsterHitPoints_DefaultMultiplierHigh:					equ	$0190		; Default high-level monster hit-point multiplier.
 MonsterHitPoints_DefaultMultiplierMid:					equ	$FA			; Default middle-level monster hit-point multiplier.
+
+MonsterLevel_TransientFlagBit:							equ	$07			; High bit toggled in the effective monster level during the level-resistance adjustment.
+MonsterLevel_ValueMask:									equ	$7F			; Mask retaining the seven-bit monster level while excluding its transient high-bit flag.
 
 MonsterRecord_ActionCycleTimer:							equ	$03			; Assigns the special action countdown used for object-bearing monsters.
 MonsterRecord_BaseLevel:								equ	$06			; Writes the current live level into the packed record.
@@ -398,9 +420,18 @@ MonsterRecord_TeamGroupIndex:							equ	$0D			; Reads a live monster's team grou
 MonsterTeamData_GroupShift:								equ	$02			; Converts packed member data to a team-group index.
 
 MonsterTeamIndexTable_CountOffset:						equ	-$02		; Reads the last team-row index: team count minus one.
+MonsterTeamIndexTable_EmptyEntry:						equ	$FFFFFFFF	; Sentinel longword marking all four member slots in a live monster-team row as empty.
+MonsterTeamIndexTable_EntrySize:						equ	$04			; Size in bytes of one four-member live monster-team index row.
+MonsterTeamIndexTable_EntrySizeShift:					equ	$02			; Shift converting a live monster-team index to its four-byte row offset.
 MonsterTeamIndexTable_LongwordCount:					equ	$19			; Clears all twenty-five team groups.
 
 MonsterTeamMember_Count:								equ	$04			; Loops over all four members of each team.
+MonsterTeamMember_Empty:								equ	$FF			; Sentinel byte marking an unused member slot in a live monster-team row.
+MonsterTeamMember_LeadingPairEmptyMask:					equ	$8080		; Word mask testing the sign or empty bit of member slots 0 and 1 together.
+MonsterTeamMember_Slot0Offset:							equ	$00			; Offset of zero-based member slot 0 in a live monster-team row.
+MonsterTeamMember_Slot1Offset:							equ	$01			; Offset of zero-based member slot 1 in a live monster-team row.
+MonsterTeamMember_Slot2Offset:							equ	$02			; Offset of zero-based member slot 2 in a live monster-team row.
+MonsterTeamMember_Slot3Offset:							equ	$03			; Offset of zero-based member slot 3 in a live monster-team row.
 MonsterTeamMember_SlotMask:								equ	$03			; Extracts the team-member slot.
 
 MovementOffset_YTableOffset:							equ	$08			; Each addition advances one cell in Y; the consecutive pair advances two cells.
@@ -495,7 +526,9 @@ PlayerData_ChampionSlots_AwayBit:						equ	$05			; Champion-slot bit marking an 
 PlayerData_ChampionSlots_ChampionMask:					equ	$0F			; Mask selecting the champion index from a PlayerData champion-slot byte.
 PlayerData_ChampionSlots_CorrectedBit:					equ	$04			; Champion-slot bit set by Correct and for the directly controlled champion; defence selection consumes it.
 PlayerData_ChampionSlots_DeadBit:						equ	$06			; Champion-slot bit marking a dead champion.
+PlayerData_ChampionSlots_DeadOrEmptyMask:				equ	$C0			; Mask selecting the dead and empty flags in a PlayerData champion-slot byte.
 PlayerData_ChampionSlots_EmptyBit:						equ	$07			; Champion-slot bit marking an empty slot.
+PlayerData_ChampionSlots_InactiveMask:					equ	$E0			; Mask selecting the away, dead and empty flags in a PlayerData champion-slot byte.
 PlayerData_ChampionSlotsOffset:							equ	$18			; Base offset of the four champion ownership and state bytes.
 PlayerData_CombatOutcomeCountdowns:						equ	$5E			; Base offset of four combat-outcome display countdowns.
 PlayerData_CurrentChampionNumber:						equ	$06			; Offset of the current leader champion number word.
@@ -534,6 +567,7 @@ PlayerData_PendingAction:								equ	$56			; Offset read when transferring a pen
 PlayerData_PendingAttackSlotFlags:						equ	$3C			; Offset of the pending champion attack-slot bitfield.
 PlayerData_PendingPartySlotSelection:					equ	$16			; Offset of the pending party-position selection word.
 PlayerData_PrimaryInputLatch:							equ	$01			; Offset of the primary input/click latch byte.
+PlayerData_PrimaryInputLatch_ClickBit:					equ	$07			; Bit consumed from the primary input latch when a click is handled.
 PlayerData_RecordSize:									equ	$62			; Size in bytes of one PlayerData record.
 PlayerData_RejoinedChampionNoticeId:					equ	$34			; Offset of the recently rejoined champion notification ID.
 PlayerData_RemoteViewerChampionIndex:					equ	$53			; Offset of the remote-view champion index byte; $FF selects the party's own position.
