@@ -588,7 +588,7 @@ MagicFeature_Mindrock:		equ	$02
 	; Low two-bit map magic-feature subtype used for Mindrock.
 MagicFeature_Formwall:		equ	$03
 	; Low two-bit map magic-feature subtype used for Formwall.
-MapCell_MagicFeatureType:		equ	$07
+MapCell_Type_MagicLocation:		equ	$07
 	; Map-cell type value shared by Firepath, Mindrock and Formwall.
 MapCell_ConcealedBit:		equ	$03
 	; Map-cell flag bit set by Conceal and cleared by Dispel.
@@ -748,9 +748,9 @@ Map_AlignmentYArrayOffset:		equ	$08
 	; Y-alignment bytes start eight bytes after the X-alignment bytes.
 Map_CellByteShift:		equ	$01
 	; Converts the floor-relative two-byte map offset to a cell number before division by width.
-MapCell_StairsType:		equ	$04
+MapCell_Type_Stair:		equ	$04
 	; Selects the stair transition path.
-MapCell_FloorFeatureType:		equ	$06
+MapCell_Type_PadPitHole:		equ	$06
 	; Selects floor-feature cells before testing the pit subtype.
 FloorFeature_SubtypeMask:		equ	$03
 	; Extracts the floor feature independently of the ceiling-hole flag.
@@ -848,8 +848,8 @@ BitReverseLookupLastIndex:		equ	$FF
 	; Last byte index used while building the complete 256-entry bit-reversal lookup.
 SpellPracticeClearLongwordLastIndex:		equ	$7F
 	; Last longword index cleared when initialising the 512-byte spell-practice table.
-FloorRegenerationCellType:		equ	$03
-	; Masked map-cell type recognised by FloorTrigger_Handler as the regeneration feature.
+MapCell_Type_Bed:		equ	$03
+	; Map-cell type 3 used for a bed when the cell's first byte is zero.
 SinglePlayerSaveDataStartTrack:		equ	$3C
 	; Starting floppy track used for one-player champion save data.
 TwoPlayerSaveDataStartTrack:		equ	$46
@@ -1120,8 +1120,8 @@ AirbourneSpell_Arrow:		equ	$88
 	; Live-entity form code used by ordinary arrows in flight.
 AirbourneSpell_ElfArrow:		equ	$89
 	; Live-entity form code used by Elf Arrows in flight.
-MapCell_DoorType:		equ	$02
-	; Low three-bit map-cell type identifying a door.
+MapCell_Type_WoodWall:		equ	$02
+	; Map-cell type 2 used by wooden walls and their embedded doors.
 DungeonRender_ViewerFacing:		equ	-$0A
 	; Stack-frame word holding the dungeon viewer's facing during viewport rendering.
 DungeonRender_OccupantCode:		equ	-$17
@@ -1134,6 +1134,62 @@ MonsterForm_DemonBeastman:		equ	$1A
 	; Live monster form for the Demon/Beastman, whose renderer alternates between graphics $1A and $1B to create a flicker effect.
 MonsterRender_DemonBeastmanAlternateFrame:		equ	$1B
 	; Renderer-only alternate Demon/Beastman graphic code used for the flicker effect.
+MapCell_Type_Space:		equ	$00
+	; Editor map-cell type 0: empty or reserved/occupied space.
+MapCell_Type_StoneWall:		equ	$01
+	; Editor map-cell type 1: stone wall and its facing shelf, sign, switch or socket feature.
+MapCell_Type_Miscellaneous:		equ	$03
+	; Editor map-cell type 3: miscellaneous centred features, principally beds and pillars.
+MapCell_Type_MetalDoor:		equ	$05
+	; Editor map-cell type 5: metal door, doorway or portcullis.
+PhysicalAttack_ResultDamageOffset:		equ	$00
+	; Word offset of the final positive physical damage in PhysicalAttack_WorkingValues.
+PhysicalAttack_AttackerScoreOffset:		equ	$02
+	; Word offset of the completed attacker score in PhysicalAttack_WorkingValues.
+PhysicalAttack_DefenderScoreOffset:		equ	$04
+	; Word offset of the completed defender score in PhysicalAttack_WorkingValues.
+PhysicalAttack_WeaponRandomRangeOffset:		equ	$06
+	; High-byte offset of the weapon random-damage range stored in RandomGen fixed-point form.
+PhysicalAttack_WeaponRandomRangeLowByteOffset:		equ	$07
+	; Low byte cleared beneath the weapon random-damage range before RandomGen reads the containing word.
+PhysicalAttack_AttackerLevelOffset:		equ	$08
+	; Byte offset of the attacker's effective level in PhysicalAttack_WorkingValues.
+PhysicalAttack_AttackerStrengthOffset:		equ	$09
+	; Byte offset of the attacker's effective Strength, including its combat bias, in PhysicalAttack_WorkingValues.
+PhysicalAttack_WeaponFixedDamageOffset:		equ	$0A
+	; Byte offset of the selected weapon's fixed damage bonus in PhysicalAttack_WorkingValues.
+PhysicalAttack_WeaponAttackBonusOffset:		equ	$0B
+	; Byte offset of the selected weapon's attack-score bonus in PhysicalAttack_WorkingValues.
+PhysicalAttack_WeaponDefenceBonusOffset:		equ	$0C
+	; Byte offset of the selected weapon's defence-score bonus in PhysicalAttack_WorkingValues.
+PhysicalAttack_DefenderArmourOffset:		equ	$0D
+	; Byte offset of the defender's effective armour in PhysicalAttack_WorkingValues.
+ChampionPocket_EquipmentSlotCount:		equ	$04
+	; Number of dedicated equipment slots: left hand, right hand, body armour and shield.
+ChampionPocket_VisibleSlotCount:		equ	$0C
+	; Number of visible object/equipment slots in each champion-pockets record.
+InventoryPocketLayout_SecondRowStartSlot:		equ	$06
+	; Inventory slot index at which drawing advances to the second screen row.
+PocketGraphic_EmptyEquipmentBase:		equ	$6C
+	; First Pockets graphic for the semantic empty hand, body-armour and shield placeholders.
+PocketGraphic_WornHandArmourBase:		equ	$1A
+	; First Pockets graphic used to show worn hand armour behind an empty left or right hand.
+Object_NumberedObjects_EndExclusive:		equ	$05
+	; Exclusive object-code boundary for numbered/counted objects $01-$04.
+Object_MagicRings_EndExclusive:		equ	$6D
+	; Exclusive upper object-code boundary for rechargeable magic rings $69-$6C.
+PlayerData_InterfaceActionParameter:		equ	$0E
+	; Word parameter accompanying PlayerData_ActionCommand; its meaning is selected champion, inventory slot, spell cell or page control according to the command.
+InterfaceHitbox_XMinimumOffset:		equ	$00
+	; Offset of the inclusive minimum X coordinate in an interface hitbox record.
+InterfaceHitbox_XMaximumOffset:		equ	$02
+	; Offset of the inclusive maximum X coordinate in an interface hitbox record.
+InterfaceHitbox_YMinimumOffset:		equ	$04
+	; Offset of the inclusive minimum Y coordinate in an interface hitbox record.
+InterfaceHitbox_YMaximumOffset:		equ	$06
+	; Offset of the inclusive maximum Y coordinate in an interface hitbox record.
+InterfaceHitbox_DisplayScanEndExclusive:		equ	$26
+	; Exclusive action-ID ceiling used by HitTest_DisplayAction.
 
 ****************************************************************************
 
@@ -2251,7 +2307,7 @@ Redraw_RemainingChampionShieldSlots:		; Memory Address ($0FD0) and binary offset
 	bra.s	PlayerTick_DrawInterfaceAndDispatchPanel	;606E
 
 FloorTrigger_Handler:		; Memory Address ($0FDC) and binary offset [$0C58]
-	; Input: A5 PlayerData. While the party is sleeping, checks the forward cell for regeneration type 3/subtype 0, reduces active champions' casting fatigue and performs one normal or two special-floor regeneration passes before redrawing the interface.
+	; Input: A5 points to PlayerData. While the party sleeps, checks whether the forward cell is a bed (map type 3, first-byte subtype 0), then reduces each active champion's spell cooldown and runs regeneration once, or twice on a bed after decrementing current spell points; finally redraws the interface.
 	OPT	O2+
 	btst	#PlayerData_StateFlags_SleepingBit,PlayerData_StateFlags(a5)	;08150002
 	OPT	O2-
@@ -2261,7 +2317,7 @@ FloorTrigger_Handler:		; Memory Address ($0FDC) and binary offset [$0C58]
 	bsr	ForwardCellToMapOffset	;6100748E
 	move.w	$00(a6,d0.w),d1	;32360000
 	and.w	#MapCell_TypeMask,d1	;02410007
-	subq.w	#FloorRegenerationCellType,d1	;5741
+	subq.w	#MapCell_Type_Bed,d1	;5741
 	bne.s	FloorTriggerHandler_InitSlotLoop	;660E
 	tst.b	$00(a6,d0.w)	;4A360000
 	bne.s	FloorTriggerHandler_InitSlotLoop	;6608
@@ -2973,7 +3029,7 @@ Validate_SpecialMonsterDestination:		; Memory Address ($1714) and binary offset 
 	bne.s	AttackType_Drone				;6632
 Convert_SpecialMonsterCellToMagicFeature:		; Memory Address ($1728) and binary offset [$13A4]
 	; Inputs: A4 Blaze or Firepath entity, A6 map base and D0 destination offset. Converts the destination to Firepath subtype 1, doubles and clamps Blaze power to $3F, preserves Firepath power, creates the linked feature with the caster ID and continues into Drone movement.
-	or.b	#MapCell_MagicFeatureType,$01(a6,d0.w)			;003600070001
+	or.b	#MapCell_Type_MagicLocation,$01(a6,d0.w)			;003600070001
 	moveq	#$00,d1					;7200
 	move.b	SpellEntity_PowerOffset(a4),d1				;122C0006
 	cmp.b	#AirbourneSpell_Blaze,ActorRecord_Form(a4)				;0C2C0084000B
@@ -3396,7 +3452,7 @@ Handle_BlockedMonsterAtDoor:		; Memory Address ($1B74) and binary offset [$17F0]
 	bne.s	Check_BlockedDestinationOccupant	;6610
 	move.w	$00(a6,d0.w),d1	;32360000
 	and.w	#MapCell_TypeMask,d1	;02410007
-	subq.w	#MapCell_DoorType,d1	;5541
+	subq.w	#MapCell_Type_WoodWall,d1	;5541
 	bne	ClearAdjacentCellStateBit_IfNotBlocked	;66000066
 	bra.s	Open_DoorForMonster	;6036
 
@@ -5033,7 +5089,7 @@ Execute_PhysicalAttack:		; Memory Address ($2B0A) and binary offset [$2786]
 	move.w	d1,-(sp)	;3F01
 	bsr	Resolve_PhysicalAttack	;610036C4
 	move.w	(sp)+,d0	;301F
-	move.w	$0000(a6),d5	;3A2E0000
+	move.w	PhysicalAttack_ResultDamageOffset(a6),d5	;3A2E0000
 	bsr	Apply_AttackDamage	;6100F778
 	move.l	(sp)+,a4	;285F
 	rts	;4E75
@@ -8302,7 +8358,7 @@ DetectStairsCell_RepositionPartyLeader:		; Memory Address ($4CB2) and binary off
 	bsr	PlayerPositionToMapOffset	;610037DA
 	move.w	$00(a6,d0.w),d1	;32360000
 	and.w	#Dungeon_CellTypeMask,d1	;02410007
-	cmpi.w	#MapCell_FloorFeatureType,d1	;0C410006
+	cmpi.w	#MapCell_Type_PadPitHole,d1	;0C410006
 	bne.s	Validate_CommsTargetThenDispatchPlayerAction	;663A
 	move.b	$00(a6,d0.w),d1	;12360000
 	and.w	#FloorFeature_SubtypeMask,d1	;02410003
@@ -8382,33 +8438,35 @@ Begin_HitTestMainInterfaceActions:		; Memory Address ($4DAA) and binary offset [
 	; Selects the 17-record main hitbox table before entering the shared hit tester.
 	lea	Interface_Hitboxes_Main.l,a6	;4DF90000EA72
 	moveq	#$00,d0	;7000
-	moveq	#$11,d2	;7411
+	moveq	#InterfaceHitbox_MainActionCount,d2	;7411
 HitTest_PlayerInterfaceActions:		; Memory Address ($5138) and binary offset [$4DB4]
-	; Tests pointer coordinates against interface rectangles and writes the resulting action directly to PlayerX_Data+$0C.
-	move.l	$0002(a5),d1	;222D0002
-	sub.w	$0008(a5),d1	;926D0008
+	; Inputs: A5 PlayerData; A6 first four-word inclusive hitbox record (X min/max, Y min/max); D0 first action ID; D2 exclusive action-ID ceiling. On a hit writes D0 to PlayerData_ActionCommand; otherwise scans eight-byte records until D0 reaches D2.
+	move.l	PlayerData_MousePosition(a5),d1	;222D0002
+	sub.w	PlayerData_InterfacePanelYOffset(a5),d1	;926D0008
 HitTest_CompareYRange:		; Memory Address ($4DBC) and binary offset [$4A38]
-	cmp.w	$0004(a6),d1	;B26E0004
+	cmp.w	InterfaceHitbox_YMinimumOffset(a6),d1	;B26E0004
 	bcs.s	HitTest_AdvanceToNextHitbox	;651E
-	cmp.w	$0006(a6),d1	;B26E0006
+	cmp.w	InterfaceHitbox_YMaximumOffset(a6),d1	;B26E0006
 	beq.s	HitTest_CompareXRange	;6702
 	bcc.s	HitTest_AdvanceToNextHitbox	;6416
 HitTest_CompareXRange:		; Memory Address ($4DCA) and binary offset [$4A46]
 	swap	d1	;4841
-	cmp.w	(a6),d1	;B256
+	OPT	O2+
+	cmp.w	InterfaceHitbox_XMinimumOffset(a6),d1	;B256
+	OPT	O2-
 	bcs.s	HitTest_RestoreYWord	;650E
-	cmp.w	$0002(a6),d1	;B26E0002
+	cmp.w	InterfaceHitbox_XMaximumOffset(a6),d1	;B26E0002
 	beq.s	Store_HitTestActionCommand	;6702
 	bcc.s	HitTest_RestoreYWord	;6406
 Store_HitTestActionCommand:		; Memory Address ($515C) and binary offset [$4DD8]
 	; Stores the action number selected by the interface hit test.
-	move.w	d0,$000C(a5)	;3B40000C
+	move.w	d0,PlayerData_ActionCommand(a5)	;3B40000C
 	rts	;4E75
 
 HitTest_RestoreYWord:		; Memory Address ($4DDE) and binary offset [$4A5A]
 	swap	d1	;4841
 HitTest_AdvanceToNextHitbox:		; Memory Address ($4DE0) and binary offset [$4A5C]
-	addq.w	#$08,a6	;504E
+	addq.w	#InterfaceHitbox_RecordBytes,a6	;504E
 	addq.w	#$01,d0	;5240
 	cmp.w	d2,d0	;B042
 	bcs.s	HitTest_CompareYRange	;65D4
@@ -9169,7 +9227,7 @@ CreateMagicWallFeature:		; Memory Address ($57FC) and binary offset [$5478]
 	bne.s	Return_CreateMagicWallFeature	;6644
 	tst.b	$00(a6,d0.w)	;4A360000
 	bne.s	Return_CreateMagicWallFeature	;663E
-	or.b	#MapCell_MagicFeatureType,$01(a6,d0.w)	;003600070001
+	or.b	#MapCell_Type_MagicLocation,$01(a6,d0.w)	;003600070001
 	or.b	d3,d4	;8803
 	move.b	d4,$00(a6,d0.w)	;1D840000
 	and.w	#$0003,d4	;02440003
@@ -9618,11 +9676,11 @@ Interface_Hitboxes_Display:		; Memory Address ($5864) and binary offset [$54E0]
 	dc.w	$0048	;0048
 
 HitTest_DisplayAction:		; Memory Address ($587C) and binary offset [$54F8]
-	; Existing mapping: clears the pending action and scans display-context hitbox records $22-$24.
-	moveq	#$22,d0	;7022
-	moveq	#$26,d2	;7426
+	; Input: A5 points to PlayerData. Clears the pending action to $FFFF and invokes the shared hit tester with display actions starting at $22 and ceiling $26; explicit records map actions $22-$24, while the no-hit path makes one final nonmatching read at the following routine bytes.
+	moveq	#InterfaceHitbox_DisplayActionBase,d0	;7022
+	moveq	#InterfaceHitbox_DisplayScanEndExclusive,d2	;7426
 	lea	Interface_Hitboxes_Display.w,a6	;4DF85864	;Short Absolute converted to symbol!
-	move.w	#$FFFF,$000C(a5)	;3B7CFFFF000C
+	move.w	#$FFFF,PlayerData_ActionCommand(a5)	;3B7CFFFF000C
 	bra	HitTest_PlayerInterfaceActions	;6000F528
 
 Click_Display:		; Memory Address ($588E) and binary offset [$550A]
@@ -10166,9 +10224,9 @@ PickupFloorObject_RefreshUI_SharedEntry:		; Memory Address ($5D4E) and binary of
 	bra.s	Refresh_UIAfterSocketAction	;60EE
 
 HitTest_PickupDropQuadrant:		; Memory Address ($5D52) and binary offset [$59CE]
-	; Converts the player-relative pointer position into one of four pickup or drop quadrants.
-	move.l	$0002(a5),d1	;222D0002
-	sub.w	$0008(a5),d1	;926D0008
+	; Input: A5 points to PlayerData. Converts panel-relative mouse X/Y into one of four near/far pickup/drop quadrants in D6, applies player facing to the party coordinate, validates a far cell when needed, then enters the shared floor-object pickup/drop handler.
+	move.l	PlayerData_MousePosition(a5),d1	;222D0002
+	sub.w	PlayerData_InterfacePanelYOffset(a5),d1	;926D0008
 	moveq	#$02,d6	;7C02
 	cmpi.w	#$0051,d1	;0C410051
 	bcs.s	HitTest_PickupDropQuadrant_TestY	;6502
@@ -10179,7 +10237,7 @@ HitTest_PickupDropQuadrant_TestY:		; Memory Address ($5D64) and binary offset [$
 	bcs.s	HitTest_PickupDropQuadrant_ApplyFacing	;6502
 	addq.w	#$01,d6	;5246
 HitTest_PickupDropQuadrant_ApplyFacing:		; Memory Address ($5D6E) and binary offset [$59EA]
-	move.l	$001C(a5),d7	;2E2D001C
+	move.l	PlayerData_XPosition(a5),d7	;2E2D001C
 	cmpi.w	#$0002,d6	;0C460002
 	bcc.s	PickupDrop_ResolveFarQuadrantCell	;6406
 	bsr	CoordToMap	;61002722
@@ -10684,18 +10742,18 @@ Close_PlayerCommunicationIfTargetAttacked:		; Memory Address ($61D0) and binary 
 	rts	;4E75
 
 Resolve_PhysicalAttack:		; Memory Address ($61DA) and binary offset [$5E56]
-	; Performs the opposed attack roll, calculates weapon damage, subtracts armour and applies the hit-quality multiplier.
+	; Inputs: D3 attacker combatant index; D1 defender combatant index. Builds opposed scores, rolls attack and defence, applies weapon, level, Strength, backstab, armour and hit-quality modifiers, and returns with A6 pointing to PhysicalAttack_WorkingValues whose result word is zero for a miss/absorbed hit or positive damage.
 	moveq	#Sound_AttackClink,d0	;7002
 	bsr	PlaySound	;610026E0
 	bsr.s	Close_AttackedChampionCommunicationPanels	;61D4
 	bsr	Prepare_AttackAndDefenceScores	;61000238
-	clr.w	$0000(a6)	;426E0000
+	clr.w	PhysicalAttack_ResultDamageOffset(a6)	;426E0000
 	clr.w	AirborneSpellSplashFlag.w	;4278230A	;Short Absolute converted to symbol!
 	bsr	RandomGen_100	;6100F3C8
-	add.w	$0002(a6),d0	;D06E0002
+	add.w	PhysicalAttack_AttackerScoreOffset(a6),d0	;D06E0002
 	move.w	d0,d2	;3400
 	bsr	RandomGen_100	;6100F3BE
-	add.w	$0004(a6),d0	;D06E0004
+	add.w	PhysicalAttack_DefenderScoreOffset(a6),d0	;D06E0004
 	sub.w	d0,d2	;9440
 	bmi.s	PhysicalAttack_HandleDefenderRollWin	;6B0C
 	move.w	d2,d0	;3002
@@ -10714,13 +10772,13 @@ PhysicalAttack_HandleDefenderRollWin:		; Memory Address ($6210) and binary offse
 	bpl	PhysicalAttack_Return	;6A00006E
 PhysicalAttack_CalculateDamage:		; Memory Address ($621C) and binary offset [$5E98]
 	; Calculates base physical damage from a 0..range-1 weapon roll, level and fixed weapon bonuses using byte addition, then adds the effective-Strength contribution before backstab, armour, and hit-quality adjustments.
-	move.w	$0006(a6),d1	;322E0006
+	move.w	PhysicalAttack_WeaponRandomRangeOffset(a6),d1	;322E0006
 	bsr	RandomGen	;6100F39A
 	addq.w	#$01,d0	;5240
-	add.b	$0008(a6),d0	;D02E0008
-	add.b	$000A(a6),d0	;D02E000A
+	add.b	PhysicalAttack_AttackerLevelOffset(a6),d0	;D02E0008
+	add.b	PhysicalAttack_WeaponFixedDamageOffset(a6),d0	;D02E000A
 	moveq	#$00,d1	;7200
-	move.b	$0009(a6),d1	;122E0009
+	move.b	PhysicalAttack_AttackerStrengthOffset(a6),d1	;122E0009
 	sub.w	#$0014,d1	;04410014
 	bcs.s	PhysicalAttack_ApplyBackstabDamage	;6504
 	lsr.w	#$03,d1	;E649
@@ -10735,7 +10793,7 @@ PhysicalAttack_ApplyBackstabDamage:		; Memory Address ($623E) and binary offset 
 PhysicalAttack_CalculateArmourReduction:		; Memory Address ($624C) and binary offset [$5EC8]
 	; Calculates the defender's armour reduction, including conditional upward rounding.
 	moveq	#$00,d4	;7800
-	move.b	$000D(a6),d4	;182E000D
+	move.b	PhysicalAttack_DefenderArmourOffset(a6),d4	;182E000D
 	lsr.b	#$01,d4	;E20C
 	bcc.s	PhysicalAttack_ApplyArmourReduction	;640E
 	move.w	d2,d1	;3202
@@ -10762,7 +10820,7 @@ PhysicalAttack_ApplyArmourReduction:		; Memory Address ($6264) and binary offset
 	add.w	d1,d0	;D041
 PhysicalAttack_StoreDamage:		; Memory Address ($6284) and binary offset [$5F00]
 	; Stores the final positive damage in the physical-attack working values.
-	move.w	d0,$0000(a6)	;3D400000
+	move.w	d0,PhysicalAttack_ResultDamageOffset(a6)	;3D400000
 PhysicalAttack_Return:		; Memory Address ($6288) and binary offset [$5F04]
 	rts	;4E75
 
@@ -10841,7 +10899,7 @@ Load_NormalChampionCombatStats:		; Memory Address ($6312) and binary offset [$5F
 	rts	;4E75
 
 Calculate_CharacterArmourLevel:		; Memory Address ($631E) and binary offset [$5F9A]
-	; Combines body armour, worn gloves and shield values into the character's effective armour level.
+	; Inputs: D0 champion index; A4 champion-stat record. Output: D3 effective armour, taking the greater of innate armour and active Armour-spell magnitude, then applying body armour, worn hand armour and shield contributions from the champion's pocket/stat records.
 	lea	Character_Pockets_DataTable.l,a1	;43F90000ED2A
 	asl.w	#$04,d0	;E940
 	add.w	d0,a1	;D2C0
@@ -10858,26 +10916,26 @@ Armour_SelectInnateOrSpellValue:		; Memory Address ($6338) and binary offset [$5
 	bcs.s	Armour_ApplyBodyArmour	;6502
 	move.b	d2,d3	;1602
 Armour_ApplyBodyArmour:		; Memory Address ($6342) and binary offset [$5FBE]
-	; Replaces the base armour value when the worn body armour provides greater protection.
-	move.b	$0002(a1),d2	;14290002
+	; Inputs: A1 champion-pockets record; D3 current base armour. Reads body-armour slot 2 and outputs D3 as the greater of the current value or 3 plus twice the armour tier counted from Leather Armour $1B.
+	move.b	ChampionPocket_BodyArmour(a1),d2	;14290002
 	beq.s	Armour_ApplyWornHandArmour	;670E
-	sub.b	#$1B,d2	;0402001B
+	sub.b	#Object_Armour_First,d2	;0402001B
 	add.b	d2,d2	;D402
 	addq.b	#$03,d2	;5602
 	cmp.b	d2,d3	;B602
 	bcc.s	Armour_ApplyWornHandArmour	;6402
 	move.b	d2,d3	;1602
 Armour_ApplyWornHandArmour:		; Memory Address ($6356) and binary offset [$5FD2]
-	; Adds the contribution of the champion's worn hand-armour object.
+	; Inputs: A4 champion-stat record; D3 current armour. Reads the separate worn-hand-armour field and adds its tier counted from Chaos Gloves $2B to D3.
 	move.b	ChampionStat_WornHandArmour(a4),d2	;142C0012
 	beq.s	Armour_ApplyShield	;6706
-	sub.b	#$2B,d2	;0402002B
+	sub.b	#Object_Gloves_First,d2	;0402002B
 	add.b	d2,d3	;D602
 Armour_ApplyShield:		; Memory Address ($6362) and binary offset [$5FDE]
-	; Adds the equipped shield's armour contribution.
+	; Inputs: A1 champion-pockets record; D3 current armour. Reads shield slot 3, accepts the seven shield objects beginning with Leather Shield $24, and adds the corresponding Shield_ArmourBonuses value to D3.
 	moveq	#$00,d2	;7400
-	move.b	$0003(a1),d2	;14290003
-	sub.b	#$24,d2	;04020024
+	move.b	ChampionPocket_Shield(a1),d2	;14290003
+	sub.b	#Object_SmallShields_First,d2	;04020024
 	bcs.s	Armour_Return	;650A
 	cmpi.w	#$0007,d2	;0C420007
 	bcc.s	Armour_Return	;6404
@@ -10897,16 +10955,18 @@ Shield_ArmourBonuses:		; Memory Address ($637A) and binary offset [$5FF6]
 	dc.b	$00	;00
 
 Calculate_WeaponCombatBonuses:		; Memory Address ($6382) and binary offset [$5FFE]
-	; Checks the two held-object slots for weapon objects $30-$3F and loads their combat adjustments.
+	; Inputs: A1 champion-pockets record; A4 champion-stat record; D4-D7 default combat modifiers. Checks the left hand then right hand for weapon objects $30-$3F. Outputs the selected weapon's random range, fixed damage, attack and defence bonuses in D4-D7, including Ace of Swords restrictions.
 	moveq	#$00,d0			;7000
-	move.b	(a1),d0			;1011
+	OPT	O2+
+	move.b	ChampionPocket_LeftHand(a1),d0			;1011
+	OPT	O2-
 	sub.b	#Object_Blades_First,d0			;04000030
 	bcs.s	Weapon_CheckRightHand		;6506
 	cmpi.b	#Weapon_CombatModifierRecordCount,d0			;0C000010
 	bcs.s	Weapon_LoadCombatModifiers		;6510
 Weapon_CheckRightHand:		; Memory Address ($6392) and binary offset [$600E]
-	; Checks the right-hand pocket after the left hand does not contain a recognised weapon.
-	move.b	$0001(a1),d0		;10290001
+	; Input: A1 champion-pockets record. Reached when the left hand is not a recognised weapon; checks right-hand slot 1 for a weapon object $30-$3F and continues to modifier loading on success.
+	move.b	ChampionPocket_RightHand(a1),d0		;10290001
 	sub.b	#Object_Blades_First,d0			;04000030
 	bcs.s	Weapon_ReturnCombatModifiers		;653E
 	cmpi.b	#Weapon_CombatModifierRecordCount,d0			;0C000010
@@ -10926,10 +10986,10 @@ Weapon_LoadCombatModifiers:		; Memory Address ($63A2) and binary offset [$601E]
 	bcs.s	Weapon_ApplyAceOfSwordsRestriction		;6506
 	move.w	#$FFFF,PhysicalAttack_BackstabState.w	;31FCFFFF628A	;Short Absolute converted to symbol!
 Weapon_ApplyAceOfSwordsRestriction:		; Memory Address ($63C6) and binary offset [$6042]
-	; Reduces the Ace of Swords combat modifiers unless Chaos Gloves are worn.
+	; Inputs: D0 selected weapon-record byte offset; A4 champion-stat record; D5-D7 weapon modifiers. If the weapon is the Ace of Swords and Chaos Gloves are not in the separate worn-hand-armour field, outputs fixed damage 0 and attack/defence bonuses 5/5; D4 random range is unchanged.
 	cmpi.b	#Weapon_AceOfSwordsRecordOffset,d0	;0C00001C
 	bne.s	Weapon_ReturnCombatModifiers	;660E
-	cmp.b	#Object_ChaosGloves,$0012(a4)	;0C2C002B0012
+	cmp.b	#Object_ChaosGloves,ChampionStat_WornHandArmour(a4)	;0C2C002B0012
 	beq.s	Weapon_ReturnCombatModifiers	;6706
 	moveq	#$05,d6	;7C05
 	moveq	#$05,d7	;7E05
@@ -10973,28 +11033,28 @@ Weapon_CombatModifiers:		; Memory Address ($63DC) and binary offset [$6058]
 	dc.w	$1928	;1928
 
 Prepare_AttackAndDefenceScores:		; Memory Address ($641C) and binary offset [$6098]
-	; Builds the attacker score and defender score, including weapon attack, weapon defence and effective armour values.
+	; Inputs: D3 attacker combatant index; D1 defender combatant index. Output: A6 points to PhysicalAttack_WorkingValues containing cached attacker/defender scores, weapon modifiers and effective armour for Resolve_PhysicalAttack.
 	lea	PhysicalAttack_WorkingValues.l,a6	;4DF900016B6C
 	move.w	d1,-(sp)	;3F01
 	move.w	d3,d0	;3003
 	bsr	Calculate_AttackerCombatScore	;61000032
 	move.w	(sp)+,d0	;301F
 	bsr	Load_CombatantCombatValues	;6100FE5E
-	move.b	d7,$000C(a6)	;1D47000C
-	move.b	d3,$000D(a6)	;1D43000D
+	move.b	d7,PhysicalAttack_WeaponDefenceBonusOffset(a6)	;1D47000C
+	move.b	d3,PhysicalAttack_DefenderArmourOffset(a6)	;1D43000D
 	lsr.w	#$03,d2	;E64A
 	add.w	d2,d0	;D042
 	move.w	d0,d1	;3200
 	asl.w	#$02,d0	;E540
 	add.w	d1,d0	;D041
-	move.b	$000C(a6),d1	;122E000C
+	move.b	PhysicalAttack_WeaponDefenceBonusOffset(a6),d1	;122E000C
 	add.w	d1,d0	;D041
 	tst.w	PhysicalAttack_DoubleDefenceFlag.l	;4A7900006458
 	beq.s	DefenderScore_StoreResult	;6702
 	add.w	d0,d0	;D040
 DefenderScore_StoreResult:		; Memory Address ($6452) and binary offset [$60CE]
 	; Stores the completed defender score in the physical-attack working values.
-	move.w	d0,$0004(a6)	;3D400004
+	move.w	d0,PhysicalAttack_DefenderScoreOffset(a6)	;3D400004
 	rts	;4E75
 
 PhysicalAttack_DoubleDefenceFlag:		; Memory Address ($6458) and binary offset [$60D4]
@@ -11002,14 +11062,14 @@ PhysicalAttack_DoubleDefenceFlag:		; Memory Address ($6458) and binary offset [$
 	dc.w	$0000	;0000
 
 Calculate_AttackerCombatScore:		; Memory Address ($645A) and binary offset [$60D6]
-	; Calculates an attacker score from level, strength, agility and the equipped weapon’s attack bonus.
+	; Inputs: D0 attacker combatant index; A6 PhysicalAttack_WorkingValues. Caches effective level, Strength and weapon modifiers, calculates the score from level, thresholded Strength/Agility and weapon attack bonus, doubles it for an eligible backstab, and stores the result at +$02.
 	bsr	Load_CombatantCombatValues	;6100FE30
-	move.b	d6,$000B(a6)	;1D46000B
-	move.b	d5,$000A(a6)	;1D45000A
-	move.b	d4,$0006(a6)	;1D440006
-	clr.b	$0007(a6)	;422E0007
-	move.b	d0,$0008(a6)	;1D400008
-	move.b	d1,$0009(a6)	;1D410009
+	move.b	d6,PhysicalAttack_WeaponAttackBonusOffset(a6)	;1D46000B
+	move.b	d5,PhysicalAttack_WeaponFixedDamageOffset(a6)	;1D45000A
+	move.b	d4,PhysicalAttack_WeaponRandomRangeOffset(a6)	;1D440006
+	clr.b	PhysicalAttack_WeaponRandomRangeLowByteOffset(a6)	;422E0007
+	move.b	d0,PhysicalAttack_AttackerLevelOffset(a6)	;1D400008
+	move.b	d1,PhysicalAttack_AttackerStrengthOffset(a6)	;1D410009
 	add.w	d0,d0	;D040
 	sub.w	#$0010,d1	;04410010
 	bcc.s	AttackerScore_AddStrengthContribution	;6402
@@ -11028,14 +11088,14 @@ AttackerScore_AddAgilityContribution:		; Memory Address ($648C) and binary offse
 	move.w	d0,d1	;3200
 	asl.w	#$02,d0	;E540
 	add.w	d1,d0	;D041
-	move.b	$000B(a6),d1	;122E000B
+	move.b	PhysicalAttack_WeaponAttackBonusOffset(a6),d1	;122E000B
 	add.w	d1,d0	;D041
 	tst.w	PhysicalAttack_BackstabState.w	;4A78628A	;Short Absolute converted to symbol!
 	bne.s	AttackerScore_StoreResult	;6602
 	add.w	d0,d0	;D040
 AttackerScore_StoreResult:		; Memory Address ($64A4) and binary offset [$6120]
 	; Stores the completed attacker score in the physical-attack working values.
-	move.w	d0,$0002(a6)	;3D400002
+	move.w	d0,PhysicalAttack_AttackerScoreOffset(a6)	;3D400002
 	rts	;4E75
 
 Click_MultiFunctionButton:		; Memory Address ($64AA) and binary offset [$6126]
@@ -12107,7 +12167,7 @@ _MoveParty:		; Memory Address ($6DFC) and binary offset [$6A78]
 	bne.s	Return_PlayerMoveRejected	;661E
 	move.w	$00(a6,d0.w),d1	;32360000
 	and.w	#Dungeon_CellTypeMask,d1	;02410007
-	cmpi.w	#MapCell_StairsType,d1	;0C410004
+	cmpi.w	#MapCell_Type_Stair,d1	;0C410004
 	bne.s	Return_PlayerMoveRejected	;6610
 	move.b	$00(a6,d0.w),d1	;12360000
 	lsr.b	#$01,d1	;E209
@@ -12169,7 +12229,7 @@ Refresh_AfterPlayerMove:		; Memory Address ($722C) and binary offset [$6EA8]
 	movem.l	(sp)+,d0/d7/a6	;4CDF4081
 	move.w	$00(a6,d0.w),d1	;32360000
 	and.w	#Dungeon_CellTypeMask,d1	;02410007
-	cmpi.w	#MapCell_StairsType,d1	;0C410004
+	cmpi.w	#MapCell_Type_Stair,d1	;0C410004
 	bne	Store_PlayerMovePosition	;66000076
 	moveq	#$00,d6	;7C00
 	move.b	$00(a6,d0.w),d6	;1C360000
@@ -13113,13 +13173,13 @@ Switch_05_s0A_Trigger_13_t1A_TogglePillar_XY:		; Memory Address ($776C) and bina
 Trigger_14_t1C_SetFloorTypeBits_XY:		; Memory Address ($777E) and binary offset [$73FA]
 	; Creates a pad at the record's target by preserving the first byte and setting feature-type bits 1 and 2 in the second byte.
 	bsr	Resolve_ActionTargetXY	;6100E5AE
-	or.b	#MapCell_FloorFeatureType,$01(a6,d0.w)	;003600060001
+	or.b	#MapCell_Type_PadPitHole,$01(a6,d0.w)	;003600060001
 	rts	;4E75
 
 Trigger_26_t34_ToggleFloorTypeBits_XY:		; Memory Address ($778A) and binary offset [$7406]
 	; Resolves the target cell and toggles second-byte feature bits 1 and 2 for action $34.
 	bsr	Resolve_ActionTargetXY	;6100E5A2
-	eor.b	#MapCell_FloorFeatureType,$01(a6,d0.w)	;0A3600060001
+	eor.b	#MapCell_Type_PadPitHole,$01(a6,d0.w)	;0A3600060001
 	rts	;4E75
 
 Trigger_16_t20_ToggleNeighbourFloorType:		; Memory Address ($7796) and binary offset [$7412]
@@ -13140,7 +13200,7 @@ Trigger_16_t20_ToggleNeighbourFloorType:		; Memory Address ($7796) and binary of
 	bcc	Switch_01_s02_Trigger_11_t16_RemoveXY	;6400E54C
 	swap	d7	;4847
 	bsr	CoordToMap	;61000CD0
-	eor.b	#MapCell_FloorFeatureType,$01(a6,d0.w)	;0A3600060001
+	eor.b	#MapCell_Type_PadPitHole,$01(a6,d0.w)	;0A3600060001
 	rts	;4E75
 
 Trigger_17_t22_MovePillar_NorthWestToNorth:		; Memory Address ($77D6) and binary offset [$7452]
@@ -22104,11 +22164,11 @@ ExitOrLoop:		; Memory Address ($C1F4) and binary offset [$BE70]
 	rts	;4E75
 
 HitTest_ChampionSelectionPanel:		; Memory Address ($C1F6) and binary offset [$BE72]
-	; Dispatches champion-selection clicks through roster, selection, object-view, spell-preview, and spellbook controls.
-	move.w	$0022(a5),$0024(a5)		;3B6D00220024
-	bclr	#$07,$0001(a5)			;08AD00070001
+	; Input: A5 points to PlayerData. Consumes the click latch and dispatches roster, Select Champion, View Object, spell-preview and spellbook hit tests; a hit writes PlayerData_ActionCommand and the applicable action parameter/context state.
+	move.w	PlayerData_InterfaceRepeatCountdown(a5),PlayerData_InterfaceRepeatSnapshot(a5)		;3B6D00220024
+	bclr	#PlayerData_PrimaryInputLatch_ClickBit,PlayerData_PrimaryInputLatch(a5)			;08AD00070001
 	beq.s	ExitOrLoop			;67F0
-	move.w	$0014(a5),d0			;302D0014
+	move.w	PlayerData_InterfaceContextState(a5),d0			;302D0014
 	bmi.s	ExitOrLoop			;6BEA
 	cmpi.b	#$03,d0				;0C000003
 	beq.s	ExitOrLoop			;67E4
@@ -22459,9 +22519,9 @@ Draw_ChampionSelectionButtonFrame:		; Memory Address ($C5C6) and binary offset [
 	bra	BW_draw_frame	;600014E2
 
 HitTest_SelectChampionRegion:		; Memory Address ($C5F4) and binary offset [$C270]
-	; Tests the Select Champion button rectangle and records its action index on a hit.
-	move.l	$0002(a5),d1	;222D0002
-	sub.w	$0008(a5),d1	;926D0008
+	; Inputs: A5 points to PlayerData; D2 carries the negative no-hit sentinel. Tests the Select Champion rectangle; on a hit writes action 2, clears D2 and returns a non-negative condition result.
+	move.l	PlayerData_MousePosition(a5),d1	;222D0002
+	sub.w	PlayerData_InterfacePanelYOffset(a5),d1	;926D0008
 	cmpi.w	#$0040,d1	;0C410040
 	bcs.s	HitTest_SelectChampionRegion_Return	;651C
 	cmpi.w	#$0050,d1	;0C410050
@@ -22471,16 +22531,16 @@ HitTest_SelectChampionRegion:		; Memory Address ($C5F4) and binary offset [$C270
 	bcs.s	HitTest_SelectChampionRegion_Return	;650E
 	cmpi.w	#$00C3,d1	;0C4100C3
 	bcc.s	HitTest_SelectChampionRegion_Return	;6408
-	move.w	#$0002,$000C(a5)	;3B7C0002000C
+	move.w	#$0002,PlayerData_ActionCommand(a5)	;3B7C0002000C
 	clr.w	d2	;4242
 HitTest_SelectChampionRegion_Return:		; Memory Address ($C61E) and binary offset [$C29A]
 	tst.w	d2	;4A42
 	rts	;4E75
 
 HitTest_ViewObjectRegion:		; Memory Address ($C622) and binary offset [$C29E]
-	; Tests the View Object button rectangle and records its action index on a hit.
-	move.l	$0002(a5),d1	;222D0002
-	sub.w	$0008(a5),d1	;926D0008
+	; Inputs: A5 points to PlayerData; D2 carries the negative no-hit sentinel. Tests the View Object rectangle; on a hit writes action 3, clears D2 and returns a non-negative condition result.
+	move.l	PlayerData_MousePosition(a5),d1	;222D0002
+	sub.w	PlayerData_InterfacePanelYOffset(a5),d1	;926D0008
 	cmpi.w	#$0040,d1	;0C410040
 	bcs.s	HitTest_ChampionSelectionPanel_NoHitReturn	;651C
 	cmpi.w	#$0050,d1	;0C410050
@@ -22490,18 +22550,18 @@ HitTest_ViewObjectRegion:		; Memory Address ($C622) and binary offset [$C29E]
 	bcs.s	HitTest_ChampionSelectionPanel_NoHitReturn	;650E
 	cmpi.w	#$00DA,d1	;0C4100DA
 	bcc.s	HitTest_ChampionSelectionPanel_NoHitReturn	;6408
-	move.w	#$0003,$000C(a5)	;3B7C0003000C
+	move.w	#$0003,PlayerData_ActionCommand(a5)	;3B7C0003000C
 	clr.w	d2	;4242
 HitTest_ChampionSelectionPanel_NoHitReturn:		; Memory Address ($C64C) and binary offset [$C2C8]
 	tst.w	d2	;4A42
 	rts	;4E75
 
 HitTest_SpellBookControls:		; Memory Address ($C650) and binary offset [$C2CC]
-	; Resolves the spell-book top controls and eight rune hit targets.
-	cmp.w	#$0002,$0014(a5)	;0C6D00020014
+	; Inputs: A5 points to PlayerData; D2 carries the no-hit state. In spellbook context 2, resolves page/rune and extra button regions; on a hit writes action $05-$08, its parameter/context state and repeat delay, returning a non-negative condition result.
+	cmp.w	#$0002,PlayerData_InterfaceContextState(a5)	;0C6D00020014
 	bne.s	HitTest_ChampionSelectionPanel_NoHitReturn	;66F4
-	move.l	$0002(a5),d1	;222D0002
-	sub.w	$0008(a5),d1	;926D0008
+	move.l	PlayerData_MousePosition(a5),d1	;222D0002
+	sub.w	PlayerData_InterfacePanelYOffset(a5),d1	;926D0008
 	sub.w	#$0018,d1	;04410018
 	bcs.s	HitTest_SpellBookControls_TestExtraButtons	;6536
 	cmpi.w	#$0020,d1	;0C410020
@@ -22520,8 +22580,8 @@ HitTest_SpellBookControls_ResolvePageArrow:		; Memory Address ($C684) and binary
 	lsr.w	#$03,d1	;E649
 	add.w	d1,d0	;D041
 	eor.w	#$0007,d0	;0A400007
-	move.w	#$0005,$000C(a5)	;3B7C0005000C
-	move.w	d0,$000E(a5)	;3B40000E
+	move.w	#$0005,PlayerData_ActionCommand(a5)	;3B7C0005000C
+	move.w	d0,PlayerData_InterfaceActionParameter(a5)	;3B40000E
 	moveq	#$00,d2	;7400
 	rts	;4E75
 
@@ -22548,19 +22608,19 @@ HitTest_SpellBookControls_TestExtraButtons:		; Memory Address ($C69C) and binary
 	cmpi.w	#$0138,d1	;0C410138
 	bcc.s	HitTest_SpellBookControls_Return	;6430
 HitTest_SpellBookControls_StoreButtonHit:		; Memory Address ($C6D8) and binary offset [$C354]
-	move.w	d0,$000C(a5)	;3B40000C
+	move.w	d0,PlayerData_ActionCommand(a5)	;3B40000C
 	moveq	#$03,d2	;7403
 	cmpi.w	#$0006,d0	;0C400006
 	bne.s	HitTest_SpellBookControls_SetHitMode	;660E
-	subq.w	#$02,$002A(a5)	;556D002A
-	and.w	#$0007,$002A(a5)	;026D0007002A
+	subq.w	#$02,PlayerData_SpellBookPageSpread(a5)	;556D002A
+	and.w	#$0007,PlayerData_SpellBookPageSpread(a5)	;026D0007002A
 	move.w	#$8003,d2	;343C8003
 HitTest_SpellBookControls_SetHitMode:		; Memory Address ($C6F2) and binary offset [$C36E]
 	rol.w	#$08,d0	;E158
 	move.b	#$03,d0	;103C0003
-	move.w	d0,$0014(a5)	;3B400014
-	move.w	d2,$000E(a5)	;3B42000E
-	move.w	#$0008,$0022(a5)	;3B7C00080022
+	move.w	d0,PlayerData_InterfaceContextState(a5)	;3B400014
+	move.w	d2,PlayerData_InterfaceActionParameter(a5)	;3B42000E
+	move.w	#$0008,PlayerData_InterfaceRepeatCountdown(a5)	;3B7C00080022
 	move.w	d0,d2	;3400
 HitTest_SpellBookControls_Return:		; Memory Address ($C708) and binary offset [$C384]
 	tst.w	d2	;4A42
@@ -22568,12 +22628,12 @@ HitTest_SpellBookControls_Return:		; Memory Address ($C708) and binary offset [$
 
 HitTest_PreviewSpellRegion:		; Memory Address ($C70C) and binary offset [$C388]
 	; Runs the spell-grid hit test only while champion selection is in spellbook mode.
-	cmp.w	#$0001,$0014(a5)	;0C6D00010014
+	cmp.w	#$0001,PlayerData_InterfaceContextState(a5)	;0C6D00010014
 	bne.s	HitTest_SpellGridCell_Return	;6634
 HitTest_SpellGridCell:		; Memory Address ($C714) and binary offset [$C390]
-	; Tests the spell-rune grid and returns the selected row and column while recording the preview action.
-	move.l	$0002(a5),d1	;222D0002
-	sub.w	$0008(a5),d1	;926D0008
+	; Inputs: A5 points to PlayerData; D2 carries the negative no-hit sentinel. Resolves a spell-grid row/column; on a hit writes preview action 4 and the selected cell parameter, returning a non-negative condition result.
+	move.l	PlayerData_MousePosition(a5),d1	;222D0002
+	sub.w	PlayerData_InterfacePanelYOffset(a5),d1	;926D0008
 	sub.w	#$0020,d1	;04410020
 	bcs.s	HitTest_SpellGridCell_Return	;6526
 	cmpi.w	#$0020,d1	;0C410020
@@ -22581,7 +22641,7 @@ HitTest_SpellGridCell:		; Memory Address ($C714) and binary offset [$C390]
 	swap	d1	;4841
 	sub.w	#$00E0,d1	;044100E0
 	bcs.s	HitTest_SpellGridCell_Return	;6518
-	move.w	#$0004,$000C(a5)	;3B7C0004000C
+	move.w	#$0004,PlayerData_ActionCommand(a5)	;3B7C0004000C
 	lsr.w	#$04,d1	;E849
 	move.w	d1,d2	;3401
 	swap	d1	;4841
@@ -22589,14 +22649,14 @@ HitTest_SpellGridCell:		; Memory Address ($C714) and binary offset [$C390]
 	bcs.s	HitTest_SpellGridCell_ResolveRow	;6502
 	addq.w	#$06,d2	;5C42
 HitTest_SpellGridCell_ResolveRow:		; Memory Address ($C744) and binary offset [$C3C0]
-	move.w	d2,$000E(a5)	;3B42000E
+	move.w	d2,PlayerData_InterfaceActionParameter(a5)	;3B42000E
 HitTest_SpellGridCell_Return:		; Memory Address ($C748) and binary offset [$C3C4]
 	tst.w	d2	;4A42
 	rts	;4E75
 
 HitTest_ChampionRosterRow:		; Memory Address ($C74C) and binary offset [$C3C8]
-	; Resolves the champion roster row under the pointer and rejects gaps or positions outside the roster.
-	move.l	$0002(a5),d1	;222D0002
+	; Input: A5 points to PlayerData. Resolves the champion roster cell under the mouse, rejects gutters, current selections and a champion claimed by the other player; on a hit writes action 1 and the champion index, returning a non-negative condition result.
+	move.l	PlayerData_MousePosition(a5),d1	;222D0002
 	moveq	#-$01,d2	;74FF
 	moveq	#$0E,d3	;760E
 HitTest_ChampionRosterRow_BandScanLoop:		; Memory Address ($C754) and binary offset [$C3D0]
@@ -22635,13 +22695,13 @@ HitTest_ChampionRosterRow_RejectClaimed:		; Memory Address ($C780) and binary of
 	eor.l	#Player1_Data,d0	;0A800000EE7C
 	eor.l	#Player2_Data,d0	;0A800000EEDE
 	move.l	d0,a0	;2040
-	cmp.w	#$0001,$000C(a0)	;0C680001000C
+	cmp.w	#$0001,PlayerData_ActionCommand(a0)	;0C680001000C
 	bne.s	HitTest_ChampionRosterRow_SetHitAction	;6606
-	cmp.w	$000E(a0),d2	;B468000E
+	cmp.w	PlayerData_InterfaceActionParameter(a0),d2	;B468000E
 	beq.s	HitTest_ChampionRosterRow_Return	;670E
 HitTest_ChampionRosterRow_SetHitAction:		; Memory Address ($C7B6) and binary offset [$C432]
-	move.w	d2,$000E(a5)	;3B42000E
-	move.w	#$0001,$000C(a5)	;3B7C0001000C
+	move.w	d2,PlayerData_InterfaceActionParameter(a5)	;3B42000E
+	move.w	#$0001,PlayerData_ActionCommand(a5)	;3B7C0001000C
 	moveq	#$00,d2	;7400
 HitTest_ChampionRosterRow_SwapResult:		; Memory Address ($C7C2) and binary offset [$C43E]
 	swap	d2	;4842
@@ -22830,7 +22890,7 @@ InventoryArmourRating_FormatValue:		; Memory Address ($C9A0) and binary offset [
 	bra	Print_fflim_text	;6000070C
 
 Draw_InventoryPocketSlots:		; Memory Address ($C9BC) and binary offset [$C638]
-	; Draws the selected champion's twelve inventory pocket slots.
+	; Inputs: A5 points to PlayerData; D7 is the selected champion index. Draws all twelve pocket slots, using semantic empty equipment placeholders, separately worn glove graphics for empty hands, counted-object quantities and ordinary object graphics.
 	move.l	a4,-(sp)	;2F0C
 	move.l	screen_ptr.l,a0	;207900008D36
 	add.w	#$051C,a0	;D0FC051C
@@ -22846,7 +22906,7 @@ Draw_InventoryPocketSlotLoop:		; Memory Address ($C9DC) and binary offset [$C658
 	moveq	#$00,d0	;7000
 	move.b	$00(a4,d7.w),d0	;10347000
 	bne.s	InventoryPocketSlot_CheckItemCount	;6654
-	cmpi.w	#$0002,d7	;0C470002
+	cmpi.w	#ChampionPocket_BodyArmour,d7	;0C470002
 	bcc.s	Select_EmptyInventorySlotGraphic	;642A
 	swap	d7	;4847
 	move.w	d7,d0	;3007
@@ -22855,36 +22915,37 @@ Draw_InventoryPocketSlotLoop:		; Memory Address ($C9DC) and binary offset [$C658
 	lea	Character_Stats_DataTable.l,a1	;43F90000EB2A
 	add.w	d0,a1	;D2C0
 	moveq	#$00,d0	;7000
-	move.b	$0012(a1),d0	;10290012
+	move.b	ChampionStat_WornHandArmour(a1),d0	;10290012
 	beq.s	Select_EmptyInventorySlotGraphic	;6712
 	lea	Object_Definition_Table+$01.l,a1	;43F90000E4C3
 	asl.w	#$02,d0	;E540
 	move.b	$00(a1,d0.w),d3	;16310000
-	moveq	#$1A,d0	;701A
+	moveq	#PocketGraphic_WornHandArmourBase,d0	;701A
 	add.w	d7,d0	;D047
 	bra.s	InventoryPocketSlot_DrawGraphic	;601E
 
 Select_EmptyInventorySlotGraphic:		; Memory Address ($CA14) and binary offset [$C690]
-	; Selects the semantic empty hand, armour, shield, or pocket picture and the player secondary UI colour.
-	move.w	$0012(a5),d3	;362D0012
-	cmpi.w	#$0004,d7	;0C470004
+	; Inputs: A5 points to PlayerData; D7 packs champion index in the high word and slot index in the low word. Outputs D0 Pockets graphic index and D3 secondary UI colour, choosing equipment-specific placeholders for slots 0-$03 and generic empty graphic 0 for slots 4-$0B.
+	move.w	PlayerData_UISecondaryColourOffset(a5),d3	;362D0012
+	cmpi.w	#ChampionPocket_EquipmentSlotCount,d7	;0C470004
 	bcc.s	InventoryPocketSlot_DrawGraphic	;6414
 	move.w	d7,d0	;3007
-	cmpi.w	#$0003,d7	;0C470003
+	cmpi.w	#ChampionPocket_Shield,d7	;0C470003
 	bne.s	EmptyInventorySlot_AddGraphicBankOffset	;6608
 	btst	#$10,d7	;08070010
 	beq.s	EmptyInventorySlot_AddGraphicBankOffset	;6702
 	addq.w	#$01,d0	;5240
 EmptyInventorySlot_AddGraphicBankOffset:		; Memory Address ($CA2E) and binary offset [$C6AA]
-	add.w	#$006C,d0	;0640006C
+	; Input: D0 is the equipment-placeholder offset selected from slot and champion parity. Adds Pockets graphic base $6C and falls through to draw the semantic empty hand, body-armour or shield placeholder.
+	add.w	#PocketGraphic_EmptyEquipmentBase,d0	;0640006C
 InventoryPocketSlot_DrawGraphic:		; Memory Address ($CA32) and binary offset [$C6AE]
 	bsr	Draw_PocketGraphic	;610000B6
 	bra.s	InventoryPocketSlotLoop_AdvanceIndex	;6014
 
 InventoryPocketSlot_CheckItemCount:		; Memory Address ($CA38) and binary offset [$C6B4]
-	cmpi.w	#$0005,d0	;0C400005
+	cmpi.w	#Object_NumberedObjects_EndExclusive,d0	;0C400005
 	bcc.s	InventoryPocketSlot_DrawItemGraphic	;640C
-	move.b	$0B(a4,d0.w),d1	;1234000B
+	move.b	ChampionPocket_CountedObjectCountsOffset(a4,d0.w),d1	;1234000B
 	bne.s	InventoryPocketSlot_DrawItemGraphic	;6606
 	clr.b	$00(a4,d7.w)	;42347000
 	bra.s	Draw_InventoryPocketSlotLoop	;6092
@@ -22893,32 +22954,32 @@ InventoryPocketSlot_DrawItemGraphic:		; Memory Address ($CA4A) and binary offset
 	bsr.s	ObjectGraphic	;611A
 InventoryPocketSlotLoop_AdvanceIndex:		; Memory Address ($CA4C) and binary offset [$C6C8]
 	addq.w	#$01,d7	;5247
-	cmpi.w	#$0006,d7	;0C470006
+	cmpi.w	#InventoryPocketLayout_SecondRowStartSlot,d7	;0C470006
 	bne.s	InventoryPocketSlotLoop_CheckDone	;6604
 	add.w	#$0274,a0	;D0FC0274
 InventoryPocketSlotLoop_CheckDone:		; Memory Address ($CA58) and binary offset [$C6D4]
-	cmpi.w	#$000C,d7	;0C47000C
+	cmpi.w	#ChampionPocket_VisibleSlotCount,d7	;0C47000C
 	bcs	Draw_InventoryPocketSlotLoop	;6500FF7E
 	swap	d7	;4847
 	move.l	(sp)+,a4	;285F
 	rts	;4E75
 
 ObjectGraphic:		; Memory Address ($CA66) and binary offset [$C6E2]
-	; Resolves and draws a held or pocket object's graphic, including the empty-slot image, counted objects, and substitution of a depleted ring's generic used-up sprite.
+	; Inputs: D0 object code; D1 quantity for counted objects; A0 destination. Draws the Pockets graphic, overlays quantities for objects $01-$04, and substitutes generic depleted-ring graphic $68 when a rechargeable ring $69-$6C has negative uses.
 	tst.w	d0	;4A40
 	beq	Draw_PocketGraphic	;67000080
-	cmpi.w	#$0005,d0	;0C400005
+	cmpi.w	#Object_NumberedObjects_EndExclusive,d0	;0C400005
 	bcs.s	NumberedObject	;6534
-	cmpi.w	#$0069,d0	;0C400069
+	cmpi.w	#Object_MagicRings_First,d0	;0C400069
 	bcs.s	.SkipRings	;651A
-	cmpi.w	#$006D,d0	;0C40006D
+	cmpi.w	#Object_MagicRings_EndExclusive,d0	;0C40006D
 	bcc.s	.SkipRings	;6414
 	move.w	d0,d3	;3600
-	sub.w	#$0069,d3	;04430069
+	sub.w	#Object_MagicRings_First,d3	;04430069
 	lea	RingUses.l,a1	;43F90000EE32
 	tst.b	$00(a1,d3.w)	;4A313000
 	bpl.s	.SkipRings	;6A02
-	moveq	#$68,d0	;7068
+	moveq	#Object_DepletedRing,d0	;7068
 .SkipRings:		; Memory Address ($CA92) and binary offset [$C70E]
 	asl.w	#$02,d0	;E540
 	lea	Object_Definition_Table.l,a1	;43F90000E4C2
@@ -22928,6 +22989,7 @@ ObjectGraphic:		; Memory Address ($CA66) and binary offset [$C6E2]
 	bra.s	Draw_PocketGraphic	;6044
 
 NumberedObject:		; Memory Address ($CAA6) and binary offset [$C722]
+	; Inputs: D0 counted-object code $01-$04; D1 quantity; A0 destination. Draws the object and decimal quantity using the coin/key or arrow text position, then returns with A0 advanced by two bytes.
 	move.l	a0,-(sp)	;2F08
 	move.w	d0,-(sp)	;3F00
 	move.b	d1,d0	;1001
@@ -22937,7 +22999,7 @@ NumberedObject:		; Memory Address ($CAA6) and binary offset [$C722]
 	bsr.s	Draw_PocketGraphic	;6130
 	move.l	$0002(sp),a0	;206F0002
 	add.w	#$0050,a0	;D0FC0050
-	cmp.w	#$0003,(sp)+	;0C5F0003
+	cmp.w	#Object_Arrows_First,(sp)+	;0C5F0003
 	bcs.s	NumberedObject_PrintCountText	;6504
 	add.w	#$0118,a0	;D0FC0118
 NumberedObject_PrintCountText:		; Memory Address ($CACC) and binary offset [$C748]
@@ -43060,7 +43122,7 @@ Comms_StateRecords:		; Memory Address ($16B4C) and binary offset [$167C8]
 	dc.w	$0000	;0000
 	dc.w	$0000	;0000
 PhysicalAttack_WorkingValues:		; Memory Address ($16B6C) and binary offset [$167E8]
-	; Temporary physical-attack result, attacker, defender, weapon and armour values.
+	; Eighteen-byte physical-attack scratch block: +$00 result damage word, +$02 attacker score word, +$04 defender score word, +$06 random-range high byte with +$07 cleared low byte, +$08 attacker level, +$09 effective Strength, +$0A fixed damage, +$0B weapon attack bonus, +$0C weapon defence bonus, +$0D defender armour; +$0E-$0F and initial $FFFF word at +$10 are unused by the audited attack path.
 	dc.w	$0000	;0000
 	dc.w	$0000	;0000
 	dc.w	$0000	;0000

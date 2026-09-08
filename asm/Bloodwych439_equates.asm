@@ -112,12 +112,14 @@ ChampionLevel_FairyAutoLevelMaximum:					equ	$0E			; Highest champion level reac
 
 ChampionPocket_BodyArmour:								equ	$02			; Offset of the dedicated body-armour pocket.
 ChampionPocket_CountedObjectCountsOffset:				equ	$0B			; Base offset of the object-code-indexed counted-object quantities in a champion-pockets record.
+ChampionPocket_EquipmentSlotCount:						equ	$04			; Number of dedicated equipment slots: left hand, right hand, body armour and shield.
 ChampionPocket_LastIndex:								equ	$0B			; Highest ordinary pocket index in the twelve-pocket scan.
 ChampionPocket_LeftHand:								equ	$00			; Offset of the left-hand pocket in a sixteen-byte champion-pockets record.
 ChampionPocket_RecordSize:								equ	$10			; Size in bytes of one champion-pockets record.
 ChampionPocket_RecordSizeShift:							equ	$04			; Shift converting a champion-pockets byte offset into its champion index.
 ChampionPocket_RightHand:								equ	$01			; Offset of the right-hand pocket in a champion-pockets record.
 ChampionPocket_Shield:									equ	$03			; Offset of the dedicated shield pocket.
+ChampionPocket_VisibleSlotCount:						equ	$0C			; Number of visible object/equipment slots in each champion-pockets record.
 
 ChampionSelection_TableEntrySize:						equ	$04			; Champion-selection action entries are longwords.
 
@@ -263,8 +265,6 @@ FairyShop_LevelProgressAutoLevelThreshold:				equ	$EC			; Level-progress value a
 FloorFeature_SubtypeMask:								equ	$03			; Extracts the floor feature independently of the ceiling-hole flag.
 FloorFeature_VisiblePadSubtype:							equ	$02			; Visible pads select sound zero before the handler runs.
 
-FloorRegenerationCellType:								equ	$03			; Masked map-cell type recognised by FloorTrigger_Handler as the regeneration feature.
-
 FloorTrigger_IndexMask:									equ	$F8			; Keeps trigger index bits 3-7; shifting once right yields a four-byte record offset.
 FloorTrigger_TowerStrideShift:							equ	$07			; Multiplies tower number by 128 bytes for its 32 four-byte trigger records.
 
@@ -342,13 +342,20 @@ InterfaceHitbox_CommandActionBase:						equ	$1C			; The command-row hitbox table
 InterfaceHitbox_CommandActionCount:						equ	$06			; The command-row hitbox table contains six records for action IDs $1C-$21.
 InterfaceHitbox_DisplayActionBase:						equ	$22			; The display/context hitbox table starts at action ID $22.
 InterfaceHitbox_DisplayActionCount:						equ	$03			; The display/context hitbox table contains three records for action IDs $22-$24.
+InterfaceHitbox_DisplayScanEndExclusive:				equ	$26			; Exclusive action-ID ceiling used by HitTest_DisplayAction.
 InterfaceHitbox_MainActionCount:						equ	$11			; The main player-panel hitbox table contains 17 records for action IDs $00-$10.
 InterfaceHitbox_RecordBytes:							equ	$08			; The hit-test scanner advances eight bytes for each rectangle record.
 InterfaceHitbox_RecordWords:							equ	$04			; Each interface hitbox is four 16-bit words: X minimum, X maximum, Y minimum and Y maximum.
+InterfaceHitbox_XMaximumOffset:							equ	$02			; Offset of the inclusive maximum X coordinate in an interface hitbox record.
+InterfaceHitbox_XMinimumOffset:							equ	$00			; Offset of the inclusive minimum X coordinate in an interface hitbox record.
+InterfaceHitbox_YMaximumOffset:							equ	$06			; Offset of the inclusive maximum Y coordinate in an interface hitbox record.
+InterfaceHitbox_YMinimumOffset:							equ	$04			; Offset of the inclusive minimum Y coordinate in an interface hitbox record.
 
 InterfaceMode_Communication:							equ	$08			; Interface mode value active while communicating with another character.
 
 InterfaceState_MenuOffset:								equ	$44			; Converts the visible communication menu level into a communication action index.
+
+InventoryPocketLayout_SecondRowStartSlot:				equ	$06			; Inventory slot index at which drawing advances to the second screen row.
 
 LiveActorRecord_Capacity:								equ	$80			; Maximum number of records represented by the shared live actor/entity workspace.
 LiveActorRecord_CountOffset:							equ	-$02		; Reads the last live-record index before removing a monster.
@@ -371,15 +378,20 @@ Map_ResourceSize:										equ	$1000		; Fixed map allocation; object records beg
 MapCell_ClearFeatureWordMask:							equ	$F8			; Clear first-byte feature data and the three-bit type, retaining second-byte flags.
 MapCell_ClearTypeMask:									equ	$F8			; Clear the cell type while preserving upper second-byte flags.
 MapCell_ConcealedBit:									equ	$03			; Map-cell flag bit set by Conceal and cleared by Dispel.
-MapCell_DoorType:										equ	$02			; Low three-bit map-cell type identifying a door.
-MapCell_FloorFeatureType:								equ	$06			; Selects floor-feature cells before testing the pit subtype.
 MapCell_MagelockedBit:									equ	$04			; Door-state flag bit toggled by Magelock.
-MapCell_MagicFeatureType:								equ	$07			; Map-cell type value shared by Firepath, Mindrock and Formwall.
 MapCell_ObjectPresentBit:								equ	$06			; Marks map cells that have a floor or shelf object stack.
 MapCell_OccupiedBit:									equ	$07			; Map-cell occupied flag updated when a player changes floor.
 MapCell_PillarWord:										equ	$0103		; First byte one and map-cell type three define the puzzle pillar.
 MapCell_SpellEntityBit:									equ	$07			; Marks a map cell as containing a live spell or summoned entity.
-MapCell_StairsType:										equ	$04			; Selects the stair transition path.
+MapCell_Type_Bed:										equ	$03			; Map-cell type 3 used for a bed when the cell's first byte is zero.
+MapCell_Type_MagicLocation:								equ	$07			; Map-cell type value shared by Firepath, Mindrock and Formwall.
+MapCell_Type_MetalDoor:									equ	$05			; Editor map-cell type 5: metal door, doorway or portcullis.
+MapCell_Type_Miscellaneous:								equ	$03			; Editor map-cell type 3: miscellaneous centred features, principally beds and pillars.
+MapCell_Type_PadPitHole:								equ	$06			; Selects floor-feature cells before testing the pit subtype.
+MapCell_Type_Space:										equ	$00			; Editor map-cell type 0: empty or reserved/occupied space.
+MapCell_Type_Stair:										equ	$04			; Selects the stair transition path.
+MapCell_Type_StoneWall:									equ	$01			; Editor map-cell type 1: stone wall and its facing shelf, sign, switch or socket feature.
+MapCell_Type_WoodWall:									equ	$02			; Map-cell type 2 used by wooden walls and their embedded doors.
 MapCell_TypeMask:										equ	$07			; Low three bits of the second byte select the map-cell type.
 MapCell_WallTogglePreserveMask:							equ	$F9			; Discard first-byte data and type bits 1-2 before toggling stone-wall bit zero.
 
@@ -460,8 +472,10 @@ Object_Gloves_First:									equ	$2B			; First glove object and exclusive end of
 Object_HealWand:										equ	$5B			; Heal Wand object code; holding it in either hand doubles periodic hit-point recovery.
 Object_Keys_First:										equ	$50			; First named-key object.
 Object_LargeShields_First:								equ	$27			; First large-shield object.
+Object_MagicRings_EndExclusive:							equ	$6D			; Exclusive upper object-code boundary for rechargeable magic rings $69-$6C.
 Object_MagicRings_First:								equ	$69			; First rechargeable magic-ring object.
 Object_Neggs_First:										equ	$14			; Separates three-stage food from whole N'Egg food.
+Object_NumberedObjects_EndExclusive:					equ	$05			; Exclusive object-code boundary for numbered/counted objects $01-$04.
 Object_Permit:											equ	$5F			; Permit object and exclusive end of bows.
 Object_PocketGraphicBankSize:							equ	$14			; Number of pocket graphics in each source-bank step.
 Object_Potions_First:									equ	$17			; Separates potion objects from food and counted objects.
@@ -513,7 +527,18 @@ PartyShieldStatusBar_LastSlot:							equ	$03			; DBRA terminal index that visits
 PartyShieldStatusBar_ScaleHeight:						equ	$15			; Sets the scale target used only when a party member's current HP is below maximum.
 PartyShieldStatusBar_SuppressionMask:					equ	$E0			; Masks vacant and dead party-slot state bits so those slots receive no HP bar.
 
+PhysicalAttack_AttackerLevelOffset:						equ	$08			; Byte offset of the attacker's effective level in PhysicalAttack_WorkingValues.
+PhysicalAttack_AttackerScoreOffset:						equ	$02			; Word offset of the completed attacker score in PhysicalAttack_WorkingValues.
+PhysicalAttack_AttackerStrengthOffset:					equ	$09			; Byte offset of the attacker's effective Strength, including its combat bias, in PhysicalAttack_WorkingValues.
+PhysicalAttack_DefenderArmourOffset:					equ	$0D			; Byte offset of the defender's effective armour in PhysicalAttack_WorkingValues.
+PhysicalAttack_DefenderScoreOffset:						equ	$04			; Word offset of the completed defender score in PhysicalAttack_WorkingValues.
+PhysicalAttack_ResultDamageOffset:						equ	$00			; Word offset of the final positive physical damage in PhysicalAttack_WorkingValues.
 PhysicalAttack_VitalityCost:							equ	$03			; Vitality removed when champion combat values are loaded for physical combat.
+PhysicalAttack_WeaponAttackBonusOffset:					equ	$0B			; Byte offset of the selected weapon's attack-score bonus in PhysicalAttack_WorkingValues.
+PhysicalAttack_WeaponDefenceBonusOffset:				equ	$0C			; Byte offset of the selected weapon's defence-score bonus in PhysicalAttack_WorkingValues.
+PhysicalAttack_WeaponFixedDamageOffset:					equ	$0A			; Byte offset of the selected weapon's fixed damage bonus in PhysicalAttack_WorkingValues.
+PhysicalAttack_WeaponRandomRangeLowByteOffset:			equ	$07			; Low byte cleared beneath the weapon random-damage range before RandomGen reads the containing word.
+PhysicalAttack_WeaponRandomRangeOffset:					equ	$06			; High-byte offset of the weapon random-damage range stored in RandomGen fixed-point form.
 
 PlanarColourMask_IndexMask:								equ	$0C			; Mask converting a two-bit destination colour value into a longword mask-table offset.
 
@@ -550,6 +575,7 @@ PlayerData_FormationSlotsOffset:						equ	$26			; Base offset of the four party 
 PlayerData_IdlePanelAnimationCountdown:					equ	$55			; Offset of the idle-panel animation countdown byte.
 PlayerData_InteractionPartySlotIndex:					equ	$4F			; Offset of the party-slot index used by the current interaction.
 PlayerData_InteractionSelectionStage:					equ	$4E			; Offset of the interaction or target-selection stage byte.
+PlayerData_InterfaceActionParameter:					equ	$0E			; Word parameter accompanying PlayerData_ActionCommand; its meaning is selected champion, inventory slot, spell cell or page control according to the command.
 PlayerData_InterfaceContextState:						equ	$14			; Offset of the interface context and deferred-action state byte.
 PlayerData_InterfacePanelMode:							equ	$15			; Offset of the main interface panel mode byte.
 PlayerData_InterfacePanelYOffset:						equ	$08			; Offset of the player-specific interface-panel Y adjustment.
@@ -598,6 +624,9 @@ PlayerData_XPosition:									equ	$1C			; Stores the champion start X position i
 PlayerData_YPosition:									equ	$1E			; Stores the champion start Y position in the active player record.
 
 PlayerInputLatch_PressedBit:							equ	$07			; Pressed-state bit in the primary input latch.
+
+PocketGraphic_EmptyEquipmentBase:						equ	$6C			; First Pockets graphic for the semantic empty hand, body-armour and shield placeholders.
+PocketGraphic_WornHandArmourBase:						equ	$1A			; First Pockets graphic used to show worn hand armour behind an empty left or right hand.
 
 PowerStaff_SpellCastingBonus:							equ	$05			; Spell-casting quality bonus supplied by a held Power Staff.
 
