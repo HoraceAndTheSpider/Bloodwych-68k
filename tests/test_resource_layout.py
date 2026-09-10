@@ -9,8 +9,13 @@ from unittest.mock import patch
 import pandas as pd
 
 from tools.resource_layout import resource_layouts, resource_name
+from tools.source_notes import SourceNote
 from tools.tool_common import ToolError
-from tools.fix_labels import FixLabelRule, load_fix_label_metadata
+from tools.fix_labels import (
+    FixLabelRule,
+    apply_fix_label_rules,
+    load_fix_label_metadata,
+)
 from tools.tool_relabel import (
     _reference_pattern,
     _undefined_legacy_labels,
@@ -404,6 +409,150 @@ class ResourceLayoutTests(unittest.TestCase):
             self.assertEqual(rules[0].anchor_label, "adrCd008BE8")
             self.assertEqual(rules[0].insert_label, "PlayerColourRampTable")
             self.assertEqual(rules[0].expected_matches, 1)
+
+    def test_fix_label_loader_accepts_verified_label_only_insertion(self) -> None:
+        frame = pd.DataFrame(
+            (
+                {
+                    "profile": "BLOODWYCH439",
+                    "anchor_label": "CopyProtection",
+                    "insert_label": "CopyProtection_RawTrackBuffer",
+                    "source_match": "",
+                    "source_replace": "",
+                    "expected_opcode": "",
+                    "expected_matches": 0,
+                    "status": "verified",
+                    "source_comment": "Marks the raw-track buffer.",
+                },
+            )
+        )
+
+        rules = load_fix_label_metadata(
+            "segments.xlsx", "BLOODWYCH439", frame=frame
+        )
+
+        self.assertEqual(len(rules), 1)
+        self.assertEqual(rules[0].expected_matches, 0)
+        self.assertEqual(rules[0].source_match, "")
+        self.assertEqual(rules[0].source_replace, "")
+
+    def test_fix_label_rule_inserts_label_without_reference_rewrite(self) -> None:
+        rule = FixLabelRule(
+            profile="BLOODWYCH439",
+            anchor_label="CopyProtection",
+            insert_label="CopyProtection_RawTrackBuffer",
+            source_match="",
+            source_replace="",
+            expected_opcode="",
+            expected_matches=0,
+            status="verified",
+        )
+        lines = [
+            "CopyProtection:",
+            "\tbra\tProtectionEntry",
+            ";fiX Label expected",
+            "\tdc.w\t$0000",
+            "ProtectionState:",
+        ]
+
+        result, inserted = apply_fix_label_rules(lines, (rule,))
+
+        self.assertEqual(result[2], "CopyProtection_RawTrackBuffer:")
+        self.assertEqual(inserted, {"copyprotection_rawtrackbuffer"})
+        self.assertFalse(any("Data reference expected" in line for line in result))
+
+    def test_fix_label_loader_rejects_partial_reference_rewrite(self) -> None:
+        frame = pd.DataFrame(
+            (
+                {
+                    "profile": "BLOODWYCH439",
+                    "anchor_label": "CopyProtection",
+                    "insert_label": "CopyProtection_RawTrackBuffer",
+                    "source_match": "move.w Old(pc),d0",
+                    "source_replace": "",
+                    "expected_opcode": "",
+                    "expected_matches": 1,
+                    "status": "verified",
+                    "source_comment": "",
+                },
+            )
+        )
+
+        with self.assertRaisesRegex(
+            ToolError, "both source_match and source_replace"
+        ):
+            load_fix_label_metadata(
+                "segments.xlsx", "BLOODWYCH439", frame=frame
+            )
+
+    def test_relabel_keeps_source_note_under_label_only_insertion(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary_directory:
+            root = Path(temporary_directory)
+            source = root / "GAME.asm"
+            destination = root / "GAME_relabel.asm"
+            source.write_text(
+                "CopyProtection:\n"
+                "\tbra\tProtectionEntry\n"
+                ";fiX Label expected\n"
+                "\tdc.w\t$0000\n"
+                "ProtectionState:\n"
+                "\trts\n",
+                encoding="utf-8",
+            )
+            frame = pd.DataFrame(
+                (
+                    {
+                        "label": "CopyProtection_RawTrackBuffer",
+                        "relabel": "CopyProtection_RawTrackBuffer",
+                        "data_action": "",
+                    },
+                )
+            )
+            fix_rule = FixLabelRule(
+                profile="GAME",
+                anchor_label="CopyProtection",
+                insert_label="CopyProtection_RawTrackBuffer",
+                source_match="",
+                source_replace="",
+                expected_opcode="",
+                expected_matches=0,
+                status="verified",
+            )
+            source_note = SourceNote(
+                profile="GAME",
+                scope_start="CopyProtection",
+                scope_end="ProtectionState",
+                source_match=";fiX Label expected",
+                source_comment="Zero-filled raw-track buffer.",
+                expected_matches=1,
+                status="verified",
+            )
+
+            def fake_asm_path(_master: str, stage: str) -> Path:
+                return source if stage in ("source", "asmfix") else destination
+
+            with (
+                patch("tools.tool_relabel.asm_path", side_effect=fake_asm_path),
+                patch("tools.tool_relabel.load_segments", return_value=frame),
+                patch(
+                    "tools.tool_relabel.load_fix_label_metadata",
+                    return_value=(fix_rule,),
+                ),
+                patch(
+                    "tools.tool_relabel.load_source_note_metadata",
+                    return_value=(source_note,),
+                ),
+            ):
+                output = relabel_segments("GAME", root / "segments.xlsx")
+
+            generated = output.read_text(encoding="utf-8")
+            self.assertIn(
+                "CopyProtection_RawTrackBuffer:\n"
+                "; SOURCE_NOTE: Zero-filled raw-track buffer.\n"
+                "\tdc.w\t$0000",
+                generated,
+            )
+            self.assertNotIn(";fiX Label expected", generated)
 
 if __name__ == "__main__":
     unittest.main()

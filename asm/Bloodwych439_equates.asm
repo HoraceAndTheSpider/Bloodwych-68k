@@ -237,6 +237,12 @@ Copper_Player2RasterY:									equ	$98			; CopperList_01 requests the Player 2 r
 
 CopperInterrupt_RequestWord:							equ	$8010		; CopperList_01 writes $8010 to INTREQ at both raster waits to request the shared level-3 interrupt.
 
+CopyProtection_CapturedByteCount:						equ	$32			; Number of raw bytes captured after the disk-sync match.
+CopyProtection_RawTrackBufferSize:						equ	$46			; Byte size of the zero-filled raw-track capture and scan buffer at $D140.
+CopyProtection_SerialKey:								equ	$8488FFC4	; SPS 439 Rob Northen Copylock serial key checked by the protected exit handler.
+CopyProtection_SkippedWordCount:						equ	$03CE		; Number of following disk words counted to measure the remainder of the protected sector.
+CopyProtection_SyncWordCount:							equ	$0B			; Number of Copylock disk-sync words in the lookup at $D584.
+
 DeadPartyShieldClassColourMask:							equ	$00020103	; Fixed four-colour professional-symbol mask used when D3 is zero for a dead party member.
 
 DialogueColourRamp_EntriesPerState:						equ	$06			; Each dialogue-colour fade ramp contains six hardware-colour words ending at black.
@@ -395,7 +401,13 @@ MapCell_Type_WoodWall:									equ	$02			; Map-cell type 2 used by wooden walls 
 MapCell_TypeMask:										equ	$07			; Low three bits of the second byte select the map-cell type.
 MapCell_WallTogglePreserveMask:							equ	$F9			; Discard first-byte data and type bits 1-2 before toggling stone-wall bit zero.
 
+Monster_Behemoth_ColourGradeOffset:						equ	$06			; Grade offset subtracted before selecting the Behemoth colour lookup entry.
+Monster_Beholder_ColourGradeOffset:						equ	$04			; Grade offset subtracted before selecting the Beholder colour lookup entry.
+Monster_BigDragon_ColourGradeOffset:					equ	$09			; Grade offset subtracted before selecting the Big Dragon colour lookup entry.
 Monster_ColourGradeCount:								equ	$08			; Number of SPS 439 monster palette grades before the renderer clamps to the highest grade index.
+Monster_Crab_ColourGradeOffset:							equ	$02			; Grade offset subtracted before selecting the Crab colour lookup entry.
+Monster_LittleDragon_ColourGradeOffset:					equ	$03			; Grade offset subtracted before selecting the Little Dragon colour lookup entry.
+Monster_Summon_ColourGradeOffset:						equ	$02			; Grade offset subtracted before selecting the Summon colour lookup entry.
 
 MonsterActionCountdown_LevelBase:						equ	$0E			; Level value used as the starting point for monster action-countdown calculation.
 MonsterActionCountdown_Minimum:							equ	$08			; Minimum monster action-countdown level.
@@ -641,6 +653,8 @@ Screen_Bitplane2Offset:									equ	$3E80		; Byte offset of bitplane 2 from bitp
 Screen_Bitplane3Offset:									equ	$5DC0		; Byte offset of bitplane 3 from bitplane 0 in a four-plane screen.
 Screen_BitplaneRowBytes:								equ	$28			; Number of bytes in one 320-pixel screen row for a single bitplane.
 Screen_BitplaneSize:									equ	$1F40		; Bytes in one 320 by 200 single-bitplane screen.
+Screen_BufferBase:										equ	$00060000	; Base address of the two contiguous 320 by 200 four-plane screen buffers.
+Screen_BufferSize:										equ	$7D00		; Size in bytes of one 320 by 200 four-plane screen buffer.
 
 ScreenBand_12ByteRowSkip:								equ	$1C			; Bytes remaining in a 40-byte bitplane row after copying twelve bytes.
 ScreenBand_16ByteRowSkip:								equ	$18			; Bytes remaining in a 40-byte bitplane row after copying sixteen bytes.

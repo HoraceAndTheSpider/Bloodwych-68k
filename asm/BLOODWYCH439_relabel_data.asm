@@ -110,7 +110,7 @@ Init_CustomChipRegisters:		; Memory Address ($0492) and binary offset [$010E]
 	move.w	#$3781,_custom+diwstrt.l
 	move.w	#$FFC1,_custom+diwstop.l
 	move.l	#CopperList_00,_custom+cop1lc.l
-	move.l	#$00060000,screen_ptr.l
+	move.l	#Screen_BufferBase,screen_ptr.l										;Initialises screen_ptr to the primary screen-buffer address.
 	jsr		Update_CopperBitplanePointersForOppositeScreenBuffer.l
 	lea		CopperList_01.l,a0
 	lea		Copper_SpriteOffsetTable.l,a1
@@ -323,8 +323,8 @@ MenuKeyboard:
 	bne.s	.menukeyboardloop
 	move.w	#$FFFF,MultiPlayer.l
 LoadGameFromMenu:
-	move.l	#$00067D00,screen_ptr.l
-	move.l	#$00060000,framebuffer_ptr.l
+	move.l	#Screen_BufferBase+Screen_BufferSize,screen_ptr.l					;Selects the contiguous secondary screen buffer for the load-game screen.
+	move.l	#Screen_BufferBase,framebuffer_ptr.l								;Selects the primary screen buffer as the paired framebuffer.
 	jsr		Clear_DisplayBuffer.l
 	move.l	screen_ptr.l,a0
 	add.w	#$0E10,a0
@@ -647,7 +647,7 @@ UnpackNextMonsterRecord:
 
 CheckMonsterFormForCarriedObject:
 	; Handles the monster-form special case that assigns a fixed carried object.
-	cmp.b	#MonsterForm_Zendik,ActorRecord_Form(a4)							;Tests whether the live form is Zendik's reserved $40 form.
+	cmp.b	#MonsterForm_Zendik,ActorRecord_Form(a4)
 	bne.s	StoreTeamData														;Continues normal unpacking when the form is not the Zendik special case.
 	move.b	#Object_AceOfSwords,MonsterRecord_CarriedObject(a4)					;Assigns the Ace of Swords object to Zendik's carried-object field for the unique drop encounter.
 StoreTeamData:		; Memory Address ($0AEC) and binary offset [$0768]
@@ -6627,8 +6627,8 @@ Click_LoadSaveGame:		; Memory Address ($432A) and binary offset [$3FA6]
 	; game interface when F10 exits.
 	move.l	WorldTick_300UnitCountdown.l,-(sp)
 	clr.w	FrameSyncFlag.l
-	move.l	#$00067D00,screen_ptr.l
-	move.l	#$00060000,framebuffer_ptr.l
+	move.l	#Screen_BufferBase+Screen_BufferSize,screen_ptr.l					;Selects the contiguous secondary screen buffer for the load/save screen.
+	move.l	#Screen_BufferBase,framebuffer_ptr.l								;Selects the primary screen buffer as the paired framebuffer.
 	lea		Player1_Data.l,a5
 	lea		Msg_LoadSaveFunctionKeys.l,a6
 	jsr		WriteText.l
@@ -9979,7 +9979,7 @@ Armour_Return:		; Memory Address ($6378) and binary offset [$5FF4]
 Shield_ArmourBonuses:		; Memory Address ($637A) and binary offset [$5FF6]
 	; Maps shield objects $24-$2A to armour contributions; the eighth byte is
 	; unused by the seven-entry range.
-	INCBIN "/data/BLOODWYCH439-clean/data/Shield_ArmourBonuses.lookup"
+	INCBIN "/data/BLOODWYCH439-clean/data/Shield_ArmourBonuses.stats"
 
 Calculate_WeaponCombatBonuses:		; Memory Address ($6382) and binary offset [$5FFE]
 	; Inputs: A1 champion-pockets record; A4 champion-stat record; D4-D7 default
@@ -10036,7 +10036,7 @@ Weapon_ReturnCombatModifiers:		; Memory Address ($63DA) and binary offset [$6056
 Weapon_CombatModifiers:		; Memory Address ($63DC) and binary offset [$6058]
 	; Sixteen four-byte records for weapons $30-$3F: random damage range, fixed
 	; damage bonus, attack bonus and defence bonus.
-	INCBIN "/data/BLOODWYCH439-clean/data/Weapon_CombatModifiers.lookup"
+	INCBIN "/data/BLOODWYCH439-clean/data/Weapon_CombatModifiers.stats"
 
 Prepare_AttackAndDefenceScores:		; Memory Address ($641C) and binary offset [$6098]
 	; Inputs: D3 attacker combatant index; D1 defender combatant index. Output: A6
@@ -14084,23 +14084,23 @@ adrL_008CC8:		; Memory Address ($8CC8) and binary offset [$8944]
 Swap_DisplayAndDrawBuffers:		; Memory Address ($8CCA) and binary offset [$8946]
 	; Swaps the display and drawing screen buffers and updates all four Copper
 	; bitplane pointers.
-	cmp.l	#$00060000,screen_ptr.l
+	cmp.l	#Screen_BufferBase,screen_ptr.l										;Tests whether screen_ptr currently selects the primary screen buffer.
 	bne.s	SwapBuffers_SelectPrimaryScreen
-	move.l	#$00067D00,screen_ptr.l
-	move.l	#$00060000,framebuffer_ptr.l
+	move.l	#Screen_BufferBase+Screen_BufferSize,screen_ptr.l					;Switches screen_ptr to the contiguous secondary screen buffer.
+	move.l	#Screen_BufferBase,framebuffer_ptr.l								;Pairs the secondary screen pointer with the primary framebuffer pointer.
 	bra.s	Update_CopperBitplanePointersForOppositeScreenBuffer
 
 SwapBuffers_SelectPrimaryScreen:		; Memory Address ($8CEC) and binary offset [$8968]
-	move.l	#$00060000,screen_ptr.l
-	move.l	#$00067D00,framebuffer_ptr.l
+	move.l	#Screen_BufferBase,screen_ptr.l										;Switches screen_ptr to the primary screen buffer.
+	move.l	#Screen_BufferBase+Screen_BufferSize,framebuffer_ptr.l				;Pairs the primary screen pointer with the contiguous secondary framebuffer pointer.
 Update_CopperBitplanePointersForOppositeScreenBuffer:		; Memory Address ($8D00) and binary offset [$897C]
 	; Rewrites the four Copper bitplane pointers to the screen buffer opposite the
 	; current drawing buffer.
 	lea		CopperList_00.l,a0
-	move.l	#$00060000,d0
+	move.l	#Screen_BufferBase,d0												;Starts Copper pointer selection from the primary screen-buffer address.
 	cmp.l	screen_ptr.l,d0
 	bne.s	SwapBuffers_InitPlaneCounter
-	move.l	#$00067D00,d0
+	move.l	#Screen_BufferBase+Screen_BufferSize,d0								;Selects the contiguous secondary screen-buffer address for the Copper pointers.
 SwapBuffers_InitPlaneCounter:		; Memory Address ($8D1A) and binary offset [$8996]
 	moveq	#$03,d1
 SwapBuffers_CopperPointerLoop:		; Memory Address ($8D1C) and binary offset [$8998]
@@ -14114,9 +14114,9 @@ SwapBuffers_CopperPointerLoop:		; Memory Address ($8D1C) and binary offset [$899
 	rts		
 
 screen_ptr:
-	dc.l	$00060000	;00060000
+	dc.l	Screen_BufferBase	;00060000
 framebuffer_ptr:
-	dc.l	$00067D00	;00067D00
+	dc.l	Screen_BufferBase+Screen_BufferSize	;00067D00
 
 Blit_MaskedPocketsOverlayLoop:		; Memory Address ($8D3E) and binary offset [$89BA]
 	; Applies a row-based AND and OR mask while copying an overlay crop from the
@@ -14155,7 +14155,7 @@ Copy_DrawBufferToDisplayBuffer:		; Memory Address ($8D88) and binary offset [$8A
 	; buffer.
 	move.l	screen_ptr.l,a1
 	move.l	framebuffer_ptr.l,a0
-	move.w	#$1F3F,d0
+	move.w	#(Screen_BufferSize/4)-1,d0											;Sets the DBRA terminal count for copying one complete screen buffer.
 Copy_DrawBufferToDisplayBuffer_CopyLoop:		; Memory Address ($8D98) and binary offset [$8A14]
 	move.l	(a0)+,(a1)+
 	dbra	d0,Copy_DrawBufferToDisplayBuffer_CopyLoop
@@ -14171,7 +14171,7 @@ Clear_DisplayBuffer:		; Memory Address ($8DA8) and binary offset [$8A24]
 	; clearing loop.
 	move.l	screen_ptr.l,a0
 ClearFourPlaneBuffer_SharedEntry:		; Memory Address ($8DAE) and binary offset [$8A2A]
-	move.w	#$1F3F,d0
+	move.w	#(Screen_BufferSize/4)-1,d0											;Sets the DBRA terminal count for clearing one complete screen buffer.
 ClearFourPlaneBuffer_ClearLoop:		; Memory Address ($8DB2) and binary offset [$8A2E]
 	clr.l	(a0)+
 	dbra	d0,ClearFourPlaneBuffer_ClearLoop
@@ -15678,7 +15678,7 @@ Draw_Summon:		; Memory Address ($9CD2) and binary offset [$994E]
 	tst.b	-$0018(a3)
 	bmi.s	.IllusionSkip
 	lea		Monster_Summon_Colours.l,a0
-	moveq	#$02,d3
+	moveq	#Monster_Summon_ColourGradeOffset,d3
 	bsr		MonsterColourGrading
 .IllusionSkip:		; Memory Address ($9CFE) and binary offset [$997A]
 	movem.w	d0/d1/d4/d5/d7,-(sp)
@@ -15786,7 +15786,7 @@ MonsterColourGrading:		; Memory Address ($9E94) and binary offset [$9B10]
 .gradelower:		; Memory Address ($9EA0) and binary offset [$9B1C]
 	cmpi.b	#Monster_ColourGradeCount,d2										;Clamps the colour-grade index to the eight palette grades available in the SPS 439 monster renderer.
 	bcs.s	.gradeupper
-	moveq	#$07,d2
+	moveq	#Monster_ColourGradeCount-1,d2
 .gradeupper:		; Memory Address ($9EA8) and binary offset [$9B24]
 	move.b	$00(a0,d2.w),d2
 	asl.w	#$02,d2
@@ -15808,7 +15808,7 @@ Draw_Crab:		; Memory Address ($9EFA) and binary offset [$9B76]
 	; Entry point for the table-driven Crab body and detail compositor.
 	move.w	#$FFFF,Buffer_Colour_Mask_Toggle.l
 	lea		Monster_Crabs_Colours.l,a0
-	moveq	#$02,d3
+	moveq	#Monster_Crab_ColourGradeOffset,d3
 	bsr.s	MonsterColourGrading
 	bsr		Draw_Crab_Body
 	lea		Buffer_Colour_Mask.l,a6
@@ -16180,7 +16180,7 @@ GFX_Crab_DetailDispatchFar_SourceOffsets:		; Memory Address ($A186) and binary o
 Draw_Beholder:		; Memory Address ($A18A) and binary offset [$9E06]
 	; Selects the Beholder colour route and composes its body, upper eyes, and
 	; large lower eye/details for the current distance and facing.
-	moveq	#$04,d3
+	moveq	#Monster_Beholder_ColourGradeOffset,d3
 	lea		Monster_Beholder_Colours.l,a0
 	bsr		MonsterColourGrading
 	bsr		Draw_Beholder_BodyAndUpperEyes
@@ -16355,7 +16355,7 @@ GFX_Beholder_CentralEye_Far_LookupTable:		; Memory Address ($A328) and binary of
 Draw_LittleDragon:		; Memory Address ($A330) and binary offset [$9FAC]
 	moveq	#$01,d2
 	lea		GFX_LittleDragon_SourceOffsets.l,a2
-	moveq	#$03,d3
+	moveq	#Monster_LittleDragon_ColourGradeOffset,d3
 	bra.s	Draw_Dragon_ComputeBodyPosition
 
 GFX_LittleDragon_SourceOffsets:		; Memory Address ($A33C) and binary offset [$9FB8]
@@ -16373,7 +16373,7 @@ BigDragon_Table_Unknown:		; Memory Address ($A344) and binary offset [$9FC0]
 Draw_BigDragon:		; Memory Address ($A34C) and binary offset [$9FC8]
 	moveq	#$00,d2
 	lea		BigDragon_Table_Unknown.l,a2
-	moveq	#$09,d3
+	moveq	#Monster_BigDragon_ColourGradeOffset,d3
 Draw_Dragon_ComputeBodyPosition:		; Memory Address ($A356) and binary offset [$9FD2]
 	lea		Monster_DistanceGroups_LookupTable.l,a0
 	move.b	$00(a0,d1.w),d1
@@ -16638,7 +16638,7 @@ Draw_Behemoth:		; Memory Address ($A50A) and binary offset [$A186]
 	; Composes the Behemoth from its family-specific layout data.
 	move.w	#$FFFF,Buffer_Colour_Mask_Toggle.l
 	lea		Monster_Behemoth_Colours.l,a0
-	moveq	#$06,d3
+	moveq	#Monster_Behemoth_ColourGradeOffset,d3
 	bsr		MonsterColourGrading
 	lea		GFX_Behemoth_Layout.l,a0
 	bsr.s	Draw_LargeMonster_Body
@@ -20442,120 +20442,36 @@ Exec_char_extensions:		; Memory Address ($D0D6) and binary offset [$CD52]
 	lea		MainGame_PlayerUpdateLoop.w,a0										;Short Absolute converted to symbol!
 	bra		ClearFourPlaneBuffer_SharedEntry
 
-CopyProtection:
-	; Preserves A4-A6 and enters the executable's copy-protection check, used from
-	; the text escape-code dispatcher and disk load/save paths.
+CopyProtection:		; Memory Address ($D138) and binary offset [$CDB4]
+	; Saves A4-A6 and enters the self-decrypting copy-protection check.
 	movem.l	a4-a6,-(sp)
-	bra		CopyProtection_SaveStateAndReenter
+	bra		CopyProtection_SaveStateAndEnterTraceCipher
 ;	move.l	#$8488ffc4,$24.w
 ;	moveq	#0,d0
 ;	rts
 
 
-;fiX Label expected
-; SOURCE_NOTE: COPY_PROTECTION_INTERNAL ($D140): Reserved workspace leading into the saved-register area.
-; COPY_PROTECTION_INTERNAL ($D140): Reserved workspace leading into the saved-register area.
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-IllegalTrap_RegisterSaveArea:		; Memory Address ($D186) and binary offset [$CE02]
-	; Register-save and working area used by the illegal-instruction
-	; copy-protection handler.
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$0000	;0000
-	dc.w	$FFFF	;FFFF
-	dc.w	$FFFF	;FFFF
-	dc.w	$0000	;0000
-	dc.w	$0001	;0001
-	dc.w	$0000	;0000
+CopyProtection_RawTrackBuffer:		; Memory Address ($D140) and binary offset [$CDBC]
+	; Zero-filled $46-byte raw-track capture and scan buffer.
+	ds.b	$46
+CopyProtection_StateWorkspace:		; Memory Address ($D186) and binary offset [$CE02]
+	; Saved registers, exception-vector scratch, cache state and initialized
+	; drive/head working state.
+	INCBIN "/data/BLOODWYCH439-clean/data/CopyProtection_StateWorkspace.block"
 TraceCipher_ActiveInstructionState:		; Memory Address ($D1F0) and binary offset [$CE6C]
-	; Address and original-longword state for the trace-vector instruction
-	; decrypt/re-encrypt mechanism.
+	; Holds the address and original longword for the currently decrypted
+	; instruction window.
 	ds.b	$8
-adrL_00D1F8:		; Memory Address ($D1F8) and binary offset [$CE74]
+CopyProtection_SavedCPUCacheControl:		; Memory Address ($D1F8) and binary offset [$CE74]
+	; Saved 68020-or-later cache-control value; $FFFFFFFF marks an unavailable
+	; value.
 	dc.l	$FFFFFFFF	;FFFFFFFF
 
-CopyProtection_SaveStateAndReenter:		; Memory Address ($D1FC) and binary offset [$CE78]
+CopyProtection_SaveStateAndEnterTraceCipher:		; Memory Address ($D1FC) and binary offset [$CE78]
+	; Saves CPU state, redirects the illegal-instruction vector and enters the
+	; trace cipher.
 	move.l	a6,-(sp)
-	lea		IllegalTrap_RegisterSaveArea(pc),a6
+	lea		CopyProtection_StateWorkspace(pc),a6
 	movem.l	d0-d7/a0-a7,(a6)
 	lea		$0040(a6),a6
 	move.l	(sp)+,-$0008(a6)
@@ -20565,651 +20481,124 @@ CopyProtection_SaveStateAndReenter:		; Memory Address ($D1FC) and binary offset 
 ;	pea	$000A.l(pc)	;487A000A	;replaced by dc.l above
 	move.l	(sp)+,$00000010.l
 	illegal	
-;fiX Label expected
-; SOURCE_NOTE: COPY_PROTECTION_INTERNAL ($D21C): Opaque instruction/data stream entered through the deliberate exception path.
-; COPY_PROTECTION_INTERNAL ($D21C): Opaque instruction/data stream entered through the deliberate exception path.
-	dc.w	$487A	;487A
-	dc.w	$001C	;001C
-	dc.w	$23DF	;23DF
-	dc.w	$0000	;0000
-	dc.w	$0010	;0010
-	dc.w	$224F	;224F
-	dc.w	$4E7A	;4E7A
-	dc.w	$0002	;0002
-	dc.w	$41FA	;41FA
-	dc.w	$FFC6	;FFC6
-	dc.w	$2080	;2080
-	dc.w	$0880	;0880
-	dc.w	$0000	;0000
-	dc.w	$4E7B	;4E7B
-	dc.w	$0002	;0002
-	dc.w	$2E49	;2E49
-	dc.w	$23C1	;23C1
-	dc.w	$0000	;0000
-	dc.w	$0010	;0010
-	dc.w	$4CF9	;4CF9
-	dc.w	$00FF	;00FF
-	dc.w	$0000	;0000
-	dc.w	$0008	;0008
-	dc.w	$48D6	;48D6
-	dc.w	$00FF	;00FF
-	dc.w	$41FA	;41FA
-	dc.w	$007E	;007E
-	dc.w	$23C8	;23C8
-	dc.w	$0000	;0000
-	dc.w	$0010	;0010
-	dc.w	$4AFC	;4AFC
-	dc.w	$D503	;D503
-	dc.w	$FFE1	;FFE1
-	dc.w	$601E	;601E
-	dc.w	$2AC6	;2AC6
-	dc.w	$B539	;B539
-	dc.w	$9F83	;9F83
-	dc.w	$007C	;007C
-	dc.w	$4ACC	;4ACC
-	dc.w	$D533	;D533
-	dc.w	$FF89	;FF89
-	dc.w	$6076	;6076
-	dc.w	$2AD6	;2AD6
-	dc.w	$B529	;B529
-	dc.w	$9FAB	;9FAB
-	dc.w	$0054	;0054
-	dc.w	$4A84	;4A84
-	dc.w	$D57B	;D57B
-	dc.w	$0049	;0049
-	dc.w	$9FB6	;9FB6
-	dc.w	$2A82	;2A82
-	dc.w	$B57D	;B57D
-	dc.w	$6047	;6047
-	dc.w	$FFB8	;FFB8
-	dc.w	$4A98	;4A98
-	dc.w	$D567	;D567
-	dc.w	$0071	;0071
-	dc.w	$9F8E	;9F8E
-	dc.w	$2AB6	;2AB6
-	dc.w	$B549	;B549
-	dc.w	$6063	;6063
-	dc.w	$FF9C	;FF9C
-	dc.w	$B554	;B554
-	dc.w	$2AAB	;2AAB
-	dc.w	$FF81	;FF81
-	dc.w	$607E	;607E
-	dc.w	$D5C0	;D5C0
-	dc.w	$4A3F	;4A3F
-	dc.w	$9F87	;9F87
-	dc.w	$0078	;0078
-	dc.w	$4A7E	;4A7E
-	dc.w	$D581	;D581
-	dc.w	$FF81	;FF81
-	dc.w	$607E	;607E
-	dc.w	$D5CC	;D5CC
-	dc.w	$4A33	;4A33
-	dc.w	$603B	;603B
-	dc.w	$FFC4	;FFC4
-	dc.w	$4A06	;4A06
-	dc.w	$D5F9	;D5F9
-	dc.w	$FFE9	;FFE9
-	dc.w	$6016	;6016
-	dc.w	$D5E8	;D5E8
-	dc.w	$4A17	;4A17
-	dc.w	$601F	;601F
-	dc.w	$FFE0	;FFE0
-	dc.w	$4A3E	;4A3E
-	dc.w	$D5C1	;D5C1
-	dc.w	$FFF5	;FFF5
+CopyProtection_TraceCipherBootstrap:		; Memory Address ($D220) and binary offset [$CE9C]
+	; CPU and cache setup followed by the encrypted branch maze entered after the
+	; deliberate illegal instruction.
+	INCBIN "/data/BLOODWYCH439-clean/data/CopyProtection_TraceCipherBootstrap.block"
 
-Install_TraceCipherExceptionVectors:		; Memory Address ($D2D2) and binary offset [$CF4E]
+TraceCipher_IllegalInstructionHandler:		; Memory Address ($D2D2) and binary offset [$CF4E]
+	; Illegal-instruction handler that installs the trace and privilege handlers
+	; and starts instruction stepping.
 	movem.l	d0/a0/a1,-(sp)
-	lea		TraceCipher_StepDecryptNextInstruction(pc),a0
-	move.l	a0,$00000024.l
-	lea		TraceCipher_PrivilegeViolationHandler(pc),a0
-	move.l	a0,$00000020.l
-TraceCipher_ArmOrDisarmTraceBit:		; Memory Address ($D2EA) and binary offset [$CF66]
-	add.l	#$00000002,$000E(sp)
+	lea		TraceCipher_TraceExceptionHandler(pc),a0
+	move.l	a0,$00000024.l														;Installs the single-step trace handler in exception vector 9.
+	lea		CopyProtection_PrivilegeExitHandler(pc),a0
+	move.l	a0,$00000020.l														;Installs the protected privilege-violation exit in exception vector 8.
+TraceCipher_ToggleTraceAndRestoreInstruction:		; Memory Address ($D2EA) and binary offset [$CF66]
+	; Advances the saved PC, toggles trace mode and restores the preceding
+	; encrypted instruction window.
+	add.l	#$00000002,$000E(sp)												;Advances the saved exception PC past the deliberate illegal instruction.
 	or.b	#$07,$000C(sp)
-	bchg	#$07,$000C(sp)
+	bchg	#$07,$000C(sp)														;Toggles the trace bit in the saved status register to alternate decrypt and restore passes.
 	lea		TraceCipher_ActiveInstructionState(pc),a1
-	beq.s	TraceCipher_LoadNextInstructionAddress
+	beq.s	TraceCipher_LoadExceptionPC
 	move.l	(a1),a0
-	move.l	$0004(a1),(a0)
-	bra.s	TraceCipher_RestoreAndReturn
+	move.l	$0004(a1),(a0)														;Restores the previous four encrypted bytes before leaving the illegal-instruction handler.
+	bra.s	TraceCipher_RestoreRegistersAndReturn
 
-TraceCipher_StepDecryptNextInstruction:		; Memory Address ($D30C) and binary offset [$CF88]
+TraceCipher_TraceExceptionHandler:		; Memory Address ($D30C) and binary offset [$CF88]
+	; Handles each trace exception by restoring the previous window and decrypting
+	; the next instruction.
 	andi.w	#$F8FF,sr
 	movem.l	d0/a0/a1,-(sp)
 	lea		TraceCipher_ActiveInstructionState(pc),a1
 	move.l	(a1),a0
-	move.l	$0004(a1),(a0)
-TraceCipher_LoadNextInstructionAddress:		; Memory Address ($D31E) and binary offset [$CF9A]
+	move.l	$0004(a1),(a0)														;Restores the instruction bytes executed since the preceding trace exception.
+TraceCipher_LoadExceptionPC:		; Memory Address ($D31E) and binary offset [$CF9A]
+	; Loads the next instruction address from the saved exception frame.
 	move.l	$000E(sp),a0
-TraceCipher_DecryptNextInstruction:		; Memory Address ($D322) and binary offset [$CF9E]
+TraceCipher_DecryptInstructionLongword:		; Memory Address ($D322) and binary offset [$CF9E]
+	; Saves and decrypts the next four-byte instruction window using the preceding
+	; ciphertext.
 	move.l	a0,(a1)
 	move.l	(a0),$0004(a1)
 	move.l	-$0004(a0),d0
 	not.l	d0
 	swap	d0
-	eor.l	d0,(a0)
-TraceCipher_RestoreAndReturn:		; Memory Address ($D332) and binary offset [$CFAE]
+	eor.l	d0,(a0)																;Decrypts the next four-byte instruction window from the swapped inverse of the preceding ciphertext.
+TraceCipher_RestoreRegistersAndReturn:		; Memory Address ($D332) and binary offset [$CFAE]
+	; Restores the trace-handler registers and returns from the exception.
 	movem.l	(sp)+,d0/a0/a1
 	rte		
 
-;fiX Label expected
-; SOURCE_NOTE: COPY_PROTECTION_INTERNAL ($D338): Opaque word stream following the exception-handler return.
-; COPY_PROTECTION_INTERNAL ($D338): Opaque word stream following the exception-handler return.
-	dc.w	$F076	;F076
-	dc.w	$FCE0	;FCE0
-	dc.w	$40E6	;40E6
-	dc.w	$0F89	;0F89
-	dc.w	$0008	;0008
-	dc.w	$BA0D	;BA0D
-	dc.w	$0ECE	;0ECE
-	dc.w	$8136	;8136
-	dc.w	$0CC9	;0CC9
-	dc.w	$C12E	;C12E
-	dc.w	$EC5B	;EC5B
-	dc.w	$3165	;3165
-	dc.w	$9F52	;9F52
-	dc.w	$EC52	;EC52
-	dc.w	$73AD	;73AD
-	dc.w	$60BF	;60BF
-	dc.w	$05C4	;05C4
-	dc.w	$0544	;0544
-	dc.w	$00D6	;00D6
-	dc.w	$0604	;0604
-	dc.w	$0644	;0644
-	dc.w	$06C4	;06C4
-	dc.w	$0544	;0544
-	dc.w	$0110	;0110
-	dc.w	$BD15	;BD15
-	dc.w	$04E7	;04E7
-	dc.w	$B9B1	;B9B1
-	dc.w	$42F6	;42F6
-	dc.w	$DC09	;DC09
-	dc.w	$46D6	;46D6
-	dc.w	$DE29	;DE29
-	dc.w	$2064	;2064
-	dc.w	$AB9D	;AB9D
-	dc.w	$07E0	;07E0
-	dc.w	$9F7F	;9F7F
-	dc.w	$217A	;217A
-	dc.w	$05DF	;05DF
-	dc.w	$8A25	;8A25
-	dc.w	$14DA	;14DA
-	dc.w	$FAE8	;FAE8
-	dc.w	$2317	;2317
-	dc.w	$ACEC	;ACEC
-	dc.w	$3213	;3213
-	dc.w	$DC28	;DC28
-	dc.w	$01D7	;01D7
-	dc.w	$DE2B	;DE2B
-	dc.w	$4088	;4088
-	dc.w	$D495	;D495
-	dc.w	$5B6C	;5B6C
-	dc.w	$C593	;C593
-	dc.w	$2BD8	;2BD8
-	dc.w	$F624	;F624
-	dc.w	$688B	;688B
-	dc.w	$FCA2	;FCA2
-	dc.w	$0FCD	;0FCD
-	dc.w	$C51B	;C51B
-	dc.w	$6220	;6220
-	dc.w	$FB11	;FB11
-	dc.w	$0846	;0846
-	dc.w	$D3B0	;D3B0
-	dc.w	$7274	;7274
-	dc.w	$0004	;0004
-	dc.w	$993F	;993F
-	dc.w	$6A68	;6A68
-	dc.w	$979E	;979E
-	dc.w	$6E20	;6E20
-	dc.w	$0008	;0008
-	dc.w	$994D	;994D
-	dc.w	$6A1A	;6A1A
-	dc.w	$BC98	;BC98
-	dc.w	$6D70	;6D70
-	dc.w	$000C	;000C
-	dc.w	$9943	;9943
-	dc.w	$14B9	;14B9
-	dc.w	$C90E	;C90E
-	dc.w	$E668	;E668
-	dc.w	$FA0F	;FA0F
-	dc.w	$5439	;5439
-	dc.w	$E66D	;E66D
-	dc.w	$5A68	;5A68
-	dc.w	$5628	;5628
-	dc.w	$787E	;787E
-	dc.w	$A58B	;A58B
-	dc.w	$6E4E	;6E4E
-	dc.w	$798F	;798F
-	dc.w	$E770	;E770
-	dc.w	$93B3	;93B3
-	dc.w	$0D4C	;0D4C
-	dc.w	$1943	;1943
-	dc.w	$C686	;C686
-	dc.w	$0F45	;0F45
-	dc.w	$90BA	;90BA
-	dc.w	$3A61	;3A61
-	dc.w	$551F	;551F
-	dc.w	$C1F0	;C1F0
-	dc.w	$FEF3	;FEF3
-	dc.w	$AA84	;AA84
-	dc.w	$D5BA	;D5BA
-	dc.w	$9A79	;9A79
-	dc.w	$5578	;5578
-	dc.w	$C783	;C783
-	dc.w	$487C	;487C
-	dc.w	$F9F6	;F9F6
-	dc.w	$76F6	;76F6
-	dc.w	$C77C	;C77C
-	dc.w	$4E80	;4E80
-	dc.w	$D07F	;D07F
-	dc.w	$3911	;3911
-	dc.w	$A0CA	;A0CA
-	dc.w	$2B35	;2B35
-	dc.w	$B5CA	;B5CA
-	dc.w	$5EE5	;5EE5
-	dc.w	$C706	;C706
-	dc.w	$7903	;7903
-	dc.w	$5C3E	;5C3E
-	dc.w	$D7C3	;D7C3
-	dc.w	$1806	;1806
-	dc.w	$A2A3	;A2A3
-	dc.w	$3C5C	;3C5C
-	dc.w	$E751	;E751
-	dc.w	$7E8C	;7E8C
-	dc.w	$D0B9	;D0B9
-	dc.w	$E75A	;E75A
-	dc.w	$2C9F	;2C9F
-	dc.w	$D2F8	;D2F8
-	dc.w	$4C07	;4C07
-	dc.w	$D2D2	;D2D2
-	dc.w	$4C2D	;4C2D
-	dc.w	$B284	;B284
-	dc.w	$0C81	;0C81
-	dc.w	$4E7C	;4E7C
-	dc.w	$B7D3	;B7D3
-	dc.w	$F37F	;F37F
-	dc.w	$0ED0	;0ED0
-	dc.w	$482F	;482F
-	dc.w	$E61B	;E61B
-	dc.w	$0EEB	;0EEB
-	dc.w	$8114	;8114
-	dc.w	$309E	;309E
-	dc.w	$8786	;8786
-	dc.w	$9E2B	;9E2B
-	dc.w	$0084	;0084
-	dc.w	$DB7B	;DB7B
-	dc.w	$0493	;0493
-	dc.w	$B896	;B896
-	dc.w	$25AE	;25AE
-	dc.w	$39D9	;39D9
-	dc.w	$F617	;F617
-	dc.w	$D251	;D251
-	dc.w	$0FAE	;0FAE
-	dc.w	$D050	;D050
-	dc.w	$4EC9	;4EC9
-	dc.w	$D6CC	;D6CC
-	dc.w	$07B3	;07B3
-	dc.w	$C85C	;C85C
-	dc.w	$82E3	;82E3
-	dc.w	$7F5C	;7F5C
-	dc.w	$62F6	;62F6
-	dc.w	$FBE7	;FBE7
-	dc.w	$2650	;2650
-	dc.w	$93F7	;93F7
-	dc.w	$1E03	;1E03
-	dc.w	$C1E4	;C1E4
-	dc.w	$5F1B	;5F1B
-	dc.w	$E1F2	;E1F2
-	dc.w	$2CCD	;2CCD
-	dc.w	$82FB	;82FB
-	dc.w	$E1FB	;E1FB
-	dc.w	$52DB	;52DB
-	dc.w	$7E03	;7E03
-	dc.w	$CF89	;CF89
-	dc.w	$7891	;7891
-	dc.w	$E1FC	;E1FC
-	dc.w	$3C03	;3C03
-	dc.w	$B7F3	;B7F3
-	dc.w	$AD9D	;AD9D
-	dc.w	$B1F2	;B1F2
-	dc.w	$1FC7	;1FC7
-	dc.w	$AD98	;AD98
-	dc.w	$1EB8	;1EB8
-	dc.w	$E03E	;E03E
-	dc.w	$51B4	;51B4
-	dc.w	$E6AC	;E6AC
-	dc.w	$7FC1	;7FC1
-	dc.w	$C87E	;C87E
-	dc.w	$1381	;1381
-	dc.w	$9E71	;9E71
-	dc.w	$8406	;8406
-	dc.w	$986B	;986B
-	dc.w	$0298	;0298
-	dc.w	$F567	;F567
-	dc.w	$6796	;6796
-	dc.w	$FE63	;FE63
-	dc.w	$095C	;095C
-	dc.w	$9868	;9868
-	dc.w	$0793	;0793
-	dc.w	$F0AC	;F0AC
-	dc.w	$6797	;6797
-	dc.w	$C9A1	;C9A1
-	dc.w	$F0BB	;F0BB
-	dc.w	$439B	;439B
-	dc.w	$3658	;3658
-	dc.w	$87D2	;87D2
-	dc.w	$30CA	;30CA
-	dc.w	$B167	;B167
-	dc.w	$6CD0	;6CD0
-	dc.w	$D2D6	;D2D6
-	dc.w	$4E47	;4E47
-	dc.w	$F000	;F000
-	dc.w	$3EBF	;3EBF
-	dc.w	$B1C6	;B1C6
-	dc.w	$2F39	;2F39
-	dc.w	$C0AC	;C0AC
-	dc.w	$0E2F	;0E2F
-	dc.w	$90C6	;90C6
-	dc.w	$0024	;0024
-	dc.w	$DE92	;DE92
-	dc.w	$6F19	;6F19
-	dc.w	$A19A	;A19A
-	dc.w	$476D	;476D
-	dc.w	$009E	;009E
-	dc.w	$CE1D	;CE1D
-	dc.w	$2D92	;2D92
-	dc.w	$009E	;009E
-	dc.w	$CE1D	;CE1D
-	dc.w	$527D	;527D
-	dc.w	$0096	;0096
-	dc.w	$CE15	;CE15
-	dc.w	$AD80	;AD80
-	dc.w	$009C	;009C
-	dc.w	$9E63	;9E63
-	dc.w	$526F	;526F
-	dc.w	$9CEC	;9CEC
-	dc.w	$659C	;659C
-	dc.w	$009E	;009E
-	dc.w	$B5E1	;B5E1
-	dc.w	$06C1	;06C1
-	dc.w	$FC7F	;FC7F
-	dc.w	$4DF5	;4DF5
-	dc.w	$F8F6	;F8F6
-	dc.w	$4A39	;4A39
-	dc.w	$00BF	;00BF
-	dc.w	$DD00	;DD00
+CopyProtection_EncryptedDiskCheck:		; Memory Address ($D338) and binary offset [$CFB4]
+	; Trace-cipher-encrypted main Copylock disk check, including raw-track reads,
+	; signature checks, timing tests and serial accumulation.
+	INCBIN "/data/BLOODWYCH439-clean/data/CopyProtection_EncryptedDiskCheck.block"
 
-CopyProtection_WaitIndexPulse:		; Memory Address ($D51E) and binary offset [$D19A]
-	btst	#$04,_ciab+ciaicr.l
-	beq.s	CopyProtection_WaitIndexPulse
+CopyProtection_WaitForIndexPulse:		; Memory Address ($D51E) and binary offset [$D19A]
+	; Waits for a floppy index pulse on CIA-B FLAG before starting the raw-track
+	; transfer.
+	btst	#$04,_ciab+ciaicr.l													;Waits for the floppy index pulse on CIA-B FLAG.
+	beq.s	CopyProtection_WaitForIndexPulse
 	move.w	#$8000,$0024(a0)
 	move.w	#$8000,$0024(a0)
 	moveq	#$00,d1
 	move.l	#$00061A80,d2
-CopyProtection_WaitSyncBitOrTimeout:		; Memory Address ($D53C) and binary offset [$D1B8]
+CopyProtection_WaitForDiskSyncOrTimeout:		; Memory Address ($D53C) and binary offset [$D1B8]
+	; Waits for DSKBYTR WORDEQUAL or for the raw disk-read timeout to expire.
 	subq.l	#$01,d2
-	beq.s	CopyProtection_ResolvePulseCountResult
+	beq.s	CopyProtection_FinalizeRawTrackRead
 	move.b	$001A(a0),d0
-	btst	#$04,d0
-	beq.s	CopyProtection_WaitSyncBitOrTimeout
-	moveq	#$31,d2
-CopyProtection_CaptureTrackBytes:		; Memory Address ($D54C) and binary offset [$D1C8]
+	btst	#$04,d0																;Tests the DSKBYTR WORDEQUAL flag while waiting for the programmed sync word.
+	beq.s	CopyProtection_WaitForDiskSyncOrTimeout
+	moveq	#CopyProtection_CapturedByteCount-1,d2								;Sets the DBRA terminal count for capturing fifty raw track bytes.
+CopyProtection_Capture50TrackBytes:		; Memory Address ($D54C) and binary offset [$D1C8]
+	; Captures fifty ready bytes from the raw disk stream.
 	addq.l	#$01,d1
 	move.w	$001A(a0),d0
-	bpl.s	CopyProtection_CaptureTrackBytes
-	move.b	d0,(a1)+
-	dbra	d2,CopyProtection_CaptureTrackBytes
-	move.w	#$03CD,d2
-CopyProtection_SkipRemainingPulses:		; Memory Address ($D55E) and binary offset [$D1DA]
+	bpl.s	CopyProtection_Capture50TrackBytes
+	move.b	d0,(a1)+															;Stores each ready raw disk byte in the capture buffer.
+	dbra	d2,CopyProtection_Capture50TrackBytes
+	move.w	#CopyProtection_SkippedWordCount-1,d2								;Sets the DBRA terminal count used to measure the rest of the protected sector.
+CopyProtection_CountRemainingTrackWords:		; Memory Address ($D55E) and binary offset [$D1DA]
+	; Counts $03CE following disk words to measure the remainder of the protected
+	; sector.
 	addq.l	#$01,d1
 	move.w	$001A(a0),d0
-	bpl.s	CopyProtection_SkipRemainingPulses
-	dbra	d2,CopyProtection_SkipRemainingPulses
-CopyProtection_ResolvePulseCountResult:		; Memory Address ($D56A) and binary offset [$D1E6]
+	bpl.s	CopyProtection_CountRemainingTrackWords
+	dbra	d2,CopyProtection_CountRemainingTrackWords
+CopyProtection_FinalizeRawTrackRead:		; Memory Address ($D56A) and binary offset [$D1E6]
+	; Stops disk DMA, tests transfer completion and prepares the measured result.
 	move.w	$001E(a0),d0
 	move.w	#$0002,$009C(a0)
 	move.w	#$4000,$0024(a0)
-	btst	#$01,d0
-	bne.s	CopyProtection_TrapWithPulseCount
+	btst	#$01,d0																;Tests the DSKBLK interrupt request to distinguish a complete raw-track transfer from timeout.
+	bne.s	CopyProtection_ReturnTrackTimingSample
 	moveq	#$00,d1
-	bra.s	CopyProtection_TrapWithPulseCount
+	bra.s	CopyProtection_ReturnTrackTimingSample
 
-;fiX Label expected
-; SOURCE_NOTE: COPY_PROTECTION_INTERNAL ($D584): Encoded word block deliberately skipped by the visible execution paths.
-; COPY_PROTECTION_INTERNAL ($D584): Encoded word block deliberately skipped by the visible execution paths.
-	dc.w	$8A91	;8A91
-	dc.w	$8A44	;8A44
-	dc.w	$8A45	;8A45
-	dc.w	$8A51	;8A51
-	dc.w	$8912	;8912
-	dc.w	$8911	;8911
-	dc.w	$8914	;8914
-	dc.w	$8915	;8915
-	dc.w	$8944	;8944
-	dc.w	$8945	;8945
-	dc.w	$8951	;8951
+CopyProtection_DiskSyncWords:		; Memory Address ($D584) and binary offset [$D200]
+	; Eleven Copylock disk-sync words indexed by the encrypted raw-track scanner.
+	INCBIN "/data/BLOODWYCH439-clean/data/CopyProtection_DiskSyncWords.lookup"
 
-CopyProtection_TrapWithPulseCount:		; Memory Address ($D59A) and binary offset [$D216]
-	move.l	d1,d0
+CopyProtection_ReturnTrackTimingSample:		; Memory Address ($D59A) and binary offset [$D216]
+	; Passes the measured disk-word count into the encrypted scanner through
+	; another illegal instruction.
+	move.l	d1,d0																;Passes the measured disk-word count back into the encrypted scanner.
 	illegal	
-;fiX Label expected
-; SOURCE_NOTE: COPY_PROTECTION_INTERNAL ($D59E): Opaque stream following the deliberate illegal instruction; retained as raw words.
-; COPY_PROTECTION_INTERNAL ($D59E): Opaque stream following the deliberate illegal instruction; retained as raw words.
-	dc.w	$FB76	;FB76
-	dc.w	$7676	;7676
-	dc.w	$8108	;8108
-	dc.w	$048E	;048E
-	dc.w	$9A7F	;9A7F
-	dc.w	$45BC	;45BC
-	dc.w	$FB78	;FB78
-	dc.w	$27C0	;27C0
-	dc.w	$B93F	;B93F
-	dc.w	$05D7	;05D7
-	dc.w	$9A3E	;9A3E
-	dc.w	$173E	;173E
-	dc.w	$A938	;A938
-	dc.w	$657E	;657E
-	dc.w	$D100	;D100
-	dc.w	$3E7E	;3E7E
-	dc.w	$F1BB	;F1BB
-	dc.w	$D2D5	;D2D5
-	dc.w	$7BAA	;7BAA
-	dc.w	$85D4	;85D4
-	dc.w	$6AAA	;6AAA
-	dc.w	$DB20	;DB20
-	dc.w	$6526	;6526
-	dc.w	$95EA	;95EA
-	dc.w	$E001	;E001
-	dc.w	$3FC2	;3FC2
-	dc.w	$6A15	;6A15
-	dc.w	$061A	;061A
-	dc.w	$F1F5	;F1F5
-	dc.w	$95EF	;95EF
-	dc.w	$0D16	;0D16
-	dc.w	$A169	;A169
-	dc.w	$3460	;3460
-	dc.w	$85EA	;85EA
-	dc.w	$0A15	;0A15
-	dc.w	$BB9F	;BB9F
-	dc.w	$0C87	;0C87
-	dc.w	$89EA	;89EA
-	dc.w	$4C17	;4C17
-	dc.w	$D2E8	;D2E8
-	dc.w	$76CB	;76CB
-	dc.w	$8B71	;8B71
-	dc.w	$2D68	;2D68
-	dc.w	$B59B	;B59B
-	dc.w	$7A5E	;7A5E
-	dc.w	$2965	;2965
-	dc.w	$B79A	;B79A
-	dc.w	$859B	;859B
-	dc.w	$4265	;4265
-	dc.w	$D792	;D792
-	dc.w	$496D	;496D
-	dc.w	$BDA4	;BDA4
-	dc.w	$2473	;2473
-	dc.w	$A38C	;A38C
-	dc.w	$E637	;E637
-	dc.w	$7EC6	;7EC6
-	dc.w	$EC3F	;EC3F
-	dc.w	$72B0	;72B0
-	dc.w	$DFCB	;DFCB
-	dc.w	$40C0	;40C0
-	dc.w	$DE59	;DE59
-	dc.w	$7222	;7222
-	dc.w	$ED33	;ED33
-	dc.w	$73CC	;73CC
-	dc.w	$8D73	;8D73
-	dc.w	$42B6	;42B6
-	dc.w	$77FB	;77FB
-	dc.w	$6B4C	;6B4C
-	dc.w	$D549	;D549
-	dc.w	$73BA	;73BA
-	dc.w	$BDC1	;BDC1
-	dc.w	$2AB6	;2AB6
-	dc.w	$A549	;A549
-	dc.w	$1669	;1669
-	dc.w	$D577	;D577
-	dc.w	$64FD	;64FD
-	dc.w	$784A	;784A
-	dc.w	$C64F	;C64F
-	dc.w	$60AE	;60AE
-	dc.w	$AD61	;AD61
-	dc.w	$39B0	;39B0
-	dc.w	$883A	;883A
-	dc.w	$3F22	;3F22
-	dc.w	$BE4F	;BE4F
-	dc.w	$39E5	;39E5
-	dc.w	$CE23	;CE23
-	dc.w	$41B4	;41B4
-	dc.w	$00BF	;00BF
-	dc.w	$E001	;E001
-	dc.w	$78F2	;78F2
-	dc.w	$E60D	;E60D
-	dc.w	$1FD4	;1FD4
-	dc.w	$B1E7	;B1E7
-	dc.w	$E602	;E602
-	dc.w	$6902	;6902
-	dc.w	$F6E7	;F6E7
-	dc.w	$3922	;3922
-	dc.w	$6D77	;6D77
-	dc.w	$71C0	;71C0
-	dc.w	$CFC5	;CFC5
-	dc.w	$6908	;6908
-	dc.w	$D487	;D487
-	dc.w	$303A	;303A
-	dc.w	$BF90	;BF90
-	dc.w	$D0EB	;D0EB
-	dc.w	$6EEE	;6EEE
-	dc.w	$BB13	;BB13
-	dc.w	$746C	;746C
-	dc.w	$FB93	;FB93
-	dc.w	$48B3	;48B3
-	dc.w	$8B8D	;8B8D
-	dc.w	$3A07	;3A07
-	dc.w	$B1F9	;B1F9
-	dc.w	$2E04	;2E04
-	dc.w	$A5FB	;A5FB
-	dc.w	$6A3E	;6A3E
-	dc.w	$2A9F	;2A9F
-	dc.w	$E75A	;E75A
-	dc.w	$6EA3	;6EA3
-	dc.w	$8765	;8765
-	dc.w	$181A	;181A
-	dc.w	$D100	;D100
-	dc.w	$2EFC	;2EFC
-	dc.w	$E79A	;E79A
-	dc.w	$1E65	;1E65
-	dc.w	$D100	;D100
-	dc.w	$2F7C	;2F7C
-	dc.w	$D483	;D483
-	dc.w	$2EFC	;2EFC
-	dc.w	$9B02	;9B02
-	dc.w	$03F9	;03F9
-	dc.w	$F485	;F485
-	dc.w	$64FF	;64FF
-	dc.w	$D102	;D102
-	dc.w	$48F9	;48F9
-	dc.w	$BF85	;BF85
-	dc.w	$2EFC	;2EFC
-	dc.w	$D980	;D980
-	dc.w	$407A	;407A
-	dc.w	$AC46	;AC46
-	dc.w	$26C0	;26C0
-	dc.w	$D100	;D100
-	dc.w	$263C	;263C
-	dc.w	$D93F	;D93F
-	dc.w	$3503	;3503
-	dc.w	$D97C	;D97C
-	dc.w	$D100	;D100
-	dc.w	$0EC3	;0EC3
-	dc.w	$2683	;2683
-	dc.w	$0BB8	;0BB8
-	dc.w	$9473	;9473
-	dc.w	$5BB6	;5BB6
-	dc.w	$0F5B	;0F5B
-	dc.w	$C29E	;C29E
-	dc.w	$5F53	;5F53
-	dc.w	$9FAE	;9FAE
-	dc.w	$7468	;7468
-	dc.w	$A013	;A013
-	dc.w	$D100	;D100
-	dc.w	$2EFD	;2EFD
-	dc.w	$5F93	;5F93
-	dc.w	$A66C	;A66C
-	dc.w	$D101	;D101
-	dc.w	$2F7C	;2F7C
-	dc.w	$D483	;D483
-	dc.w	$2EFD	;2EFD
-	dc.w	$9B03	;9B03
-	dc.w	$03F8	;03F8
-	dc.w	$F485	;F485
-	dc.w	$64FE	;64FE
-	dc.w	$88C3	;88C3
-	dc.w	$0BC5	;0BC5
-	dc.w	$D100	;D100
-	dc.w	$0EC3	;0EC3
-	dc.w	$F43A	;F43A
-	dc.w	$05DC	;05DC
-	dc.w	$CE3C	;CE3C
-	dc.w	$DB4B	;DB4B
-	dc.w	$7734	;7734
-	dc.w	$EE37	;EE37
-	dc.w	$5FBD	;5FBD
-	dc.w	$E1B8	;E1B8
-	dc.w	$EBB4	;EBB4
-	dc.w	$34CB	;34CB
-	dc.w	$87CE	;87CE
-	dc.w	$14B4	;14B4
-	dc.w	$FAB4	;FAB4
-	dc.w	$2572	;2572
-	dc.w	$EB4B	;EB4B
-	dc.w	$0004	;0004
-	dc.w	$DDFB	;DDFB
-	dc.w	$63FE	;63FE
-	dc.w	$FFD9	;FFD9
-	dc.w	$2F6E	;2F6E
-	dc.w	$9C03	;9C03
-	dc.w	$2900	;2900
-	dc.w	$203A	;203A
-	dc.w	$FAD0	;FAD0
-	dc.w	$6B04	;6B04
-	dc.w	$4E7B	;4E7B
-	dc.w	$0002	;0002
-	dc.w	$48F9	;48F9
-	dc.w	$00FF	;00FF
-	dc.w	$0000	;0000
-	dc.w	$0008	;0008
-	dc.w	$4CFA	;4CFA
-	dc.w	$7FFF	;7FFF
-	dc.w	$FA4A	;FA4A
+CopyProtection_EncryptedDriveAndExitCode:		; Memory Address ($D59E) and binary offset [$D21A]
+	; Trace-cipher-encrypted drive selection, head stepping, track-zero sensing,
+	; timing and protected-exit setup. The following RTE remains executable source.
+	INCBIN "/data/BLOODWYCH439-clean/data/CopyProtection_EncryptedDriveAndExitCode.block"
 
 	rte		
 
-TraceCipher_PrivilegeViolationHandler:		; Memory Address ($D740) and binary offset [$D3BC]
+CopyProtection_PrivilegeExitHandler:		; Memory Address ($D740) and binary offset [$D3BC]
+	; Restores A4-A6 and subtracts the SPS 439 Copylock serial key so successful
+	; validation returns zero.
 	movem.l	(sp)+,a4-a6
-	sub.l	#$8488FFC4,d0
+	sub.l	#CopyProtection_SerialKey,d0										;Returns zero only when the recovered Copylock serial matches the SPS 439 key.
 	rts		
 
 Print_com_menu_entry:		; Memory Address ($D74C) and binary offset [$D3C8]

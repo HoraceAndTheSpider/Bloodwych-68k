@@ -1190,6 +1190,32 @@ InterfaceHitbox_YMaximumOffset:		equ	$06
 	; Offset of the inclusive maximum Y coordinate in an interface hitbox record.
 InterfaceHitbox_DisplayScanEndExclusive:		equ	$26
 	; Exclusive action-ID ceiling used by HitTest_DisplayAction.
+Monster_Summon_ColourGradeOffset:		equ	$02
+	; Grade offset subtracted before selecting the Summon colour lookup entry.
+Monster_Crab_ColourGradeOffset:		equ	$02
+	; Grade offset subtracted before selecting the Crab colour lookup entry.
+Monster_Beholder_ColourGradeOffset:		equ	$04
+	; Grade offset subtracted before selecting the Beholder colour lookup entry.
+Monster_LittleDragon_ColourGradeOffset:		equ	$03
+	; Grade offset subtracted before selecting the Little Dragon colour lookup entry.
+Monster_BigDragon_ColourGradeOffset:		equ	$09
+	; Grade offset subtracted before selecting the Big Dragon colour lookup entry.
+Monster_Behemoth_ColourGradeOffset:		equ	$06
+	; Grade offset subtracted before selecting the Behemoth colour lookup entry.
+Screen_BufferBase:		equ	$00060000
+	; Base address of the two contiguous 320 by 200 four-plane screen buffers.
+Screen_BufferSize:		equ	$7D00
+	; Size in bytes of one 320 by 200 four-plane screen buffer.
+CopyProtection_RawTrackBufferSize:		equ	$46
+	; Byte size of the zero-filled raw-track capture and scan buffer at $D140.
+CopyProtection_SyncWordCount:		equ	$0B
+	; Number of Copylock disk-sync words in the lookup at $D584.
+CopyProtection_CapturedByteCount:		equ	$32
+	; Number of raw bytes captured after the disk-sync match.
+CopyProtection_SkippedWordCount:		equ	$03CE
+	; Number of following disk words counted to measure the remainder of the protected sector.
+CopyProtection_SerialKey:		equ	$8488FFC4
+	; SPS 439 Rob Northen Copylock serial key checked by the protected exit handler.
 
 ****************************************************************************
 
@@ -1298,7 +1324,7 @@ Init_CustomChipRegisters:		; Memory Address ($0492) and binary offset [$010E]
 	move.w	#$3781,_custom+diwstrt.l	;33FC378100DFF08E
 	move.w	#$FFC1,_custom+diwstop.l	;33FCFFC100DFF090
 	move.l	#CopperList_00,_custom+cop1lc.l	;23FC00008E1000DFF080
-	move.l	#$00060000,screen_ptr.l	;23FC0006000000008D36
+	move.l	#Screen_BufferBase,screen_ptr.l	;23FC0006000000008D36
 	jsr	Update_CopperBitplanePointersForOppositeScreenBuffer.l	;4EB900008D00
 	lea	CopperList_01.l,a0	;41F900008E30
 	lea	Copper_SpriteOffsetTable.l,a1	;43F9000005AA
@@ -1513,8 +1539,8 @@ MenuKeyboard:
 	bne.s	.menukeyboardloop			;66D8
 	move.w	#$FFFF,MultiPlayer.l			;33FCFFFF0000EE30
 LoadGameFromMenu:
-	move.l	#$00067D00,screen_ptr.l			;23FC00067D0000008D36
-	move.l	#$00060000,framebuffer_ptr.l		;23FC0006000000008D3A
+	move.l	#Screen_BufferBase+Screen_BufferSize,screen_ptr.l			;23FC00067D0000008D36
+	move.l	#Screen_BufferBase,framebuffer_ptr.l		;23FC0006000000008D3A
 	jsr	Clear_DisplayBuffer.l				;4EB900008DA8
 	move.l	screen_ptr.l,a0				;207900008D36
 	add.w	#$0E10,a0				;D0FC0E10
@@ -7537,8 +7563,8 @@ Click_LoadSaveGame:		; Memory Address ($432A) and binary offset [$3FA6]
 	; Pauses world updates, presents the load/save function-key prompt for the active player panels, dispatches F1 to load and F2 to save, and restores the game interface when F10 exits.
 	move.l	WorldTick_300UnitCountdown.l,-(sp)	;2F390000EE36
 	clr.w	FrameSyncFlag.l	;427900008C1E
-	move.l	#$00067D00,screen_ptr.l	;23FC00067D0000008D36
-	move.l	#$00060000,framebuffer_ptr.l	;23FC0006000000008D3A
+	move.l	#Screen_BufferBase+Screen_BufferSize,screen_ptr.l	;23FC00067D0000008D36
+	move.l	#Screen_BufferBase,framebuffer_ptr.l	;23FC0006000000008D3A
 	lea	Player1_Data.l,a5	;4BF90000EE7C
 	lea	Msg_LoadSaveFunctionKeys.l,a6	;4DF9000044C4
 	jsr	WriteText.l	;4EB90000D08E
@@ -15402,22 +15428,22 @@ adrL_008CC8:		; Memory Address ($8CC8) and binary offset [$8944]
 
 Swap_DisplayAndDrawBuffers:		; Memory Address ($8CCA) and binary offset [$8946]
 	; Swaps the display and drawing screen buffers and updates all four Copper bitplane pointers.
-	cmp.l	#$00060000,screen_ptr.l	;0CB90006000000008D36
+	cmp.l	#Screen_BufferBase,screen_ptr.l	;0CB90006000000008D36
 	bne.s	SwapBuffers_SelectPrimaryScreen	;6616
-	move.l	#$00067D00,screen_ptr.l	;23FC00067D0000008D36
-	move.l	#$00060000,framebuffer_ptr.l	;23FC0006000000008D3A
+	move.l	#Screen_BufferBase+Screen_BufferSize,screen_ptr.l	;23FC00067D0000008D36
+	move.l	#Screen_BufferBase,framebuffer_ptr.l	;23FC0006000000008D3A
 	bra.s	Update_CopperBitplanePointersForOppositeScreenBuffer	;6014
 
 SwapBuffers_SelectPrimaryScreen:		; Memory Address ($8CEC) and binary offset [$8968]
-	move.l	#$00060000,screen_ptr.l	;23FC0006000000008D36
-	move.l	#$00067D00,framebuffer_ptr.l	;23FC00067D0000008D3A
+	move.l	#Screen_BufferBase,screen_ptr.l	;23FC0006000000008D36
+	move.l	#Screen_BufferBase+Screen_BufferSize,framebuffer_ptr.l	;23FC00067D0000008D3A
 Update_CopperBitplanePointersForOppositeScreenBuffer:		; Memory Address ($8D00) and binary offset [$897C]
 	; Rewrites the four Copper bitplane pointers to the screen buffer opposite the current drawing buffer.
 	lea	CopperList_00.l,a0	;41F900008E10
-	move.l	#$00060000,d0	;203C00060000
+	move.l	#Screen_BufferBase,d0	;203C00060000
 	cmp.l	screen_ptr.l,d0	;B0B900008D36
 	bne.s	SwapBuffers_InitPlaneCounter	;6606
-	move.l	#$00067D00,d0	;203C00067D00
+	move.l	#Screen_BufferBase+Screen_BufferSize,d0	;203C00067D00
 SwapBuffers_InitPlaneCounter:		; Memory Address ($8D1A) and binary offset [$8996]
 	moveq	#$03,d1	;7203
 SwapBuffers_CopperPointerLoop:		; Memory Address ($8D1C) and binary offset [$8998]
@@ -15431,9 +15457,9 @@ SwapBuffers_CopperPointerLoop:		; Memory Address ($8D1C) and binary offset [$899
 	rts	;4E75
 
 screen_ptr:
-	dc.l	$00060000	;00060000
+	dc.l	Screen_BufferBase	;00060000
 framebuffer_ptr:
-	dc.l	$00067D00	;00067D00
+	dc.l	Screen_BufferBase+Screen_BufferSize	;00067D00
 
 Blit_MaskedPocketsOverlayLoop:		; Memory Address ($8D3E) and binary offset [$89BA]
 	; Applies a row-based AND and OR mask while copying an overlay crop from the Pockets graphics sheet.
@@ -15470,7 +15496,7 @@ Copy_DrawBufferToDisplayBuffer:		; Memory Address ($8D88) and binary offset [$8A
 	; Copies the complete 320 by 200 four-plane drawing buffer to the display buffer.
 	move.l	screen_ptr.l,a1	;227900008D36
 	move.l	framebuffer_ptr.l,a0	;207900008D3A
-	move.w	#$1F3F,d0	;303C1F3F
+	move.w	#(Screen_BufferSize/4)-1,d0	;303C1F3F
 Copy_DrawBufferToDisplayBuffer_CopyLoop:		; Memory Address ($8D98) and binary offset [$8A14]
 	move.l	(a0)+,(a1)+	;22D8
 	dbra	d0,Copy_DrawBufferToDisplayBuffer_CopyLoop	;51C8FFFC
@@ -15485,7 +15511,7 @@ Clear_DisplayBuffer:		; Memory Address ($8DA8) and binary offset [$8A24]
 	; Selects and clears the complete display screen buffer through the shared clearing loop.
 	move.l	screen_ptr.l,a0	;207900008D36
 ClearFourPlaneBuffer_SharedEntry:		; Memory Address ($8DAE) and binary offset [$8A2A]
-	move.w	#$1F3F,d0	;303C1F3F
+	move.w	#(Screen_BufferSize/4)-1,d0	;303C1F3F
 ClearFourPlaneBuffer_ClearLoop:		; Memory Address ($8DB2) and binary offset [$8A2E]
 	clr.l	(a0)+	;4298
 	dbra	d0,ClearFourPlaneBuffer_ClearLoop	;51C8FFFC
@@ -17412,7 +17438,7 @@ Draw_Summon:		; Memory Address ($9CD2) and binary offset [$994E]
 	tst.b	-$0018(a3)	;4A2BFFE8
 	bmi.s	.IllusionSkip	;6B0C
 	lea	Monster_Summon_Colours.l,a0	;41F900009DB8
-	moveq	#$02,d3	;7602
+	moveq	#Monster_Summon_ColourGradeOffset,d3	;7602
 	bsr	MonsterColourGrading	;61000198
 .IllusionSkip:		; Memory Address ($9CFE) and binary offset [$997A]
 	movem.w	d0/d1/d4/d5/d7,-(sp)	;48A7CD00
@@ -17616,7 +17642,7 @@ MonsterColourGrading:		; Memory Address ($9E94) and binary offset [$9B10]
 .gradelower:		; Memory Address ($9EA0) and binary offset [$9B1C]
 	cmpi.b	#Monster_ColourGradeCount,d2	;0C020008
 	bcs.s	.gradeupper	;6502
-	moveq	#$07,d2	;7407
+	moveq	#Monster_ColourGradeCount-1,d2	;7407
 .gradeupper:		; Memory Address ($9EA8) and binary offset [$9B24]
 	move.b	$00(a0,d2.w),d2	;14302000
 	asl.w	#$02,d2	;E542
@@ -17664,7 +17690,7 @@ Draw_Crab:		; Memory Address ($9EFA) and binary offset [$9B76]
 	; Entry point for the table-driven Crab body and detail compositor.
 	move.w	#$FFFF,Buffer_Colour_Mask_Toggle.l	;33FCFFFF0000B4BE
 	lea	Monster_Crabs_Colours.l,a0	;41F900009F20
-	moveq	#$02,d3	;7602
+	moveq	#Monster_Crab_ColourGradeOffset,d3	;7602
 	bsr.s	MonsterColourGrading	;6188
 	bsr	Draw_Crab_Body	;610001F8
 	lea	Buffer_Colour_Mask.l,a6	;4DF90000B4C0
@@ -18023,7 +18049,7 @@ GFX_Crab_DetailDispatchFar_SourceOffsets:		; Memory Address ($A186) and binary o
 
 Draw_Beholder:		; Memory Address ($A18A) and binary offset [$9E06]
 	; Selects the Beholder colour route and composes its body, upper eyes, and large lower eye/details for the current distance and facing.
-	moveq	#$04,d3	;7604
+	moveq	#Monster_Beholder_ColourGradeOffset,d3	;7604
 	lea	Monster_Beholder_Colours.l,a0	;41F90000A1AC
 	bsr	MonsterColourGrading	;6100FD00
 	bsr	Draw_Beholder_BodyAndUpperEyes	;610000D6
@@ -18259,7 +18285,7 @@ GFX_Beholder_CentralEye_Far_LookupTable:		; Memory Address ($A328) and binary of
 Draw_LittleDragon:		; Memory Address ($A330) and binary offset [$9FAC]
 	moveq	#$01,d2	;7401
 	lea	GFX_LittleDragon_SourceOffsets.l,a2	;45F90000A33C
-	moveq	#$03,d3	;7603
+	moveq	#Monster_LittleDragon_ColourGradeOffset,d3	;7603
 	bra.s	Draw_Dragon_ComputeBodyPosition	;601A
 
 GFX_LittleDragon_SourceOffsets:		; Memory Address ($A33C) and binary offset [$9FB8]
@@ -18277,7 +18303,7 @@ BigDragon_Table_Unknown:		; Memory Address ($A344) and binary offset [$9FC0]
 Draw_BigDragon:		; Memory Address ($A34C) and binary offset [$9FC8]
 	moveq	#$00,d2	;7400
 	lea	BigDragon_Table_Unknown.l,a2	;45F90000A344
-	moveq	#$09,d3	;7609
+	moveq	#Monster_BigDragon_ColourGradeOffset,d3	;7609
 Draw_Dragon_ComputeBodyPosition:		; Memory Address ($A356) and binary offset [$9FD2]
 	lea	Monster_DistanceGroups_LookupTable.l,a0	;41F90000A536
 	move.b	$00(a0,d1.w),d1	;12301000
@@ -18551,7 +18577,7 @@ Draw_Behemoth:		; Memory Address ($A50A) and binary offset [$A186]
 	; Composes the Behemoth from its family-specific layout data.
 	move.w	#$FFFF,Buffer_Colour_Mask_Toggle.l	;33FCFFFF0000B4BE
 	lea	Monster_Behemoth_Colours.l,a0	;41F90000A52E
-	moveq	#$06,d3	;7606
+	moveq	#Monster_Behemoth_ColourGradeOffset,d3	;7606
 	bsr	MonsterColourGrading	;6100F978
 	lea	GFX_Behemoth_Layout.l,a0	;41F90000A668
 	bsr.s	Draw_LargeMonster_Body	;6126
@@ -23723,17 +23749,18 @@ Exec_char_extensions:		; Memory Address ($D0D6) and binary offset [$CD52]
 	lea	MainGame_PlayerUpdateLoop.w,a0	;41F80C50	;Short Absolute converted to symbol!
 	bra	ClearFourPlaneBuffer_SharedEntry		;6000BC78
 
-CopyProtection:
-	; Preserves A4-A6 and enters the executable's copy-protection check, used from the text escape-code dispatcher and disk load/save paths.
+CopyProtection:		; Memory Address ($D138) and binary offset [$CDB4]
+	; Saves A4-A6 and enters the self-decrypting copy-protection check.
 	movem.l	a4-a6,-(sp)	;48E7000E
-	bra	CopyProtection_SaveStateAndReenter	;600000BE
+	bra	CopyProtection_SaveStateAndEnterTraceCipher	;600000BE
 ;	move.l	#$8488ffc4,$24.w
 ;	moveq	#0,d0
 ;	rts
 
 
-;fiX Label expected
-; SOURCE_NOTE: COPY_PROTECTION_INTERNAL ($D140): Reserved workspace leading into the saved-register area.
+CopyProtection_RawTrackBuffer:		; Memory Address ($D140) and binary offset [$CDBC]
+	; Zero-filled $46-byte raw-track capture and scan buffer.
+; SOURCE_NOTE: COPY_PROTECTION_INTERNAL ($D140): Zero-filled 70-byte raw-track capture and scan buffer.
 ; COPY_PROTECTION_INTERNAL ($D140): Reserved workspace leading into the saved-register area.
 	dc.w	$0000	;0000
 	dc.w	$0000	;0000
@@ -23770,8 +23797,8 @@ CopyProtection:
 	dc.w	$0000	;0000
 	dc.w	$0000	;0000
 	dc.w	$0000	;0000
-IllegalTrap_RegisterSaveArea:		; Memory Address ($D186) and binary offset [$CE02]
-	; Register-save and working area used by the illegal-instruction copy-protection handler.
+CopyProtection_StateWorkspace:		; Memory Address ($D186) and binary offset [$CE02]
+	; Saved registers, exception-vector scratch, cache state and initialized drive/head working state.
 	dc.w	$0000	;0000
 	dc.w	$0000	;0000
 	dc.w	$0000	;0000
@@ -23826,17 +23853,19 @@ IllegalTrap_RegisterSaveArea:		; Memory Address ($D186) and binary offset [$CE02
 	dc.w	$0001	;0001
 	dc.w	$0000	;0000
 TraceCipher_ActiveInstructionState:		; Memory Address ($D1F0) and binary offset [$CE6C]
-	; Address and original-longword state for the trace-vector instruction decrypt/re-encrypt mechanism.
+	; Holds the address and original longword for the currently decrypted instruction window.
 	dc.w	$0000	;0000
 	dc.w	$0000	;0000
 	dc.w	$0000	;0000
 	dc.w	$0000	;0000
-adrL_00D1F8:		; Memory Address ($D1F8) and binary offset [$CE74]
+CopyProtection_SavedCPUCacheControl:		; Memory Address ($D1F8) and binary offset [$CE74]
+	; Saved 68020-or-later cache-control value; $FFFFFFFF marks an unavailable value.
 	dc.l	$FFFFFFFF	;FFFFFFFF
 
-CopyProtection_SaveStateAndReenter:		; Memory Address ($D1FC) and binary offset [$CE78]
+CopyProtection_SaveStateAndEnterTraceCipher:		; Memory Address ($D1FC) and binary offset [$CE78]
+	; Saves CPU state, redirects the illegal-instruction vector and enters the trace cipher.
 	move.l	a6,-(sp)	;2F0E
-	lea	IllegalTrap_RegisterSaveArea(pc),a6	;4DFAFF86
+	lea	CopyProtection_StateWorkspace(pc),a6	;4DFAFF86
 	movem.l	d0-d7/a0-a7,(a6)	;48D6FFFF
 	lea	$0040(a6),a6	;4DEE0040
 	move.l	(sp)+,-$0008(a6)	;2D5FFFF8
@@ -23846,8 +23875,9 @@ CopyProtection_SaveStateAndReenter:		; Memory Address ($D1FC) and binary offset 
 ;	pea	$000A.l(pc)	;487A000A	;replaced by dc.l above
 	move.l	(sp)+,$00000010.l	;23DF00000010
 	illegal	;4AFC
-;fiX Label expected
-; SOURCE_NOTE: COPY_PROTECTION_INTERNAL ($D21C): Opaque instruction/data stream entered through the deliberate exception path.
+CopyProtection_TraceCipherBootstrap:		; Memory Address ($D220) and binary offset [$CE9C]
+	; CPU and cache setup followed by the encrypted branch maze entered after the deliberate illegal instruction.
+; SOURCE_NOTE: COPY_PROTECTION_INTERNAL ($D220): CPU/cache setup followed by the trace-cipher entry branch maze.
 ; COPY_PROTECTION_INTERNAL ($D21C): Opaque instruction/data stream entered through the deliberate exception path.
 	dc.w	$487A	;487A
 	dc.w	$001C	;001C
@@ -23939,43 +23969,50 @@ CopyProtection_SaveStateAndReenter:		; Memory Address ($D1FC) and binary offset 
 	dc.w	$D5C1	;D5C1
 	dc.w	$FFF5	;FFF5
 
-Install_TraceCipherExceptionVectors:		; Memory Address ($D2D2) and binary offset [$CF4E]
+TraceCipher_IllegalInstructionHandler:		; Memory Address ($D2D2) and binary offset [$CF4E]
+	; Illegal-instruction handler that installs the trace and privilege handlers and starts instruction stepping.
 	movem.l	d0/a0/a1,-(sp)	;48E780C0
-	lea	TraceCipher_StepDecryptNextInstruction(pc),a0	;41FA0034
+	lea	TraceCipher_TraceExceptionHandler(pc),a0	;41FA0034
 	move.l	a0,$00000024.l	;23C800000024
-	lea	TraceCipher_PrivilegeViolationHandler(pc),a0	;41FA045E
+	lea	CopyProtection_PrivilegeExitHandler(pc),a0	;41FA045E
 	move.l	a0,$00000020.l	;23C800000020
-TraceCipher_ArmOrDisarmTraceBit:		; Memory Address ($D2EA) and binary offset [$CF66]
+TraceCipher_ToggleTraceAndRestoreInstruction:		; Memory Address ($D2EA) and binary offset [$CF66]
+	; Advances the saved PC, toggles trace mode and restores the preceding encrypted instruction window.
 	add.l	#$00000002,$000E(sp)	;06AF00000002000E
 	or.b	#$07,$000C(sp)	;002F0007000C
 	bchg	#$07,$000C(sp)	;086F0007000C
 	lea	TraceCipher_ActiveInstructionState(pc),a1	;43FAFEF0
-	beq.s	TraceCipher_LoadNextInstructionAddress	;671A
+	beq.s	TraceCipher_LoadExceptionPC	;671A
 	move.l	(a1),a0	;2051
 	move.l	$0004(a1),(a0)	;20A90004
-	bra.s	TraceCipher_RestoreAndReturn	;6026
+	bra.s	TraceCipher_RestoreRegistersAndReturn	;6026
 
-TraceCipher_StepDecryptNextInstruction:		; Memory Address ($D30C) and binary offset [$CF88]
+TraceCipher_TraceExceptionHandler:		; Memory Address ($D30C) and binary offset [$CF88]
+	; Handles each trace exception by restoring the previous window and decrypting the next instruction.
 	andi.w	#$F8FF,sr	;027CF8FF
 	movem.l	d0/a0/a1,-(sp)	;48E780C0
 	lea	TraceCipher_ActiveInstructionState(pc),a1	;43FAFEDA
 	move.l	(a1),a0	;2051
 	move.l	$0004(a1),(a0)	;20A90004
-TraceCipher_LoadNextInstructionAddress:		; Memory Address ($D31E) and binary offset [$CF9A]
+TraceCipher_LoadExceptionPC:		; Memory Address ($D31E) and binary offset [$CF9A]
+	; Loads the next instruction address from the saved exception frame.
 	move.l	$000E(sp),a0	;206F000E
-TraceCipher_DecryptNextInstruction:		; Memory Address ($D322) and binary offset [$CF9E]
+TraceCipher_DecryptInstructionLongword:		; Memory Address ($D322) and binary offset [$CF9E]
+	; Saves and decrypts the next four-byte instruction window using the preceding ciphertext.
 	move.l	a0,(a1)	;2288
 	move.l	(a0),$0004(a1)	;23500004
 	move.l	-$0004(a0),d0	;2028FFFC
 	not.l	d0	;4680
 	swap	d0	;4840
 	eor.l	d0,(a0)	;B190
-TraceCipher_RestoreAndReturn:		; Memory Address ($D332) and binary offset [$CFAE]
+TraceCipher_RestoreRegistersAndReturn:		; Memory Address ($D332) and binary offset [$CFAE]
+	; Restores the trace-handler registers and returns from the exception.
 	movem.l	(sp)+,d0/a0/a1	;4CDF0301
 	rte	;4E73
 
-;fiX Label expected
-; SOURCE_NOTE: COPY_PROTECTION_INTERNAL ($D338): Opaque word stream following the exception-handler return.
+CopyProtection_EncryptedDiskCheck:		; Memory Address ($D338) and binary offset [$CFB4]
+	; Trace-cipher-encrypted main Copylock disk check, including raw-track reads, signature checks, timing tests and serial accumulation.
+; SOURCE_NOTE: COPY_PROTECTION_INTERNAL ($D338): Trace-cipher-encrypted main Copylock disk-check routine.
 ; COPY_PROTECTION_INTERNAL ($D338): Opaque word stream following the exception-handler return.
 	dc.w	$F076	;F076
 	dc.w	$FCE0	;FCE0
@@ -24221,43 +24258,49 @@ TraceCipher_RestoreAndReturn:		; Memory Address ($D332) and binary offset [$CFAE
 	dc.w	$00BF	;00BF
 	dc.w	$DD00	;DD00
 
-CopyProtection_WaitIndexPulse:		; Memory Address ($D51E) and binary offset [$D19A]
+CopyProtection_WaitForIndexPulse:		; Memory Address ($D51E) and binary offset [$D19A]
+	; Waits for a floppy index pulse on CIA-B FLAG before starting the raw-track transfer.
 	btst	#$04,_ciab+ciaicr.l	;0839000400BFDD00
-	beq.s	CopyProtection_WaitIndexPulse	;67F6
+	beq.s	CopyProtection_WaitForIndexPulse	;67F6
 	move.w	#$8000,$0024(a0)	;317C80000024
 	move.w	#$8000,$0024(a0)	;317C80000024
 	moveq	#$00,d1	;7200
 	move.l	#$00061A80,d2	;243C00061A80
-CopyProtection_WaitSyncBitOrTimeout:		; Memory Address ($D53C) and binary offset [$D1B8]
+CopyProtection_WaitForDiskSyncOrTimeout:		; Memory Address ($D53C) and binary offset [$D1B8]
+	; Waits for DSKBYTR WORDEQUAL or for the raw disk-read timeout to expire.
 	subq.l	#$01,d2	;5382
-	beq.s	CopyProtection_ResolvePulseCountResult	;672A
+	beq.s	CopyProtection_FinalizeRawTrackRead	;672A
 	move.b	$001A(a0),d0	;1028001A
 	btst	#$04,d0	;08000004
-	beq.s	CopyProtection_WaitSyncBitOrTimeout	;67F2
-	moveq	#$31,d2	;7431
-CopyProtection_CaptureTrackBytes:		; Memory Address ($D54C) and binary offset [$D1C8]
+	beq.s	CopyProtection_WaitForDiskSyncOrTimeout	;67F2
+	moveq	#CopyProtection_CapturedByteCount-1,d2	;7431
+CopyProtection_Capture50TrackBytes:		; Memory Address ($D54C) and binary offset [$D1C8]
+	; Captures fifty ready bytes from the raw disk stream.
 	addq.l	#$01,d1	;5281
 	move.w	$001A(a0),d0	;3028001A
-	bpl.s	CopyProtection_CaptureTrackBytes	;6AF8
+	bpl.s	CopyProtection_Capture50TrackBytes	;6AF8
 	move.b	d0,(a1)+	;12C0
-	dbra	d2,CopyProtection_CaptureTrackBytes	;51CAFFF4
-	move.w	#$03CD,d2	;343C03CD
-CopyProtection_SkipRemainingPulses:		; Memory Address ($D55E) and binary offset [$D1DA]
+	dbra	d2,CopyProtection_Capture50TrackBytes	;51CAFFF4
+	move.w	#CopyProtection_SkippedWordCount-1,d2	;343C03CD
+CopyProtection_CountRemainingTrackWords:		; Memory Address ($D55E) and binary offset [$D1DA]
+	; Counts $03CE following disk words to measure the remainder of the protected sector.
 	addq.l	#$01,d1	;5281
 	move.w	$001A(a0),d0	;3028001A
-	bpl.s	CopyProtection_SkipRemainingPulses	;6AF8
-	dbra	d2,CopyProtection_SkipRemainingPulses	;51CAFFF6
-CopyProtection_ResolvePulseCountResult:		; Memory Address ($D56A) and binary offset [$D1E6]
+	bpl.s	CopyProtection_CountRemainingTrackWords	;6AF8
+	dbra	d2,CopyProtection_CountRemainingTrackWords	;51CAFFF6
+CopyProtection_FinalizeRawTrackRead:		; Memory Address ($D56A) and binary offset [$D1E6]
+	; Stops disk DMA, tests transfer completion and prepares the measured result.
 	move.w	$001E(a0),d0	;3028001E
 	move.w	#$0002,$009C(a0)	;317C0002009C
 	move.w	#$4000,$0024(a0)	;317C40000024
 	btst	#$01,d0	;08000001
-	bne.s	CopyProtection_TrapWithPulseCount	;661A
+	bne.s	CopyProtection_ReturnTrackTimingSample	;661A
 	moveq	#$00,d1	;7200
-	bra.s	CopyProtection_TrapWithPulseCount	;6016
+	bra.s	CopyProtection_ReturnTrackTimingSample	;6016
 
-;fiX Label expected
-; SOURCE_NOTE: COPY_PROTECTION_INTERNAL ($D584): Encoded word block deliberately skipped by the visible execution paths.
+CopyProtection_DiskSyncWords:		; Memory Address ($D584) and binary offset [$D200]
+	; Eleven Copylock disk-sync words indexed by the encrypted raw-track scanner.
+; SOURCE_NOTE: COPY_PROTECTION_INTERNAL ($D584): Eleven Rob Northen Copylock disk-sync words used by the protected raw-track scanner.
 ; COPY_PROTECTION_INTERNAL ($D584): Encoded word block deliberately skipped by the visible execution paths.
 	dc.w	$8A91	;8A91
 	dc.w	$8A44	;8A44
@@ -24271,11 +24314,13 @@ CopyProtection_ResolvePulseCountResult:		; Memory Address ($D56A) and binary off
 	dc.w	$8945	;8945
 	dc.w	$8951	;8951
 
-CopyProtection_TrapWithPulseCount:		; Memory Address ($D59A) and binary offset [$D216]
+CopyProtection_ReturnTrackTimingSample:		; Memory Address ($D59A) and binary offset [$D216]
+	; Passes the measured disk-word count into the encrypted scanner through another illegal instruction.
 	move.l	d1,d0	;2001
 	illegal	;4AFC
-;fiX Label expected
-; SOURCE_NOTE: COPY_PROTECTION_INTERNAL ($D59E): Opaque stream following the deliberate illegal instruction; retained as raw words.
+CopyProtection_EncryptedDriveAndExitCode:		; Memory Address ($D59E) and binary offset [$D21A]
+	; Trace-cipher-encrypted drive selection, head stepping, track-zero sensing, timing and protected-exit setup. The following RTE remains executable source.
+; SOURCE_NOTE: COPY_PROTECTION_INTERNAL ($D59E): Trace-cipher-encrypted drive/head control, timing and protected-exit routines.
 ; COPY_PROTECTION_INTERNAL ($D59E): Opaque stream following the deliberate illegal instruction; retained as raw words.
 	dc.w	$FB76	;FB76
 	dc.w	$7676	;7676
@@ -24488,9 +24533,10 @@ CopyProtection_TrapWithPulseCount:		; Memory Address ($D59A) and binary offset [
 
 	rte	;4E73
 
-TraceCipher_PrivilegeViolationHandler:		; Memory Address ($D740) and binary offset [$D3BC]
+CopyProtection_PrivilegeExitHandler:		; Memory Address ($D740) and binary offset [$D3BC]
+	; Restores A4-A6 and subtracts the SPS 439 Copylock serial key so successful validation returns zero.
 	movem.l	(sp)+,a4-a6	;4CDF7000
-	sub.l	#$8488FFC4,d0	;04808488FFC4
+	sub.l	#CopyProtection_SerialKey,d0	;04808488FFC4
 	rts	;4E75
 
 Print_com_menu_entry:		; Memory Address ($D74C) and binary offset [$D3C8]

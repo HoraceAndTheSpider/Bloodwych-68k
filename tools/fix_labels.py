@@ -9,7 +9,7 @@ from pathlib import Path
 import pandas as pd
 
 from .resource_layout import cell_text
-from .tool_common import ToolError, get_profile, parse_int, resolve_cleanup_path
+from .tool_common import ToolError, get_profile, resolve_cleanup_path
 
 
 FIX_LABELS_SHEET = "FIX_LABELS"
@@ -108,37 +108,54 @@ def load_fix_label_metadata(
             raise ToolError(
                 f"{FIX_LABELS_SHEET} row {excel_row} has invalid status '{status}'"
             )
+        anchor_label = cell_text(row, "anchor_label")
+        insert_label = cell_text(row, "insert_label")
+        source_match = cell_text(row, "source_match")
+        source_replace = cell_text(row, "source_replace")
+        expected_opcode = cell_text(row, "expected_opcode")
         expected_matches = row.get("expected_matches")
         try:
             expected_matches = int(expected_matches)
         except (TypeError, ValueError):
-            expected_matches = 1
-        if expected_matches < 1:
+            expected_matches = 1 if source_match or source_replace else 0
+        if expected_matches < 0:
             raise ToolError(
-                f"{FIX_LABELS_SHEET} row {excel_row} requires expected_matches >= 1"
+                f"{FIX_LABELS_SHEET} row {excel_row} requires expected_matches >= 0"
             )
         rule = FixLabelRule(
             profile=profile,
-            anchor_label=cell_text(row, "anchor_label"),
-            insert_label=cell_text(row, "insert_label"),
-            source_match=cell_text(row, "source_match"),
-            source_replace=cell_text(row, "source_replace"),
-            expected_opcode=cell_text(row, "expected_opcode"),
+            anchor_label=anchor_label,
+            insert_label=insert_label,
+            source_match=source_match,
+            source_replace=source_replace,
+            expected_opcode=expected_opcode,
             expected_matches=expected_matches,
             status=status,
             source_comment=cell_text(row, "source_comment"),
         )
         if status == VERIFIED:
-            if not all(
-                (
-                    rule.anchor_label,
-                    rule.insert_label,
-                    rule.source_match,
-                    rule.source_replace,
-                )
-            ):
+            if not rule.anchor_label or not rule.insert_label:
                 raise ToolError(
                     f"{FIX_LABELS_SHEET} row {excel_row} is verified but incomplete"
+                )
+            has_source_match = bool(rule.source_match)
+            has_source_replace = bool(rule.source_replace)
+            if has_source_match != has_source_replace:
+                raise ToolError(
+                    f"{FIX_LABELS_SHEET} row {excel_row} must provide both "
+                    "source_match and source_replace"
+                )
+            if has_source_match and rule.expected_matches < 1:
+                raise ToolError(
+                    f"{FIX_LABELS_SHEET} row {excel_row} reference rewrite "
+                    "requires expected_matches >= 1"
+                )
+            if not has_source_match and (
+                rule.expected_matches != 0 or rule.expected_opcode
+            ):
+                raise ToolError(
+                    f"{FIX_LABELS_SHEET} row {excel_row} label-only insertion "
+                    "requires blank source fields and expected_matches 0"
                 )
         rules.append(rule)
     return tuple(rules)
@@ -151,7 +168,7 @@ def _normalise_instruction(value: str) -> str:
 def apply_fix_label_rules(
     lines: list[str], rules: tuple[FixLabelRule, ...]
 ) -> tuple[list[str], set[str]]:
-    """Insert verified labels and rewrite their independently marked references."""
+    """Insert verified labels and optionally rewrite marked references."""
     result = list(lines)
     inserted: set[str] = set()
     for rule in rules:
@@ -190,18 +207,19 @@ def apply_fix_label_rules(
             )
 
         candidates: list[tuple[int, int]] = []
-        for marker_index, line in enumerate(result):
-            if line.strip().casefold() != REFERENCE_MARKER:
-                continue
-            instruction_index = marker_index - 1
-            while instruction_index >= 0 and not result[instruction_index].strip():
-                instruction_index -= 1
-            if instruction_index < 0:
-                continue
-            if _normalise_instruction(result[instruction_index]) == _normalise_instruction(
-                rule.source_match
-            ):
-                candidates.append((marker_index, instruction_index))
+        if rule.source_match:
+            for marker_index, line in enumerate(result):
+                if line.strip().casefold() != REFERENCE_MARKER:
+                    continue
+                instruction_index = marker_index - 1
+                while instruction_index >= 0 and not result[instruction_index].strip():
+                    instruction_index -= 1
+                if instruction_index < 0:
+                    continue
+                if _normalise_instruction(
+                    result[instruction_index]
+                ) == _normalise_instruction(rule.source_match):
+                    candidates.append((marker_index, instruction_index))
 
         if len(candidates) != rule.expected_matches:
             raise ToolError(

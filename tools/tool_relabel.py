@@ -249,16 +249,16 @@ def relabel_segments(
         lines = [re.sub(reference_pattern, replacement, line) for line in lines]
         print(f"Replaced '{label}' references with '{replacement}'")
 
-    # Explicit pass 3: apply separately maintained fix-label rules before
+    # Explicit pass 3: add spreadsheet-owned standalone notes while their raw
+    # boundary markers are still present. A following fix-label rule may turn
+    # the marker into a label, leaving the generated note beneath that label.
+    lines = apply_source_notes(lines, source_notes, continue_on_error=True)
+
+    # Explicit pass 3a: apply separately maintained fix-label rules before
     # ordinary relabels. This keeps an inserted data label independent from
     # the existing code label used to locate the source boundary. No rule is
     # inferred from address adjacency.
     lines, _ = apply_fix_label_rules(lines, fix_label_rules)
-
-    # Explicit pass 3a: add spreadsheet-owned standalone notes at marked raw
-    # source boundaries. These are annotations only; they neither add labels
-    # nor rewrite the preserved dc.* declarations.
-    lines = apply_source_notes(lines, source_notes, continue_on_error=True)
 
     # Explicit pass 4: ordinary labels and data_start anchors are renamed after
     # all definition deletions and fix-label insertions. data_append labels are

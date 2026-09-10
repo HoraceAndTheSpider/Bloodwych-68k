@@ -198,6 +198,7 @@ Use faux extensions consistently:
 - `.offsets` — lookup/divider data that locates pictures or strips inside packed `.gfx` data. Reserve this term for data addressing, not screen placement.
 - `.positions` — X/Y screen drawing positions or comparable placement coordinates.
 - `.lookup` — a general mapping/index table where a more precise convention does not apply.
+- `.stats` — editable gameplay statistics indexed by an object, character, or other game entity.
 - `.layout` — component assembly or render-layout definitions.
 - `.heights`, `.widths` — explicit dimensional tables.
 - `.flags` — bit flags or per-entry boolean behaviour.

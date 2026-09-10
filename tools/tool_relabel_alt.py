@@ -216,9 +216,9 @@ def relabel_segments_alt(
     timings.append(("delete/offset indexed", perf_counter() - phase_started))
 
     phase_started = perf_counter()
-    lines, _ = apply_fix_label_rules(lines, fix_label_rules)
     lines = apply_source_notes(lines, source_notes, continue_on_error=True)
-    timings.append(("fix labels/source notes", perf_counter() - phase_started))
+    lines, _ = apply_fix_label_rules(lines, fix_label_rules)
+    timings.append(("source notes/fix labels", perf_counter() - phase_started))
 
     phase_started = perf_counter()
     normal_rows = [
