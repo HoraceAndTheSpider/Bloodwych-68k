@@ -491,6 +491,21 @@ class GraphicsCodecTests(unittest.TestCase):
             with self.subTest(monster=monster.display_name):
                 self.assertTrue(inspect_monster_files(monster, MONSTERS_DIR).ready)
 
+    def test_missing_monster_renderer_is_a_handled_preview_error(self) -> None:
+        crab = next(monster for monster in MONSTERS if monster.renderer == "crab")
+        with self.assertRaisesRegex(ValueError, "Crab renderer assets are unavailable"):
+            render_monster_preview(
+                [[0] * 128 for _ in range(76)],
+                crab,
+                {},
+                distance=0,
+                facing=0,
+                grade_step=0,
+                animation_frame=0,
+                anchor_x=56,
+                anchor_y=36,
+            )
+
     def test_all_configured_monsters_render_each_distance_and_facing(self) -> None:
         background = load_floor_ceiling_background(GFX_DIR)
         assets, errors = load_renderer_assets(MONSTERS_DIR)

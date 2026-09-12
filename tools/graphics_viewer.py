@@ -868,7 +868,11 @@ def render_monster_preview(
     renderer_key = (
         "dragon" if renderer in {"dragon_large", "dragon_small"} else renderer
     )
-    renderer_asset = assets[renderer_key]
+    renderer_asset = assets.get(renderer_key)
+    if renderer_asset is None:
+        raise ValueError(
+            f"{definition.display_name} renderer assets are unavailable"
+        )
     requested_grade_step = grade_step
     grade_step = max(
         0,

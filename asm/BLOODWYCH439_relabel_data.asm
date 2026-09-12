@@ -15851,7 +15851,7 @@ Draw_Crab_DetailDispatch_ByPose:		; Memory Address ($9F32) and binary offset [$9
 	bsr		Draw_Crab_SideClaw
 	moveq	#$00,d7
 	move.b	CrabFarSideClaw_StripHeightMinusOneTable(pc,d1.w),d7
-	add.b	CrabFarSideClaw_YOffsetTable(pc,d1.w),d5
+	add.b	adrB_009F7A(pc,d1.w),d5
 	moveq	#$00,d6
 	add.w	d1,d1
 	movem.l	d0/d1/d4/d5/d7/a1,-(sp)
@@ -15865,9 +15865,7 @@ Draw_Crab_DetailDispatch_ByPose:		; Memory Address ($9F32) and binary offset [$9
 Draw_Crab_DetailDispatch_Return:		; Memory Address ($9F78) and binary offset [$9BF4]
 	rts		
 
-CrabFarSideClaw_YOffsetTable:		; Memory Address ($9F7A) and binary offset [$9BF6]
-	; Signed Y adjustments for the Crab far-side claw strip at the two far distance
-	; groups.
+adrB_009F7A:
 	dc.b	$F8	;F8
 	dc.b	$F7	;F7
 CrabFarSideClaw_XOffsetTableA:		; Memory Address ($9F7C) and binary offset [$9BF8]
@@ -15981,8 +15979,7 @@ Draw_Crab_SidePoseSelect_DrawDetail:		; Memory Address ($A012) and binary offset
 	bsr		Draw_Crab_SideClaw
 	bra		Draw_Monster_16PixelStrip
 
-CrabDetailDispatchFar_StripHeightMinusOneTable:		; Memory Address ($A028) and binary offset [$9CA4]
-	; DBRA height-minus-one values used by the far-distance Crab detail strip.
+adrB_00A028:
 	dc.b	$08	;08
 	dc.b	$06	;06
 GFX_Crab_SideDetail_Coords1:		; Memory Address ($A02A) and binary offset [$9CA6]
@@ -15998,7 +15995,7 @@ Draw_Crab_DetailDispatch_Far:		; Memory Address ($A030) and binary offset [$9CAC
 	; Continues Crab detail selection for the far-distance classes.
 	subq.b	#$02,d1
 	moveq	#$00,d7
-	move.b	CrabDetailDispatchFar_StripHeightMinusOneTable(pc,d1.w),d7
+	move.b	adrB_00A028(pc,d1.w),d7
 	add.b	GFX_Crab_SideY_Table(pc,d1.w),d5
 	lea		GFX_Crab_DetailDispatchFar_SourceOffsets.l,a2
 	bsr		Draw_Crab_SideClaw
@@ -16012,8 +16009,7 @@ Draw_Crab_DetailDispatch_Far_ApplyXOffset:		; Memory Address ($A052) and binary 
 	add.b	GFX_Crab_SideDetail_Coords1(pc,d1.w),d4
 	bra		Draw_Monster_16PixelStrip
 
-CrabDetailDispatchFront_StripHeightMinusOneTable:		; Memory Address ($A05A) and binary offset [$9CD6]
-	; DBRA height-minus-one values used by the front Crab detail strip.
+adrB_00A05A:
 	dc.b	$0B	;0B
 	dc.b	$07	;07
 GFX_CrabFace_Position:		; Memory Address ($A05C) and binary offset [$9CD8]
@@ -16031,7 +16027,7 @@ Draw_Crab_DetailDispatch_Front:		; Memory Address ($A060) and binary offset [$9C
 	moveq	#$00,d6
 	lea		GFX_Crab_FrontClawSourceOffsets.l,a2
 	movem.w	d0/d1/d4/d5,-(sp)
-	move.b	CrabDetailDispatchFront_StripHeightMinusOneTable(pc,d1.w),d7
+	move.b	adrB_00A05A(pc,d1.w),d7
 	bsr		Draw_Crab_SideClaw
 	add.b	GFX_CrabFace_Position(pc,d1.w),d5
 Draw_CrabDetail_SharedDrawStrip:		; Memory Address ($A07C) and binary offset [$9CF8]
@@ -16058,9 +16054,7 @@ Draw_Crab_DetailDispatch_Rear_ApplyXOffset:		; Memory Address ($A0A6) and binary
 	add.b	GFX_Crab_SideDetail_Coords2(pc,d0.w),d4
 	bra.s	Draw_CrabDetail_SharedDrawStrip
 
-BeholderEye_XOffsetTable:		; Memory Address ($A0AC) and binary offset [$9D28]
-	; Signed X adjustments for either of the two optional Beholder eye components;
-	; also reused by the Crab rear-detail path.
+adrB_00A0AC:
 	dc.b	$07	;07
 	dc.b	$F9	;F9
 	dc.b	$FE	;FE
@@ -16099,7 +16093,7 @@ GFX_Beholder:		; Memory Address ($A0D2) and binary offset [$9D4E]
 	add.b	BeholderEye_YOffsetTable(pc,d1.w),d5
 	add.w	d1,d1
 	add.w	d2,d1
-	add.b	BeholderEye_XOffsetTable(pc,d1.w),d4
+	add.b	adrB_00A0AC(pc,d1.w),d4
 	bsr		Draw_Monster_16PixelStrip
 	move.l	(sp)+,a1
 	movem.w	(sp)+,d0/d1/d4/d5/d7
@@ -16120,7 +16114,7 @@ Draw_Crab_Body:		; Memory Address ($A106) and binary offset [$9D82]
 	; lookup.
 	lea		Monster_DistanceGroups_LookupTable.l,a0
 	move.b	$00(a0,d1.w),d1
-	lea		GFX_Crab_BodySourceOffsets.l,a2
+	lea		adrEA00A168.l,a2
 	lea		CrabBody_DistanceRenderParameters.l,a0
 	add.b	$00(a0,d1.w),d5
 	moveq	#$00,d7
@@ -16130,7 +16124,7 @@ Draw_Crab_Body:		; Memory Address ($A106) and binary offset [$9D82]
 	bsr.s	Draw_Crab_SideClaw
 	movem.l	d0-d2/d4/d5/d7,-(sp)
 	move.l	a1,-(sp)
-	add.b	CrabBody_XOffsetTableA(pc,d2.w),d4
+	add.b	adrB_00A154(pc,d2.w),d4
 	moveq	#$00,d6
 	bsr		Draw_Monster_CompositeBitmap
 	move.l	(sp)+,a1
@@ -16141,8 +16135,7 @@ Draw_Crab_Body:		; Memory Address ($A106) and binary offset [$9D82]
 	movem.l	(sp)+,d0-d2/d4/d5/d7
 	rts		
 
-CrabBody_XOffsetTableA:		; Memory Address ($A154) and binary offset [$9DD0]
-	; Alternate base of the first-pass Crab body X-adjustment table.
+adrB_00A154:
 	dc.b	$EC	;EC
 CrabBody_XOffsetTableB:		; Memory Address ($A155) and binary offset [$9DD1]
 	; Alternate base of the mirrored second-pass Crab body X-adjustment table.
@@ -16162,8 +16155,7 @@ CrabBody_DistanceRenderParameters:		; Memory Address ($A15C) and binary offset [
 	dc.w	$0000	;0000
 	dc.w	$1C12	;1C12
 	dc.w	$0C09	;0C09
-GFX_Crab_BodySourceOffsets:		; Memory Address ($A168) and binary offset [$9DE4]
-	; Source offsets within GFX_Crab used for the Crab body strips.
+adrEA00A168:
 	dc.w	$0000	;0000
 	dc.w	$01D0	;01D0
 	dc.w	$0300	;0300
@@ -16368,12 +16360,11 @@ GFX_Beholder_CentralEye_Far_LookupTable:		; Memory Address ($A328) and binary of
 
 Draw_LittleDragon:		; Memory Address ($A330) and binary offset [$9FAC]
 	moveq	#$01,d2
-	lea		GFX_LittleDragon_SourceOffsets.l,a2
+	lea		adrEA00A33C.l,a2
 	moveq	#Monster_LittleDragon_ColourGradeOffset,d3
 	bra.s	Draw_Dragon_ComputeBodyPosition
 
-GFX_LittleDragon_SourceOffsets:		; Memory Address ($A33C) and binary offset [$9FB8]
-	; Source offsets within GFX_Dragon used by the Little Dragon renderer.
+adrEA00A33C:
 	dc.w	$F1F5	;F1F5
 	dc.w	$FBFA	;FBFA
 	dc.w	$FD01	;FD01
@@ -16450,7 +16441,7 @@ Select_DragonDetailVariant_MergeIndex:		; Memory Address ($A3E0) and binary offs
 	addq.w	#$01,d3
 Select_DragonDetailVariant_LoadFrame:		; Memory Address ($A3E8) and binary offset [$A064]
 	moveq	#$00,d7
-	move.b	DragonDetail_WidthMinusOneTable(pc,d3.w),d7
+	move.b	adrB_00A418(pc,d3.w),d7
 	swap	d7
 	move.b	DragonDetail_HeightMinusOneTable(pc,d3.w),d7
 	add.b	DragonDetailYOffsetTable(pc,d3.w),d5
@@ -16465,9 +16456,7 @@ Select_DragonDetailVariant_ApplyXOffset:		; Memory Address ($A410) and binary of
 	add.b	DragonDetailXOffsetTable(pc,d3.w),d4
 	bra		Draw_Monster_CompositeBitmap
 
-DragonDetail_WidthMinusOneTable:		; Memory Address ($A418) and binary offset [$A094]
-	; Width-minus-one values packed into the high word of D7 for Dragon detail
-	; bitmap draws.
+adrB_00A418:
 	dc.b	$00	;00
 	dc.b	$00	;00
 	dc.b	$01	;01
@@ -16535,9 +16524,7 @@ DragonDetailXOffsetTable:		; Memory Address ($A43C) and binary offset [$A0B8]
 	dc.b	$04	;04
 	dc.b	$1C	;1C
 	dc.b	$04	;04
-DragonSideDetail_WidthMinusOneTable:		; Memory Address ($A454) and binary offset [$A0D0]
-	; Width-minus-one values packed into the high word of D7 for Dragon side-detail
-	; bitmap draws.
+adrB_00A454:
 	dc.b	$01	;01
 	dc.b	$04	;04
 	dc.b	$01	;01
@@ -16592,11 +16579,11 @@ Draw_DragonSideDetail:		; Memory Address ($A476) and binary offset [$A0F2]
 Draw_DragonSideDetail_MergeVariantIndex:		; Memory Address ($A488) and binary offset [$A104]
 	add.b	d3,d2
 	moveq	#$00,d7
-	move.b	DragonSideDetail_WidthMinusOneTable(pc,d2.w),d7
+	move.b	adrB_00A454(pc,d2.w),d7
 	swap	d7
 	move.b	DragonSideDetail_HeightMinusOneTable(pc,d2.w),d7
 	add.w	d2,d2
-	lea		GFX_Dragon_SideDetailSourceOffsets.l,a2
+	lea		adrEA00A4D4.l,a2
 	lea		GFX_Dragon.l,a1
 	add.w	$00(a2,d2.w),a1
 	movem.l	d0/d1/d4/d5/d7/a1,-(sp)
@@ -16616,8 +16603,7 @@ GFX_Dragon_MirroredHalf_XPositions:		; Memory Address ($A4CE) and binary offset 
 	; Horizontal spacing used when the Dragon body is completed by drawing a
 	; mirrored second half.
 	INCBIN "/data/BLOODWYCH439-clean/monsters/Dragon_MirroredHalf_X.positions"
-GFX_Dragon_SideDetailSourceOffsets:		; Memory Address ($A4D4) and binary offset [$A150]
-	; Source offsets within GFX_Dragon used by the first side-detail renderer.
+adrEA00A4D4:
 	dc.w	$0000	;0000
 	dc.w	$0320	;0320
 	dc.w	$0BB8	;0BB8
