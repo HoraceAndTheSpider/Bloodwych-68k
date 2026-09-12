@@ -144,7 +144,7 @@ ChampionStat_SpellCooldown:								equ	$15			; Brimstone Broth clears spell cool
 ChampionStat_SpellPointsCurrent:						equ	$09			; Selects the current/max spell-point pair for halfway restoration.
 ChampionStat_SpellPointsMaximum:						equ	$0A			; Offset of maximum spell points in a character-stat record.
 ChampionStat_SpellPowerBoost:							equ	$14			; Champion spell-power adjustment field.
-ChampionStat_SpellToCast:								equ	$13			; Marks the champion as not currently casting a spell.
+ChampionStat_SpellToCast:								equ	$13			; Marks the champion as not currently casting a spell using the shared byte no-value sentinel.
 ChampionStat_Strength:									equ	$01			; Champion record strength field.
 ChampionStat_Tower:										equ	$1F			; Compares the champion tower during location lookup.
 ChampionStat_VitalityCurrent:							equ	$07			; Selects the current/max vitality pair for halfway restoration.
@@ -389,10 +389,9 @@ MapCell_ObjectPresentBit:								equ	$06			; Marks map cells that have a floor o
 MapCell_OccupiedBit:									equ	$07			; Map-cell occupied flag updated when a player changes floor.
 MapCell_PillarWord:										equ	$0103		; First byte one and map-cell type three define the puzzle pillar.
 MapCell_SpellEntityBit:									equ	$07			; Marks a map cell as containing a live spell or summoned entity.
-MapCell_Type_Bed:										equ	$03			; Map-cell type 3 used for a bed when the cell's first byte is zero.
 MapCell_Type_MagicLocation:								equ	$07			; Map-cell type value shared by Firepath, Mindrock and Formwall.
 MapCell_Type_MetalDoor:									equ	$05			; Editor map-cell type 5: metal door, doorway or portcullis.
-MapCell_Type_Miscellaneous:								equ	$03			; Editor map-cell type 3: miscellaneous centred features, principally beds and pillars.
+MapCell_Type_Miscellaneous:								equ	$03			; Selects map type 3; the following first-byte zero test identifies a bed rather than a pillar.
 MapCell_Type_PadPitHole:								equ	$06			; Selects floor-feature cells before testing the pit subtype.
 MapCell_Type_Space:										equ	$00			; Editor map-cell type 0: empty or reserved/occupied space.
 MapCell_Type_Stair:										equ	$04			; Selects the stair transition path.
@@ -463,6 +462,12 @@ MonsterTeamMember_SlotMask:								equ	$03			; Extracts the team-member slot.
 
 MovementOffset_YTableOffset:							equ	$08			; Each addition advances one cell in Y; the consecutive pair advances two cells.
 
+None_Byte:												equ	$FF			; Clears the dead champion's saved map position with the shared byte no-value sentinel.
+None_Long:												equ	$FFFFFFFF	; Marks all four Player 2 champion slots empty until multiplayer selection supplies a roster.
+None_Word:												equ	$FFFF		; Word-sized all-bits-set sentinel meaning no value, selection or assignment.
+
+NoValue:												equ	-$01		; Loads the no-value sentinel used for the Quickstart follower position bytes.
+
 Object_AceOfSwords:										equ	$37			; Assigns the Ace of Swords to Zendik.
 Object_Armour_First:									equ	$1B			; First body-armour object and exclusive end of potions.
 Object_Arrows_First:									equ	$03			; First arrow object code.
@@ -529,6 +534,8 @@ PackedMonster_TypeShift:								equ	$04			; Extracts the packed monster type nib
 PackedMonster_XCoordinateOffset:						equ	$01			; Packed monster X coordinate.
 PackedMonster_YCoordinateOffset:						equ	$02			; Packed monster Y coordinate.
 
+PartyCommandState_ShowTeamAvatars:						equ	$FFFF		; Selects the negative party-command state used to draw the team-avatar view.
+
 PartyPresentation_LowerFirstY:							equ	$37			; First player-local Y coordinate of the lower party-shield click rows.
 PartyPresentation_LowerSlotMask:						equ	$0E			; Mask for the three lower party-shield presentation bits in PlayerX_Data+$003E.
 PartyPresentation_StatsXFirst:							equ	$30			; First X coordinate of the compact-statistics area that requests party commands.
@@ -554,8 +561,6 @@ PhysicalAttack_WeaponRandomRangeOffset:					equ	$06			; High-byte offset of the 
 
 PlanarColourMask_IndexMask:								equ	$0C			; Mask converting a two-bit destination colour value into a longword mask-table offset.
 
-Player_ActionInvalid:									equ	$FFFF		; Value meaning no active action.
-
 Player1_CompactStatsColourIndex:						equ	$07			; The compact Player 1 statistics bars use hard-coded palette index $07.
 
 Player2_CompactStatsColourIndex:						equ	$0C			; The compact Player 2 statistics bars use hard-coded palette index $0C.
@@ -566,6 +571,7 @@ PlayerData_ChampionSlots_AwayBit:						equ	$05			; Champion-slot bit marking an 
 PlayerData_ChampionSlots_ChampionMask:					equ	$0F			; Mask selecting the champion index from a PlayerData champion-slot byte.
 PlayerData_ChampionSlots_CorrectedBit:					equ	$04			; Champion-slot bit set by Correct and for the directly controlled champion; defence selection consumes it.
 PlayerData_ChampionSlots_DeadBit:						equ	$06			; Champion-slot bit marking a dead champion.
+PlayerData_ChampionSlots_DeadMask:						equ	$40			; Uses an indexed byte in the four-entry champion ownership/state array.
 PlayerData_ChampionSlots_DeadOrEmptyMask:				equ	$C0			; Mask selecting the dead and empty flags in a PlayerData champion-slot byte.
 PlayerData_ChampionSlots_EmptyBit:						equ	$07			; Champion-slot bit marking an empty slot.
 PlayerData_ChampionSlots_InactiveMask:					equ	$E0			; Mask selecting the away, dead and empty flags in a PlayerData champion-slot byte.
@@ -643,7 +649,10 @@ PocketGraphic_WornHandArmourBase:						equ	$1A			; First Pockets graphic used to
 PowerStaff_SpellCastingBonus:							equ	$05			; Spell-casting quality bonus supplied by a held Power Staff.
 
 Quickstart_Player1ChampionRoster:						equ	$000E0503	; Packed Quickstart roster for Player 1: Blodwyn, Hengist, Zothen and Rosanne.
+Quickstart_Player1XPosition:							equ	$0C			; Stores Player 1's authored Quickstart X coordinate in the lead champion record.
 Quickstart_Player2ChampionRoster:						equ	$04060D0F	; Packed Quickstart roster for Player 2: Astroth, Baldrick, Zastaph and Thai Chang.
+Quickstart_Player2XPosition:							equ	$0E			; Stores Player 2's authored Quickstart X coordinate in the lead champion record.
+Quickstart_YPosition:									equ	$17			; Stores the shared authored Quickstart Y coordinate in the lead champion record.
 
 Recharge_PowerShift:									equ	$03			; Right shift converting spell power into replacement magic-ring uses.
 

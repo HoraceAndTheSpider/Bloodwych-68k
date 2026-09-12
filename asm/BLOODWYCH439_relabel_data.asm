@@ -363,13 +363,13 @@ QkPly1_Start:
 	move.l	PlayerData_ChampionSlotsOffset(a5),PlayerData_FormationSlotsOffset(a5)
 	clr.w	PlayerData_CurrentChampionNumber(a5)
 	lea		Character_Stats_DataTable.l,a0
-	move.b	#$0C,ChampionStat_XPosition(a0)
-	move.b	#$17,ChampionStat_YPosition(a0)
+	move.b	#Quickstart_Player1XPosition,ChampionStat_XPosition(a0)
+	move.b	#Quickstart_YPosition,ChampionStat_YPosition(a0)
 	clr.b	ChampionStat_Direction(a0)											;Sets the selected Quickstart lead champion's saved direction to North before its start position is transferred to the player record.
-	moveq	#-$01,d0
-	move.b	d0,ChampionIndex_Hengist*ChampionStat_RecordSize+ChampionStat_XPosition(a0)	;Sets Hengist's ChampionStat_XPosition to $FF so the Quickstart follower has no independent saved map position.
-	move.b	d0,ChampionIndex_Zothen*ChampionStat_RecordSize+ChampionStat_XPosition(a0)	;Sets Zothen's ChampionStat_XPosition to $FF so the Quickstart follower has no independent saved map position.
-	move.b	d0,ChampionIndex_Rosanne*ChampionStat_RecordSize+ChampionStat_XPosition(a0)	;Sets Rosanne's ChampionStat_XPosition to $FF so the Quickstart follower has no independent saved map position.
+	moveq	#NoValue,d0															;Load the signed-byte form of None_Byte for the Quickstart follower records.
+	move.b	d0,ChampionIndex_Hengist*ChampionStat_RecordSize+ChampionStat_XPosition(a0)	;Sets Hengist's ChampionStat_XPosition to None_Byte ($FF) so the Quickstart follower has no independent saved map position.
+	move.b	d0,ChampionIndex_Zothen*ChampionStat_RecordSize+ChampionStat_XPosition(a0)	;Sets Zothen's ChampionStat_XPosition to None_Byte ($FF) so the Quickstart follower has no independent saved map position.
+	move.b	d0,ChampionIndex_Rosanne*ChampionStat_RecordSize+ChampionStat_XPosition(a0)	;Sets Rosanne's ChampionStat_XPosition to None_Byte ($FF) so the Quickstart follower has no independent saved map position.
 	rts		
 
 QkPly2_Start:
@@ -379,13 +379,13 @@ QkPly2_Start:
 	move.l	#Quickstart_Player2ChampionRoster,Player2_ChampionRosterShadowCopy.l
 	move.w	#ChampionIndex_Astroth,Player2_CurrentChampionNumber.l
 	lea		Character_Stats_DataTable+$80.l,a0
-	move.b	#$0E,ChampionStat_XPosition(a0)
-	move.b	#$17,ChampionStat_YPosition(a0)
+	move.b	#Quickstart_Player2XPosition,ChampionStat_XPosition(a0)
+	move.b	#Quickstart_YPosition,ChampionStat_YPosition(a0)
 	clr.b	ChampionStat_Direction(a0)
-	moveq	#-$01,d0
-	move.b	d0,(ChampionIndex_Baldrick-ChampionIndex_Astroth)*ChampionStat_RecordSize+ChampionStat_XPosition(a0)	;Sets Baldrick's ChampionStat_XPosition to $FF so the Quickstart follower has no independent saved map position.
-	move.b	d0,(ChampionIndex_Zastaph-ChampionIndex_Astroth)*ChampionStat_RecordSize+ChampionStat_XPosition(a0)	;Sets Zastaph's ChampionStat_XPosition to $FF so the Quickstart follower has no independent saved map position.
-	move.b	d0,(ChampionIndex_ThaiChang-ChampionIndex_Astroth)*ChampionStat_RecordSize+ChampionStat_XPosition(a0)	;Sets Thai Chang's ChampionStat_XPosition to $FF so the Quickstart follower has no independent saved map position.
+	moveq	#NoValue,d0															;Load the signed-byte form of None_Byte for the Quickstart follower records.
+	move.b	d0,(ChampionIndex_Baldrick-ChampionIndex_Astroth)*ChampionStat_RecordSize+ChampionStat_XPosition(a0)	;Sets Baldrick's ChampionStat_XPosition to None_Byte ($FF) so the Quickstart follower has no independent saved map position.
+	move.b	d0,(ChampionIndex_Zastaph-ChampionIndex_Astroth)*ChampionStat_RecordSize+ChampionStat_XPosition(a0)	;Sets Zastaph's ChampionStat_XPosition to None_Byte ($FF) so the Quickstart follower has no independent saved map position.
+	move.b	d0,(ChampionIndex_ThaiChang-ChampionIndex_Astroth)*ChampionStat_RecordSize+ChampionStat_XPosition(a0)	;Sets Thai Chang's ChampionStat_XPosition to None_Byte ($FF) so the Quickstart follower has no independent saved map position.
 	rts		
 
 Init_BitReverseTableAndSpellPracticeData:		; Memory Address ($08C4) and binary offset [$0540]
@@ -535,7 +535,7 @@ PrepareCharacters:
 PrepareCharacters_ChampionLoop:
 	; Processes the sixteen champion records in table order.
 	clr.b	ChampionStat_WornSpell(a4)											;Clears the champion's currently worn spell so no spell remains equipped at tower start.
-	move.b	#$FF,ChampionStat_SpellToCast(a4)									;Sets the spell-to-cast field to $FF, meaning that no spell-casting request is pending.
+	move.b	#None_Byte,ChampionStat_SpellToCast(a4)								;Sets the spell-to-cast field to $FF, meaning that no spell-casting request is pending.
 	clr.b	ChampionStat_FairySpellCount(a4)									;Clears the fairy-spell purchase count so tower-start setup begins with no queued purchases.
 	clr.b	ChampionStat_ActionState(a4)										;Clears the champion's physical-attack cooldown before play begins.
 	move.b	#$FF,ChampionStat_XPToNextLevel(a4)									;Sets the experience threshold field to $FF, the start-of-game sentinel for experience-to-next-level handling.
@@ -562,7 +562,7 @@ UnpackTowerMonsters:		; Memory Address ($09F6) and binary offset [$0672]
 	; into live records.
 	bsr		Mark_CurrentTowerTrapCells											;Initialises the trap-processing state before monster placement changes the current tower map.
 	lea		MonsterTeamIndexTable.l,a4											;Loads a4 with the monster team-index table, whose entries point from team slots to live monster records.
-	moveq	#-$01,d6															;Creates the $FF empty/sentinel value used to clear team data and mark missing entries.
+	moveq	#NoValue,d6															;Creates the $FF empty/sentinel value used to clear team data and mark missing entries.
 	move.w	d6,MonsterTeamIndexTable_CountOffset(a4)							;Sets the last team-row index to $FFFF: no teams yet.
 	moveq	#MonsterTeamIndexTable_LongwordCount-1,d0							;Sets the team-table clearing loop to cover all twenty-five four-member team records.
 .ClearMonsterTeamIndexLoop:		; Memory Address ($0A08) and binary offset [$0684]
@@ -699,10 +699,10 @@ TransferChampionStartPosition:		; Memory Address ($0B32) and binary offset [$07A
 	moveq	#$00,d0																;Clears d0 before reading the saved champion X coordinate.
 	move.b	ChampionStat_XPosition(a4),d0										;Loads the saved champion X coordinate for transfer into the active player position.
 	bmi.s	.NoChampionStartPosition											;Returns without copying a position when X is negative, the no-start-position sentinel.
-	move.b	#$FF,ChampionStat_XPosition(a4)										;Marks the champion's saved X coordinate consumed so it cannot be reused on the next transfer.
+	move.b	#None_Byte,ChampionStat_XPosition(a4)								;Marks the champion's saved X coordinate consumed so it cannot be reused on the next transfer.
 	move.w	d0,PlayerData_XPosition(a5)											;Copies the X coordinate into the active player record's start-position word at offset $1C.
 	move.b	ChampionStat_YPosition(a4),d0										;Loads the saved champion Y coordinate into d0.
-	move.b	#$FF,ChampionStat_YPosition(a4)										;Marks the champion's saved Y coordinate consumed after it has been selected.
+	move.b	#None_Byte,ChampionStat_YPosition(a4)								;Marks the champion's saved Y coordinate consumed after it has been selected.
 	move.w	d0,PlayerData_YPosition(a5)											;Copies the Y coordinate into the active player record's start-position word at offset $1E.
 	move.b	ChampionStat_Direction(a4),d0										;Loads the champion's saved facing/direction byte.
 	move.w	d0,PlayerData_Direction(a5)											;Copies the direction into the active player record's orientation field at offset $20.
@@ -755,7 +755,7 @@ InitialiseActivePlayerData:		; Memory Address ($0BA6) and binary offset [$0822]
 	tst.w	MultiPlayer.l														;Checks whether the session is running in multiplayer mode.
 	beq.s	InitialisePlayer2Data												;Takes the single-player path into the shared second-player/default setup block.
 	move.w	#$8223,PlayerData_MouseYClampBounds(a5)								;Replaces the first player's control state with the multiplayer configuration.
-	move.l	#$FFFFFFFF,Player2_ChampionPointer.l								;Invalidates the second player's champion pointer until multiplayer selection supplies it.
+	move.l	#None_Long,Player2_ChampionPointer.l								;Marks all four Player 2 champion slots empty until multiplayer selection supplies a roster.
 	move.w	#$0027,PlayerData_InterfacePanelYOffset(a5)							;Initialises the first player's multiplayer start-position word.
 	move.w	#$0618,PlayerData_InterfaceScreenBufferOffset(a5)					;Initialises the first player's multiplayer map/viewport word.
 	clr.l	Player2_MousePosition.l												;Clears the shared second-player/session scratch longword.
@@ -773,9 +773,9 @@ InitialisePlayer2Data:		; Memory Address ($0BF6) and binary offset [$0872]
 InitialisePlayerDataLoop:		; Memory Address ($0C18) and binary offset [$0894]
 	; Initialises each active player structure and transfers its saved champion
 	; start position.
-	clr.w	$0014(a5)															;Clears the active player's transient action/state word before input processing begins.
-	move.w	#$FFFF,PlayerData_PartyCommandState(a5)								;Initialises the party-command/interface state word to $FFFF, meaning no numbered command state is active.
-	move.w	#$FFFF,PlayerData_PartyCommandSelection(a5)							;Sets the command-type/state word to $FFFF, meaning no command is pending.
+	clr.w	PlayerData_InterfaceContextState(a5)								;Clears the interface context byte and the adjacent panel-mode byte before input processing begins.
+	move.w	#None_Word,PlayerData_PartyCommandState(a5)							;Initialises the party-command/interface state word to $FFFF, meaning no numbered command state is active.
+	move.w	#None_Word,PlayerData_PartyCommandSelection(a5)						;Sets the command-type/state word to $FFFF, meaning no command is pending.
 	bsr		TransferChampionStartPosition										;Transfers the active player's saved champion start position into the player record.
 	bset	#PlayerData_ChampionSlots_CorrectedBit,PlayerData_ChampionSlotsOffset(a5)	;Sets the active-player flag bit used to mark the player record as initialised/available.
 	lea		Player1_Data.l,a5													;Resets a5 to Player1_Data so the next loop iteration starts from the first player record.
@@ -827,8 +827,8 @@ NoChampions_DelayAndFallbackToLoadGame:		; Memory Address ($0CC2) and binary off
 DBFWait1b:		; Memory Address ($0CCA) and binary offset [$0946]
 	dbra	d1,DBFWait1b
 	dbra	d0,DBFWait1b
-	move.l	#$FFFFFFFF,Player1_ShieldHighlightCountdowns.l
-	move.l	#$FFFFFFFF,Player2_ShieldHighlightCountdowns.l
+	move.l	#None_Long,Player1_ShieldHighlightCountdowns.l
+	move.l	#None_Long,Player2_ShieldHighlightCountdowns.l
 	clr.w	FrameSyncFlag.l
 	bsr		Draw_InitialGameInterface
 	clr.w	FrameSyncFlag.l
@@ -984,7 +984,7 @@ Update_ChampionStatRegeneration:		; Memory Address ($0E34) and binary offset [$0
 	bsr		Find_ChampionOwner
 	tst.w	d1
 	bmi.s	Update_ChampionSpellPoints
-	btst	#$06,$18(a5,d1.w)
+	btst	#PlayerData_ChampionSlots_DeadBit,PlayerData_ChampionSlotsOffset(a5,d1.w)
 	beq.s	Update_ChampionSpellPoints
 	movem.l	(sp)+,d0/d1/d7/a5
 	rts		
@@ -1100,7 +1100,7 @@ Drain_PartyFoodLevel:		; Memory Address ($0F3E) and binary offset [$0BBA]
 	moveq	#$00,d6
 	moveq	#$03,d7
 DrainPartyFoodLevel_SlotLoop:		; Memory Address ($0F4C) and binary offset [$0BC8]
-	move.b	$18(a5,d7.w),d0
+	move.b	PlayerData_ChampionSlotsOffset(a5,d7.w),d0
 	bmi.s	DrainPartyFoodLevel_SlotLoopTail
 	btst	#$06,d0
 	bne.s	DrainPartyFoodLevel_SlotLoopTail
@@ -1109,7 +1109,7 @@ DrainPartyFoodLevel_SlotLoop:		; Memory Address ($0F4C) and binary offset [$0BC8
 	bsr		Load_ChampionStatRecord
 	btst	#$02,(a5)
 	bne.s	Process_ChampionWornSpellTimer
-	btst	#$06,$18(a5,d7.w)
+	btst	#PlayerData_ChampionSlots_DeadBit,PlayerData_ChampionSlotsOffset(a5,d7.w)
 	bne.s	Process_ChampionWornSpellTimer
 	cmpi.b	#$0B,d1
 	beq.s	Process_ChampionWornSpellTimer
@@ -1172,7 +1172,7 @@ FloorTrigger_Handler:		; Memory Address ($0FDC) and binary offset [$0C58]
 	bsr		ForwardCellToMapOffset
 	move.w	$00(a6,d0.w),d1
 	and.w	#MapCell_TypeMask,d1
-	subq.w	#MapCell_Type_Bed,d1												;Select map type 3; the following zero-subtype test confirms that the forward cell is a bed.
+	subq.w	#MapCell_Type_Miscellaneous,d1										;Select map type 3; the following zero-subtype test confirms that the forward cell is a bed.
 	bne.s	FloorTriggerHandler_InitSlotLoop
 	tst.b	$00(a6,d0.w)														;Require subtype/value zero as well as regeneration cell type three.
 	bne.s	FloorTriggerHandler_InitSlotLoop
@@ -1483,10 +1483,10 @@ ChampionCooldown_ScanLoop:		; Memory Address ($1308) and binary offset [$0F84]
 	moveq	#$16,d4
 	bsr		Update_CharacterCooldownIfCurrentTower
 ChampionCooldown_ScanContinue:		; Memory Address ($1320) and binary offset [$0F9C]
-	add.w	#$0020,a4
+	add.w	#ChampionStat_RecordSize,a4											;Advance to the next 32-byte champion-stat record.
 	move.w	(sp)+,d7
 	addq.w	#$01,d7
-	cmpi.w	#$0010,d7
+	cmpi.w	#Champion_Count,d7													;Stop after scanning all sixteen champion records.
 	bcs.s	ChampionCooldown_ScanLoop
 	lea		UnpackedMonsters.l,a4
 	move.w	-$0002(a4),d7
@@ -1838,7 +1838,7 @@ AttackType_ArcBoltMachine:		; Memory Address ($1664) and binary offset [$12E0]
 AttackType_NoSpells:		; Memory Address ($166A) and binary offset [$12E6]
 	; Begins pursuit logic by measuring the monster against the first fixed player
 	; origin when the floor matches.
-	moveq	#-$01,d2															;Initialises the first fixed-origin distance as unavailable.
+	moveq	#NoValue,d2															;Initialises the first fixed-origin distance as unavailable.
 	move.b	ActorRecord_Floor(a4),d1
 	cmp.b	AttackTypeNoSpells_FixedOriginFormCode.l,d1
 	bne.s	Check_SecondFixedMonsterOrigin
@@ -2341,7 +2341,7 @@ Handle_MonsterMovementBlocked:		; Memory Address ($1AF0) and binary offset [$176
 	sub.l	#Character_Stats_DataTable,d0
 	lsr.w	#$05,d0
 	bsr		Find_ChampionInPlayerSlots
-	bclr	#$05,$18(a5,d1.w)
+	bclr	#PlayerData_ChampionSlots_AwayBit,PlayerData_ChampionSlotsOffset(a5,d1.w)
 	move.b	d0,$0034(a5)
 	cmp.b	$0053(a5),d0
 	bne.s	Find_FreePartyAvatarSlot
@@ -2359,7 +2359,7 @@ Store_SeparatedChampion:		; Memory Address ($1B68) and binary offset [$17E4]
 	; Stores the separated champion index and removes its current live actor
 	; record.
 	move.b	d0,$26(a5,d7.w)
-	move.b	#$FF,$0016(a4)
+	move.b	#None_Byte,ChampionStat_XPosition(a4)
 	rts		
 
 Handle_BlockedMonsterAtDoor:		; Memory Address ($1B74) and binary offset [$17F0]
@@ -2760,7 +2760,7 @@ SpelltapEffect_ApplyToWholeParty_Begin:		; Memory Address ($1F0C) and binary off
 	jsr		PlaySound.l
 SpelltapEffect_PartyMemberLoop:		; Memory Address ($1F16) and binary offset [$1B92]
 	moveq	#$00,d0
-	move.b	$18(a1,d7.w),d0
+	move.b	PlayerData_ChampionSlotsOffset(a1,d7.w),d0
 	move.w	d0,d1
 	and.w	#$00E0,d0
 	bne.s	SpelltapEffect_PartyLoopIterationEnd
@@ -2828,7 +2828,7 @@ ParalyzeEffect_ApplyToWholeParty_Begin:		; Memory Address ($1FA2) and binary off
 	jsr		PlaySound.l
 ParalyzeWholeParty_LoopHead:		; Memory Address ($1FAC) and binary offset [$1C28]
 	moveq	#$00,d0
-	move.b	$18(a1,d7.w),d0
+	move.b	PlayerData_ChampionSlotsOffset(a1,d7.w),d0
 	move.w	d0,d1
 	and.w	#$00E0,d0
 	bne.s	ParalyzeWholeParty_LoopSkipSlot
@@ -2907,10 +2907,10 @@ Seed_DisruptDamage_PartyEntry:		; Memory Address ($204A) and binary offset [$1CC
 	moveq	#$03,d7
 Seed_DisruptDamage_PartyLoopHead:		; Memory Address ($2060) and binary offset [$1CDC]
 	moveq	#$00,d0
-	move.b	$18(a1,d7.w),d0
+	move.b	PlayerData_ChampionSlotsOffset(a1,d7.w),d0
 	and.w	#$00E0,d0
 	bne.s	Seed_DisruptDamage_PartyLoopSkip
-	move.b	$18(a1,d7.w),d0
+	move.b	PlayerData_ChampionSlotsOffset(a1,d7.w),d0
 	bsr		Load_ChampionStatRecord
 	move.b	ChampionStat_HitPointsCurrent(a4),$00(a0,d7.w)
 	addq.b	#$01,$00(a0,d7.w)
@@ -3047,7 +3047,7 @@ Run_AntimageResistancePass:		; Memory Address ($216A) and binary offset [$1DE6]
 	clr.w	d5
 	moveq	#$03,d7
 Run_AntimageResistancePass_LoopHead:		; Memory Address ($2176) and binary offset [$1DF2]
-	move.b	$18(a1,d7.w),d0
+	move.b	PlayerData_ChampionSlotsOffset(a1,d7.w),d0
 	bsr		Load_ChampionStatRecord
 	move.b	$00(a0,d7.w),d5
 	exg		a1,a4
@@ -3109,10 +3109,10 @@ KillExperience_OwnerPartyXPEntry:		; Memory Address ($21EC) and binary offset [$
 	and.w	#$007F,d1
 	moveq	#$03,d7
 KillExperience_OwnerPartyXPLoopHead:		; Memory Address ($2214) and binary offset [$1E90]
-	move.b	$18(a2,d7.w),d0
+	move.b	PlayerData_ChampionSlotsOffset(a2,d7.w),d0
 	and.w	#$00E0,d0
 	bne.s	KillExperience_OwnerPartyXPLoopSkip
-	move.b	$18(a2,d7.w),d0
+	move.b	PlayerData_ChampionSlotsOffset(a2,d7.w),d0
 	bsr		Load_ChampionStatRecord
 	move.b	ChampionStat_LevelProgress(a4),d0
 	cmpi.b	#$EC,d0
@@ -3366,7 +3366,7 @@ Apply_StandingChampionDeath:		; Memory Address ($2430) and binary offset [$20AC]
 	bsr		Find_ChampionOwner
 	tst.w	d1
 	bmi.s	ChampionDeath_FinalizeAndDropRemains
-	bset	#$06,$18(a5,d1.w)
+	bset	#PlayerData_ChampionSlots_DeadBit,PlayerData_ChampionSlotsOffset(a5,d1.w)
 	tst.w	$0042(a5)
 	bpl.s	ChampionDeath_FinalizeAndDropRemains
 	movem.l	d4/a1,-(sp)
@@ -3376,7 +3376,7 @@ Apply_StandingChampionDeath:		; Memory Address ($2430) and binary offset [$20AC]
 	movem.l	(sp)+,d4/a1
 ChampionDeath_FinalizeAndDropRemains:		; Memory Address ($2460) and binary offset [$20DC]
 	move.l	(sp)+,a5
-	move.b	#$FF,$0016(a1)
+	move.b	#None_Byte,ChampionStat_XPosition(a1)
 	move.l	Current_TowerMapDataBase.l,a6
 	move.w	d4,d0
 	bclr	#$07,$01(a6,d0.w)
@@ -3393,7 +3393,7 @@ Apply_PartyDamage:		; Memory Address ($248C) and binary offset [$2108]
 	or.b	#$0F,$003E(a1)
 	bclr	#$02,(a1)
 	beq.s	PartyDamage_AntimageResistanceCheck
-	clr.w	$0014(a1)
+	clr.w	PlayerData_InterfaceContextState(a1)
 PartyDamage_AntimageResistanceCheck:		; Memory Address ($249C) and binary offset [$2118]
 	tst.l	d5
 	bpl.s	PartyDamage_FormationLoopSetup
@@ -3403,7 +3403,7 @@ PartyDamage_FormationLoopSetup:		; Memory Address ($24A6) and binary offset [$21
 	moveq	#$03,d1
 	lea		FormationSlot_ScratchBytes.l,a0
 PartyDamage_FormationLoopHead:		; Memory Address ($24AE) and binary offset [$212A]
-	move.b	$18(a1,d1.w),d0
+	move.b	PlayerData_ChampionSlotsOffset(a1,d1.w),d0
 	and.w	#$00E0,d0
 	beq.s	ApplyPartyDamage_DamageSlotAndFlagDeath
 	clr.b	$00(a0,d1.w)
@@ -3413,14 +3413,14 @@ ApplyPartyDamage_DamageSlotAndFlagDeath:		; Memory Address ($24BE) and binary of
 	; Marks an in-party champion dead after HP underflow, clears worn and selected
 	; spells, leaves the champion record available to the party, and plays the
 	; character-death sound.
-	move.b	$18(a1,d1.w),d0
+	move.b	PlayerData_ChampionSlotsOffset(a1,d1.w),d0
 	bsr		Load_ChampionStatRecord
 	move.b	$0005(a4),d0
 	sub.b	$00(a0,d1.w),d0
 	bcc.s	ApplyPartyDamage_StoreSlotHP
-	or.b	#$40,$18(a1,d1.w)
+	or.b	#PlayerData_ChampionSlots_DeadMask,PlayerData_ChampionSlotsOffset(a1,d1.w)
 	clr.b	$0011(a4)
-	move.b	#$FF,$0013(a4)
+	move.b	#None_Byte,ChampionStat_SpellToCast(a4)
 	move.l	a0,-(sp)
 	moveq	#Sound_CharacterDeath,d0
 	jsr		PlaySound.l
@@ -3434,7 +3434,7 @@ ApplyPartyDamage_SlotLoopTail:		; Memory Address ($24F2) and binary offset [$216
 	move.l	a1,a5
 	moveq	#$03,d1
 PartyDamage_ClearDeadMemberSlotLoop:		; Memory Address ($24FC) and binary offset [$2178]
-	move.b	$18(a5,d1.w),d0
+	move.b	PlayerData_ChampionSlotsOffset(a5,d1.w),d0
 	bmi.s	Advance_DepartedChampionSlotScan
 	btst	#$06,d0
 	beq.s	Advance_DepartedChampionSlotScan
@@ -3444,7 +3444,7 @@ PartyDamage_ClearDeadMemberSlotLoop:		; Memory Address ($24FC) and binary offset
 	bsr		Find_ChampionFormationSlot
 	tst.w	d2
 	bmi.s	Advance_DepartedChampionSlotScan
-	move.b	#$FF,$26(a5,d2.w)
+	move.b	#None_Byte,PlayerData_FormationSlotsOffset(a5,d2.w)
 Advance_DepartedChampionSlotScan:		; Memory Address ($2520) and binary offset [$219C]
 	; Advances the scan that marks champion slots affected by party-member
 	; departure.
@@ -3460,12 +3460,12 @@ Choose_DepartedChampionReplacement:		; Memory Address ($2534) and binary offset 
 	moveq	#$00,d0
 Find_ActiveChampionReplacementLoop:		; Memory Address ($2538) and binary offset [$21B4]
 	; Scans the four party slots for an eligible replacement active champion.
-	move.b	$18(a5,d1.w),d0
+	move.b	PlayerData_ChampionSlotsOffset(a5,d1.w),d0
 	and.w	#$00E0,d0
 	bne.s	Advance_ActiveChampionReplacementCandidate
-	move.b	$18(a5,d1.w),d0
+	move.b	PlayerData_ChampionSlotsOffset(a5,d1.w),d0
 	and.w	#$000F,d0
-	move.b	$0018(a5),$18(a5,d1.w)
+	move.b	PlayerData_ChampionSlotsOffset(a5),PlayerData_ChampionSlotsOffset(a5,d1.w)
 	move.b	d0,$0018(a5)
 	bset	#$04,$0018(a5)
 	move.w	d0,$0006(a5)
@@ -3490,7 +3490,7 @@ Advance_ActiveChampionReplacementCandidate:		; Memory Address ($2576) and binary
 	and.b	#$01,(a5)
 	moveq	#$03,d1
 AdjustInventoryIndex_FindLeaderCandidateLoop:		; Memory Address ($2584) and binary offset [$2200]
-	move.b	$18(a5,d1.w),d0
+	move.b	PlayerData_ChampionSlotsOffset(a5,d1.w),d0
 	btst	#$05,d0
 	beq.s	Continue_DepartedChampionSelectionScan
 	btst	#$06,d0
@@ -3503,7 +3503,7 @@ Continue_DepartedChampionSelectionScan:		; Memory Address ($2594) and binary off
 Install_ActiveChampionReplacement:		; Memory Address ($259A) and binary offset [$2216]
 	; Moves the selected champion into the active slot and transfers the associated
 	; party state.
-	move.b	$0018(a5),$18(a5,d1.w)
+	move.b	PlayerData_ChampionSlotsOffset(a5),PlayerData_ChampionSlotsOffset(a5,d1.w)
 	move.b	d0,$0018(a5)
 	bset	#$04,$0018(a5)
 	and.w	#$000F,d0
@@ -3516,7 +3516,7 @@ Install_ActiveChampionReplacement:		; Memory Address ($259A) and binary offset [
 	move.b	$0017(a4),$001F(a5)
 	move.b	$001A(a4),$0059(a5)
 	move.b	$0018(a4),$0021(a5)
-	move.b	#$FF,$0016(a4)
+	move.b	#None_Byte,ChampionStat_XPosition(a4)
 	move.b	$0018(a5),$0026(a5)
 	and.b	#$0F,$0026(a5)
 	bra.s	Reset_DepartedPartyState
@@ -3531,15 +3531,15 @@ Handle_NoActiveChampionReplacement:		; Memory Address ($25EE) and binary offset 
 Reset_DepartedPartyState:		; Memory Address ($25FE) and binary offset [$227A]
 	; Clears transient party selection and interface state after departure
 	; handling.
-	clr.w	$0014(a5)
+	clr.w	PlayerData_InterfaceContextState(a5)
 	clr.b	$003E(a5)
 	bsr		Draw_ChampionNamePanelFrame
 Finalise_DepartedPartyUpdate:		; Memory Address ($260A) and binary offset [$2286]
 	; Resets selection words, redraws the interface and updates party hit-number
 	; displays.
-	move.w	#$FFFF,$0042(a5)
-	move.w	#$FFFF,$0040(a5)
-	move.b	#$FF,$0035(a5)
+	move.w	#None_Word,PlayerData_PartyCommandState(a5)
+	move.w	#None_Word,PlayerData_PartyCommandSelection(a5)
+	move.b	#None_Byte,PlayerData_EngagedActorIndex(a5)
 	bsr		Refresh_DirtyPartyShieldSlots
 	bsr		Loop_TeamAvatarSlots
 	move.l	(sp)+,a5
@@ -3554,9 +3554,9 @@ Externalise_WipedParty_Remains:		; Memory Address ($2628) and binary offset [$22
 Externalise_WipedParty_SlotLoop:		; Memory Address ($2634) and binary offset [$22B0]
 	moveq	#$01,d5
 	swap	d5
-	move.b	$18(a5,d1.w),d5
+	move.b	PlayerData_ChampionSlotsOffset(a5,d1.w),d5
 	bmi.s	Advance_RemainsExternalisationLoop
-	bset	#$05,$18(a5,d1.w)
+	bset	#PlayerData_ChampionSlots_AwayBit,PlayerData_ChampionSlotsOffset(a5,d1.w)
 	bne.s	Advance_RemainsExternalisationLoop
 	and.w	#$000F,d5
 	add.w	#$0040,d5
@@ -3574,7 +3574,7 @@ Loop_TeamAvatarSlots:		; Memory Address ($2662) and binary offset [$22DE]
 	; flagged slots.
 	moveq	#$03,d7
 TeamAvatarSlots_ScanFlagLoop:		; Memory Address ($2664) and binary offset [$22E0]
-	move.b	$18(a5,d7.w),d0
+	move.b	PlayerData_ChampionSlotsOffset(a5,d7.w),d0
 	bmi.s	Advance_PartyHitNumberLoop
 	moveq	#$00,d0
 	move.b	FormationSlot_ScratchBytes(pc,d7.w),d0
@@ -3783,7 +3783,7 @@ Adjust_PlayerTargetIndexAfterRemoval:		; Memory Address ($282C) and binary offse
 	bmi.s	MonsterRemoval_SharedReturn
 	cmp.b	$0035(a0),d0
 	bne.s	AdjustPlayerTargetIndex_DecrementIfLater
-	move.b	#$FF,$0035(a0)
+	move.b	#None_Byte,PlayerData_EngagedActorIndex(a0)
 	rts		
 
 AdjustPlayerTargetIndex_DecrementIfLater:		; Memory Address ($2840) and binary offset [$24BC]
@@ -3874,11 +3874,11 @@ Run_PlayerPeriodicMaintenance:		; Memory Address ($2904) and binary offset [$258
 PlayerSpellBarTick_SkipCastBarDraw:		; Memory Address ($291A) and binary offset [$2596]
 	bsr		Select_ActivePlayerFloorMap
 	bsr		Comms_RunPeriodicTickIfActive
-	move.b	#$FF,$0034(a5)
+	move.b	#None_Byte,PlayerData_RejoinedChampionNoticeId(a5)
 	moveq	#$03,d7
 PlayerSpellBarTick_MemberLoop:		; Memory Address ($292A) and binary offset [$25A6]
 	moveq	#$00,d0
-	move.b	$18(a5,d7.w),d0
+	move.b	PlayerData_ChampionSlotsOffset(a5,d7.w),d0
 	move.w	d0,d3
 	and.w	#$000F,d3
 	and.w	#$00E0,d0
@@ -4336,7 +4336,7 @@ Comms_Respond_RecruitSuccess:		; Memory Address ($2D3A) and binary offset [$29B6
 	; occupancy, and assigns the champion to the caller's ownership and formation
 	; arrays.
 	bsr		Find_FreeOwnershipSlot
-	tst.b	$18(a5,d1.w)
+	tst.b	PlayerData_ChampionSlotsOffset(a5,d1.w)
 	bpl.s	Comms_Respond_RecruitPartyFull
 	lea		NumericMessageScratchBuffer.l,a6
 	move.w	#$45FF,(a6)
@@ -4349,11 +4349,11 @@ Comms_Respond_RecruitSuccess:		; Memory Address ($2D3A) and binary offset [$29B6
 	move.b	$0016(a4),d7
 	swap	d7
 	move.b	$0017(a4),d7
-	move.b	#$FF,$0016(a4)
+	move.b	#None_Byte,ChampionStat_XPosition(a4)
 	bsr		CoordToMap
 	bclr	#$07,$01(a6,d0.w)
 	bsr		Find_FreeOwnershipSlot
-	move.b	d2,$18(a5,d1.w)
+	move.b	d2,PlayerData_ChampionSlotsOffset(a5,d1.w)
 	moveq	#$03,d0
 CommsRecruit_FindFreeSlotLoop:		; Memory Address ($2D88) and binary offset [$2A04]
 	; Scans formation slots 3 down to 0 for a vacant entry to receive a newly
@@ -4949,8 +4949,8 @@ ShowTeamAvatars_CheckCommandState:		; Memory Address ($32F4) and binary offset [
 	beq.s	CommsWait_CheckCounterThreshold
 	tst.w	$0042(a5)
 	bne.s	Reset_PartyCommandStateAndRedrawMenu
-	move.w	#$FFFF,$0042(a5)													;Enters the negative team-avatar state consumed by Draw_PartyCommandInterface; the dirty slot renderer then uses each selected-slot bit to choose full-length drawing.
-	move.w	#$FFFF,$0040(a5)
+	move.w	#PartyCommandState_ShowTeamAvatars,PlayerData_PartyCommandState(a5)
+	move.w	#None_Word,PlayerData_PartyCommandSelection(a5)
 	bra		Draw_PartyCommandInterface
 
 CommsWait_CheckCounterThreshold:		; Memory Address ($3312) and binary offset [$2F8E]
@@ -4969,7 +4969,7 @@ Reset_PartyCommandStateAndRedrawMenu:		; Memory Address ($332A) and binary offse
 	; restoring the command-menu graphics.
 	clr.w	$0042(a5)
 	clr.w	$0044(a5)
-	move.b	#$FF,$0035(a5)
+	move.b	#None_Byte,PlayerData_EngagedActorIndex(a5)
 Draw_BlankCommandIconsAndMenu:		; Memory Address ($3338) and binary offset [$2FB4]
 	; Draws the two blank command-panel icons and returns to the root party-command
 	; menu.
@@ -6179,7 +6179,7 @@ Interface_FinalizeSelectedWorldAction:		; Memory Address ($3F9C) and binary offs
 	bsr		Find_FreeOwnershipSlot
 	move.b	$004F(a5),d0
 	bset	#$05,d0																;Marks a Wait target as waiting so View can select that party member later.
-	move.b	d0,$18(a5,d1.w)
+	move.b	d0,PlayerData_ChampionSlotsOffset(a5,d1.w)
 	lea		Notice_Wait_PartyMemberWaits.l,a6
 FinalizeWorldAction_PatchNoticeChampion:		; Memory Address ($3FCE) and binary offset [$3C4A]
 	move.b	$004F(a5),d0
@@ -6199,15 +6199,15 @@ Interface_RemoveSelectedInventoryObject:		; Memory Address ($4004) and binary of
 	; Removes the selected inventory object, compacts the pocket flags, and
 	; refreshes inventory state.
 	bsr		Find_ChampionFormationSlot
-	move.b	#$FF,$26(a5,d2.w)
+	move.b	#None_Byte,PlayerData_FormationSlotsOffset(a5,d2.w)
 	cmp.w	$0016(a5),d2
 	bne.s	RemoveSelectedChampion_FindSlot
-	move.w	#$FFFF,$0016(a5)
+	move.w	#None_Word,PlayerData_PendingPartySlotSelection(a5)
 RemoveSelectedChampion_FindSlot:		; Memory Address ($401A) and binary offset [$3C96]
 	bsr		Find_ChampionInPlayerSlots
 	move.w	d1,d3
 RemoveSelectedChampion_CompactSlotsLoop:		; Memory Address ($4020) and binary offset [$3C9C]
-	move.b	$19(a5,d1.w),$18(a5,d1.w)
+	move.b	PlayerData_ChampionSlotsOffset+1(a5,d1.w),PlayerData_ChampionSlotsOffset(a5,d1.w)
 	addq.w	#$01,d1
 	cmpi.w	#$0003,d1
 	bcs.s	RemoveSelectedChampion_CompactSlotsLoop
@@ -6231,7 +6231,7 @@ Find_FreeOwnershipSlot:		; Memory Address ($4054) and binary offset [$3CD0]
 	; Searches the ownership table for the first unused entry and returns its slot.
 	moveq	#$00,d1
 FindFreeOwnershipSlot_ScanLoop:		; Memory Address ($4056) and binary offset [$3CD2]
-	tst.b	$18(a5,d1.w)
+	tst.b	PlayerData_ChampionSlotsOffset(a5,d1.w)
 	bmi.s	OwnershipSlotScan_Return
 	addq.w	#$01,d1
 	cmpi.w	#$0003,d1
@@ -6252,7 +6252,7 @@ Find_ChampionInPlayerSlots:		; Memory Address ($4078) and binary offset [$3CF4]
 	move.w	d2,-(sp)
 	moveq	#$03,d1
 FindChampionInPlayerSlots_ScanLoop:		; Memory Address ($407C) and binary offset [$3CF8]
-	move.b	$18(a5,d1.w),d2
+	move.b	PlayerData_ChampionSlotsOffset(a5,d1.w),d2
 	bmi.s	FindChampionInPlayerSlots_NextSlot
 	and.w	#$000F,d2
 	cmp.b	d2,d0
@@ -6312,7 +6312,7 @@ PartyCommand_View:		; Memory Address ($40E4) and binary offset [$3D60]
 	moveq	#$03,d1
 	moveq	#$00,d2
 PartyCommand_View_CountEligibleLoop:		; Memory Address ($40F0) and binary offset [$3D6C]
-	move.b	$18(a5,d1.w),d0
+	move.b	PlayerData_ChampionSlotsOffset(a5,d1.w),d0
 	bmi.s	PartyCommand_View_SlotScanContinue
 	btst	#$06,d0
 	bne.s	PartyCommand_View_SlotScanContinue
@@ -6359,9 +6359,9 @@ Interface_CommitSelectedObjectFlags:		; Memory Address ($415A) and binary offset
 	tst.b	$004E(a5)
 	beq		Interface_OpenInventoryActionSelector
 	bsr.s	Interface_MapSelectedAction
-	bclr	#$04,$19(a5,d2.w)													;Clears the existing correction-state bit before applying the Correct or Commend value.
-	or.b	$19(a5,d2.w),d3
-	move.b	d3,$19(a5,d2.w)
+	bclr	#PlayerData_ChampionSlots_CorrectedBit,PlayerData_ChampionSlotsOffset+1(a5,d2.w)	;Clears the existing correction-state bit before applying the Correct or Commend value.
+	or.b	PlayerData_ChampionSlotsOffset+1(a5,d2.w),d3
+	move.b	d3,PlayerData_ChampionSlotsOffset+1(a5,d2.w)
 	move.b	d0,(a6)																;Patches the Correct or Commend result template with the selected party member's name token.
 	jsr		Print_timed_message.l
 	bra		Reset_PartyCommandStateAndRedrawMenu
@@ -6381,7 +6381,7 @@ Interface_MapSelectedAction:		; Memory Address ($417E) and binary offset [$3DFA]
 
 Return_InvalidPlayerAction:		; Memory Address ($451A) and binary offset [$4196]
 	; Returns from invalid or unavailable player-action processing.
-	move.w	#$FFFF,$000C(a5)
+	move.w	#None_Word,PlayerData_ActionCommand(a5)
 	addq.w	#$04,sp
 	rts		
 
@@ -6554,7 +6554,7 @@ Enter_PartyCommandInterface:		; Memory Address ($4234) and binary offset [$3EB0]
 	bne.s	Return_PartyCommandEntry
 	clr.w	$0042(a5)															;Clears the party-command page/depth state before rebuilding the top-level command interface.
 	clr.w	$0044(a5)
-	move.w	#$FFFF,$0040(a5)													;Marks the party-command selection as unset before the command panel is drawn.
+	move.w	#None_Word,PlayerData_PartyCommandSelection(a5)						;Marks the party-command selection as unset before the command panel is drawn.
 	clr.b	$003E(a5)															;Clears all four party presentation bits after command entry is accepted, restoring every avatar state underneath the command surface.
 	bra		Draw_PartyCommandInterface
 
@@ -6614,11 +6614,11 @@ Reset_PlayerActionState:		; Memory Address ($468E) and binary offset [$430A]
 	; invalid-action value.
 	and.b	#$01,(a5)
 	clr.b	$0056(a5)
-	clr.w	$0014(a5)
+	clr.w	PlayerData_InterfaceContextState(a5)
 	clr.b	$003C(a5)
 	clr.b	$003E(a5)
 	clr.b	$0050(a5)
-	move.w	#Player_ActionInvalid,$000C(a5)										;Value meaning no active action.
+	move.w	#None_Word,PlayerData_ActionCommand(a5)
 	rts		
 
 Click_LoadSaveGame:		; Memory Address ($432A) and binary offset [$3FA6]
@@ -6785,21 +6785,21 @@ Click_SleepParty:		; Memory Address ($4536) and binary offset [$41B2]
 	; the Fairy-offer delay and prepares the asleep notice; modifies A4 while
 	; scanning champion records.
 	move.b	#$03,PlayerData_InteractionPartySlotIndex(a5)
-	clr.w	$0014(a5)
-	move.w	#$FFFF,PlayerData_PartyCommandState(a5)
-	move.w	#$FFFF,PlayerData_PartyCommandSelection(a5)
-	move.b	#$FF,PlayerData_EngagedActorIndex(a5)
+	clr.w	PlayerData_InterfaceContextState(a5)
+	move.w	#None_Word,PlayerData_PartyCommandState(a5)
+	move.w	#None_Word,PlayerData_PartyCommandSelection(a5)
+	move.b	#None_Byte,PlayerData_EngagedActorIndex(a5)
 	moveq	#$03,d7
 Click_SleepParty_ResetSpellStateLoop:		; Memory Address ($4554) and binary offset [$41D0]
 	; Initialises each active new-party member's spell state by clearing the worn
 	; spell and cast power and setting the selected spell to $FF.
-	move.b	$18(a5,d7.w),d0
+	move.b	PlayerData_ChampionSlotsOffset(a5,d7.w),d0
 	and.w	#$00C0,d0
 	bne.s	Click_SleepParty_SkipUnusedSlot
-	move.b	$18(a5,d7.w),d0
+	move.b	PlayerData_ChampionSlotsOffset(a5,d7.w),d0
 	bsr		Load_ChampionStatRecord
 	clr.b	ChampionStat_WornSpell(a4)
-	move.b	#$FF,ChampionStat_SpellToCast(a4)
+	move.b	#None_Byte,ChampionStat_SpellToCast(a4)
 	clr.b	ChampionStat_SpellPowerBoost(a4)
 Click_SleepParty_SkipUnusedSlot:		; Memory Address ($4574) and binary offset [$41F0]
 	dbra	d7,Click_SleepParty_ResetSpellStateLoop
@@ -6920,10 +6920,10 @@ FairyShop_WaitForNoticeTimerExpiry:		; Memory Address ($4674) and binary offset 
 FairyShop_ScanChampionSlotsLoop:		; Memory Address ($4686) and binary offset [$4302]
 	move.b	PlayerData_InteractionPartySlotIndex(a5),d7
 	bmi		FairyShop_ResetInterfaceStateOnExit
-	move.b	$18(a5,d7.w),d0
+	move.b	PlayerData_ChampionSlotsOffset(a5,d7.w),d0
 	and.w	#$00E0,d0
 	bne.s	FairyShop_AdvanceToNextChampionSlot
-	move.b	$18(a5,d7.w),d0
+	move.b	PlayerData_ChampionSlotsOffset(a5,d7.w),d0
 	and.w	#$000F,d0
 	lea		SpellShop_ChampionIndexScratch.l,a6
 	move.b	d0,(a6)
@@ -6965,7 +6965,7 @@ FairyShop_DrawClassIconRow:		; Memory Address ($46E6) and binary offset [$4362]
 	jsr		InitialiseText.l
 	moveq	#$00,d7
 	move.b	$004F(a5),d7
-	move.b	$18(a5,d7.w),d0
+	move.b	PlayerData_ChampionSlotsOffset(a5,d7.w),d0
 	and.w	#$000F,d0
 	clr.b	$0052(a5)
 	jsr		Print_wordstext.l
@@ -7014,7 +7014,7 @@ FairyShop_OnClassSelected:		; Memory Address ($4792) and binary offset [$440E]
 	bsr		Draw_Fairy
 	moveq	#$00,d0
 	move.b	$004F(a5),d0
-	move.b	$18(a5,d0.w),d0
+	move.b	PlayerData_ChampionSlotsOffset(a5,d0.w),d0
 	bsr		Load_ChampionStatRecord
 	move.l	ChampionStat_KnownSpellMask(a4),d7
 	lea		SpellShop_CandidateSpellBitTable.w,a6								;Short Absolute converted to symbol!
@@ -7145,12 +7145,12 @@ FairyShop_ProcessSpellSelectionClick:		; Memory Address ($48AA) and binary offse
 	jsr		Print_fflim_text.l
 	moveq	#$00,d0
 	move.b	$004F(a5),d0
-	move.b	$18(a5,d0.w),d0
+	move.b	PlayerData_ChampionSlotsOffset(a5,d0.w),d0
 	bsr		Load_ChampionStatRecord
 	move.b	$0044(a5),ChampionStat_SpellToCast(a4)
 	clr.b	ChampionStat_SpellCooldown(a4)
 	bsr		Show_SpellCastPrompt
-	move.b	#$FF,ChampionStat_SpellToCast(a4)
+	move.b	#None_Byte,ChampionStat_SpellToCast(a4)
 	or.b	#$40,$0054(a5)
 	move.b	#$03,$004E(a5)
 FairyShop_StateHandlerReturn:		; Memory Address ($4994) and binary offset [$4610]
@@ -7174,7 +7174,7 @@ Print_FormationSlotChampionName:		; Memory Address ($49AE) and binary offset [$4
 	jsr		Print_fflim_text.l
 	moveq	#$00,d0
 	move.b	$004F(a5),d0
-	move.b	$18(a5,d0.w),d0
+	move.b	PlayerData_ChampionSlotsOffset(a5,d0.w),d0
 	and.w	#$000F,d0
 	moveq	#$11,d6
 	jsr		Print_wordstext.l
@@ -7205,7 +7205,7 @@ FairyShop_DeductSpellCostAndLearn:		; Memory Address ($4A10) and binary offset [
 	move.w	d0,d2
 	moveq	#$00,d1
 	move.b	$004F(a5),d1
-	move.b	$18(a5,d1.w),d0
+	move.b	PlayerData_ChampionSlotsOffset(a5,d1.w),d0
 	move.b	d0,d1
 	asl.b	#$04,d1
 	lea		Character_Pockets_DataTable.l,a4
@@ -7278,7 +7278,7 @@ FairyShop_GrantLevelUp:		; Memory Address ($4AE8) and binary offset [$4764]
 FairyShop_ResetInterfaceStateOnExit:		; Memory Address ($4AFE) and binary offset [$477A]
 	bclr	#$07,$0001(a5)
 	beq.s	Return_FairyShopStateMachine
-	clr.w	$0014(a5)
+	clr.w	PlayerData_InterfaceContextState(a5)
 	and.b	#$01,(a5)
 	clr.b	$0056(a5)
 Return_FairyShopStateMachine:		; Memory Address ($4B12) and binary offset [$478E]
@@ -7458,13 +7458,13 @@ PartyCommandRow_SetHighlightAndRedraw:		; Memory Address ($4C88) and binary offs
 
 Scan_PlayerInterfaceActions:		; Memory Address ($5014) and binary offset [$4C90]
 	; Scans interface state and resolves direct or pending player actions.
-	move.w	#$FFFF,$000C(a5)
+	move.w	#None_Word,PlayerData_ActionCommand(a5)
 	move.w	$0022(a5),$0024(a5)
 	btst	#$06,$0018(a5)
 	bne.s	Return_PartyCommandRowIdle
 	tst.b	$003D(a5)
 	bmi.s	DetectStairsCell_RepositionPartyLeader
-	move.b	#$FF,$003D(a5)
+	move.b	#None_Byte,PlayerData_ViewportFillInk(a5)
 	bra.s	Validate_CommsTargetThenDispatchPlayerAction
 
 DetectStairsCell_RepositionPartyLeader:		; Memory Address ($4CB2) and binary offset [$492E]
@@ -7785,7 +7785,7 @@ CastSpell_SelectFailedNotice:		; Memory Address ($5334) and binary offset [$4FB0
 CastSpell_Finalize:		; Memory Address ($5342) and binary offset [$4FBE]
 	; Clears the queued spell and displays the selected result notice when message
 	; output is enabled.
-	move.b	#$FF,ChampionStat_SpellToCast(a4)									;Clears the queued spell index when the cast succeeds, fails or fizzles.
+	move.b	#None_Byte,ChampionStat_SpellToCast(a4)								;Clears the queued spell index when the cast succeeds, fails or fizzles.
 	tst.b	SpellEntity_BackgroundOriginFlag.l
 	bne.s	Return_CastSpell
 	jsr		LowerText.l
@@ -8109,10 +8109,10 @@ RestorePartyStat_BeginChampionLoop:		; Memory Address ($55CE) and binary offset 
 RestorePartyStat_ChampionLoop:		; Memory Address ($55D0) and binary offset [$524C]
 	; Applies the restoration to each occupied active-party slot and clamps current
 	; stat to maximum.
-	move.b	$18(a5,d1.w),d0
+	move.b	PlayerData_ChampionSlotsOffset(a5,d1.w),d0
 	and.w	#$00E0,d0
 	bne.s	RestorePartyStat_NextChampion
-	move.b	$18(a5,d1.w),d0
+	move.b	PlayerData_ChampionSlotsOffset(a5,d1.w),d0
 	bsr		Load_ChampionStatRecord
 	move.b	$00(a4,d4.w),d0														;Loads each active champion's selected current stat: hit points for Renew or vitality for Vitalise.
 	add.b	d5,d0
@@ -8462,10 +8462,10 @@ Find_HighestRankedPartyMemberByCategory:		; Memory Address ($5500) and binary of
 	moveq	#-$01,d3
 	moveq	#$03,d2
 FindHighestRankedMember_ScanLoop:		; Memory Address ($5504) and binary offset [$5180]
-	move.b	$18(a5,d2.w),d0
+	move.b	PlayerData_ChampionSlotsOffset(a5,d2.w),d0
 	and.w	#$00E0,d0
 	bne.s	FindHighestRankedMember_LoopContinue
-	move.b	$18(a5,d2.w),d0
+	move.b	PlayerData_ChampionSlotsOffset(a5,d2.w),d0
 	bsr		Load_ChampionStatRecord
 	move.b	$0011(a4),d0
 	and.w	#$0007,d0
@@ -8481,7 +8481,7 @@ FindHighestRankedMember_CompareCandidate:		; Memory Address ($552E) and binary o
 	bcs.s	FindHighestRankedMember_LoopContinue
 	move.b	d0,d3
 	swap	d3
-	move.b	$18(a5,d2.w),d3
+	move.b	PlayerData_ChampionSlotsOffset(a5,d2.w),d3
 	and.w	#$000F,d3
 	swap	d3
 FindHighestRankedMember_LoopContinue:		; Memory Address ($5540) and binary offset [$51BC]
@@ -8635,7 +8635,7 @@ Resolve_SpellCastingGridClick:		; Memory Address ($5628) and binary offset [$52A
 	beq		Click_CloseCurrentPage
 	cmpi.w	#$0004,d1
 	beq.s	SetActionCommand_13
-	move.b	$18(a5,d1.w),d0
+	move.b	PlayerData_ChampionSlotsOffset(a5,d1.w),d0
 	and.w	#$00A0,d0
 	bne.s	NoMatch_SharedReturn
 	move.w	#$0011,$000C(a5)
@@ -8791,7 +8791,7 @@ MovementOffsetTable:		; Memory Address ($5794) and binary offset [$5410]
 Click_CloseCurrentPage:		; Memory Address ($57A4) and binary offset [$5420]
 	; Returns the current UI page to the default page and redraws the champion-name
 	; panel frame.
-	clr.w	$0014(a5)
+	clr.w	PlayerData_InterfaceContextState(a5)
 	bra		Draw_ChampionNamePanelFrame
 
 Dispatch_PlayerInterfaceActionGuarded:		; Memory Address ($5B30) and binary offset [$57AC]
@@ -8866,7 +8866,7 @@ HitTest_DisplayAction:		; Memory Address ($587C) and binary offset [$54F8]
 	moveq	#InterfaceHitbox_DisplayActionBase,d0								;Starts the display/context hitbox scan at action ID $22.
 	moveq	#InterfaceHitbox_DisplayScanEndExclusive,d2
 	lea		Interface_Hitboxes_Display.w,a6										;Short Absolute converted to symbol!
-	move.w	#$FFFF,PlayerData_ActionCommand(a5)									;Clears the pending interface action before testing the display/context rectangles.
+	move.w	#None_Word,PlayerData_ActionCommand(a5)								;Clears the pending interface action before testing the display/context rectangles.
 	bra		HitTest_PlayerInterfaceActions
 
 Click_Display:		; Memory Address ($588E) and binary offset [$550A]
@@ -9067,7 +9067,7 @@ SocketActions_RestorePartyStatToMax:		; Memory Address ($5A7C) and binary offset
 	bclr	#$02,$00(a6,d0.w)
 	moveq	#$03,d7
 RestorePartyStatToMax_ScanLoop:		; Memory Address ($5A84) and binary offset [$5700]
-	move.b	$18(a5,d7.w),d0
+	move.b	PlayerData_ChampionSlotsOffset(a5,d7.w),d0
 	bmi.s	RestorePartyStatToMax_LoopContinue
 	bsr		Load_ChampionStatRecord
 	move.b	$01(a4,d4.w),$00(a4,d4.w)											;Restores the D4-selected current statistic from its following maximum-statistic byte.
@@ -9523,7 +9523,7 @@ Draw_CombatOutcomeProfessionGlyph:		; Memory Address ($5FC4) and binary offset [
 	move.l	screen_ptr.l,a0
 	add.w	$000A(a5),a0
 	moveq	#$00,d0
-	move.b	$18(a5,d7.w),d0
+	move.b	PlayerData_ChampionSlotsOffset(a5,d7.w),d0
 	move.w	d0,d1
 	and.w	#$000F,d1
 	and.w	#$00E0,d0
@@ -9586,7 +9586,7 @@ SelectMeleeTarget_ResolveDefender:		; Memory Address ($6046) and binary offset [
 	move.b	(a5),d2
 	and.w	#$000A,d2
 	beq.s	SelectMeleeTarget_SetDoubleDefence
-	btst	#$04,$18(a5,d1.w)
+	btst	#PlayerData_ChampionSlots_CorrectedBit,PlayerData_ChampionSlotsOffset(a5,d1.w)
 	beq.s	SelectMeleeTarget_CheckHalfHP
 	and.w	#$0008,d2
 	beq.s	SelectMeleeTarget_RestoreRegisters
@@ -9642,7 +9642,7 @@ FormatPartySlotCombatOutcome_Entry:		; Memory Address ($60CA) and binary offset 
 	move.l	screen_ptr.l,a0
 	add.w	$000A(a5),a0
 	move.l	a4,-(sp)
-	move.b	$18(a5,d7.w),d0
+	move.b	PlayerData_ChampionSlotsOffset(a5,d7.w),d0
 	bsr		Load_ChampionStatRecord
 	move.b	$0019(a4),d0
 	move.l	(sp)+,a4
@@ -10249,7 +10249,7 @@ ClickPartyMember_SwapOrConfirmSlot:		; Memory Address ($65CC) and binary offset 
 	move.w	$0016(a5),d2
 	move.b	$26(a5,d2.w),$26(a5,d0.w)											;Moves the initially selected party-position entry into the different clicked slot; the next instruction writes the saved entry back, completing the swap.
 	move.b	d1,$26(a5,d2.w)
-	moveq	#-$01,d0															;Marks the pending selection invalid after a party-position swap; it does not change the current champion.
+	moveq	#NoValue,d0															;Marks the pending selection invalid after a party-position swap; it does not change the current champion.
 	bra.s	ClickPartyMember_SetSelectedSlot
 
 ClickPartyMember_ActivateSelectedChampion:		; Memory Address ($65E8) and binary offset [$6264]
@@ -10258,11 +10258,11 @@ ClickPartyMember_ActivateSelectedChampion:		; Memory Address ($65E8) and binary 
 	move.w	$0006(a5),d2
 	move.w	d0,$0006(a5)														;Stores the selected champion ID as PlayerX_Data current champion, driving the name panel and large avatar.
 	bsr		Find_ChampionInPlayerSlots											;Finds the selected champion's current left avatar slot in PlayerX_Data+$18 before replacing the current leader.
-	move.b	d2,$18(a5,d1.w)														;Writes the former leader into the selected champion's previous left avatar slot, refreshing the lower avatar arrangement after a confirmed lead change.
-	move.b	d0,$0018(a5)														;Writes the confirmed new leader into the large-avatar slot at PlayerX_Data+$18; this is separate from the right-side profession-order bytes at $26.
-	bset	#$04,$0018(a5)														;Marks the new large-avatar slot active after its champion ID has been written.
+	move.b	d2,PlayerData_ChampionSlotsOffset(a5,d1.w)							;Writes the former leader into the selected champion's previous left avatar slot, refreshing the lower avatar arrangement after a confirmed lead change.
+	move.b	d0,$0018(a5)
+	bset	#$04,$0018(a5)
 ClickPartyMember_ClearSelectionAndRedraw:		; Memory Address ($6608) and binary offset [$6284]
-	move.w	#$FFFF,$0016(a5)													;Clears the pending party-slot selection after committing the current champion.
+	move.w	#None_Word,PlayerData_PendingPartySlotSelection(a5)					;Clears the pending party-slot selection after committing the current champion.
 	bsr		Draw_ChampionNamePanelFrame
 	bra		Draw_PartyCommandInterface
 
@@ -10588,7 +10588,7 @@ Click_Item_17_to_1A_Potions:		; Memory Address ($6914) and binary offset [$6590]
 	move.w	d0,d1
 	clr.l	HeldItem_StateOffset(a5)											;Consumes the complete held potion before applying its effect.
 	move.b	$000F(a5),d0
-	move.b	$18(a5,d0.w),d0
+	move.b	PlayerData_ChampionSlotsOffset(a5,d0.w),d0
 	bsr		Load_ChampionStatRecord
 	lea		Potion_1_SerpentSlime.l,a0
 	add.w	d1,d1
@@ -10683,7 +10683,7 @@ ConsumeFood_StoreRemainingObject:		; Memory Address ($69D4) and binary offset [$
 	; consumed.
 	move.w	d0,HeldItem_ObjectCodeOffset(a5)									;Stores the decremented portion or empty object code.
 	move.b	$000F(a5),d0
-	move.b	$18(a5,d0.w),d0
+	move.b	PlayerData_ChampionSlotsOffset(a5,d0.w),d0
 	bsr		Load_ChampionStatRecord
 	add.b	ChampionStat_FoodLevel(a4),d1										;Adds the consumed food value to the character's current food level.
 	bcs.s	ConsumeFood_ClampLevel
@@ -10709,7 +10709,7 @@ Click_CountedObject:		; Memory Address ($6A16) and binary offset [$6692]
 	; and the held stack.
 	moveq	#$00,d7
 	move.b	$000F(a5),d7
-	move.b	$18(a5,d7.w),d7
+	move.b	PlayerData_ChampionSlotsOffset(a5,d7.w),d7
 	asl.b	#$04,d7
 	lea		Character_Pockets_DataTable.l,a6
 	add.w	d7,a6
@@ -10734,7 +10734,7 @@ Click_ObjectInInventory:		; Memory Address ($6A46) and binary offset [$66C2]
 	moveq	#$00,d7
 	move.b	$000E(a5),d7
 	moveq	#$00,d0
-	move.b	$18(a5,d7.w),d0
+	move.b	PlayerData_ChampionSlotsOffset(a5,d7.w),d0
 	move.w	d0,d2
 	and.w	#$000F,d2
 	asl.b	#$04,d0
@@ -10930,7 +10930,7 @@ Redraw_Inventory:		; Memory Address ($6C0A) and binary offset [$6886]
 	; Resolves the inspected champion, redraws its twelve inventory slots, armour
 	; value, name display, and held-item panel.
 	move.w	$000E(a5),d7
-	move.b	$18(a5,d7.w),d7														;Resolves the inspected party slot to its champion-state byte before selecting the champion record.
+	move.b	PlayerData_ChampionSlotsOffset(a5,d7.w),d7							;Resolves the inspected party slot to its champion-state byte before selecting the champion record.
 	and.w	#$000F,d7															;Extracts the champion ID from the low nibble of the occupied party-slot state.
 	bsr		Draw_InventoryPocketSlots											;Draws the selected champion's hand, armour, shield, and eight pocket positions before title and armour text are overlaid.
 	move.l	#$000D0003,CurrentTextInk.l
@@ -10984,7 +10984,7 @@ Draw_FoodLevelBar:		; Memory Address ($6C9C) and binary offset [$6918]
 	; Reads champion food byte $10 and draws its bar scaled from $00 to $C7.
 	or.b	#$14,$0054(a5)
 	move.w	$000E(a5),d0
-	move.b	$18(a5,d0.w),d0
+	move.b	PlayerData_ChampionSlotsOffset(a5,d0.w),d0
 	bsr		Load_ChampionStatRecord
 	move.b	ChampionStat_FoodLevel(a4),d0										;Offset of food level in a character-stat record.
 	move.w	#Food_LevelMaximum,d1												;Highest stored character food level.
@@ -11017,7 +11017,7 @@ Prepare_HeldObjectDescription:		; Memory Address ($6CE2) and binary offset [$695
 	move.w	HeldItem_ObjectCodeOffset(a5),d0									;Offset of the currently held object code in the interface state.
 	tst.w	d1
 	bmi.s	Resolve_HeldObjectDescription
-	bclr	#$05,$18(a5,d1.w)
+	bclr	#PlayerData_ChampionSlots_AwayBit,PlayerData_ChampionSlotsOffset(a5,d1.w)
 	clr.l	HeldItem_StateOffset(a5)											;Offset of the complete four-byte held-item state.
 Resolve_HeldObjectDescription:		; Memory Address ($6D08) and binary offset [$6984]
 	; Resolves the normal object-definition text after optional champion-remains
@@ -11301,7 +11301,7 @@ Clear_PartyWornSpellsOnFloorTransition:		; Memory Address ($6F80) and binary off
 	movem.l	d0/d7/a6,-(sp)														;Save the movement cell, coordinates and map base.
 	moveq	#$03,d7																;Start with the last of the four party slots.
 Clear_PartyWornSpells_NextSlot:		; Memory Address ($6F86) and binary offset [$6C02]
-	move.b	$18(a5,d7.w),d1														;Read this party slot's champion number and state flags.
+	move.b	PlayerData_ChampionSlotsOffset(a5,d7.w),d1							;Read this party slot's champion number and state flags.
 	move.w	d1,d0																;Pass the champion number to the stat-record lookup.
 	and.w	#PartyShieldStatusBar_SuppressionMask,d1							;Keep flags that identify dead or unavailable party slots.
 	bne.s	Clear_PartyWornSpells_Continue										;Skip a slot without a living champion.
@@ -11591,8 +11591,8 @@ GameEndPicture:
 	bsr.s	.GameEnd_repeat
 	lea		Player2_Data.l,a5
 .GameEnd_repeat:
-	clr.w	$0014(a5)
-	move.w	#$FFFF,$0042(a5)
+	clr.w	PlayerData_InterfaceContextState(a5)
+	move.w	#None_Word,PlayerData_PartyCommandState(a5)
 	bsr		Draw_PartyCommandInterface
 	bsr		Draw_ChampionNamePanelFrame
 	bsr		Draw_ViewportMessageFrame
@@ -11906,20 +11906,20 @@ Restore_VivifiedExternalChampionAtTarget:		; Memory Address ($787E) and binary o
 Restore_VivifiedOwnedChampionToParty:		; Memory Address ($78A0) and binary offset [$751C]
 	; Clears the owned champion's dead state and either restores a party slot or
 	; promotes and relocates the player leader.
-	bclr	#$06,$18(a5,d1.w)													;Clear the dead flag in the champion's party slot.
+	bclr	#PlayerData_ChampionSlots_DeadBit,PlayerData_ChampionSlotsOffset(a5,d1.w)	;Clear the dead flag in the champion's party slot.
 	tst.w	d1																	;Check whether the revived champion is the party leader.
 	beq.s	VivifyExternal_InstallRevivedLeader									;A revived leader takes the party to the revival cell.
-	btst	#$06,$0018(a5)														;Check whether the existing party leader is dead.
+	btst	#$06,$0018(a5)
 	bne.s	VivifyExternal_ReplaceDeadLeader									;Replace a dead leader with the revived champion.
 	bsr.s	Restore_VivifiedExternalChampionAtTarget							;Place a revived non-leader at the machine as a champion record.
 	bra.s	VivifyExternal_RefreshParty											;Refresh the party panels after revival.
 
 VivifyExternal_ReplaceDeadLeader:		; Memory Address ($78B6) and binary offset [$7532]
-	move.b	$0018(a5),$18(a5,d1.w)												;Move the former leader into the revived champion's old slot.
+	move.b	PlayerData_ChampionSlotsOffset(a5),PlayerData_ChampionSlotsOffset(a5,d1.w)	;Move the former leader into the revived champion's old slot.
 	move.w	d0,$0006(a5)														;Make the revived champion the selected champion.
 VivifyExternal_InstallRevivedLeader:		; Memory Address ($78C0) and binary offset [$753C]
-	move.b	d0,$0018(a5)														;Put the revived champion in the leader slot.
-	bset	#$04,$0018(a5)														;Set the leader slot's active-party flag.
+	move.b	d0,$0018(a5)
+	bset	#$04,$0018(a5)
 	move.l	d2,$001C(a5)														;Move the party to the revival X/Y.
 	move.w	d3,$0058(a5)														;Store the party's revival floor.
 	move.w	#$0003,$0020(a5)													;Face the revived party west.
@@ -11948,14 +11948,14 @@ VivifyInternal_ReviveOwnPartyMembers:		; Memory Address ($78FA) and binary offse
 	move.w	#TriggerSound_None,Trigger_WaitFlag.w								;Suppress the dispatcher's later sound to avoid playing it twice.
 	moveq	#$03,d0																;Start with the last of the four party slots.
 VivifyInternal_ReviveNextSlot:		; Memory Address ($7910) and binary offset [$758C]
-	tst.b	$18(a5,d0.w)														;Read this party slot's sign flag.
+	tst.b	PlayerData_ChampionSlotsOffset(a5,d0.w)								;Read this party slot's sign flag.
 	bmi.s	VivifyInternal_FinishParty											;Skip an empty slot.
-	btst	#$05,$18(a5,d0.w)													;Test the slot's unavailable flag.
+	btst	#PlayerData_ChampionSlots_AwayBit,PlayerData_ChampionSlotsOffset(a5,d0.w)	;Test the slot's unavailable flag.
 	bne.s	VivifyInternal_FinishParty											;Skip unavailable slots.
-	bclr	#$06,$18(a5,d0.w)													;Clear the dead flag, retaining its old value for the branch.
+	bclr	#PlayerData_ChampionSlots_DeadBit,PlayerData_ChampionSlotsOffset(a5,d0.w)	;Clear the dead flag, retaining its old value for the branch.
 	beq.s	VivifyInternal_FinishParty											;Skip champions who were already alive.
 	move.w	d0,-(sp)															;Save the party-slot index while looking up the champion.
-	move.b	$18(a5,d0.w),d0														;Read the champion number and remaining slot flags.
+	move.b	PlayerData_ChampionSlotsOffset(a5,d0.w),d0							;Read the champion number and remaining slot flags.
 	bsr		Load_ChampionStatRecord												;Resolve the champion's stat record in A4.
 	move.b	#$05,ChampionStat_VitalityCurrent(a4)								;Restore five vitality points.
 	move.b	#$05,ChampionStat_HitPointsCurrent(a4)								;Restore five hit points.
@@ -11967,12 +11967,12 @@ VivifyInternal_FindDisplaySlot:		; Memory Address ($7940) and binary offset [$75
 	dbra	d1,VivifyInternal_FindDisplaySlot									;Continue searching the four display-order slots.
 	moveq	#$00,d1																;If none is free, replace display-order slot zero.
 VivifyInternal_InsertDisplayChampion:		; Memory Address ($794C) and binary offset [$75C8]
-	and.b	#$0F,$18(a5,d0.w)													;Remove party-state flags, leaving just the champion number.
-	move.b	$18(a5,d0.w),$26(a5,d1.w)											;Insert the revived champion into the selected display-order slot.
+	and.b	#PlayerData_ChampionSlots_ChampionMask,PlayerData_ChampionSlotsOffset(a5,d0.w)	;Remove party-state flags, leaving just the champion number.
+	move.b	PlayerData_ChampionSlotsOffset(a5,d0.w),PlayerData_FormationSlotsOffset(a5,d1.w)	;Insert the revived champion into the selected display-order slot.
 VivifyInternal_FinishParty:		; Memory Address ($7958) and binary offset [$75D4]
 	dbra	d0,VivifyInternal_ReviveNextSlot									;Repeat for all remaining party slots.
-	move.w	#$FFFF,$0042(a5)													;Reset the party-command state after revival.
-	move.w	#$FFFF,$0040(a5)													;Reset the companion party-command state word.
+	move.w	#None_Word,PlayerData_PartyCommandState(a5)							;Reset the party-command state after revival.
+	move.w	#None_Word,PlayerData_PartyCommandSelection(a5)						;Reset the companion party-command state word.
 	clr.b	$003E(a5)															;Clear avatar presentation state.
 	bsr		Draw_PartyCommandInterface											;Redraw the party command panel.
 	bra		Refresh_ModeDependentChampionDisplay								;Refresh the party's champion display and return.
@@ -12215,7 +12215,7 @@ Draw_PartyCommandInterface:		; Memory Address ($7B50) and binary offset [$77CC]
 	add.w	$0008(a5),d5														;Applies the active player's screen-buffer Y offset to this player-local drawing coordinate.
 	moveq	#$00,d3
 	bsr		BW_draw_bar
-	move.l	#$FFFFFFFF,$005A(a5)
+	move.l	#None_Long,PlayerData_PartyShieldHighlightCountdowns(a5)
 	bsr		Draw_MainChampionAvatarPanel										;Draws the default large 32 by 30 avatar panel before any full-length party-character rendering is requested.
 	moveq	#$0A,d5																;Sets player-local Y=$0A for the outer pair of command-pocket decoration lines.
 	add.w	$0008(a5),d5														;Applies the active player's screen-buffer Y offset to this player-local drawing coordinate.
@@ -12448,10 +12448,10 @@ Build_EligibleCompanionList:		; Memory Address ($7CA6) and binary offset [$7922]
 	moveq	#$01,d1
 	moveq	#$00,d3
 Build_EligibleCompanionList_ScanLoop:		; Memory Address ($7CAC) and binary offset [$7928]
-	move.b	$18(a5,d1.w),d0
+	move.b	PlayerData_ChampionSlotsOffset(a5,d1.w),d0
 	and.w	#$00E0,d0
 	bne.s	Build_EligibleCompanionList_NextSlot
-	move.b	$18(a5,d1.w),d0
+	move.b	PlayerData_ChampionSlotsOffset(a5,d1.w),d0
 	and.w	#$000F,d0
 	move.b	d0,$04(a6,d2.w)
 	move.b	#$5F,$00(a6,d3.w)
@@ -12468,7 +12468,7 @@ Build_EligibleCompanionList_Reversed:		; Memory Address ($7CD6) and binary offse
 	moveq	#$02,d1
 	moveq	#$00,d3
 Build_EligibleCompanionList_Reversed_ScanLoop:		; Memory Address ($7CDC) and binary offset [$7958]
-	move.b	$19(a5,d1.w),d0
+	move.b	PlayerData_ChampionSlotsOffset+1(a5,d1.w),d0
 	bmi.s	Build_EligibleCompanionList_Reversed_NextSlot
 	btst	#$05,d0
 	beq.s	Build_EligibleCompanionList_Reversed_NextSlot
@@ -12493,7 +12493,7 @@ Reset_ActionSelectionScratchBuffer_FillLoop:		; Memory Address ($7D10) and binar
 	move.b	d0,$02(a6,d2.w)
 	subq.w	#$02,d2
 	bne.s	Reset_ActionSelectionScratchBuffer_FillLoop
-	move.l	#$FFFFFFFF,(a6)
+	move.l	#None_Long,(a6)
 	rts		
 
 Select_PartyCommandDescriptorStream_Mode4:		; Memory Address ($7D20) and binary offset [$799C]
@@ -12636,7 +12636,7 @@ Draw_ActivePartyChampionInShield:		; Memory Address ($7E6A) and binary offset [$
 	; selected shield surround.
 	btst	d7,$003E(a5)														;Continues only for a party slot marked as the active selected member.
 	beq.s	Draw_ActivePartyChampionInShield_EarlyReturn
-	move.b	$18(a5,d7.w),d1														;Loads the party-slot state byte: low nibble is champion ID; bits $20/$40 suppress the living full-character rendering.
+	move.b	PlayerData_ChampionSlotsOffset(a5,d7.w),d1							;Loads the party-slot state byte: low nibble is champion ID; bits $20/$40 suppress the living full-character rendering.
 	move.b	d1,d0
 	and.w	#$000F,d0
 	and.w	#$00E0,d1
@@ -12748,7 +12748,7 @@ Draw_PartyShieldSlot:		; Memory Address ($7F54) and binary offset [$7BD0]
 	subq.w	#$01,d7
 	asl.w	#$02,d7
 	add.w	d7,a0
-	move.b	$18(a5,d0.w),d7														;Loads the selected party-slot state byte; a negative value denotes a vacant slot and the low nibble identifies an occupied champion.
+	move.b	PlayerData_ChampionSlotsOffset(a5,d0.w),d7							;Loads the selected party-slot state byte; a negative value denotes a vacant slot and the low nibble identifies an occupied champion.
 	bpl.s	Select_OccupiedPartyShieldRendering
 	lea		GFX_Shield_Clicked.l,a1
 	sub.l	a3,a3
@@ -12945,7 +12945,7 @@ Draw_PartyShieldStatusBars:		; Memory Address ($815C) and binary offset [$7DD8]
 Draw_PartyShieldStatusBarsLoop:		; Memory Address ($816C) and binary offset [$7DE8]
 	; Iterates party slots 3 down to 0, drawing or skipping each shield hit-point
 	; bar.
-	move.b	$18(a5,d6.w),d0														;Loads or reloads the current party-slot state byte for suppression checks and champion selection.
+	move.b	PlayerData_ChampionSlotsOffset(a5,d6.w),d0							;Loads or reloads the current party-slot state byte for suppression checks and champion selection.
 	move.w	d0,d1
 	and.w	#PartyShieldStatusBar_SuppressionMask,d1							;Tests the party-slot vacant and dead suppression bits before drawing a status bar.
 	bne.s	Advance_PartyShieldStatusBarRow
@@ -12967,7 +12967,7 @@ Draw_PartyShieldStatusBarsLoop:		; Memory Address ($816C) and binary offset [$7D
 	movem.l	d3-d6,-(sp)
 	exg		d4,d5
 	add.w	$0008(a5),d5
-	move.b	$18(a5,d6.w),d0														;Loads or reloads the current party-slot state byte for suppression checks and champion selection.
+	move.b	PlayerData_ChampionSlotsOffset(a5,d6.w),d0							;Loads or reloads the current party-slot state byte for suppression checks and champion selection.
 	and.w	#$000F,d0
 	bsr		Character_GetClassIndex												;Selects the champion magic-alignment/class index used for the full-length-avatar HP-bar colour.
 	move.b	ChampionClassBarColours(pc,d0.w),d3									;Maps the champion magic-alignment/class index through the four-entry party HP-bar palette table.
@@ -13038,7 +13038,7 @@ Complete_PlayerInterfaceAction:		; Memory Address ($8226) and binary offset [$7E
 Show_QueuedPartyRejoinNotice:		; Memory Address ($8230) and binary offset [$7EAC]
 	move.b	$0034(a5),d0
 	bmi.s	Return_NoPanelUpdateNeeded
-	move.b	#$FF,$0034(a5)
+	move.b	#None_Byte,PlayerData_RejoinedChampionNoticeId(a5)
 	lea		Notice_PartyMemberRejoins.w,a6										;Short Absolute converted to symbol!
 	move.b	d0,(a6)
 	bsr		Print_timed_message
@@ -13220,7 +13220,7 @@ GridSlotColumnShiftTable:		; Memory Address ($8412) and binary offset [$808E]
 
 Draw_PartyMemberSlotIcon:		; Memory Address ($8416) and binary offset [$8092]
 	; Draws a vacant, dead, or living profession icon for one party position.
-	move.b	$18(a5,d7.w),d0
+	move.b	PlayerData_ChampionSlotsOffset(a5,d7.w),d0
 	and.w	#$00EF,d0
 	bmi.s	Draw_VacantPartySlotIcon
 	btst	#$05,d0
@@ -18771,7 +18771,7 @@ ChampionSelectionDetailsPanel_NoticeMerge:		; Memory Address ($C032) and binary 
 Draw_ChampionSelectionDefaultPanel:		; Memory Address ($C060) and binary offset [$BCDC]
 	; Resets champion selection to its default mode and draws the initial framed
 	; panel, armour bar, and scroll.
-	clr.w	$0014(a5)
+	clr.w	PlayerData_InterfaceContextState(a5)
 	move.l	#$002F00A8,d4
 	moveq	#$09,d5
 	bsr.s	Draw_BevelledPanelFrame
@@ -18985,7 +18985,7 @@ Get_SelectedSpellName:		; Memory Address ($C2D4) and binary offset [$BF50]
 	rts		
 
 Select_SpellBookRune_ClearSelection:		; Memory Address ($C2E0) and binary offset [$BF5C]
-	move.b	#$FF,ChampionStat_SpellToCast(a4)
+	move.b	#None_Byte,ChampionStat_SpellToCast(a4)
 	moveq	#-$01,d0
 SpellBookRune_SharedTail:		; Memory Address ($C2E8) and binary offset [$BF64]
 	rts		
@@ -19129,7 +19129,7 @@ Draw_ChampionSelectionModePanel:		; Memory Address ($C43E) and binary offset [$C
 	addq.w	#$01,$0014(a5)
 	cmp.w	#$0003,$0014(a5)
 	bcs.s	Draw_ChampionSelectionModePanel_Return
-	clr.w	$0014(a5)
+	clr.w	PlayerData_InterfaceContextState(a5)
 Draw_ChampionSelectionModePanel_Return:		; Memory Address ($C482) and binary offset [$C0FE]
 	rts		
 
@@ -19211,7 +19211,7 @@ Click_SelectionAvatar:		; Memory Address ($C53C) and binary offset [$C1B8]
 	bsr		Draw_ChampionLargeAvatar
 	bsr		Print_ChampionSelectionFullName
 	bsr		Load_CurrentChampionStatRecord
-	move.b	#$FF,$0013(a4)
+	move.b	#None_Byte,ChampionStat_SpellToCast(a4)
 	move.l	screen_ptr.l,a0
 	add.w	#$0A19,a0
 	add.w	$000A(a5),a0
@@ -19937,7 +19937,7 @@ Draw_MainChampionAvatarPanel:		; Memory Address ($CCBE) and binary offset [$C93A
 	moveq	#$0A,d5																;Sets the outer avatar-panel top edge to player-local Y=$0A.
 	bsr		Draw_BevelledPanelFrame												;Calls the shared bevelled-panel renderer for the large avatar background and three inset grey outlines.
 	move.w	$0006(a5),d7														;Loads the current leader champion ID for the large-avatar graphic selection.
-	moveq	#-$01,d4															;Passes the large-avatar rendering sentinel to the avatar compositor.
+	moveq	#NoValue,d4															;Passes the large-avatar rendering sentinel to the avatar compositor.
 	move.l	#MainChampionAvatar_ScreenByteOffset,a0								;Selects screen byte offset $02A9, which resolves to player-local portrait coordinate ($08,$11).
 	bsr.s	Draw_ChampionLargeAvatar											;Draws only the 32 by 30 champion portrait; the surrounding frames are separate procedural stages.
 Draw_MainChampionAvatarInnerFrame:		; Memory Address ($CCD8) and binary offset [$C954]
@@ -21944,8 +21944,8 @@ AttackTypeNoSpells_FixedOriginFormCode:		; Memory Address ($EED5) and binary off
 	ds.b	$1
 Player1_ShieldHighlightCountdowns:		; Memory Address ($EED6) and binary offset [$EB52]
 	; Base of Player 1 per-formation-slot shield-highlight countdown bytes.
-	dc.l	$FFFFFFFF	;FFFFFFFF
-	dc.l	$FFFFFFFF	;FFFFFFFF
+	dc.l	None_Long	;FFFFFFFF
+	dc.l	None_Long	;FFFFFFFF
 Player2_Data:
 	dc.b	$01	;01
 Player2_PauseInputFlag:		; Memory Address ($EEDF) and binary offset [$EB5B]
@@ -21978,7 +21978,7 @@ Player2_SelectionUIMode:		; Memory Address ($EEF2) and binary offset [$EB6E]
 	dc.w	$0000	;0000
 	dc.w	$FFFF	;FFFF
 Player2_ChampionPointer:		; Memory Address ($EEF6) and binary offset [$EB72]
-	dc.l	$FFFFFFFF	;FFFFFFFF
+	dc.l	None_Long	;FFFFFFFF
 AttackTypeArcBoltMachine_FixedOriginPosition:		; Memory Address ($EEFA) and binary offset [$EB76]
 	; Packed fixed-origin coordinate substituted by AttackType_ArcBoltMachine for
 	; the configured monster form.
@@ -21990,7 +21990,7 @@ RasterInterruptCountdownB:		; Memory Address ($EF00) and binary offset [$EB7C]
 Player2_ChampionRosterShadowCopy:		; Memory Address ($EF04) and binary offset [$EB80]
 	; Shadow copy of the packed Player 2 champion roster written during normal and
 	; quick-start setup.
-	dc.l	$FFFFFFFF	;FFFFFFFF
+	dc.l	None_Long	;FFFFFFFF
 	dc.l	$00000000	;00000000
 	dc.l	$0000FFFF	;0000FFFF	;Long Addr replaced with Symbol
 	dc.w	$FFFF	;FFFF
@@ -22029,8 +22029,8 @@ AttackTypeArcBoltMachine_FixedOriginFormCode:		; Memory Address ($EF37) and bina
 	ds.b	$1
 Player2_ShieldHighlightCountdowns:		; Memory Address ($EF38) and binary offset [$EBB4]
 	; Base of Player 2 per-formation-slot shield-highlight countdown bytes.
-	dc.l	$FFFFFFFF	;FFFFFFFF
-	dc.l	$FFFFFFFF	;FFFFFFFF
+	dc.l	None_Long	;FFFFFFFF
+	dc.l	None_Long	;FFFFFFFF
 MapData1:		; Memory Address ($EF40) and binary offset [$EBBC]
 	INCBIN "/data/BLOODWYCH439-clean/maps/mod0.map"
 
