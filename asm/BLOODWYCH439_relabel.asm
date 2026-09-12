@@ -1215,7 +1215,7 @@ CopyProtection_CapturedByteCount:		equ	$32
 CopyProtection_SkippedWordCount:		equ	$03CE
 	; Number of following disk words counted to measure the remainder of the protected sector.
 CopyProtection_SerialKey:		equ	$8488FFC4
-	; SPS 439 Rob Northen Copylock serial key checked by the protected exit handler.
+	; SPS 439 Rob Northen Copylock constant subtracted from D0 by the protected exit handler.
 
 ****************************************************************************
 
@@ -1342,7 +1342,7 @@ Initialise_CopperSpritePointersLoop:		; Memory Address ($050E) and binary offset
 	move.w	d0,$0002(a0)	;31400002
 	addq.w	#$08,a0	;5048
 	dbra	d1,Initialise_CopperSpritePointersLoop	;51C9FFE4
-	move.l	#adrL_008CC8,d0	;203C00008CC8
+	move.l	#Default_InterruptHandler,d0	;203C00008CC8
 	lea	$0060.w,a0	;41F80060	;Short Absolute replaced by symbol!
 	moveq	#$07,d1	;7207
 Initialise_InterruptVectorsLoop:		; Memory Address ($0538) and binary offset [$01B4]
@@ -1351,7 +1351,7 @@ Initialise_InterruptVectorsLoop:		; Memory Address ($0538) and binary offset [$0
 	dbra	d1,Initialise_InterruptVectorsLoop	;51C9FFFC
 	move.l	#VerticalBlankInterupt,$006C.w	;21FC00008C20006C	;Short Absolute converted to symbol!
 	move.l	#Level_2_Interrupt,$0068.w	;21FC000005CE0068	;Short Absolute converted to symbol!
-	move.l	#adrL_0088A4,$0070.w	;21FC000088A40070	;Short Absolute converted to symbol!
+	move.l	#AudioChannel0_Interrupt,$0070.w	;21FC000088A40070	;Short Absolute converted to symbol!
 	move.w	#$7FFF,_custom+intena.l	;33FC7FFF00DFF09A
 	move.b	_ciaa+ciacra.l,d0	;103900BFEE01
 	move.b	#$21,_ciaa+ciacra.l	;13FC002100BFEE01
@@ -7801,7 +7801,8 @@ GFX_Fairy_ColourVariants:		; Memory Address ($462A) and binary offset [$42A6]
 	dc.w	$080C	;080C
 	dc.w	$0704	;0704
 	dc.w	$0808	;0808
-adrEA00463A:
+FairyShop_ClassInkTable:		; Memory Address ($463A) and binary offset [$42B6]
+	; Maps Fairy-shop class indices 0-3 to text inks $06, $0D, $0C and $08 for offered spell names and the purchase view; the values match the class accent inks in the adjacent fairy colour variants.
 	dc.w	$060D	;060D
 	dc.w	$0C08	;0C08
 SpellShop_CandidateSpellBitTable:		; Memory Address ($463E) and binary offset [$42BA]
@@ -7968,7 +7969,7 @@ FairyShop_AllSpellsKnownMessage:		; Memory Address ($4814) and binary offset [$4
 FairyShop_ShowSpellOfferResult:		; Memory Address ($481A) and binary offset [$4496]
 	bsr	Print_FormationSlotChampionName	;61000192
 	move.w	(sp)+,d1	;321F
-	lea	adrEA00463A.w,a6	;4DF8463A	;Short Absolute converted to symbol!
+	lea	FairyShop_ClassInkTable.w,a6	;4DF8463A	;Short Absolute converted to symbol!
 	move.b	$00(a6,d1.w),CurrentTextInk_LowByte.l	;13F610000000D92B
 	move.l	screen_ptr.l,a0	;207900008D36
 	add.w	$000A(a5),a0	;D0ED000A
@@ -8039,7 +8040,7 @@ FairyShop_ProcessSpellSelectionClick:		; Memory Address ($48AA) and binary offse
 	jsr	BW_draw_bar.l	;4EB90000DA68
 	move.b	$0044(a5),d0	;102D0044
 	bsr	Character_GetClassIndex	;61001FFA
-	lea	adrEA00463A.w,a6	;4DF8463A	;Short Absolute converted to symbol!
+	lea	FairyShop_ClassInkTable.w,a6	;4DF8463A	;Short Absolute converted to symbol!
 	move.b	$00(a6,d0.w),CurrentTextInk_LowByte.l	;13F600000000D92B
 	add.w	#$0064,d0	;06400064
 	move.l	screen_ptr.l,a0	;207900008D36
@@ -8658,7 +8659,7 @@ CastSpell_RefreshChampionStatus:		; Memory Address ($530A) and binary offset [$4
 CastSpell_RecordPractice:		; Memory Address ($5312) and binary offset [$4F8E]
 	; Increments the casting champion's per-spell practice counter with saturation at $FF.
 	move.l	(sp)+,a4	;285F
-	move.l	#adrL_007E22,a0	;207C00007E22
+	move.l	#SpellPractice_FromCharacterStatsOffset,a0	;207C00007E22
 	add.l	a4,a0	;D1CC
 	moveq	#$00,d0	;7000
 	move.b	ChampionStat_SpellToCast(a4),d0	;102C0013
@@ -9632,7 +9633,7 @@ Dispatch_PlayerInterfaceActionGuarded:		; Memory Address ($5B30) and binary offs
 	; Checks player state before dispatching the active action.
 	btst	#$06,$0018(a5)	;082D00060018
 	bne.s	Return_ActionDispatchBlocked	;66DE
-	pea	adrL_008226.l	;487900008226
+	pea	Complete_PlayerInterfaceAction.l	;487900008226
 Dispatch_PlayerInterfaceAction:		; Memory Address ($5B3E) and binary offset [$57BA]
 	; Indexes the dungeon InterfaceButtons jump table using PlayerX_Data+$0C.
 	move.w	PlayerData_ActionCommand(a5),d0	;302D000C
@@ -11434,7 +11435,7 @@ Calculate_SpellCastingQuality:		; Memory Address ($6778) and binary offset [$63F
 	and.w	#$0003,d2	;02420003
 	move.b	SpellCasting_ProfessionBaseBonuses(pc,d2.w),d7	;1E3B203C
 SpellCastQuality_AfterClassBonus:		; Memory Address ($67AC) and binary offset [$6428]
-	move.l	#adrL_007E22,a1	;227C00007E22
+	move.l	#SpellPractice_FromCharacterStatsOffset,a1	;227C00007E22
 	add.l	a4,a1	;D3CC
 	moveq	#$00,d6	;7C00
 	move.b	ChampionStat_SpellToCast(a4),d6	;1C2C0013
@@ -13985,7 +13986,8 @@ Draw_PartyCommandMenu_PrintEntriesLoop:		; Memory Address ($7E12) and binary off
 	clr.b	TextDoubleWidthFlag.l	;42390000EE2D
 	move.l	(sp)+,a0	;205F
 	add.w	#$0140,a0	;D0FC0140
-adrL_007E22:		equ	*-2		; Memory Address ($7E22) and binary offset [$7A9E]
+SpellPractice_FromCharacterStatsOffset:		equ	*-2		; Memory Address ($7E22) and binary offset [$7A9E]
+	; Displacement from Character_Stats_DataTable to Spells_Practiced_DataTable; adding it to a champion-record pointer selects that champion's 32-byte spell-practice row.
 	addq.w	#$01,d7	;5247
 	cmpi.w	#$0004,d7	;0C470004
 	bcs.s	Draw_PartyCommandMenu_PrintEntriesLoop	;65E6
@@ -14083,7 +14085,7 @@ Refresh_PartyShieldSlotIfDirty_Dispatch:		; Memory Address ($7EF8) and binary of
 	or.b	#$03,$0054(a5)	;002D00030054
 	tst.w	d7	;4A47
 	beq.s	Draw_LeaderPanelPresentation	;6708
-	clr.w	adrW_00EE2A.l	;42790000EE2A
+	clr.w	PartyShieldRefresh_UnusedWord.l	;42790000EE2A
 	bra.s	Draw_PartyShieldSlot	;604A
 
 Draw_LeaderPanelPresentation:		; Memory Address ($7F0A) and binary offset [$7B86]
@@ -14388,7 +14390,8 @@ PocketIconCodeTable:		; Memory Address ($821E) and binary offset [$7E9A]
 	dc.b	$45	;45
 	dc.b	$46	;46
 
-adrL_008226:		; Memory Address ($8226) and binary offset [$7EA2]
+Complete_PlayerInterfaceAction:		; Memory Address ($8226) and binary offset [$7EA2]
+	; Synthetic return target pushed before the interface-action jump-table dispatch; after the handler returns, it updates the idle panel, shows any queued rejoin notice and refreshes the mode-dependent champion display.
 	tst.b	$0055(a5)	;4A2D0055
 	bpl.s	Show_QueuedPartyRejoinNotice	;6A04
 	bsr	Update_IdlePanelAnimation	;6100EB0E
@@ -15008,7 +15011,8 @@ FloppySideSelectFlag:		; Memory Address ($88A2) and binary offset [$851E]
 	dc.b	$00	;00
 	dc.b	$00	;00
 
-adrL_0088A4:		; Memory Address ($88A4) and binary offset [$8520]
+AudioChannel0_Interrupt:		; Memory Address ($88A4) and binary offset [$8520]
+	; Level-four Paula audio-channel-0 completion handler; stops channel-0 DMA, disables and acknowledges its interrupt, then returns from exception.
 	move.w	#$0001,_custom+dmacon.l		;33FC000100DFF096
 	move.w	#$0080,_custom+intena.l		;33FC008000DFF09A
 	move.w	#$0080,_custom+intreq.l		;33FC008000DFF09C
@@ -15423,7 +15427,8 @@ FrameUpdate_RestoreRegs_SharedExit:		; Memory Address ($8CBC) and binary offset 
 	movem.l	(sp)+,d0-d7/a0-a6	;4CDF7FFF
 RasterInterrupt_SignalDoneAndExit_SharedTail:		; Memory Address ($8CC0) and binary offset [$893C]
 	move.w	#$0010,_custom+intreq.l	;33FC001000DFF09C
-adrL_008CC8:		; Memory Address ($8CC8) and binary offset [$8944]
+Default_InterruptHandler:		; Memory Address ($8CC8) and binary offset [$8944]
+	; Single RTE installed across vectors $60-$7C before the level-two, level-three and level-four handlers are replaced; also serves as the shared return of the Copper/frame interrupt path.
 	rte	;4E73
 
 Swap_DisplayAndDrawBuffers:		; Memory Address ($8CCA) and binary offset [$8946]
@@ -23859,7 +23864,7 @@ TraceCipher_ActiveInstructionState:		; Memory Address ($D1F0) and binary offset 
 	dc.w	$0000	;0000
 	dc.w	$0000	;0000
 CopyProtection_SavedCPUCacheControl:		; Memory Address ($D1F8) and binary offset [$CE74]
-	; Saved 68020-or-later cache-control value; $FFFFFFFF marks an unavailable value.
+	; Saved 68020-or-later cache-control value used by the Copylock bootstrap and exit path; $FFFFFFFF marks an unavailable value.
 	dc.l	$FFFFFFFF	;FFFFFFFF
 
 CopyProtection_SaveStateAndEnterTraceCipher:		; Memory Address ($D1FC) and binary offset [$CE78]
@@ -24534,7 +24539,7 @@ CopyProtection_EncryptedDriveAndExitCode:		; Memory Address ($D59E) and binary o
 	rte	;4E73
 
 CopyProtection_PrivilegeExitHandler:		; Memory Address ($D740) and binary offset [$D3BC]
-	; Restores A4-A6 and subtracts the SPS 439 Copylock serial key so successful validation returns zero.
+	; Restores A4-A6 and subtracts the SPS 439 Copylock constant from D0 before returning. The exact success-result semantics remain unresolved.
 	movem.l	(sp)+,a4-a6	;4CDF7000
 	sub.l	#CopyProtection_SerialKey,d0	;04808488FFC4
 	rts	;4E75
@@ -26991,7 +26996,8 @@ Character_Pockets_DataTable:		; Memory Address ($ED2A) and binary offset [$E9A6]
 	dc.w	$0002	;0002
 	dc.w	$0A05	;0A05
 	dc.w	$0000	;0000
-adrW_00EE2A:		; Memory Address ($EE2A) and binary offset [$EAA6]
+PartyShieldRefresh_UnusedWord:		; Memory Address ($EE2A) and binary offset [$EAA6]
+	; Word immediately after the 256-byte champion-pockets table; non-leader party-shield refreshes clear it, but SPS 439 contains no read or other direct use.
 	dc.w	$0000	;0000
 ChampionSelectionLiveActionFlag:		; Memory Address ($EE2C) and binary offset [$EAA8]
 	; Distinguishes the champion-selection confirmation pass from the live action that exits into play.
@@ -46669,7 +46675,7 @@ MonsterBlock_mod0:		; Memory Address ($17584) and binary offset [$17200]
 	dc.w	$0000	;0000
 	dc.w	$0000	;0000
 	dc.w	$0000	;0000
-adrL_0186A0:		; Memory Address ($186A0) and binary offset [$1831C]
+adrL_0186A0:
 	dc.w	$0000	;0000
 	dc.w	$0000	;0000
 	dc.w	$0000	;0000

@@ -128,7 +128,7 @@ Initialise_CopperSpritePointersLoop:		; Memory Address ($050E) and binary offset
 	move.w	d0,$0002(a0)
 	addq.w	#$08,a0
 	dbra	d1,Initialise_CopperSpritePointersLoop
-	move.l	#adrL_008CC8,d0
+	move.l	#Default_InterruptHandler,d0
 	lea		$0060.w,a0															;Short Absolute replaced by symbol!
 	moveq	#$07,d1
 Initialise_InterruptVectorsLoop:		; Memory Address ($0538) and binary offset [$01B4]
@@ -137,7 +137,7 @@ Initialise_InterruptVectorsLoop:		; Memory Address ($0538) and binary offset [$0
 	dbra	d1,Initialise_InterruptVectorsLoop
 	move.l	#VerticalBlankInterupt,$006C.w										;Short Absolute converted to symbol!
 	move.l	#Level_2_Interrupt,$0068.w											;Short Absolute converted to symbol!
-	move.l	#adrL_0088A4,$0070.w												;Short Absolute converted to symbol!
+	move.l	#AudioChannel0_Interrupt,$0070.w									;Short Absolute converted to symbol!
 	move.w	#$7FFF,_custom+intena.l
 	move.b	_ciaa+ciacra.l,d0
 	move.b	#$21,_ciaa+ciacra.l
@@ -6876,7 +6876,10 @@ GFX_Fairy_ColourVariants:		; Memory Address ($462A) and binary offset [$42A6]
 	dc.w	$080C	;080C
 	dc.w	$0704	;0704
 	dc.w	$0808	;0808
-adrEA00463A:
+FairyShop_ClassInkTable:		; Memory Address ($463A) and binary offset [$42B6]
+	; Maps Fairy-shop class indices 0-3 to text inks $06, $0D, $0C and $08 for
+	; offered spell names and the purchase view; the values match the class accent
+	; inks in the adjacent fairy colour variants.
 	dc.w	$060D	;060D
 	dc.w	$0C08	;0C08
 SpellShop_CandidateSpellBitTable:		; Memory Address ($463E) and binary offset [$42BA]
@@ -7048,7 +7051,7 @@ FairyShop_AllSpellsKnownMessage:		; Memory Address ($4814) and binary offset [$4
 FairyShop_ShowSpellOfferResult:		; Memory Address ($481A) and binary offset [$4496]
 	bsr		Print_FormationSlotChampionName
 	move.w	(sp)+,d1
-	lea		adrEA00463A.w,a6													;Short Absolute converted to symbol!
+	lea		FairyShop_ClassInkTable.w,a6										;Short Absolute converted to symbol!
 	move.b	$00(a6,d1.w),CurrentTextInk_LowByte.l
 	move.l	screen_ptr.l,a0
 	add.w	$000A(a5),a0
@@ -7120,7 +7123,7 @@ FairyShop_ProcessSpellSelectionClick:		; Memory Address ($48AA) and binary offse
 	jsr		BW_draw_bar.l
 	move.b	$0044(a5),d0
 	bsr		Character_GetClassIndex
-	lea		adrEA00463A.w,a6													;Short Absolute converted to symbol!
+	lea		FairyShop_ClassInkTable.w,a6										;Short Absolute converted to symbol!
 	move.b	$00(a6,d0.w),CurrentTextInk_LowByte.l
 	add.w	#$0064,d0
 	move.l	screen_ptr.l,a0
@@ -7761,7 +7764,7 @@ CastSpell_RecordPractice:		; Memory Address ($5312) and binary offset [$4F8E]
 	; Increments the casting champion's per-spell practice counter with saturation
 	; at $FF.
 	move.l	(sp)+,a4
-	move.l	#adrL_007E22,a0
+	move.l	#SpellPractice_FromCharacterStatsOffset,a0
 	add.l	a4,a0
 	moveq	#$00,d0
 	move.b	ChampionStat_SpellToCast(a4),d0
@@ -8795,7 +8798,7 @@ Dispatch_PlayerInterfaceActionGuarded:		; Memory Address ($5B30) and binary offs
 	; Checks player state before dispatching the active action.
 	btst	#$06,$0018(a5)
 	bne.s	Return_ActionDispatchBlocked
-	pea		adrL_008226.l
+	pea		Complete_PlayerInterfaceAction.l
 Dispatch_PlayerInterfaceAction:		; Memory Address ($5B3E) and binary offset [$57BA]
 	; Indexes the dungeon InterfaceButtons jump table using PlayerX_Data+$0C.
 	move.w	PlayerData_ActionCommand(a5),d0										;Offset used to dispatch the active player interface command.
@@ -8853,7 +8856,7 @@ Return_NoDisplayContextAction:		; Memory Address ($5862) and binary offset [$54D
 Interface_Hitboxes_Display:		; Memory Address ($5864) and binary offset [$54E0]
 	; Existing mapping: three inclusive X/Y display-context hitbox records for
 	; actions $22-$24.
-	INCBIN "/data/BLOODWYCH439-clean/Interface_Hitboxes_Display"
+	INCBIN "/data/BLOODWYCH439-clean/data/Interface_Hitboxes_Display.lookup"
 
 HitTest_DisplayAction:		; Memory Address ($587C) and binary offset [$54F8]
 	; Input: A5 points to PlayerData. Clears the pending action to $FFFF and
@@ -8909,7 +8912,7 @@ Return_WallFeatureClick:		; Memory Address ($58EA) and binary offset [$5566]
 MainWall_Action_LookupTable:		; Memory Address ($58EC) and binary offset [$5568]
 	; Proposed: four relative offsets for shelf, decoration, switch and socket
 	; click handlers.
-	INCBIN "/data/BLOODWYCH439-clean/MainWall_Action_LookupTable"
+	INCBIN "/data/BLOODWYCH439-clean/data/MainWall_Action.lookup"
 
 MainWall_Action_01_Shelf:		; Memory Address ($58F4) and binary offset [$5570]
 	; Maps the clicked shelf height to one of the two shelf object subpositions
@@ -10423,7 +10426,7 @@ Calculate_SpellCastingQuality:		; Memory Address ($6778) and binary offset [$63F
 	and.w	#$0003,d2
 	move.b	SpellCasting_ProfessionBaseBonuses(pc,d2.w),d7
 SpellCastQuality_AfterClassBonus:		; Memory Address ($67AC) and binary offset [$6428]
-	move.l	#adrL_007E22,a1
+	move.l	#SpellPractice_FromCharacterStatsOffset,a1
 	add.l	a4,a1
 	moveq	#$00,d6
 	move.b	ChampionStat_SpellToCast(a4),d6
@@ -12126,7 +12129,7 @@ Commit_MapCellEntry:		; Memory Address ($7E44) and binary offset [$7AC0]
 MapType_TraversalDispatch:		; Memory Address ($7AD0) and binary offset [$774C]
 	; Eight signed dispatch values indexed by map-cell type during
 	; Try_EnterMapCell.
-	INCBIN "/data/BLOODWYCH439-clean/MapType_TraversalDispatch"
+	INCBIN "/data/BLOODWYCH439-clean/data/MapType_TraversalDispatch.lookup"
 
 Reverse_TraversalDirectionAndReject:		; Memory Address ($7E5C) and binary offset [$7AD8]
 	; Reverses the working direction before the common rejected-entry return.
@@ -12599,7 +12602,10 @@ Draw_PartyCommandMenu_PrintEntriesLoop:		; Memory Address ($7E12) and binary off
 	clr.b	TextDoubleWidthFlag.l
 	move.l	(sp)+,a0
 	add.w	#$0140,a0
-adrL_007E22:						equ	*-2	; Memory Address ($7E22) and binary offset [$7A9E]
+SpellPractice_FromCharacterStatsOffset:	equ	*-2	; Memory Address ($7E22) and binary offset [$7A9E]
+	; Displacement from Character_Stats_DataTable to Spells_Practiced_DataTable;
+	; adding it to a champion-record pointer selects that champion's 32-byte
+	; spell-practice row.
 	addq.w	#$01,d7
 	cmpi.w	#$0004,d7
 	bcs.s	Draw_PartyCommandMenu_PrintEntriesLoop
@@ -12702,7 +12708,7 @@ Refresh_PartyShieldSlotIfDirty_Dispatch:		; Memory Address ($7EF8) and binary of
 	or.b	#$03,$0054(a5)
 	tst.w	d7
 	beq.s	Draw_LeaderPanelPresentation
-	clr.w	adrW_00EE2A.l
+	clr.w	PartyShieldRefresh_UnusedWord.l
 	bra.s	Draw_PartyShieldSlot
 
 Draw_LeaderPanelPresentation:		; Memory Address ($7F0A) and binary offset [$7B86]
@@ -12979,7 +12985,7 @@ Return_PartyShieldStatusBars:		; Memory Address ($81C8) and binary offset [$7E44
 ChampionClassBarColours:		; Memory Address ($81CA) and binary offset [$7E46]
 	; Maps champion magic-alignment/class indices 0-3 to status-bar palette
 	; indices: $06, $0D, $0C, $07.
-	INCBIN "/data/BLOODWYCH439-clean/gfx-data/ChampionClassBarColours.lookup"
+	INCBIN "/data/BLOODWYCH439-clean/data/ChampionClassBarColours.lookup"
 
 Refresh_CurrentChampionMapPositionIcon:		; Memory Address ($81CE) and binary offset [$7E4A]
 	; Selects and schedules the active champion's current map-position icon after
@@ -13022,7 +13028,10 @@ PocketIconCodeTable:		; Memory Address ($821E) and binary offset [$7E9A]
 	dc.b	$45	;45
 	dc.b	$46	;46
 
-adrL_008226:		; Memory Address ($8226) and binary offset [$7EA2]
+Complete_PlayerInterfaceAction:		; Memory Address ($8226) and binary offset [$7EA2]
+	; Synthetic return target pushed before the interface-action jump-table
+	; dispatch; after the handler returns, it updates the idle panel, shows any
+	; queued rejoin notice and refreshes the mode-dependent champion display.
 	tst.b	$0055(a5)
 	bpl.s	Show_QueuedPartyRejoinNotice
 	bsr		Update_IdlePanelAnimation
@@ -13665,7 +13674,9 @@ FloppySideSelectFlag:		; Memory Address ($88A2) and binary offset [$851E]
 	; Selects which CIAB side-control pulse pattern the low-level floppy step and
 	; seek routines emit.
 	ds.b	$2
-adrL_0088A4:		; Memory Address ($88A4) and binary offset [$8520]
+AudioChannel0_Interrupt:		; Memory Address ($88A4) and binary offset [$8520]
+	; Level-four Paula audio-channel-0 completion handler; stops channel-0 DMA,
+	; disables and acknowledges its interrupt, then returns from exception.
 	move.w	#$0001,_custom+dmacon.l
 	move.w	#$0080,_custom+intena.l
 	move.w	#$0080,_custom+intreq.l
@@ -14078,7 +14089,10 @@ FrameUpdate_RestoreRegs_SharedExit:		; Memory Address ($8CBC) and binary offset 
 	movem.l	(sp)+,d0-d7/a0-a6
 RasterInterrupt_SignalDoneAndExit_SharedTail:		; Memory Address ($8CC0) and binary offset [$893C]
 	move.w	#$0010,_custom+intreq.l
-adrL_008CC8:		; Memory Address ($8CC8) and binary offset [$8944]
+Default_InterruptHandler:		; Memory Address ($8CC8) and binary offset [$8944]
+	; Single RTE installed across vectors $60-$7C before the level-two, level-three
+	; and level-four handlers are replaced; also serves as the shared return of the
+	; Copper/frame interrupt path.
 	rte		
 
 Swap_DisplayAndDrawBuffers:		; Memory Address ($8CCA) and binary offset [$8946]
@@ -15384,10 +15398,10 @@ Prepare_Monster_ScreenPosition_InvalidSlotReturn:		; Memory Address ($99C8) and 
 Monster_StairDepthSlot_XAdjustments:		; Memory Address ($99CC) and binary offset [$9648]
 	; Eight signed X adjustments used when placing an occupant in a type-4 stair
 	; cell.
-	INCBIN "/data/BLOODWYCH439-clean/gfx-data/Monster_StairDepthSlot_XAdjustments.positions"
+	INCBIN "/data/BLOODWYCH439-clean/DATA/Monster_StairDepthSlot_XAdjustments.positions"
 Monster_StairDepthSlot_YPositions:		; Memory Address ($99D4) and binary offset [$9650]
 	; Eight Y positions paired with the stair depth-slot X adjustments.
-	INCBIN "/data/BLOODWYCH439-clean/gfx-data/Monster_StairDepthSlot_YPositions.positions"
+	INCBIN "/data/BLOODWYCH439-clean/DATA/Monster_StairDepthSlot_YPositions.positions"
 
 Resolve_DungeonCellCentredSlot:		; Memory Address ($99DC) and binary offset [$9658]
 	; Maps the current view cell to its centred visibility bit and projected slot.
@@ -18931,7 +18945,7 @@ Dispatch_ChampionSelectionAction:		; Memory Address ($C5D6) and binary offset [$
 	asl.w	#$02,d0
 	lea		ChampionSelection_ActionHandlers.l,a0
 	move.l	$00(a0,d0.w),a0
-ChampionSelection_ActionHandlers:	equ	*-2	; Memory Address ($C5E6) and binary offset [$C262]
+ChampionSelection_ActionHandlers:		equ	*-2	; Memory Address ($C5E6) and binary offset [$C262]
 	; Champion-selection action handler table; its numeric meanings differ from
 	; dungeon InterfaceButtons.
 	jmp		(a0)
@@ -20463,8 +20477,8 @@ TraceCipher_ActiveInstructionState:		; Memory Address ($D1F0) and binary offset 
 	; instruction window.
 	ds.b	$8
 CopyProtection_SavedCPUCacheControl:		; Memory Address ($D1F8) and binary offset [$CE74]
-	; Saved 68020-or-later cache-control value; $FFFFFFFF marks an unavailable
-	; value.
+	; Saved 68020-or-later cache-control value used by the Copylock bootstrap and
+	; exit path; $FFFFFFFF marks an unavailable value.
 	dc.l	$FFFFFFFF	;FFFFFFFF
 
 CopyProtection_SaveStateAndEnterTraceCipher:		; Memory Address ($D1FC) and binary offset [$CE78]
@@ -20595,10 +20609,10 @@ CopyProtection_EncryptedDriveAndExitCode:		; Memory Address ($D59E) and binary o
 	rte		
 
 CopyProtection_PrivilegeExitHandler:		; Memory Address ($D740) and binary offset [$D3BC]
-	; Restores A4-A6 and subtracts the SPS 439 Copylock serial key so successful
-	; validation returns zero.
+	; Restores A4-A6 and subtracts the SPS 439 Copylock constant from D0 before
+	; returning. The exact success-result semantics remain unresolved.
 	movem.l	(sp)+,a4-a6
-	sub.l	#CopyProtection_SerialKey,d0										;Returns zero only when the recovered Copylock serial matches the SPS 439 key.
+	sub.l	#CopyProtection_SerialKey,d0										;Subtracts the SPS 439 Copylock constant from the protected routine's result before returning.
 	rts		
 
 Print_com_menu_entry:		; Memory Address ($D74C) and binary offset [$D3C8]
@@ -21781,7 +21795,10 @@ Character_Stats_DataTable:		; Memory Address ($EB2A) and binary offset [$E7A6]
 	INCBIN "/data/BLOODWYCH439-clean/data/champions.stats"
 Character_Pockets_DataTable:		; Memory Address ($ED2A) and binary offset [$E9A6]
 	INCBIN "/data/BLOODWYCH439-clean/data/champions.pockets"
-adrW_00EE2A:		; Memory Address ($EE2A) and binary offset [$EAA6]
+PartyShieldRefresh_UnusedWord:		; Memory Address ($EE2A) and binary offset [$EAA6]
+	; Word immediately after the 256-byte champion-pockets table; non-leader
+	; party-shield refreshes clear it, but SPS 439 contains no read or other direct
+	; use.
 	ds.b	$2
 ChampionSelectionLiveActionFlag:		; Memory Address ($EE2C) and binary offset [$EAA8]
 	; Distinguishes the champion-selection confirmation pass from the live action

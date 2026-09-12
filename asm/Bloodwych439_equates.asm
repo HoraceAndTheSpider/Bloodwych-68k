@@ -239,7 +239,7 @@ CopperInterrupt_RequestWord:							equ	$8010		; CopperList_01 writes $8010 to IN
 
 CopyProtection_CapturedByteCount:						equ	$32			; Number of raw bytes captured after the disk-sync match.
 CopyProtection_RawTrackBufferSize:						equ	$46			; Byte size of the zero-filled raw-track capture and scan buffer at $D140.
-CopyProtection_SerialKey:								equ	$8488FFC4	; SPS 439 Rob Northen Copylock serial key checked by the protected exit handler.
+CopyProtection_SerialKey:								equ	$8488FFC4	; SPS 439 Rob Northen Copylock constant subtracted from D0 by the protected exit handler.
 CopyProtection_SkippedWordCount:						equ	$03CE		; Number of following disk words counted to measure the remainder of the protected sector.
 CopyProtection_SyncWordCount:							equ	$0B			; Number of Copylock disk-sync words in the lookup at $D584.
 
