@@ -395,7 +395,7 @@ def _requires_selective_o2(
     actual_opcode: str,
     zero_equate_names: set[str],
 ) -> bool:
-    """Return whether this rewrite safely needs local Devpac O2 optimisation."""
+    """Return whether the rewritten instruction safely needs local Devpac O2."""
 
     if not zero_equate_names:
         return False
@@ -422,10 +422,14 @@ def _requires_selective_o2(
         return False
 
     for operand_index, register in zero_displacements:
-        plain_register = re.fullmatch(
-            rf"\(\s*a{register}\s*\)", original[operand_index], re.IGNORECASE
-        )
-        if not plain_register or not _opcode_uses_plain_address_register(
+        # The opcode is the durable proof that the original instruction used
+        # extension-free ``(An)`` addressing.  Do not also require the current
+        # match text to spell that operand as ``(An)``: a later scoped rule may
+        # be rewriting another operand after an earlier rule has already
+        # changed it to ``ZeroEquate(An)``.  Requiring the source spelling here
+        # caused that later pass to discard the pending O2 wrapper and let
+        # Devpac expand the address to ``$0000(An)``.
+        if not _opcode_uses_plain_address_register(
             rule.mnemonic,
             operand_index,
             len(replacement),

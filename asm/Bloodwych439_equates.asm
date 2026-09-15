@@ -58,6 +58,12 @@ ActorRecord_SizeShift:									equ	$04			; Converts a live monster byte offset i
 ActorRecord_XPosition:									equ	$00			; Copies the X coordinate while compacting team records.
 ActorRecord_YPosition:									equ	$01			; Copies the Y coordinate while compacting team records.
 
+AirbourneEffect_ConfuseIndex:							equ	$0B			; Decoded low-six-bit effect index selecting Confuse after the queued airborne code is unpacked.
+AirbourneEffect_DisruptIndex:							equ	$03			; Decoded low-six-bit effect index selecting Disrupt after the queued airborne code is unpacked.
+AirbourneEffect_ParalyzeIndex:							equ	$0C			; Decoded low-six-bit effect index selecting Paralyze after the queued airborne code is unpacked.
+AirbourneEffect_SpelltapIndex:							equ	$0E			; Decoded low-six-bit effect index selecting Spelltap after the queued airborne code is unpacked.
+AirbourneEffect_TerrorIndex:							equ	$0F			; Decoded low-six-bit effect index selecting Terror after the queued airborne code is unpacked.
+
 AirbourneSpell_ArcBolt:									equ	$82			; Live-entity form code used by Arc Bolt projectiles.
 AirbourneSpell_Arrow:									equ	$88			; Live-entity form code used by ordinary arrows in flight.
 AirbourneSpell_Beguile:									equ	$8D			; Spell-effect code queued after Beguile changes the communication state.
@@ -89,6 +95,10 @@ CellEffect_Vivify:										equ	$86			; Effect code queued at the Vivify revival
 
 Champion_Count:											equ	$10			; Loops over all champion records during location lookup.
 
+ChampionFairySpellOffer_CountMask:						equ	$7F			; Mask selecting the Fairy spell-offer count below its high pending flag.
+ChampionFairySpellOffer_PendingBit:						equ	$07			; High-bit index marking a pending Fairy spell offer in ChampionStat_FairySpellCount.
+ChampionFairySpellOffer_PendingValue:					equ	$81			; Value marking one pending Fairy spell offer while retaining the field's high-bit pending flag.
+
 ChampionIndex_Astroth:									equ	$04			; Champion index for Astroth.
 ChampionIndex_Baldrick:									equ	$06			; Champion index for Baldrick.
 ChampionIndex_Blodwyn:									equ	$00			; Champion index for Blodwyn.
@@ -109,12 +119,19 @@ ChampionIndex_Zothen:									equ	$05			; Champion index for Zothen.
 ChampionLargeAvatar_DrawDimensions:						equ	$0001001D	; Packed DBRA terminal counts for a large champion portrait: two 16-pixel words across and 30 rows.
 
 ChampionLevel_FairyAutoLevelMaximum:					equ	$0E			; Highest champion level reachable through the Fairy shop's automatic catch-up level-up path.
+ChampionLevel_KillBonusDoubleThreshold:					equ	$09			; Monster levels below nine receive the additional low-level kill-progress subtraction.
+
+ChampionLevelProgress_LevelUpWindowStart:				equ	$EC			; Unsigned level-progress values $EC-$FF mark the level-up-ready underflow window and suppress further kill-progress subtraction.
+
+ChampionLevelUp_MinimumHitPointGain:					equ	$09			; Minimum hit-point increase added during champion level growth.
 
 ChampionPocket_BodyArmour:								equ	$02			; Offset of the dedicated body-armour pocket.
+ChampionPocket_CoinageCountOffset:						equ	$0C			; Offset of the coinage quantity byte in a sixteen-byte champion-pockets record.
 ChampionPocket_CountedObjectCountsOffset:				equ	$0B			; Base offset of the object-code-indexed counted-object quantities in a champion-pockets record.
 ChampionPocket_EquipmentSlotCount:						equ	$04			; Number of dedicated equipment slots: left hand, right hand, body armour and shield.
 ChampionPocket_LastIndex:								equ	$0B			; Highest ordinary pocket index in the twelve-pocket scan.
 ChampionPocket_LeftHand:								equ	$00			; Offset of the left-hand pocket in a sixteen-byte champion-pockets record.
+ChampionPocket_ObjectSlotsOffset:						equ	$00			; Base offset of the twelve visible object-code slots in a champion's sixteen-byte pocket record.
 ChampionPocket_RecordSize:								equ	$10			; Size in bytes of one champion-pockets record.
 ChampionPocket_RecordSizeShift:							equ	$04			; Shift converting a champion-pockets byte offset into its champion index.
 ChampionPocket_RightHand:								equ	$01			; Offset of the right-hand pocket in a champion-pockets record.
@@ -134,10 +151,13 @@ ChampionStat_Floor:										equ	$1A			; Compares the champion floor during loca
 ChampionStat_FoodLevel:									equ	$10			; Stores the updated food level.
 ChampionStat_HitPointsCurrent:							equ	$05			; Restores current hit points to maximum.
 ChampionStat_HitPointsMaximum:							equ	$06			; Offset of maximum hit points in a character-stat record.
+ChampionStat_HitPointsMaximumValue:						equ	$FD			; Maximum stored champion hit-point value used when level growth overflows.
 ChampionStat_Intelligence:								equ	$03			; Champion record intelligence field.
 ChampionStat_KnownSpellMask:							equ	$0C			; Offset of the champion's 32-bit known-spell mask; one bit represents each spell index 0-31.
 ChampionStat_Level:										equ	$00			; Champion record level field.
 ChampionStat_LevelProgress:								equ	$1C			; Champion level-progress field.
+ChampionStat_PercentageLimitExclusive:					equ	$64			; Exclusive limit 100 used before clamping champion vitality and primary statistics to 99.
+ChampionStat_PercentageMaximum:							equ	$63			; Maximum stored value 99 for champion vitality and primary percentage-style statistics.
 ChampionStat_RecordSize:								equ	$20			; Advances to the next champion record.
 ChampionStat_RecordSizeShift:							equ	$05			; Right-shift count corresponding to the $20-byte champion record size.
 ChampionStat_SpellCooldown:								equ	$15			; Brimstone Broth clears spell cooldown.
@@ -161,6 +181,7 @@ Character_ProfessionMask:								equ	$03			; Low two bits used to select one of 
 Character_Zendik:										equ	$40			; Character identifier $40 represents Zendik; specific source uses still need identifying.
 
 CharacterActionState_ChampionSpellStart:				equ	$0F			; Champion action cooldown applied when a spell-cast attempt begins.
+CharacterActionState_ClearParalyzeMask:					equ	$7F			; Mask clearing the Paralyse flag while preserving the remaining action-state bits.
 CharacterActionState_CommunicationStart:				equ	$17			; Initial state for the communication action/render sequence.
 CharacterActionState_ConfuseBit:						equ	$06			; Bit marking Confuse in a character action-state byte.
 CharacterActionState_ConfuseOrTerrorMask:				equ	$60			; Mask selecting the Confuse and Terror status bits in a live actor action-state byte.
@@ -184,6 +205,7 @@ Combat_StrengthBias:									equ	$08			; Internal Strength bias applied before p
 
 Comms_CharismaBaseline:									equ	$14			; Charisma receives no initial communication bonus at or below this value.
 Comms_CharismaShift:									equ	$02			; Right shift converting excess Charisma into an initial attitude bonus.
+Comms_PermitTradeValue:									equ	$5A			; Special fixed trade value used for the Permit object.
 
 CommsAction_Boast:										equ	$18			; Communication action selected by Boast.
 CommsAction_Bribe:										equ	$08			; Communication action selected by Bribe.
@@ -219,6 +241,7 @@ CommsState_FlagsOffset:									equ	$05			; Offset of communication record flags
 CommsState_OtherCharacterOffset:						equ	$02			; Offset of the addressed character identifier and its identity flags.
 CommsState_PatienceOffset:								equ	$07			; Offset of communication patience or remaining engagement.
 CommsState_PreviousActionOffset:						equ	$00			; Offset of the action to which the other character is responding.
+CommsState_RecordSize:									equ	$10			; Size in bytes of one player's communication-state record.
 CommsState_SpeakerIdentityOffset:						equ	$03			; Offset of the speaker identifier and disclosed-name/profession flags.
 CommsState_TimerOffset:									equ	$04			; Offset of the communication activity timer reset after an action.
 CommsState_TradeModeOffset:								equ	$08			; Offset of the active communication trading mode.
@@ -231,6 +254,8 @@ CommsTradeMode_Purchase:								equ	$01			; Purchase communication mode.
 CommsTradeMode_Sell:									equ	$03			; Sell communication mode.
 
 CompactStatsBar_LastIndex:								equ	$02			; The compact player panel draws bar indices zero through two, giving exactly three statistics bars.
+
+ConfuseRecovery_ResistancePower:						equ	$1E			; Effect-power input 30 used by the periodic Confuse recovery resistance roll.
 
 Copper_Player1FrameWrapRasterY:							equ	$FF			; CopperList_01 requests the Player 1/frame service at the $FF raster wrap boundary.
 Copper_Player2RasterY:									equ	$98			; CopperList_01 requests the Player 2 raster service after waiting for vertical position $98.
@@ -266,6 +291,7 @@ DungeonRender_OccupantCode:								equ	-$17		; Stack-frame byte holding the curr
 DungeonRender_OccupantFacing:							equ	-$1B		; Stack-frame byte holding the current occupant's facing before conversion to viewer-relative orientation.
 DungeonRender_ViewerFacing:								equ	-$0A		; Stack-frame word holding the dungeon viewer's facing during viewport rendering.
 
+FairyShop_ClickBandSize:								equ	$10			; Sixteen-pixel width or height used by the Fairy shop's compact click bands; unrelated to the champion count.
 FairyShop_LevelProgressAutoLevelThreshold:				equ	$EC			; Level-progress value at which the Fairy shop grants a catch-up level when the champion is below level fourteen.
 
 FloorFeature_SubtypeMask:								equ	$03			; Extracts the floor feature independently of the ceiling-hole flag.
@@ -384,9 +410,11 @@ Map_ResourceSize:										equ	$1000		; Fixed map allocation; object records beg
 MapCell_ClearFeatureWordMask:							equ	$F8			; Clear first-byte feature data and the three-bit type, retaining second-byte flags.
 MapCell_ClearTypeMask:									equ	$F8			; Clear the cell type while preserving upper second-byte flags.
 MapCell_ConcealedBit:									equ	$03			; Map-cell flag bit set by Conceal and cleared by Dispel.
+MapCell_DataOffset:										equ	$00			; Offset of the first byte, and base of the two-byte map-cell record. The byte is feature/subtype data whose meaning depends on the low three-bit cell type.
 MapCell_MagelockedBit:									equ	$04			; Door-state flag bit toggled by Magelock.
 MapCell_ObjectPresentBit:								equ	$06			; Marks map cells that have a floor or shelf object stack.
 MapCell_OccupiedBit:									equ	$07			; Map-cell occupied flag updated when a player changes floor.
+MapCell_PendingEffectBit:								equ	$05			; Map-cell flag bit marking a queued spell or collision effect for later processing.
 MapCell_PillarWord:										equ	$0103		; First byte one and map-cell type three define the puzzle pillar.
 MapCell_SpellEntityBit:									equ	$07			; Marks a map cell as containing a live spell or summoned entity.
 MapCell_Type_MagicLocation:								equ	$07			; Map-cell type value shared by Firepath, Mindrock and Formwall.
@@ -397,8 +425,15 @@ MapCell_Type_Space:										equ	$00			; Editor map-cell type 0: empty or reserv
 MapCell_Type_Stair:										equ	$04			; Selects the stair transition path.
 MapCell_Type_StoneWall:									equ	$01			; Editor map-cell type 1: stone wall and its facing shelf, sign, switch or socket feature.
 MapCell_Type_WoodWall:									equ	$02			; Map-cell type 2 used by wooden walls and their embedded doors.
+MapCell_TypeAndFlagsOffset:								equ	$01			; Offset of the second map-cell byte. Its low three bits are the cell type; upper bits are context-dependent flags such as concealed, magelocked, object-present and occupied/entity state.
 MapCell_TypeMask:										equ	$07			; Low three bits of the second byte select the map-cell type.
 MapCell_WallTogglePreserveMask:							equ	$F9			; Discard first-byte data and type bits 1-2 before toggling stone-wall bit zero.
+
+MapCellImpactEntry_CellOffset:							equ	$00			; Offset of the map-cell offset word in a four-byte queued impact entry.
+MapCellImpactEntry_EffectOffset:						equ	$02			; Offset of the encoded effect word in a four-byte queued impact entry.
+MapCellImpactEntry_SizeShift:							equ	$02			; Shift converting a queued impact index into its four-byte entry offset.
+
+MapCellImpactList_CountOffset:							equ	-$02		; Signed count/header word immediately before the first queued map-cell impact entry.
 
 Monster_Behemoth_ColourGradeOffset:						equ	$06			; Grade offset subtracted before selecting the Behemoth colour lookup entry.
 Monster_Beholder_ColourGradeOffset:						equ	$04			; Grade offset subtracted before selecting the Beholder colour lookup entry.
@@ -410,6 +445,7 @@ Monster_Summon_ColourGradeOffset:						equ	$02			; Grade offset subtracted befor
 
 MonsterActionCountdown_LevelBase:						equ	$0E			; Level value used as the starting point for monster action-countdown calculation.
 MonsterActionCountdown_Minimum:							equ	$08			; Minimum monster action-countdown level.
+MonsterActionCountdown_SpecialForm:						equ	$10			; Fixed action-cycle timer assigned to negative/special live actor forms when tower monsters are unpacked.
 
 MonsterAttackSpell_ArcBoltIndex:						equ	$0B			; Selects entry eleven of the monster attack-spell table.
 MonsterAttackSpell_HighPowerFlag:						equ	$80			; Retains the spellbook flag that suppresses the normal final divide-by-two power step.
@@ -423,6 +459,9 @@ MonsterAttackType_Spells:								equ	$01			; Monster attack-type index for norma
 
 MonsterForm_Behemoth:									equ	$67			; Live actor form used by the Behemoth and the first form in the large-monster renderer range.
 MonsterForm_DemonBeastman:								equ	$1A			; Live monster form for the Demon/Beastman, whose renderer alternates between graphics $1A and $1B to create a flicker effect.
+MonsterForm_Entropy:									equ	$6B			; Live actor form for Entropy, whose fixed death drop is the Chromatic Key.
+MonsterForm_Summon:										equ	$64			; Live actor form for a summoned creature; transient instances are purged before spell-entity allocation and leave no random loot.
+MonsterForm_TraderEndExclusive:							equ	$17			; Exclusive end of the two-form trader range: weapon trader $15 and potion trader $16.
 MonsterForm_TraderPotions:								equ	$16			; Live actor form used by the potion trader.
 MonsterForm_TraderWeapons:								equ	$15			; Live actor form used by the weapon trader.
 MonsterForm_Zendik:										equ	$40			; Checks the reserved Zendik form.
@@ -430,7 +469,10 @@ MonsterForm_Zendik:										equ	$40			; Checks the reserved Zendik form.
 MonsterHitPoints_BaseBonus:								equ	$19			; Base value added to calculated monster hit points.
 MonsterHitPoints_DefaultMultiplierHigh:					equ	$0190		; Default high-level monster hit-point multiplier.
 MonsterHitPoints_DefaultMultiplierMid:					equ	$FA			; Default middle-level monster hit-point multiplier.
+MonsterHitPoints_HighLevelThreshold:					equ	$19			; Level 25 boundary selecting the default high-level monster hit-point multiplier.
+MonsterHitPoints_MiddleLevelThreshold:					equ	$10			; Level 16 boundary selecting the default middle-level monster hit-point multiplier.
 
+MonsterLevel_DisruptImmunityThreshold:					equ	$15			; Unsigned live-monster base levels at or above twenty-one seed zero Disrupt damage.
 MonsterLevel_TransientFlagBit:							equ	$07			; High bit toggled in the effective monster level during the level-resistance adjustment.
 MonsterLevel_ValueMask:									equ	$7F			; Mask retaining the seven-bit monster level while excluding its transient high-bit flag.
 
@@ -477,6 +519,7 @@ Object_BookOfSkulls:									equ	$6D			; Book of Skulls object and exclusive end
 Object_Bows_First:										equ	$5C			; First bow object.
 Object_ChampionRemainsFirst:							equ	$40			; Remains objects $40-$4F identify the sixteen champions.
 Object_ChaosGloves:										equ	$2B			; Chaos Gloves object code.
+Object_ChromaticKey:									equ	$56			; Chromatic Key object code; Entropy drops this fixed object on death.
 Object_Coinage:											equ	$01			; Coinage object code.
 Object_CommonKeys:										equ	$02			; Common-key object code.
 Object_Crystals_First:									equ	$60			; First crystal object.
@@ -519,6 +562,8 @@ ObjectStack_ItemBytes:									equ	$02			; Grows the used object payload by one 
 ObjectStack_MapOffsetMask:								equ	$3FFF		; Retains the 14-bit map-payload byte offset; bits 15-14 encode the object mini-space.
 ObjectStack_MinimumBytes:								equ	$05			; Minimum record is location word, count-minus-one byte, and one object/quantity pair.
 
+PackedCoordinate_NoPositionBit:							equ	$17			; Bit 23 of the assembled X/Y register, corresponding to bit 7 of the packed X byte and marking no valid map position.
+
 PackedMonster_FloorEncodingBias:						equ	$01			; Removes the packed floor encoding bias before splitting type and floor.
 PackedMonster_FormOffset:								equ	$04			; Packed monster form/graphic identifier.
 PackedMonster_LevelOffset:								equ	$03			; Packed monster level.
@@ -533,6 +578,8 @@ PackedMonster_TypeAndFloorOffset:						equ	$00			; Packed byte containing monste
 PackedMonster_TypeShift:								equ	$04			; Extracts the packed monster type nibble.
 PackedMonster_XCoordinateOffset:						equ	$01			; Packed monster X coordinate.
 PackedMonster_YCoordinateOffset:						equ	$02			; Packed monster Y coordinate.
+
+ParalyzeRecovery_ResistancePower:						equ	$14			; Effect-power input 20 used by the periodic Paralyse recovery resistance roll.
 
 PartyCommandState_ShowTeamAvatars:						equ	$FFFF		; Selects the negative party-command state used to draw the team-avatar view.
 
@@ -566,6 +613,7 @@ Player1_CompactStatsColourIndex:						equ	$07			; The compact Player 1 statistic
 Player2_CompactStatsColourIndex:						equ	$0C			; The compact Player 2 statistics bars use hard-coded palette index $0C.
 
 PlayerData_ActionCommand:								equ	$0C			; Offset of the active per-player interface command.
+PlayerData_AvatarPresentation_AllDirtyMask:				equ	$0F			; Mask marking all four party-avatar presentation slots dirty for redraw.
 PlayerData_AvatarPresentationState:						equ	$3E			; Offset of the four-bit main/lower-avatar presentation state in a PlayerX_Data record.
 PlayerData_ChampionSlots_AwayBit:						equ	$05			; Champion-slot bit marking an externally positioned or away champion.
 PlayerData_ChampionSlots_ChampionMask:					equ	$0F			; Mask selecting the champion index from a PlayerData champion-slot byte.
@@ -595,6 +643,7 @@ PlayerData_InteractionPartySlotIndex:					equ	$4F			; Offset of the party-slot i
 PlayerData_InteractionSelectionStage:					equ	$4E			; Offset of the interaction or target-selection stage byte.
 PlayerData_InterfaceActionParameter:					equ	$0E			; Word parameter accompanying PlayerData_ActionCommand; its meaning is selected champion, inventory slot, spell cell or page control according to the command.
 PlayerData_InterfaceContextState:						equ	$14			; Offset of the interface context and deferred-action state byte.
+PlayerData_InterfaceModeScratch:						equ	$44			; Offset of the mode-dependent interface scratch word. Communication uses it for wait state, inventory and party-command paths use it for selection state, and the Fairy shop stores two candidate spell bytes.
 PlayerData_InterfacePanelMode:							equ	$15			; Offset of the main interface panel mode byte.
 PlayerData_InterfacePanelYOffset:						equ	$08			; Offset of the player-specific interface-panel Y adjustment.
 PlayerData_InterfaceRepeatCountdown:					equ	$22			; Offset of the interface repeat/countdown timer word.
@@ -656,6 +705,10 @@ Quickstart_YPosition:									equ	$17			; Stores the shared authored Quickstart 
 
 Recharge_PowerShift:									equ	$03			; Right shift converting spell power into replacement magic-ring uses.
 
+ResistanceRoll_BaseThreshold:							equ	$64			; Base value 100 in the ordinary resistance threshold 8*level+100-2*power.
+ResistanceRoll_LevelShift:								equ	$03			; Shift multiplying the subject level by eight in the resistance threshold formula.
+ResistanceRoll_MinimumThreshold:						equ	$0A			; Fallback threshold 10 used when the ordinary resistance calculation becomes negative.
+
 SaveDataTrackLastIndex:									equ	$08			; DBRA last index for the nine raw floppy tracks transferred as champion save data.
 
 Screen_Bitplane2Offset:									equ	$3E80		; Byte offset of bitplane 2 from bitplane 0 in a four-plane screen.
@@ -677,6 +730,7 @@ Sound_DoorClick:										equ	$01			; Sound ID for the ordinary wall-feature or 
 Sound_SpellRoar:										equ	$04			; Sound ID for the spell or fireball sound.
 Sound_SwitchClick:										equ	$00			; Sound ID for the switch or interface click effect.
 
+SpellBook_ExtraControlXThreshold:						equ	$10			; Local X threshold separating the spell-book grid from its extra control buttons; unrelated to the champion count.
 SpellBook_PageSpreadIncrement:							equ	$02			; Advances the spell book by one two-page spread.
 
 SpellCastBarState_Disabled:								equ	$FF			; State value disabling the spell-casting bar after the lower text area is reused.
@@ -696,6 +750,8 @@ SpellCastingCostMultiplier:								equ	$05			; Multiplier applied to the selecte
 SpellEntity_CasterIndexOffset:							equ	$0C			; Subtype overlay at live-record byte $0C holding a spell entity's caster index.
 SpellEntity_PowerOffset:								equ	$06			; Subtype overlay at live-record byte $06 holding a spell entity's power or summoned level.
 
+SpellIndex_ClassMirrorThreshold:						equ	$10			; Spell-index boundary at which class derivation mirrors indices $10-$1F; unrelated to champion-record counting.
+
 SpellPracticeClearLongwordLastIndex:					equ	$7F			; Last longword index cleared when initialising the 512-byte spell-practice table.
 
 Stair_DownBit:											equ	$00			; A clear bit ascends one floor; a set bit descends one floor.
@@ -704,6 +760,8 @@ StoneWall_FacingMask:									equ	$30			; Facing occupies second-byte bits 4-5.
 StoneWall_FacingPreserveMask:							equ	$CF			; Keep all second-byte fields except the wall-facing bits.
 StoneWall_FacingStep:									equ	$10			; Advance the two-bit wall-facing field by one direction.
 StoneWall_RemoveFeatureMask:							equ	$4F			; Removing a stone wall clears its decoration flag and facing bits.
+
+TerrorRecovery_ResistancePower:							equ	$28			; Effect-power input 40 used by the periodic Terror recovery resistance roll.
 
 TriggerAction_FlashTeleport:							equ	$2A			; Action byte is a byte offset into the trigger word-displacement table.
 TriggerAction_VivifyExternal:							equ	$08			; Action byte is a byte offset into the trigger word-displacement table.

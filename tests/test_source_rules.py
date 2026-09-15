@@ -486,6 +486,45 @@ class SelectiveO2SourceRuleTests(unittest.TestCase):
         self.assertIn("\tOPT\tO2+", result)
         self.assertIn("\tOPT\tO2-", result)
 
+    def test_later_rule_preserves_zero_displacement_o2_requirement(self) -> None:
+        lines = ["Start:", "\tcmp.b\t#$0E,(a4)\t;0C14000E", "End:"]
+        level_offset = self.make_rule(
+            "level-offset",
+            "cmp.b",
+            "#$0E,(a4)",
+            "0C14000E",
+            "#$0E,ChampionStat_Level(a4)",
+        )
+        level_limit = self.make_rule(
+            "level-limit",
+            "cmp.b",
+            "#$0E,ChampionStat_Level(a4)",
+            "0C14000E",
+            "#ChampionLevel_FairyAutoLevelMaximum,ChampionStat_Level(a4)",
+            equ_name="ChampionLevel_FairyAutoLevelMaximum",
+        )
+
+        result = self.apply_both(
+            lines,
+            (
+                equate("ChampionStat_Level", 0),
+                equate("ChampionLevel_FairyAutoLevelMaximum", 0x0E),
+            ),
+            (level_offset, level_limit),
+        )
+
+        self.assertEqual(
+            result,
+            [
+                "Start:",
+                "\tOPT\tO2+",
+                "\tcmp.b\t#ChampionLevel_FairyAutoLevelMaximum,"
+                "ChampionStat_Level(a4)\t;0C14000E",
+                "\tOPT\tO2-",
+                "End:",
+            ],
+        )
+
     def test_plain_an_move_destination_is_proved_from_destination_ea_bits(self) -> None:
         lines = ["Start:", "\tmove.b\td7,(a4)\t;1887", "End:"]
         source_rule = self.make_rule(
