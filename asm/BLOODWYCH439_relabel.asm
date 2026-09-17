@@ -1322,6 +1322,8 @@ ChampionStat_PercentageLimitExclusive:		equ	$64
 	; Exclusive limit 100 used before clamping champion vitality and primary statistics to 99.
 ChampionLevelUp_MinimumHitPointGain:		equ	$09
 	; Minimum hit-point increase added during champion level growth.
+CodeMover_LegacyCopyBias:		equ	$B8
+	; Additional trailing bytes copied after the labelled game payload by the relocation bootstrap.
 
 ****************************************************************************
 
@@ -1365,7 +1367,7 @@ ProgStart:
 ; Now gets relocated to $0400.
 ;  
 CodeMover:
-	move.l	#$0005909C,d0	;203C0005909C
+	move.l	#GameEnd-GameStart+CodeMover_LegacyCopyBias,d0	;203C0005909C
 	move.w	#$7FFF,_custom+intreq.l	;33FC7FFF00DFF09C
 	lea	GameStart.l,a0	;41F900000400
 .loop:
@@ -1386,7 +1388,7 @@ CodeMover:
 GameStart:
 	move.w	#$7FFF,_custom+intena.l	;33FC7FFF00DFF09A
 	move.w	#$7FFF,_custom+intreq.l	;33FC7FFF00DFF09C
-	lea	$0005FFFC.l,sp	;4FF90005FFFC
+	lea	Screen_BufferBase-$0004.l,sp	;4FF90005FFFC
 	clr.b	InputProcessingEnabledFlag.l	;423900008C1F
 	bsr	Init_CustomChipRegisters	;61000074
 	clr.b	TextDoubleWidthFlag.l	;42390000EE2D

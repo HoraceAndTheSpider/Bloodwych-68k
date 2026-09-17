@@ -43,7 +43,7 @@ ProgStart:
 ; Now gets relocated to $0400.
 ;  
 CodeMover:
-	move.l	#$0005909C,d0
+	move.l	#GameEnd-GameStart+CodeMover_LegacyCopyBias,d0						;Loads a label-derived relocation limit so the copied range grows with the assembled game payload.
 	move.w	#$7FFF,_custom+intreq.l
 	lea		GameStart.l,a0
 .loop:
@@ -64,7 +64,7 @@ CodeMover:
 GameStart:
 	move.w	#$7FFF,_custom+intena.l
 	move.w	#$7FFF,_custom+intreq.l
-	lea		$0005FFFC.l,sp
+	lea		Screen_BufferBase-$0004.l,sp										;Initialises the descending stack immediately below the screen-buffer region.
 	clr.b	InputProcessingEnabledFlag.l
 	bsr		Init_CustomChipRegisters
 	clr.b	TextDoubleWidthFlag.l

@@ -99,6 +99,9 @@ CodeMover:
 	dc.w	$0000	;0000
 
 GameStart:
+	; Rebuilt sources derive the stack top from Screen_BufferBase-$0004. The
+	; original base is $60000; use $F0000 for an expanded 1 MiB Chip RAM build,
+	; giving stack $EFFFC and two $7D00-byte buffers at $F0000-$FF9FF.
 	move.w	#$7FFF,_custom+intena.l	;33FC7FFF00DFF09A
 	move.w	#$7FFF,_custom+intreq.l	;33FC7FFF00DFF09C
 	lea	$0005FFFC.l,sp	;4FF90005FFFC

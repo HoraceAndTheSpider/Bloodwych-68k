@@ -201,6 +201,8 @@ CharacterActionTimer_ReloadShift:						equ	$04			; Shift moving the action-cycle
 CharacterState_ActionStateFromFacingOffset:				equ	$03			; Relative offset from a character facing field to its action-state byte.
 CharacterState_ChampionRecordBias:						equ	$16			; Difference between the matching monster and champion movement/action-state field offsets.
 
+CodeMover_LegacyCopyBias:								equ	$B8			; Additional trailing bytes copied after the labelled game payload by the relocation bootstrap.
+
 Combat_StrengthBias:									equ	$08			; Internal Strength bias applied before physical-combat thresholds.
 
 Comms_CharismaBaseline:									equ	$14			; Charisma receives no initial communication bonus at or below this value.
